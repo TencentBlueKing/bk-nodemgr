@@ -150,11 +150,12 @@ type transferOptions struct {
 
 // PluginConf defines the plugin config.
 type PluginConf struct {
-	Set                 string         `json:"set" bson:"set"`
-	TemplateRenderer    string         `json:"template_renderer" bson:"template_renderer"`
-	ConfigFilesDetail   []configDetail `json:"config_files_detail" bson:"config_files_detail"`
-	SystemConfigContext map[string]any `json:"system_config_context" bson:"system_config_context"`
-	CustomConfigContext map[string]any `json:"custom_config_context" bson:"custom_config_context"`
+	Set                  string         `json:"set" bson:"set"`
+	TemplateRenderer     string         `json:"template_renderer" bson:"template_renderer"`
+	ConfigFilesDetail    []configDetail `json:"config_files_detail" bson:"config_files_detail"`
+	SystemConfigContext  map[string]any `json:"system_config_context" bson:"system_config_context"`
+	CustomConfigContext  map[string]any `json:"custom_config_context" bson:"custom_config_context"`
+	RemoveConfigFileName []string       `json:"remove_config_file_name" bson:"remove_config_file_name"`
 }
 
 // configDetail defines the plugin config detail.

@@ -71,6 +71,7 @@ type IPluginManager interface {
 }
 
 // iPluginManagerPlugin defines the PluginManager sub interface for.
+// nolint: interfacebloat
 type iPluginManagerPlugin interface {
 	// LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
 	LaunchInstallPlugin(ctx contextx.IContext, param types.InstallPluginParam) (string, error)
@@ -83,6 +84,9 @@ type iPluginManagerPlugin interface {
 
 	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
 	LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error)
+
+	// LaunchRemovePluginSubConfig launch a task to remove plugin subconfig. returns the workflow-id.
+	LaunchRemovePluginSubConfig(nCtx contextx.IContext, param types.RemovePluginSubConfigParam) (string, error)
 
 	// LaunchStartProcess launch a task to start process. returns the workflow-id.
 	LaunchStartProcess(nCtx contextx.IContext, param types.StartProcessParam) (string, error)

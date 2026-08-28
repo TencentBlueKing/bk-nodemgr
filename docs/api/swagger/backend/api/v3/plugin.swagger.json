@@ -186,6 +186,40 @@
         ]
       }
     },
+    "/api/v3/plugin/remove_subconfig": {
+      "post": {
+        "summary": "RemovePluginSubConfig removes a non-main sub-configuration file (or set of\nsuch files selected by template name) from a single host + plugin and\nreloads the plugin once after the remote files have been deleted.",
+        "operationId": "Plugin_RemovePluginSubConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRemoveSubConfigResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginRemoveSubConfigReq describes the plugin remove sub-configuration\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRemoveSubConfigReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/restart": {
       "post": {
         "summary": "RestartPlugin restarts the plugin process on specified hosts.",
@@ -646,6 +680,32 @@
         }
       }
     },
+    "PluginRemoveSubConfigReqRemoveSubConfigInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "config_template_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Select sub-config files by the originating template name. When set,\nconfig_file_name MUST be empty."
+        },
+        "config_file_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Select sub-config files by exact file name. When set,\nconfig_template_name MUST be empty."
+        }
+      }
+    },
     "PluginRestartReqRestartInfo": {
       "type": "object",
       "properties": {
@@ -1088,6 +1148,52 @@
       "description": "PluginMigrateFromV2Resp describes the plugin migrate from v2 response."
     },
     "v3PluginMigrateFromV2RespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PluginRemoveSubConfigReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PluginRemoveSubConfigReqRemoveSubConfigInfo"
+          }
+        }
+      },
+      "description": "PluginRemoveSubConfigReq describes the plugin remove sub-configuration\nrequest."
+    },
+    "v3PluginRemoveSubConfigResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRemoveSubConfigRespData"
+        }
+      },
+      "description": "PluginRemoveSubConfigResp describes the plugin remove sub-configuration\nresponse."
+    },
+    "v3PluginRemoveSubConfigRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {

@@ -58,7 +58,10 @@ const (
 	PluginWorkflowTypeReconfig PluginWorkflowType = "reconfig_plugin"
 
 	// PluginWorkflowTypeApplyPluginSubConfig is the operation type for apply plugin sub config.
-	PluginWorkflowTypeApplyPluginSubConfig = "apply_plugin_subconfig"
+	PluginWorkflowTypeApplyPluginSubConfig PluginWorkflowType = "apply_plugin_subconfig"
+
+	// PluginWorkflowTypeRemovePluginSubConfig is the workflow type that removes plugin sub config.
+	PluginWorkflowTypeRemovePluginSubConfig PluginWorkflowType = "remove_plugin_subconfig"
 
 	// PluginWorkflowTypeStart is the operation type for start plugin.
 	PluginWorkflowTypeStart PluginWorkflowType = "start_plugin"
@@ -93,6 +96,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeUninstall,
 		PluginWorkflowTypeReconfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
+		PluginWorkflowTypeRemovePluginSubConfig,
 		PluginWorkflowTypeStart,
 		PluginWorkflowTypeRestart,
 		PluginWorkflowTypeMigrateV2,

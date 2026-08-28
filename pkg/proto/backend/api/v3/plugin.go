@@ -20,6 +20,7 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 
@@ -720,6 +721,73 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypesWithHostTopoMapping(
 // GetHostIDs returns host ids.
 func (x *PluginApplySubConfigReq) GetHostIDs() []int64 {
 	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginApplySubConfigReq_ApplySubConfigInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
+// Validate validates the remove sub-config info item.
+func (x *PluginRemoveSubConfigReq_RemoveSubConfigInfo) Validate() error {
+	if x.GetBkHostId() <= 0 {
+		return fmt.Errorf("bk_host_id is required")
+	}
+	if x.GetPluginName() == "" {
+		return fmt.Errorf("plugin_name is required")
+	}
+
+	x.ConfigTemplateName = conv.SliceUnique(x.GetConfigTemplateName())
+	x.ConfigFileName = conv.SliceUnique(x.GetConfigFileName())
+
+	templateNames := x.GetConfigTemplateName()
+	fileNames := x.GetConfigFileName()
+
+	hasTemplate := len(templateNames) > 0
+	hasFile := len(fileNames) > 0
+
+	if hasTemplate && hasFile {
+		return fmt.Errorf("config_template_name and config_file_name are mutually exclusive")
+	}
+
+	if !hasTemplate && !hasFile {
+		return fmt.Errorf("either config_template_name or config_file_name is required")
+	}
+
+	for _, target := range x.GetConfigTemplateName() {
+		if target == "" {
+			return fmt.Errorf("config_template_name is required")
+		}
+	}
+
+	for _, target := range x.GetConfigFileName() {
+		if target == "" {
+			return fmt.Errorf("config_file_name is required")
+		}
+	}
+
+	return nil
+}
+
+// Validate validates the remove sub-config request.
+func (x *PluginRemoveSubConfigReq) Validate() error {
+	if len(x.GetPlugin()) == 0 {
+		return fmt.Errorf("plugin is required")
+	}
+	for i, item := range x.GetPlugin() {
+		if item == nil {
+			return fmt.Errorf("plugin[%d] is required", i)
+		}
+		if err := item.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AutoConvert is a no-op for PluginRemoveSubConfigReq.
+func (x *PluginRemoveSubConfigReq) AutoConvert() {}
+
+// GetHostIDs returns host ids.
+func (x *PluginRemoveSubConfigReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginRemoveSubConfigReq_RemoveSubConfigInfo) int64 {
 		return item.GetBkHostId()
 	})
 }

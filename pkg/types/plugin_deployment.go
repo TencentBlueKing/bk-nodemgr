@@ -58,6 +58,9 @@ type PluginDeploymentPluginConf struct {
 
 	// CustomConfigContext is the custom config context for plugin process.
 	CustomConfigContext map[string]any
+
+	// RemoveConfigFileName is the list of config files to be removed.
+	RemoveConfigFileName []string
 }
 
 // PluginConfigDetail defines the plugin config detail.
@@ -158,6 +161,7 @@ type PluginDeploymentParam struct {
 	IsOffline               bool
 	EnableCompatibilityMode bool
 	CustomSpec              *PluginSpec
+	RemoveSubConfigFileName []string
 }
 
 // PluginInstallParam defines the request-level parameters for plugin install.
@@ -176,6 +180,10 @@ func (p *PluginDeploymentParam) Validate() error {
 		return fmt.Errorf("empty PluginName: %s", p.PluginName)
 	}
 
+	if len(p.ConfigTemplateName) != 0 && len(p.RemoveSubConfigFileName) != 0 {
+		return fmt.Errorf("config_template_name and remove_subconfig_file_name are mutually exclusive")
+	}
+
 	return nil
 }
 
@@ -190,8 +198,9 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 		}
 
 		conf := &PluginDeploymentPluginConf{
-			ConfigFilesDetail:   make([]*PluginConfigDetail, 0, len(param.ConfigTemplateName)),
-			CustomConfigContext: param.CustomConfigContext,
+			ConfigFilesDetail:    make([]*PluginConfigDetail, 0, len(param.ConfigTemplateName)),
+			CustomConfigContext:  param.CustomConfigContext,
+			RemoveConfigFileName: param.RemoveSubConfigFileName,
 		}
 		for _, item := range param.ConfigTemplateName {
 			conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &PluginConfigDetail{

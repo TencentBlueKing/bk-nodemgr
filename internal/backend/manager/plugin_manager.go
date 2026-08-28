@@ -366,7 +366,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 				logger.G.Biz(nCtx).WithErr(err).
 					With("trigger-id", triggerCtl.GetTriggerID()).
 					With("plugin-token", deploy.Token).
-					Error("failed to launch install plugin task.")
+					Error("failed to launch apply plugin subconfig task.")
 
 				return err
 			}
@@ -375,7 +375,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 				With("trigger-id", triggerCtl.GetTriggerID()).
 				With("operation-id", operCtl.GetOperationID()).
 				With("plugin-token", deploy.Token).
-				Info("launched install plugin task.")
+				Info("launched apply plugin subconfig task.")
 
 			return nil
 		})
@@ -383,6 +383,84 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 
 	if err := gp.Wait(); err != nil {
 		return "", fmt.Errorf("failed to launch apply plugin subconfig task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+// LaunchRemovePluginSubConfig launch a task to remove plugin subconfig. returns the workflow-id.
+func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param types.RemovePluginSubConfigParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		HostIDs:         param.HostIDs,
+		BizIDs:          param.BizIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+		gp.Go(func() error {
+			if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("plugin-token", deploy.Token).
+					Error("failed to create plugin deployment.")
+
+				return err
+			}
+
+			operationDef := plugin.NewOperRemovePluginSubConfig(plugin.OperParamRemovePluginSubConfig{
+				PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+					Token:    deploy.Token,
+					TenantID: deploy.Info.Process.TenantID,
+					Operator: param.Operator,
+				},
+			})
+
+			operationParam := operationDef.DefaultParameters()
+
+			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+			if err != nil {
+				logger.G.Biz(nCtx).WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("plugin-token", deploy.Token).
+					Error("failed to launch remove plugin subconfig task.")
+
+				return err
+			}
+
+			logger.G.Biz(nCtx).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				With("operation-id", operCtl.GetOperationID()).
+				With("plugin-token", deploy.Token).
+				Info("launched remove plugin subconfig task.")
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch remove plugin subconfig task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {

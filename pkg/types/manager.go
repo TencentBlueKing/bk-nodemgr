@@ -190,6 +190,16 @@ type ApplyPluginSubConfigParam struct {
 	PluginDeployments []*PluginDeployment
 }
 
+// RemovePluginSubConfigParam define the param of LaunchRemovePluginSubConfig.
+type RemovePluginSubConfigParam struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
+}
+
 // RetryPluginWorkflowOperationParam retry node workflow operation param.
 type RetryPluginWorkflowOperationParam struct {
 	WorkflowID   string

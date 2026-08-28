@@ -143,6 +143,36 @@ message PluginApplySubConfigResp {
   Data data = 5;
 }
 
+// PluginRemoveSubConfigReq describes the plugin remove sub-configuration
+// request.
+message PluginRemoveSubConfigReq {
+  message RemoveSubConfigInfo {
+    int64 bk_host_id = 1;
+    string plugin_name = 2;
+    // Select sub-config files by the originating template name. When set,
+    // config_file_name MUST be empty.
+    repeated string config_template_name = 3;
+    // Select sub-config files by exact file name. When set,
+    // config_template_name MUST be empty.
+    repeated string config_file_name = 4;
+  }
+
+  repeated RemoveSubConfigInfo plugin = 1;
+}
+
+// PluginRemoveSubConfigResp describes the plugin remove sub-configuration
+// response.
+message PluginRemoveSubConfigResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // PluginListReq describes the plugin list request.
 message PluginListReq {
   Page page = 1;
@@ -369,6 +399,17 @@ service Plugin {
       returns (PluginApplySubConfigResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/apply_subconfig"
+      body : "*"
+    };
+  }
+
+  // RemovePluginSubConfig removes a non-main sub-configuration file (or set of
+  // such files selected by template name) from a single host + plugin and
+  // reloads the plugin once after the remote files have been deleted.
+  rpc RemovePluginSubConfig(PluginRemoveSubConfigReq)
+      returns (PluginRemoveSubConfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/remove_subconfig"
       body : "*"
     };
   }

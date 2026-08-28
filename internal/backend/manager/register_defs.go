@@ -292,6 +292,8 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionVerifyPluginAvailability(pluginCap),
 		plugin.NewActionFetchProcessSubConfigIntoDeployment(pluginCap),
 		plugin.NewActionInjectPluginCustomDeployConfig(pluginCap),
+		plugin.NewActionRemovePluginSubConfig(pluginCap),
+		plugin.NewActionDeleteProcessConfigRecord(pluginCap),
 		plugin.NewActionStopPluginV2Process(pluginCap),
 		plugin.NewActionPrepareDebugProcess(pluginCap),
 		plugin.NewActionRunDebugPlugin(pluginCap),
