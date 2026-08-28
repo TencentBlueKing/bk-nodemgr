@@ -85,6 +85,7 @@ const (
 	metricOperationPopHostTopo                               = "pop_host_topo"
 	metricOperationUpdateHostDynamicFields                   = "update_host_dynamic_fields"
 	metricOperationTouchHostOperationTime                    = "touch_host_operation_time"
+	metricOperationTouchHostDynamicLastSyncAt                = "touch_host_dynamic_last_sync_at"
 	metricOperationGetV4AgentAccessEndpoints                 = "get_v4_agent_access_endpoints"
 	metricOperationGetV6AgentAccessEndpoints                 = "get_v6_agent_access_endpoints"
 	metricOperationGetProxyUpstreamAccessPoints              = "get_proxy_upstream_accesspoints"

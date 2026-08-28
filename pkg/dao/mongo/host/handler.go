@@ -114,6 +114,9 @@ type IHandler interface {
 	// TouchOperationUpdatedAt sets operation_updated_at to now for the given host IDs.
 	TouchOperationUpdatedAt(nCtx contextx.IContext, hostIDs ...int64) error
 
+	// TouchDynamicLastSyncAt sets dynamic.last_sync_at to the specified time for the given host IDs.
+	TouchDynamicLastSyncAt(nCtx contextx.IContext, lastSyncAt time.Time, hostIDs ...int64) error
+
 	// DistinctFields returns distinct values for the requested host fields.
 	DistinctFields(nCtx contextx.IContext, request types.HostDistinctRequest, opts ...OptFn) (*types.HostDistinctResult, error)
 
@@ -869,6 +872,28 @@ func (h *handler) TouchOperationUpdatedAt(nCtx contextx.IContext, hostIDs ...int
 	// buildUpdateField); business touches therefore refresh the document-wide
 	// updated time as well as operation_updated_at.
 	return d.UpdateField(nCtx, filter, FieldKeyOperationUpdatedAt, nowTime)
+}
+
+// TouchDynamicLastSyncAt sets dynamic.last_sync_at to the specified time for
+// the given host IDs.
+func (h *handler) TouchDynamicLastSyncAt(nCtx contextx.IContext, lastSyncAt time.Time, hostIDs ...int64) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	d := h.tenantDao(nCtx.TenantID())
+	filter := base.AliveFilter()
+	filter = WithHostID(hostIDs...)(filter)
+
+	return d.UpdateField(nCtx, filter, FieldKeyDynamicLastSyncAt, lastSyncAt)
 }
 
 // DeleteMany delete many hosts.

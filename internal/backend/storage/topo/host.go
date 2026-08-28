@@ -22,6 +22,7 @@ package topo
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -445,6 +446,21 @@ func (s *Storage) TouchHostOperationTime(nCtx contextx.IContext, hostIDs ...int6
 
 	return s.WrapFn(nCtx, metricOperationTouchHostOperationTime, func(nCtx contextx.IContext) error {
 		return s.daoHost.TouchOperationUpdatedAt(nCtx, hostIDs...)
+	})
+}
+
+// TouchHostDynamicLastSyncAt sets the host dynamic sync time for the given host IDs.
+func (s *Storage) TouchHostDynamicLastSyncAt(nCtx contextx.IContext, lastSyncAt time.Time, hostIDs ...int64) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	return s.WrapFn(nCtx, metricOperationTouchHostDynamicLastSyncAt, func(nCtx contextx.IContext) error {
+		return s.daoHost.TouchDynamicLastSyncAt(nCtx, lastSyncAt, hostIDs...)
 	})
 }
 

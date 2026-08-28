@@ -135,7 +135,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	upsertHosts := make([]*types.Host, 0, len(param.Hosts))
-	touchHosts := make([]*types.Host, 0, len(param.Hosts))
+	touchHostIDs := make([]int64, 0, len(param.Hosts))
 	lastSyncAt := time.Now()
 	for _, host := range param.Hosts {
 		agentState, ok := agentStates[host.AgentID]
@@ -144,19 +144,14 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		}
 
 		if !shouldSyncAgentStateHost(host, agentState, param.CompareCurrentState) {
-			touchHosts = append(touchHosts, &types.Host{
-				HostID: host.HostID,
-				Dynamic: &types.HostDynamic{
-					LastSyncAt: lastSyncAt,
-				},
-			})
+			touchHostIDs = append(touchHostIDs, host.HostID)
 			continue
 		}
 
 		upsertHosts = append(upsertHosts, newHostWithAgentState(host.HostID, agentState, lastSyncAt))
 	}
 
-	if len(upsertHosts) == 0 && len(touchHosts) == 0 {
+	if len(upsertHosts) == 0 && len(touchHostIDs) == 0 {
 		logger.G.Sys().Ctx(std.Context()).Info("no hosts to upsert")
 
 		return nil
@@ -179,11 +174,9 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		}
 	}
 
-	if len(touchHosts) > 0 {
-		err = batchHandleHosts(std.Context(), touchHosts, func(hosts ...*types.Host) error {
-			return act.topoStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
-				LastSyncAt: true,
-			}, hosts...)
+	if len(touchHostIDs) > 0 {
+		err = batchHandleHostIDs(std.Context(), touchHostIDs, func(hostIDs ...int64) error {
+			return act.topoStg.TouchHostDynamicLastSyncAt(std.Context(), lastSyncAt, hostIDs...)
 		})
 		if err != nil {
 			logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to update host last sync time")

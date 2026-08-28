@@ -20,6 +20,8 @@
 package topo
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -210,6 +212,9 @@ type IStorageHost interface {
 	// TouchHostOperationTime marks the given hosts as recently operated by a user
 	// or API action, updating the business operation time used for list ordering.
 	TouchHostOperationTime(nCtx contextx.IContext, hostIDs ...int64) error
+
+	// TouchHostDynamicLastSyncAt sets the host dynamic sync time for the given host IDs.
+	TouchHostDynamicLastSyncAt(nCtx contextx.IContext, lastSyncAt time.Time, hostIDs ...int64) error
 
 	// DistinctHost distincts host fields.
 	DistinctHost(nCtx contextx.IContext, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
