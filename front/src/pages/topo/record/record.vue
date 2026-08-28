@@ -161,6 +161,7 @@ const searchSelectData = ref<ISearchItem[]>([
     name: t('topoManager.record.searchItems.type'),
     id: 'type',
     multiple: true,
+    children: Object.entries(typeMap.value).map(([id, name]) => ({ id, name })),
   },
   {
     name: t('topoManager.record.searchItems.operator'),

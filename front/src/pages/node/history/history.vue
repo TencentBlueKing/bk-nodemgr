@@ -543,6 +543,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 }, 'nodeMng-history');
 
 const workflowDistinct = ref<NodeWorkflowDistinctRespData | null>();
+// 搜索栏 operator 下拉（翻译后的显示名）
+const translatedOperatorChildren = ref<{ id: string; name: string }[]>([]);
 function getUniqueChildrenFrom <K extends keyof NodeWorkflowDistinctRespData>(
   prop: K,
   keyMap?: Record<string, any>,
@@ -581,7 +583,7 @@ const searchSelectData = computed(() => [
   {
     id: 'operator',
     name: t('platform.nodeMan.taskHistory.label.operator'),
-    children: getUniqueChildrenFrom('operator'),
+    children: translatedOperatorChildren.value,
   },
   {
     id: 'status',
@@ -891,6 +893,10 @@ const getWorkflowDistinct = async () => {
     });
     // 翻译 operator 筛选项显示名（复用 bk-user-display-name）
     await translateOperatorItems(filterOptionSource.operator.list);
+    // 翻译搜索栏 operator 下拉显示名
+    const operatorChildren = getUniqueChildrenFrom('operator');
+    await translateOperatorItems(operatorChildren);
+    translatedOperatorChildren.value = operatorChildren;
   }
 };
 

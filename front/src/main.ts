@@ -20,6 +20,18 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
+// 修复多租户下 blueking_language 同名 cookie 冲突
+// 登录系统的语言 cookie 统一挂在第二段开始的子域名下，与当前应用不同域会导致两个同名 cookie 共存，
+// ip-selector 库按 cookie 严格 === 'en' 判断，会走英文语言包，与项目中文模式冲突。
+// 此处统一把语言 cookie 设置到第二段开始的子域名下，与登录系统保持一致。
+(function normalizeBluekingLanguageCookie() {
+  const lang = (navigator.language || 'zh-CN').toLowerCase().startsWith('en') ? 'en' : 'zh-cn';
+  const host = location.hostname;
+  const parent = host.replace(/^[^.]+\./, '');
+  const domain = parent !== host ? `;domain=.${parent}` : '';
+  document.cookie = `blueking_language=${lang};path=/${domain}`;
+})();
+
 const app = createApp(App);
 
 // 过滤第三方库（@blueking/bkui-form、@blueking/ip-selector）的已知兼容性 warning，不影响功能

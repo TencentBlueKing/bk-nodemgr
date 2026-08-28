@@ -576,6 +576,8 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
 });
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+// 搜索栏 operator 下拉（翻译后的显示名）
+const translatedOperatorChildren = ref<{ id: string; name: string }[]>([]);
 const booleanFilterFields = new Set(['enabled', 'as_default']);
 const normalizeSearchValue = (field: string, value: unknown) => {
   if (booleanFilterFields.has(field) && typeof value === 'string') {
@@ -644,7 +646,7 @@ const searchSelectData = computed(() => [
   {
     id: 'operator',
     name: t('agentProxyPkg.uploader'),
-    children: getUniqueChildren('operator'),
+    children: translatedOperatorChildren.value,
     multiple: true,
   },
   {
@@ -1018,6 +1020,10 @@ watch(originPackageList, async () => {
   filterOptionSource.operator.list = getUniqueChildren('operator');
   // 翻译 operator 筛选项显示名（复用 bk-user-display-name）
   await translateOperatorItems(filterOptionSource.operator.list);
+  // 翻译搜索栏 operator 下拉显示名
+  const operatorChildren = getUniqueChildren('operator');
+  await translateOperatorItems(operatorChildren);
+  translatedOperatorChildren.value = operatorChildren;
 }, { immediate: true, deep: true });
 // 前端过滤数据
 watch(

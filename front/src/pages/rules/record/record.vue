@@ -341,12 +341,14 @@ const searchSelectData = computed(() => [
   {
     id: 'operator',
     name: t('rulesRecord.operator'),
-    children: getUniqueChildrenFrom('operator'),
+    children: translatedOperatorChildren.value,
     multiple: true,
   },
 ]);
 // 筛选
 const hostDistinct = ref<ConfigPolicyEventDistinctRespData | null>();
+// 搜索栏 operator 下拉（翻译后的显示名）
+const translatedOperatorChildren = ref<{ id: string; name: string }[]>([]);
 const filterOptionSource = reactive<Record<string, IFilterOption>>({
   version: {
     list: [],
@@ -411,6 +413,10 @@ const getHostDistinct = async () => {
     });
     // 翻译 operator 筛选项显示名
     await translateOperatorItems(filterOptionSource.operator.list);
+    // 翻译搜索栏 operator 下拉显示名
+    const operatorChildren = getUniqueChildrenFrom('operator');
+    await translateOperatorItems(operatorChildren);
+    translatedOperatorChildren.value = operatorChildren;
   }
 };
 const handleFilter = ({

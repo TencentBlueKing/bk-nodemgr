@@ -416,30 +416,9 @@ const curLang = computed(() => {
 async function handleChangeLang(item) {
   if (item.id !== curLang.value) {
     const {
-      BK_DOMAIN: domain = '',
       BK_TENANT: tenant_id = '',
       BK_USER_WEB_URL: apiBaseUrl = '',
     } = window.PROJECT_CONFIG;
-
-    // URL安全检查
-    if (!apiBaseUrl || typeof apiBaseUrl !== 'string') {
-      console.error('Invalid apiBaseUrl parameter');
-      return;
-    }
-
-    // URL消毒：验证协议和格式
-    let safeApiBaseUrl = apiBaseUrl;
-    try {
-      const urlObj = new URL(apiBaseUrl);
-      if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
-        console.error('Invalid URL protocol');
-        return;
-      }
-      safeApiBaseUrl = urlObj.href;
-    } catch (error) {
-      console.error('Invalid URL format');
-      return;
-    }
 
     // 参数消毒：只允许字母数字和下划线
     const safeLanguage = item.id === 'zh-CN' ? 'zh-cn' : 'en';
@@ -448,44 +427,47 @@ async function handleChangeLang(item) {
       return;
     }
 
+    // 同步语言偏好到后端（best-effort：apiBaseUrl 未渲染/接口失败不影响本地切换）
     try {
-      const baseUrl = safeApiBaseUrl.endsWith('/') ? safeApiBaseUrl.slice(0, -1) : safeApiBaseUrl;
-      const url = `${baseUrl}/api/v3/open-web/tenant/current-user/language/`;
+      if (apiBaseUrl && typeof apiBaseUrl === 'string' && /^https?:\/\//i.test(apiBaseUrl)) {
+        const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
+        const url = `${baseUrl}/api/v3/open-web/tenant/current-user/language/`;
 
-      // 添加响应状态检查
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'X-Bk-Tenant-Id': tenant_id,
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          language: safeLanguage,
-        }),
-        credentials: 'include',
-      });
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'X-Bk-Tenant-Id': tenant_id,
+            'Content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            language: safeLanguage,
+          }),
+          credentials: 'include',
+        });
 
-      // 检查HTTP响应状态
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
       }
-
-      // 设置合理的cookie过期时间（1小时）
-      const today = new Date();
-      today.setTime(today.getTime() + 1000 * 60 * 60);
-
-      // 安全设置cookie，对值进行编码
-      const encodedLang = encodeURIComponent(safeLanguage);
-      document.cookie = `blueking_language=${encodedLang};path=/;domain=${domain};expires=${today.toUTCString()}`;
-
-      // 更新HTML lang属性
-      document.querySelector('html')?.setAttribute('lang', safeLanguage === 'zh-cn' ? 'zh-CN' : 'en-US');
-
-      // 添加延迟让用户看到切换成功的视觉反馈
-      window.location.reload();
     } catch (err) {
-      console.error('Language switch failed:', err);
+      console.error('Sync language to backend failed:', err);
     }
+
+    // 设置合理的cookie过期时间（1小时）
+    const today = new Date();
+    today.setTime(today.getTime() + 1000 * 60 * 60);
+
+    // 安全设置cookie，对值进行编码
+    const encodedLang = encodeURIComponent(safeLanguage);
+    // 统一设置到第二段开始的子域名下（与登录系统一致，避免父域/子域同名 cookie 冲突）
+    const parentDomain = location.hostname.replace(/^[^.]+\./, '');
+    document.cookie = `blueking_language=${encodedLang};path=/;domain=.${parentDomain};expires=${today.toUTCString()}`;
+
+    // 更新HTML lang属性
+    document.querySelector('html')?.setAttribute('lang', safeLanguage === 'zh-cn' ? 'zh-CN' : 'en-US');
+
+    // 刷新页面使语言生效
+    window.location.reload();
   }
 }
 // 个人中心

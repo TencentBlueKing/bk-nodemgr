@@ -286,6 +286,8 @@ const getUniqueChildrenFrom = <K extends keyof PackageEventDistinctRespData>(
       name: keyMap && keyMap[value] ? keyMap[value] : String(value),
     }));
 };
+// 搜索栏 operator 下拉（翻译后的显示名）
+const translatedOperatorChildren = ref<{ id: string; name: string }[]>([]);
 const searchSelectData = computed(() => [
   {
     id: 'version',
@@ -320,7 +322,7 @@ const searchSelectData = computed(() => [
   {
     id: 'operator',
     name: t('pkgRecord.operator'),
-    children: getUniqueChildrenFrom('operator'),
+    children: translatedOperatorChildren.value,
     multiple: true,
   },
 ]);
@@ -455,6 +457,10 @@ const getHostDistinct = async () => {
     });
     // 翻译 operator 筛选项显示名（复用 bk-user-display-name）
     await translateOperatorItems(filterOptionSource.operator.list);
+    // 翻译搜索栏 operator 下拉显示名
+    const operatorChildren = getUniqueChildrenFrom('operator');
+    await translateOperatorItems(operatorChildren);
+    translatedOperatorChildren.value = operatorChildren;
   }
 };
 const handleFilter = ({
