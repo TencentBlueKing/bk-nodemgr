@@ -555,9 +555,52 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 	return nil
 }
 
-func (executor *Executor) executeChangeActionPluginDeleteSubConfig(_ contextx.IContext, _ []*ChangeTask) error {
-	// TODO: remove remote subconfig files and reload plugin process before deleting ProcessConfig records.
-	return errors.New("not implemented")
+func (executor *Executor) executeChangeActionPluginDeleteSubConfig(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := access.GetVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin delete sub config: %w", err)
+	}
+
+	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
+	hostMap := make(map[int64]struct{})
+	for idx, task := range tasks {
+		param, err := task.Spec.GetSpecifyPluginSubConfigParam()
+		if err != nil {
+			return fmt.Errorf("failed to schedule and execute change action: %w", err)
+		}
+
+		removeConfigFileNames := conv.SliceToSlice(param.ConfigFilesDetail, func(detail *types.PluginConfigDetail) string {
+			return detail.Name
+		})
+		pluginDeployments[idx] = types.NewPluginDeployment(&types.PluginDeploymentInfo{
+			Process: types.Process{
+				TenantID:   nCtx.TenantID(),
+				HostID:     task.Target.Host.HostID,
+				PluginName: param.PluginName,
+			},
+		}, &types.PluginDeploymentPluginConf{
+			RemoveConfigFileName: removeConfigFileNames,
+		})
+
+		hostMap[task.Target.Host.HostID] = struct{}{}
+	}
+
+	hostIDs := conv.MapKeyToSlice(hostMap)
+	workflowID, err := executor.pluginManager.LaunchRemovePluginSubConfig(nCtx, types.RemovePluginSubConfigParam{
+		Type:              types.PluginWorkflowTypeRemovePluginSubConfig,
+		HostIDs:           hostIDs,
+		Operator:          operator,
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
+		PluginDeployments: pluginDeployments,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin delete sub config: %w", err)
+	}
+
+	logger.G.Sys().With("workflow-id", workflowID).
+		Info("successful to execute change action plugin delete sub config")
+
+	return nil
 }
 
 // ===============================================================================
