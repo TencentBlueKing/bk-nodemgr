@@ -69,13 +69,14 @@ type Meta struct {
 
 // Spec represents the spec of deploy policy.
 type Spec struct {
-	Type                         string                            `json:"type" bson:"type"`
-	ParamSpecifyAgent            *SpecParamSpecifyAgent            `json:"param_specify_agent,omitempty" bson:"param_specify_agent,omitempty"`
-	ParamSpecifyProxy            *SpecParamSpecifyProxy            `json:"param_specify_proxy,omitempty" bson:"param_specify_proxy,omitempty"`
-	ParamSpecifyPlugin           *SpecParamSpecifyPlugin           `json:"param_specify_plugin,omitempty" bson:"param_specify_plugin,omitempty"`
-	ParamSpecifyPluginPkg        *SpecParamSpecifyPluginPkg        `json:"param_specify_plugin_pkg,omitempty" bson:"param_specify_plugin_pkg,omitempty"`
-	ParamProjectPluginPkgToHosts *SpecParamProjectPluginPkgToHosts `json:"param_project_plugin_pkg_to_hosts,omitempty" bson:"param_project_plugin_pkg_to_hosts,omitempty"` //nolint:lll
-	ParamSpecifyPluginSubConfig  *SpecParamSpecifyPluginSubConfig  `json:"param_specify_plugin_sub_config,omitempty" bson:"param_specify_plugin_sub_config,omitempty"`     //nolint:lll
+	Type                                string                                   `json:"type" bson:"type"`
+	ParamSpecifyAgent                   *SpecParamSpecifyAgent                   `json:"param_specify_agent,omitempty" bson:"param_specify_agent,omitempty"`
+	ParamSpecifyProxy                   *SpecParamSpecifyProxy                   `json:"param_specify_proxy,omitempty" bson:"param_specify_proxy,omitempty"`
+	ParamSpecifyPlugin                  *SpecParamSpecifyPlugin                  `json:"param_specify_plugin,omitempty" bson:"param_specify_plugin,omitempty"`
+	ParamSpecifyPluginPkg               *SpecParamSpecifyPluginPkg               `json:"param_specify_plugin_pkg,omitempty" bson:"param_specify_plugin_pkg,omitempty"`
+	ParamProjectPluginPkgToHosts        *SpecParamProjectPluginPkgToHosts        `json:"param_project_plugin_pkg_to_hosts,omitempty" bson:"param_project_plugin_pkg_to_hosts,omitempty"`               //nolint:lll
+	ParamSpecifyPluginSubConfig         *SpecParamSpecifyPluginSubConfig         `json:"param_specify_plugin_sub_config,omitempty" bson:"param_specify_plugin_sub_config,omitempty"`                   //nolint:lll
+	ParamSpecifyPluginSubConfigTemplate *SpecParamSpecifyPluginSubConfigTemplate `json:"param_specify_plugin_sub_config_template,omitempty" bson:"param_specify_plugin_sub_config_template,omitempty"` //nolint:lll
 }
 
 // SpecParamSpecifyAgent represents the parameter for specify agent spec.
@@ -117,9 +118,17 @@ type SpecParamSpecifyPluginSubConfig struct {
 	CustomConfigContext map[string]any            `json:"custom_config_context,omitempty" bson:"custom_config_context,omitempty"`
 }
 
+// SpecParamSpecifyPluginSubConfigTemplate represents the parameter for specify plugin sub config template spec.
+type SpecParamSpecifyPluginSubConfigTemplate struct {
+	PluginName          string                    `json:"plugin_name" bson:"plugin_name"`
+	ConfigFilesDetail   []*SpecPluginConfigDetail `json:"config_files_detail,omitempty" bson:"config_files_detail,omitempty"`
+	CustomConfigContext map[string]any            `json:"custom_config_context,omitempty" bson:"custom_config_context,omitempty"`
+}
+
 // SpecPluginConfigDetail represents the plugin config detail in database.
 type SpecPluginConfigDetail struct {
 	Name         string `json:"name" bson:"name"`
+	TemplateName string `json:"template_name" bson:"template_name"`
 	Content      string `json:"content" bson:"content"`
 	IsMainConfig bool   `json:"is_main_config" bson:"is_main_config"`
 }

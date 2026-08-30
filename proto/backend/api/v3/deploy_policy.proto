@@ -21,6 +21,7 @@ message PluginConfigDetail {
   string name = 1;
   string content = 2;
   bool is_main_config = 3;
+  string template_name = 4;
 }
 
 // SpecifyAgentParam describes the specify agent param structure.
@@ -75,6 +76,16 @@ message SpecifyPluginSubConfigParam {
   google.protobuf.Struct custom_config_context = 3;
 }
 
+// SpecifyPluginSubConfigTemplateParam describes the specify plugin sub config
+// template param structure. This message defines the expected structure for
+// param when type is "specify_plugin_sub_config_template". It serves as
+// documentation to help users understand the param structure.
+message SpecifyPluginSubConfigTemplateParam {
+  string plugin_name = 1;
+  repeated PluginConfigDetail config_files_detail = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
 // DeploySpec describes the spec of deploy policy.
 message DeploySpec {
   string type = 1;
@@ -86,6 +97,8 @@ message DeploySpec {
   // - For "specify_plugin_pkg": see SpecifyPluginPkgParam
   // - For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam
   // - For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam
+  // - For "specify_plugin_sub_config_template": see
+  // SpecifyPluginSubConfigTemplateParam
   google.protobuf.Struct param = 2;
 }
 

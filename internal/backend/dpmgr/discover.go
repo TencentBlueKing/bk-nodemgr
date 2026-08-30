@@ -217,6 +217,9 @@ func (discover *PolicyDiscovery) discoverEnabledPoliciesBySpec(nCtx contextx.ICo
 		return []*types.DeployPolicy{}, nil
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
 		return []*types.DeployPolicy{}, nil
+	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		// spec specify plugin sub config template is analyzed directly without discovering other policies.
+		return []*types.DeployPolicy{}, nil
 	case types.DeploySpecTypeSpecifyProxy:
 		// TODO: implement specify proxy
 		return nil, fmt.Errorf("specify proxy not supported yet")

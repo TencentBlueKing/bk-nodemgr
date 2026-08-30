@@ -329,6 +329,21 @@ func convSpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 			CustomConfigContext: customConfigContext,
 		}
 
+	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		param, err := spec.GetSpecifyPluginSubConfigTemplateParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin sub config template param: %w", err)
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &SpecifyPluginSubConfigTemplateParam{
+			PluginName:          param.PluginName,
+			ConfigFilesDetail:   convPluginConfigDetailsFromTypes(param.ConfigFilesDetail),
+			CustomConfigContext: customConfigContext,
+		}
+
 	default:
 		return nil, fmt.Errorf("unknown deploy spec type: %s", specType)
 	}
@@ -759,9 +774,62 @@ func convSpecToTypes(spec *DeploySpec) (*types.DeploySpec, error) {
 			CustomConfigContext: customConfigContext,
 		})
 
+	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		var paramProto SpecifyPluginSubConfigTemplateParam
+		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
+		}
+		customConfigContext := make(map[string]any)
+		if paramProto.CustomConfigContext != nil {
+			customConfigContext = paramProto.CustomConfigContext.AsMap()
+		}
+		return types.NewDeploySpecWithSpecifyPluginSubConfigTemplate(&types.SpecifyPluginSubConfigTemplateParam{
+			PluginName: paramProto.PluginName,
+			ConfigFilesDetail: convPluginConfigDetailsToTypes(
+				paramProto.ConfigFilesDetail,
+			),
+			CustomConfigContext: customConfigContext,
+		})
+
 	default:
 		return nil, fmt.Errorf("unknown deploy spec type: %s", specType)
 	}
+}
+
+func convPluginConfigDetailsFromTypes(details []*types.PluginConfigDetail) []*PluginConfigDetail {
+	configFilesDetail := make([]*PluginConfigDetail, 0, len(details))
+	for _, detail := range details {
+		if detail == nil {
+			continue
+		}
+
+		configFilesDetail = append(configFilesDetail, &PluginConfigDetail{
+			Name:         detail.Name,
+			TemplateName: detail.TemplateName,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+		})
+	}
+
+	return configFilesDetail
+}
+
+func convPluginConfigDetailsToTypes(details []*PluginConfigDetail) []*types.PluginConfigDetail {
+	configFilesDetail := make([]*types.PluginConfigDetail, 0, len(details))
+	for _, detail := range details {
+		if detail == nil {
+			continue
+		}
+
+		configFilesDetail = append(configFilesDetail, &types.PluginConfigDetail{
+			Name:         detail.GetName(),
+			TemplateName: detail.GetTemplateName(),
+			Content:      detail.GetContent(),
+			IsMainConfig: detail.GetIsMainConfig(),
+		})
+	}
+
+	return configFilesDetail
 }
 
 // ConvertDeployPolicyID convert deploy policy id.

@@ -75,13 +75,18 @@ const (
 
 	// DeploySpecTypeSpecifyPluginSubConfig defines specify plugin sub config.
 	DeploySpecTypeSpecifyPluginSubConfig DeploySpecType = "specify_plugin_sub_config"
+
+	// DeploySpecTypeSpecifyPluginSubConfigTemplate defines specify plugin sub config template.
+	DeploySpecTypeSpecifyPluginSubConfigTemplate DeploySpecType = "specify_plugin_sub_config_template"
 )
 
 // Validate validates the deploy spec type.
 func (deploySpecType DeploySpecType) Validate() error {
 	switch deploySpecType {
 	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyProxy, DeploySpecTypeSpecifyPlugin,
-		DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeProjectPluginPkgToHosts, DeploySpecTypeSpecifyPluginSubConfig:
+		DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeProjectPluginPkgToHosts,
+		DeploySpecTypeSpecifyPluginSubConfig,
+		DeploySpecTypeSpecifyPluginSubConfigTemplate:
 		return nil
 	default:
 		return fmt.Errorf("invalid deploy spec type(%s)", deploySpecType)
@@ -101,7 +106,9 @@ func conflictDeploySpecTypes(specType DeploySpecType) []DeploySpecType {
 	case DeploySpecTypeProjectPluginPkgToHosts:
 		return []DeploySpecType{}
 	case DeploySpecTypeSpecifyPluginSubConfig:
-		return []DeploySpecType{}
+		return []DeploySpecType{DeploySpecTypeSpecifyPluginSubConfigTemplate}
+	case DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		return []DeploySpecType{DeploySpecTypeSpecifyPluginSubConfig}
 	default:
 		return nil
 	}
@@ -125,13 +132,14 @@ func (deploySpecType DeploySpecType) IsConflict(other DeploySpecType) bool {
 
 // DeploySpec defines the deploy spec of the deploy policy.
 type DeploySpec struct {
-	specType                     DeploySpecType
-	paramSpecifyAgent            *SpecifyAgentParam
-	paramSpecifyProxy            *SpecifyProxyParam
-	paramSpecifyPlugin           *SpecifyPluginParam
-	paramSpecifyPluginPkg        *SpecifyPluginPkgParam
-	paramProjectPluginPkgToHosts *ProjectPluginPkgToHostsParam
-	paramSpecifyPluginSubConfig  *SpecifyPluginSubConfigParam
+	specType                            DeploySpecType
+	paramSpecifyAgent                   *SpecifyAgentParam
+	paramSpecifyProxy                   *SpecifyProxyParam
+	paramSpecifyPlugin                  *SpecifyPluginParam
+	paramSpecifyPluginPkg               *SpecifyPluginPkgParam
+	paramProjectPluginPkgToHosts        *ProjectPluginPkgToHostsParam
+	paramSpecifyPluginSubConfig         *SpecifyPluginSubConfigParam
+	paramSpecifyPluginSubConfigTemplate *SpecifyPluginSubConfigTemplateParam
 }
 
 // Type returns the deploy spec type.
@@ -199,6 +207,18 @@ func NewDeploySpecWithSpecifyPluginSubConfig(param *SpecifyPluginSubConfigParam)
 	}, nil
 }
 
+// NewDeploySpecWithSpecifyPluginSubConfigTemplate creates a new DeploySpec with SpecifyPluginSubConfigTemplate type.
+func NewDeploySpecWithSpecifyPluginSubConfigTemplate(param *SpecifyPluginSubConfigTemplateParam) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyPluginSubConfigTemplate")
+	}
+
+	return &DeploySpec{
+		specType:                            DeploySpecTypeSpecifyPluginSubConfigTemplate,
+		paramSpecifyPluginSubConfigTemplate: param,
+	}, nil
+}
+
 // NewDeploySpecWithSpecifyProxy creates a new DeploySpec with SpecifyProxy type.
 func NewDeploySpecWithSpecifyProxy(param *SpecifyProxyParam) (*DeploySpec, error) {
 	if param == nil {
@@ -239,6 +259,12 @@ func (spec *DeploySpec) UniqueID() (string, error) {
 		}
 
 		return spec.paramSpecifyPluginSubConfig.PluginName, nil
+	case DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		if spec.paramSpecifyPluginSubConfigTemplate == nil {
+			return "", fmt.Errorf("param_specify_plugin_sub_config_template is nil")
+		}
+
+		return spec.paramSpecifyPluginSubConfigTemplate.PluginName, nil
 	default:
 		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.specType)
 	}
@@ -353,6 +379,35 @@ func (spec *DeploySpec) GetSpecifyPluginSubConfigParam() (*SpecifyPluginSubConfi
 
 // Validate validates the specify plugin sub config param.
 func (param *SpecifyPluginSubConfigParam) Validate() error {
+	if param.PluginName == "" {
+		return fmt.Errorf("plugin_name is required")
+	}
+
+	return nil
+}
+
+// SpecifyPluginSubConfigTemplateParam defines the specify plugin sub config template param.
+type SpecifyPluginSubConfigTemplateParam struct {
+	PluginName          string
+	ConfigFilesDetail   []*PluginConfigDetail
+	CustomConfigContext map[string]any
+}
+
+// GetSpecifyPluginSubConfigTemplateParam returns the specify plugin sub config template param.
+func (spec *DeploySpec) GetSpecifyPluginSubConfigTemplateParam() (*SpecifyPluginSubConfigTemplateParam, error) {
+	if spec.paramSpecifyPluginSubConfigTemplate == nil {
+		return nil, fmt.Errorf("param_specify_plugin_sub_config_template is nil")
+	}
+
+	if err := spec.paramSpecifyPluginSubConfigTemplate.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate specify plugin sub config template param: %w", err)
+	}
+
+	return spec.paramSpecifyPluginSubConfigTemplate, nil
+}
+
+// Validate validates the specify plugin sub config template param.
+func (param *SpecifyPluginSubConfigTemplateParam) Validate() error {
 	if param.PluginName == "" {
 		return fmt.Errorf("plugin_name is required")
 	}

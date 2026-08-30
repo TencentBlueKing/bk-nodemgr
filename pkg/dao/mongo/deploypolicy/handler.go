@@ -238,6 +238,17 @@ func convSpecFromTypes(spec *types.DeploySpec) (*Spec, error) {
 			CustomConfigContext: param.CustomConfigContext,
 		}
 
+	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		param, err := spec.GetSpecifyPluginSubConfigTemplateParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin sub config template param: %w", err)
+		}
+		dbSpec.ParamSpecifyPluginSubConfigTemplate = &SpecParamSpecifyPluginSubConfigTemplate{
+			PluginName:          param.PluginName,
+			ConfigFilesDetail:   convPluginConfigDetailsFromTypes(param.ConfigFilesDetail),
+			CustomConfigContext: param.CustomConfigContext,
+		}
+
 	case types.DeploySpecTypeSpecifyProxy:
 		param, err := spec.GetSpecifyProxyParam()
 		if err != nil {
@@ -638,6 +649,19 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 			CustomConfigContext: data.ParamSpecifyPluginSubConfig.CustomConfigContext,
 		})
 
+	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		if data.ParamSpecifyPluginSubConfigTemplate == nil {
+			return nil, fmt.Errorf("param_specify_plugin_sub_config_template is required for type %s", data.Type)
+		}
+
+		return types.NewDeploySpecWithSpecifyPluginSubConfigTemplate(&types.SpecifyPluginSubConfigTemplateParam{
+			PluginName: data.ParamSpecifyPluginSubConfigTemplate.PluginName,
+			ConfigFilesDetail: convPluginConfigDetailsToTypes(
+				data.ParamSpecifyPluginSubConfigTemplate.ConfigFilesDetail,
+			),
+			CustomConfigContext: data.ParamSpecifyPluginSubConfigTemplate.CustomConfigContext,
+		})
+
 	case types.DeploySpecTypeSpecifyProxy:
 		if data.ParamSpecifyProxy == nil {
 			return nil, fmt.Errorf("param_specify_proxy is required for type %s", data.Type)
@@ -650,6 +674,42 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 	default:
 		return nil, fmt.Errorf("unknown deploy spec type: %s", data.Type)
 	}
+}
+
+func convPluginConfigDetailsFromTypes(details []*types.PluginConfigDetail) []*SpecPluginConfigDetail {
+	configFilesDetail := make([]*SpecPluginConfigDetail, 0, len(details))
+	for _, detail := range details {
+		if detail == nil {
+			continue
+		}
+
+		configFilesDetail = append(configFilesDetail, &SpecPluginConfigDetail{
+			Name:         detail.Name,
+			TemplateName: detail.TemplateName,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+		})
+	}
+
+	return configFilesDetail
+}
+
+func convPluginConfigDetailsToTypes(details []*SpecPluginConfigDetail) []*types.PluginConfigDetail {
+	configFilesDetail := make([]*types.PluginConfigDetail, 0, len(details))
+	for _, detail := range details {
+		if detail == nil {
+			continue
+		}
+
+		configFilesDetail = append(configFilesDetail, &types.PluginConfigDetail{
+			Name:         detail.Name,
+			TemplateName: detail.TemplateName,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+		})
+	}
+
+	return configFilesDetail
 }
 
 // Delete delete deploy policy.

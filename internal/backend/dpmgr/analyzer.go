@@ -92,6 +92,8 @@ func (analyzer *Analyzer) analyze(nCtx contextx.IContext, params *AnalyzeParams)
 		return analyzer.analyzeSpecifyPluginPkg(nCtx, params)
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
 		return analyzer.analyzeSpecifyPluginSubConfig(nCtx, params)
+	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		return analyzer.analyzeSpecifyPluginSubConfigTemplate(nCtx, params)
 	default:
 		return nil, fmt.Errorf("failed to analyze deploy unit, spec(%+v)", params.Spec)
 	}
@@ -308,6 +310,59 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfig(nCtx contextx.IContext, 
 	}
 
 	changeTasks = append(changeTasks, deleteTasks...)
+
+	return changeTasks, nil
+}
+
+func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IContext, params *AnalyzeParams) (
+	[]*ChangeTask, error) {
+
+	param, err := params.Spec.GetSpecifyPluginSubConfigTemplateParam()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get specify plugin sub config template param, spec(%+v): %w", params.Spec, err)
+	}
+
+	desiredDetails := genDeployPolicySubConfigDetails(params.DeployPolicyID, param.ConfigFilesDetail)
+
+	hostIDs := conv.SliceToSlice(params.Targets, func(target *types.Target) int64 {
+		return target.Host.HostID
+	})
+	hostIDs = conv.SliceUnique(hostIDs)
+
+	processMap, err := analyzer.listRunningProcessMap(nCtx, param.PluginName, hostIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	deployPolicyConfigMap, err := analyzer.listDeployPolicySubConfigMap(nCtx, param.PluginName, params.DeployPolicyID)
+	if err != nil {
+		return nil, err
+	}
+
+	changeTasks := make([]*ChangeTask, 0)
+	for _, target := range params.Targets {
+		_, ok := processMap[genProcessUniqueID(target.Host.HostID, param.PluginName)]
+		if !ok {
+			continue
+		}
+
+		missingDetails := findMissingSubConfigDetails(desiredDetails, deployPolicyConfigMap[target.Host.HostID])
+		if len(missingDetails) == 0 {
+			continue
+		}
+
+		applySpec, err := newSpecifyPluginSubConfigSpec(param.PluginName, missingDetails, param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create specify plugin sub config spec: %w", err)
+		}
+
+		changeTasks = append(changeTasks, &ChangeTask{
+			DeployPolicyID: params.DeployPolicyID,
+			Action:         ChangeActionPluginApplySubConfig,
+			Spec:           applySpec,
+			Target:         target,
+		})
+	}
 
 	return changeTasks, nil
 }

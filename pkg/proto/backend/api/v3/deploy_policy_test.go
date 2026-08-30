@@ -19,6 +19,7 @@
 package v3
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -91,6 +92,24 @@ func TestConvSpecFromTypes_ToProto_AndBack(t *testing.T) {
 							Name:         "config.conf",
 							Content:      "content",
 							IsMainConfig: true,
+						},
+					},
+					CustomConfigContext: map[string]any{"key": "value"},
+				})
+				return spec
+			}(),
+		},
+		{
+			name: "SpecifyPluginSubConfigTemplate",
+			spec: func() *types.DeploySpec {
+				spec, _ := types.NewDeploySpecWithSpecifyPluginSubConfigTemplate(&types.SpecifyPluginSubConfigTemplateParam{
+					PluginName: "test-plugin",
+					ConfigFilesDetail: []*types.PluginConfigDetail{
+						{
+							Name:         "config_deploy_1.conf",
+							TemplateName: "template.conf",
+							Content:      "content",
+							IsMainConfig: false,
 						},
 					},
 					CustomConfigContext: map[string]any{"key": "value"},
@@ -182,6 +201,16 @@ func TestConvSpecFromTypes_ToProto_AndBack(t *testing.T) {
 				}
 				if len(originalParam.ConfigFilesDetail) != len(backParam.ConfigFilesDetail) {
 					t.Errorf("ConfigFilesDetail length = %v, want %v", len(backParam.ConfigFilesDetail), len(originalParam.ConfigFilesDetail))
+				}
+
+			case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+				originalParam, _ := tt.spec.GetSpecifyPluginSubConfigTemplateParam()
+				backParam, _ := backSpec.GetSpecifyPluginSubConfigTemplateParam()
+				if originalParam.PluginName != backParam.PluginName {
+					t.Errorf("PluginName = %v, want %v", backParam.PluginName, originalParam.PluginName)
+				}
+				if !reflect.DeepEqual(originalParam.ConfigFilesDetail, backParam.ConfigFilesDetail) {
+					t.Errorf("ConfigFilesDetail = %+v, want %+v", backParam.ConfigFilesDetail, originalParam.ConfigFilesDetail)
 				}
 			}
 		})
