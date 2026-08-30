@@ -45,6 +45,24 @@ func (s *Storage) createDeployPolicy(nCtx contextx.IContext, deployPolicy *types
 	return deployPolicyID, nil
 }
 
+func (s *Storage) countDeployPolicies(nCtx contextx.IContext, condition *types.DeployPolicyCondition) (int64, error) {
+	if nCtx == nil {
+		return 0, base.ErrInvalidContext()
+	}
+
+	optFns := make([]daoDeployPolicy.OptFn, 0)
+	if condition != nil {
+		optFns = append(optFns, convDeployPolicyConditionsToOptions(condition)...)
+	}
+
+	total, err := s.daoDeployPolicy.Count(nCtx, optFns...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count deploy policies: %w", err)
+	}
+
+	return total, nil
+}
+
 func (s *Storage) listDeployPolicies(nCtx contextx.IContext, page types.Page, condition *types.DeployPolicyCondition) (
 	[]*types.DeployPolicy, int64, error) {
 

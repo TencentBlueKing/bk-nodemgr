@@ -40,6 +40,9 @@ type IDaoDeployPolicy interface {
 	// ListDeployPolicies list deploy policies.
 	ListDeployPolicies(nCtx contextx.IContext, page types.Page, condition *types.DeployPolicyCondition) ([]*types.DeployPolicy, int64, error)
 
+	// CountDeployPolicies count deploy policies.
+	CountDeployPolicies(nCtx contextx.IContext, condition *types.DeployPolicyCondition) (int64, error)
+
 	// GetDeployPolicyByID get deploy policy by id.
 	GetDeployPolicyByID(nCtx contextx.IContext, deployPolicyID int64) (*types.DeployPolicy, error)
 

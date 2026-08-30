@@ -39,6 +39,22 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	if req.GetOnlyCount() {
+		total, err := h.daoDeployPolicy.CountDeployPolicies(rCtx, conditions)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list deploy policies, failed to count deploy policies")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.DeployPolicyListResp)
+		if err := resp.ConvertDeployPoliciesFromTypes(total, nil); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list deploy policies, failed to convert deploy policies")
+			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+		}
+
+		return resp.GetData(), nil
+	}
+
 	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list deploy policies, failed to convert page")
