@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"gopkg.in/yaml.v2"
@@ -275,6 +276,20 @@ type FileService struct {
 type ExportServer struct {
 	HTTPServer `yaml:",inline"`
 	Address    string `yaml:"address" usage:"public domain of export server"`
+}
+
+// GetAddress returns the public address of the export server.
+func (conf ExportServer) GetAddress() string {
+	address := strings.TrimSpace(conf.Address)
+	if address == "" {
+		address = fmt.Sprintf("%s:%d", conf.AdvertiseIPV4, conf.Port)
+	}
+
+	if conf.TLSConfig.CAFile != "" && conf.TLSConfig.CertFile != "" && conf.TLSConfig.KeyFile != "" {
+		return fmt.Sprintf("https://%s", address)
+	}
+
+	return fmt.Sprintf("http://%s", address)
 }
 
 // LoadFromFile loads config from file.

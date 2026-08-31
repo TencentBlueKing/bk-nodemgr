@@ -16,38 +16,40 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package crypter provides encryption utilities based on AES-CBC mode
+// Package crypter provides encryption utilities based on AES-CBC and AES-GCM modes.
 package crypter
 
 import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 )
 
 const (
 	// AESDefaultSalt is the default salt used to derive the AES key.
 	AESDefaultSalt = "com.example.crypto.v1"
-	// AESVersion the version of AES-GCM algorithm.
+	// AESVersion is the version of the AES-CBC ciphertext format.
 	AESVersion = 1
 )
 
-// AES defines the crypter instance based on AES algorithm.
-type AES struct {
+// aesCBC defines the crypter instance based on aesCBC algorithm.
+type aesCBC struct {
 	key   []byte
 	block cipher.Block
 	salt  []byte
 }
 
 // Option is an option for the AES crypter.
-type Option func(*AES)
+type Option func(*aesCBC)
 
 // WithSalt sets the salt for the AES crypter.
 func WithSalt(salt []byte) Option {
-	return func(c *AES) {
+	return func(c *aesCBC) {
 		c.salt = salt
 	}
 }
@@ -58,7 +60,7 @@ func NewAESCrypter(key []byte, opts ...Option) (Crypter, error) {
 		return nil, errors.New("key cannot be empty")
 	}
 
-	a := &AES{
+	a := &aesCBC{
 		salt: []byte(AESDefaultSalt),
 	}
 
@@ -91,11 +93,11 @@ func deriveKey(key, salt []byte) []byte {
 }
 
 // generating deterministic ivs.
-func (a *AES) generateIV(plaintext []byte) []byte {
+func (cbcCrypter *aesCBC) generateIV(plaintext []byte) []byte {
 	// Using the hash of the plaintext as part of the IV ensures that the same plaintext produces the same IV
 	h := sha256.New()
 	h.Write(plaintext)
-	h.Write(a.key)
+	h.Write(cbcCrypter.key)
 	hash := h.Sum(nil)
 
 	// take the first 16 bytes as iv.
@@ -103,16 +105,16 @@ func (a *AES) generateIV(plaintext []byte) []byte {
 }
 
 // Encrypt encrypts the plaintext.
-func (a *AES) Encrypt(plaintext []byte) ([]byte, error) {
+func (cbcCrypter *aesCBC) Encrypt(plaintext []byte) ([]byte, error) {
 	if len(plaintext) == 0 {
 		return nil, errors.New("plaintext cannot be empty")
 	}
 
 	// generating deterministic ivs.
-	iv := a.generateIV(plaintext)
+	iv := cbcCrypter.generateIV(plaintext)
 
 	// encryption using cbc mode.
-	mode := cipher.NewCBCEncrypter(a.block, iv)
+	mode := cipher.NewCBCEncrypter(cbcCrypter.block, iv)
 
 	// PKCS7 padding.
 	paddedPlaintext := pkcs7Pad(plaintext, aes.BlockSize)
@@ -129,7 +131,7 @@ func (a *AES) Encrypt(plaintext []byte) ([]byte, error) {
 }
 
 // Decrypt decrypts the ciphertext.
-func (a *AES) Decrypt(ciphertext []byte) ([]byte, error) {
+func (cbcCrypter *aesCBC) Decrypt(ciphertext []byte) ([]byte, error) {
 	if len(ciphertext) < 1+16+aes.BlockSize {
 		return nil, errors.New("invalid ciphertext length")
 	}
@@ -144,7 +146,7 @@ func (a *AES) Decrypt(ciphertext []byte) ([]byte, error) {
 	actualCiphertext := ciphertext[17:]
 
 	// decryption using cbc mode.
-	mode := cipher.NewCBCDecrypter(a.block, iv)
+	mode := cipher.NewCBCDecrypter(cbcCrypter.block, iv)
 	plaintext := make([]byte, len(actualCiphertext))
 	mode.CryptBlocks(plaintext, actualCiphertext)
 
@@ -157,10 +159,84 @@ func (a *AES) Decrypt(ciphertext []byte) ([]byte, error) {
 	return unpaddedPlaintext, nil
 }
 
+const (
+	aesGCMDefaultSalt = "com.example.crypto.aes-gcm.v1"
+	aesGCMVersion     = 1
+)
+
+// aesGCM is independent from the AES-CBC implementation above, including its
+// key derivation domain and ciphertext format.
+type aesGCM struct {
+	aead cipher.AEAD
+	aad  []byte
+}
+
+// NewAESGCMCrypter creates an AES-GCM crypter with additional authenticated data.
+func NewAESGCMCrypter(key, aad []byte) (Crypter, error) {
+	if len(key) == 0 {
+		return nil, errors.New("key cannot be empty")
+	}
+
+	block, err := aes.NewCipher(deriveKey(key, []byte(aesGCMDefaultSalt)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create AES-GCM cipher: %w", err)
+	}
+
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create AES-GCM mode: %w", err)
+	}
+
+	return &aesGCM{
+		aead: aead,
+		aad:  append([]byte(nil), aad...),
+	}, nil
+}
+
+// Encrypt encrypts and authenticates plaintext with AES-GCM.
+func (gcmCrypter *aesGCM) Encrypt(plaintext []byte) ([]byte, error) {
+	if len(plaintext) == 0 {
+		return nil, errors.New("plaintext cannot be empty")
+	}
+
+	nonce := make([]byte, gcmCrypter.aead.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, fmt.Errorf("failed to generate AES-GCM nonce: %w", err)
+	}
+
+	result := make([]byte, 1+len(nonce))
+	result[0] = aesGCMVersion
+	copy(result[1:], nonce)
+
+	return gcmCrypter.aead.Seal(result, nonce, plaintext, gcmCrypter.aad), nil
+}
+
+// Decrypt authenticates and decrypts an AES-GCM ciphertext.
+func (gcmCrypter *aesGCM) Decrypt(ciphertext []byte) ([]byte, error) {
+	minimumLength := 1 + gcmCrypter.aead.NonceSize() + gcmCrypter.aead.Overhead()
+	if len(ciphertext) < minimumLength {
+		return nil, errors.New("invalid AES-GCM ciphertext length")
+	}
+	if ciphertext[0] != aesGCMVersion {
+		return nil, fmt.Errorf("unsupported AES-GCM version: %d", ciphertext[0])
+	}
+
+	nonceEnd := 1 + gcmCrypter.aead.NonceSize()
+	plaintext, err := gcmCrypter.aead.Open(
+		nil, ciphertext[1:nonceEnd], ciphertext[nonceEnd:], gcmCrypter.aad,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt AES-GCM ciphertext: %w", err)
+	}
+
+	return plaintext, nil
+}
+
 // PKCS7 padding.
 func pkcs7Pad(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+
 	return append(data, padtext...)
 }
 

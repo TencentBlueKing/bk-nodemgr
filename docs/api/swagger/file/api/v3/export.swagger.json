@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v3/export/download/origin_plugin_packge": {
+    "/api/v3/export/download/origin_plugin_package": {
       "get": {
         "summary": "ExportOriginPluginPackage exported origin plugin package using a temporary\nexport token.",
         "operationId": "Export_ExportOriginPluginPackage",
@@ -56,7 +56,7 @@
         ]
       }
     },
-    "/api/v3/export/prepare/origin_plugin_packge": {
+    "/api/v3/export/prepare/origin_plugin_package": {
       "post": {
         "summary": "ExportPrepareOriginPluginPackage prepares an origin plugin package for\nexporting.",
         "operationId": "Export_ExportPrepareOriginPluginPackage",
@@ -103,6 +103,9 @@
           "format": "int64"
         },
         "md5": {
+          "type": "string"
+        },
+        "address": {
           "type": "string"
         }
       }
@@ -153,7 +156,7 @@
             "type": "string"
           }
         },
-        "workflow_id": {
+        "file_name_suffix": {
           "type": "string"
         }
       },

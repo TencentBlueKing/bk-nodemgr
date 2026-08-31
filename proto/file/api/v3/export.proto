@@ -12,7 +12,7 @@ message ExportPrepareOriginPluginPackageReq {
   string plugin_pkg_version = 2;
   string upload_origin_pkg_type = 3;
   repeated string upload_ids = 4;
-  string workflow_id = 5;
+  string file_name_suffix = 5;
 }
 
 // ExportPrepareOriginPluginPackageResp describes the response for preparing an
@@ -26,6 +26,7 @@ message ExportPrepareOriginPluginPackageResp {
     string filename = 1;
     int64 size = 2;
     string md5 = 3;
+    string address = 4;
   }
 
   Data data = 4;
@@ -42,7 +43,7 @@ service Export {
   rpc ExportPrepareOriginPluginPackage(ExportPrepareOriginPluginPackageReq)
       returns (ExportPrepareOriginPluginPackageResp) {
     option (google.api.http) = {
-      post : "/api/v3/export/prepare/origin_plugin_packge"
+      post : "/api/v3/export/prepare/origin_plugin_package"
       body : "*"
     };
   }
@@ -52,7 +53,7 @@ service Export {
   rpc ExportOriginPluginPackage(ExportOriginPluginPackageReq)
       returns (stream FileChunk) {
     option (google.api.http) = {
-      get : "/api/v3/export/download/origin_plugin_packge"
+      get : "/api/v3/export/download/origin_plugin_package"
     };
   }
 }

@@ -77,6 +77,14 @@ exportServer:
   address: "__BK_NODEMGR_FILE_EXPORTSERVER_ADDRESS__"
   bindIP: 0.0.0.0
   port: __BK_NODEMGR_FILE_EXPORT_PORT__
+  authIdentity: none
+
+  # defines the JWT server configuration for authentication
+  jwtServerConfig:
+    # JWT encryption type: symmetric or asymmetric
+    cryptoType: symmetric
+    # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+    symmetricKey: "__BK_NODEMGR_FILE_EXPORTSERVER_JWT_SYMMETRIC_KEY__"
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__

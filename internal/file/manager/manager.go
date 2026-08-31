@@ -43,6 +43,7 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -69,6 +70,7 @@ type IManager interface {
 	IPluginV2
 	IExternalPluginV2
 	IPluginV3
+	IExport
 
 	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.
@@ -339,6 +341,27 @@ func WithDownloader(dl downloader.IHandler) OptionFn {
 	}
 }
 
+// WithUpstreamExportFileGroup sets the upstream export file group.
+func WithUpstreamExportFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamExport = fileGroup
+	}
+}
+
+// WithExportAddress sets the public export address.
+func WithExportAddress(address string) OptionFn {
+	return func(manager *Manager) {
+		manager.exportAddress = address
+	}
+}
+
+// WithExportCrypter sets the crypter for export tokens.
+func WithExportCrypter(exportCrypter crypter.Crypter) OptionFn {
+	return func(manager *Manager) {
+		manager.exportCrypter = exportCrypter
+	}
+}
+
 var _ IManager = &Manager{}
 
 // Manager provides the file manager.
@@ -359,6 +382,13 @@ type Manager struct {
 	upstreamReleaseBinTool         fileiface.FileGroup
 	upstreamReleasePluginBinTool   fileiface.FileGroup
 	upstreamReleasePlugin          fileiface.FileGroup
+	upstreamExport                 fileiface.FileGroup
+
+	// export address is the ip or domain by which the public can be accessed.
+	exportAddress string
+
+	// exportCrypter decrypts and authenticates export download tokens.
+	exportCrypter crypter.Crypter
 
 	// installter file group.
 	installerFileGroup fileiface.FileGroup
@@ -459,6 +489,14 @@ func (m *Manager) Start(ctx context.Context) error {
 
 	if m.upstreamReleasePluginBinTool == nil {
 		return errors.New("invalid upstream release plugin bin tool v2")
+	}
+
+	if m.upstreamExport == nil {
+		return errors.New("invalid upstream export")
+	}
+
+	if m.exportCrypter == nil {
+		return errors.New("invalid export crypter")
 	}
 
 	if m.storageUpload == nil {

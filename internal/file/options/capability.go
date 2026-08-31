@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
@@ -58,6 +59,9 @@ type Capability struct {
 
 	// GSEHandler provides gse handler.
 	GSEHandler gse.IHandler
+
+	// ExportDownloadCrypter decrypts and authenticates export download tokens.
+	ExportDownloadCrypter crypter.Crypter
 
 	// Manager provides manager handler.
 	Manager manager.IManager

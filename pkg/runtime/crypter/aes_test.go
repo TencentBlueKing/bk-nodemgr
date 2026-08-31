@@ -20,6 +20,7 @@
 package crypter
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -75,6 +76,113 @@ func TestAES_Crypter(t *testing.T) {
 
 			if !reflect.DeepEqual(decodeText, tt.args.plaintext) {
 				t.Errorf("Decrypt() got = %v, want %v", decodeText, tt.args.plaintext)
+			}
+		})
+	}
+}
+
+func mustNewAESGCMCrypter(t *testing.T, key, aad []byte) Crypter {
+	t.Helper()
+
+	cry, err := NewAESGCMCrypter(key, aad)
+	if err != nil {
+		t.Fatalf("NewAESGCMCrypter() error = %v", err)
+	}
+
+	return cry
+}
+
+// TestNewAESGCMCrypter verifies constructor validation.
+func TestNewAESGCMCrypter(t *testing.T) {
+	if _, err := NewAESGCMCrypter(nil, []byte("test-purpose")); err == nil {
+		t.Fatal("NewAESGCMCrypter() error = nil, want error")
+	}
+}
+
+// TestAESGCMCrypter verifies authenticated round trips and randomized nonces.
+func TestAESGCMCrypter(t *testing.T) {
+	cry := mustNewAESGCMCrypter(t, []byte("test-secret"), []byte("test-purpose"))
+	plaintext := []byte("export download token payload")
+
+	firstCiphertext, err := cry.Encrypt(plaintext)
+	if err != nil {
+		t.Fatalf("Encrypt() error = %v", err)
+	}
+	secondCiphertext, err := cry.Encrypt(plaintext)
+	if err != nil {
+		t.Fatalf("Encrypt() error = %v", err)
+	}
+	if bytes.Equal(firstCiphertext, secondCiphertext) {
+		t.Fatal("Encrypt() produced identical ciphertexts, want unique nonces")
+	}
+	if firstCiphertext[0] != aesGCMVersion {
+		t.Fatalf("Encrypt() version = %d, want %d", firstCiphertext[0], aesGCMVersion)
+	}
+	const gcmNonceAndTagSize = 12 + 16
+	if len(firstCiphertext) != 1+gcmNonceAndTagSize+len(plaintext) {
+		t.Fatalf("Encrypt() ciphertext length = %d, want %d", len(firstCiphertext), 1+gcmNonceAndTagSize+len(plaintext))
+	}
+
+	decrypted, err := cry.Decrypt(firstCiphertext)
+	if err != nil {
+		t.Fatalf("Decrypt() error = %v", err)
+	}
+	if !bytes.Equal(decrypted, plaintext) {
+		t.Fatalf("Decrypt() = %q, want %q", decrypted, plaintext)
+	}
+}
+
+// TestAESGCMDecryptRejectsInvalidCiphertext verifies authenticated failure paths.
+func TestAESGCMDecryptRejectsInvalidCiphertext(t *testing.T) {
+	key := []byte("test-secret")
+	aad := []byte("test-purpose")
+	cry := mustNewAESGCMCrypter(t, key, aad)
+	ciphertext, err := cry.Encrypt([]byte("payload"))
+	if err != nil {
+		t.Fatalf("Encrypt() error = %v", err)
+	}
+
+	tamperedCiphertext := bytes.Clone(ciphertext)
+	tamperedCiphertext[len(tamperedCiphertext)-1] ^= 1
+	unsupportedVersion := bytes.Clone(ciphertext)
+	unsupportedVersion[0]++
+
+	tests := []struct {
+		name       string
+		decrypter  Crypter
+		ciphertext []byte
+	}{
+		{
+			name:       "tampered authentication tag",
+			decrypter:  cry,
+			ciphertext: tamperedCiphertext,
+		},
+		{
+			name:       "unsupported version",
+			decrypter:  cry,
+			ciphertext: unsupportedVersion,
+		},
+		{
+			name:       "truncated ciphertext",
+			decrypter:  cry,
+			ciphertext: ciphertext[:len(ciphertext)-1],
+		},
+		{
+			name:       "wrong key",
+			decrypter:  mustNewAESGCMCrypter(t, []byte("different-secret"), aad),
+			ciphertext: ciphertext,
+		},
+		{
+			name:       "wrong additional data",
+			decrypter:  mustNewAESGCMCrypter(t, key, []byte("different-purpose")),
+			ciphertext: ciphertext,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if _, err := tt.decrypter.Decrypt(tt.ciphertext); err == nil {
+				t.Fatal("Decrypt() error = nil, want error")
 			}
 		})
 	}

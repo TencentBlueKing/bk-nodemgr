@@ -81,6 +81,13 @@ type IPkgManager interface {
 	IPkgPublishHandler
 	IPkgDownloadHandler
 	IPkgInfoHandler
+	IPkgExportHandler
+}
+
+// IPkgExportHandler defines package export operations.
+type IPkgExportHandler interface {
+	// ExportPrepareOriginPluginPackage prepares an origin plugin package export.
+	ExportPrepareOriginPluginPackage(nCtx contextx.IContext, param types.ExportPrepareParam) (*fileiface.FileInfo, string, error)
 }
 
 // IPkgInfoHandler defines the interface of pkg info query.
@@ -1149,4 +1156,25 @@ func (h *handler) InfoInstaller(nCtx contextx.IContext, osType criteria.OSType, 
 	}
 
 	return &fileiface.FileInfo{Name: data.GetName(), Size: data.GetSize(), MD5: data.GetMd5()}, nil
+}
+
+// ExportPrepareOriginPluginPackage prepares an origin plugin package export.
+func (h *handler) ExportPrepareOriginPluginPackage(nCtx contextx.IContext, param types.ExportPrepareParam) (*fileiface.FileInfo, string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, "", err
+	}
+
+	req := &protoFile.ExportPrepareOriginPluginPackageReq{
+		PluginPkgName:       param.PluginPkgName,
+		PluginPkgVersion:    param.PluginPkgVersion,
+		UploadOriginPkgType: string(param.UploadOriginPkgType),
+		UploadIds:           param.UploadIDs,
+		FileNameSuffix:      param.FileNameSuffix,
+	}
+	data, err := h.cli.exportPrepareOriginPluginPackage(nCtx, nCtx.TenantID(), req)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to prepare origin plugin package export: %w", err)
+	}
+
+	return &fileiface.FileInfo{Name: data.GetFilename(), Size: data.GetSize(), MD5: data.GetMd5()}, data.GetAddress(), nil
 }
