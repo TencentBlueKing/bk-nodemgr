@@ -22,7 +22,9 @@ curl template 按 mode 拆分：
 | -------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | 确保指定名称和版本的插件存在                       | [specify_plugin](specify_plugin.md)                                                   |
 | 基于插件包生成并确保插件实例存在                   | [specify_plugin_pkg](specify_plugin_pkg.md)                                           |
+| 基于 remote targets 把插件包实例投射到承载主机     | [project_plugin_pkg_to_hosts](project_plugin_pkg_to_hosts.md)                         |
 | 声明已安装插件的配置内容                           | [specify_plugin_sub_config](specify_plugin_sub_config.md)                             |
+| 基于配置模板声明已安装插件的配置文件               | [specify_plugin_sub_config_template](specify_plugin_sub_config_template.md)           |
 | 基于 scope source targets 生成已安装插件的配置文件 | [project_plugin_config_template_to_hosts](project_plugin_config_template_to_hosts.md) |
 
 已文档化 mode 的创建流程一致：
@@ -79,6 +81,14 @@ curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部�
 
 详情和 curl template：[specify_plugin_pkg](specify_plugin_pkg.md)。
 
+#### project_plugin_pkg_to_hosts
+
+`project_plugin_pkg_to_hosts` 用于把 scope 解析出的 remote targets 投射为插件包实例，并把这些插件实例部署到 `placement_host_ids` 指定的承载主机。
+
+该 mode 的期望集合是 `scope remote targets × placement_host_ids`；`placement_host_ids` 是承载位置，不是第二套 scope。
+
+详情和 curl template：[project_plugin_pkg_to_hosts](project_plugin_pkg_to_hosts.md)。
+
 #### specify_plugin_sub_config
 
 `specify_plugin_sub_config` 只用于声明已安装插件的配置。文档化行为是 config-only：更新插件配置文件内容，不安装或升级插件版本。
@@ -86,6 +96,14 @@ curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部�
 执行策略后，系统会渲染并下发声明的非主配置文件，使目标插件最终拥有对应 config。目标插件必须已经安装。
 
 详情和 curl template：[specify_plugin_sub_config](specify_plugin_sub_config.md)。
+
+#### specify_plugin_sub_config_template
+
+`specify_plugin_sub_config_template` 用于按配置模板为已安装插件声明 deploy-policy 管理的 sub config file。文档化行为是 config-only：只生成缺失的 sub config file，不安装或升级插件。
+
+该 mode 使用 `template_name` 或 `name` 生成配置名，命名公式为 `<base_name>_deploy_<deploy_policy_id><ext>`。
+
+详情和 curl template：[specify_plugin_sub_config_template](specify_plugin_sub_config_template.md)。
 
 #### project_plugin_config_template_to_hosts
 
@@ -125,12 +143,14 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 
 机器侧可见效果取决于 spec mode：
 
-| Mode                                      | `plugin_group`         | `plugin_name`                                      | 机器侧产物                                                                                                                             |
-| ----------------------------------------- | ---------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `specify_plugin`                          | 插件注册信息中的 group | 请求中的 `plugin_name`                             | package 内容解压到 `<plugin_home>/`；配置目录为 `<plugin_home>/etc/`；PID 文件为 `<plugin_home>/run/<plugin_pkg_name>.pid`             |
-| `specify_plugin_pkg`                      | `<deploy_policy_id>`   | `<plugin_pkg_name>_<deploy_policy_id>_<module_id>` | package 内容解压到 `<base_deploy_dir>/<deploy_env>/plugin/<deploy_policy_id>/<plugin_name>/`；配置与 PID 文件位于该目录下              |
-| `specify_plugin_sub_config`               | 已安装插件的 group     | 请求中的 `plugin_name`                             | `is_main_config=false` 的文件写入 `<plugin_home>/etc/<plugin_name>/<name>`，随后 reload 插件                                           |
-| `project_plugin_config_template_to_hosts` | 已安装插件的 group     | 请求中的 `plugin_name`                             | 每个 source target 生成一个 sub config file；配置名为 `<base_name>_deploy_<deploy_policy_id>_<source_module_id>_<source_host_id><ext>` |
+| Mode                                      | `plugin_group`         | `plugin_name`                                                              | 机器侧产物                                                                                                                             |
+| ----------------------------------------- | ---------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `specify_plugin`                          | 插件注册信息中的 group | 请求中的 `plugin_name`                                                     | package 内容解压到 `<plugin_home>/`；配置目录为 `<plugin_home>/etc/`；PID 文件为 `<plugin_home>/run/<plugin_pkg_name>.pid`             |
+| `specify_plugin_pkg`                      | `<deploy_policy_id>`   | `<plugin_pkg_name>_<deploy_policy_id>_<module_id>`                         | package 内容解压到 `<base_deploy_dir>/<deploy_env>/plugin/<deploy_policy_id>/<plugin_name>/`；配置与 PID 文件位于该目录下              |
+| `project_plugin_pkg_to_hosts`             | `<deploy_policy_id>`   | `<plugin_pkg_name>_<deploy_policy_id>_<remote_module_id>_<remote_host_id>` | package 内容部署到 `placement_host_ids` 对应承载主机；插件 identity 来自 scope remote target                                           |
+| `specify_plugin_sub_config`               | 已安装插件的 group     | 请求中的 `plugin_name`                                                     | `is_main_config=false` 的文件写入 `<plugin_home>/etc/<plugin_name>/<name>`，随后 reload 插件                                           |
+| `specify_plugin_sub_config_template`      | 已安装插件的 group     | 请求中的 `plugin_name`                                                     | 每个有效 template item 生成一个 sub config file；配置名为 `<base_name>_deploy_<deploy_policy_id><ext>`                                 |
+| `project_plugin_config_template_to_hosts` | 已安装插件的 group     | 请求中的 `plugin_name`                                                     | 每个 source target 生成一个 sub config file；配置名为 `<base_name>_deploy_<deploy_policy_id>_<source_module_id>_<source_host_id><ext>` |
 
 两个安装类 mode 的 package archive 都直接解压到对应 `<plugin_home>/`。archive 内部相对路径会被保留；主配置文件路径由插件包的 `config_template.file_path` 和 `config_template.name` 决定：
 
@@ -152,7 +172,9 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 - Unsupported `scope` 和目标组合是概念问题，检查 [scope](../../concepts/deploy_policy/scope.md)。
 - Unsupported `spec` 语义是 desired-state 问题，检查 [spec](../../concepts/deploy_policy/spec.md)。
 - create 或 execute 成功响应是即时 API 结果，不是最终机器状态验证。
+- `project_plugin_pkg_to_hosts` 要求 `plugin_pkg_name`、`version` 和非空 `placement_host_ids`；`placement_host_ids` 是承载位置，不是第二套 scope。
 - `specify_plugin_sub_config` 是 config-only，要求插件已安装；它只保证声明的非主配置文件存在，不安装或升级插件。
+- `specify_plugin_sub_config_template` 是 config-only，要求插件已安装；有效 template item 至少需要 `template_name` 或 `name`。
 - `project_plugin_config_template_to_hosts` 是 config-only，要求 `plugin_name` 能反向定位到已有插件；它不接收 `placement_host_ids`，也不安装或升级插件。
 - `specify_plugin_pkg_sub_config` 出现在概念文档中，但当前 proto、Swagger 和 type contract 均没有该字段；不要把它作为 spec type 发送。
 
@@ -164,5 +186,7 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 - [Proto variant 定义](../../../proto/backend/api/v3/deploy_policy.proto)
 - [specify_plugin](specify_plugin.md)
 - [specify_plugin_pkg](specify_plugin_pkg.md)
+- [project_plugin_pkg_to_hosts](project_plugin_pkg_to_hosts.md)
 - [specify_plugin_sub_config](specify_plugin_sub_config.md)
+- [specify_plugin_sub_config_template](specify_plugin_sub_config_template.md)
 - [project_plugin_config_template_to_hosts](project_plugin_config_template_to_hosts.md)
