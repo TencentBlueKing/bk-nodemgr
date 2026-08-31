@@ -20,6 +20,8 @@
 
 ## Helm部署
 
+通过 Helm 初始化证书和工具包，或在部署期间手工导入 V2/V3 插件包时，参考 [初始化包导入](installation/init_packages.md)。
+
 ### Backend配置
 
 ```yaml
