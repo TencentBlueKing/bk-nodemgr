@@ -143,7 +143,11 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
 
 	// check if this node version is >= lowest version which supports the soft restart through cluster.
 	// proxy node do not support soft restart.
-	if std.DeployInfo().CurrentVersionSupports.OperateAgentRestart && std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleAgent {
+	// force restart should bypass the cluster soft restart and execute the command immediately.
+	if !std.DeployInfo().RestartOptions.ForceRestart &&
+		std.DeployInfo().CurrentVersionSupports.OperateAgentRestart &&
+		std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleAgent {
+
 		if err := act.restartThroughCluster(std, std.DeployInfo()); err != nil {
 			return err
 		}
