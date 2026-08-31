@@ -907,6 +907,7 @@ func (svc *Service) initialManager() error {
 			AgentBaseAlarmEventDataID: svc.conf.NodeEventDataID.Default.AgentBaseAlarmEventDataID,
 			TaskProcEventDataID:       svc.conf.NodeEventDataID.Default.TaskProcEventDataID,
 		},
+		NetworkUnitConfig: svc.conf.NetworkUnit,
 		HostPasswordVault: svc.Cap.CreditVault,
 		ProxyMessager:     svc.Cap.ProxyMessager,
 		Cache:             rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),

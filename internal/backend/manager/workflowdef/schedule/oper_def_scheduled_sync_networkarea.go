@@ -55,6 +55,7 @@ func (oper *operScheduledSyncNetworkArea) Name() string {
 func (oper *operScheduledSyncNetworkArea) ActionDefNames() []string {
 	return []string{
 		syncdata.ActionNameSyncNetworkArea,
+		syncdata.ActionNameEnsureDirectNetworkUnit,
 	}
 }
 

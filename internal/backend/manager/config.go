@@ -88,6 +88,9 @@ type Config struct {
 	// node event data-id default config.
 	NodeEventDataIDConf deployconstant.NodeEventDataIDConf
 
+	// network unit config.
+	NetworkUnitConfig config.NetworkUnit
+
 	// credit vault.
 	HostPasswordVault creditvault.IHostPasswordVault
 

@@ -1102,6 +1102,20 @@ backend:
     installerFileGroup:
       fullPath: /bk-nodemgr/file/tools
 
+    ## defines the default direct network unit auto-creation settings.
+    networkUnit:
+      defaultDirectUnit:
+        # enabled controls whether the backend auto-creates a default direct network unit
+        # in the default network area (id=0) after syncing networkareas from CMDB.
+        enabled: false
+        # name is the name of the default direct network unit.
+        name: "default"
+        # clusterEndpoints/fileEndpoints/dataEndpoints define the upstream GSE endpoints
+        # of the default direct network unit.
+        clusterEndpoints: []
+        fileEndpoints: []
+        dataEndpoints: []
+
     ## defines the local file cache used by backend SSH install flows.
     fileCache:
       # dir is the absolute path for the local file cache directory.

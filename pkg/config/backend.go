@@ -123,6 +123,9 @@ const (
 
 	defaultBackendAgentBaseAlarmEventDataID = 1000
 	defaultBackendTaskProcEventDataID       = 1100008
+
+	defaultBackendNetworkUnitDefaultDirectUnitEnabled = true
+	defaultBackendNetworkUnitDefaultDirectUnitName    = "default"
 )
 
 // BackendService the config of backend service.
@@ -153,6 +156,7 @@ type BackendService struct {
 	FileCache          BackendFileCache `yaml:"fileCache" usage:"local file cache config of backend service"`
 	CreditVault        CreditVault      `yaml:"creditVault" usage:"credit vault config of backend service"`
 	Access             Access           `yaml:"access" usage:"access config of backend service"`
+	NetworkUnit        NetworkUnit      `yaml:"networkUnit" usage:"network unit config of backend service"`
 	Tracing            Tracing          `yaml:"tracing" usage:"tracing config of backend service"`
 	Profiling          Profiling        `yaml:"profiling" usage:"profiling config of backend service"`
 }
@@ -364,6 +368,12 @@ func NewBackendService() *BackendService {
 		Access: Access{
 			VirtualUser: defaultAccessVirtualUser,
 		},
+		NetworkUnit: NetworkUnit{
+			DefaultDirectUnit: DefaultDirectUnit{
+				Enabled: defaultBackendNetworkUnitDefaultDirectUnitEnabled,
+				Name:    defaultBackendNetworkUnitDefaultDirectUnitName,
+			},
+		},
 		Tracing: Tracing{
 			ExporterType: defaultBackendTracingExporterType,
 			GlobalService: TraceService{
@@ -508,6 +518,20 @@ func (svc *BackendService) Validate() error {
 	}
 
 	return nil
+}
+
+// NetworkUnit defines the network unit configuration.
+type NetworkUnit struct {
+	DefaultDirectUnit DefaultDirectUnit `yaml:"defaultDirectUnit" usage:"default direct network unit config"`
+}
+
+// DefaultDirectUnit defines the default direct network unit config.
+type DefaultDirectUnit struct {
+	Enabled          bool     `yaml:"enabled" usage:"enable auto-create default direct network unit"`
+	Name             string   `yaml:"name" usage:"name of the default direct network unit"`
+	ClusterEndpoints []string `yaml:"clusterEndpoints" usage:"cluster endpoints of the default direct network unit"`
+	FileEndpoints    []string `yaml:"fileEndpoints" usage:"file endpoints of the default direct network unit"`
+	DataEndpoints    []string `yaml:"dataEndpoints" usage:"data endpoints of the default direct network unit"`
 }
 
 // Monitor defines the monitor gateway configuration.

@@ -147,6 +147,8 @@ data:
 
     installerFileGroup: {{ .Values.backend.config.installerFileGroup | toYaml | nindent 6 }}
 
+    networkUnit: {{ .Values.backend.config.networkUnit | toYaml | nindent 6 }}
+
     fileCache: {{ .Values.backend.config.fileCache | toYaml | nindent 6 }}
 
     gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}
