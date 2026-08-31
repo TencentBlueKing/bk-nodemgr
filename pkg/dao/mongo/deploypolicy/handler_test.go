@@ -83,6 +83,24 @@ func TestConvSpecFromTypes_ToDAO_AndBack(t *testing.T) {
 			}(),
 		},
 		{
+			name: "ProjectPluginConfigTemplateToHosts",
+			spec: func() *types.DeploySpec {
+				spec, _ := types.NewDeploySpecWithProjectPluginConfigTemplateToHosts(
+					&types.ProjectPluginConfigTemplateToHostsParam{
+						PluginName: "test-plugin",
+						ConfigFilesDetail: []*types.PluginConfigDetail{
+							{
+								TemplateName: "template.conf",
+								IsMainConfig: false,
+							},
+						},
+						CustomConfigContext: map[string]any{"key": "value"},
+					},
+				)
+				return spec
+			}(),
+		},
+		{
 			name: "SpecifyPluginSubConfig",
 			spec: func() *types.DeploySpec {
 				spec, _ := types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
@@ -191,6 +209,16 @@ func TestConvSpecFromTypes_ToDAO_AndBack(t *testing.T) {
 				}
 				if len(originalParam.PlacementHostIDs) != len(backParam.PlacementHostIDs) {
 					t.Errorf("PlacementHostIDs length = %v, want %v", len(backParam.PlacementHostIDs), len(originalParam.PlacementHostIDs))
+				}
+
+			case types.DeploySpecTypeProjectPluginConfigTemplateToHosts:
+				originalParam, _ := tt.spec.GetProjectPluginConfigTemplateToHostsParam()
+				backParam, _ := backSpec.GetProjectPluginConfigTemplateToHostsParam()
+				if originalParam.PluginName != backParam.PluginName {
+					t.Errorf("PluginName = %v, want %v", backParam.PluginName, originalParam.PluginName)
+				}
+				if !reflect.DeepEqual(originalParam.ConfigFilesDetail, backParam.ConfigFilesDetail) {
+					t.Errorf("ConfigFilesDetail = %+v, want %+v", backParam.ConfigFilesDetail, originalParam.ConfigFilesDetail)
 				}
 
 			case types.DeploySpecTypeSpecifyPluginSubConfig:

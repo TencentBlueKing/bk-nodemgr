@@ -73,6 +73,9 @@ const (
 	// DeploySpecTypeProjectPluginPkgToHosts defines project plugin pkg to hosts.
 	DeploySpecTypeProjectPluginPkgToHosts DeploySpecType = "project_plugin_pkg_to_hosts"
 
+	// DeploySpecTypeProjectPluginConfigTemplateToHosts defines project plugin config template to hosts.
+	DeploySpecTypeProjectPluginConfigTemplateToHosts DeploySpecType = "project_plugin_config_template_to_hosts"
+
 	// DeploySpecTypeSpecifyPluginSubConfig defines specify plugin sub config.
 	DeploySpecTypeSpecifyPluginSubConfig DeploySpecType = "specify_plugin_sub_config"
 
@@ -85,6 +88,7 @@ func (deploySpecType DeploySpecType) Validate() error {
 	switch deploySpecType {
 	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyProxy, DeploySpecTypeSpecifyPlugin,
 		DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeProjectPluginPkgToHosts,
+		DeploySpecTypeProjectPluginConfigTemplateToHosts,
 		DeploySpecTypeSpecifyPluginSubConfig,
 		DeploySpecTypeSpecifyPluginSubConfigTemplate:
 		return nil
@@ -104,6 +108,8 @@ func conflictDeploySpecTypes(specType DeploySpecType) []DeploySpecType {
 	case DeploySpecTypeSpecifyPluginPkg:
 		return []DeploySpecType{}
 	case DeploySpecTypeProjectPluginPkgToHosts:
+		return []DeploySpecType{}
+	case DeploySpecTypeProjectPluginConfigTemplateToHosts:
 		return []DeploySpecType{}
 	case DeploySpecTypeSpecifyPluginSubConfig:
 		return []DeploySpecType{DeploySpecTypeSpecifyPluginSubConfigTemplate}
@@ -132,14 +138,15 @@ func (deploySpecType DeploySpecType) IsConflict(other DeploySpecType) bool {
 
 // DeploySpec defines the deploy spec of the deploy policy.
 type DeploySpec struct {
-	specType                            DeploySpecType
-	paramSpecifyAgent                   *SpecifyAgentParam
-	paramSpecifyProxy                   *SpecifyProxyParam
-	paramSpecifyPlugin                  *SpecifyPluginParam
-	paramSpecifyPluginPkg               *SpecifyPluginPkgParam
-	paramProjectPluginPkgToHosts        *ProjectPluginPkgToHostsParam
-	paramSpecifyPluginSubConfig         *SpecifyPluginSubConfigParam
-	paramSpecifyPluginSubConfigTemplate *SpecifyPluginSubConfigTemplateParam
+	specType                                DeploySpecType
+	paramSpecifyAgent                       *SpecifyAgentParam
+	paramSpecifyProxy                       *SpecifyProxyParam
+	paramSpecifyPlugin                      *SpecifyPluginParam
+	paramSpecifyPluginPkg                   *SpecifyPluginPkgParam
+	paramProjectPluginPkgToHosts            *ProjectPluginPkgToHostsParam
+	paramProjectPluginConfigTemplateToHosts *ProjectPluginConfigTemplateToHostsParam
+	paramSpecifyPluginSubConfig             *SpecifyPluginSubConfigParam
+	paramSpecifyPluginSubConfigTemplate     *SpecifyPluginSubConfigTemplateParam
 }
 
 // Type returns the deploy spec type.
@@ -192,6 +199,20 @@ func NewDeploySpecWithProjectPluginPkgToHosts(param *ProjectPluginPkgToHostsPara
 	return &DeploySpec{
 		specType:                     DeploySpecTypeProjectPluginPkgToHosts,
 		paramProjectPluginPkgToHosts: param,
+	}, nil
+}
+
+// NewDeploySpecWithProjectPluginConfigTemplateToHosts creates a new DeploySpec with ProjectPluginConfigTemplateToHosts type.
+func NewDeploySpecWithProjectPluginConfigTemplateToHosts(
+	param *ProjectPluginConfigTemplateToHostsParam,
+) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeProjectPluginConfigTemplateToHosts")
+	}
+
+	return &DeploySpec{
+		specType:                                DeploySpecTypeProjectPluginConfigTemplateToHosts,
+		paramProjectPluginConfigTemplateToHosts: param,
 	}, nil
 }
 
@@ -250,6 +271,12 @@ func (spec *DeploySpec) UniqueID() (string, error) {
 	case DeploySpecTypeProjectPluginPkgToHosts:
 		if spec.paramProjectPluginPkgToHosts == nil {
 			return "", fmt.Errorf("param_project_plugin_pkg_to_hosts is nil")
+		}
+
+		return uuid.NewString(), nil
+	case DeploySpecTypeProjectPluginConfigTemplateToHosts:
+		if spec.paramProjectPluginConfigTemplateToHosts == nil {
+			return "", fmt.Errorf("param_project_plugin_config_template_to_hosts is nil")
 		}
 
 		return uuid.NewString(), nil
@@ -487,6 +514,47 @@ func (param *ProjectPluginPkgToHostsParam) Validate() error {
 		if hostID <= 0 {
 			return fmt.Errorf("placement_host_ids[%d] is invalid: %d", idx, hostID)
 		}
+	}
+
+	return nil
+}
+
+// ProjectPluginConfigTemplateToHostsParam defines the project plugin config template to hosts param.
+type ProjectPluginConfigTemplateToHostsParam struct {
+	PluginName          string
+	ConfigFilesDetail   []*PluginConfigDetail
+	CustomConfigContext map[string]any
+}
+
+// GetProjectPluginConfigTemplateToHostsParam returns the project plugin config template to hosts param.
+func (spec *DeploySpec) GetProjectPluginConfigTemplateToHostsParam() (*ProjectPluginConfigTemplateToHostsParam, error) {
+	if spec.paramProjectPluginConfigTemplateToHosts == nil {
+		return nil, fmt.Errorf("param_project_plugin_config_template_to_hosts is nil")
+	}
+
+	if err := spec.paramProjectPluginConfigTemplateToHosts.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate project plugin config template to hosts param: %w", err)
+	}
+
+	return spec.paramProjectPluginConfigTemplateToHosts, nil
+}
+
+// Validate validates the project plugin config template to hosts param.
+func (param *ProjectPluginConfigTemplateToHostsParam) Validate() error {
+	if param.PluginName == "" {
+		return fmt.Errorf("plugin_name is required")
+	}
+
+	if len(param.ConfigFilesDetail) != 1 {
+		return fmt.Errorf("config_files_detail must contain exactly one item")
+	}
+
+	if param.ConfigFilesDetail[0] == nil {
+		return fmt.Errorf("config_files_detail[0] is required")
+	}
+
+	if param.ConfigFilesDetail[0].TemplateName == "" {
+		return fmt.Errorf("config_files_detail[0].template_name is required")
 	}
 
 	return nil

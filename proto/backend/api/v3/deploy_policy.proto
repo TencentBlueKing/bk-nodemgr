@@ -66,6 +66,15 @@ message ProjectPluginPkgToHostsParam {
   repeated int64 placement_host_ids = 4;
 }
 
+// ProjectPluginConfigTemplateToHostsParam describes the project plugin config
+// template to hosts param structure. This message defines the expected
+// structure for param when type is "project_plugin_config_template_to_hosts".
+message ProjectPluginConfigTemplateToHostsParam {
+  string plugin_name = 1;
+  repeated PluginConfigDetail config_files_detail = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
 // SpecifyPluginSubConfigParam describes the specify plugin sub config param
 // structure. This message defines the expected structure for param when type is
 // "specify_plugin_sub_config". It serves as documentation to help users
@@ -96,6 +105,8 @@ message DeploySpec {
   // - For "specify_plugin": see SpecifyPluginParam
   // - For "specify_plugin_pkg": see SpecifyPluginPkgParam
   // - For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam
+  // - For "project_plugin_config_template_to_hosts": see
+  // ProjectPluginConfigTemplateToHostsParam
   // - For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam
   // - For "specify_plugin_sub_config_template": see
   // SpecifyPluginSubConfigTemplateParam
