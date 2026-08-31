@@ -165,7 +165,7 @@ type IPackageManager interface {
 	// LaunchPackageImportPluginV2Pkg launches the package import plugin v2 pkg workflow.
 	LaunchPackageImportPluginV2Pkg(ctx contextx.IContext, param types.PackageImportParam) (string, error)
 	// LaunchPackageImportExternalPluginV2Pkg launches the package import external plugin v2 pkg workflow.
-	LaunchPackageImportExternalPluginV2Pkg(
-		ctx contextx.IContext, param types.PackageImportParam,
-	) (string, error)
+	LaunchPackageImportExternalPluginV2Pkg(ctx contextx.IContext, param types.PackageImportParam) (string, error)
+	// LaunchPackageExportPlugin launches a plugin package export workflow.
+	LaunchPackageExportPlugin(ctx contextx.IContext, param types.PackageExportParam) (string, error)
 }

@@ -288,6 +288,16 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create file handler: %w", err)
 	}
 
+	// Initial export download crypter with the secret used by file export server.
+	svc.Cap.ExportCrypter, err = crypter.NewAESGCMCrypter(
+		[]byte(svc.conf.File.JWTClientConfig.SymmetricKey),
+		[]byte(types.ExportTokenPurpose),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create export download crypter: %w", err)
+	}
+	svc.Cap.ExportTokenExpiration = time.Duration(svc.conf.File.JWTClientConfig.TokenExpirationHour) * time.Hour
+
 	// initial IAM v3 handler.
 	svc.Cap.IAMV3Handler, err = svc.newIAMV3Handler()
 	if err != nil {

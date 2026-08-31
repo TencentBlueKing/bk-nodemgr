@@ -20,6 +20,8 @@
 package options
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -114,6 +116,12 @@ type Capability struct {
 
 	// FileHandler file handler.
 	FileHandler file.IHandler
+
+	// ExportCrypter encrypts and authenticates export tokens.
+	ExportCrypter crypter.Crypter
+
+	// ExportTokenExpiration defines the validity period of export tokens.
+	ExportTokenExpiration time.Duration
 
 	// UserManagerHandler user manager handler.
 	UserManagerHandler usermanager.IHandler

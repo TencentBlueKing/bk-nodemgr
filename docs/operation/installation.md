@@ -119,7 +119,7 @@ config:
     port: 28203
     authIdentity: none
   exportServer: # 导出插件包的HTTP服务及公开下载地址配置
-    address: ""
+    address: "" # 必须填写标准的域名，该域名由部署时确认，例：xxx.example.com
     bindIP: "0.0.0.0"
     port: 28204
     authIdentity: none

@@ -47,8 +47,12 @@ type PackageDeploymentInfo struct {
 	Release []Release
 	// Upload is the result of uploaded plugin package.
 	Upload PackageDeploymentUploadInfo
+	// Export stores stable metadata for an exported package.
+	Export PackageDeploymentExportInfo
 	// ImportPluginPkgOptions provides the options for importing a plugin package.
 	ImportPluginPkgOptions PackageImportPluginPkgOptions
+	// ExportPluginPkgOptions provides the options for exporting a plugin package.
+	ExportPluginPkgOptions PackageExportPluginPkgOptions
 }
 
 // PackageDeploymentUploadInfo represents uploaded plugin package information.
@@ -91,4 +95,16 @@ type PackageImportPluginPkgOptions struct {
 	FileSource     string
 	FileName       string
 	MD5            string
+}
+
+// PackageDeploymentExportInfo stores stable metadata for an exported package.
+type PackageDeploymentExportInfo struct {
+	Filename string
+	Address  string
+}
+
+// PackageExportPluginPkgOptions represents the options of exporting a plugin package.
+type PackageExportPluginPkgOptions struct {
+	PluginPkgName    string
+	PluginPkgVersion string
 }

@@ -20,6 +20,8 @@
 package pkg
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -30,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,11 +53,15 @@ type handler struct {
 	daoReleasePluginBinTool release.IPluginBinTool
 	daoPlugin               plugin.IDaoPlugin
 	daoPackageWorkflow      pkgStg.IStoragePackageWorkflow
+	packageStorage          pkgStg.IStoragePackageDeployment
 	daoWorkflow             workflow.IStorage
 	pkgMgrIface             managerIface.IPackageManager
 
 	daoTenant  tenant.IStorage
 	authorizer auth.IAuthorizer
+
+	exportCrypter         crypter.Crypter
+	exportTokenExpiration time.Duration
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -77,8 +84,11 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		daoReleasePluginBinTool: capability.StorageRelease,
 		daoPlugin:               capability.StoragePlugin,
 		daoPackageWorkflow:      capability.StoragePackage,
+		packageStorage:          capability.StoragePackage,
 		daoWorkflow:             capability.StorageWorkflow,
 		pkgMgrIface:             capability.Manager,
+		exportCrypter:           capability.ExportCrypter,
+		exportTokenExpiration:   capability.ExportTokenExpiration,
 		daoTenant:               capability.StorageTenant,
 		authorizer:              capability.Authorizer,
 	}
@@ -143,4 +153,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/workflow/import/v2/plugin", restserver.Handler(h.PackagePluginV2Import))
 	h.rg.POST("/workflow/import/v2/external_plugin", restserver.Handler(h.PackageExternalPluginV2Import))
 	h.rg.POST("/workflow/import_result", restserver.Handler(h.PackageImportResult))
+	h.rg.POST("/workflow/export/plugin", restserver.Handler(h.PackageExportPlugin))
+	h.rg.POST("/workflow/export_result", restserver.Handler(h.PackageExportResult))
 }

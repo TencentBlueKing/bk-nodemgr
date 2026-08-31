@@ -203,11 +203,19 @@ func convertInfoFromTypes(info *types.PackageDeploymentInfo) (*Info, error) {
 	return &Info{
 		Release: convertReleasesFromTypes(info.Release),
 		Upload:  convertUploadInfoFromTypes(info.Upload),
+		Export: exportInfo{
+			Filename: info.Export.Filename,
+			Address:  info.Export.Address,
+		},
 		ImportPluginPkgOptions: importPluginPkgOptions{
 			FileSourceType: string(info.ImportPluginPkgOptions.FileSourceType),
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
 			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
+		},
+		ExportPluginPkgOptions: exportPluginPkgOptions{
+			PluginPkgName:    info.ExportPluginPkgOptions.PluginPkgName,
+			PluginPkgVersion: info.ExportPluginPkgOptions.PluginPkgVersion,
 		},
 	}, nil
 }
@@ -220,11 +228,19 @@ func convertInfoToTypes(info *Info) (*types.PackageDeploymentInfo, error) {
 	return &types.PackageDeploymentInfo{
 		Release: convertReleasesToTypes(info.Release),
 		Upload:  convertUploadInfoToTypes(info.Upload),
+		Export: types.PackageDeploymentExportInfo{
+			Filename: info.Export.Filename,
+			Address:  info.Export.Address,
+		},
 		ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
 			FileSourceType: types.FileSourceType(info.ImportPluginPkgOptions.FileSourceType),
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
 			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
+		},
+		ExportPluginPkgOptions: types.PackageExportPluginPkgOptions{
+			PluginPkgName:    info.ExportPluginPkgOptions.PluginPkgName,
+			PluginPkgVersion: info.ExportPluginPkgOptions.PluginPkgVersion,
 		},
 	}, nil
 }
