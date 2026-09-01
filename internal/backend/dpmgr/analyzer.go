@@ -88,10 +88,10 @@ func (analyzer *Analyzer) analyze(nCtx contextx.IContext, params *AnalyzeParams)
 	switch params.Spec.Type() {
 	case types.DeploySpecTypeSpecifyPlugin:
 		return analyzer.analyzeSpecifyPlugin(nCtx, params)
-	case types.DeploySpecTypeSpecifyPluginPkg:
-		return analyzer.analyzeSpecifyPluginPkg(nCtx, params)
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
 		return analyzer.analyzeSpecifyPluginSubConfig(nCtx, params)
+	case types.DeploySpecTypeSpecifyPluginPkg:
+		return analyzer.analyzeSpecifyPluginPkg(nCtx, params)
 	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
 		return analyzer.analyzeSpecifyPluginSubConfigTemplate(nCtx, params)
 	default:
