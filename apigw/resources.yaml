@@ -2127,6 +2127,9 @@ paths:
                                   type: array
                                   items:
                                     type: string
+                                last_sync_at:
+                                  type: integer
+                                  format: int64
                                 bk_agent_id:
                                   type: string
                                 node_status:
@@ -6737,6 +6740,9 @@ paths:
                                   type: string
                                 auto_start:
                                   type: boolean
+                                last_sync_at:
+                                  type: integer
+                                  format: int64
                               description: ProcessInfo describes the process information.
                             plugin_pkg_name:
                               type: string
@@ -18270,7 +18276,7 @@ paths:
                         type: string
                       param:
                         type: object
-                        title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam'
+                        title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam\n- For "project_plugin_config_template_to_hosts": see\nProjectPluginConfigTemplateToHostsParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam\n- For "specify_plugin_sub_config_template": see\nSpecifyPluginSubConfigTemplateParam'
                     description: DeploySpec describes the spec of deploy policy.
                 scopes:
                   type: array
@@ -18469,7 +18475,7 @@ paths:
                                     type: string
                                   param:
                                     type: object
-                                    title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam'
+                                    title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam\n- For "project_plugin_config_template_to_hosts": see\nProjectPluginConfigTemplateToHostsParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam\n- For "specify_plugin_sub_config_template": see\nSpecifyPluginSubConfigTemplateParam'
                                 description: DeploySpec describes the spec of deploy policy.
                             dsu_id:
                               type: integer
@@ -18824,7 +18830,7 @@ paths:
                               type: string
                             param:
                               type: object
-                              title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam'
+                              title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam\n- For "project_plugin_config_template_to_hosts": see\nProjectPluginConfigTemplateToHostsParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam\n- For "specify_plugin_sub_config_template": see\nSpecifyPluginSubConfigTemplateParam'
                           description: DeploySpec describes the spec of deploy policy.
                       dsu_id:
                         type: integer
