@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package pkg provides package storage.
-package pkg
+// Package packageexport provides package export storage.
+package packageexport
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
@@ -25,17 +25,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IStorage defines the package storage interface.
+// IStorage defines the package export storage interface.
 type IStorage interface {
 	basestorage.Interface
 
-	IStoragePackageWorkflow
-	IStoragePackageDeployment
-	IStoragePackageExport
+	IDaoExport
 }
 
-// IStoragePackageExport defines the interface of package export storage.
-type IStoragePackageExport interface {
+// IDaoExport defines package export storage operations.
+type IDaoExport interface {
 	// ListPackageExport lists package export records.
 	ListPackageExport(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) (
 		[]*types.PackageExport, int64, error)
@@ -48,29 +46,4 @@ type IStoragePackageExport interface {
 
 	// DeletePackageExport deletes a package export by export ID.
 	DeletePackageExport(nCtx contextx.IContext, exportID string) error
-}
-
-// IStoragePackageWorkflow defines the interface of package workflow storage.
-type IStoragePackageWorkflow interface {
-	// CreatePackageWorkflow creates a new package workflow.
-	CreatePackageWorkflow(nCtx contextx.IContext, workflow *types.PackageWorkflow) error
-
-	// GetPackageWorkflow gets a package workflow by workflow ID.
-	GetPackageWorkflow(nCtx contextx.IContext, workflowID string) (*types.PackageWorkflow, error)
-}
-
-// IStoragePackageDeployment defines the interface of package deployment storage.
-type IStoragePackageDeployment interface {
-	// CreatePackageDeployment creates a package deployment record.
-	CreatePackageDeployment(nCtx contextx.IContext, deployment *types.PackageDeployment) error
-
-	// ListPackageDeployment lists package deployment records.
-	ListPackageDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageDeploymentCondition) (
-		[]*types.PackageDeployment, int64, error)
-
-	// GetPackageDeploymentInfo gets package deployment info by token.
-	GetPackageDeploymentInfo(nCtx contextx.IContext, token string) (*types.PackageDeploymentInfo, error)
-
-	// UpdatePackageDeploymentInfo updates package deployment info by token.
-	UpdatePackageDeploymentInfo(nCtx contextx.IContext, token string, info *types.PackageDeploymentInfo) error
 }

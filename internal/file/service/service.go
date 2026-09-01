@@ -35,6 +35,7 @@ import (
 	fileapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
 	packageEventStg "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageexport"
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -317,6 +318,13 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create event storage: %w", err)
 	}
 
+	svc.Cap.StoragePackageExport, err = packageexport.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create package export storage: %w", err)
+	}
+
 	return nil
 }
 
@@ -435,6 +443,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithStorageRelease(svc.Cap.StorageRelease),
 		manager.WithStorageTopo(svc.Cap.StorageTopo),
 		manager.WithStorageEvent(svc.Cap.StorageEvent),
+		manager.WithStoragePackageExport(svc.Cap.StoragePackageExport),
 		manager.WithAdvertiseIPV4(svc.conf.BasicServer.AdvertiseIPV4),
 		manager.WithAdvertiseIPV6(svc.conf.BasicServer.AdvertiseIPV6),
 		manager.WithMount(svc.conf.MountHostDir, svc.conf.WorkspaceFileGroup.FullPath),

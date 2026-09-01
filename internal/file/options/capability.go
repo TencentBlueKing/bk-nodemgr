@@ -22,6 +22,7 @@ package options
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageexport"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -56,6 +57,9 @@ type Capability struct {
 	// StorageEvent provides storage event handler.
 	StorageEvent packageevent.IStorage
 
+	// StoragePackageExport provides package export storage handler.
+	StoragePackageExport packageexport.IStorage
+
 	// GSEHandler provides gse handler.
 	GSEHandler gse.IHandler
 
@@ -83,6 +87,10 @@ func (c *Capability) Start(nCtx contextx.IContext) error {
 	}
 
 	if err := c.StorageEvent.Start(nCtx); err != nil {
+		return err
+	}
+
+	if err := c.StoragePackageExport.Start(nCtx); err != nil {
 		return err
 	}
 

@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	packagedeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
 	packageworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -53,6 +54,10 @@ const (
 	metricOperationListPackageDeployment    = "list_pkg_deployment"
 	metricOperationGetPackageDeploymentInfo = "get_pkg_deployment_info"
 	metricOperationUpdatePackageDeployment  = "update_pkg_deployment_info"
+	metricOperationListPackageExport        = "list_package_export"
+	metricOperationCreatePackageExport      = "create_package_export"
+	metricOperationGetPackageExport         = "get_package_export"
+	metricOperationDeletePackageExport      = "delete_package_export"
 )
 
 // NewStorage creates a new package storage.
@@ -85,6 +90,7 @@ type Storage struct {
 
 	daoPackageWorkflow   packageworkflow.IHandler
 	daoPackageDeployment packagedeployment.IHandler
+	daoPackageExport     packageexport.IHandler
 	daoOperation         daoOperation.IHandler
 
 	// key is triggerID, value is the package workflow that needs to be monitored.
@@ -95,6 +101,7 @@ type Storage struct {
 func (s *Storage) initDao() error {
 	s.daoPackageWorkflow = packageworkflow.New(s.Database)
 	s.daoPackageDeployment = packagedeployment.New(s.Database)
+	s.daoPackageExport = packageexport.New(s.Database)
 	s.daoOperation = daoOperation.New(s.Database)
 	s.monitoredPackageWorkflows = make(map[string]*types.PackageWorkflow)
 
@@ -363,6 +370,10 @@ func (s *Storage) check() error {
 		return errors.New("dao package deployment is nil")
 	}
 
+	if s.daoPackageExport == nil {
+		return errors.New("dao package export is nil")
+	}
+
 	if s.daoOperation == nil {
 		return errors.New("dao operation is nil")
 	}
@@ -472,5 +483,49 @@ func (s *Storage) UpdatePackageDeploymentInfo(nCtx contextx.IContext, token stri
 		}
 
 		return nil
+	})
+}
+
+// ListPackageExport lists package export records.
+func (s *Storage) ListPackageExport(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) (
+	[]*types.PackageExport, int64, error) {
+
+	var exports []*types.PackageExport
+	var count int64
+	err := s.WrapFn(nCtx, metricOperationListPackageExport, func(nCtx contextx.IContext) error {
+		var err error
+		exports, count, err = s.listPackageExport(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return exports, count, err
+}
+
+// CreatePackageExport creates a package export record.
+func (s *Storage) CreatePackageExport(nCtx contextx.IContext, exportData *types.PackageExport) error {
+	return s.WrapFn(nCtx, metricOperationCreatePackageExport, func(nCtx contextx.IContext) error {
+		return s.createPackageExport(nCtx, exportData)
+	})
+}
+
+// GetPackageExport gets a package export by export ID.
+func (s *Storage) GetPackageExport(nCtx contextx.IContext, exportID string) (*types.PackageExport, error) {
+	var exportData *types.PackageExport
+	err := s.WrapFn(nCtx, metricOperationGetPackageExport, func(nCtx contextx.IContext) error {
+		var err error
+		exportData, err = s.getPackageExport(nCtx, exportID)
+
+		return err
+	})
+
+	return exportData, err
+}
+
+// DeletePackageExport deletes a package export by export ID.
+func (s *Storage) DeletePackageExport(nCtx contextx.IContext, exportID string) error {
+	return s.WrapFn(nCtx, metricOperationDeletePackageExport, func(nCtx contextx.IContext) error {
+		return s.deletePackageExport(nCtx, exportID)
 	})
 }

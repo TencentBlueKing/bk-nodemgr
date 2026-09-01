@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageexport"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -339,6 +340,13 @@ func WithDownloader(dl downloader.IHandler) OptionFn {
 	}
 }
 
+// WithStoragePackageExport sets the storage for package export records.
+func WithStoragePackageExport(storagePackageExport packageexport.IStorage) OptionFn {
+	return func(manager *Manager) {
+		manager.storagePackageExport = storagePackageExport
+	}
+}
+
 var _ IManager = &Manager{}
 
 // Manager provides the file manager.
@@ -391,11 +399,12 @@ type Manager struct {
 	downloader downloader.IHandler
 
 	// storages.
-	storageUpload  upload.IStorage
-	storageRelease release.IStorage
-	storageTopo    topo.IStorage
-	storageEvent   packageevent.IStorage
-	goAsyncPool    goasync.IHandler
+	storageUpload        upload.IStorage
+	storageRelease       release.IStorage
+	storageTopo          topo.IStorage
+	storageEvent         packageevent.IStorage
+	storagePackageExport packageexport.IStorage
+	goAsyncPool          goasync.IHandler
 }
 
 // Start starts the manager.
@@ -475,6 +484,10 @@ func (m *Manager) Start(ctx context.Context) error {
 
 	if m.storageEvent == nil {
 		return errors.New("invalid storage event")
+	}
+
+	if m.storagePackageExport == nil {
+		return errors.New("invalid storage package export")
 	}
 
 	if m.installerFileGroup == nil {

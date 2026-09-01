@@ -961,3 +961,35 @@ type PackageDeploymentCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *PackageDeploymentFuzzyFields
 }
+
+// ===============================================================================
+// PackageExport Related Conditions
+// ===============================================================================
+
+// PackageExportExactFields defines the package export exact fields.
+type PackageExportExactFields struct {
+	ExportID   []string
+	WorkflowID []string
+	TenantID   []string
+	Available  []bool
+	Operator   []string
+}
+
+// PackageExportFuzzyFields defines the package export fuzzy fields.
+type PackageExportFuzzyFields struct {
+}
+
+// PackageExportCondition defines the package export condition.
+type PackageExportCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PackageExportExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PackageExportFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PackageExportExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PackageExportFuzzyFields
+}
