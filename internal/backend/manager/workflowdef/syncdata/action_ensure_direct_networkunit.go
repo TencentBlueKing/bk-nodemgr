@@ -38,6 +38,7 @@ const (
 // NewActionEnsureDirectNetworkUnit get a new action.
 func NewActionEnsureDirectNetworkUnit(capability *Capability) action.Definition {
 	return &actionEnsureDirectNetworkUnit{
+		storageNetworkArea: capability.StorageTopo,
 		storageNetworkUnit: capability.StorageTopo,
 		networkUnitConfig:  capability.NetworkUnitConfig,
 	}
@@ -49,6 +50,7 @@ type ActionParamEnsureDirectNetworkUnit struct {
 }
 
 type actionEnsureDirectNetworkUnit struct {
+	storageNetworkArea topoStg.IStorageNetworkArea
 	storageNetworkUnit topoStg.IStorageNetworkUnit
 	networkUnitConfig  config.NetworkUnit
 }
@@ -108,8 +110,23 @@ func (act *actionEnsureDirectNetworkUnit) Do(ctx *action.InstanceContext) error 
 		return nil
 	}
 
+	// ensure the default network area has been synced before creating the direct unit.
+	_, areaNum, err := act.storageNetworkArea.ListNetworkArea(nCtx, types.SingleItemPage(), &types.NetworkAreaCondition{
+		ExactInclude: &types.NetworkAreaExactFields{
+			NetworkAreaID: []int64{types.DefaultNetworkAreaID},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to list default network area: %w", err)
+	}
+
+	if areaNum == 0 {
+		// default network area not synced yet, skip and wait for the next round.
+		return nil
+	}
+
 	// idempotent check: skip when a direct unit already exists in the default area.
-	_, num, err := act.storageNetworkUnit.ListNetworkUnit(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+	_, num, err := act.storageNetworkUnit.ListNetworkUnit(nCtx, types.SingleItemPage(), &types.NetworkUnitCondition{
 		ExactInclude: &types.NetworkUnitExactFields{
 			NetworkAreaID: []int64{types.DefaultNetworkAreaID},
 			IsDirect:      []bool{true},
