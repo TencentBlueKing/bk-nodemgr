@@ -19,7 +19,6 @@
 package syncdata
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -657,12 +656,12 @@ func (act *actionWatchAndApplyCMDBResource) tryTriggerCorrectAgentID(std *syncDa
 }
 
 // getCursor retrieves the cursor for the given key from the cache.
-func (act *actionWatchAndApplyCMDBResource) getCursor(ctx context.Context, key string) (string, error) {
+func (act *actionWatchAndApplyCMDBResource) getCursor(ctx contextx.IContext, key string) (string, error) {
 	if key == "" {
 		return "", errors.New("get cursor from cache, key cannot be empty")
 	}
 
-	key = cacheKeyPrefix + key
+	key = act.cursorKey(ctx, key)
 	exist, err := act.cache.Exists(ctx, key)
 	if err != nil {
 		return "", fmt.Errorf("check cursor exist failed: %w", err)
@@ -681,17 +680,22 @@ func (act *actionWatchAndApplyCMDBResource) getCursor(ctx context.Context, key s
 }
 
 // setCursor sets the cursor for the given key in the cache.
-func (act *actionWatchAndApplyCMDBResource) setCursor(ctx context.Context, key, value string) error {
+func (act *actionWatchAndApplyCMDBResource) setCursor(ctx contextx.IContext, key, value string) error {
 	if key == "" {
 		return errors.New("set cursor to cache, key cannot be empty")
 	}
 
-	key = cacheKeyPrefix + key
+	key = act.cursorKey(ctx, key)
 	if err := act.cache.SetWithExpiration(ctx, key, []byte(value), cacheExpirationTime); err != nil {
 		return fmt.Errorf("set cursor failed: %w", err)
 	}
 
 	return nil
+}
+
+// cursorKey builds the tenant-scoped cursor cache key to avoid cross-tenant cursor collision.
+func (act *actionWatchAndApplyCMDBResource) cursorKey(ctx contextx.IContext, key string) string {
+	return cacheKeyPrefix + ctx.TenantID() + ":" + key
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
