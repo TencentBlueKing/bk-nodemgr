@@ -235,17 +235,9 @@ func convSpecFromTypes(spec *types.DeploySpec) (*Spec, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to get specify plugin sub config param: %w", err)
 		}
-		configFilesDetail := make([]*SpecPluginConfigDetail, 0, len(param.ConfigFilesDetail))
-		for _, detail := range param.ConfigFilesDetail {
-			configFilesDetail = append(configFilesDetail, &SpecPluginConfigDetail{
-				Name:         detail.Name,
-				Content:      detail.Content,
-				IsMainConfig: detail.IsMainConfig,
-			})
-		}
 		dbSpec.ParamSpecifyPluginSubConfig = &SpecParamSpecifyPluginSubConfig{
 			PluginName:          param.PluginName,
-			ConfigFilesDetail:   configFilesDetail,
+			ConfigFilesDetail:   convPluginConfigDetailsFromTypes(param.ConfigFilesDetail),
 			CustomConfigContext: param.CustomConfigContext,
 		}
 
@@ -658,18 +650,10 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		if data.ParamSpecifyPluginSubConfig == nil {
 			return nil, fmt.Errorf("param_specify_plugin_sub_config is required for type %s", data.Type)
 		}
-		configFilesDetail := make([]*types.PluginConfigDetail, 0, len(data.ParamSpecifyPluginSubConfig.ConfigFilesDetail))
-		for _, detail := range data.ParamSpecifyPluginSubConfig.ConfigFilesDetail {
-			configFilesDetail = append(configFilesDetail, &types.PluginConfigDetail{
-				Name:         detail.Name,
-				Content:      detail.Content,
-				IsMainConfig: detail.IsMainConfig,
-			})
-		}
 
 		return types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
 			PluginName:          data.ParamSpecifyPluginSubConfig.PluginName,
-			ConfigFilesDetail:   configFilesDetail,
+			ConfigFilesDetail:   convPluginConfigDetailsToTypes(data.ParamSpecifyPluginSubConfig.ConfigFilesDetail),
 			CustomConfigContext: data.ParamSpecifyPluginSubConfig.CustomConfigContext,
 		})
 
