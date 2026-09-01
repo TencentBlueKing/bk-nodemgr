@@ -692,7 +692,7 @@ application:
   ## @param ingress support base on bk-bcs component,
   ## it's not enabled as the default config.
   ingress:
-    enabled: false
+    enabled: true
     ## bk-bcs network extension lbid config.
     lbid: ""
     ## bk-bcs network lb policy: WRR, LEAST_CONN
@@ -703,6 +703,8 @@ application:
     certID: ""
     ## HTTPS domain
     domain: "nodemgr.example.com"
+    ## className
+    className: ""
 
   ## @param configs module configs
   ##
@@ -1751,7 +1753,7 @@ file:
 ## Nodemgr apigw-sync
 apigwSync:
   enabled: false
-  ttlSecondsAfterFinished: 60
+  ttlSecondsAfterFinished: 600
   backoffLimit: 10
   parallelism: 1
   extraEnvVars:
@@ -1848,7 +1850,7 @@ initPackages:
 iamV3:
   enabled: false
   syncJob:
-    ttlSecondsAfterFinished: 60
+    ttlSecondsAfterFinished: 600
     backoffLimit: 3
     parallelism: 1
   system:

@@ -1,6 +1,14 @@
 {{- if .Values.application.enabled }}
 {{- if .Values.application.ingress.enabled }}
+{{- if not .Values.application.ingress.className }}
 apiVersion: networkextension.bkbcs.tencent.com/v1
+{{- else if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
 kind: Ingress
 metadata:
   name: {{ template "bk-nodemgr.fullname" . }}-application
@@ -15,6 +23,9 @@ metadata:
   {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
+  {{- if and .Values.application.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.application.ingress.className }}
+  {{- end }}
   rules:
   {{- if len .Values.application.ingress.certID }}
   - port: 443
