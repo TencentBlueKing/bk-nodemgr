@@ -52,6 +52,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/token"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
@@ -150,6 +151,12 @@ func (svc *Service) initialCapability(nCtx contextx.IContext) error {
 
 	// discover provider.
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd)
+
+	// Initial export token generator.
+	svc.Cap.TokenGenerator, err = token.New([]byte(svc.conf.ExportServer.JWTServerConfig.SymmetricKey))
+	if err != nil {
+		return fmt.Errorf("failed to create export token generator: %w", err)
+	}
 
 	// initial gse handler.
 	svc.Cap.GSEHandler, err = svc.newGSEHandler()

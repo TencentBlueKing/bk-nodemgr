@@ -45,6 +45,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/token"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -135,6 +136,9 @@ type Capability struct {
 
 	// Crypter ...
 	Crypter crypter.Crypter
+
+	// TokenGenerator creates authenticated tokens.
+	TokenGenerator *token.Generator
 
 	// InstallerFileGroup tool file group.
 	InstallerFileGroup fileiface.FileGroup
