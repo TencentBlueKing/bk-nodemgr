@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
@@ -105,6 +106,7 @@ func (h *handler) Index(ctx *gin.Context) {
 		"PASSWORD_VAULT_NAME":         h.frontSetting.PasswordVaultName(),
 		"BK_USER_WEB_URL":             h.frontSetting.BKUserWebURL(),
 		"BK_TENANT":                   tenantID,
+		"BK_TENANT_MODE":              tenant.GetMode(),
 		"BK_DOMAIN":                   h.frontSetting.BKDomain(),
 		"BK_DOCS_CENTER_URL":          h.frontSetting.BKDocsCenterURL(),
 		"BKAPP_NAV_OPEN_SOURCE_URL":   h.frontSetting.BKAppNavOpenSourceURL(),
