@@ -180,6 +180,20 @@ func collectDeployPolicyIDs(tasks []*ChangeTask) []int64 {
 	return policyIDs
 }
 
+func collectTargetBizIDs(tasks []*ChangeTask) []int64 {
+	bizIDMap := make(map[int64]struct{})
+	for _, task := range tasks {
+		bizIDMap[task.Target.Host.Static.BizID] = struct{}{}
+	}
+
+	bizIDs := conv.MapKeyToSlice(bizIDMap)
+	sort.Slice(bizIDs, func(i, j int) bool {
+		return bizIDs[i] < bizIDs[j]
+	})
+
+	return bizIDs
+}
+
 func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
 	operator, err := access.GetVirtualUserBKUsername(nCtx)
 	if err != nil {
@@ -401,6 +415,7 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
@@ -444,6 +459,7 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
@@ -491,6 +507,7 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
@@ -541,6 +558,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 	workflowID, err := executor.pluginManager.LaunchApplyPluginSubConfig(nCtx, types.ApplyPluginSubConfigParam{
 		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
@@ -589,6 +607,7 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfig(nCtx contextx
 	workflowID, err := executor.pluginManager.LaunchRemovePluginSubConfig(nCtx, types.RemovePluginSubConfigParam{
 		Type:              types.PluginWorkflowTypeRemovePluginSubConfig,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
@@ -657,6 +676,7 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
@@ -707,6 +727,7 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
@@ -751,6 +772,7 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
+		BizIDs:            collectTargetBizIDs(tasks),
 		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
