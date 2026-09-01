@@ -326,21 +326,13 @@ func convSpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to get specify plugin sub config param: %w", err)
 		}
-		configFilesDetail := make([]*PluginConfigDetail, 0, len(param.ConfigFilesDetail))
-		for _, detail := range param.ConfigFilesDetail {
-			configFilesDetail = append(configFilesDetail, &PluginConfigDetail{
-				Name:         detail.Name,
-				Content:      detail.Content,
-				IsMainConfig: detail.IsMainConfig,
-			})
-		}
 		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
 		}
 		paramProto = &SpecifyPluginSubConfigParam{
 			PluginName:          param.PluginName,
-			ConfigFilesDetail:   configFilesDetail,
+			ConfigFilesDetail:   convPluginConfigDetailsFromTypes(param.ConfigFilesDetail),
 			CustomConfigContext: customConfigContext,
 		}
 
@@ -788,21 +780,13 @@ func convSpecToTypes(spec *DeploySpec) (*types.DeploySpec, error) {
 		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
 		}
-		configFilesDetail := make([]*types.PluginConfigDetail, 0, len(paramProto.ConfigFilesDetail))
-		for _, detailProto := range paramProto.ConfigFilesDetail {
-			configFilesDetail = append(configFilesDetail, &types.PluginConfigDetail{
-				Name:         detailProto.Name,
-				Content:      detailProto.Content,
-				IsMainConfig: detailProto.IsMainConfig,
-			})
-		}
 		customConfigContext := make(map[string]any)
 		if paramProto.CustomConfigContext != nil {
 			customConfigContext = paramProto.CustomConfigContext.AsMap()
 		}
 		return types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
 			PluginName:          paramProto.PluginName,
-			ConfigFilesDetail:   configFilesDetail,
+			ConfigFilesDetail:   convPluginConfigDetailsToTypes(paramProto.ConfigFilesDetail),
 			CustomConfigContext: customConfigContext,
 		})
 

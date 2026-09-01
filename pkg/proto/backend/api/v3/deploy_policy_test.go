@@ -108,6 +108,7 @@ func TestConvSpecFromTypes_ToProto_AndBack(t *testing.T) {
 					ConfigFilesDetail: []*types.PluginConfigDetail{
 						{
 							Name:         "config.conf",
+							TemplateName: "template.conf",
 							Content:      "content",
 							IsMainConfig: true,
 						},
@@ -227,8 +228,8 @@ func TestConvSpecFromTypes_ToProto_AndBack(t *testing.T) {
 				if originalParam.PluginName != backParam.PluginName {
 					t.Errorf("PluginName = %v, want %v", backParam.PluginName, originalParam.PluginName)
 				}
-				if len(originalParam.ConfigFilesDetail) != len(backParam.ConfigFilesDetail) {
-					t.Errorf("ConfigFilesDetail length = %v, want %v", len(backParam.ConfigFilesDetail), len(originalParam.ConfigFilesDetail))
+				if !reflect.DeepEqual(originalParam.ConfigFilesDetail, backParam.ConfigFilesDetail) {
+					t.Errorf("ConfigFilesDetail = %+v, want %+v", backParam.ConfigFilesDetail, originalParam.ConfigFilesDetail)
 				}
 
 			case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
