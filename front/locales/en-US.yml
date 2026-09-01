@@ -264,6 +264,7 @@ platform:
         operateTime: Execution Time
         costTime: Total Duration
         status: Status
+        deployPolicyId: Deploy Policy ID
         count: Total/Success/Failed/Timeout
       button:
         hideAutoTask: Hide Auto-deploy Tasks
@@ -856,6 +857,21 @@ taskDetail:
     ignored: Ignored IPs
     failed: Failed IPs
     success: Success IPs
+deployPolicy:
+  searchPlaceholder: Search by Name, Operator
+  loading: Loading...
+  table:
+    deployPolicyId: Deploy Policy ID
+    dsuId: DSU ID
+    name: Deploy Policy Name
+    description: Description
+    operator: Operator
+    status: Status
+    enabled: Enabled
+    disabled: Disabled
+    action: Action
+  action:
+    viewHistory: View Execution History
 agentStrategy:
   searchPlaceholder: Search by Name, Operator
   configStrategy: Config Strategy
@@ -1368,10 +1384,12 @@ route:
   topo: Topology
   topoSubtitle: Topology describes the link connections between Network Units
   operationRecord: Operation Record
-  agentStrategy: Agent Strategy
-  proxyStrategy: Proxy Strategy
-  pluginStrategy: Plugin Strategy
-  pluginStrategySubtitle: Plugin strategy describes plugin node configuration and installation rules
+  agentStrategy: Agent Config Strategy
+  proxyStrategy: Proxy Config Strategy
+  pluginStrategy: Plugin Config Strategy
+  pluginStrategySubtitle: Plugin config strategy describes plugin node configuration and installation rules
+  deployPolicyStrategy: Plugin Deploy Strategy
+  deployPolicyStrategySubtitle: Plugin deploy strategy defines the expected deployment state of plugins on target nodes
   createPluginOperation: Create Strategy
   pluginOperate: Plugin Operation
   agentPackage: Agent Package
@@ -1397,7 +1415,8 @@ route:
 menu:
   topoGroup: Topology
   recordGroup: Records
-  strategyGroup: Strategy
+  strategyGroup: Config Strategy
+  deployStrategyGroup: Deploy Strategy
   pluginPackageMng: Plugin Package
 common:
   addConfigItem: Add Config Item

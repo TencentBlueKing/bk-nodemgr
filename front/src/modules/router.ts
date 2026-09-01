@@ -31,6 +31,7 @@ import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
 import PluginStrategy from '@/pages/rules/plugin-strategy/index.vue';
+import DeployPolicyStrategy from '@/pages/rules/deploy-policy-strategy/index.vue';
 import Rules from '@/pages/rules/index.vue';
 import RulesRecord from '@/pages/rules/record/record.vue';
 import OperationRecord from '@/pages/topo/record/record.vue';
@@ -261,6 +262,17 @@ const routes = setupLayouts([
             meta: {
               title: i18n.global.t('route.pluginStrategy'),
               subTitle: i18n.global.t('route.pluginStrategySubtitle'),
+              back: false,
+              mainMenu: 'ruleManager',
+            },
+          },
+          {
+            name: 'deployPolicyStrategy',
+            path: 'deployPolicyStrategy',
+            component: DeployPolicyStrategy,
+            meta: {
+              title: i18n.global.t('route.deployPolicyStrategy'),
+              subTitle: i18n.global.t('route.deployPolicyStrategySubtitle'),
               back: false,
               mainMenu: 'ruleManager',
             },

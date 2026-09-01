@@ -116,6 +116,16 @@ const navList = [
         ],
       },
       {
+        title: i18n.global.t('menu.deployStrategyGroup'),
+        children: [
+          {
+            routeName: 'deployPolicyStrategy',
+            icon: 'nodeman-icon nc-plug-in',
+            title: i18n.global.t('route.deployPolicyStrategy'),
+          },
+        ],
+      },
+      {
         title: i18n.global.t('platform.nodeMan.history'),
         children: [
           {

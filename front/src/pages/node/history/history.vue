@@ -585,6 +585,10 @@ const searchSelectData = computed(() => [
     name: t('platform.nodeMan.taskHistory.label.operator'),
     children: translatedOperatorChildren.value,
   },
+  ...(isNode.value ? [] : [{
+    id: 'deploy_policy_id',
+    name: t('platform.nodeMan.taskHistory.label.deployPolicyId'),
+  }]),
   {
     id: 'status',
     name: t('platform.nodeMan.taskHistory.label.status'),
@@ -847,6 +851,14 @@ const getParams = () => {
       if (ipv6List.length > 0) {
         params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
       }
+      return;
+    }
+
+    // 部署策略ID：字符串转数字（后端字段为 repeated int64）
+    if (item.id === 'deploy_policy_id') {
+      params.exact_include_conditions.deploy_policy_id = item.values
+        ?.map((value: any) => Number(value.id))
+        .filter((n: number) => !Number.isNaN(n));
       return;
     }
 

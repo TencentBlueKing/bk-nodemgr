@@ -264,6 +264,7 @@ platform:
         operateTime: 执行时间
         costTime: 总耗时
         status: 执行状态
+        deployPolicyId: 部署策略ID
         count: 总数/成功/失败/超时
       button:
         hideAutoTask: 隐藏自动部署任务
@@ -856,6 +857,21 @@ taskDetail:
     ignored: 被忽略IP
     failed: 失败IP
     success: 成功IP
+deployPolicy:
+  searchPlaceholder: 请选择 部署策略名称、操作人 搜索
+  loading: 数据加载中
+  table:
+    deployPolicyId: 部署策略ID
+    dsuId: DSU ID
+    name: 部署策略名称
+    description: 描述
+    operator: 操作人
+    status: 状态
+    enabled: 启用
+    disabled: 未启用
+    action: 操作
+  action:
+    viewHistory: 查看执行历史
 agentStrategy:
   searchPlaceholder: 请选择 配置名称、修改人 搜索
   configStrategy: 配置策略
@@ -1372,12 +1388,14 @@ route:
   topo: 拓扑图
   topoSubtitle: 拓扑图描述了管控单元之间的链路连接关系
   operationRecord: 操作记录
-  agentStrategy: Agent策略
-  agentStrategySubtitle: Agent策略描述了Agent节点的配置信息
-  proxyStrategy: Proxy策略
-  proxyStrategySubtitle: Proxy策略描述了Proxy节点的配置信息
-  pluginStrategy: 插件策略
-  pluginStrategySubtitle: 插件策略描述了插件节点的配置信息和安装规则
+  agentStrategy: Agent配置策略
+  agentStrategySubtitle: Agent配置策略描述了Agent节点的配置信息
+  proxyStrategy: Proxy配置策略
+  proxyStrategySubtitle: Proxy配置策略描述了Proxy节点的配置信息
+  pluginStrategy: 插件配置策略
+  pluginStrategySubtitle: 插件配置策略描述了插件节点的配置信息和安装规则
+  deployPolicyStrategy: 插件部署策略
+  deployPolicyStrategySubtitle: 插件部署策略定义了插件在目标节点上的期望部署状态
   createPluginOperation: 新建策略
   pluginOperate: 插件操作
   agentPackage: Agent包管理
@@ -1401,7 +1419,8 @@ route:
 menu:
   topoGroup: 拓扑
   recordGroup: 记录
-  strategyGroup: 策略
+  strategyGroup: 配置策略
+  deployStrategyGroup: 部署策略
   pluginPackageMng: 插件包管理
 common:
   addConfigItem: 添加配置项
