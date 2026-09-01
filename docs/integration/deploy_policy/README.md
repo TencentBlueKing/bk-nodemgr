@@ -69,6 +69,16 @@ curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部�
 
 `spec` 定义每个 `scope` 选中目标的 desired final state。公开概念文档把 `spec` 定义为目标应达到的期望状态。
 
+#### 六种 plugin spec mode 的特点
+
+六种 mode 都是在指定要管理的对象；差异主要看指定的是最终对象还是来源对象，以及结果是否直接落在 `scope` 目标上。
+
+| 特点                              | Plugin mode                                          | Config mode                                                    | 判断方式                                                                                    |
+| --------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 指定最终对象                      | `specify_plugin` 指定 `plugin_name`                  | `specify_plugin_sub_config` 指定 `config_files_detail.name`    | 请求里的对象名就是最终管理对象；结果直接落在 `scope` 目标                                   |
+| 指定来源对象，结果落在 scope 目标 | `specify_plugin_pkg` 指定 `plugin_pkg_name`          | `specify_plugin_sub_config_template` 指定 `template_name`      | 系统根据来源对象生成最终 plugin/config；生成结果仍直接落在 `scope` 目标                     |
+| 指定来源对象，结果投射到承载位置  | `project_plugin_pkg_to_hosts` 指定 `plugin_pkg_name` | `project_plugin_config_template_to_hosts` 指定 `template_name` | `scope` 参与生成最终对象，但结果落到 `placement_host_ids` 或 `plugin_name` 反向定位出的主机 |
+
 #### specify_plugin
 
 当平台希望目标节点拥有指定 `plugin_name` 与 `version` 的插件时，使用 `specify_plugin`。文档化行为是：插件不存在则安装，版本不匹配则升级。
