@@ -1,0 +1,156 @@
+#!/bin/sh
+
+set -eu
+
+name="bk-nodemgr-deploy-policy-probe"
+version="1.0.0"
+runtime_dir="${BK_NODEMGR_DEPLOY_POLICY_PROBE_RUNTIME_DIR:-/tmp/${name}}"
+pid_file="${runtime_dir}/${name}.pid"
+state_file="${runtime_dir}/${name}.state"
+reload_file="${runtime_dir}/${name}.reload"
+
+is_running() {
+  if [ ! -f "$pid_file" ]; then
+    return 1
+  fi
+
+  pid="$(cat "$pid_file")"
+  kill -0 "$pid" 2>/dev/null
+}
+
+start_probe() {
+  mkdir -p "$runtime_dir"
+  if [ -f "$pid_file" ]; then
+    pid="$(cat "$pid_file")"
+    if kill -0 "$pid" 2>/dev/null; then
+      printf '%s already running, pid=%s\n' "$name" "$pid"
+      return 0
+    fi
+  fi
+
+  (while :; do sleep 60; done) &
+  pid="$!"
+  printf '%s\n' "$pid" > "$pid_file"
+  printf 'running\n' > "$state_file"
+  printf '%s started, pid=%s\n' "$name" "$pid"
+}
+
+debug_probe() {
+  mkdir -p "$runtime_dir"
+  printf '%s\n' "$$" > "$pid_file"
+  printf 'debugging\n' > "$state_file"
+  trap 'rm -f "$pid_file" "$state_file"; printf "%s debug stopped\n" "$name"; exit 0' INT TERM
+  printf '%s debug started, pid=%s\n' "$name" "$$"
+  while :; do sleep 60; done
+}
+
+stop_probe() {
+  if [ ! -f "$pid_file" ]; then
+    rm -f "$state_file"
+    printf '%s stopped\n' "$name"
+    return 0
+  fi
+
+  pid="$(cat "$pid_file")"
+  if kill -0 "$pid" 2>/dev/null; then
+    kill "$pid"
+  fi
+
+  rm -f "$pid_file" "$state_file"
+  printf '%s stopped\n' "$name"
+}
+
+status_probe() {
+  state="stopped"
+  pid=""
+  if [ -f "$state_file" ]; then
+    state="$(cat "$state_file")"
+  fi
+  if [ -f "$pid_file" ]; then
+    pid="$(cat "$pid_file")"
+  fi
+
+  if is_running; then
+    printf '%s status=running state=%s pid=%s runtime_dir=%s\n' "$name" "$state" "$pid" "$runtime_dir"
+    return 0
+  fi
+
+  printf '%s status=stopped state=%s pid=%s runtime_dir=%s\n' "$name" "$state" "$pid" "$runtime_dir"
+}
+
+dump_probe() {
+  state="stopped"
+  pid=""
+  reload_timestamp=""
+  status="stopped"
+  if [ -f "$state_file" ]; then
+    state="$(cat "$state_file")"
+  fi
+  if [ -f "$pid_file" ]; then
+    pid="$(cat "$pid_file")"
+  fi
+  if [ -f "$reload_file" ]; then
+    reload_timestamp="$(cat "$reload_file")"
+  fi
+  if is_running; then
+    status="running"
+  fi
+
+  printf 'name=%s\n' "$name"
+  printf 'version=%s\n' "$version"
+  printf 'status=%s\n' "$status"
+  printf 'state=%s\n' "$state"
+  printf 'pid=%s\n' "$pid"
+  printf 'runtime_dir=%s\n' "$runtime_dir"
+  printf 'pid_file=%s\n' "$pid_file"
+  printf 'state_file=%s\n' "$state_file"
+  printf 'reload_file=%s\n' "$reload_file"
+  printf 'reload_timestamp=%s\n' "$reload_timestamp"
+}
+
+health_probe() {
+  if is_running; then
+    printf '%s healthy\n' "$name"
+    return 0
+  fi
+
+  printf '%s unhealthy\n' "$name" >&2
+  return 1
+}
+
+case "${1:-}" in
+  -v|--version|version)
+    printf '%s %s\n' "$name" "$version"
+    ;;
+  start)
+    start_probe
+    ;;
+  debug)
+    debug_probe
+    ;;
+  stop)
+    stop_probe
+    ;;
+  restart)
+    stop_probe
+    start_probe
+    ;;
+  reload)
+    mkdir -p "$runtime_dir"
+    date +%s > "$reload_file"
+    printf '%s reloaded\n' "$name"
+    ;;
+  status)
+    status_probe
+    ;;
+  dump)
+    dump_probe
+    ;;
+  health)
+    health_probe
+    ;;
+  *)
+    printf 'usage: %s {start|stop|restart|reload|debug|status|dump|health|-v}\n' "$name" >&2
+    exit 2
+    ;;
+esac

@@ -1,0 +1,30 @@
+template_name: bk-nodemgr-deploy-policy-probe.conf
+expected_final_name: {{ .CustomContext.ExpectedFinalName | default "bk-nodemgr-deploy-policy-probe.conf" }}
+probe_mode: {{ .CustomContext.ProbeMode | default "main" }}
+marker: {{ .CustomContext.Marker | default "main-config" }}
+sequence: {{ .CustomContext.Sequence | default "000" }}
+plugin_info:
+  name: {{ .PluginInfo.Name | default "bk-nodemgr-deploy-policy-probe" }}
+  log_path: {{ .PluginInfo.LogPath | default "" }}
+  data_path: {{ .PluginInfo.DataPath | default "" }}
+  pid_path: {{ .PluginInfo.PidPath | default "" }}
+  setup_path: {{ .PluginInfo.SetupPath | default "" }}
+  config_path: {{ .PluginInfo.ConfigPath | default "" }}
+  group_id: {{ .PluginInfo.GroupID | default "" }}
+  is_multi_tenant: {{ .PluginInfo.IsMultiTenant | default false }}
+node_info:
+  host_id: {{ .NodeInfo.HostID | default 0 }}
+  tenant_id: {{ .NodeInfo.TenantID | default "" }}
+  biz_id: {{ .NodeInfo.Static.BizID | default 0 }}
+  network_area_id: {{ .NodeInfo.Static.NetworkAreaID | default 0 }}
+  os_type: {{ .NodeInfo.Static.OSType | default "" }}
+  arch: {{ .NodeInfo.Static.Arch | default "" }}
+  host_name: {{ .NodeInfo.Static.HostName | default "" }}
+  agent_id: {{ .NodeInfo.Dynamic.AgentID | default "" }}
+  node_role: {{ .NodeInfo.Dynamic.NodeRole | default "" }}
+  node_status: {{ .NodeInfo.Dynamic.NodeStatus | default "" }}
+custom_context:
+  probe_mode: {{ .CustomContext.ProbeMode | default "main" }}
+  marker: {{ .CustomContext.Marker | default "main-config" }}
+  sequence: {{ .CustomContext.Sequence | default "000" }}
+  expected_final_name: {{ .CustomContext.ExpectedFinalName | default "bk-nodemgr-deploy-policy-probe.conf" }}

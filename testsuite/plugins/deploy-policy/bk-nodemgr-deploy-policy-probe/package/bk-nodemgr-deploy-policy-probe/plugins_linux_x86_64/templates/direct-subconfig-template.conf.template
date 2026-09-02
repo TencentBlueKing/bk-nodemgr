@@ -1,0 +1,18 @@
+template_name: direct-subconfig-template.conf
+expected_final_name: {{ .CustomContext.ExpectedFinalName | default "explicit-direct-subconfig.conf" }}
+probe_mode: {{ .CustomContext.ProbeMode | default "specify-plugin-sub-config" }}
+marker: {{ .CustomContext.Marker | default "direct-subconfig" }}
+sequence: {{ .CustomContext.Sequence | default "004" }}
+plugin_info:
+  name: {{ .PluginInfo.Name | default "bk-nodemgr-deploy-policy-probe" }}
+  config_path: {{ .PluginInfo.ConfigPath | default "" }}
+node_info:
+  host_id: {{ .NodeInfo.HostID | default 0 }}
+  tenant_id: {{ .NodeInfo.TenantID | default "" }}
+  biz_id: {{ .NodeInfo.Static.BizID | default 0 }}
+  node_role: {{ .NodeInfo.Dynamic.NodeRole | default "" }}
+custom_context:
+  probe_mode: {{ .CustomContext.ProbeMode | default "specify-plugin-sub-config" }}
+  marker: {{ .CustomContext.Marker | default "direct-subconfig" }}
+  sequence: {{ .CustomContext.Sequence | default "004" }}
+  expected_final_name: {{ .CustomContext.ExpectedFinalName | default "explicit-direct-subconfig.conf" }}

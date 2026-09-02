@@ -1,0 +1,125 @@
+configTemplates:
+  - name: bk-nodemgr-deploy-policy-probe.conf
+    isMainConfig: true
+    filePath: etc
+    sourcePath: templates/bk-nodemgr-deploy-policy-probe.conf.template
+    variables:
+      - title: ProbeMode
+        type: string
+        default: main
+        required: false
+        description: Deploy policy probe mode
+        descriptionEn: Deploy policy probe mode
+      - title: Marker
+        type: string
+        default: main-config
+        required: false
+        description: Main config render marker
+        descriptionEn: Main config render marker
+      - title: Sequence
+        type: string
+        default: "000"
+        required: false
+        description: Main config render sequence
+        descriptionEn: Main config render sequence
+      - title: ExpectedFinalName
+        type: string
+        default: bk-nodemgr-deploy-policy-probe.conf
+        required: false
+        description: Expected final config name
+        descriptionEn: Expected final config name
+  - name: direct-subconfig-template.conf
+    isMainConfig: false
+    filePath: etc/bk-nodemgr-deploy-policy-probe/subconfigs
+    sourcePath: templates/direct-subconfig-template.conf.template
+    variables:
+      - title: ProbeMode
+        type: string
+        default: specify-plugin-sub-config
+        required: false
+        description: Deploy policy probe mode
+        descriptionEn: Deploy policy probe mode
+      - title: ExpectedFinalName
+        type: string
+        default: explicit-direct-subconfig.conf
+        required: false
+        description: Expected final direct sub-config name
+        descriptionEn: Expected final direct sub-config name
+      - title: Marker
+        type: string
+        default: direct-subconfig
+        required: false
+        description: Direct sub-config render marker
+        descriptionEn: Direct sub-config render marker
+      - title: Sequence
+        type: string
+        default: "004"
+        required: false
+        description: Direct sub-config render sequence
+        descriptionEn: Direct sub-config render sequence
+  - name: policy-managed-subconfig.conf
+    isMainConfig: false
+    filePath: etc/bk-nodemgr-deploy-policy-probe/subconfigs
+    sourcePath: templates/policy-managed-subconfig.conf.template
+    variables:
+      - title: ProbeMode
+        type: string
+        default: specify-plugin-sub-config-template
+        required: false
+        description: Deploy policy probe mode
+        descriptionEn: Deploy policy probe mode
+      - title: Marker
+        type: string
+        default: policy-managed-subconfig
+        required: false
+        description: Policy-managed sub-config render marker
+        descriptionEn: Policy-managed sub-config render marker
+      - title: Sequence
+        type: string
+        default: "005"
+        required: false
+        description: Policy-managed sub-config render sequence
+        descriptionEn: Policy-managed sub-config render sequence
+      - title: ExpectedFinalName
+        type: string
+        default: policy-managed-subconfig_deploy_<deploy_policy_id>.conf
+        required: false
+        description: Expected final policy-managed sub-config name
+        descriptionEn: Expected final policy-managed sub-config name
+  - name: projected-source-subconfig.conf
+    isMainConfig: false
+    filePath: etc/bk-nodemgr-deploy-policy-probe/subconfigs
+    sourcePath: templates/projected-source-subconfig.conf.template
+    variables:
+      - title: ProbeMode
+        type: string
+        default: project-plugin-config-template-to-hosts
+        required: false
+        description: Deploy policy probe mode
+        descriptionEn: Deploy policy probe mode
+      - title: Marker
+        type: string
+        default: projected-source-subconfig
+        required: false
+        description: Projected source sub-config render marker
+        descriptionEn: Projected source sub-config render marker
+      - title: Sequence
+        type: string
+        default: "006"
+        required: false
+        description: Projected source sub-config render sequence
+        descriptionEn: Projected source sub-config render sequence
+      - title: ExpectedFinalName
+        type: string
+        default: projected-source-subconfig_deploy_<deploy_policy_id>_<source_module_id>_<source_host_id>.conf
+        required: false
+        description: Expected final projected source sub-config name
+        descriptionEn: Expected final projected source sub-config name
+control:
+  start: "./bk-nodemgr-deploy-policy-probe start"
+  stop: "./bk-nodemgr-deploy-policy-probe stop"
+  restart: "./bk-nodemgr-deploy-policy-probe restart"
+  reload: "./bk-nodemgr-deploy-policy-probe reload"
+  debug: "./bk-nodemgr-deploy-policy-probe debug"
+  version: "./bk-nodemgr-deploy-policy-probe -v"
+  health: "./bk-nodemgr-deploy-policy-probe health"

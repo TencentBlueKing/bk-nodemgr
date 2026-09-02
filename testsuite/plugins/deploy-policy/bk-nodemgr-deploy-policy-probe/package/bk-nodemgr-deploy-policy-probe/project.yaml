@@ -1,0 +1,8 @@
+name: bk-nodemgr-deploy-policy-probe
+version: 1.0.0
+description: bk-nodemgr deploy policy probe plugin
+descriptionEn: bk-nodemgr deploy policy probe plugin
+scenario: Manual probe package for plugin-related deploy policy specs
+scenarioEn: Manual probe package for plugin-related deploy policy specs
+launchNode: agent
+templateRenderer: go-template

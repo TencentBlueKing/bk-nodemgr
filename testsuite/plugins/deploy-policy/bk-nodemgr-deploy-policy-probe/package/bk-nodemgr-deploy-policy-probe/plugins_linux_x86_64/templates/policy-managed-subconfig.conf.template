@@ -1,0 +1,19 @@
+template_name: policy-managed-subconfig.conf
+expected_name_rule: policy-managed-subconfig_deploy_<deploy_policy_id>.conf
+expected_final_name: {{ .CustomContext.ExpectedFinalName | default "policy-managed-subconfig_deploy_<deploy_policy_id>.conf" }}
+probe_mode: {{ .CustomContext.ProbeMode | default "specify-plugin-sub-config-template" }}
+marker: {{ .CustomContext.Marker | default "policy-managed-subconfig" }}
+sequence: {{ .CustomContext.Sequence | default "005" }}
+plugin_info:
+  name: {{ .PluginInfo.Name | default "bk-nodemgr-deploy-policy-probe" }}
+  config_path: {{ .PluginInfo.ConfigPath | default "" }}
+node_info:
+  host_id: {{ .NodeInfo.HostID | default 0 }}
+  tenant_id: {{ .NodeInfo.TenantID | default "" }}
+  biz_id: {{ .NodeInfo.Static.BizID | default 0 }}
+  node_role: {{ .NodeInfo.Dynamic.NodeRole | default "" }}
+custom_context:
+  probe_mode: {{ .CustomContext.ProbeMode | default "specify-plugin-sub-config-template" }}
+  marker: {{ .CustomContext.Marker | default "policy-managed-subconfig" }}
+  sequence: {{ .CustomContext.Sequence | default "005" }}
+  expected_final_name: {{ .CustomContext.ExpectedFinalName | default "policy-managed-subconfig_deploy_<deploy_policy_id>.conf" }}
