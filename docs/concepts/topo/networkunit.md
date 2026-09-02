@@ -14,6 +14,10 @@
 > - 非直连单元初始的 Proxy 节点需要通过跨单元安装或是离线安装完成。具体安装方式见 [节点传输模式](../node/control_mode.md)。
 > - 后续同单元的 Proxy 节点可以通过单元内安装完成。
 
+## 默认管控区域的直连单元自动创建
+
+默认管控区域（id=0）支持通过 Backend 配置 `networkUnit.defaultDirectUnit` 在管控区域同步完成后自动创建一个直连网络单元（默认关闭，`enabled` 开关控制，且该区域下已有直连单元时不会重复创建）。启用前需确认上游 GSE endpoint 配置，详见 [安装部署](../../operation/installation.md)。
+
 ## 相关文档
 
 - [Host（主机）](../node/host.md)

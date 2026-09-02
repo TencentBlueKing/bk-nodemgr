@@ -124,7 +124,7 @@ const (
 	defaultBackendAgentBaseAlarmEventDataID = 1000
 	defaultBackendTaskProcEventDataID       = 1100008
 
-	defaultBackendNetworkUnitDefaultDirectUnitEnabled = true
+	defaultBackendNetworkUnitDefaultDirectUnitEnabled = false
 	defaultBackendNetworkUnitDefaultDirectUnitName    = "default"
 )
 

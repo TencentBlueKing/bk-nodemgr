@@ -28,7 +28,7 @@
 config:
   # 基础信息
   runMode: release # 生产环境强制使用release, 其他runMode参数会导致性能下滑, 严禁在生产环境使用其他参数.
-  tenantMode: single # 租户模式, multi或single, 单租户环境使用single即可.
+  tenantMode: single # 租户模式, multiple或single, 单租户环境使用single即可.
 
   # 环境信息
   system:
@@ -99,7 +99,25 @@ config:
           - "https://example.com/api/iegtjj/prod"
         appCode: bk-nodemgr # app-code
         appSecret: xxxxxx # app-secret
+
+  # 默认直连网络单元自动创建
+  networkUnit:
+    defaultDirectUnit:
+      enabled: false # 是否在同步完管控区域后, 于默认管控区域(id=0)自动创建直连网络单元
+      name: "default" # 自动创建的直连网络单元名称
+      clusterEndpoints: [] # 上游GSE cluster通道endpoint列表
+      fileEndpoints: [] # 上游GSE file通道endpoint列表
+      dataEndpoints: [] # 上游GSE data通道endpoint列表
 ```
+
+> `tenantMode`的合法取值是`multiple`或`single`，不能写作`multi`
+
+> 默认直连网络单元说明：`networkUnit.defaultDirectUnit` 仅影响**默认管控区域（id=0）**中直连网络单元的自动创建，默认关闭。同步数据工作流会在默认管控区域已从 CMDB 同步、且该区域下尚不存在直连网络单元时，按此配置自动创建一个 `is_direct=true` 的网络单元（幂等，已存在则跳过）。
+>
+> - **启用前提**：需确认 `clusterEndpoints` / `fileEndpoints` / `dataEndpoints` 已填写环境中真实可用的 GSE 接入地址（对应 GSE 的 cluster / file / data 三类通道）。
+> - **为空风险**：若开启开关但 endpoints 为空，将创建出没有上游通道地址的直连单元，默认管控区域内的 Agent 安装与管控通道建立会失败。
+>
+> 网络单元概念详见 [Network Unit（管控单元）](../concepts/topo/networkunit.md)。
 
 ### File配置
 
@@ -107,7 +125,7 @@ config:
 config:
   # 基础信息
   runMode: release # 生产环境强制使用release, 其他runMode参数会导致性能下滑, 严禁在生产环境使用其他参数.
-  tenantMode: single # 租户模式, multi或single, 单租户环境使用single即可.
+  tenantMode: single # 租户模式, multiple或single, 单租户环境使用single即可.
 
   # 服务端口信息
   basicServer: # 基础服务, 需要让Backend和Application直接访问
@@ -151,7 +169,7 @@ config:
 config:
   # 基础信息
   runMode: release # 生产环境强制使用release, 其他runMode参数会导致性能下滑, 严禁在生产环境使用其他参数.
-  tenantMode: single # 租户模式, multi或single, 单租户环境使用single即可.
+  tenantMode: single # 租户模式, multiple或single, 单租户环境使用single即可.
 
   # 前端配置
   front:
