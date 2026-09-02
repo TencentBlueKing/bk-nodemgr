@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -582,6 +583,54 @@ func convTargetFilterToTypes(data *TargetFilter) *types.TargetFilter {
 	return &types.TargetFilter{}
 }
 
+func convCustomConfigContextToTypes(ctx map[string]any) map[string]any {
+	if len(ctx) == 0 {
+		return ctx
+	}
+
+	result := make(map[string]any, len(ctx))
+	for key, value := range ctx {
+		result[key] = convCustomConfigValueToTypes(value)
+	}
+
+	return result
+}
+
+func convCustomConfigValueToTypes(value any) any {
+	switch typed := value.(type) {
+	case primitive.M:
+		result := make(map[string]any, len(typed))
+		for key, item := range typed {
+			result[key] = convCustomConfigValueToTypes(item)
+		}
+
+		return result
+	case primitive.A:
+		result := make([]any, 0, len(typed))
+		for _, item := range typed {
+			result = append(result, convCustomConfigValueToTypes(item))
+		}
+
+		return result
+	case map[string]any:
+		result := make(map[string]any, len(typed))
+		for key, item := range typed {
+			result[key] = convCustomConfigValueToTypes(item)
+		}
+
+		return result
+	case []any:
+		result := make([]any, 0, len(typed))
+		for _, item := range typed {
+			result = append(result, convCustomConfigValueToTypes(item))
+		}
+
+		return result
+	default:
+		return value
+	}
+}
+
 func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 	if data == nil {
 		return nil, errors.New("spec data is nil")
@@ -607,7 +656,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		return types.NewDeploySpecWithSpecifyPlugin(&types.SpecifyPluginParam{
 			PluginName:          data.ParamSpecifyPlugin.PluginName,
 			Version:             data.ParamSpecifyPlugin.Version,
-			CustomConfigContext: data.ParamSpecifyPlugin.CustomConfigContext,
+			CustomConfigContext: convCustomConfigContextToTypes(data.ParamSpecifyPlugin.CustomConfigContext),
 		})
 
 	case types.DeploySpecTypeSpecifyPluginPkg:
@@ -618,7 +667,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		return types.NewDeploySpecWithSpecifyPluginPkg(&types.SpecifyPluginPkgParam{
 			PluginPkgName:       data.ParamSpecifyPluginPkg.PluginPkgName,
 			Version:             data.ParamSpecifyPluginPkg.Version,
-			CustomConfigContext: data.ParamSpecifyPluginPkg.CustomConfigContext,
+			CustomConfigContext: convCustomConfigContextToTypes(data.ParamSpecifyPluginPkg.CustomConfigContext),
 		})
 
 	case types.DeploySpecTypeProjectPluginPkgToHosts:
@@ -629,7 +678,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		return types.NewDeploySpecWithProjectPluginPkgToHosts(&types.ProjectPluginPkgToHostsParam{
 			PluginPkgName:       data.ParamProjectPluginPkgToHosts.PluginPkgName,
 			Version:             data.ParamProjectPluginPkgToHosts.Version,
-			CustomConfigContext: data.ParamProjectPluginPkgToHosts.CustomConfigContext,
+			CustomConfigContext: convCustomConfigContextToTypes(data.ParamProjectPluginPkgToHosts.CustomConfigContext),
 			PlacementHostIDs:    data.ParamProjectPluginPkgToHosts.PlacementHostIDs,
 		})
 
@@ -643,7 +692,9 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 			ConfigFilesDetail: convPluginConfigDetailsToTypes(
 				data.ParamProjectPluginConfigTemplateToHosts.ConfigFilesDetail,
 			),
-			CustomConfigContext: data.ParamProjectPluginConfigTemplateToHosts.CustomConfigContext,
+			CustomConfigContext: convCustomConfigContextToTypes(
+				data.ParamProjectPluginConfigTemplateToHosts.CustomConfigContext,
+			),
 		})
 
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
@@ -654,7 +705,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		return types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
 			PluginName:          data.ParamSpecifyPluginSubConfig.PluginName,
 			ConfigFilesDetail:   convPluginConfigDetailsToTypes(data.ParamSpecifyPluginSubConfig.ConfigFilesDetail),
-			CustomConfigContext: data.ParamSpecifyPluginSubConfig.CustomConfigContext,
+			CustomConfigContext: convCustomConfigContextToTypes(data.ParamSpecifyPluginSubConfig.CustomConfigContext),
 		})
 
 	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
@@ -667,7 +718,9 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 			ConfigFilesDetail: convPluginConfigDetailsToTypes(
 				data.ParamSpecifyPluginSubConfigTemplate.ConfigFilesDetail,
 			),
-			CustomConfigContext: data.ParamSpecifyPluginSubConfigTemplate.CustomConfigContext,
+			CustomConfigContext: convCustomConfigContextToTypes(
+				data.ParamSpecifyPluginSubConfigTemplate.CustomConfigContext,
+			),
 		})
 
 	case types.DeploySpecTypeSpecifyProxy:

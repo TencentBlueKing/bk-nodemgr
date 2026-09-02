@@ -23,6 +23,8 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestConvSpecFromTypes_ToDAO_AndBack(t *testing.T) {
@@ -243,5 +245,50 @@ func TestConvSpecFromTypes_ToDAO_AndBack(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestConvSpecToTypesCustomConfigContextWithBSONContainers(t *testing.T) {
+	daoSpec := &Spec{
+		Type: string(types.DeploySpecTypeSpecifyPluginSubConfigTemplate),
+		ParamSpecifyPluginSubConfigTemplate: &SpecParamSpecifyPluginSubConfigTemplate{
+			PluginName: "test-plugin",
+			CustomConfigContext: map[string]any{
+				"items": primitive.A{
+					"item-a",
+					primitive.M{
+						"enabled": true,
+						"ports":   primitive.A{int32(80), int64(443)},
+					},
+				},
+			},
+		},
+	}
+
+	spec, err := convSpecToTypes(daoSpec)
+	if err != nil {
+		t.Fatalf("convSpecToTypes() error = %v", err)
+	}
+
+	param, err := spec.GetSpecifyPluginSubConfigTemplateParam()
+	if err != nil {
+		t.Fatalf("GetSpecifyPluginSubConfigTemplateParam() error = %v", err)
+	}
+
+	want := map[string]any{
+		"items": []any{
+			"item-a",
+			map[string]any{
+				"enabled": true,
+				"ports":   []any{int32(80), int64(443)},
+			},
+		},
+	}
+	if !reflect.DeepEqual(param.CustomConfigContext, want) {
+		t.Fatalf("CustomConfigContext = %#v, want %#v", param.CustomConfigContext, want)
+	}
+
+	if _, err := structpb.NewStruct(param.CustomConfigContext); err != nil {
+		t.Fatalf("structpb.NewStruct() error = %v", err)
 	}
 }
