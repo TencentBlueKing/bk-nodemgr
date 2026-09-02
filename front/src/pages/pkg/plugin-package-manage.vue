@@ -594,16 +594,18 @@ function getUniqueChildren(prop: string) {
   // 插件名维度优先使用 DistinctReleasePlugin 接口返回的全量列表（而非仅 originPackageList），
   // 保证即便后端只返回当前页数据（limit=500）也不会漏掉侧边栏的快捷筛选项
   if (prop === 'name') {
-    return distinctPluginNames.value.map((value: string) => {
-      const count = countByProp(originPackageList.value, 'name')[value] || 0;
-      return {
-        id: value,
-        name: value,
-        value,
-        text: value,
-        count,
-      };
-    });
+    return [...distinctPluginNames.value]
+      .sort((a, b) => a.localeCompare(b))
+      .map((value: string) => {
+        const count = countByProp(originPackageList.value, 'name')[value] || 0;
+        return {
+          id: value,
+          name: value,
+          value,
+          text: value,
+          count,
+        };
+      });
   }
   const res = Array.from(new Set(originPackageList.value
     .map((item: any) => item[prop])
@@ -832,8 +834,12 @@ const getDistinctPluginNames = async () => {
   const res = await PackageService.DistinctReleasePlugin({
     generation: PACKAGE_GENERATION,
     distinct_field: { name: true },
-  }).catch(() => null);
-  distinctPluginNames.value = (res as any)?.data?.name || [];
+  }).catch((err: any) => {
+    console.error('DistinctReleasePlugin error:', err);
+    return null;
+  });
+  // 接口返回结构是 {name: [], os_type: [], cpu_arch: [], version: []}，字段直接在顶层
+  distinctPluginNames.value = (res as any)?.name || [];
 };
 
 const getPackages = async () => {

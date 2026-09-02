@@ -400,9 +400,8 @@ const langs = ref([
   },
 ]);
 const curLang = computed(() => {
-  let currentLang = parseCookies().blueking_language
-    ? parseCookies().blueking_language
-    : 'zh-cn';
+  // 与国际化模块读取同一个语言 cookie（切换语言后写入的值）
+  let currentLang = parseCookies().blueking_language || 'zh-cn';
 
   if (['zh-CN', 'zh-cn', 'cn', 'zhCN', 'zhcn', 'None', 'none'].indexOf(currentLang) > -1) {
     currentLang = 'zh-CN';
@@ -416,6 +415,7 @@ const curLang = computed(() => {
 async function handleChangeLang(item) {
   if (item.id !== curLang.value) {
     const {
+      BK_DOMAIN: domain = '',
       BK_TENANT: tenant_id = '',
       BK_USER_WEB_URL: apiBaseUrl = '',
     } = window.PROJECT_CONFIG;
@@ -459,9 +459,9 @@ async function handleChangeLang(item) {
 
     // 安全设置cookie，对值进行编码
     const encodedLang = encodeURIComponent(safeLanguage);
-    // 统一设置到第二段开始的子域名下（与登录系统一致，避免父域/子域同名 cookie 冲突）
-    const parentDomain = location.hostname.replace(/^[^.]+\./, '');
-    document.cookie = `blueking_language=${encodedLang};path=/;domain=.${parentDomain};expires=${today.toUTCString()}`;
+    // 写入的 cookie 与国际化读取使用同一个 blueking_language，刷新后以切换后的语言生效
+    const domainStr = domain ? `;domain=${domain}` : '';
+    document.cookie = `blueking_language=${encodedLang};path=/;expires=${today.toUTCString()}${domainStr}`;
 
     // 更新HTML lang属性
     document.querySelector('html')?.setAttribute('lang', safeLanguage === 'zh-cn' ? 'zh-CN' : 'en-US');

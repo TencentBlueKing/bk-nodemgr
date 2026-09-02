@@ -13,6 +13,7 @@ declare interface Window {
     BKAPP_NAV_OPEN_SOURCE_URL: string,
     BK_DOCS_CENTER_URL: string,
     BK_TENANT: string,
+    BK_TENANT_MODE: string,
     BK_USER_WEB_URL: string,
     ENABLE_NOTICE: string,
     APP_VERSION: string,
