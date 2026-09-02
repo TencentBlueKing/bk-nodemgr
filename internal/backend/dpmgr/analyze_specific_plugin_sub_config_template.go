@@ -82,34 +82,13 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IC
 	targetMap := groupTargetsByHost(params.Targets)
 
 	changeTasks := make([]*ChangeTask, 0)
-	for _, target := range params.Targets {
-		_, ok := runningProcessMap[genProcessUniqueID(target.Host.HostID, param.PluginName)]
-		if !ok {
-			continue
-		}
 
-		missingDetails := findMissingSubConfigDetails(desiredDetails, deployPolicyConfigMap[target.Host.HostID])
-		if len(missingDetails) == 0 {
-			continue
-		}
-
-		applySpec, err := newSpecifyPluginSubConfigSpec(param.PluginName, missingDetails, param.CustomConfigContext)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create specify plugin sub config spec: %w", err)
-		}
-
-		changeTasks = append(changeTasks, &ChangeTask{
-			DeployPolicyID: params.DeployPolicyID,
-			Action:         ChangeActionPluginApplySubConfig,
-			Spec:           applySpec,
-			Target:         target,
-		})
-	}
-
-	deleteDetailsByHost := collectDeleteSubConfigDetails(
+	deleteDetailsByHost := collectSpecifyPluginSubConfigTemplateDeleteDetails(
 		desiredDetailMap,
 		targetMap,
 		deployPolicyConfigMap,
+		runningProcessMap,
+		param.PluginName,
 	)
 	deleteTasks, err := genSpecifyPluginSubConfigTemplateDeleteTasks(
 		params.DeployPolicyID,
@@ -122,10 +101,89 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IC
 	if err != nil {
 		return nil, err
 	}
-
 	changeTasks = append(changeTasks, deleteTasks...)
 
+	applyTasks, err := genSpecifyPluginSubConfigTemplateApplyTasks(
+		params.DeployPolicyID,
+		param.PluginName,
+		param.CustomConfigContext,
+		params.Targets,
+		desiredDetails,
+		deployPolicyConfigMap,
+		runningProcessMap,
+	)
+	if err != nil {
+		return nil, err
+	}
+	changeTasks = append(changeTasks, applyTasks...)
+
 	return changeTasks, nil
+}
+
+func genSpecifyPluginSubConfigTemplateApplyTasks(
+	deployPolicyID int64,
+	pluginName string,
+	customConfigContext map[string]any,
+	targets []*types.Target,
+	desiredDetails []*types.PluginConfigDetail,
+	deployPolicyConfigMap map[int64]map[string]*types.ProcessConfig,
+	runningProcessMap map[string]*types.Process,
+) ([]*ChangeTask, error) {
+	changeTasks := make([]*ChangeTask, 0)
+	for _, target := range targets {
+		_, ok := runningProcessMap[genProcessUniqueID(target.Host.HostID, pluginName)]
+		if !ok {
+			continue
+		}
+
+		missingDetails := findMissingSubConfigDetails(desiredDetails, deployPolicyConfigMap[target.Host.HostID])
+		if len(missingDetails) == 0 {
+			continue
+		}
+
+		applySpec, err := newSpecifyPluginSubConfigSpec(pluginName, missingDetails, customConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create specify plugin sub config template apply spec: %w", err)
+		}
+
+		changeTasks = append(changeTasks, &ChangeTask{
+			DeployPolicyID: deployPolicyID,
+			Action:         ChangeActionPluginApplySubConfig,
+			Spec:           applySpec,
+			Target:         target,
+		})
+	}
+
+	return changeTasks, nil
+}
+
+func collectSpecifyPluginSubConfigTemplateDeleteDetails(
+	desiredDetailMap map[string]*types.PluginConfigDetail,
+	targetMap map[int64]*types.Target,
+	deployPolicyConfigMap map[int64]map[string]*types.ProcessConfig,
+	runningProcessMap map[string]*types.Process,
+	pluginName string,
+) map[int64][]*types.PluginConfigDetail {
+	deleteDetailsByHost := make(map[int64][]*types.PluginConfigDetail)
+	seen := make(map[string]struct{})
+
+	for hostID, currentConfigMap := range deployPolicyConfigMap {
+		_, inDeployScope := targetMap[hostID]
+		_, hasRunningProcess := runningProcessMap[genProcessUniqueID(hostID, pluginName)]
+		if !inDeployScope || !hasRunningProcess {
+			for _, config := range currentConfigMap {
+				addDeleteSubConfigDetail(deleteDetailsByHost, seen, hostID, convProcessConfigToPluginConfigDetail(config))
+			}
+			continue
+		}
+
+		staleDetails := findStaleSubConfigDetails(desiredDetailMap, currentConfigMap)
+		for _, detail := range staleDetails {
+			addDeleteSubConfigDetail(deleteDetailsByHost, seen, hostID, detail)
+		}
+	}
+
+	return deleteDetailsByHost
 }
 
 func genSpecifyPluginSubConfigTemplateDeleteTasks(
