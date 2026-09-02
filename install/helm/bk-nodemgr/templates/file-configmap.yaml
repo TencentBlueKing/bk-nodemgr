@@ -35,7 +35,6 @@ data:
     exportServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.file.config.exportServer "terminationGracePeriodSeconds" (.Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
-      address: {{ .Values.file.config.exportServer.address | quote }}
 
     downloader: {{ .Values.file.config.downloader | toYaml | nindent 6 }}
 

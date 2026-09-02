@@ -10,9 +10,6 @@ import "download.proto";
 message ExportPrepareOriginPluginPackageReq {
   string plugin_pkg_name = 1;
   string plugin_pkg_version = 2;
-  string upload_origin_pkg_type = 3;
-  repeated string upload_ids = 4;
-  string workflow_id = 5;
 }
 
 // ExportPrepareOriginPluginPackageResp describes the response for preparing an
@@ -22,10 +19,25 @@ message ExportPrepareOriginPluginPackageResp {
   string message = 2;
   string request_id = 3;
 
+  message Data { string export_id = 1; }
+
+  Data data = 4;
+}
+
+// ExportGetOriginPluginPackageDownloadAddress describes the request for getting
+// the origin plugin package download address.
+message ExportGetOriginPluginPackageDownloadAddressReq { string export_id = 1; }
+
+// ExportGetOriginPluginPackageDownloadAddressResp describes the response for
+// getting the origin plugin package download address.
+message ExportGetOriginPluginPackageDownloadAddressResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
   message Data {
-    string filename = 1;
-    int64 size = 2;
-    string md5 = 3;
+    string download_url = 1;
+    int64 download_url_expired_at = 2;
   }
 
   Data data = 4;
@@ -42,7 +54,18 @@ service Export {
   rpc ExportPrepareOriginPluginPackage(ExportPrepareOriginPluginPackageReq)
       returns (ExportPrepareOriginPluginPackageResp) {
     option (google.api.http) = {
-      post : "/api/v3/export/prepare/origin_plugin_packge"
+      post : "/api/v3/export/prepare/origin_plugin_package"
+      body : "*"
+    };
+  }
+
+  // ExportGetOriginPluginPackageDownloadAddress gets the download address of
+  // the origin plugin package.
+  rpc ExportGetOriginPluginPackageDownloadAddress(
+      ExportGetOriginPluginPackageDownloadAddressReq)
+      returns (ExportGetOriginPluginPackageDownloadAddressResp) {
+    option (google.api.http) = {
+      post : "/api/v3/export/get_address/origin_plugin_package"
       body : "*"
     };
   }
@@ -52,7 +75,7 @@ service Export {
   rpc ExportOriginPluginPackage(ExportOriginPluginPackageReq)
       returns (stream FileChunk) {
     option (google.api.http) = {
-      get : "/api/v3/export/download/origin_plugin_packge"
+      get : "/api/v3/export/download/origin_plugin_package"
     };
   }
 }

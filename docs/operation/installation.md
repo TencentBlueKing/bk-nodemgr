@@ -137,6 +137,8 @@ config:
     port: 28203
     authIdentity: none
   exportServer: # 导出插件包的HTTP服务及公开下载地址配置
+    # 填写完整的 http(s) URL，作为插件包导出下载地址的公开访问前缀，例如：https://file.example.com:28204
+    # 留空时使用 advertiseIPV4:port；配置 tls.certFile 和 tls.keyFile 后自动使用 https，否则使用 http
     address: ""
     bindIP: "0.0.0.0"
     port: 28204

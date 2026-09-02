@@ -35,6 +35,7 @@ const (
 	tagActionInstanceID    = "act-inst"
 	tagServiceID           = "svc"
 	tagUploadID            = "up"
+	tagExportID            = "ep"
 )
 
 func generateID(tag string) string {
@@ -84,4 +85,9 @@ func GenServiceID() string {
 // GenUploadID generates a upload id.
 func GenUploadID() string {
 	return generateID(tagUploadID)
+}
+
+// GenExportID generates a export id.
+func GenExportID() string {
+	return generateID(tagExportID)
 }

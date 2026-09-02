@@ -61,6 +61,7 @@ const (
 	metricOperationExistReleasePlugin      = "exist_release_plugin"
 	metricOperationUpsertManyReleasePlugin = "upsert_many_release_plugin"
 	metricOperationGetReleasePlugin        = "get_release_plugin"
+	metricOperationListReleasePlugin       = "list_release_plugin"
 )
 
 // NewStorage creates a new release storage.
@@ -513,6 +514,25 @@ func (s *Storage) ExistReleasePluginBinTool(nCtx contextx.IContext, gen types.Ge
 // ===============================================================================
 // ReleasePlugin Related Interface
 // ===============================================================================
+
+// ListReleasePlugin lists plugin releases by page and conditions.
+func (s *Storage) ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleasePlugin, int64, error) {
+
+	var (
+		releases []*types.ReleasePlugin
+		total    int64
+		err      error
+	)
+	err = s.WrapFn(nCtx, metricOperationListReleasePlugin, func(nCtx contextx.IContext) error {
+		var err error
+		releases, total, err = s.listReleasePlugin(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return releases, total, err
+}
 
 // ExistReleasePlugin checks if release plugin exists.
 func (s *Storage) ExistReleasePlugin(nCtx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {

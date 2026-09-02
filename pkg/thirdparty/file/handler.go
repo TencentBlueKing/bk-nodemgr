@@ -81,6 +81,7 @@ type IPkgManager interface {
 	IPkgPublishHandler
 	IPkgDownloadHandler
 	IPkgInfoHandler
+	IPkgExportHandler
 }
 
 // IPkgInfoHandler defines the interface of pkg info query.
@@ -192,6 +193,15 @@ type IPkgDownloadHandler interface {
 
 	// DownloadRemoteFile downloads a verified remote file.
 	DownloadRemoteFile(nCtx contextx.IContext, filename, downloadURL, expectedMD5 string) (*restserver.StreamResponse, error)
+}
+
+// IPkgExportHandler defines package export operations.
+type IPkgExportHandler interface {
+	// ExportPrepareOriginPluginPackage prepares an export with its package name and version.
+	ExportPrepareOriginPluginPackage(nCtx contextx.IContext, name, version string) (string, error)
+
+	// ExportGetOriginPluginPackageDownloadAddress gets the download address of the origin plugin package.
+	ExportGetOriginPluginPackageDownloadAddress(nCtx contextx.IContext, exportID string) (string, int64, error)
 }
 
 const (
@@ -1149,4 +1159,38 @@ func (h *handler) InfoInstaller(nCtx contextx.IContext, osType criteria.OSType, 
 	}
 
 	return &fileiface.FileInfo{Name: data.GetName(), Size: data.GetSize(), MD5: data.GetMd5()}, nil
+}
+
+// ExportPrepareOriginPluginPackage prepares an origin plugin package export with its package name and version.
+func (h *handler) ExportPrepareOriginPluginPackage(nCtx contextx.IContext, name, version string) (string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return "", err
+	}
+
+	req := &protoFile.ExportPrepareOriginPluginPackageReq{
+		PluginPkgName:    name,
+		PluginPkgVersion: version,
+	}
+	data, err := h.cli.exportPrepareOriginPluginPackage(nCtx, nCtx.TenantID(), req)
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare origin plugin package export: %w", err)
+	}
+
+	return data.GetExportId(), nil
+}
+
+// ExportGetOriginPluginPackageDownloadAddress gets the download address of the origin plugin package.
+func (h *handler) ExportGetOriginPluginPackageDownloadAddress(nCtx contextx.IContext, exportID string) (string, int64, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return "", 0, err
+	}
+
+	tenantID := nCtx.TenantID()
+	req := &protoFile.ExportGetOriginPluginPackageDownloadAddressReq{ExportId: exportID}
+	data, err := h.cli.exportGetOriginPluginPackageDownloadAddress(nCtx, tenantID, req)
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to get origin plugin package export download address: %w", err)
+	}
+
+	return data.GetDownloadUrl(), data.GetDownloadUrlExpiredAt(), nil
 }

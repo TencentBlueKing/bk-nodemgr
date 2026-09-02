@@ -1639,13 +1639,21 @@ file:
 
     ## defines the HTTP server and public address settings for exported package downloads.
     exportServer:
+      # address must be a full URL with an http or https scheme.
+      # When address is empty, it is built from advertiseIPV4:port, using https when the server certFile and keyFile are configured and http otherwise.
       address: ""
       bindIP: "0.0.0.0"
       bindIPV6: "::1"
       port: 28204
+      authIdentity: none
       traceServiceName: "file-server-export"
       traceSampleRate: 0
-
+      # defines the JWT server configuration for authentication
+      jwtServerConfig:
+        # JWT encryption type: symmetric or asymmetric
+        cryptoType: symmetric
+        # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+        symmetricKey: ""
     ## downloader defines the remote package downloader settings.
     ## allowHosts allows exact hostnames/literal IPs to download from.
     ## Example:

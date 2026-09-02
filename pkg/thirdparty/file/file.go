@@ -1287,3 +1287,64 @@ func (c *cli) infoInstaller(nCtx contextx.IContext, tenantID string, req *protoF
 
 	return data, nil
 }
+
+func (c *cli) exportPrepareOriginPluginPackage(nCtx contextx.IContext, tenantID string, req *protoFile.ExportPrepareOriginPluginPackageReq) (
+	*protoFile.ExportPrepareOriginPluginPackageResp_Data, error) {
+
+	resp := new(protoFile.ExportPrepareOriginPluginPackageResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/export/prepare/origin_plugin_package").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to prepare origin plugin package export. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, errors.New("failed to prepare origin plugin package export, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) exportGetOriginPluginPackageDownloadAddress(
+	nCtx contextx.IContext, tenantID string, req *protoFile.ExportGetOriginPluginPackageDownloadAddressReq) (
+	*protoFile.ExportGetOriginPluginPackageDownloadAddressResp_Data, error) {
+
+	resp := new(protoFile.ExportGetOriginPluginPackageDownloadAddressResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/export/get_address/origin_plugin_package").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get origin plugin package export download address. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, errors.New("failed to get origin plugin package export download address, get empty data")
+	}
+
+	return resp.GetData(), nil
+}

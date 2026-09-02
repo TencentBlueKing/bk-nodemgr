@@ -109,6 +109,9 @@ type IDaoPluginBinTool interface {
 
 // IDaoPlugin defines the interface of plugin.
 type IDaoPlugin interface {
+	// ListReleasePlugin lists plugin releases by page and conditions.
+	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)
+
 	// GetReleasePlugin gets release plugin.
 	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error)
 

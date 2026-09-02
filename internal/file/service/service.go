@@ -335,7 +335,7 @@ func (svc *Service) initialStorages() error {
 	return nil
 }
 
-// nolint: funlen
+//nolint:funlen,gocyclo,gocognit,cyclop
 func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	// init upstream origin file groups from bkrepo.
 	upstreamOriginAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/agent")
@@ -400,6 +400,14 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release plugin file group: %w", err)
 	}
+	upstreamExport, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "export")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream export file group: %w", err)
+	}
+	exportServerURL, err := svc.conf.ExportServer.ToURL()
+	if err != nil {
+		return fmt.Errorf("failed to create export server public URL: %w", err)
+	}
 
 	// init local temp file group.
 	tempFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "temp"))
@@ -460,6 +468,9 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithUpstreamOriginExternalPluginV2FileGroup(upstreamOriginExternalPluginV2),
 		manager.WithUpstreamOriginPluginV3FileGroup(upstreamOriginPluginV3),
 		manager.WithUpstreamReleasePluginFileGroup(upstreamReleasePlugin),
+		manager.WithUpstreamExportFileGroup(upstreamExport),
+		manager.WithTokenGenerator(svc.Cap.TokenGenerator),
+		manager.WithExportServerPublicBaseURL(exportServerURL),
 	)
 
 	return nil
@@ -480,6 +491,10 @@ func (svc *Service) registerRestServer() error {
 
 	if err := svc.registerDownloadServer(); err != nil {
 		return fmt.Errorf("failed to register download server: %w", err)
+	}
+
+	if err := svc.registerExportServer(); err != nil {
+		return fmt.Errorf("failed to register export server: %w", err)
 	}
 
 	return nil
@@ -663,6 +678,39 @@ func (svc *Service) registerDownloadServer() error {
 	return nil
 }
 
+func (svc *Service) registerExportServer() error {
+	if svc.conf.ExportServer.AuthIdentity != config.AuthIdentityNone {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v)",
+			svc.conf.ExportServer.AuthIdentity, config.AuthIdentityNone)
+	}
+
+	server, err := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:             serverName + "-export",
+			IP:               svc.conf.ExportServer.BindIP,
+			IPV6:             svc.conf.ExportServer.BindIPV6,
+			Port:             svc.conf.ExportServer.Port,
+			TLSConfig:        svc.conf.ExportServer.TLSConfig,
+			ShutdownTimeout:  time.Duration(svc.conf.ExportServer.GracefulShutdownTimeoutSec) * time.Second,
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
+			TraceServiceName: svc.conf.ExportServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.ExportServer.TraceSampleRate,
+		},
+		restserver.WithPing(),
+		withAPIV3Export(svc.Cap,
+			restserver.MiddlewareAuth(restserver.NewNoneAuthIdentity()),
+		),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to register export server: %w", err)
+	}
+
+	svc.servers = append(svc.servers, server)
+
+	return nil
+}
+
 // newAPIGwClientCapability creates a new api-gateway client capability.
 func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
@@ -739,6 +787,13 @@ func withAPIV3Basic(capability *options.Capability, middleware ...gin.HandlerFun
 func withAPIV3Download(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		fileapiv3.LoadDownloadAPIs(rg, capability, middleware...)
+	}
+}
+
+// withAPIV3Export load api v3 export.
+func withAPIV3Export(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		fileapiv3.LoadExportAPIs(rg, capability, middleware...)
 	}
 }
 

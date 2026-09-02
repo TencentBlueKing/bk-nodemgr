@@ -22,14 +22,20 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"gopkg.in/yaml.v2"
 )
 
 const (
+	exportServerHTTP  = "http"
+	exportServerHTTPS = "https"
+
 	// file service config default values.
 	defaultFileRunMode                        = RunModeRelease
 	defaultFileTenantMode                     = tenant.ModeSingle
@@ -274,7 +280,39 @@ type FileService struct {
 // ExportServer configures the HTTP server and public address used by exported package URLs.
 type ExportServer struct {
 	HTTPServer `yaml:",inline"`
-	Address    string `yaml:"address" usage:"public domain of export server"`
+	Address    string `yaml:"address" usage:"public HTTP or HTTPS URL of export server"`
+}
+
+// ToURL returns the public export server address as a URL.
+func (svc *ExportServer) ToURL() (*url.URL, error) {
+	if svc.Address == "" {
+		if svc.AdvertiseIPV4 == "" || svc.Port <= 0 {
+			return nil, errors.New("failed to create export server public URL, advertise-ip and port are empty")
+		}
+
+		return &url.URL{
+			Scheme: exportServerURLScheme(svc),
+			Host:   net.JoinHostPort(svc.AdvertiseIPV4, strconv.Itoa(svc.Port)),
+		}, nil
+	}
+
+	parsedURL, err := url.Parse(svc.Address)
+	if err != nil {
+		return nil, err
+	}
+	if (parsedURL.Scheme != exportServerHTTP && parsedURL.Scheme != exportServerHTTPS) || parsedURL.Host == "" {
+		return nil, errors.New("failed to create export server public URL, address must be an http or https URL")
+	}
+
+	return parsedURL, nil
+}
+
+func exportServerURLScheme(svc *ExportServer) string {
+	if svc.TLSConfig.CertFile != "" && svc.TLSConfig.KeyFile != "" {
+		return exportServerHTTPS
+	}
+
+	return exportServerHTTP
 }
 
 // LoadFromFile loads config from file.

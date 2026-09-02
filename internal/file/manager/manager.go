@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -44,6 +45,7 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/token"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -70,6 +72,7 @@ type IManager interface {
 	IPluginV2
 	IExternalPluginV2
 	IPluginV3
+	IExport
 
 	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.
@@ -340,10 +343,31 @@ func WithDownloader(dl downloader.IHandler) OptionFn {
 	}
 }
 
+// WithUpstreamExportFileGroup sets the upstream export file group.
+func WithUpstreamExportFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamExport = fileGroup
+	}
+}
+
 // WithStoragePackageExport sets the storage for package export records.
 func WithStoragePackageExport(storagePackageExport packageexport.IStorage) OptionFn {
 	return func(manager *Manager) {
 		manager.storagePackageExport = storagePackageExport
+	}
+}
+
+// WithTokenGenerator sets the generator used to validate export download tokens.
+func WithTokenGenerator(generator *token.Generator) OptionFn {
+	return func(manager *Manager) {
+		manager.tokenGenerator = generator
+	}
+}
+
+// WithExportServerPublicBaseURL sets the public base URL used in download addresses.
+func WithExportServerPublicBaseURL(baseURL *url.URL) OptionFn {
+	return func(manager *Manager) {
+		manager.exportServerPublicBaseURL = baseURL
 	}
 }
 
@@ -367,6 +391,13 @@ type Manager struct {
 	upstreamReleaseBinTool         fileiface.FileGroup
 	upstreamReleasePluginBinTool   fileiface.FileGroup
 	upstreamReleasePlugin          fileiface.FileGroup
+	upstreamExport                 fileiface.FileGroup
+
+	// tokenGenerator authenticates package export download tokens.
+	tokenGenerator *token.Generator
+
+	// exportServerPublicBaseURL is the public base URL used in download addresses.
+	exportServerPublicBaseURL *url.URL
 
 	// installter file group.
 	installerFileGroup fileiface.FileGroup
@@ -470,6 +501,10 @@ func (m *Manager) Start(ctx context.Context) error {
 		return errors.New("invalid upstream release plugin bin tool v2")
 	}
 
+	if m.upstreamExport == nil {
+		return errors.New("invalid upstream export")
+	}
+
 	if m.storageUpload == nil {
 		return errors.New("invalid storage upload")
 	}
@@ -490,6 +525,10 @@ func (m *Manager) Start(ctx context.Context) error {
 		return errors.New("invalid storage package export")
 	}
 
+	if m.tokenGenerator == nil {
+		return errors.New("invalid token generator")
+	}
+
 	if m.installerFileGroup == nil {
 		return errors.New("invalid installer file group")
 	}
@@ -508,6 +547,10 @@ func (m *Manager) Start(ctx context.Context) error {
 
 	if m.downloader == nil {
 		return errors.New("invalid downloader")
+	}
+
+	if m.exportServerPublicBaseURL == nil {
+		return errors.New("invalid export server public base URL")
 	}
 
 	// start temp file GC if configured. Disabled when either knob is non-positive.

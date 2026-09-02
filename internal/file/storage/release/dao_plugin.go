@@ -21,6 +21,7 @@
 package release
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -31,6 +32,40 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
+
+func (s *Storage) listReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleasePlugin, int64, error) {
+
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	releases, total, err := s.daoRelease.List(
+		nCtx,
+		types.ReleaseTypePlugin,
+		page,
+		opts...,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release plugin: %w", err)
+	}
+
+	result := make([]*types.ReleasePlugin, len(releases))
+	for i, item := range releases {
+		additionInfo := new(types.ReleaseAdditionInfoPlugin)
+		if err := conv.MapToStruct(item.AdditionInfo, additionInfo); err != nil {
+			return nil, 0, fmt.Errorf("failed to list release plugin, failed to convert addition info to struct: %w", err)
+		}
+
+		result[i] = &types.ReleasePlugin{
+			Release:                   *item,
+			ReleaseAdditionInfoPlugin: *additionInfo,
+		}
+	}
+
+	return result, total, nil
+}
 
 // existReleasePlugin checks if release plugin exists.
 func (s *Storage) existReleasePlugin(nCtx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (bool, error) {
@@ -101,4 +136,39 @@ func (s *Storage) getReleasePlugin(nCtx contextx.IContext, name string, gen type
 		Release:                   *rls,
 		ReleaseAdditionInfoPlugin: *additionInfo,
 	}, nil
+}
+
+func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([]release.OptFn, error) {
+	opts := make([]release.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				release.WithName(condition.ExactInclude.Name...),
+				release.WithFileName(condition.ExactInclude.FileName...),
+				release.WithGeneration(condition.ExactInclude.Generation...),
+				release.WithVersion(condition.ExactInclude.Version...),
+				release.WithPlatform(condition.ExactInclude.Platform...),
+				release.WithEnabled(condition.ExactInclude.Enabled...),
+				release.WithIsHidden(condition.ExactInclude.IsHidden...),
+				release.WithAsDefault(condition.ExactInclude.AsDefault...))
+		}
+
+		if condition.FuzzyInclude != nil {
+			return nil, errors.New("fuzzy include is not supported")
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
 }

@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v3/export/download/origin_plugin_packge": {
+    "/api/v3/export/download/origin_plugin_package": {
       "get": {
         "summary": "ExportOriginPluginPackage exported origin plugin package using a temporary\nexport token.",
         "operationId": "Export_ExportOriginPluginPackage",
@@ -56,7 +56,41 @@
         ]
       }
     },
-    "/api/v3/export/prepare/origin_plugin_packge": {
+    "/api/v3/export/get_address/origin_plugin_package": {
+      "post": {
+        "summary": "ExportGetOriginPluginPackageDownloadAddress gets the download address of\nthe origin plugin package.",
+        "operationId": "Export_ExportGetOriginPluginPackageDownloadAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ExportGetOriginPluginPackageDownloadAddressResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ExportGetOriginPluginPackageDownloadAddress describes the request for getting\nthe origin plugin package download address.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExportGetOriginPluginPackageDownloadAddressReq"
+            }
+          }
+        ],
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/v3/export/prepare/origin_plugin_package": {
       "post": {
         "summary": "ExportPrepareOriginPluginPackage prepares an origin plugin package for\nexporting.",
         "operationId": "Export_ExportPrepareOriginPluginPackage",
@@ -92,21 +126,6 @@
     }
   },
   "definitions": {
-    "ExportPrepareOriginPluginPackageRespData": {
-      "type": "object",
-      "properties": {
-        "filename": {
-          "type": "string"
-        },
-        "size": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "md5": {
-          "type": "string"
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -135,6 +154,46 @@
         }
       }
     },
+    "v3ExportGetOriginPluginPackageDownloadAddressReq": {
+      "type": "object",
+      "properties": {
+        "export_id": {
+          "type": "string"
+        }
+      },
+      "description": "ExportGetOriginPluginPackageDownloadAddress describes the request for getting\nthe origin plugin package download address."
+    },
+    "v3ExportGetOriginPluginPackageDownloadAddressResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ExportGetOriginPluginPackageDownloadAddressRespData"
+        }
+      },
+      "description": "ExportGetOriginPluginPackageDownloadAddressResp describes the response for\ngetting the origin plugin package download address."
+    },
+    "v3ExportGetOriginPluginPackageDownloadAddressRespData": {
+      "type": "object",
+      "properties": {
+        "download_url": {
+          "type": "string"
+        },
+        "download_url_expired_at": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
     "v3ExportPrepareOriginPluginPackageReq": {
       "type": "object",
       "properties": {
@@ -142,18 +201,6 @@
           "type": "string"
         },
         "plugin_pkg_version": {
-          "type": "string"
-        },
-        "upload_origin_pkg_type": {
-          "type": "string"
-        },
-        "upload_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "workflow_id": {
           "type": "string"
         }
       },
@@ -173,10 +220,18 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/ExportPrepareOriginPluginPackageRespData"
+          "$ref": "#/definitions/v3ExportPrepareOriginPluginPackageRespData"
         }
       },
       "description": "ExportPrepareOriginPluginPackageResp describes the response for preparing an\nplugin package."
+    },
+    "v3ExportPrepareOriginPluginPackageRespData": {
+      "type": "object",
+      "properties": {
+        "export_id": {
+          "type": "string"
+        }
+      }
     },
     "v3FileChunk": {
       "type": "object",
