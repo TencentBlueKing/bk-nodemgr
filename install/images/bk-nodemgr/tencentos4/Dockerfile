@@ -45,7 +45,7 @@ RUN set -eux; \
     command -v etcdctl >/dev/null 2>&1; \
     ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime || true
 
-RUN pip3 install requests
+RUN pip3 install requests PyYAML
 
 RUN mkdir -p \
     /bk-nodemgr/bin \

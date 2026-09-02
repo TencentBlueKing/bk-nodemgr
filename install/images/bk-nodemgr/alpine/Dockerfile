@@ -18,7 +18,7 @@ ENV TZ Asia/Shanghai
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
 RUN apk add mongodb && rm -f /usr/bin/mongod /usr/bin/mongos
-RUN apk add py3-requests
+RUN apk add py3-requests py3-yaml
 
 RUN mkdir -p \
     /bk-nodemgr/bin \

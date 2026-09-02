@@ -1,15 +1,155 @@
 import argparse
 import json
-import requests
 import os
-import uuid
 import subprocess
+import sys
+import uuid
+
 
 # =================== utils ===================
 
 
 def generate_id(tag):
     return tag + ":" + str(uuid.uuid4()).replace("-", "")
+
+
+DEFAULT_CONFIG_FILES = (
+    "/bk-nodemgr/etc/file_conf.yaml",
+    "/bk-nodemgr/etc/bk-nodemgr-file.yml",
+)
+DEFAULT_PACKAGES_DIR = "/bk-nodemgr/file/packages"
+TASK_ORDER = (
+    "cert",
+    "bintool",
+    "plugin_bintool",
+    "agent",
+    "proxy",
+    "server",
+    "plugin_v2",
+    "external_plugin_v2",
+    "plugin_v3",
+)
+
+
+def load_file_config(config_file=None):
+    """Load the first available File service configuration."""
+    try:
+        import yaml
+    except ImportError as error:
+        return {}, None, ["PyYAML is unavailable: {}".format(error)]
+
+    config_files = (config_file,) if config_file else DEFAULT_CONFIG_FILES
+    errors = []
+
+    for path in config_files:
+        if not os.path.isfile(path):
+            continue
+
+        try:
+            with open(path, "r", encoding="utf-8") as file:
+                config = yaml.safe_load(file) or {}
+            if not isinstance(config, dict):
+                raise ValueError("top-level YAML value must be a mapping")
+            return config, path, errors
+        except (OSError, ValueError, yaml.YAMLError) as error:
+            errors.append("{}: {}".format(path, error))
+
+    return {}, None, errors
+
+
+def get_nested_value(mapping, *keys):
+    """Return a nested mapping value, or None when it is unavailable."""
+    value = mapping
+    for key in keys:
+        if not isinstance(value, dict):
+            return None
+        value = value.get(key)
+    return value
+
+
+def config_int(value, fallback):
+    """Return an integer configuration value, using fallback for invalid values."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def resolve_runtime_config(args, config):
+    """Resolve CLI values, File configuration values, and safe defaults."""
+    basic_server = config.get("basicServer", {})
+    auth_identity = get_nested_value(basic_server, "authIdentity")
+    config_jwt_key = ""
+    if auth_identity != "none":
+        config_jwt_key = (
+            get_nested_value(basic_server, "jwtServerConfig", "symmetricKey") or ""
+        )
+
+    tenant_mode = config.get("tenantMode")
+    return {
+        "host": args.host if args.host is not None else "localhost",
+        "port": (
+            args.port
+            if args.port is not None
+            else config_int(get_nested_value(basic_server, "port"), 28202)
+        ),
+        "jwt_key": args.jwt_key if args.jwt_key is not None else config_jwt_key,
+        "expire_hours": (
+            args.expire_hours
+            if args.expire_hours is not None
+            else config_int(
+                get_nested_value(
+                    basic_server, "jwtServerConfig", "tokenExpirationHour"
+                ),
+                24,
+            )
+        ),
+        "bk_username": args.bk_username if args.bk_username is not None else "admin",
+        "login_name": args.login_name if args.login_name is not None else "admin",
+        "tenant_id": (
+            args.tenant_id
+            if args.tenant_id is not None
+            else ("system" if tenant_mode == "multiple" else "default")
+        ),
+    }
+
+
+PACKAGE_DIRECTORY_TYPES = {
+    "cert": "cert",
+    "agent": "agent",
+    "proxy": "proxy",
+    "server": "server",
+    "plugin-v2": "plugin_v2",
+    "external-plugin-v2": "external_plugin_v2",
+    "plugin-v3": "plugin_v3",
+}
+
+
+def discover_packages(packages_dir):
+    """Discover regular package files from the conventional package directories."""
+    discovered = {package_type: [] for package_type in TASK_ORDER}
+
+    for directory_name, package_type in PACKAGE_DIRECTORY_TYPES.items():
+        directory = os.path.join(packages_dir, directory_name)
+        if not os.path.isdir(directory):
+            continue
+        for filename in sorted(os.listdir(directory)):
+            file_path = os.path.join(directory, filename)
+            if os.path.isfile(file_path):
+                discovered[package_type].append(file_path)
+
+    bintool_directory = os.path.join(packages_dir, "bintool")
+    if os.path.isdir(bintool_directory):
+        for filename in sorted(os.listdir(bintool_directory)):
+            file_path = os.path.join(bintool_directory, filename)
+            if not os.path.isfile(file_path):
+                continue
+            package_type = (
+                "plugin_bintool" if filename.startswith("plugin_bintool") else "bintool"
+            )
+            discovered[package_type].append(file_path)
+
+    return discovered
 
 
 def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
@@ -22,7 +162,17 @@ def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
 
     try:
         result = subprocess.run(
-            [binary_path, "-k", key, "-e", str(expire_hours), "-u", bk_username, "-l", login_name],
+            [
+                binary_path,
+                "-k",
+                key,
+                "-e",
+                str(expire_hours),
+                "-u",
+                bk_username,
+                "-l",
+                login_name,
+            ],
             capture_output=True,
             text=True,
             timeout=10,
@@ -66,6 +216,8 @@ def http_request(
     files=None,
     timeout=30,
 ):
+    import requests
+
     try:
         files_to_upload = None
         files_to_close = []
@@ -188,7 +340,9 @@ class FileClient(object):
         }
 
         if self.jwt_key:
-            ok, jwt_token = generate_jwt_token(self.jwt_key, self.expire_hours, self.bk_username, self.login_name)
+            ok, jwt_token = generate_jwt_token(
+                self.jwt_key, self.expire_hours, self.bk_username, self.login_name
+            )
             if not ok:
                 raise Exception("Failed to generate JWT token: {}".format(jwt_token))
 
@@ -409,105 +563,120 @@ if __name__ == "__main__":
         "--host",
         action="store",
         dest="host",
-        help="file service host (default: localhost)",
-        default="localhost",
+        help="file service host (falls back to localhost)",
+        default=None,
     )
     p.add_argument(
         "--port",
         action="store",
         dest="port",
         type=int,
-        help="file service port (default: 28202)",
-        default=28202,
+        help="file service port (uses File config, falls back to 28202)",
+        default=None,
     )
     p.add_argument(
         "--jwt-key",
         action="store",
         dest="jwt_key",
-        help="JWT authentication key (optional, leave empty if JWT is disabled)",
-        default="",
+        help="JWT authentication key (uses File config when JWT is enabled)",
+        default=None,
     )
     p.add_argument(
         "--tenant-id",
         action="store",
         dest="tenant_id",
-        help="tenant id",
-        default="default",
+        help="tenant id (multiple: system; otherwise: default)",
+        default=None,
     )
     p.add_argument(
         "--bk-username",
         action="store",
         dest="bk_username",
-        help="bk username",
-        default="admin",
+        help="bk username (falls back to admin)",
+        default=None,
     )
     p.add_argument(
         "--login-name",
         action="store",
         dest="login_name",
-        help="login name",
-        default="admin",
+        help="login name (falls back to admin)",
+        default=None,
     )
     p.add_argument(
         "--expire-hours",
         action="store",
         dest="expire_hours",
         type=int,
-        help="JWT token expire hours (default: 24)",
-        default=24,
+        help="JWT token expire hours (uses File config, falls back to 24)",
+        default=None,
+    )
+
+    p.add_argument(
+        "--config-file",
+        help="File service YAML configuration path",
+    )
+    p.add_argument(
+        "--auto-select",
+        action="store_true",
+        help="discover packages under the conventional package directory",
+    )
+    p.add_argument(
+        "--packages-dir",
+        default=DEFAULT_PACKAGES_DIR,
+        help="package discovery directory (default: {})".format(DEFAULT_PACKAGES_DIR),
     )
 
     p.add_argument(
         "--init-cert",
-        action="store",
+        action="append",
         dest="init_cert",
         help="upload and publish cert file",
     )
     p.add_argument(
         "--init-bintool",
-        action="store",
+        action="append",
         dest="init_bintool",
         help="upload and publish bintool file",
     )
     p.add_argument(
         "--init-plugin-bintool",
-        action="store",
+        action="append",
         dest="init_plugin_bintool",
         help="upload and publish plugin bintool file",
     )
     p.add_argument(
         "--init-agent",
-        action="store",
+        action="append",
         dest="init_agent",
         help="upload and publish agent package",
     )
     p.add_argument(
         "--init-proxy",
-        action="store",
+        action="append",
         dest="init_proxy",
         help="upload and publish proxy package",
     )
     p.add_argument(
         "--init-server",
-        action="store",
+        action="append",
         dest="init_server",
         help="upload and publish server package",
     )
     p.add_argument(
         "--init-plugin-v2",
-        action="store",
+        action="append",
         dest="init_plugin_v2",
         help="upload and publish v2 plugin package",
     )
     p.add_argument(
         "--init-external-plugin-v2",
-        action="store",
+        action="append",
         dest="init_external_plugin_v2",
         help="upload and publish v2 external plugin package",
     )
     p.add_argument(
         "--init-plugin-v3",
-        action="store",
+        action="append",
         dest="init_plugin_v3",
         help="upload and publish v3 plugin package",
     )
@@ -529,133 +698,160 @@ if __name__ == "__main__":
 
     args = p.parse_args()
 
-    print("tenant_id: {}".format(args.tenant_id))
-    print("bk_username: {}".format(args.bk_username))
-    print("login_name: {}".format(args.login_name))
+    file_config, config_source, config_errors = load_file_config(args.config_file)
+    if args.config_file and not config_source:
+        errors = config_errors or ["{}: file not found".format(args.config_file)]
+        for config_error in errors:
+            print("failed to load config: {}".format(config_error))
+        sys.exit(1)
+
+    for config_error in config_errors:
+        print("warning: unable to load config: {}".format(config_error))
+    if config_source:
+        print("config source: {}".format(config_source))
+
+    runtime_config = resolve_runtime_config(args, file_config)
+    print(
+        "runtime config: tenant_id={}, host={}, port={}".format(
+            runtime_config["tenant_id"],
+            runtime_config["host"],
+            runtime_config["port"],
+        )
+    )
+
+    explicit_packages = {
+        task_name: getattr(args, "init_{}".format(task_name)) or []
+        for task_name in TASK_ORDER
+    }
+    discovered_packages = (
+        discover_packages(args.packages_dir) if args.auto_select else {}
+    )
+    package_paths = {
+        task_name: explicit_packages[task_name] + discovered_packages.get(task_name, [])
+        for task_name in TASK_ORDER
+    }
+    package_count = sum(len(paths) for paths in package_paths.values())
+    if package_count == 0:
+        print("No packages to upload")
+        sys.exit(0)
 
     try:
         client = FileClient(
-            host=args.host,
-            port=args.port,
-            jwt_key=args.jwt_key,
-            expire_hours=args.expire_hours,
-            tenant_id=args.tenant_id,
-            bk_username=args.bk_username,
-            login_name=args.login_name,
+            host=runtime_config["host"],
+            port=runtime_config["port"],
+            jwt_key=runtime_config["jwt_key"],
+            expire_hours=runtime_config["expire_hours"],
+            tenant_id=runtime_config["tenant_id"],
+            bk_username=runtime_config["bk_username"],
+            login_name=runtime_config["login_name"],
         )
     except Exception as e:
         print("failed to create file client: {}".format(str(e)))
-        exit(1)
+        sys.exit(1)
 
-    tasks = [
-        (
-            "cert",
-            args.init_cert,
+    task_handlers = {
+        "cert": (
             client.upload_origin_cert,
             client.publish_release_cert,
             {"overwrite": args.overwrite},
         ),
-        (
-            "bintool",
-            args.init_bintool,
+        "bintool": (
             client.upload_origin_bintool,
             client.publish_release_bintool,
             {"generation": args.generation, "overwrite": args.overwrite},
         ),
-        (
-            "plugin_bintool",
-            args.init_plugin_bintool,
+        "plugin_bintool": (
             client.upload_origin_plugin_bintool,
             client.publish_release_plugin_bintool,
             {"overwrite": args.overwrite},
         ),
-        (
-            "agent",
-            args.init_agent,
+        "agent": (
             client.upload_origin_agent,
             client.publish_release_agent,
             {"generation": args.generation, "overwrite": args.overwrite},
         ),
-        (
-            "proxy",
-            args.init_proxy,
+        "proxy": (
             client.upload_origin_proxy,
             client.publish_release_proxy,
             {"generation": args.generation, "overwrite": args.overwrite},
         ),
-        (
-            "server",
-            args.init_server,
+        "server": (
             client.upload_origin_server,
             client.publish_release_server,
             {"generation": args.generation, "overwrite": args.overwrite},
         ),
-        (
-            "plugin_v2",
-            args.init_plugin_v2,
+        "plugin_v2": (
             client.upload_origin_plugin_v2,
             client.publish_release_plugin_v2,
             {"overwrite": args.overwrite},
         ),
-        (
-            "external_plugin_v2",
-            args.init_external_plugin_v2,
+        "external_plugin_v2": (
             client.upload_origin_external_plugin_v2,
             client.publish_release_external_plugin_v2,
             {"overwrite": args.overwrite},
         ),
-        (
-            "plugin_v3",
-            args.init_plugin_v3,
+        "plugin_v3": (
             client.upload_origin_plugin_v3,
             client.publish_release_plugin_v3,
             {"overwrite": args.overwrite},
         ),
-    ]
+    }
 
-    success_count = 0
-    fail_count = 0
+    tasks = []
+    for task_name in TASK_ORDER:
+        upload_func, publish_func, upload_params = task_handlers[task_name]
+        for file_path in package_paths[task_name]:
+            tasks.append(
+                (task_name, file_path, upload_func, publish_func, upload_params)
+            )
+
+    success_files = []
+    failed_files = []
 
     for task_name, file_path, upload_func, publish_func, upload_params in tasks:
-        if not file_path:
-            continue
+        task_succeeded = False
+        try:
+            print("\n" + "=" * 60)
+            print("processing {}: {}".format(task_name, file_path))
+            print("=" * 60)
 
-        print("\n" + "=" * 60)
-        print("processing {}: {}".format(task_name, file_path))
-        print("=" * 60)
-
-        print("[1/2] uploading {}...".format(task_name))
-        ok, msg, data = upload_func(file_path, **upload_params)
-        if not ok:
-            print("upload failed: {}".format(msg))
-            fail_count += 1
-            continue
-
-        upload_id = data.get("upload_id") if data else None
-        if not upload_id:
-            print("upload failed: no upload_id in response")
-            fail_count += 1
-            continue
-
-        print("upload success")
-        print("  upload_id: {}".format(upload_id))
-
-        if publish_func:
-            print("[2/2] publishing {}...".format(task_name))
-            ok, msg, data = publish_func(upload_id)
+            print("[1/2] uploading {}...".format(task_name))
+            ok, msg, data = upload_func(file_path, **upload_params)
             if not ok:
-                print("publish failed: {}".format(msg))
-                fail_count += 1
-                continue
+                print("upload failed: {}".format(msg))
+            else:
+                upload_id = data.get("upload_id") if data else None
+                if not upload_id:
+                    print("upload failed: no upload_id in response")
+                else:
+                    print("upload success")
+                    print("  upload_id: {}".format(upload_id))
+                    print("[2/2] publishing {}...".format(task_name))
+                    ok, msg, data = publish_func(upload_id)
+                    if not ok:
+                        print("publish failed: {}".format(msg))
+                    else:
+                        print("publish success")
+                        task_succeeded = True
+        except Exception as error:
+            print("task failed: {}".format(error))
 
-            print("publish success")
-            success_count += 1
+        if task_succeeded:
+            success_files.append(file_path)
         else:
-            print("[2/2] skipped (no publish endpoint for {})".format(task_name))
-            success_count += 1
+            failed_files.append(file_path)
+
+    success_count = len(success_files)
+    fail_count = len(failed_files)
 
     print("\n" + "=" * 60)
     print("summary: {} success, {} failed".format(success_count, fail_count))
+    print("successful files:")
+    for file_path in success_files:
+        print("  - {}".format(file_path))
+    print("failed files:")
+    for file_path in failed_files:
+        print("  - {}".format(file_path))
     print("=" * 60)
 
-    exit(0 if fail_count == 0 else 1)
+    sys.exit(0 if fail_count == 0 else 1)

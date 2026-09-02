@@ -100,9 +100,6 @@ spec:
               FILE_HOST="{{ template "bk-nodemgr.fullname" . }}-file"
               FILE_HEALTH_URL="http://${FILE_HOST}:{{ .Values.file.config.infoServer.port }}{{ .Values.readinessProbe.path }}"
               export FILE_HEALTH_URL
-              JWT_KEY="{{ .Values.backend.config.file.jwtClientConfig.symmetricKey }}"
-              JWT_EXPIRE_TIME="{{ .Values.backend.config.file.jwtClientConfig.tokenExpirationHour | default 24 }}"
-              UPLOAD_ARGS=""
 
               echo "=========================================="
               echo "Waiting for file service to be ready..."
@@ -204,56 +201,34 @@ spec:
                   echo "All cert files found, creating cert.tgz..."
                   tar -C "${CERT_DIR}" -czf "${CERT_TGZ}" cert
                   echo "cert.tgz created: ${CERT_TGZ}"
-                  UPLOAD_ARGS="${UPLOAD_ARGS} --init-cert ${CERT_TGZ}"
               else
                   echo "Skipping cert upload (files not found)"
               fi
 
-              # Step 2: Check bintool
+              # Step 2: Upload packages discovered by init_package.py
               echo "=========================================="
-              echo "Step 2: Checking bintool files..."
+              echo "Step 2: Uploading packages..."
               echo "=========================================="
 
-              BINTOOL_TGZ="${PACKAGES_DIR}/bintool/bintool.tgz"
-              PLUGIN_BINTOOL_TGZ="${PACKAGES_DIR}/bintool/plugin_bintool.tgz"
-
-              if [ -f "${BINTOOL_TGZ}" ]; then
-                  echo "bintool.tgz found: ${BINTOOL_TGZ}"
-                  UPLOAD_ARGS="${UPLOAD_ARGS} --init-bintool ${BINTOOL_TGZ}"
-              else
-                  echo "Skipping bintool upload (bintool.tgz not found)"
-              fi
-
-              if [ -f "${PLUGIN_BINTOOL_TGZ}" ]; then
-                  echo "plugin_bintool.tgz found: ${PLUGIN_BINTOOL_TGZ}"
-                  UPLOAD_ARGS="${UPLOAD_ARGS} --init-plugin-bintool ${PLUGIN_BINTOOL_TGZ}"
-              else
-                  echo "Skipping plugin_bintool upload (plugin_bintool.tgz not found)"
-              fi
-
-              # Step 3: Execute upload
-              if [ -n "${UPLOAD_ARGS}" ]; then
-                  echo "=========================================="
-                  echo "Step 3: Uploading packages..."
-                  echo "=========================================="
-
-                  python3 ${PACKAGES_SCRIPT_DIR}/init_package.py \
-                    --host "${FILE_HOST}" \
-                    --port {{ .Values.file.config.basicServer.port }} \
-                    --jwt-key "${JWT_KEY}" \
-                    --expire-hours "${JWT_EXPIRE_TIME}" \
-                    --bk-username "{{ .Values.initPackages.bkUsername }}" \
-                    --login-name "{{ .Values.initPackages.loginName }}" \
-                    ${UPLOAD_ARGS}
-              else
-                  echo "=========================================="
-                  echo "No packages to upload, skipping..."
-                  echo "=========================================="
-              fi
+              python3 ${PACKAGES_SCRIPT_DIR}/init_package.py \
+                --host "${FILE_HOST}" \
+                --config-file {{ .Values.common.etcPath }}/file_conf.yaml \
+                --bk-username "{{ .Values.initPackages.bkUsername }}" \
+                --login-name "{{ .Values.initPackages.loginName }}" \
+                --auto-select \
+                --packages-dir "${PACKAGES_DIR}"
 
               echo "=========================================="
               echo "File packages init completed successfully!"
               echo "=========================================="
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
+          volumeMounts:
+            - name: {{ template "bk-nodemgr.fullname" . }}-file-config
+              mountPath: {{ .Values.common.etcPath }}/file_conf.yaml
+              subPath: file_conf.yaml
+      volumes:
+        - name: {{ template "bk-nodemgr.fullname" . }}-file-config
+          configMap:
+            name: {{ template "bk-nodemgr.fullname" . }}-file-config
       restartPolicy: Never
 {{- end }}
