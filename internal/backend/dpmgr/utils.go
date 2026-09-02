@@ -39,6 +39,13 @@ func genDeployPolicySubConfigName(configName string, deployPolicyID int64) strin
 	return fmt.Sprintf("%s_deploy_%d%s", baseName, deployPolicyID, ext)
 }
 
+func genDeployPolicySubConfigNameByConfigTemplateName(configTemplateName string, deployPolicyID int64) string {
+	ext := path.Ext(configTemplateName)
+	baseName := strings.TrimSuffix(configTemplateName, ext)
+
+	return fmt.Sprintf("%s_deploy_%d%s", baseName, deployPolicyID, ext)
+}
+
 func genDeployPolicyProcessConfigSet(deployPolicyID int64) string {
 	return fmt.Sprintf(processConfigSetDeployPolicyFormat, deployPolicyID)
 }

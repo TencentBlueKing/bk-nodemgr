@@ -245,59 +245,6 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfig(nCtx contextx.IContext, 
 	return changeTasks, nil
 }
 
-func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IContext, params *AnalyzeParams) (
-	[]*ChangeTask, error) {
-
-	param, err := params.Spec.GetSpecifyPluginSubConfigTemplateParam()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get specify plugin sub config template param, spec(%+v): %w", params.Spec, err)
-	}
-
-	desiredDetails := genDeployPolicySubConfigDetails(params.DeployPolicyID, param.ConfigFilesDetail)
-
-	hostIDs := conv.SliceToSlice(params.Targets, func(target *types.Target) int64 {
-		return target.Host.HostID
-	})
-	hostIDs = conv.SliceUnique(hostIDs)
-
-	processMap, err := analyzer.listRunningProcessMap(nCtx, param.PluginName, hostIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	deployPolicyConfigMap, err := analyzer.listDeployPolicySubConfigMap(nCtx, param.PluginName, params.DeployPolicyID)
-	if err != nil {
-		return nil, err
-	}
-
-	changeTasks := make([]*ChangeTask, 0)
-	for _, target := range params.Targets {
-		_, ok := processMap[genProcessUniqueID(target.Host.HostID, param.PluginName)]
-		if !ok {
-			continue
-		}
-
-		missingDetails := findMissingSubConfigDetails(desiredDetails, deployPolicyConfigMap[target.Host.HostID])
-		if len(missingDetails) == 0 {
-			continue
-		}
-
-		applySpec, err := newSpecifyPluginSubConfigSpec(param.PluginName, missingDetails, param.CustomConfigContext)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create specify plugin sub config spec: %w", err)
-		}
-
-		changeTasks = append(changeTasks, &ChangeTask{
-			DeployPolicyID: params.DeployPolicyID,
-			Action:         ChangeActionPluginApplySubConfig,
-			Spec:           applySpec,
-			Target:         target,
-		})
-	}
-
-	return changeTasks, nil
-}
-
 func (analyzer *Analyzer) listRunningProcessMap(
 	nCtx contextx.IContext, pluginName string, hostIDs []int64,
 ) (map[string]*types.Process, error) {
@@ -398,24 +345,6 @@ func groupTargetsByHost(targets []*types.Target) map[int64]*types.Target {
 	}
 
 	return targetMap
-}
-
-func findMissingSubConfigDetails(
-	desiredDetails []*types.PluginConfigDetail, currentConfigMap map[string]*types.ProcessConfig,
-) []*types.PluginConfigDetail {
-	missingDetails := make([]*types.PluginConfigDetail, 0)
-	for _, detail := range desiredDetails {
-		if detail == nil {
-			continue
-		}
-		if _, ok := currentConfigMap[detail.Name]; ok {
-			continue
-		}
-
-		missingDetails = append(missingDetails, detail)
-	}
-
-	return missingDetails
 }
 
 func findStaleSubConfigDetails(

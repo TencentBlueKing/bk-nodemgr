@@ -1,0 +1,198 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云 - 节点管理 (BlueKing - Node Management) available.
+ * Copyright (C) Tencent. All rights reserved.
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+
+ * We undertake not to change the open source license (MIT license) applicable
+
+ * to the current version of the project delivered to anyone in the future.
+ */
+
+package dpmgr
+
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IContext, params *AnalyzeParams) (
+	[]*ChangeTask, error) {
+
+	param, err := params.Spec.GetSpecifyPluginSubConfigTemplateParam()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get specify plugin sub config template param, spec(%+v): %w", params.Spec, err)
+	}
+
+	desiredDetails := make([]*types.PluginConfigDetail, 0, len(param.ConfigFilesDetail))
+	for _, detail := range param.ConfigFilesDetail {
+		if detail == nil {
+			continue
+		}
+
+		templateName := detail.TemplateName
+		if templateName == "" {
+			templateName = detail.Name
+		}
+		if templateName == "" {
+			continue
+		}
+
+		desiredDetails = append(desiredDetails, &types.PluginConfigDetail{
+			Name:         genDeployPolicySubConfigNameByConfigTemplateName(templateName, params.DeployPolicyID),
+			TemplateName: templateName,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+			FilePath:     detail.FilePath,
+		})
+	}
+
+	hostIDs := conv.SliceToSlice(params.Targets, func(target *types.Target) int64 {
+		return target.Host.HostID
+	})
+
+	deployPolicyConfigMap, err := analyzer.listDeployPolicySubConfigMap(nCtx, param.PluginName, params.DeployPolicyID)
+	if err != nil {
+		return nil, err
+	}
+	hostIDs = append(hostIDs, conv.MapKeyToSlice(deployPolicyConfigMap)...)
+	hostIDs = conv.SliceUnique(hostIDs)
+
+	runningProcessMap, err := analyzer.listRunningProcessMap(nCtx, param.PluginName, hostIDs)
+	if err != nil {
+		return nil, err
+	}
+	desiredDetailMap, err := conv.SliceToMap(
+		desiredDetails,
+		func(detail *types.PluginConfigDetail) string { return detail.Name },
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert plugin config details to map, count(%d): %w", len(desiredDetails), err)
+	}
+	targetMap := groupTargetsByHost(params.Targets)
+
+	changeTasks := make([]*ChangeTask, 0)
+	for _, target := range params.Targets {
+		_, ok := runningProcessMap[genProcessUniqueID(target.Host.HostID, param.PluginName)]
+		if !ok {
+			continue
+		}
+
+		missingDetails := findMissingSubConfigDetails(desiredDetails, deployPolicyConfigMap[target.Host.HostID])
+		if len(missingDetails) == 0 {
+			continue
+		}
+
+		applySpec, err := newSpecifyPluginSubConfigSpec(param.PluginName, missingDetails, param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create specify plugin sub config spec: %w", err)
+		}
+
+		changeTasks = append(changeTasks, &ChangeTask{
+			DeployPolicyID: params.DeployPolicyID,
+			Action:         ChangeActionPluginApplySubConfig,
+			Spec:           applySpec,
+			Target:         target,
+		})
+	}
+
+	deleteDetailsByHost := collectDeleteSubConfigDetails(
+		desiredDetailMap,
+		targetMap,
+		deployPolicyConfigMap,
+	)
+	deleteTasks, err := genSpecifyPluginSubConfigTemplateDeleteTasks(
+		params.DeployPolicyID,
+		param.PluginName,
+		param.CustomConfigContext,
+		targetMap,
+		deleteDetailsByHost,
+		runningProcessMap,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	changeTasks = append(changeTasks, deleteTasks...)
+
+	return changeTasks, nil
+}
+
+func genSpecifyPluginSubConfigTemplateDeleteTasks(
+	deployPolicyID int64,
+	pluginName string,
+	customConfigContext map[string]any,
+	targetMap map[int64]*types.Target,
+	deleteDetailsByHost map[int64][]*types.PluginConfigDetail,
+	runningProcessMap map[string]*types.Process,
+) ([]*ChangeTask, error) {
+	changeTasks := make([]*ChangeTask, 0)
+	for hostID, details := range deleteDetailsByHost {
+		deleteSpec, err := newSpecifyPluginSubConfigSpec(pluginName, details, customConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create specify plugin sub config template delete spec: %w", err)
+		}
+
+		action := ChangeActionPluginDeleteSubConfigRecord
+		target := selectSubConfigTarget(hostID, targetMap)
+		process, ok := runningProcessMap[genProcessUniqueID(hostID, pluginName)]
+		if ok {
+			action = ChangeActionPluginDeleteSubConfig
+			target = selectSubConfigTemplateDeleteTarget(hostID, targetMap, process)
+		}
+		changeTasks = append(changeTasks, &ChangeTask{
+			DeployPolicyID: deployPolicyID,
+			Action:         action,
+			Spec:           deleteSpec,
+			Target:         target,
+		})
+	}
+
+	return changeTasks, nil
+}
+
+func selectSubConfigTemplateDeleteTarget(
+	hostID int64, targetMap map[int64]*types.Target, process *types.Process,
+) *types.Target {
+	if target, ok := targetMap[hostID]; ok {
+		return target
+	}
+
+	return &types.Target{
+		Host: types.Host{
+			HostID:   hostID,
+			TenantID: process.TenantID,
+			Static: &types.HostStatic{
+				BizID: process.BizID,
+			},
+		},
+	}
+}
+
+func findMissingSubConfigDetails(
+	desiredDetails []*types.PluginConfigDetail, currentConfigMap map[string]*types.ProcessConfig,
+) []*types.PluginConfigDetail {
+	missingDetails := make([]*types.PluginConfigDetail, 0)
+	for _, detail := range desiredDetails {
+		if detail == nil {
+			continue
+		}
+		if _, ok := currentConfigMap[detail.Name]; ok {
+			continue
+		}
+
+		missingDetails = append(missingDetails, detail)
+	}
+
+	return missingDetails
+}

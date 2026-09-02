@@ -67,6 +67,8 @@ const (
 	ChangeActionPluginApplySubConfig ChangeAction = "apply_sub_config"
 	// ChangeActionPluginDeleteSubConfig plugin delete sub config.
 	ChangeActionPluginDeleteSubConfig ChangeAction = "delete_sub_config"
+	// ChangeActionPluginDeleteSubConfigRecord plugin delete sub config record.
+	ChangeActionPluginDeleteSubConfigRecord ChangeAction = "delete_sub_config_record"
 
 	// ChangeActionAgentInstall agent install.
 	ChangeActionAgentInstall ChangeAction = "agent_install"

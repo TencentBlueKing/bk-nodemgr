@@ -42,24 +42,27 @@ var _ IExecutor = &Executor{}
 
 // Executor defines the executor.
 type Executor struct {
-	nodeManager   managerIface.INodeManager
-	pluginManager managerIface.IPluginManager
-	daoPlugin     plugin.IDaoPlugin
+	nodeManager      managerIface.INodeManager
+	pluginManager    managerIface.IPluginManager
+	daoPlugin        plugin.IDaoPlugin
+	daoProcessConfig plugin.IDaoProcessConfig
 }
 
 // ExecutorConfig defines the config of executor.
 type ExecutorConfig struct {
-	NodeManager   managerIface.INodeManager
-	PluginManager managerIface.IPluginManager
-	DaoPlugin     plugin.IDaoPlugin
+	NodeManager      managerIface.INodeManager
+	PluginManager    managerIface.IPluginManager
+	DaoPlugin        plugin.IDaoPlugin
+	DaoProcessConfig plugin.IDaoProcessConfig
 }
 
 // NewExecutor create a new executor.
 func NewExecutor(conf *ExecutorConfig) *Executor {
 	return &Executor{
-		nodeManager:   conf.NodeManager,
-		pluginManager: conf.PluginManager,
-		daoPlugin:     conf.DaoPlugin,
+		nodeManager:      conf.NodeManager,
+		pluginManager:    conf.PluginManager,
+		daoPlugin:        conf.DaoPlugin,
+		daoProcessConfig: conf.DaoProcessConfig,
 	}
 }
 
@@ -119,6 +122,11 @@ func (executor *Executor) Execute(nCtx contextx.IContext, changeTasks ...*Change
 			}
 		case ChangeActionPluginDeleteSubConfig:
 			err := executor.executeChangeActionPluginDeleteSubConfig(nCtx, tasks)
+			if err != nil {
+				return fmt.Errorf("failed to schedule and execute change action: %w", err)
+			}
+		case ChangeActionPluginDeleteSubConfigRecord:
+			err := executor.executeChangeActionPluginDeleteSubConfigRecord(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
@@ -618,6 +626,31 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfig(nCtx contextx
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action plugin delete sub config")
+
+	return nil
+}
+
+func (executor *Executor) executeChangeActionPluginDeleteSubConfigRecord(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	for _, task := range tasks {
+		param, err := task.Spec.GetSpecifyPluginSubConfigParam()
+		if err != nil {
+			return fmt.Errorf("failed to execute change action plugin delete sub config record: %w", err)
+		}
+
+		configNames := conv.SliceToSlice(param.ConfigFilesDetail, func(detail *types.PluginConfigDetail) string {
+			return detail.Name
+		})
+		processUniqueKey := &types.ProcessUniqueKey{
+			HostID: task.Target.Host.HostID,
+			Name:   param.PluginName,
+		}
+		if err := executor.daoProcessConfig.DeleteProcessConfigs(nCtx, processUniqueKey, configNames...); err != nil {
+			return fmt.Errorf("failed to execute change action plugin delete sub config record: %w", err)
+		}
+	}
+
+	logger.G.Sys().With("task-count", len(tasks)).
+		Info("successful to execute change action plugin delete sub config record")
 
 	return nil
 }
