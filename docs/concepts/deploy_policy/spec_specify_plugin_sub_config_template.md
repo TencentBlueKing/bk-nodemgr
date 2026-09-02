@@ -52,24 +52,24 @@ graph TD
     DesiredRunning --> Missing["配置文件不存在"]
     DesiredRunning --> Exists["配置文件已存在"]
     Missing --> Apply["补充配置文件"]
-    Exists --> Same["配置文件内容一致"]
-    Exists --> Changed["配置文件内容不一致"]
+    Exists --> Same["模板声明和 custom context 一致"]
+    Exists --> Changed["模板声明或 custom context 不一致"]
     Same --> SkipExisting["不重复生成"]
     Changed --> Update["更新配置文件"]
 ```
 
 ### 边界规则
 
-| 场景                                                                                                | 决策             |
-| --------------------------------------------------------------------------------------------------- | ---------------- |
-| 第一轮：`managed config set` 中存在不在当前 `deploy scope` 内的配置文件                             | 进入删除分支     |
-| 第一轮：`managed config set` 中存在 host 上无指定 plugin 对应 Running process 的配置文件            | 删除 DB 配置记录 |
-| 第一轮：`managed config set` 中存在当前模板不再声明的配置文件                                       | 进入删除分支     |
-| 第一轮：`managed config set` 中配置文件属于当前 `deploy scope`、存在 Running process 且仍由模板声明 | 保留配置文件     |
-| 第二轮：期望配置文件所在 host 上无指定 plugin 对应的 Running process                                | 不生成配置文件   |
-| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且配置文件不存在            | 补充配置文件     |
-| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且配置文件内容一致          | 不重复生成       |
-| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且配置文件内容不一致        | 更新配置文件     |
+| 场景                                                                                                         | 决策             |
+| ------------------------------------------------------------------------------------------------------------ | ---------------- |
+| 第一轮：`managed config set` 中存在不在当前 `deploy scope` 内的配置文件                                      | 进入删除分支     |
+| 第一轮：`managed config set` 中存在 host 上无指定 plugin 对应 Running process 的配置文件                     | 删除 DB 配置记录 |
+| 第一轮：`managed config set` 中存在当前模板不再声明的配置文件                                                | 进入删除分支     |
+| 第一轮：`managed config set` 中配置文件属于当前 `deploy scope`、存在 Running process 且仍由模板声明          | 保留配置文件     |
+| 第二轮：期望配置文件所在 host 上无指定 plugin 对应的 Running process                                         | 不生成配置文件   |
+| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且配置文件不存在                     | 补充配置文件     |
+| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且模板声明和 `custom context` 一致   | 不重复生成       |
+| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且模板声明或 `custom context` 不一致 | 更新配置文件     |
 
 ### 删除分支
 

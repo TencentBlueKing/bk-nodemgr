@@ -20,6 +20,7 @@ package dpmgr
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -34,28 +35,7 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IC
 		return nil, fmt.Errorf("failed to get specify plugin sub config template param, spec(%+v): %w", params.Spec, err)
 	}
 
-	desiredDetails := make([]*types.PluginConfigDetail, 0, len(param.ConfigFilesDetail))
-	for _, detail := range param.ConfigFilesDetail {
-		if detail == nil {
-			continue
-		}
-
-		templateName := detail.TemplateName
-		if templateName == "" {
-			templateName = detail.Name
-		}
-		if templateName == "" {
-			continue
-		}
-
-		desiredDetails = append(desiredDetails, &types.PluginConfigDetail{
-			Name:         genDeployPolicySubConfigNameByConfigTemplateName(templateName, params.DeployPolicyID),
-			TemplateName: templateName,
-			Content:      detail.Content,
-			IsMainConfig: detail.IsMainConfig,
-			FilePath:     detail.FilePath,
-		})
-	}
+	desiredDetails := genDeployPolicySubConfigDetailsByConfigTemplateName(params.DeployPolicyID, param.ConfigFilesDetail)
 
 	hostIDs := conv.SliceToSlice(params.Targets, func(target *types.Target) int64 {
 		return target.Host.HostID
@@ -103,7 +83,7 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IC
 	}
 	changeTasks = append(changeTasks, deleteTasks...)
 
-	applyTasks, err := genSpecifyPluginSubConfigTemplateApplyTasks(
+	applyTasks, err := genSpecifyPluginSubConfigTemplateApplyOrUpdateTasks(
 		params.DeployPolicyID,
 		param.PluginName,
 		param.CustomConfigContext,
@@ -120,7 +100,7 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IC
 	return changeTasks, nil
 }
 
-func genSpecifyPluginSubConfigTemplateApplyTasks(
+func genSpecifyPluginSubConfigTemplateApplyOrUpdateTasks(
 	deployPolicyID int64,
 	pluginName string,
 	customConfigContext map[string]any,
@@ -136,12 +116,16 @@ func genSpecifyPluginSubConfigTemplateApplyTasks(
 			continue
 		}
 
-		missingDetails := findMissingSubConfigDetails(desiredDetails, deployPolicyConfigMap[target.Host.HostID])
-		if len(missingDetails) == 0 {
+		applyDetails := findApplyOrUpdateSubConfigDetails(
+			desiredDetails,
+			deployPolicyConfigMap[target.Host.HostID],
+			customConfigContext,
+		)
+		if len(applyDetails) == 0 {
 			continue
 		}
 
-		applySpec, err := newSpecifyPluginSubConfigSpec(pluginName, missingDetails, customConfigContext)
+		applySpec, err := newSpecifyPluginSubConfigSpec(pluginName, applyDetails, customConfigContext)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create specify plugin sub config template apply spec: %w", err)
 		}
@@ -155,6 +139,79 @@ func genSpecifyPluginSubConfigTemplateApplyTasks(
 	}
 
 	return changeTasks, nil
+}
+
+func genDeployPolicySubConfigDetailsByConfigTemplateName(
+	deployPolicyID int64, details []*types.PluginConfigDetail,
+) []*types.PluginConfigDetail {
+	desiredDetails := make([]*types.PluginConfigDetail, 0, len(details))
+	for _, detail := range details {
+		if detail == nil {
+			continue
+		}
+
+		templateName := detail.TemplateName
+		if templateName == "" {
+			templateName = detail.Name
+		}
+		if templateName == "" {
+			continue
+		}
+
+		desiredDetails = append(desiredDetails, &types.PluginConfigDetail{
+			Name:         genDeployPolicySubConfigNameByConfigTemplateName(templateName, deployPolicyID),
+			TemplateName: templateName,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+			FilePath:     detail.FilePath,
+		})
+	}
+
+	return desiredDetails
+}
+
+func findApplyOrUpdateSubConfigDetails(
+	desiredDetails []*types.PluginConfigDetail,
+	currentConfigMap map[string]*types.ProcessConfig,
+	customConfigContext map[string]any,
+) []*types.PluginConfigDetail {
+	applyDetails := make([]*types.PluginConfigDetail, 0)
+	for _, detail := range desiredDetails {
+		if detail == nil {
+			continue
+		}
+
+		currentConfig, ok := currentConfigMap[detail.Name]
+		if !ok || isSpecifyPluginSubConfigTemplateDeclarationChanged(detail, currentConfig, customConfigContext) {
+			applyDetails = append(applyDetails, detail)
+		}
+	}
+
+	return applyDetails
+}
+
+func isSpecifyPluginSubConfigTemplateDeclarationChanged(
+	desiredDetail *types.PluginConfigDetail,
+	currentConfig *types.ProcessConfig,
+	customConfigContext map[string]any,
+) bool {
+	if currentConfig == nil {
+		return true
+	}
+
+	if currentConfig.TemplateName != desiredDetail.TemplateName {
+		return true
+	}
+
+	return !sameCustomConfigContext(currentConfig.CustomConfigContext, customConfigContext)
+}
+
+func sameCustomConfigContext(currentConfigContext, desiredConfigContext map[string]any) bool {
+	if len(currentConfigContext) == 0 && len(desiredConfigContext) == 0 {
+		return true
+	}
+
+	return reflect.DeepEqual(currentConfigContext, desiredConfigContext)
 }
 
 func collectSpecifyPluginSubConfigTemplateDeleteDetails(
