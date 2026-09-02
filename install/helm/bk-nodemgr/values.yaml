@@ -692,7 +692,7 @@ application:
   ## @param ingress support base on bk-bcs component,
   ## it's not enabled as the default config.
   ingress:
-    enabled: true
+    enabled: false
     ## bk-bcs network extension lbid config.
     lbid: ""
     ## bk-bcs network lb policy: WRR, LEAST_CONN
@@ -703,8 +703,13 @@ application:
     certID: ""
     ## HTTPS domain
     domain: "nodemgr.example.com"
-    ## className
+    ## route path, default is root path.
+    path: "/"
+    ## standard kubernetes ingress class name, e.g. nginx.
+    ## empty means using bk-bcs network extension ingress.
     className: ""
+    ## TLS secret name when using standard kubernetes ingress (className mode).
+    tlsSecretName: ""
 
   ## @param configs module configs
   ##

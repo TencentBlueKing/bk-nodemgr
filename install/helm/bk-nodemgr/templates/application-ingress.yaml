@@ -2,12 +2,8 @@
 {{- if .Values.application.ingress.enabled }}
 {{- if not .Values.application.ingress.className }}
 apiVersion: networkextension.bkbcs.tencent.com/v1
-{{- else if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1
-{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
 {{- else -}}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 {{- end }}
 kind: Ingress
 metadata:
@@ -17,15 +13,17 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  {{- if or (not .Values.application.ingress.className) .Values.commonAnnotations }}
   annotations:
+    {{- if not .Values.application.ingress.className }}
     networkextension.bkbcs.tencent.com/lbids: {{ .Values.application.ingress.lbid }}
-  {{- if .Values.commonAnnotations }}
-  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
-  {{- if and .Values.application.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.application.ingress.className }}
-  {{- end }}
+  {{- if not .Values.application.ingress.className }}
   rules:
   {{- if len .Values.application.ingress.certID }}
   - port: 443
@@ -41,11 +39,31 @@ spec:
       lbPolicy: {{ .Values.application.ingress.lbPolicy }}
     layer7Routes:
     - domain: {{ .Values.application.ingress.domain }}
-      path: /
+      path: {{ .Values.application.ingress.path }}
       services:
       - serviceName: {{ template "bk-nodemgr.fullname" . }}-application
         serviceNamespace: {{ .Release.Namespace | quote }}
         servicePort: {{ .Values.application.config.basicServer.port }}
         isDirectConnect: {{ .Values.application.ingress.isDirectConnect }}
+  {{- else }}
+  ingressClassName: {{ .Values.application.ingress.className }}
+  {{- if .Values.application.ingress.tlsSecretName }}
+  tls:
+  - hosts:
+    - {{ .Values.application.ingress.domain }}
+    secretName: {{ .Values.application.ingress.tlsSecretName }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.application.ingress.domain }}
+    http:
+      paths:
+      - path: {{ .Values.application.ingress.path }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "bk-nodemgr.fullname" . }}-application
+            port:
+              number: {{ .Values.application.config.basicServer.port }}
+  {{- end }}
 {{- end }}
 {{- end }}
