@@ -4,11 +4,12 @@ This is a long-lived v3 plugin package for manually validating plugin-related de
 
 ## Package
 
-- Upload package: `bk-nodemgr-deploy-policy-probe-1.0.0.tgz`
-- Checksum: `bk-nodemgr-deploy-policy-probe-1.0.0.tgz.sha256`
+- Upload package: `bk-nodemgr-deploy-policy-probe-1.0.1.tgz`
+- Checksum: `bk-nodemgr-deploy-policy-probe-1.0.1.tgz.sha256`
 - Source tree: `package/bk-nodemgr-deploy-policy-probe`
+- Probe executable source: `cmd/bk-nodemgr-deploy-policy-probe`
 - Plugin package name: `bk-nodemgr-deploy-policy-probe`
-- Version: `1.0.0`
+- Version: `1.0.1`
 - Platform: `linux_x86_64`
 
 ## Maintenance
@@ -16,7 +17,8 @@ This is a long-lived v3 plugin package for manually validating plugin-related de
 - Keep the plugin name stable: `bk-nodemgr-deploy-policy-probe`.
 - Bump the patch version for any behavior, template field, or observable output change.
 - After changing source files, run `./build-package.sh` and commit the regenerated `.tgz` and `.sha256` files together.
-- Verify the packaged artifact with `sha256sum -c bk-nodemgr-deploy-policy-probe-1.0.0.tgz.sha256`.
+- `build-package.sh` compiles the linux `bin/bk-nodemgr-deploy-policy-probe` executable into a temporary staging tree before packaging.
+- Verify the packaged artifact with `sha256sum -c bk-nodemgr-deploy-policy-probe-1.0.1.tgz.sha256`.
 
 ## Non-goals
 
@@ -48,24 +50,24 @@ Use these stable fields in deploy policy `specs[].param.custom_config_context`:
 
 ## Runtime Observation
 
-The control commands provide the required plugin lifecycle behavior:
+The package uses the official linux v3 plugin scripts from `script_tools/plugin_scripts/v3/linux` for lifecycle control.
+The probe executable itself does not maintain PID files; GSE owns process trusteeship and PID tracking.
 
-| Command   | Behavior                                                |
-| --------- | ------------------------------------------------------- |
-| `start`   | starts a dummy long-running background process          |
-| `stop`    | stops the recorded dummy process                        |
-| `restart` | stops and starts the dummy process                      |
-| `reload`  | writes a reload timestamp under the runtime directory   |
-| `debug`   | runs in foreground until `SIGTERM` or `SIGINT`          |
-| `health`  | returns success only when the recorded process is alive |
-| `version` | prints `bk-nodemgr-deploy-policy-probe 1.0.0`           |
+| Command   | Behavior                                                                                                                                        |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `start`   | runs `./start.sh bk-nodemgr-deploy-policy-probe`, which starts `./bk-nodemgr-deploy-policy-probe -c ../etc/bk-nodemgr-deploy-policy-probe.conf` |
+| `stop`    | runs `./stop.sh bk-nodemgr-deploy-policy-probe`                                                                                                 |
+| `restart` | runs `./restart.sh bk-nodemgr-deploy-policy-probe`                                                                                              |
+| `reload`  | runs `./reload.sh bk-nodemgr-deploy-policy-probe` and sends `SIGUSR1` to the running process                                                    |
+| `debug`   | runs the probe executable in foreground until `SIGTERM` or `SIGINT`                                                                             |
+| `version` | prints `bk-nodemgr-deploy-policy-probe 1.0.1`                                                                                                   |
 
-The script also supports SSH-only observation commands that are not declared in `definition.yaml` control:
+The probe executable also supports SSH-only observation commands that are not declared in `definition.yaml` control:
 
-| Command  | Output                                  |
-| -------- | --------------------------------------- |
-| `status` | human-readable process and state status |
-| `dump`   | key-value runtime diagnostics           |
+| Command  | Output                     |
+| -------- | -------------------------- |
+| `status` | key-value package metadata |
+| `dump`   | key-value package metadata |
 
 ## Manual Verification Matrix
 
@@ -89,7 +91,7 @@ Use these fragments in deploy policy `specs[].param` after uploading the package
 ```json
 {
   "plugin_name": "bk-nodemgr-deploy-policy-probe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "custom_config_context": {
     "ProbeMode": "specify-plugin",
     "Marker": "install-or-upgrade",
@@ -104,7 +106,7 @@ Use these fragments in deploy policy `specs[].param` after uploading the package
 ```json
 {
   "plugin_pkg_name": "bk-nodemgr-deploy-policy-probe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "custom_config_context": {
     "ProbeMode": "specify-plugin-pkg",
     "Marker": "generated-plugin-instance",
@@ -119,7 +121,7 @@ Use these fragments in deploy policy `specs[].param` after uploading the package
 ```json
 {
   "plugin_pkg_name": "bk-nodemgr-deploy-policy-probe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "placement_host_ids": [10001],
   "custom_config_context": {
     "ProbeMode": "project-plugin-pkg-to-hosts",

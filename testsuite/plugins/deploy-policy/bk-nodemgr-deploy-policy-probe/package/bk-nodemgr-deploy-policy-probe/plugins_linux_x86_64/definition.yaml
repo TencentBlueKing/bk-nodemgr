@@ -116,10 +116,9 @@ configTemplates:
         description: Expected final projected source sub-config name
         descriptionEn: Expected final projected source sub-config name
 control:
-  start: "./bk-nodemgr-deploy-policy-probe start"
-  stop: "./bk-nodemgr-deploy-policy-probe stop"
-  restart: "./bk-nodemgr-deploy-policy-probe restart"
-  reload: "./bk-nodemgr-deploy-policy-probe reload"
-  debug: "./bk-nodemgr-deploy-policy-probe debug"
+  start: "./start.sh bk-nodemgr-deploy-policy-probe"
+  stop: "./stop.sh bk-nodemgr-deploy-policy-probe"
+  restart: "./restart.sh bk-nodemgr-deploy-policy-probe"
+  reload: "./reload.sh bk-nodemgr-deploy-policy-probe"
+  debug: "./bk-nodemgr-deploy-policy-probe -c ../etc/bk-nodemgr-deploy-policy-probe.conf --debug"
   version: "./bk-nodemgr-deploy-policy-probe -v"
-  health: "./bk-nodemgr-deploy-policy-probe health"

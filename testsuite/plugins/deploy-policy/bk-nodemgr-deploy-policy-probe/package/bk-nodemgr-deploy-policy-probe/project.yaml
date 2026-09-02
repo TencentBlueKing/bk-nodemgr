@@ -1,5 +1,5 @@
 name: bk-nodemgr-deploy-policy-probe
-version: 1.0.0
+version: 1.0.1
 description: bk-nodemgr deploy policy probe plugin
 descriptionEn: bk-nodemgr deploy policy probe plugin
 scenario: Manual probe package for plugin-related deploy policy specs
