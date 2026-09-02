@@ -37,7 +37,6 @@ type Data struct {
 	DownloadName string `json:"download_name" bson:"download_name"`
 	MD5          string `json:"md5" bson:"md5"`
 	Size         int64  `json:"size" bson:"size"`
-	Available    bool   `json:"available" bson:"available"`
 
 	Operator string `json:"operator" bson:"operator"`
 }

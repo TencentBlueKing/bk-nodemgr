@@ -40,9 +40,6 @@ const (
 	// FieldKeyMD5 is the MongoDB field key for the package MD5.
 	FieldKeyMD5 = "data.md5"
 
-	// FieldKeyAvailable is the MongoDB field key for the availability status.
-	FieldKeyAvailable = "data.available"
-
 	// FieldKeyOperator is the MongoDB field key for the operator.
 	FieldKeyOperator = "data.operator"
 )

@@ -38,11 +38,6 @@ func WithTenantID(tenantIDs ...string) OptFn {
 	return base.WithValues(FieldKeyTenantID, tenantIDs...)
 }
 
-// WithAvailable filters by availability status.
-func WithAvailable(available ...bool) OptFn {
-	return base.WithValues(FieldKeyAvailable, available...)
-}
-
 // WithOperator filters by operator.
 func WithOperator(operators ...string) OptFn {
 	return base.WithValues(FieldKeyOperator, operators...)

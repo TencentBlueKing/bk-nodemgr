@@ -28,7 +28,6 @@ type PackageExport struct {
 	DownloadName string
 	MD5          string
 	Size         int64
-	Available    bool
 
 	Operator string
 }

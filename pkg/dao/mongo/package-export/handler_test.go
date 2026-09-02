@@ -52,7 +52,6 @@ func testPackageExport(exportID string) *types.PackageExport {
 		DownloadName: exportID + ".tgz",
 		MD5:          "4d96767dd3f2c09e19101d0da9ce251f",
 		Size:         1024,
-		Available:    true,
 		Operator:     "admin",
 	}
 }
@@ -101,7 +100,6 @@ func TestHandler_List(t *testing.T) {
 				DownloadName: "export-b.tgz",
 				MD5:          "482f46fa4999054774412e3a8f9dfca0",
 				Size:         2048,
-				Available:    false,
 				Operator:     "system",
 			},
 		},
@@ -149,13 +147,6 @@ func TestHandler_List(t *testing.T) {
 			opts:      []OptFn{WithTenantID("tenant-b")},
 			wantTotal: 1,
 			wantIDs:   []string{"export-c"},
-		},
-		{
-			name:      "by availability",
-			page:      types.UnlimitedPage(),
-			opts:      []OptFn{WithAvailable(false)},
-			wantTotal: 1,
-			wantIDs:   []string{"export-b"},
 		},
 		{
 			name:      "by operator",

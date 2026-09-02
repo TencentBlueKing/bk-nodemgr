@@ -169,7 +169,6 @@ func convertFromTypes(exportData *types.PackageExport) *Data {
 		DownloadName: exportData.DownloadName,
 		MD5:          exportData.MD5,
 		Size:         exportData.Size,
-		Available:    exportData.Available,
 		Operator:     exportData.Operator,
 	}
 }
@@ -187,7 +186,6 @@ func convertToTypes(data *Data) *types.PackageExport {
 		DownloadName: data.DownloadName,
 		MD5:          data.MD5,
 		Size:         data.Size,
-		Available:    data.Available,
 		Operator:     data.Operator,
 	}
 }

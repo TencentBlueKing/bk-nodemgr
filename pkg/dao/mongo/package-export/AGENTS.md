@@ -11,7 +11,7 @@
 |Where to look:public API+validation+types conversion:handler.go:{IHandler,Handler,New,List,Create,Get,Delete,convertFromTypes,convertToTypes}
 |Where to look:dao+base.IOrm+indexes:package_export.go:{newDao,dao,GetClient,GetTableName,GetIndexes}
 |Where to look:collection+document contract+unique key:table.go:{TableName,Data,UniqueFields,UniqueKey,Table}
-|Where to look:BSON field keys+filters:{constants.go,options.go}:{FieldKeyExportID,FieldKeyWorkflowID,FieldKeyTenantID,FieldKeyStorageKey,FieldKeyDownloadName,FieldKeySize,FieldKeyMD5,FieldKeyAvailable,FieldKeyOperator,WithExportID,WithWorkflowID,WithTenantID,WithAvailable,WithOperator}
+|Where to look:BSON field keys+filters:{constants.go,options.go}:{FieldKeyExportID,FieldKeyWorkflowID,FieldKeyTenantID,FieldKeyStorageKey,FieldKeyDownloadName,FieldKeySize,FieldKeyMD5,FieldKeyOperator,WithExportID,WithWorkflowID,WithTenantID,WithOperator}
 |Where to look:domain model+conditions:pkg/types/{export.go,condition.go}:{PackageExport,PackageExportCondition,PackageExportExactFields}
 |Where to look:backend caller:internal/backend/storage/pkg:{storage.go,dao_pkg_export.go,iface.go}
 |Where to look:file-service caller:internal/file/storage/packageexport:{storage.go,dao_package_export.go,iface.go}
