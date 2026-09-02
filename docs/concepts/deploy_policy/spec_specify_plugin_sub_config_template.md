@@ -15,63 +15,61 @@
 
 ### 决策树
 
+`SpecifyPluginSubConfigTemplate` 会触发两轮决策。第一轮遍历 `managed config set`，只判断是否需要移除；第二轮遍历期望配置文件，只判断是否需要补充或更新。
+
+#### 第一轮：移除决策
+
 ```mermaid
-flowchart TD
-    Start([开始]) --> BuildDesired[根据配置文件模板<br/>构造期望配置文件集合]
-    BuildDesired --> ScanCurrent[扫描当前 deploy policy<br/>已管理的配置文件集合]
+graph TD
+    Root["已管理配置文件"]
+    Root --> CurrentOutScope["主机不在当前部署范围"]
+    Root --> CurrentInScope["主机在当前部署范围"]
 
-    subgraph Cleanup[阶段 1：收敛已管理配置文件集合]
-        ScanCurrent --> CurrentInScope{配置文件所在主机<br/>是否在当前部署范围内？}
-        CurrentInScope -->|否| NeedDelete[进入 delete_sub_config<br/>配置文件不属于期望集合]
-        CurrentInScope -->|是| CurrentRunning{该 host 上是否存在<br/>指定 plugin 对应的 Running process？}
-        CurrentRunning -->|否| NeedDelete
-        CurrentRunning -->|是| CurrentDeclared{配置文件是否仍由<br/>当前模板声明？}
-        CurrentDeclared -->|否| NeedDelete
-        CurrentDeclared -->|是| KeepCurrent[no-op<br/>保留当前配置文件]
+    CurrentOutScope --> DeleteOutScope["删除"]
+    DeleteOutScope --> OutScopeRunning["有指定 plugin 的 Running process"]
+    DeleteOutScope --> OutScopeNoRunning["无指定 plugin 的 Running process"]
+    OutScopeRunning --> DeleteFileRecord1["删机器配置 + DB 记录"]
+    OutScopeNoRunning --> RecordOnly1["仅删 DB 记录"]
 
-        NeedDelete --> DeleteProcessRunning{该 host 上是否存在<br/>指定 plugin 对应的 Running process？}
-        DeleteProcessRunning -->|是| DeleteFileAndRecord[删除机器上的配置文件<br/>再删除 DB 配置记录]
-        DeleteProcessRunning -->|否| DeleteRecordOnly[仅删除 DB 配置记录<br/>不下发机器删除]
-    end
+    CurrentInScope --> CurrentNoRunning["无指定 plugin 的 Running process"]
+    CurrentInScope --> CurrentRunning["有指定 plugin 的 Running process"]
+    CurrentNoRunning --> RecordOnly2["仅删 DB 记录"]
+    CurrentRunning --> CurrentNotDeclared["模板不再声明"]
+    CurrentRunning --> CurrentDeclared["模板仍声明"]
+    CurrentNotDeclared --> DeleteFileRecord2["删机器配置 + DB 记录"]
+    CurrentDeclared --> Keep["保留"]
+```
 
-    DeleteFileAndRecord --> EnsureDesired
-    DeleteRecordOnly --> EnsureDesired
-    KeepCurrent --> EnsureDesired
+#### 第二轮：补充或更新决策
 
-    subgraph Ensure[阶段 2：补齐期望配置文件集合]
-        EnsureDesired[遍历当前部署范围<br/>和模板配置项] --> DesiredRunning{该 host 上是否存在<br/>指定 plugin 对应的 Running process？}
-        DesiredRunning -->|否| SkipStopped[no-op<br/>不生成配置文件]
-        DesiredRunning -->|是| DesiredExists{期望配置文件<br/>是否已经存在？}
-        DesiredExists -->|是| SkipExisting[no-op<br/>避免重复生成]
-        DesiredExists -->|否| Apply[apply_sub_config<br/>根据模板生成配置文件]
-    end
+```mermaid
+graph TD
+    Root["期望配置文件"]
+    Root --> DesiredNoRunning["无指定 plugin 的 Running process"]
+    Root --> DesiredRunning["有指定 plugin 的 Running process"]
 
-    SkipStopped --> Done([结束])
-    SkipExisting --> Done
-    Apply --> Done
-
-    classDef start fill:#E6F4FF,stroke:#1769AA,stroke-width:2px,color:#0B3D5C
-    classDef decision fill:#FFF4CC,stroke:#8A6D00,stroke-width:2px,color:#3D2F00
-    classDef apply fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20
-    classDef delete fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#7F0000
-    classDef noop fill:#F3F4F6,stroke:#4B5563,stroke-width:2px,color:#111827
-
-    class Start,Done start
-    class CurrentInScope,CurrentRunning,CurrentDeclared,DeleteProcessRunning,DesiredRunning,DesiredExists decision
-    class BuildDesired,ScanCurrent,EnsureDesired,Apply apply
-    class NeedDelete,DeleteFileAndRecord,DeleteRecordOnly delete
-    class KeepCurrent,SkipStopped,SkipExisting noop
+    DesiredNoRunning --> Skip["不生成"]
+    DesiredRunning --> Missing["配置文件不存在"]
+    DesiredRunning --> Exists["配置文件已存在"]
+    Missing --> Apply["补充配置文件"]
+    Exists --> Same["配置文件内容一致"]
+    Exists --> Changed["配置文件内容不一致"]
+    Same --> SkipExisting["不重复生成"]
+    Changed --> Update["更新配置文件"]
 ```
 
 ### 边界规则
 
-| 场景                                                                                 | 决策                     |
-| ------------------------------------------------------------------------------------ | ------------------------ |
-| 当前部署范围内存在指定 plugin 对应的 Running process，且模板声明的配置文件不存在     | 生成配置文件             |
-| 当前部署范围内存在指定 plugin 对应的 Running process，且配置文件已存在并仍由模板声明 | 保留配置文件，不重复生成 |
-| host 上不存在指定 plugin 对应的 Running process                                      | 删除 DB 配置记录         |
-| `managed config set` 中存在不在当前 `deploy scope` 内的插件配置文件                  | 进入删除分支             |
-| `managed config set` 中存在当前模板不再声明的配置文件                                | 进入删除分支             |
+| 场景                                                                                                | 决策             |
+| --------------------------------------------------------------------------------------------------- | ---------------- |
+| 第一轮：`managed config set` 中存在不在当前 `deploy scope` 内的配置文件                             | 进入删除分支     |
+| 第一轮：`managed config set` 中存在 host 上无指定 plugin 对应 Running process 的配置文件            | 删除 DB 配置记录 |
+| 第一轮：`managed config set` 中存在当前模板不再声明的配置文件                                       | 进入删除分支     |
+| 第一轮：`managed config set` 中配置文件属于当前 `deploy scope`、存在 Running process 且仍由模板声明 | 保留配置文件     |
+| 第二轮：期望配置文件所在 host 上无指定 plugin 对应的 Running process                                | 不生成配置文件   |
+| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且配置文件不存在            | 补充配置文件     |
+| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且配置文件内容一致          | 不重复生成       |
+| 第二轮：期望配置文件所在 host 上存在指定 plugin 对应的 Running process，且配置文件内容不一致        | 更新配置文件     |
 
 ### 删除分支
 
