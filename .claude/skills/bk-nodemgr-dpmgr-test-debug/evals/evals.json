@@ -1,0 +1,23 @@
+{
+  "skill_name": "bk-nodemgr-dpmgr-test-debug",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我已经把 bk-nodemgr-deploy-policy-probe 的包放到内网下载地址了，给我标准 JSON。",
+      "expected_output": "Reads the current probe package metadata, computes md5 from the current .tgz, outputs a JSON envelope with json_scope import_body, and does not emit prose, markdown fences, or curl commands.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我用 probe 插件测试 DeploySpecTypeSpecifyPluginSubConfig，生成标准 JSON，用户自己拼。",
+      "expected_output": "Outputs a JSON envelope whose body is a specs[].param fragment using specify_plugin_sub_config with template_name direct-subconfig-template.conf and name explicit-direct-subconfig.conf, preserving the direct final filename and warning through assertions rather than prose.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "我执行 deploy_policy 后拿到了 trigger_id，但前端 Plugin 任务历史看不到 probe 插件工作流；日志里有 /api/v3/transfer/launch/plugin。帮我继续 debug。",
+      "expected_output": "Outputs a debug_report JSON object that distinguishes parent deploy policy trigger from plugin workflow, preserves trigger/log evidence, and checks plugin workflow metadata and business filtering before proposing code changes.",
+      "files": []
+    }
+  ]
+}
