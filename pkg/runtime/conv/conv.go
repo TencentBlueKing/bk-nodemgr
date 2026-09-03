@@ -186,6 +186,26 @@ func ToInt64Default(value interface{}, defaultVal int64) int64 {
 	return val
 }
 
+// StringToPort converts a decimal string to a valid port number.
+func StringToPort(port string) (int64, error) {
+	if port == "" {
+		return 0, errors.New("port should not be empty")
+	}
+	if strings.Trim(port, "0123456789") != "" {
+		return 0, fmt.Errorf("port must be a decimal number, port(%s)", port)
+	}
+
+	value, err := ToInt64(port)
+	if err != nil {
+		return 0, fmt.Errorf("invalid port, port(%s): %w", port, err)
+	}
+	if value < 1 || value > 65535 {
+		return 0, fmt.Errorf("port out of range, port(%d)", value)
+	}
+
+	return value, nil
+}
+
 // MapToStruct map to struct.
 // Note: dst must be a pointer.
 // Note: this function is based on json.Marshal and json.Unmarshal, so it will allow json tags.

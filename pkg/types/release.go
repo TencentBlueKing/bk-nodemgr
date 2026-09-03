@@ -20,9 +20,11 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
 // ReleaseType defines the type of release.
@@ -260,6 +262,14 @@ type ReleaseAdditionInfoPlugin struct {
 	DescriptionEn        string
 	Scenario             string
 	ScenarioEn           string
+	BindAddressAllocated BindAddressAllocated
+}
+
+// BindAddressAllocated defines the bind address allocation settings of a plugin release.
+type BindAddressAllocated struct {
+	Enable                 bool
+	BindIP                 string
+	BindPortAvailableRange PluginPkgAvailablePortRange
 }
 
 // LaunchNodeType defines the type of launch node.
@@ -354,4 +364,41 @@ type PluginPkgConfigTemplateProperty struct {
 	Description   string
 	DescriptionEn string
 	Properties    map[string]*PluginPkgConfigTemplateProperty
+}
+
+// PluginPkgAvailablePortRange defines the port range of plugin package.
+type PluginPkgAvailablePortRange string
+
+// Validate validates the port range.
+func (pr PluginPkgAvailablePortRange) Validate() error {
+	if pr == "" {
+		return fmt.Errorf("port range should not be empty")
+	}
+
+	for item := range strings.SplitSeq(string(pr), ",") {
+		startPort, endPort, hasRange := strings.Cut(item, "-")
+		if hasRange && strings.Contains(endPort, "-") {
+			return fmt.Errorf("invalid port range item, item(%s)", item)
+		}
+
+		start, err := conv.StringToPort(startPort)
+		if err != nil {
+			return fmt.Errorf("invalid port range item, item(%s): %w", item, err)
+		}
+
+		if !hasRange {
+			continue
+		}
+
+		end, err := conv.StringToPort(endPort)
+		if err != nil {
+			return fmt.Errorf("invalid port range item, item(%s): %w", item, err)
+		}
+
+		if start > end {
+			return fmt.Errorf("invalid port range item, start(%d) is greater than end(%d)", start, end)
+		}
+	}
+
+	return nil
 }

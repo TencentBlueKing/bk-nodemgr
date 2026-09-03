@@ -159,8 +159,16 @@ type PluginV3Project struct {
 
 // PluginV3Definition represents the definition.yaml file's definition field.
 type PluginV3Definition struct {
-	ConfigTemplates []PluginV3ConfigTemplate `yaml:"configTemplates"`
-	Control         PluginV3Control          `yaml:"control"`
+	ConfigTemplates      []PluginV3ConfigTemplate     `yaml:"configTemplates"`
+	Control              PluginV3Control              `yaml:"control"`
+	BindAddressAllocated PluginV3BindAddressAllocated `yaml:"bindAddressAllocated"`
+}
+
+// PluginV3BindAddressAllocated represents the definition.yaml file's bindAddressAllocated field.
+type PluginV3BindAddressAllocated struct {
+	Enable                 bool                              `yaml:"enable"`
+	BindIP                 string                            `yaml:"bindIP"`
+	BindPortAvailableRange types.PluginPkgAvailablePortRange `yaml:"bindPortAvailableRange"`
 }
 
 // PluginV3Control represents the definition.yaml file's control field.
@@ -242,8 +250,20 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				if err := yaml.NewDecoder(definitionFile).Decode(pluginDefinition); err != nil {
 					return fmt.Errorf("failed to decode definition.yaml for platform(%s): %w", plat.String(), err)
 				}
+				bindAddressAllocated := pluginDefinition.BindAddressAllocated
+				if bindAddressAllocated.Enable && bindAddressAllocated.BindPortAvailableRange == "" {
+					return fmt.Errorf("bindPortAvailableRange is required for platform(%s)", plat.String())
+				}
+				if err := validateOptionalPluginPkgPortRange(bindAddressAllocated.BindPortAvailableRange); err != nil {
+					return fmt.Errorf("invalid bindPortAvailableRange for platform(%s): %w", plat.String(), err)
+				}
 
 				detail.Platforms = append(detail.Platforms, plat)
+				detail.BindAddressAllocated[plat.String()] = types.BindAddressAllocated{
+					Enable:                 bindAddressAllocated.Enable,
+					BindIP:                 bindAddressAllocated.BindIP,
+					BindPortAvailableRange: bindAddressAllocated.BindPortAvailableRange,
+				}
 				detail.ConfigTemplates[plat.String()] = parsePluginV3PkgConfigTemplateFromDefinition(pluginDefinition)
 				detail.Controller[plat.String()] = buildPluginV3PkgController(plat, pluginDefinition)
 
@@ -493,6 +513,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					DescriptionEn:        detail.DescriptionEn,
 					Scenario:             detail.Scenario,
 					ScenarioEn:           detail.ScenarioEn,
+					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
 				},
 			}
 

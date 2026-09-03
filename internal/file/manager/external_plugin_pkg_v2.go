@@ -162,9 +162,9 @@ type ExternalPluginProject struct {
 	ConfigFormat  string `yaml:"config_format"`
 	LaunchNode    string `yaml:"launch_node"`
 
-	Control PluginV2Control `yaml:"control"`
-
-	ConfigTemplates []ExternalPluginConfigTemplate `yaml:"config_templates"`
+	PortRange       types.PluginPkgAvailablePortRange `yaml:"port_range"`
+	Control         PluginV2Control                   `yaml:"control"`
+	ConfigTemplates []ExternalPluginConfigTemplate    `yaml:"config_templates"`
 }
 
 // ExternalPluginConfigTemplate represents the project.yml file's config_templates field.
@@ -205,6 +205,9 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
 					return fmt.Errorf("failed to decode project.yaml")
 				}
+				if err := validateOptionalPluginPkgPortRange(pluginProject.PortRange); err != nil {
+					return fmt.Errorf("invalid port_range for platform(%s): %w", plat.String(), err)
+				}
 
 				detail.PluginPkgName = pluginProject.Name
 				detail.Version = pluginProject.Version
@@ -215,6 +218,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				detail.ConfigFile = pluginProject.ConfigFile
 				detail.ConfigFormat = pluginProject.ConfigFormat
 				detail.LaunchNode = pluginProject.LaunchNode
+				detail.BindAddressAllocated[plat.String()] = buildPluginV2PkgBindAddressAllocated(pluginProject.PortRange)
 
 				if _, ok := detail.ConfigTemplates[plat.String()]; !ok {
 					detail.ConfigTemplates[plat.String()] = make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))
@@ -459,6 +463,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 					DescriptionEn:        detail.DescriptionEn,
 					Scenario:             detail.Scenario,
 					ScenarioEn:           detail.ScenarioEn,
+					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
 				},
 			}
 

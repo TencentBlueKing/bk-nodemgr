@@ -248,6 +248,10 @@ control:
   reload: "./reload.sh bk-nodemgr-relay"
   debug: "./debug.sh bk-nodemgr-relay"
   version: "./bk-nodemgr-relay -v"
+bindAddressAllocated:
+  enable: true
+  bindIP: 0.0.0.0
+  bindPortAvailableRange: 10000,28300-28399
 ```
 
 > **注意**

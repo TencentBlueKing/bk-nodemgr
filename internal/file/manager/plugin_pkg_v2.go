@@ -147,17 +147,39 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 
 // PluginV2Project represents the project.yml file.
 type PluginV2Project struct {
-	Name            string                   `yaml:"name"`
-	Version         string                   `yaml:"version"`
-	Description     string                   `yaml:"description"`
-	DescriptionEn   string                   `yaml:"description_en"`
-	Scenario        string                   `yaml:"scenario"`
-	ScenarioEn      string                   `yaml:"scenario_en"`
-	ConfigFile      string                   `yaml:"config_file"`
-	ConfigFormat    string                   `yaml:"config_format"`
-	LaunchNode      string                   `yaml:"launch_node"`
-	Control         PluginV2Control          `yaml:"control"`
-	ConfigTemplates []PluginV2ConfigTemplate `yaml:"config_templates"`
+	Name          string `yaml:"name"`
+	Version       string `yaml:"version"`
+	Description   string `yaml:"description"`
+	DescriptionEn string `yaml:"description_en"`
+	Scenario      string `yaml:"scenario"`
+	ScenarioEn    string `yaml:"scenario_en"`
+	ConfigFile    string `yaml:"config_file"`
+	ConfigFormat  string `yaml:"config_format"`
+	LaunchNode    string `yaml:"launch_node"`
+
+	PortRange       types.PluginPkgAvailablePortRange `yaml:"port_range"`
+	Control         PluginV2Control                   `yaml:"control"`
+	ConfigTemplates []PluginV2ConfigTemplate          `yaml:"config_templates"`
+}
+
+func validateOptionalPluginPkgPortRange(portRange types.PluginPkgAvailablePortRange) error {
+	if portRange == "" {
+		return nil
+	}
+
+	return portRange.Validate()
+}
+
+func buildPluginV2PkgBindAddressAllocated(portRange types.PluginPkgAvailablePortRange) types.BindAddressAllocated {
+	if portRange == "" {
+		return types.BindAddressAllocated{}
+	}
+
+	return types.BindAddressAllocated{
+		Enable:                 true,
+		BindIP:                 "127.0.0.1",
+		BindPortAvailableRange: portRange,
+	}
 }
 
 // PluginV2Control represents the project.yml file's control field.
@@ -220,6 +242,9 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
 					return fmt.Errorf("failed to decode project.yaml")
 				}
+				if err := validateOptionalPluginPkgPortRange(pluginProject.PortRange); err != nil {
+					return fmt.Errorf("invalid port_range for platform(%s): %w", plat.String(), err)
+				}
 
 				detail.PluginPkgName = pluginProject.Name
 				detail.Version = pluginProject.Version
@@ -230,6 +255,7 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 				detail.ConfigFile = pluginProject.ConfigFile
 				detail.ConfigFormat = pluginProject.ConfigFormat
 				detail.LaunchNode = pluginProject.LaunchNode
+				detail.BindAddressAllocated[plat.String()] = buildPluginV2PkgBindAddressAllocated(pluginProject.PortRange)
 
 				if _, ok := detail.ConfigTemplates[plat.String()]; !ok {
 					detail.ConfigTemplates[plat.String()] = make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))
@@ -496,6 +522,7 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 					DescriptionEn:        detail.DescriptionEn,
 					Scenario:             detail.Scenario,
 					ScenarioEn:           detail.ScenarioEn,
+					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
 				},
 			}
 

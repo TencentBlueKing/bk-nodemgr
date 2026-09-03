@@ -353,6 +353,36 @@ func TestToInt64Default(t *testing.T) {
 	}
 }
 
+// TestStringToPort tests the StringToPort function.
+func TestStringToPort(t *testing.T) {
+	tests := []struct {
+		name    string
+		port    string
+		want    int64
+		wantErr bool
+	}{
+		{name: "minimum port", port: "1", want: 1},
+		{name: "maximum port", port: "65535", want: 65535},
+		{name: "empty port", port: "", wantErr: true},
+		{name: "zero port", port: "0", wantErr: true},
+		{name: "port above maximum", port: "65536", wantErr: true},
+		{name: "negative port", port: "-1", wantErr: true},
+		{name: "non-decimal port", port: "two thousand", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := StringToPort(tt.port)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("StringToPort() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("StringToPort() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestMapToStruct ...
 func TestMapToStruct(t *testing.T) {
 	type args struct {

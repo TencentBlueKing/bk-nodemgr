@@ -145,8 +145,9 @@ type OriginPluginV2PkgDetail struct {
 	LaunchNode    string
 
 	// key: platform.String()
-	ConfigTemplates map[string][]PluginPkgConfigTemplate
-	Controller      map[string]ProcessController
+	BindAddressAllocated map[string]BindAddressAllocated
+	ConfigTemplates      map[string][]PluginPkgConfigTemplate
+	Controller           map[string]ProcessController
 
 	Platforms []platfmt.Platform
 }
@@ -154,9 +155,10 @@ type OriginPluginV2PkgDetail struct {
 // NewOriginPluginV2PkgDetail creates a new OriginPluginV2PkgDetail.
 func NewOriginPluginV2PkgDetail() *OriginPluginV2PkgDetail {
 	return &OriginPluginV2PkgDetail{
-		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
-		Controller:      make(map[string]ProcessController),
-		Platforms:       make([]platfmt.Platform, 0),
+		BindAddressAllocated: make(map[string]BindAddressAllocated),
+		ConfigTemplates:      make(map[string][]PluginPkgConfigTemplate),
+		Controller:           make(map[string]ProcessController),
+		Platforms:            make([]platfmt.Platform, 0),
 	}
 }
 
@@ -179,8 +181,9 @@ type OriginExternalPluginV2PkgDetail struct {
 	SubDirPaths   map[string]map[string]struct{}
 
 	// key: platform.String()
-	ConfigTemplates map[string][]PluginPkgConfigTemplate
-	Controller      map[string]ProcessController
+	BindAddressAllocated map[string]BindAddressAllocated
+	ConfigTemplates      map[string][]PluginPkgConfigTemplate
+	Controller           map[string]ProcessController
 
 	Platforms []platfmt.Platform
 }
@@ -188,10 +191,11 @@ type OriginExternalPluginV2PkgDetail struct {
 // NewOriginExternalPluginV2PkgDetail creates a new OriginExternalPluginV2PkgDetail.
 func NewOriginExternalPluginV2PkgDetail() *OriginExternalPluginV2PkgDetail {
 	return &OriginExternalPluginV2PkgDetail{
-		SubDirPaths:     make(map[string]map[string]struct{}),
-		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
-		Controller:      make(map[string]ProcessController),
-		Platforms:       make([]platfmt.Platform, 0),
+		SubDirPaths:          make(map[string]map[string]struct{}),
+		BindAddressAllocated: make(map[string]BindAddressAllocated),
+		ConfigTemplates:      make(map[string][]PluginPkgConfigTemplate),
+		Controller:           make(map[string]ProcessController),
+		Platforms:            make([]platfmt.Platform, 0),
 	}
 }
 
@@ -212,8 +216,9 @@ type OriginPluginV3PkgDetail struct {
 	TemplateRenderer TemplateRendererType
 
 	// key: platform.String()
-	ConfigTemplates map[string][]PluginPkgConfigTemplate
-	Controller      map[string]ProcessController
+	BindAddressAllocated map[string]BindAddressAllocated
+	ConfigTemplates      map[string][]PluginPkgConfigTemplate
+	Controller           map[string]ProcessController
 
 	Platforms []platfmt.Platform
 }
@@ -221,8 +226,9 @@ type OriginPluginV3PkgDetail struct {
 // NewOriginPluginV3PkgDetail creates a new OriginPluginV3PkgDetail.
 func NewOriginPluginV3PkgDetail() *OriginPluginV3PkgDetail {
 	return &OriginPluginV3PkgDetail{
-		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
-		Controller:      make(map[string]ProcessController),
-		Platforms:       make([]platfmt.Platform, 0),
+		BindAddressAllocated: make(map[string]BindAddressAllocated),
+		ConfigTemplates:      make(map[string][]PluginPkgConfigTemplate),
+		Controller:           make(map[string]ProcessController),
+		Platforms:            make([]platfmt.Platform, 0),
 	}
 }
