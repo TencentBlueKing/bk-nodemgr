@@ -39,7 +39,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
-	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant"
+	tenantStorage "github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -420,7 +420,7 @@ func (svc *Service) initialStorages() error {
 }
 
 func (svc *Service) initialTenantStorage() error {
-	storageTenant, err := tenantStg.NewStorage(svc.Cap.MongoClient, svc.conf.MongoDB.Database)
+	storageTenant, err := tenantStorage.NewStorage(svc.Cap.MongoClient, svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create tenant storage: %w", err)
 	}
@@ -747,6 +747,7 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 		clientCap,
 		&bksaasbklogin.Config{
 			LoginURL: conf.LoginURL,
+			AppCode:  conf.AppCode,
 			AuthType: conf.AuthType.String(),
 			VirtualUserConfig: apigwclient.VirtualUserConfig{
 				AppConfig:   newAPIGWAppConfig(&conf.APIGatewayClient),

@@ -152,6 +152,8 @@ linters:
           alias: authRouter
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider
           alias: authProvider
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant
+          alias: tenantStorage
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay
           alias: protoRelay
         - pkg: github.com/testcontainers/testcontainers-go

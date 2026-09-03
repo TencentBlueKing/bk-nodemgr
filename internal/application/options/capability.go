@@ -23,7 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/distinctcache"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
-	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant"
+	tenantStorage "github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -57,7 +57,7 @@ type Capability struct {
 	StorageConfigPolicyTemplate cptemplate.IStorage
 
 	// StorageTenant tenant storage.
-	StorageTenant tenantStg.IStorage
+	StorageTenant tenantStorage.IStorage
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.IProvider

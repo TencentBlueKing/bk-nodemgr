@@ -324,6 +324,7 @@ platform:
       terminateConfirmSubTitle: This action cannot be undone. Continue?
       terminateFailedMsg: Terminate operation failed, please try again
       viewSubWorkflow: View Sub-workflow
+      subTaskN: 'Sub-task {n}'
   topoManagerName: Topology Management
   ruleManagerName: Strategy Management
   pkgManagerName: Package Management
