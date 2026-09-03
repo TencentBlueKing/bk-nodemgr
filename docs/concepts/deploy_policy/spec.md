@@ -34,6 +34,47 @@ spec 定义了期望的最终状态，用于指定目标最终应达到的状态
 
 该 spec 表达的是 `scope remote targets × placement_host_ids` 的声明式期望状态：期望存在但实际不存在时安装，版本不匹配时升级，实际存在但不再属于期望集合时卸载。`placement_host_ids` 是承载位置，不是第二套 scope，也不表达调度、分片、主备角色或按主机差异化配置。
 
+#### 对象角色
+
+| 对象                  | 作用                                        |
+| --------------------- | ------------------------------------------- |
+| `scope remote target` | 派生插件实例身份                            |
+| `placement_host_id`   | 指定插件进程运行的承载主机                  |
+| 期望集合              | `scope remote targets × placement_host_ids` |
+
+#### 收敛规则
+
+| 条件                         | 收敛动作 |
+| ---------------------------- | -------- |
+| 期望插件进程不存在           | 安装     |
+| 期望插件进程存在但版本不一致 | 升级     |
+| 期望插件进程存在且版本一致   | 不操作   |
+| 运行中插件进程不属于期望集合 | 卸载     |
+
+#### 决策树
+
+```mermaid
+graph TD
+    Root["project_plugin_pkg_to_hosts"]
+    Root --> Expected["属于期望集合"]
+    Root --> Stale["不属于期望集合"]
+    Expected --> Missing["插件进程不存在"]
+    Expected --> Exists["插件进程已存在"]
+    Exists --> Drift["版本不一致"]
+    Exists --> Match["版本一致"]
+    Missing --> Install["安装"]
+    Drift --> Upgrade["升级"]
+    Match --> Noop["不操作"]
+    Stale --> Uninstall["卸载"]
+```
+
+#### 边界说明
+
+- `scope remote target` 只用于派生插件实例身份，不表示插件进程运行位置。
+- `placement_host_id` 只表示承载主机，不改变 remote target 的身份。
+- 插件名称仍按 `{plugin_pkg_name}_{deploy_policy_id}_{remote_module_id}_{remote_host_id}` 生成。
+- 当 remote target 是主机粒度时，`remote_module_id` 使用 `0`。
+
 ### project_plugin_config_template_to_hosts
 
 投射配置模板到指定插件所在主机。scope 计算出的目标主机/服务实例作为 source target，用于派生配置文件身份；配置文件实际声明到已存在的 `plugin_name` 对应插件进程所在主机上。该 spec 只管理配置文件，不安装插件、不升级插件，也不选择插件包或插件版本。
