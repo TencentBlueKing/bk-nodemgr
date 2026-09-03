@@ -90,6 +90,38 @@ TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 
 当 remote target 是 host granularity 时，`remote_module_id` 使用 `0`。
 
+语义分类树：
+
+```mermaid
+graph TD
+    Root["project_plugin_pkg_to_hosts"]
+    Root --> ScopeRole["deploy scope"]
+    Root --> PlacementRole["placement_host_ids"]
+    ScopeRole --> SourceTarget["source service instance"]
+    SourceTarget --> SourceIdentity["source module ID + source host ID"]
+    SourceIdentity --> PluginIdentity["plugin_pkg_name + deploy policy ID + source module ID + source host ID"]
+    PlacementRole --> RuntimeHost["actual running host"]
+    RuntimeHost --> RuntimeProcess["plugin process runs on placement host"]
+    PluginIdentity --> DesiredSet["scope source targets × placement_host_ids"]
+    RuntimeProcess --> DesiredSet
+```
+
+收敛动作分类树：
+
+```mermaid
+graph TD
+    Root["project_plugin_pkg_to_hosts desired state"]
+    Root --> ExpectedProcess["process belongs to desired set"]
+    Root --> StaleProcess["process does not belong to desired set"]
+    ExpectedProcess --> Missing["Running process missing on placement host"]
+    ExpectedProcess --> VersionDrift["Running process version mismatch"]
+    ExpectedProcess --> Matched["Running process version matched"]
+    Missing --> Install["install"]
+    VersionDrift --> Upgrade["upgrade"]
+    Matched --> Noop["no-op"]
+    StaleProcess --> Uninstall["uninstall"]
+```
+
 ## 即时输出
 
 create 返回 `data.deploy_policy_id`，用于标识已创建策略。
