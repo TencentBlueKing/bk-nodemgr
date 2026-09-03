@@ -16,41 +16,50 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package agent
+package types
 
 import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func TestValidateAgentInstallMethod(t *testing.T) {
+func TestNodeInstallMethodCheckAvailable(t *testing.T) {
 	tests := []struct {
 		name          string
-		installMethod types.NodeInstallMethod
+		installMethod NodeInstallMethod
 		osType        criteria.OSType
 		wantErr       bool
 	}{
 		{
+			name:          "windows auto is supported",
+			installMethod: NodeInstallMethodAuto,
+			osType:        criteria.OSWindows,
+		},
+		{
 			name:          "windows ssh is supported",
-			installMethod: types.NodeInstallMethodSSH,
+			installMethod: NodeInstallMethodSSH,
 			osType:        criteria.OSWindows,
 		},
 		{
 			name:          "windows wmi is supported",
-			installMethod: types.NodeInstallMethodWMI,
+			installMethod: NodeInstallMethodWMI,
 			osType:        criteria.OSWindows,
 		},
 		{
+			name:          "linux ssh is supported",
+			installMethod: NodeInstallMethodSSH,
+			osType:        criteria.OSLinux,
+		},
+		{
 			name:          "linux wmi is unsupported",
-			installMethod: types.NodeInstallMethodWMI,
+			installMethod: NodeInstallMethodWMI,
 			osType:        criteria.OSLinux,
 			wantErr:       true,
 		},
 		{
 			name:          "unknown method is invalid",
-			installMethod: types.NodeInstallMethod("telnet"),
+			installMethod: NodeInstallMethod("telnet"),
 			osType:        criteria.OSWindows,
 			wantErr:       true,
 		},
@@ -58,17 +67,9 @@ func TestValidateAgentInstallMethod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateAgentInstallMethod(tt.installMethod, tt.osType)
-			if tt.wantErr {
-				if err != nil {
-					return
-				}
-
-				t.Fatalf("validateAgentInstallMethod() expected error")
-			}
-
-			if err != nil {
-				t.Fatalf("validateAgentInstallMethod() error = %v", err)
+			err := tt.installMethod.CheckAvailable(tt.osType)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("CheckAvailable() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

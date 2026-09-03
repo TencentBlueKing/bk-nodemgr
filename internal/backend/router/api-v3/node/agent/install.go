@@ -179,7 +179,7 @@ func (h *handler) generateInstallNodeDeployments(
 
 			installMethod := types.NodeInstallMethod(reqHost.GetInstallMethod())
 			osType := criteria.OSType(reqHost.GetOsType())
-			if err := validateAgentInstallMethod(installMethod, osType); err != nil {
+			if err := installMethod.CheckAvailable(osType); err != nil {
 				return fmt.Errorf("failed to check install_method availability: %w", err)
 			}
 

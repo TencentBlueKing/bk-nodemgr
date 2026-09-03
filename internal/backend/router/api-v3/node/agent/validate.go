@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -50,27 +49,6 @@ func resolveUpgradeNetworkUnitID(currentNetworkUnitID, requestedNetworkUnitID in
 	}
 
 	return currentNetworkUnitID
-}
-
-func validateAgentInstallMethod(method types.NodeInstallMethod, osType criteria.OSType) error {
-	if err := method.Validate(); err != nil {
-		return err
-	}
-
-	switch osType {
-	case criteria.OSWindows:
-		switch method {
-		case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH, types.NodeInstallMethodWMI:
-			return nil
-		}
-	default:
-		switch method {
-		case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
-			return nil
-		}
-	}
-
-	return fmt.Errorf("install_method is unsupported for this os type, method(%s), os_type(%s)", method, osType)
 }
 
 func validateUpgradeHostNetworkUnit(reqHosts []*protoBackend.NodeAgentUpgradeReq_Host, hosts map[int64]*types.Host) error {

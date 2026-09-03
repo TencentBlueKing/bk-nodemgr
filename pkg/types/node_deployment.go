@@ -353,7 +353,7 @@ func (method NodeInstallMethod) CheckAvailable(osType criteria.OSType) error {
 	switch osType {
 	case criteria.OSWindows:
 		switch method {
-		case NodeInstallMethodAuto, NodeInstallMethodWMI:
+		case NodeInstallMethodAuto, NodeInstallMethodSSH, NodeInstallMethodWMI:
 			return nil
 		default:
 			return fmt.Errorf("install_method is unsupported for this os type, method(%s), os_type(%s)", method, osType)
