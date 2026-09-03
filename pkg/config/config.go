@@ -693,6 +693,9 @@ type Front struct {
 	// WindowsWMIPortDefault is the default port for Windows WMI connection.
 	WindowsWMIPortDefault int `yaml:"windowsWMIPortDefault" usage:"default port for Windows WMI connection"`
 
+	// WindowsSSHPortDefault is the default port for Windows SSH connection.
+	WindowsSSHPortDefault int `yaml:"windowsSSHPortDefault" usage:"default port for Windows SSH connection"`
+
 	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
 	UnixSSHPortDefault int `yaml:"unixSSHPortDefault" usage:"default port for Unix-like OS SSH connection"`
 

@@ -127,6 +127,7 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_DOCS_CENTER_URL":          h.frontSetting.BKDocsCenterURL(),
 		"BKAPP_NAV_OPEN_SOURCE_URL":   h.frontSetting.BKAppNavOpenSourceURL(),
 		"WINDOWS_WMI_PORT_DEFAULT":    h.frontSetting.WindowsWMIPortDefault(),
+		"WINDOWS_SSH_PORT_DEFAULT":    h.frontSetting.WindowsSSHPortDefault(),
 		"UNIX_SSH_PORT_DEFAULT":       h.frontSetting.UnixSSHPortDefault(),
 		"ENABLE_NOTICE":               h.frontSetting.EnableNotice(),
 		"APP_VERSION":                 version.VERSION,

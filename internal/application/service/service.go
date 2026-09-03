@@ -229,6 +229,7 @@ func (svc *Service) initialCapability() error {
 			BKDocsCenterURL:        svc.conf.Front.BKDocsCenterURL,
 			BKAppNavOpenSourceURL:  svc.conf.Front.BKAppNavOpenSourceURL,
 			WindowsWMIPortDefault:  svc.conf.Front.WindowsWMIPortDefault,
+			WindowsSSHPortDefault:  svc.conf.Front.WindowsSSHPortDefault,
 			UnixSSHPortDefault:     svc.conf.Front.UnixSSHPortDefault,
 			EnableNotice:           svc.conf.Notice.Enabled,
 			BKIamSystemIDBKNodemgr: svc.conf.IAMV3.SystemID,

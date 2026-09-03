@@ -23,7 +23,7 @@ Not responsible for:
 | File | Purpose |
 |------|---------|
 | `config.go` | Shared infrastructure sub-structs: `Etcd`, `Redis`, `MongoDB`, `Log`, `HTTPServer`, `AuthIdentity`, `JWTServer/ClientConfig`, `Front`, `TraceService`, `TLS`, `APIGatewayClient` |
-| `application.go` | `ApplicationService` — application server config; `Load*` / `Validate` lifecycle; front-end port defaults (`WindowsWMIPortDefault`, `UnixSSHPortDefault`) |
+| `application.go` | `ApplicationService` — application server config; `Load*` / `Validate` lifecycle; front-end port defaults (`WindowsWMIPortDefault`, `WindowsSSHPortDefault`, `UnixSSHPortDefault`) |
 | `backend.go` | `BackendService` — backend server config; GSE, CMDB, IAM, plugin, workflow worker settings |
 | `file.go` | `FileService` — file server config; download port, mount host dir |
 | `relay.go` | `RelayService` — relay server config |
@@ -43,12 +43,13 @@ Not responsible for:
 
 ```
 env BK_NODEMGR_APPLICATION_WINDOWS_WMI_PORT_DEFAULT
+env BK_NODEMGR_APPLICATION_WINDOWS_SSH_PORT_DEFAULT
 env BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT
     → application.go LoadFromEnv()
-    → ApplicationService.Front.WindowsWMIPortDefault / UnixSSHPortDefault
+    → ApplicationService.Front.WindowsWMIPortDefault / WindowsSSHPortDefault / UnixSSHPortDefault
     → internal/application/frontsetting  (injected via Option)
     → internal/application/router/web   (rendered into index.html template)
-    → window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT / UNIX_SSH_PORT_DEFAULT
+    → window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT / WINDOWS_SSH_PORT_DEFAULT / UNIX_SSH_PORT_DEFAULT
 ```
 
 ## CONVENTIONS

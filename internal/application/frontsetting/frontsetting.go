@@ -74,6 +74,9 @@ type IFrontSetting interface {
 	// WindowsWMIPortDefault the front setting field.
 	WindowsWMIPortDefault() int
 
+	// WindowsSSHPortDefault the front setting field.
+	WindowsSSHPortDefault() int
+
 	// UnixSSHPortDefault the front setting field.
 	UnixSSHPortDefault() int
 
@@ -107,6 +110,7 @@ type FrontSetting struct {
 	bkAppNavOpenSourceURL string
 
 	windowsWMIPortDefault int
+	windowsSSHPortDefault int
 	unixSSHPortDefault    int
 
 	enableNotice bool
@@ -145,6 +149,9 @@ type Option struct {
 
 	// WindowsWMIPortDefault is the default port for Windows WMI connection.
 	WindowsWMIPortDefault int
+
+	// WindowsSSHPortDefault is the default port for Windows SSH connection.
+	WindowsSSHPortDefault int
 
 	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
 	UnixSSHPortDefault int
@@ -191,6 +198,7 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkDocsCenterURL:        normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
 		bkAppNavOpenSourceURL:  normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
 		windowsWMIPortDefault:  opt.WindowsWMIPortDefault,
+		windowsSSHPortDefault:  opt.WindowsSSHPortDefault,
 		unixSSHPortDefault:     opt.UnixSSHPortDefault,
 		enableNotice:           opt.EnableNotice,
 		bkIamSystemIDBKNodemgr: opt.BKIamSystemIDBKNodemgr,
@@ -314,6 +322,11 @@ func (setting *FrontSetting) EnableNotice() bool {
 // WindowsWMIPortDefault get windows WMI port default.
 func (setting *FrontSetting) WindowsWMIPortDefault() int {
 	return setting.windowsWMIPortDefault
+}
+
+// WindowsSSHPortDefault get windows SSH port default.
+func (setting *FrontSetting) WindowsSSHPortDefault() int {
+	return setting.windowsSSHPortDefault
 }
 
 // UnixSSHPortDefault get Unix-like OS SSH port default.

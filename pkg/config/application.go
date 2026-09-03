@@ -42,6 +42,7 @@ const (
 	defaultApplicationFrontPasswordVaultName     = "password_vault"
 	defaultApplicationFrontBKAppNavOpenSourceURL = "https://github.com/TencentBlueKing/bk-nodemgr"
 	defaultApplicationFrontWindowsWMIPortDefault = 135
+	defaultApplicationFrontWindowsSSHPortDefault = 22
 	defaultApplicationFrontUnixSSHPortDefault    = 22
 
 	defaultApplicationBackendTraceServiceName     = "application-client-backend"
@@ -177,6 +178,7 @@ func NewApplicationService() *ApplicationService {
 			PasswordVaultName:     defaultApplicationFrontPasswordVaultName,
 			BKAppNavOpenSourceURL: defaultApplicationFrontBKAppNavOpenSourceURL,
 			WindowsWMIPortDefault: defaultApplicationFrontWindowsWMIPortDefault,
+			WindowsSSHPortDefault: defaultApplicationFrontWindowsSSHPortDefault,
 			UnixSSHPortDefault:    defaultApplicationFrontUnixSSHPortDefault,
 		},
 		Backend: Backend{

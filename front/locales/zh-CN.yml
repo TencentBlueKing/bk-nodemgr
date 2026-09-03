@@ -1216,9 +1216,7 @@ components:
     batchEditPort: 批量编辑登录端口
     portTooltipDesc: 用于 SSH/WMI 登录目标主机的端口号
     portTooltipLinuxLabel: "Linux 默认端口："
-    portTooltipLinuxPort: "36000"
     portTooltipWindowsLabel: "Windows 默认端口："
-    portTooltipWindowsPort: "445"
     portBatchApply: 批量应用默认端口
     account: 登录账号
     batchEditAccount: 批量编辑登录账号

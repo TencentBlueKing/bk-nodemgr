@@ -672,11 +672,11 @@
                   <div class="mt-[8px]">
                     <p>
                       {{ $t('components.installTable.portTooltipLinuxLabel') }}
-                      <span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipLinuxPort') }}</span>
+                      <span class="text-[#FF9C01]">{{ unixSSHPortDefault }}</span>
                     </p>
                     <p class="mt-[2px]">
                       {{ $t('components.installTable.portTooltipWindowsLabel') }}
-                      <span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipWindowsPort') }}</span>
+                      <span class="text-[#FF9C01]">WMI {{ windowsWMIPortDefault }} / SSH {{ windowsSSHPortDefault }}</span>
                     </p>
                   </div>
                   <p
@@ -1134,6 +1134,11 @@ const handleDocMouseDown = (e: MouseEvent) => {
     e.stopImmediatePropagation();
   }
 };
+
+// 登录端口 hover tips 展示的默认端口，与实际填充逻辑同源（PROJECT_CONFIG）
+const unixSSHPortDefault = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+const windowsWMIPortDefault = window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT;
+const windowsSSHPortDefault = window.PROJECT_CONFIG.WINDOWS_SSH_PORT_DEFAULT;
 
 // 根据操作系统 + 安装方式计算默认端口（Windows 仅 WMI 用 WMI 端口，SSH/自动用 SSH 端口）
 const getDefaultPort = (osType: string, installMethod: string) => {

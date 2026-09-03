@@ -46,6 +46,7 @@ func (testFrontSetting) BKDomain() string                     { return "example.
 func (testFrontSetting) BKDocsCenterURL() string              { return "https://docs.example.com" }
 func (testFrontSetting) BKAppNavOpenSourceURL() string        { return "https://nav.example.com" }
 func (testFrontSetting) WindowsWMIPortDefault() int           { return 445 }
+func (testFrontSetting) WindowsSSHPortDefault() int           { return 22 }
 func (testFrontSetting) UnixSSHPortDefault() int              { return 36000 }
 func (testFrontSetting) EnableNotice() bool                   { return false }
 func (testFrontSetting) BKIamSystemIDBKNodemgr() string       { return "" }

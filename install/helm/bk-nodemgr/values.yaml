@@ -741,8 +741,10 @@ application:
       bkAppNavOpenSourceURL: ""
       ## windowsWMIPortDefault is the default port for Windows WMI connection, default is 445.
       windowsWMIPortDefault: 445
-      ## unixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection, default is 36000.
-      unixSSHPortDefault: 36000
+      ## windowsSSHPortDefault is the default port for Windows SSH connection, default is 22.
+      windowsSSHPortDefault: 22
+      ## unixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection, default is 22.
+      unixSSHPortDefault: 22
       ## bkIAMSaasHost is the BK IAM saas host, default is empty.
       bkIamSaaSHost: ""
       ## bkUserSaaSHost is the BK User saas host, default is empty.
