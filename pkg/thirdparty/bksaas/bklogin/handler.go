@@ -35,6 +35,9 @@ type IHandler interface {
 	// GetLoginURL get the login url.
 	GetLoginURL() string
 
+	// GetAppCode get the BlueKing app code, used to build the bklogin redirect url.
+	GetAppCode() string
+
 	// Verify verify the bk_ticket or bk_token.
 	Verify(nCtx contextx.IContext, token string) (string, string, string, error)
 
@@ -62,7 +65,9 @@ func (h *Handler) GetAuthType() string {
 
 // Config the config of bkoa.
 type Config struct {
-	LoginURL          string
+	LoginURL string
+	// AppCode is the BlueKing app code, used to build the bklogin redirect url.
+	AppCode           string
 	AuthType          string
 	VirtualUserConfig apigwclient.VirtualUserConfig
 }
@@ -167,6 +172,11 @@ func (h *Handler) GetAuthIdentity() *AuthIdentity {
 // GetLoginURL ...
 func (h *Handler) GetLoginURL() string {
 	return h.conf.LoginURL
+}
+
+// GetAppCode returns the BlueKing app code.
+func (h *Handler) GetAppCode() string {
+	return h.conf.AppCode
 }
 
 // GetWebUserInfo returns the unified web user info for the web login scenario.

@@ -926,6 +926,10 @@ application:
 
     bkSaaS:
       bkLogin:
+        # loginURL is the bklogin page url, e.g. http://bklogin.example.com/login/.
+        # The application server appends the app_code and c_url query params to it
+        # when redirecting unauthenticated page requests, so the browser is sent
+        # back to the requested page after a successful login.
         loginURL: ""
         # endpoints is a seed list of host:port addresses of bklogin backend API nodes.
         endpoints: []

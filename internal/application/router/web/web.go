@@ -21,6 +21,8 @@ package web
 
 import (
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
@@ -36,6 +38,9 @@ import (
 const (
 	// webUserInfoTimeout is the timeout for getting web user info from bklogin API.
 	webUserInfoTimeout = 3 * time.Second
+
+	// headerXForwardedProto is the standard proxy header carrying the original request scheme.
+	headerXForwardedProto = "X-Forwarded-Proto"
 )
 
 type handler struct {
@@ -64,6 +69,18 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 
 // Index return the index page.
 func (h *handler) Index(ctx *gin.Context) {
+	token, cookieErr := ctx.Cookie(h.bkloginHandler.GetAuthType())
+
+	// Redirect to the bklogin login page when the auth cookie is missing, so the user
+	// is guided to login before the index page is rendered. An empty login url keeps
+	// the anonymous page rendering.
+	if cookieErr != nil || token == "" {
+		if loginURL := h.bkloginHandler.GetLoginURL(); loginURL != "" {
+			ctx.Redirect(http.StatusFound, h.buildBKLoginRedirectURL(ctx, loginURL))
+			return
+		}
+	}
+
 	// Get login name from bklogin API for display purposes only.
 	// This is not used for actual authentication logic.
 	// Returns empty string if auth cookie is missing or GetWebUserInfo call fails.
@@ -74,8 +91,7 @@ func (h *handler) Index(ctx *gin.Context) {
 		userTimeZone = ""
 		userEmail    = ""
 	)
-	token, cookieErr := ctx.Cookie(h.bkloginHandler.GetAuthType())
-	if cookieErr == nil && token != "" {
+	if token != "" {
 		nCtx, cancel := contextx.WithTimeout(contextx.New(ctx.Request.Context()), webUserInfoTimeout)
 		defer cancel()
 
@@ -118,4 +134,49 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_IAM_SYSTEM_ID_BK_NODEMGR": h.frontSetting.BKIamSystemIDBKNodemgr(),
 		"BK_IAM_SYSTEM_ID_BK_CMDB":    h.frontSetting.BKIamSystemIDBKCmdb(),
 	})
+}
+
+// buildBKLoginRedirectURL appends the app_code and c_url query params to the bklogin
+// login url, where c_url is the absolute url of the current request, so bklogin
+// redirects the browser back after a successful login.
+func (h *handler) buildBKLoginRedirectURL(ctx *gin.Context, loginURL string) string {
+	loginURLObj, err := url.Parse(loginURL)
+	if err != nil {
+		// loginURL is already validated when the bklogin handler is created.
+		return loginURL
+	}
+
+	// Reuse the parsed request url and fill in the absolute scheme and host to
+	// build the c_url, since the server sits behind a proxy or gateway.
+	cURL := *ctx.Request.URL
+	cURL.Scheme = forwardedProto(ctx)
+	cURL.Host = ctx.Request.Host
+
+	query := loginURLObj.Query()
+	if appCode := h.bkloginHandler.GetAppCode(); appCode != "" {
+		query.Set("app_code", appCode)
+	}
+	query.Set("c_url", cURL.String())
+	loginURLObj.RawQuery = query.Encode()
+
+	return loginURLObj.String()
+}
+
+// forwardedProto returns the request scheme. It checks the direct TLS connection first
+// (e.g. direct https access or TLS passthrough without a proxy), then falls back to the
+// standard X-Forwarded-Proto proxy header, taking the first value when multiple proxies
+// are chained. It falls back to http when the header is absent or its first value is blank.
+func forwardedProto(ctx *gin.Context) string {
+	if ctx.Request.TLS != nil {
+		return "https"
+	}
+
+	proto := ctx.GetHeader(headerXForwardedProto)
+
+	first, _, _ := strings.Cut(proto, ",")
+	if first = strings.TrimSpace(first); first == "" {
+		return "http"
+	}
+
+	return first
 }

@@ -63,6 +63,7 @@ type testBKLoginHandler struct {
 }
 
 func (h *testBKLoginHandler) GetLoginURL() string { return "https://bklogin.example.com" }
+func (h *testBKLoginHandler) GetAppCode() string  { return "bk_nodemgr" }
 func (h *testBKLoginHandler) Verify(_ contextx.IContext, _ string) (string, string, string, error) {
 	return "", "", "", nil
 }
