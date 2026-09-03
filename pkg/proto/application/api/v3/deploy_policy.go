@@ -214,18 +214,41 @@ func convDeploySpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 			CustomConfigContext: customConfigContext,
 		}
 
+	case types.DeploySpecTypeProjectPluginPkgToHosts:
+		param, err := spec.GetProjectPluginPkgToHostsParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get project plugin pkg to hosts param: %w", err)
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &ProjectPluginPkgToHostsParam{
+			PluginPkgName:       param.PluginPkgName,
+			Version:             param.Version,
+			CustomConfigContext: customConfigContext,
+			PlacementHostIds:    param.PlacementHostIDs,
+		}
+
+	case types.DeploySpecTypeProjectPluginConfigTemplateToHosts:
+		param, err := spec.GetProjectPluginConfigTemplateToHostsParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get project plugin config template to hosts param: %w", err)
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &ProjectPluginConfigTemplateToHostsParam{
+			PluginName:          param.PluginName,
+			ConfigFilesDetail:   convPluginConfigDetailsFromTypes(param.ConfigFilesDetail),
+			CustomConfigContext: customConfigContext,
+		}
+
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
 		param, err := spec.GetSpecifyPluginSubConfigParam()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get specify plugin sub config param: %w", err)
-		}
-		configFilesDetail := make([]*PluginConfigDetail, 0, len(param.ConfigFilesDetail))
-		for _, detail := range param.ConfigFilesDetail {
-			configFilesDetail = append(configFilesDetail, &PluginConfigDetail{
-				Name:         detail.Name,
-				Content:      detail.Content,
-				IsMainConfig: detail.IsMainConfig,
-			})
 		}
 		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
@@ -233,7 +256,22 @@ func convDeploySpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 		}
 		paramProto = &SpecifyPluginSubConfigParam{
 			PluginName:          param.PluginName,
-			ConfigFilesDetail:   configFilesDetail,
+			ConfigFilesDetail:   convPluginConfigDetailsFromTypes(param.ConfigFilesDetail),
+			CustomConfigContext: customConfigContext,
+		}
+
+	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
+		param, err := spec.GetSpecifyPluginSubConfigTemplateParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin sub config template param: %w", err)
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &SpecifyPluginSubConfigTemplateParam{
+			PluginName:          param.PluginName,
+			ConfigFilesDetail:   convPluginConfigDetailsFromTypes(param.ConfigFilesDetail),
 			CustomConfigContext: customConfigContext,
 		}
 
@@ -251,6 +289,24 @@ func convDeploySpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 	}
 
 	return result, nil
+}
+
+func convPluginConfigDetailsFromTypes(details []*types.PluginConfigDetail) []*PluginConfigDetail {
+	configFilesDetail := make([]*PluginConfigDetail, 0, len(details))
+	for _, detail := range details {
+		if detail == nil {
+			continue
+		}
+
+		configFilesDetail = append(configFilesDetail, &PluginConfigDetail{
+			Name:         detail.Name,
+			TemplateName: detail.TemplateName,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+		})
+	}
+
+	return configFilesDetail
 }
 
 func convDeployPolicyScopesFromTypes(scopes []*types.Scope) ([]*Scope, error) {

@@ -18,6 +18,7 @@ message PluginConfigDetail {
   string name = 1;
   string content = 2;
   bool is_main_config = 3;
+  string template_name = 4;
 }
 
 // SpecifyAgentParam describes the specify agent param structure.
@@ -40,9 +41,34 @@ message SpecifyPluginPkgParam {
   google.protobuf.Struct custom_config_context = 3;
 }
 
+// ProjectPluginPkgToHostsParam describes the project plugin pkg to hosts param
+// structure.
+message ProjectPluginPkgToHostsParam {
+  string plugin_pkg_name = 1;
+  string version = 2;
+  google.protobuf.Struct custom_config_context = 3;
+  repeated int64 placement_host_ids = 4;
+}
+
+// ProjectPluginConfigTemplateToHostsParam describes the project plugin config
+// template to hosts param structure.
+message ProjectPluginConfigTemplateToHostsParam {
+  string plugin_name = 1;
+  repeated PluginConfigDetail config_files_detail = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
 // SpecifyPluginSubConfigParam describes the specify plugin sub config param
 // structure.
 message SpecifyPluginSubConfigParam {
+  string plugin_name = 1;
+  repeated PluginConfigDetail config_files_detail = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
+// SpecifyPluginSubConfigTemplateParam describes the specify plugin sub config
+// template param structure.
+message SpecifyPluginSubConfigTemplateParam {
   string plugin_name = 1;
   repeated PluginConfigDetail config_files_detail = 2;
   google.protobuf.Struct custom_config_context = 3;
