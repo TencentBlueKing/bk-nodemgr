@@ -765,6 +765,8 @@ func convServiceInstanceDetailToTarget(
 			ServiceInstance: types.ServiceInstance{
 				ID:                detail.ID,
 				Name:              detail.Name,
+				Labels:            detail.Labels,
+				Processes:         convServiceInstanceProcessesToTypes(detail),
 				BizID:             detail.BKBizID,
 				HostID:            detail.BKHostID,
 				ModuleID:          detail.BKModuleID,
@@ -775,4 +777,67 @@ func convServiceInstanceDetailToTarget(
 	}
 
 	return targets, nil
+}
+
+func convServiceInstanceProcessesToTypes(detail *ServiceInstanceDetailInfo) map[string]types.ServiceInstanceProcess {
+	processes := make(map[string]types.ServiceInstanceProcess, len(detail.ProcessInstances))
+	for _, processInstance := range detail.ProcessInstances {
+		process := processInstance.Process
+		processes[process.BKProcessName] = types.ServiceInstanceProcess{
+			AutoStart:       process.AutoStart,
+			BizID:           process.BKBizID,
+			FuncName:        process.BKFuncName,
+			ProcessID:       process.BKProcessID,
+			ProcessName:     process.BKProcessName,
+			StartParamRegex: process.BKStartParamRegex,
+			SupplierAccount: process.BKSupplierAccount,
+			CreateTime:      process.CreateTime,
+			LastTime:        process.LastTime,
+			Description:     process.Description,
+			FaceStopCmd:     process.FaceStopCMD,
+			PidFile:         process.PidFile,
+			Priority:        process.Priority,
+			ProcNum:         process.ProcNum,
+			ReloadCmd:       process.ReloadCMD,
+			RestartCmd:      process.RestartCMD,
+			StartCmd:        process.StartCMD,
+			StopCmd:         process.StopCMD,
+			Timeout:         process.Timeout,
+			User:            process.User,
+			WorkPath:        process.WorkPath,
+			CreateAt:        process.BKCreateAt,
+			CreateBy:        process.BKCreateBy,
+			UpdateAt:        process.BKUpdateAt,
+			UpdateBy:        process.BKUpdateBy,
+			BindInfo:        convServiceInstanceProcessBindInfoToTypes(process.BindInfo),
+		}
+	}
+
+	return processes
+}
+
+func convServiceInstanceProcessBindInfoToTypes(
+	bindInfo []struct {
+		Enable        bool   `json:"enable"`
+		IP            string `json:"ip"`
+		Port          string `json:"port"`
+		Protocol      string `json:"protocol"`
+		TemplateRowID int64  `json:"template_row_id"`
+	},
+) []types.ServiceInstanceProcessBindInfo {
+	return conv.SliceToSlice(bindInfo, func(info struct {
+		Enable        bool   `json:"enable"`
+		IP            string `json:"ip"`
+		Port          string `json:"port"`
+		Protocol      string `json:"protocol"`
+		TemplateRowID int64  `json:"template_row_id"`
+	}) types.ServiceInstanceProcessBindInfo {
+		return types.ServiceInstanceProcessBindInfo{
+			Enable:        info.Enable,
+			IP:            info.IP,
+			Port:          info.Port,
+			Protocol:      info.Protocol,
+			TemplateRowID: info.TemplateRowID,
+		}
+	})
 }

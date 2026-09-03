@@ -128,6 +128,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	if err = pluginUtils.EnsureHostLoginUser(std, hostInfo); err != nil {
 		return err
 	}
+	configSourceHostInfo := getConfigSourceHostInfo(std.DeployInfo(), hostInfo)
 
 	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
 		Generation: std.DeployInfo().Process.Generation,
@@ -151,9 +152,9 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	var renderContext map[string]any
 	switch pluginRelease.TemplateRendererType {
 	case types.TemplateRendererTypeGoTemplate:
-		renderContext = act.generateGoTemplateSystemConfigContext(std, hostInfo)
+		renderContext = act.generateGoTemplateSystemConfigContext(std, configSourceHostInfo)
 	case types.TemplateRendererTypeJinja2:
-		renderContext, err = act.generateJinja2SystemConfigContext(std, hostInfo)
+		renderContext, err = act.generateJinja2SystemConfigContext(std, hostInfo, configSourceHostInfo)
 		if err != nil {
 			return fmt.Errorf("failed to generate jinja2 system config context: %w", err)
 		}
@@ -249,6 +250,14 @@ func splitPathAndCombineByOS(fullPath string, osType criteria.OSType) string {
 	}
 
 	return strings.Join(paths, string(sep))
+}
+
+func getConfigSourceHostInfo(info *types.PluginDeploymentInfo, runtimeHost *types.Host) *types.Host {
+	if info.ConfigSource.Host.HostID <= 0 {
+		return runtimeHost
+	}
+
+	return &info.ConfigSource.Host
 }
 
 // ContextPluginInfo plugin info for render context.
@@ -437,6 +446,10 @@ const (
 	keyTarget       = "target"
 	keyControlInfo  = "control_info"
 
+	keyService = "service"
+	keyScope   = "scope"
+	keyProcess = "process"
+
 	keyLogPath       = "log_path"
 	keyDataPath      = "data_path"
 	keyPidPath       = "pid_path"
@@ -476,6 +489,46 @@ const (
 	keyAuthType          = "auth_type"
 	keyHostNodeType      = "host_node_type"
 
+	keyID                = "id"
+	keyName              = "name"
+	keyLabels            = "labels"
+	keyBkModuleID        = "bk_module_id"
+	keyBkObjID           = "bk_obj_id"
+	keyBkInstID          = "bk_inst_id"
+	keyServiceTemplateID = "service_template_id"
+	keyServiceCategoryID = "service_category_id"
+
+	keyAutoStart         = "auto_start"
+	keyBkFuncName        = "bk_func_name"
+	keyBkProcessID       = "bk_process_id"
+	keyBkProcessName     = "bk_process_name"
+	keyBkStartParamRegex = "bk_start_param_regex"
+	keyBkSupplierAccount = "bk_supplier_account"
+	keyCreateTime        = "create_time"
+	keyLastTime          = "last_time"
+	keyDescription       = "description"
+	keyFaceStopCmd       = "face_stop_cmd"
+	keyPidFile           = "pid_file"
+	keyPriority          = "priority"
+	keyProcNum           = "proc_num"
+	keyReloadCmd         = "reload_cmd"
+	keyRestartCmd        = "restart_cmd"
+	keyStartCmd          = "start_cmd"
+	keyStopCmd           = "stop_cmd"
+	keyTimeout           = "timeout"
+	keyUser              = "user"
+	keyWorkPath          = "work_path"
+	keyBkCreatedAt       = "bk_created_at"
+	keyBkCreatedBy       = "bk_created_by"
+	keyBkUpdatedAt       = "bk_updated_at"
+	keyBkUpdatedBy       = "bk_updated_by"
+	keyBindInfo          = "bind_info"
+	keyEnable            = "enable"
+	keyIP                = "ip"
+	keyPort              = "port"
+	keyProtocol          = "protocol"
+	keyTemplateRowID     = "template_row_id"
+
 	keyPluginIPC    = "pluginipc"
 	keyDataIPC      = "dataipc"
 	keyGSEAgentHome = "gse_agent_home"
@@ -485,71 +538,45 @@ const (
 )
 
 func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigContext(
-	std *pluginUtils.PluginActionStandarder, hostInfo *types.Host) (map[string]any, error) {
+	std *pluginUtils.PluginActionStandarder, runtimeHostInfo *types.Host, configSourceHostInfo *types.Host) (map[string]any, error) {
 
-	var (
-		innerIP   string
-		outerIP   string
-		innerIPv6 string
-		outerIPv6 string
-	)
-
-	if len(hostInfo.Static.InnerIPList) > 0 {
-		innerIP = hostInfo.Static.InnerIPList[0]
-	}
-	if len(hostInfo.Static.OuterIPList) > 0 {
-		outerIP = hostInfo.Static.OuterIPList[0]
-	}
-	if len(hostInfo.Static.InnerIPV6List) > 0 {
-		innerIPv6 = hostInfo.Static.InnerIPV6List[0]
-	}
-	if len(hostInfo.Static.OuterIPV6List) > 0 {
-		outerIPv6 = hostInfo.Static.OuterIPV6List[0]
-	}
-
-	networkArea, err := act.daoNetworkArea.GetNetworkArea(std.Context(), hostInfo.Static.NetworkAreaID)
+	runtimeHostRenderData, err := act.generateHostRenderData(std, runtimeHostInfo)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get network area, networkarea-id(%d): %w", hostInfo.Static.NetworkAreaID, err)
+		return nil, fmt.Errorf("failed to generate runtime host render data: %w", err)
+	}
+	configSourceHostRenderData, err := act.generateHostRenderData(std, configSourceHostInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate config source host render data: %w", err)
 	}
 
 	constants := std.DeployInfo().BaseRuntime.PluginCommonConstants
 	constants[keyGlobal] = std.DeployInfo().BaseRuntime.GlobalCommonConstants
 	nodeManInfo := map[string]any{
 		keyHost: map[string]any{
-			keyBkHostID: hostInfo.HostID,
-			keyOsType:   hostInfo.Static.OSType,
-			keyCPUArch:  hostInfo.Static.Arch,
-			keyInnerIP:  innerIP,
-			keyOuterIP:  outerIP,
-			keyLoginIP:  hostInfo.Dynamic.LoginIP,
+			keyBkHostID: runtimeHostInfo.HostID,
+			keyOsType:   runtimeHostInfo.Static.OSType,
+			keyCPUArch:  runtimeHostInfo.Static.Arch,
+			keyInnerIP:  runtimeHostRenderData.innerIP,
+			keyOuterIP:  runtimeHostRenderData.outerIP,
+			keyLoginIP:  runtimeHostInfo.Dynamic.LoginIP,
 		},
 		keyIsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
 		keyConstants:     constants,
 	}
 
 	cmdbInstance := map[string]any{
-		keyHost: map[string]any{
-			keyBkBizID:           hostInfo.Static.BizID,
-			keyBkHostID:          hostInfo.HostID,
-			keyOsType:            hostInfo.Static.OSType,
-			keyBkOSType:          hostInfo.Static.OSTypeCCID,
-			keyBkAgentID:         hostInfo.Static.SyncedAgentID,
-			keyBkCloudID:         hostInfo.Static.NetworkAreaID,
-			keyBkCloudName:       networkArea.Name,
-			keyBkHostName:        hostInfo.Static.HostName,
-			keyBkAddressing:      hostInfo.Static.Addressing,
-			keyBkHostInnerIP:     innerIP,
-			keyBkHostOuterIP:     outerIP,
-			keyBkHostInnerIPv6:   innerIPv6,
-			keyBkHostOuterIPv6:   outerIPv6,
-			keyBkCPUArchitecture: hostInfo.Static.Arch,
-			keyBkCPU:             hostInfo.Static.CPUNum,
-			keyBkMem:             hostInfo.Static.MemCap,
-			keyUserName:          hostInfo.Static.Operator,
-			keyAccount:           hostInfo.Dynamic.LoginUser,
-			keyAuthType:          strings.ToUpper(string(hostInfo.Dynamic.LoginMode)),
-			keyHostNodeType:      strings.ToUpper(string(hostInfo.Dynamic.NodeRole)),
-		},
+		keyHost: generateConfigSourceHostRenderContext(configSourceHostInfo, configSourceHostRenderData),
+		keyScope: generateMatchedTopoRelationRenderContext(
+			std.DeployInfo().ConfigSource.MatchedTopoRelations,
+		),
+		keyProcess: generateConfigSourceServiceProcessRenderContext(
+			std.DeployInfo().ConfigSource.ServiceInstance.Processes,
+		),
+	}
+	if std.DeployInfo().ConfigSource.ServiceInstance.ID > 0 {
+		cmdbInstance[keyService] = generateConfigSourceServiceRenderContext(
+			std.DeployInfo().ConfigSource.ServiceInstance,
+		)
 	}
 
 	// notice: in v2 plugin, subconfig_path still need provide, and the path is fixed
@@ -560,14 +587,14 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 	dataEndpoint := renderIPCEndpoint(
 		std.DeployInfo().Process.Platform.OS,
 		std.DeployInfo().BaseRuntime.DataIPC,
-		hostInfo.Static.InnerIPList,
-		hostInfo.Static.InnerIPV6List,
+		runtimeHostInfo.Static.InnerIPList,
+		runtimeHostInfo.Static.InnerIPV6List,
 	)
 	pluginEndpoint := renderIPCEndpoint(
 		std.DeployInfo().Process.Platform.OS,
 		std.DeployInfo().BaseRuntime.PluginIPC,
-		hostInfo.Static.InnerIPList,
-		hostInfo.Static.InnerIPV6List,
+		runtimeHostInfo.Static.InnerIPList,
+		runtimeHostInfo.Static.InnerIPV6List,
 	)
 
 	pluginPath := map[string]any{
@@ -601,6 +628,161 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 		keyTarget:       cmdbInstance,
 		keyControlInfo:  controlInfo,
 	}, nil
+}
+
+type hostRenderData struct {
+	innerIP     string
+	outerIP     string
+	innerIPv6   string
+	outerIPv6   string
+	networkArea string
+}
+
+func (act *actionEnsureAndUpdatePluginConfigDetails) generateHostRenderData(
+	std *pluginUtils.PluginActionStandarder, hostInfo *types.Host) (hostRenderData, error) {
+
+	var (
+		innerIP   string
+		outerIP   string
+		innerIPv6 string
+		outerIPv6 string
+	)
+
+	if hostInfo == nil {
+		return hostRenderData{}, fmt.Errorf("host info is nil")
+	}
+	if hostInfo.Static == nil {
+		return hostRenderData{}, fmt.Errorf("host static info is nil, host-id(%d)", hostInfo.HostID)
+	}
+	if hostInfo.Dynamic == nil {
+		return hostRenderData{}, fmt.Errorf("host dynamic info is nil, host-id(%d)", hostInfo.HostID)
+	}
+
+	if len(hostInfo.Static.InnerIPList) > 0 {
+		innerIP = hostInfo.Static.InnerIPList[0]
+	}
+	if len(hostInfo.Static.OuterIPList) > 0 {
+		outerIP = hostInfo.Static.OuterIPList[0]
+	}
+	if len(hostInfo.Static.InnerIPV6List) > 0 {
+		innerIPv6 = hostInfo.Static.InnerIPV6List[0]
+	}
+	if len(hostInfo.Static.OuterIPV6List) > 0 {
+		outerIPv6 = hostInfo.Static.OuterIPV6List[0]
+	}
+
+	networkArea, err := act.daoNetworkArea.GetNetworkArea(std.Context(), hostInfo.Static.NetworkAreaID)
+	if err != nil {
+		return hostRenderData{}, fmt.Errorf("failed to get network area, networkarea-id(%d): %w", hostInfo.Static.NetworkAreaID, err)
+	}
+
+	return hostRenderData{
+		innerIP:     innerIP,
+		outerIP:     outerIP,
+		innerIPv6:   innerIPv6,
+		outerIPv6:   outerIPv6,
+		networkArea: networkArea.Name,
+	}, nil
+}
+
+func generateConfigSourceHostRenderContext(hostInfo *types.Host, data hostRenderData) map[string]any {
+	return map[string]any{
+		keyBkBizID:           hostInfo.Static.BizID,
+		keyBkHostID:          hostInfo.HostID,
+		keyOsType:            hostInfo.Static.OSType,
+		keyBkOSType:          hostInfo.Static.OSTypeCCID,
+		keyBkAgentID:         hostInfo.Static.SyncedAgentID,
+		keyBkCloudID:         hostInfo.Static.NetworkAreaID,
+		keyBkCloudName:       data.networkArea,
+		keyBkHostName:        hostInfo.Static.HostName,
+		keyBkAddressing:      hostInfo.Static.Addressing,
+		keyBkHostInnerIP:     data.innerIP,
+		keyBkHostOuterIP:     data.outerIP,
+		keyBkHostInnerIPv6:   data.innerIPv6,
+		keyBkHostOuterIPv6:   data.outerIPv6,
+		keyBkCPUArchitecture: hostInfo.Static.Arch,
+		keyBkCPU:             hostInfo.Static.CPUNum,
+		keyBkMem:             hostInfo.Static.MemCap,
+		keyUserName:          hostInfo.Static.Operator,
+		keyAccount:           hostInfo.Dynamic.LoginUser,
+		keyAuthType:          strings.ToUpper(string(hostInfo.Dynamic.LoginMode)),
+		keyHostNodeType:      strings.ToUpper(string(hostInfo.Dynamic.NodeRole)),
+	}
+}
+
+func generateConfigSourceServiceRenderContext(serviceInstance types.ServiceInstance) map[string]any {
+	return map[string]any{
+		keyID:                serviceInstance.ID,
+		keyName:              serviceInstance.Name,
+		keyLabels:            serviceInstance.Labels,
+		keyProcess:           generateConfigSourceServiceProcessRenderContext(serviceInstance.Processes),
+		keyBkBizID:           serviceInstance.BizID,
+		keyBkHostID:          serviceInstance.HostID,
+		keyBkModuleID:        serviceInstance.ModuleID,
+		keyServiceTemplateID: serviceInstance.ServiceTemplateID,
+		keyServiceCategoryID: serviceInstance.ServiceCategoryID,
+	}
+}
+
+func generateConfigSourceServiceProcessRenderContext(
+	processes map[string]types.ServiceInstanceProcess,
+) map[string]any {
+	renderProcesses := make(map[string]any, len(processes))
+	for name, process := range processes {
+		renderProcesses[name] = map[string]any{
+			keyAutoStart:         process.AutoStart,
+			keyBkBizID:           process.BizID,
+			keyBkFuncName:        process.FuncName,
+			keyBkProcessID:       process.ProcessID,
+			keyBkProcessName:     process.ProcessName,
+			keyBkStartParamRegex: process.StartParamRegex,
+			keyBkSupplierAccount: process.SupplierAccount,
+			keyCreateTime:        process.CreateTime,
+			keyLastTime:          process.LastTime,
+			keyDescription:       process.Description,
+			keyFaceStopCmd:       process.FaceStopCmd,
+			keyPidFile:           process.PidFile,
+			keyPriority:          process.Priority,
+			keyProcNum:           process.ProcNum,
+			keyReloadCmd:         process.ReloadCmd,
+			keyRestartCmd:        process.RestartCmd,
+			keyStartCmd:          process.StartCmd,
+			keyStopCmd:           process.StopCmd,
+			keyTimeout:           process.Timeout,
+			keyUser:              process.User,
+			keyWorkPath:          process.WorkPath,
+			keyBkCreatedAt:       process.CreateAt,
+			keyBkCreatedBy:       process.CreateBy,
+			keyBkUpdatedAt:       process.UpdateAt,
+			keyBkUpdatedBy:       process.UpdateBy,
+			keyBindInfo:          generateServiceInstanceProcessBindInfoRenderContext(process.BindInfo),
+		}
+	}
+
+	return renderProcesses
+}
+
+func generateServiceInstanceProcessBindInfoRenderContext(
+	bindInfo []types.ServiceInstanceProcessBindInfo,
+) []map[string]any {
+	return conv.SliceToSlice(bindInfo, func(info types.ServiceInstanceProcessBindInfo) map[string]any {
+		return map[string]any{
+			keyEnable:        info.Enable,
+			keyIP:            info.IP,
+			keyPort:          info.Port,
+			keyProtocol:      info.Protocol,
+			keyTemplateRowID: info.TemplateRowID,
+		}
+	})
+}
+
+func generateMatchedTopoRelationRenderContext(relations []types.TargetMatchedTopoRelation) []map[string]any {
+	return conv.SliceToSlice(relations, func(relation types.TargetMatchedTopoRelation) map[string]any {
+		return map[string]any{
+			keyBkObjID:  relation.TopoObjID,
+			keyBkInstID: relation.TopoInstID,
+		}
+	})
 }
 
 func renderIPCEndpoint(osType criteria.OSType, ipc string, innerIPs, innerIPv6s []string) string {

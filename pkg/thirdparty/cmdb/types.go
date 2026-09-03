@@ -1177,18 +1177,19 @@ type ListServiceInstanceDetailReq struct {
 
 // ServiceInstanceDetailInfo describe the service instance detail info define by cmdb.
 type ServiceInstanceDetailInfo struct {
-	ID                int64     `json:"id"`
-	Name              string    `json:"name"`
-	ServiceTemplateID int64     `json:"service_template_id"`
-	BKBizID           int64     `json:"bk_biz_id"`
-	BKHostID          int64     `json:"bk_host_id"`
-	BKModuleID        int64     `json:"bk_module_id"`
-	Creator           string    `json:"creator"`
-	Modifier          string    `json:"modifier"`
-	CreateTime        time.Time `json:"create_time"`
-	LastTime          time.Time `json:"last_time"`
-	BKSupplierAccount string    `json:"bk_supplier_account"`
-	ServiceCategoryID int64     `json:"service_category_id"`
+	ID                int64             `json:"id"`
+	Name              string            `json:"name"`
+	Labels            map[string]string `json:"labels"`
+	ServiceTemplateID int64             `json:"service_template_id"`
+	BKBizID           int64             `json:"bk_biz_id"`
+	BKHostID          int64             `json:"bk_host_id"`
+	BKModuleID        int64             `json:"bk_module_id"`
+	Creator           string            `json:"creator"`
+	Modifier          string            `json:"modifier"`
+	CreateTime        time.Time         `json:"create_time"`
+	LastTime          time.Time         `json:"last_time"`
+	BKSupplierAccount string            `json:"bk_supplier_account"`
+	ServiceCategoryID int64             `json:"service_category_id"`
 	ProcessInstances  []struct {
 		Process struct {
 			AutoStart         bool      `json:"auto_start"`

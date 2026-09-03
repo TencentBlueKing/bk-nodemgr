@@ -88,6 +88,9 @@ type PluginDeploymentInfo struct {
 	// Process is the process info.
 	Process Process
 
+	// ConfigSource is the object used to render collection config values.
+	ConfigSource Target
+
 	// InstallerRuntime is used to store the installer runtime.
 	InstallerRuntime PluginDeploymentInstallerRuntime
 

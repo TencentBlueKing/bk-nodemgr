@@ -329,6 +329,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 
 	typesInfo := &types.PluginDeploymentInfo{
 		BlockingActionName: info.ActionName,
+		ConfigSource:       convertConfigSourceToTypes(info.ConfigSource),
 		Process: types.Process{
 			TenantID:      info.Process.TenantID,
 			HostID:        info.Process.HostID,
@@ -433,7 +434,8 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 	}
 
 	data := &Info{
-		ActionName: info.BlockingActionName,
+		ActionName:   info.BlockingActionName,
+		ConfigSource: convertConfigSourceFromTypes(info.ConfigSource),
 		Process: process{
 			TenantID: info.Process.TenantID,
 			HostID:   info.Process.HostID,
@@ -529,6 +531,346 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 	}
 
 	return data, nil
+}
+
+func convertConfigSourceToTypes(configSource target) types.Target {
+	return types.Target{
+		Host:                 convertTargetHostToTypes(configSource.Host),
+		ServiceInstance:      convertServiceInstanceToTypes(configSource.ServiceInstance),
+		MatchedTopoRelations: convertTargetMatchedTopoRelationsToTypes(configSource.MatchedTopoRelations),
+	}
+}
+
+func convertConfigSourceFromTypes(configSource types.Target) target {
+	return target{
+		Host:                 convertTargetHostFromTypes(configSource.Host),
+		ServiceInstance:      convertServiceInstanceFromTypes(configSource.ServiceInstance),
+		MatchedTopoRelations: convertTargetMatchedTopoRelationsFromTypes(configSource.MatchedTopoRelations),
+	}
+}
+
+func convertTargetMatchedTopoRelationsToTypes(
+	relations []targetMatchedTopoRelation,
+) []types.TargetMatchedTopoRelation {
+	return conv.SliceToSlice(relations, func(relation targetMatchedTopoRelation) types.TargetMatchedTopoRelation {
+		return types.TargetMatchedTopoRelation{
+			TopoObjID:  relation.TopoObjID,
+			TopoInstID: relation.TopoInstID,
+		}
+	})
+}
+
+func convertTargetMatchedTopoRelationsFromTypes(
+	relations []types.TargetMatchedTopoRelation,
+) []targetMatchedTopoRelation {
+	return conv.SliceToSlice(relations, func(relation types.TargetMatchedTopoRelation) targetMatchedTopoRelation {
+		return targetMatchedTopoRelation{
+			TopoObjID:  relation.TopoObjID,
+			TopoInstID: relation.TopoInstID,
+		}
+	})
+}
+
+func convertServiceInstanceToTypes(serviceInstance serviceInstance) types.ServiceInstance {
+	return types.ServiceInstance{
+		ID:                serviceInstance.ID,
+		Name:              serviceInstance.Name,
+		Labels:            serviceInstance.Labels,
+		Processes:         convertServiceInstanceProcessesToTypes(serviceInstance.Processes),
+		BizID:             serviceInstance.BizID,
+		HostID:            serviceInstance.HostID,
+		ModuleID:          serviceInstance.ModuleID,
+		ServiceTemplateID: serviceInstance.ServiceTemplateID,
+		ServiceCategoryID: serviceInstance.ServiceCategoryID,
+	}
+}
+
+func convertServiceInstanceFromTypes(instance types.ServiceInstance) serviceInstance {
+	return serviceInstance{
+		ID:                instance.ID,
+		Name:              instance.Name,
+		Labels:            instance.Labels,
+		Processes:         convertServiceInstanceProcessesFromTypes(instance.Processes),
+		BizID:             instance.BizID,
+		HostID:            instance.HostID,
+		ModuleID:          instance.ModuleID,
+		ServiceTemplateID: instance.ServiceTemplateID,
+		ServiceCategoryID: instance.ServiceCategoryID,
+	}
+}
+
+func convertServiceInstanceProcessesToTypes(
+	processes map[string]serviceInstanceProcess,
+) map[string]types.ServiceInstanceProcess {
+	typeProcesses := make(map[string]types.ServiceInstanceProcess, len(processes))
+	for name, process := range processes {
+		typeProcesses[name] = types.ServiceInstanceProcess{
+			AutoStart:       process.AutoStart,
+			BizID:           process.BizID,
+			FuncName:        process.FuncName,
+			ProcessID:       process.ProcessID,
+			ProcessName:     process.ProcessName,
+			StartParamRegex: process.StartParamRegex,
+			SupplierAccount: process.SupplierAccount,
+			CreateTime:      process.CreateTime,
+			LastTime:        process.LastTime,
+			Description:     process.Description,
+			FaceStopCmd:     process.FaceStopCmd,
+			PidFile:         process.PidFile,
+			Priority:        process.Priority,
+			ProcNum:         process.ProcNum,
+			ReloadCmd:       process.ReloadCmd,
+			RestartCmd:      process.RestartCmd,
+			StartCmd:        process.StartCmd,
+			StopCmd:         process.StopCmd,
+			Timeout:         process.Timeout,
+			User:            process.User,
+			WorkPath:        process.WorkPath,
+			CreateAt:        process.CreateAt,
+			CreateBy:        process.CreateBy,
+			UpdateAt:        process.UpdateAt,
+			UpdateBy:        process.UpdateBy,
+			BindInfo:        convertServiceInstanceProcessBindInfoToTypes(process.BindInfo),
+		}
+	}
+
+	return typeProcesses
+}
+
+func convertServiceInstanceProcessesFromTypes(
+	processes map[string]types.ServiceInstanceProcess,
+) map[string]serviceInstanceProcess {
+	daoProcesses := make(map[string]serviceInstanceProcess, len(processes))
+	for name, process := range processes {
+		daoProcesses[name] = serviceInstanceProcess{
+			AutoStart:       process.AutoStart,
+			BizID:           process.BizID,
+			FuncName:        process.FuncName,
+			ProcessID:       process.ProcessID,
+			ProcessName:     process.ProcessName,
+			StartParamRegex: process.StartParamRegex,
+			SupplierAccount: process.SupplierAccount,
+			CreateTime:      process.CreateTime,
+			LastTime:        process.LastTime,
+			Description:     process.Description,
+			FaceStopCmd:     process.FaceStopCmd,
+			PidFile:         process.PidFile,
+			Priority:        process.Priority,
+			ProcNum:         process.ProcNum,
+			ReloadCmd:       process.ReloadCmd,
+			RestartCmd:      process.RestartCmd,
+			StartCmd:        process.StartCmd,
+			StopCmd:         process.StopCmd,
+			Timeout:         process.Timeout,
+			User:            process.User,
+			WorkPath:        process.WorkPath,
+			CreateAt:        process.CreateAt,
+			CreateBy:        process.CreateBy,
+			UpdateAt:        process.UpdateAt,
+			UpdateBy:        process.UpdateBy,
+			BindInfo:        convertServiceInstanceProcessBindInfoFromTypes(process.BindInfo),
+		}
+	}
+
+	return daoProcesses
+}
+
+func convertServiceInstanceProcessBindInfoToTypes(
+	bindInfo []serviceInstanceProcessBindInfo,
+) []types.ServiceInstanceProcessBindInfo {
+	return conv.SliceToSlice(bindInfo, func(info serviceInstanceProcessBindInfo) types.ServiceInstanceProcessBindInfo {
+		return types.ServiceInstanceProcessBindInfo{
+			Enable:        info.Enable,
+			IP:            info.IP,
+			Port:          info.Port,
+			Protocol:      info.Protocol,
+			TemplateRowID: info.TemplateRowID,
+		}
+	})
+}
+
+func convertServiceInstanceProcessBindInfoFromTypes(
+	bindInfo []types.ServiceInstanceProcessBindInfo,
+) []serviceInstanceProcessBindInfo {
+	return conv.SliceToSlice(bindInfo, func(info types.ServiceInstanceProcessBindInfo) serviceInstanceProcessBindInfo {
+		return serviceInstanceProcessBindInfo{
+			Enable:        info.Enable,
+			IP:            info.IP,
+			Port:          info.Port,
+			Protocol:      info.Protocol,
+			TemplateRowID: info.TemplateRowID,
+		}
+	})
+}
+
+func convertTargetHostToTypes(host targetHost) types.Host {
+	return types.Host{
+		HostID:   host.HostID,
+		TenantID: host.TenantID,
+		Static:   convertTargetHostStaticToTypes(host.Static),
+		Dynamic:  convertTargetHostDynamicToTypes(host.Dynamic),
+	}
+}
+
+func convertTargetHostFromTypes(host types.Host) targetHost {
+	return targetHost{
+		HostID:   host.HostID,
+		TenantID: host.TenantID,
+		Static:   convertTargetHostStaticFromTypes(host.Static),
+		Dynamic:  convertTargetHostDynamicFromTypes(host.Dynamic),
+	}
+}
+
+func convertTargetHostStaticToTypes(static *targetHostStatic) *types.HostStatic {
+	if static == nil {
+		return &types.HostStatic{}
+	}
+
+	return &types.HostStatic{
+		BizID:         static.BizID,
+		Topo:          convertTargetHostToposToTypes(static.Topo),
+		NetworkAreaID: static.NetworkAreaID,
+		ZoneID:        static.ZoneID,
+		CityID:        static.CityID,
+		HostName:      static.HostName,
+		DeptName:      static.DeptName,
+		InnerIPList:   static.InnerIPList,
+		InnerIPV6List: static.InnerIPV6List,
+		OuterIPList:   static.OuterIPList,
+		OuterIPV6List: static.OuterIPV6List,
+		Operator:      static.Operator,
+		Mac:           static.Mac,
+		OSTypeCCID:    static.OSTypeCCID,
+		OSType:        static.OSType,
+		Arch:          static.Arch,
+		Addressing:    types.Addressing(static.Addressing),
+		CPUNum:        static.CPUNum,
+		MemCap:        static.MemCap,
+		SyncedAgentID: static.SyncedAgentID,
+	}
+}
+
+func convertTargetHostStaticFromTypes(static *types.HostStatic) *targetHostStatic {
+	if static == nil {
+		return &targetHostStatic{}
+	}
+
+	return &targetHostStatic{
+		BizID:         static.BizID,
+		Topo:          convertTargetHostToposFromTypes(static.Topo),
+		NetworkAreaID: static.NetworkAreaID,
+		ZoneID:        static.ZoneID,
+		CityID:        static.CityID,
+		HostName:      static.HostName,
+		DeptName:      static.DeptName,
+		InnerIPList:   static.InnerIPList,
+		InnerIPV6List: static.InnerIPV6List,
+		OuterIPList:   static.OuterIPList,
+		OuterIPV6List: static.OuterIPV6List,
+		Operator:      static.Operator,
+		Mac:           static.Mac,
+		OSTypeCCID:    static.OSTypeCCID,
+		OSType:        static.OSType,
+		Arch:          static.Arch,
+		Addressing:    string(static.Addressing),
+		CPUNum:        static.CPUNum,
+		MemCap:        static.MemCap,
+		SyncedAgentID: static.SyncedAgentID,
+	}
+}
+
+func convertTargetHostToposToTypes(topos []targetHostTopo) []*types.HostTopo {
+	return conv.SliceToSlice(topos, func(topo targetHostTopo) *types.HostTopo {
+		return &types.HostTopo{
+			SetID:    topo.SetID,
+			ModuleID: topo.ModuleID,
+		}
+	})
+}
+
+func convertTargetHostToposFromTypes(topos []*types.HostTopo) []targetHostTopo {
+	return conv.SliceToSlice(topos, func(topo *types.HostTopo) targetHostTopo {
+		return targetHostTopo{
+			SetID:    topo.SetID,
+			ModuleID: topo.ModuleID,
+		}
+	})
+}
+
+func convertTargetHostDynamicToTypes(dynamic *targetHostDynamic) *types.HostDynamic {
+	if dynamic == nil {
+		return &types.HostDynamic{}
+	}
+
+	return &types.HostDynamic{
+		NodeRole:                 types.NodeRole(dynamic.NodeRole),
+		NodeStatus:               types.NodeStatus(dynamic.NodeStatus),
+		NodeVersion:              dynamic.NodeVersion,
+		NodeGeneration:           types.Generation(dynamic.NodeGeneration),
+		NodeCPUArch:              criteria.CPUArch(dynamic.NodeCPUArch),
+		NodeOsType:               criteria.OSType(dynamic.NodeOsType),
+		AgentID:                  dynamic.AgentID,
+		NetworkUnitID:            dynamic.NetworkUnitID,
+		ProxyAccessDisabled:      dynamic.ProxyAccessDisabled,
+		ProxyTags:                convertProxyTagsToTypes(dynamic.ProxyTags),
+		ProxyInstallOriginUnitID: dynamic.ProxyInstallOriginUnitID,
+		ProxyClusterPort:         dynamic.ProxyClusterPort,
+		ProxyDataPort:            dynamic.ProxyDataPort,
+		ProxyFilePort:            dynamic.ProxyFilePort,
+		LoginIP:                  dynamic.LoginIP,
+		LoginUser:                dynamic.LoginUser,
+		LoginMode:                types.LoginMode(dynamic.LoginMode),
+		ExportIP:                 dynamic.ExportIP,
+		ExportIPV6:               dynamic.ExportIPV6,
+		AdvertiseIP:              dynamic.AdvertiseIP,
+		AdvertiseIPV6:            dynamic.AdvertiseIPV6,
+		RelayDownloadPort:        dynamic.RelayDownloadPort,
+		RelayCallbackPort:        dynamic.RelayCallbackPort,
+	}
+}
+
+func convertTargetHostDynamicFromTypes(dynamic *types.HostDynamic) *targetHostDynamic {
+	if dynamic == nil {
+		return &targetHostDynamic{}
+	}
+
+	return &targetHostDynamic{
+		NodeRole:                 string(dynamic.NodeRole),
+		NodeStatus:               string(dynamic.NodeStatus),
+		NodeVersion:              dynamic.NodeVersion,
+		NodeGeneration:           int64(dynamic.NodeGeneration),
+		NodeCPUArch:              string(dynamic.NodeCPUArch),
+		NodeOsType:               string(dynamic.NodeOsType),
+		AgentID:                  dynamic.AgentID,
+		NetworkUnitID:            dynamic.NetworkUnitID,
+		ProxyAccessDisabled:      dynamic.ProxyAccessDisabled,
+		ProxyTags:                convertProxyTagsFromTypes(dynamic.ProxyTags),
+		ProxyInstallOriginUnitID: dynamic.ProxyInstallOriginUnitID,
+		ProxyClusterPort:         dynamic.ProxyClusterPort,
+		ProxyDataPort:            dynamic.ProxyDataPort,
+		ProxyFilePort:            dynamic.ProxyFilePort,
+		LoginIP:                  dynamic.LoginIP,
+		LoginUser:                dynamic.LoginUser,
+		LoginMode:                string(dynamic.LoginMode),
+		ExportIP:                 dynamic.ExportIP,
+		ExportIPV6:               dynamic.ExportIPV6,
+		AdvertiseIP:              dynamic.AdvertiseIP,
+		AdvertiseIPV6:            dynamic.AdvertiseIPV6,
+		RelayDownloadPort:        dynamic.RelayDownloadPort,
+		RelayCallbackPort:        dynamic.RelayCallbackPort,
+	}
+}
+
+func convertProxyTagsToTypes(tags []string) []types.ProxyTag {
+	return conv.SliceToSlice(tags, func(tag string) types.ProxyTag {
+		return types.ProxyTag(tag)
+	})
+}
+
+func convertProxyTagsFromTypes(tags []types.ProxyTag) []string {
+	return conv.SliceToSlice(tags, func(tag types.ProxyTag) string {
+		return string(tag)
+	})
 }
 
 func convertPluginDeploymentPluginConfToTypes(conf *PluginConf) *types.PluginDeploymentPluginConf {

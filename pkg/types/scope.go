@@ -80,8 +80,16 @@ func (granularity TargetGranularity) Validate() error {
 
 // Target define the target.
 type Target struct {
-	Host            Host
-	ServiceInstance ServiceInstance
+	Host                 Host
+	ServiceInstance      ServiceInstance
+	MatchedTopoRelations []TargetMatchedTopoRelation
+}
+
+// TargetMatchedTopoRelation defines the topo relation matched by the target.
+// An empty list means the target does not carry matched topo relations.
+type TargetMatchedTopoRelation struct {
+	TopoObjID  string
+	TopoInstID int64
 }
 
 // UniqueID returns the unique id of the target.

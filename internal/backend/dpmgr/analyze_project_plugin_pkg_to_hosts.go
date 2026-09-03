@@ -66,6 +66,7 @@ func (analyzer *Analyzer) analyzeProjectPluginPkgToHosts(
 					Action:         ChangeActionPluginPkgInstall,
 					Spec:           params.Spec,
 					Target:         target,
+					ConfigSource:   sourceTarget,
 				})
 
 				continue
@@ -77,6 +78,7 @@ func (analyzer *Analyzer) analyzeProjectPluginPkgToHosts(
 					Action:         ChangeActionPluginPkgUpgrade,
 					Spec:           params.Spec,
 					Target:         target,
+					ConfigSource:   sourceTarget,
 				})
 			}
 		}

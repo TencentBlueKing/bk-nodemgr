@@ -43,6 +43,7 @@ type ChangeTask struct {
 	Action         ChangeAction
 	Spec           *types.DeploySpec
 	Target         *types.Target
+	ConfigSource   *types.Target
 }
 
 // ChangeAction defines the change action.

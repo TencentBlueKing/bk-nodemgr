@@ -61,6 +61,7 @@ type pluginPkgTaskParam struct {
 	pluginPkgName       string
 	version             string
 	customConfigContext map[string]any
+	configSource        *types.Target
 }
 
 // NewExecutor create a new executor.
@@ -696,6 +697,7 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 				HostID:     task.Target.Host.HostID,
 				PluginName: plugins[idx].Name,
 			},
+			ConfigSource: getTaskConfigSource(param),
 			InstallOptions: types.PluginDeploymentInstallOptions{
 				Version: param.version,
 			},
@@ -752,6 +754,7 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.pluginName,
 			},
+			ConfigSource: getTaskConfigSource(param),
 			InstallOptions: types.PluginDeploymentInstallOptions{
 				Version: param.version,
 			},
@@ -879,7 +882,16 @@ func getProjectPluginPkgToHostsTaskParam(task *ChangeTask) (*pluginPkgTaskParam,
 		pluginPkgName:       param.PluginPkgName,
 		version:             param.Version,
 		customConfigContext: param.CustomConfigContext,
+		configSource:        task.ConfigSource,
 	}, nil
+}
+
+func getTaskConfigSource(param *pluginPkgTaskParam) types.Target {
+	if param.configSource == nil {
+		return types.Target{}
+	}
+
+	return *param.configSource
 }
 
 // ===============================================================================

@@ -24,6 +24,7 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -336,5 +337,133 @@ func TestConvertPluginDeploymentInfoKeepsDebugCmd(t *testing.T) {
 	}
 	if got.Process.Controller.DebugCmd != "debug.sh" {
 		t.Fatalf("convertPluginDeploymentInfoToTypes() DebugCmd = %q, want %q", got.Process.Controller.DebugCmd, "debug.sh")
+	}
+}
+
+func TestConvertPluginDeploymentInfoKeepsConfigSource(t *testing.T) {
+	processCreateTime := time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC)
+	processLastTime := time.Date(2026, 9, 3, 10, 1, 0, 0, time.UTC)
+	info := &types.PluginDeploymentInfo{
+		ConfigSource: types.Target{
+			Host: types.Host{
+				HostID:   1001,
+				TenantID: "tenant-1",
+				Static: &types.HostStatic{
+					BizID:       2001,
+					InnerIPList: []string{"127.0.0.1"},
+				},
+				Dynamic: &types.HostDynamic{
+					LoginIP: "127.0.0.2",
+				},
+			},
+			ServiceInstance: types.ServiceInstance{
+				ID:     3001,
+				Name:   "svc-1",
+				Labels: map[string]string{"CMDB_LABEL_1": "something"},
+				Processes: map[string]types.ServiceInstanceProcess{
+					"process-1": {
+						AutoStart:       true,
+						BizID:           2001,
+						FuncName:        "func-1",
+						ProcessID:       7001,
+						ProcessName:     "process-1",
+						StartParamRegex: "--config config.yaml",
+						SupplierAccount: "0",
+						CreateTime:      processCreateTime,
+						LastTime:        processLastTime,
+						Description:     "process description",
+						FaceStopCmd:     "kill",
+						PidFile:         "/var/run/process.pid",
+						Priority:        1,
+						ProcNum:         2,
+						ReloadCmd:       "reload",
+						RestartCmd:      "restart",
+						StartCmd:        "start",
+						StopCmd:         "stop",
+						Timeout:         3,
+						User:            "root",
+						WorkPath:        "/data/process",
+						CreateAt:        "2026-09-03T10:00:00Z",
+						CreateBy:        "creator",
+						UpdateAt:        "2026-09-03T10:01:00Z",
+						UpdateBy:        "updater",
+						BindInfo: []types.ServiceInstanceProcessBindInfo{
+							{Enable: true, IP: "127.0.0.1", Port: "8080", Protocol: "tcp", TemplateRowID: 8001},
+						},
+					},
+				},
+				BizID:             2001,
+				HostID:            1001,
+				ModuleID:          4001,
+				ServiceTemplateID: 5001,
+				ServiceCategoryID: 6001,
+			},
+			MatchedTopoRelations: []types.TargetMatchedTopoRelation{
+				{TopoObjID: "module", TopoInstID: 4001},
+			},
+		},
+	}
+
+	data, err := convertPluginDeploymentInfoFromTypes(info)
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() error = %v", err)
+	}
+	if data.ConfigSource.Host.HostID != 1001 {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() ConfigSource.Host.HostID = %d, want %d",
+			data.ConfigSource.Host.HostID, 1001)
+	}
+	if data.ConfigSource.ServiceInstance.ID != 3001 {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() ConfigSource.ServiceInstance.ID = %d, want %d",
+			data.ConfigSource.ServiceInstance.ID, 3001)
+	}
+	if data.ConfigSource.ServiceInstance.Labels["CMDB_LABEL_1"] != "something" {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() ConfigSource.ServiceInstance.Labels[CMDB_LABEL_1] = %q, want %q",
+			data.ConfigSource.ServiceInstance.Labels["CMDB_LABEL_1"], "something")
+	}
+	if data.ConfigSource.ServiceInstance.Processes["process-1"].ProcessID != 7001 {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() ConfigSource.ServiceInstance.Processes[process-1].ProcessID = %d, want %d",
+			data.ConfigSource.ServiceInstance.Processes["process-1"].ProcessID, 7001)
+	}
+	if len(data.ConfigSource.MatchedTopoRelations) != 1 {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() ConfigSource.MatchedTopoRelations length = %d, want %d",
+			len(data.ConfigSource.MatchedTopoRelations), 1)
+	}
+
+	got, err := convertPluginDeploymentInfoToTypes(data)
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() error = %v", err)
+	}
+	if got.ConfigSource.Host.HostID != 1001 {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.Host.HostID = %d, want %d",
+			got.ConfigSource.Host.HostID, 1001)
+	}
+	if got.ConfigSource.Host.Static.BizID != 2001 {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.Host.Static.BizID = %d, want %d",
+			got.ConfigSource.Host.Static.BizID, 2001)
+	}
+	if got.ConfigSource.ServiceInstance.ModuleID != 4001 {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.ServiceInstance.ModuleID = %d, want %d",
+			got.ConfigSource.ServiceInstance.ModuleID, 4001)
+	}
+	if got.ConfigSource.ServiceInstance.Labels["CMDB_LABEL_1"] != "something" {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.ServiceInstance.Labels[CMDB_LABEL_1] = %q, want %q",
+			got.ConfigSource.ServiceInstance.Labels["CMDB_LABEL_1"], "something")
+	}
+	process := got.ConfigSource.ServiceInstance.Processes["process-1"]
+	if process.ProcessName != "process-1" {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.ServiceInstance.Processes[process-1].ProcessName = %q, want %q",
+			process.ProcessName, "process-1")
+	}
+	if process.BindInfo[0].Port != "8080" {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.ServiceInstance.Processes[process-1].BindInfo[0].Port = %q, want %q",
+			process.BindInfo[0].Port, "8080")
+	}
+	if len(got.ConfigSource.MatchedTopoRelations) != 1 {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.MatchedTopoRelations length = %d, want %d",
+			len(got.ConfigSource.MatchedTopoRelations), 1)
+	}
+	if got.ConfigSource.MatchedTopoRelations[0].TopoObjID != "module" {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.MatchedTopoRelations[0].TopoObjID = %q, want %q",
+			got.ConfigSource.MatchedTopoRelations[0].TopoObjID, "module")
 	}
 }
