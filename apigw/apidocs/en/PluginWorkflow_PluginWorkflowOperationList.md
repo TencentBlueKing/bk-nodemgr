@@ -14,7 +14,7 @@ POST /api/v3/plugin/workflow/operation/list
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | only_count | bool | No | Whether to return only the count without operation details |
-| page | object | No | Pagination configuration |
+| page | object | No | Pagination configuration; required with a valid value when `only_count=false` or omitted |
 | workflow_id | string | Yes | Plugin workflow ID; cannot be empty |
 | exact_include_conditions | object | No | Exact match include conditions |
 | fuzzy_include_conditions | object | No | Fuzzy match include conditions; currently empty |
@@ -24,7 +24,7 @@ POST /api/v3/plugin/workflow/operation/list
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | offset | int32 | No | Pagination start position, starting from `0` |
-| limit | int32 | No | Records per page; maximum value is `500` |
+| limit | int32 | Yes | Records per page; value range is `(0, 500]` |
 
 #### exact_include_conditions
 
@@ -173,5 +173,6 @@ The object is currently empty. Pass `{}` or omit it.
 
 - The backend queries operations using the workflow-linked `trigger_id`, then joins plugin deployment information by operation token.
 - `bk_biz_id` is declared in the request Proto, but the current converter does not pass it to operation or plugin deployment query conditions, so it currently has no filtering effect.
+- When `only_count=false` or omitted, `page.limit` must be in `(0, 500]`; when `only_count=true`, `page` is not required.
 - When `only_count=true`, the response includes `data.total` and `data.operations` is an empty array.
 - `life_cycle.stop_time` for the latest operation instance is declared in the shared Proto but is not set by the current response converter, so it is omitted from the success example.

@@ -21,13 +21,14 @@ POST /api/v3/plugin/workflow/distinct
 | 参数名称 | 参数类型 | 必选 | 描述 |
 | --- | --- | --- | --- |
 | workflow_id | string array | 否 | 任务流 ID 列表 |
-| type | string array | 否 | 插件任务流类型列表，可选值：`install_plugin`、`upgrade_plugin`、`uninstall_plugin`、`reconfig_plugin`、`apply_plugin_subconfig`、`restart_plugin`、`stop_plugin`、`stop_plugin_v2`、`ensure_plugin_v2`、`uninstall_plugin_v2`、`migrate_plugin_v2` |
+| type | string array | 否 | 插件任务流类型列表，可选值：`install_plugin`、`upgrade_plugin`、`uninstall_plugin`、`reconfig_plugin`、`apply_plugin_subconfig`、`remove_plugin_subconfig`、`start_plugin`、`restart_plugin`、`stop_plugin`、`debug_plugin`、`stop_plugin_v2`、`migrate_plugin_v2` |
 | bk_host_id | int64 array | 否 | 主机 ID 列表 |
 | status | string array | 否 | 任务流状态列表，可选值：`running`、`success`、`failed`、`partial_failed` |
 | operator | string array | 否 | 操作人列表 |
 | bk_host_innerip | string array | 否 | 主机内网 IPv4 列表 |
 | bk_host_innerip_v6 | string array | 否 | 主机内网 IPv6 列表 |
 | bk_biz_id | int64 array | 否 | 业务 ID 列表 |
+| deploy_policy_id | int64 array | 否 | 部署策略 ID 列表 |
 
 #### fuzzy_include_conditions
 

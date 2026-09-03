@@ -14,7 +14,7 @@ POST /api/v3/plugin/workflow/operation/list
 | 参数名称 | 参数类型 | 必选 | 描述 |
 | --- | --- | --- | --- |
 | only_count | bool | 否 | 是否只返回总数，不返回操作详情 |
-| page | object | 否 | 分页配置 |
+| page | object | 否 | 分页配置；当 `only_count=false` 或未传时需传入有效分页 |
 | workflow_id | string | 是 | 插件任务流 ID，不可为空 |
 | exact_include_conditions | object | 否 | 精确匹配包含条件 |
 | fuzzy_include_conditions | object | 否 | 模糊匹配包含条件，当前对象为空 |
@@ -24,7 +24,7 @@ POST /api/v3/plugin/workflow/operation/list
 | 参数名称 | 参数类型 | 必选 | 描述 |
 | --- | --- | --- | --- |
 | offset | int32 | 否 | 分页起始位置，起始值为 `0` |
-| limit | int32 | 否 | 每页条数，最大值为 `500` |
+| limit | int32 | 是 | 每页条数，取值范围为 `(0, 500]` |
 
 #### exact_include_conditions
 
@@ -173,5 +173,6 @@ POST /api/v3/plugin/workflow/operation/list
 
 - 后端根据任务流关联的 `trigger_id` 查询操作，并根据操作 token 关联插件部署信息。
 - `bk_biz_id` 已在请求 Proto 中声明，但当前转换器不将其传入操作或插件部署查询条件，因此该字段当前不产生过滤效果。
+- 当 `only_count=false` 或未传时，`page.limit` 必须在 `(0, 500]` 范围内；当 `only_count=true` 时不需要传 `page`。
 - 当 `only_count=true` 时，返回 `data.total`，`data.operations` 为空数组。
 - 最新操作实例的 `life_cycle.stop_time` 已在共享 Proto 中声明，但当前响应转换器未设置该字段，因此成功示例不包含它。

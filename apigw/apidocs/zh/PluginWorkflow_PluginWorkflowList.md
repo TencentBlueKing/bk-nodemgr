@@ -13,7 +13,7 @@ POST /api/v3/plugin/workflow/list
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 | --- | --- | --- | --- |
-| page | object | 否 | 分页配置 |
+| page | object | 否 | 分页配置；当 `only_count=false` 或未传时需传入有效分页 |
 | only_count | bool | 否 | 是否只返回总数，不返回任务流详情 |
 | exact_include_conditions | object | 否 | 精确匹配包含条件 |
 | fuzzy_include_conditions | object | 否 | 模糊匹配包含条件，当前对象为空 |
@@ -24,20 +24,21 @@ POST /api/v3/plugin/workflow/list
 | 参数名称 | 参数类型 | 必选 | 描述 |
 | --- | --- | --- | --- |
 | offset | int32 | 否 | 分页起始位置，起始值为 `0` |
-| limit | int32 | 否 | 每页条数，最大值为 `500` |
+| limit | int32 | 是 | 每页条数，取值范围为 `(0, 500]` |
 
 #### exact_include_conditions
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 | --- | --- | --- | --- |
 | workflow_id | string array | 否 | 任务流 ID 列表 |
-| type | string array | 否 | 插件任务流类型列表，可选值：`install_plugin`、`upgrade_plugin`、`uninstall_plugin`、`reconfig_plugin`、`apply_plugin_subconfig`、`restart_plugin`、`stop_plugin`、`stop_plugin_v2`、`ensure_plugin_v2`、`uninstall_plugin_v2`、`migrate_plugin_v2` |
+| type | string array | 否 | 插件任务流类型列表，可选值：`install_plugin`、`upgrade_plugin`、`uninstall_plugin`、`reconfig_plugin`、`apply_plugin_subconfig`、`remove_plugin_subconfig`、`start_plugin`、`restart_plugin`、`stop_plugin`、`debug_plugin`、`stop_plugin_v2`、`migrate_plugin_v2` |
 | bk_host_id | int64 array | 否 | 主机 ID 列表 |
 | status | string array | 否 | 任务流状态列表，可选值：`running`、`success`、`failed`、`partial_failed` |
 | operator | string array | 否 | 操作人列表 |
 | bk_host_innerip | string array | 否 | 主机内网 IPv4 列表 |
 | bk_host_innerip_v6 | string array | 否 | 主机内网 IPv6 列表 |
 | bk_biz_id | int64 array | 否 | 业务 ID 列表 |
+| deploy_policy_id | int64 array | 否 | 部署策略 ID 列表 |
 
 #### fuzzy_include_conditions
 
@@ -91,7 +92,8 @@ POST /api/v3/plugin/workflow/list
         "operate_time": 1719820000000,
         "finish_time": 1719820300000,
         "status": "running",
-        "bk_biz_id": [2]
+        "bk_biz_id": [2],
+        "deploy_policy_ids": [10001]
       }
     ]
   }
@@ -130,9 +132,11 @@ POST /api/v3/plugin/workflow/list
 | finish_time | int64 | 完成时间，Unix 毫秒时间戳 |
 | status | string | 任务流状态，枚举值同 `exact_include_conditions.status` |
 | bk_biz_id | int64 array | 业务 ID 列表 |
+| deploy_policy_ids | int64 array | 部署策略 ID 列表 |
 
 ### 处理规则说明
 
 - 后端按 `plugin_history_view` 权限收敛请求可查询的业务范围。
+- 当 `only_count=false` 或未传时，`page.limit` 必须在 `(0, 500]` 范围内；当 `only_count=true` 时不需要传 `page`。
 - 当 `only_count=true` 时，返回 `data.total`，`data.items` 为空数组。
 - `tenant_id` 已在 Proto 中声明，但当前响应转换器未设置该字段，因此成功示例不包含它。

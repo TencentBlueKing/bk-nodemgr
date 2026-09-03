@@ -21,13 +21,14 @@ POST /api/v3/plugin/workflow/distinct
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | workflow_id | string array | No | Workflow ID list |
-| type | string array | No | Plugin workflow type list. Available values: `install_plugin`, `upgrade_plugin`, `uninstall_plugin`, `reconfig_plugin`, `apply_plugin_subconfig`, `restart_plugin`, `stop_plugin`, `stop_plugin_v2`, `ensure_plugin_v2`, `uninstall_plugin_v2`, `migrate_plugin_v2` |
+| type | string array | No | Plugin workflow type list. Available values: `install_plugin`, `upgrade_plugin`, `uninstall_plugin`, `reconfig_plugin`, `apply_plugin_subconfig`, `remove_plugin_subconfig`, `start_plugin`, `restart_plugin`, `stop_plugin`, `debug_plugin`, `stop_plugin_v2`, `migrate_plugin_v2` |
 | bk_host_id | int64 array | No | Host ID list |
 | status | string array | No | Workflow status list. Available values: `running`, `success`, `failed`, `partial_failed` |
 | operator | string array | No | Operator list |
 | bk_host_innerip | string array | No | Host inner IPv4 list |
 | bk_host_innerip_v6 | string array | No | Host inner IPv6 list |
 | bk_biz_id | int64 array | No | Business ID list |
+| deploy_policy_id | int64 array | No | Deploy policy ID list |
 
 #### fuzzy_include_conditions
 

@@ -13,7 +13,7 @@ POST /api/v3/plugin/workflow/list
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| page | object | No | Pagination configuration |
+| page | object | No | Pagination configuration; required with a valid value when `only_count=false` or omitted |
 | only_count | bool | No | Whether to return only the count without workflow details |
 | exact_include_conditions | object | No | Exact match include conditions |
 | fuzzy_include_conditions | object | No | Fuzzy match include conditions; currently empty |
@@ -24,20 +24,21 @@ POST /api/v3/plugin/workflow/list
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | offset | int32 | No | Pagination start position, starting from `0` |
-| limit | int32 | No | Records per page; maximum value is `500` |
+| limit | int32 | Yes | Records per page; value range is `(0, 500]` |
 
 #### exact_include_conditions
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | workflow_id | string array | No | Workflow ID list |
-| type | string array | No | Plugin workflow type list. Available values: `install_plugin`, `upgrade_plugin`, `uninstall_plugin`, `reconfig_plugin`, `apply_plugin_subconfig`, `restart_plugin`, `stop_plugin`, `stop_plugin_v2`, `ensure_plugin_v2`, `uninstall_plugin_v2`, `migrate_plugin_v2` |
+| type | string array | No | Plugin workflow type list. Available values: `install_plugin`, `upgrade_plugin`, `uninstall_plugin`, `reconfig_plugin`, `apply_plugin_subconfig`, `remove_plugin_subconfig`, `start_plugin`, `restart_plugin`, `stop_plugin`, `debug_plugin`, `stop_plugin_v2`, `migrate_plugin_v2` |
 | bk_host_id | int64 array | No | Host ID list |
 | status | string array | No | Workflow status list. Available values: `running`, `success`, `failed`, `partial_failed` |
 | operator | string array | No | Operator list |
 | bk_host_innerip | string array | No | Host inner IPv4 list |
 | bk_host_innerip_v6 | string array | No | Host inner IPv6 list |
 | bk_biz_id | int64 array | No | Business ID list |
+| deploy_policy_id | int64 array | No | Deploy policy ID list |
 
 #### fuzzy_include_conditions
 
@@ -91,7 +92,8 @@ The object is currently empty. Pass `{}` or omit it.
         "operate_time": 1719820000000,
         "finish_time": 1719820300000,
         "status": "running",
-        "bk_biz_id": [2]
+        "bk_biz_id": [2],
+        "deploy_policy_ids": [10001]
       }
     ]
   }
@@ -130,9 +132,11 @@ The object is currently empty. Pass `{}` or omit it.
 | finish_time | int64 | Finish time as a Unix timestamp in milliseconds |
 | status | string | Workflow status; enum values are the same as `exact_include_conditions.status` |
 | bk_biz_id | int64 array | Business ID list |
+| deploy_policy_ids | int64 array | Deploy policy ID list |
 
 ### Processing Rules
 
 - The backend narrows the queryable business scope according to `plugin_history_view` permission.
+- When `only_count=false` or omitted, `page.limit` must be in `(0, 500]`; when `only_count=true`, `page` is not required.
 - When `only_count=true`, the response includes `data.total` and `data.items` is an empty array.
 - `tenant_id` is declared in the Proto but is not set by the current response converter, so it is omitted from the success example.
