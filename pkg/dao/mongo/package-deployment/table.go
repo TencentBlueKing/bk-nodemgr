@@ -40,6 +40,12 @@ type Info struct {
 	Release                []release              `json:"release" bson:"release"`
 	Upload                 uploadInfo             `json:"upload" bson:"upload"`
 	ImportPluginPkgOptions importPluginPkgOptions `json:"import_plugin_pkg_options" bson:"import_plugin_pkg_options"`
+	ExportPluginPkgOptions exportPluginPkgOptions `json:"export_plugin_pkg_options" bson:"export_plugin_pkg_options"`
+}
+
+type exportPluginPkgOptions struct {
+	PluginPkgName    string `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
+	PluginPkgVersion string `json:"plugin_pkg_version" bson:"plugin_pkg_version"`
 }
 
 type importPluginPkgOptions struct {

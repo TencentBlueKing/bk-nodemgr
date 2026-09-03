@@ -11,6 +11,9 @@
 package pkg
 
 import (
+	"errors"
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -92,12 +95,11 @@ func (h *handler) PackageExternalPluginV2Import(rCtx restserver.IContext) (inter
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	deployment := h.generatePackageImportDeployment(req.GetFilename(), req.GetDownloadUrl(), req.GetMd5())
 	workflowID, err := h.pkgMgrIface.LaunchPackageImportExternalPluginV2Pkg(rCtx, types.PackageImportParam{
-		Type: types.PackageWorkflowTypeImport,
-		PackageDeployments: []*types.PackageDeployment{
-			h.generatePackageImportDeployment(req.GetFilename(), req.GetDownloadUrl(), req.GetMd5()),
-		},
-		Operator: rCtx.BKUsername(),
+		Type:               types.PackageWorkflowTypeImport,
+		PackageDeployments: []*types.PackageDeployment{deployment},
+		Operator:           rCtx.BKUsername(),
 	})
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to import package, failed to launch workflow")
@@ -173,6 +175,100 @@ func (h *handler) PackageImportResult(rCtx restserver.IContext) (interface{}, er
 
 	resp := new(protoBackend.PackageImportResultResp)
 	resp.ConvertResultFromTypes(packageWorkflow, instances)
+
+	return resp.GetData(), nil
+}
+
+// PackageExportPlugin launches a plugin package export workflow.
+func (h *handler) PackageExportPlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageExportPluginReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to export plugin package, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	deployment := h.generatePackageExportDeployment(req.GetPluginPkgName(), req.GetPluginPkgVersion())
+	workflowID, err := h.pkgMgrIface.LaunchPackageExportPlugin(rCtx, types.PackageExportParam{
+		Type:               types.PackageWorkflowTypeExport,
+		PackageDeployments: []*types.PackageDeployment{deployment},
+		Operator:           rCtx.BKUsername(),
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to export plugin package, failed to launch workflow")
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
+	resp := &protoBackend.PackageExportPluginResp{
+		Data: &protoBackend.PackageExportPluginResp_Data{
+			WorkflowId: workflowID,
+		},
+	}
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) generatePackageExportDeployment(pluginPkgName, pluginPkgVersion string) *types.PackageDeployment {
+	deployment := types.NewPackageDeployment(&types.PackageDeploymentInfo{
+		ExportPluginPkgOptions: types.PackageExportPluginPkgOptions{
+			PluginPkgName:    pluginPkgName,
+			PluginPkgVersion: pluginPkgVersion,
+		},
+	})
+
+	return deployment
+}
+
+// PackageExportResult gets the result of a plugin package export workflow.
+func (h *handler) PackageExportResult(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageExportResultReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get plugin package export result, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	packageWorkflow, err := h.daoPackageWorkflow.GetPackageWorkflow(rCtx, req.GetWorkflowId())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get package export workflow")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	var downloadURL string
+	var downloadURLExpiredAt time.Time
+	if packageWorkflow.Status != types.PackageWorkflowStatusSuccess {
+		resp := new(protoBackend.PackageExportResultResp)
+		resp.ConvertResultFromTypes(packageWorkflow, downloadURL, downloadURLExpiredAt)
+
+		return resp.GetData(), nil
+	}
+
+	exports, _, err := h.packageExportStorage.ListPackageExport(
+		rCtx,
+		types.SingleItemPage(),
+		&types.PackageExportCondition{ExactInclude: &types.PackageExportExactFields{
+			WorkflowID: []string{req.GetWorkflowId()},
+		}},
+	)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get plugin package export record")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	if len(exports) == 0 {
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, errors.New("package export is not available"))
+	}
+
+	var expiredAt int64
+	downloadURL, expiredAt, err = h.fileHandler.ExportGetOriginPluginPackageDownloadAddress(rCtx, exports[0].ExportID)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get plugin package export download address")
+
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+	downloadURLExpiredAt = time.UnixMilli(expiredAt)
+
+	resp := new(protoBackend.PackageExportResultResp)
+	resp.ConvertResultFromTypes(packageWorkflow, downloadURL, downloadURLExpiredAt)
 
 	return resp.GetData(), nil
 }

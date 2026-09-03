@@ -29,7 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	packagedeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-deployment"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
+	packageexport "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
 	packageworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -50,14 +50,18 @@ const (
 
 	metricOperationCreatePackageWorkflow    = "create_package_workflow"
 	metricOperationGetPackageWorkflow       = "get_package_workflow"
+	metricOperationGetPackageExportWorkflow = "get_package_export_workflow"
+
 	metricOperationCreatePackageDeployment  = "create_pkg_deployment"
 	metricOperationListPackageDeployment    = "list_pkg_deployment"
 	metricOperationGetPackageDeploymentInfo = "get_pkg_deployment_info"
 	metricOperationUpdatePackageDeployment  = "update_pkg_deployment_info"
-	metricOperationListPackageExport        = "list_package_export"
-	metricOperationCreatePackageExport      = "create_package_export"
-	metricOperationGetPackageExport         = "get_package_export"
-	metricOperationDeletePackageExport      = "delete_package_export"
+
+	metricOperationListPackageExport   = "list_package_export"
+	metricOperationCreatePackageExport = "create_package_export"
+	metricOperationGetPackageExport    = "get_package_export"
+	metricOperationUpdatePackageExport = "update_package_export"
+	metricOperationDeletePackageExport = "delete_package_export"
 )
 
 // NewStorage creates a new package storage.
@@ -417,6 +421,25 @@ func (s *Storage) GetPackageWorkflow(nCtx contextx.IContext, workflowID string) 
 	return workflow, err
 }
 
+// GetPackageExportWorkflowByTriggerID gets the unique export workflow by trigger ID.
+func (s *Storage) GetPackageExportWorkflowByTriggerID(nCtx contextx.IContext, triggerID string) (*types.PackageWorkflow, error) {
+	var workflow *types.PackageWorkflow
+	err := s.WrapFn(nCtx, metricOperationGetPackageExportWorkflow, func(nCtx contextx.IContext) error {
+		var err error
+		workflow, err = s.getPackageExportWorkflowByTriggerID(nCtx, triggerID)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("trigger-id", triggerID).
+				Error("failed to get package export workflow")
+
+			return fmt.Errorf("failed to get package export workflow, trigger-id(%s): %w", triggerID, err)
+		}
+
+		return nil
+	})
+
+	return workflow, err
+}
+
 // CreatePackageDeployment creates a package deployment record.
 func (s *Storage) CreatePackageDeployment(nCtx contextx.IContext, deployment *types.PackageDeployment) error {
 	if deployment == nil {
@@ -487,8 +510,7 @@ func (s *Storage) UpdatePackageDeploymentInfo(nCtx contextx.IContext, token stri
 }
 
 // ListPackageExport lists package export records.
-func (s *Storage) ListPackageExport(
-	nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) (
+func (s *Storage) ListPackageExport(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) (
 	[]*types.PackageExport, int64, error) {
 
 	var exports []*types.PackageExport
@@ -521,6 +543,13 @@ func (s *Storage) GetPackageExport(nCtx contextx.IContext, exportID string) (*ty
 	})
 
 	return exportData, err
+}
+
+// UpdatePackageExport updates a specified field of a package export record.
+func (s *Storage) UpdatePackageExport(nCtx contextx.IContext, fields types.PackageExportFields, exportData ...*types.PackageExport) error {
+	return s.WrapFn(nCtx, metricOperationUpdatePackageExport, func(nCtx contextx.IContext) error {
+		return s.updatePackageExport(nCtx, fields, exportData...)
+	})
 }
 
 // DeletePackageExport deletes a package export by export ID.

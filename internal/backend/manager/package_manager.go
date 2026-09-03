@@ -267,3 +267,84 @@ func (mgr *Manager) getPackageImportExternalPluginV2(nCtx contextx.IContext, dep
 		Operator: operator,
 	})
 }
+
+// LaunchPackageExportPlugin launches a plugin package export workflow.
+func (mgr *Manager) LaunchPackageExportPlugin(nCtx contextx.IContext, param types.PackageExportParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePackage.CreatePackageWorkflow(nCtx, &types.PackageWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PackageWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pkgDeploy := range param.PackageDeployments {
+		deploy := pkgDeploy
+
+		gp.Go(func() error {
+			return mgr.createPackageExportPluginOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch export plugin task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createPackageExportPluginOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PackageDeployment) error {
+
+	if err := mgr.conf.StoragePackage.CreatePackageDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("trigger-id", triggerCtl.GetTriggerID(), "package-token", deploy.Token).
+			Error("failed to create package deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPackageExportPlugin(nCtx, deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("package-token", deploy.Token).
+			Error("failed to create package export plugin operation.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("package-token", deploy.Token).
+		Info("launched export plugin task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPackageExportPlugin(nCtx contextx.IContext, deploy *types.PackageDeployment, operator string) operation.Definition {
+	return pkg.NewOperPackageExportPlugin(pkg.OperParamPackageExportPlugin{
+		TenantID: nCtx.TenantID(),
+		Token:    deploy.Token,
+		Operator: operator,
+	})
+}

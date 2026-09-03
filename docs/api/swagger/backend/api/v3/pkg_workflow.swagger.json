@@ -423,8 +423,8 @@
         "status": {
           "type": "string"
         },
-        "error_message": {
-          "type": "string"
+        "is_finish": {
+          "type": "boolean"
         },
         "download_url": {
           "type": "string"

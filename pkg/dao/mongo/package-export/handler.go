@@ -37,6 +37,9 @@ type IHandler interface {
 	// Create creates a package export record.
 	Create(nCtx contextx.IContext, exportData *types.PackageExport) error
 
+	// UpdateFields updates package export fields.
+	UpdateFields(nCtx contextx.IContext, fields types.PackageExportFields, exportData ...*types.PackageExport) error
+
 	// Get gets a package export by its export ID.
 	Get(nCtx contextx.IContext, exportID string) (*types.PackageExport, error)
 
@@ -113,6 +116,73 @@ func (h *Handler) Create(nCtx contextx.IContext, exportData *types.PackageExport
 	}
 
 	return nil
+}
+
+// UpdateFields updates package export fields.
+func (h *Handler) UpdateFields(nCtx contextx.IContext, fields types.PackageExportFields, exportData ...*types.PackageExport) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	if len(exportData) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	if fields == (types.PackageExportFields{}) {
+		return base.ErrEmptyParamData()
+	}
+
+	docs := make([]*base.DocumentFieldUpdate, 0, len(exportData))
+	for _, data := range exportData {
+		if data == nil || data.ExportID == "" {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		dbExport := convertFromTypes(data)
+		updates := generatePackageExportUpdates(fields, dbExport)
+		filter := base.AliveFilter()
+		filter = WithExportID(data.ExportID)(filter)
+		docs = append(docs, &base.DocumentFieldUpdate{
+			Filter: filter,
+			Fields: updates,
+		})
+	}
+
+	if err := h.dao.UpdateOneFieldBulk(nCtx, docs); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to update package export")
+
+		return err
+	}
+
+	return nil
+}
+
+func generatePackageExportUpdates(fields types.PackageExportFields, exportData *Data) map[string]any {
+	updates := make(map[string]any)
+	if fields.WorkflowID {
+		updates[FieldKeyWorkflowID] = exportData.WorkflowID
+	}
+	if fields.StorageKey {
+		updates[FieldKeyStorageKey] = exportData.StorageKey
+	}
+	if fields.DownloadName {
+		updates[FieldKeyDownloadName] = exportData.DownloadName
+	}
+	if fields.MD5 {
+		updates[FieldKeyMD5] = exportData.MD5
+	}
+	if fields.Size {
+		updates[FieldKeySize] = exportData.Size
+	}
+	if fields.Operator {
+		updates[FieldKeyOperator] = exportData.Operator
+	}
+
+	return updates
 }
 
 // Get gets a package export by its export ID.

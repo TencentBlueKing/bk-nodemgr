@@ -79,6 +79,7 @@ func (mgr *Manager) registerDefPackage() error {
 		pkg.NewActionPackagePublishExternalPluginV2Pkg(capability),
 		pkg.NewActionPackageReleasePluginEnable(capability),
 		pkg.NewActionPackageReleasePluginHidden(capability),
+		pkg.NewActionPackageExportPlugin(capability),
 	)
 }
 

@@ -14,11 +14,52 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
+
+// Validate checks the plugin package export request.
+func (x *PackageExportPluginReq) Validate() error {
+	if conv.IsEmpty(strings.TrimSpace(x.GetPluginPkgName())) {
+		return errors.New("plugin_pkg_name is required")
+	}
+	if conv.IsEmpty(strings.TrimSpace(x.GetPluginPkgVersion())) {
+		return errors.New("plugin_pkg_version is required")
+	}
+	return nil
+}
+
+// AutoConvert converts the plugin package export request.
+func (x *PackageExportPluginReq) AutoConvert() {}
+
+// Validate checks the plugin package export result request.
+func (x *PackageExportResultReq) Validate() error {
+	if conv.IsEmpty(strings.TrimSpace(x.GetWorkflowId())) {
+		return errors.New("workflow_id is required")
+	}
+	return nil
+}
+
+// AutoConvert converts the plugin package export result request.
+func (x *PackageExportResultReq) AutoConvert() {}
+
+// ConvertResultFromTypes converts an export result to the API response.
+func (x *PackageExportResultResp) ConvertResultFromTypes(workflow *types.PackageWorkflow, downloadURL string, downloadURLExpiredAt time.Time) {
+	data := &PackageExportResultResp_Data{}
+	if workflow != nil {
+		data.Status = string(workflow.Status)
+		data.IsFinish = slices.Contains(types.GetFinishedPackageWorkflowStatus(), workflow.Status)
+	}
+	if downloadURL != "" {
+		data.DownloadUrl = &downloadURL
+		expiredAt := downloadURLExpiredAt.UnixMilli()
+		data.DownloadUrlExpiredAt = &expiredAt
+	}
+	x.Data = data
+}
 
 // Validate check body.
 func (x *PackageImportPluginV3PkgReq) Validate() error {

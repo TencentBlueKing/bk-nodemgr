@@ -24,6 +24,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	packageworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -61,4 +62,28 @@ func (s *Storage) getPackageWorkflow(nCtx contextx.IContext, workflowID string) 
 	}
 
 	return s.daoPackageWorkflow.Get(nCtx, workflowID)
+}
+
+func (s *Storage) getPackageExportWorkflowByTriggerID(nCtx contextx.IContext, triggerID string) (*types.PackageWorkflow, error) {
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+	if triggerID == "" {
+		return nil, errors.New("trigger id should not be empty")
+	}
+
+	workflows, count, err := s.daoPackageWorkflow.List(
+		nCtx,
+		types.SingleItemPage(),
+		packageworkflow.WithTriggerID(triggerID),
+		packageworkflow.WithType(types.PackageWorkflowTypeExport),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list package export workflows: %w", err)
+	}
+	if count != 1 || len(workflows) != 1 {
+		return nil, fmt.Errorf("package export workflow is not unique for trigger id %s", triggerID)
+	}
+
+	return workflows[0], nil
 }

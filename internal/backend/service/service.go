@@ -72,7 +72,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/token"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
@@ -287,15 +286,6 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.FileHandler, err = svc.newFileHandler()
 	if err != nil {
 		return fmt.Errorf("failed to create file handler: %w", err)
-	}
-
-	// Initial export token generator.
-	svc.Cap.TokenGenerator, err = token.New(
-		[]byte(svc.conf.File.JWTClientConfig.SymmetricKey),
-		token.WithTTL(time.Duration(svc.conf.File.JWTClientConfig.TokenExpirationHour)*time.Hour),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create export token generator: %w", err)
 	}
 
 	// initial IAM v3 handler.

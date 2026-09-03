@@ -136,7 +136,7 @@ message PackageExportResultResp {
 
   message Data {
     string status = 1;
-    optional string error_message = 2;
+    bool is_finish = 2;
     optional string download_url = 3;
     optional int64 download_url_expired_at = 4;
   }

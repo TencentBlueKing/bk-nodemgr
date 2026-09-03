@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
 	"github.com/stretchr/testify/assert"
@@ -79,6 +80,57 @@ func TestHandler_CreateRejectsDuplicateExportID(t *testing.T) {
 	err := h.Create(nCtx, testPackageExport(exportData.ExportID))
 	require.Error(t, err)
 	assert.True(t, mongo.IsDuplicateKeyError(err))
+}
+
+func TestHandler_UpdateFields(t *testing.T) {
+	h := testClient(t)
+	nCtx := testContext(t, "tenant-a")
+	exportData := testPackageExport("update-export")
+
+	require.NoError(t, h.Create(nCtx, exportData))
+	updated := &types.PackageExport{
+		ExportID:     exportData.ExportID,
+		WorkflowID:   "updated-workflow",
+		StorageKey:   "updated-storage-key",
+		DownloadName: "updated-download-name",
+		MD5:          "updated-md5",
+		Size:         2048,
+		Operator:     "updated-operator",
+	}
+	require.NoError(t, h.UpdateFields(nCtx, types.PackageExportFields{
+		WorkflowID:   true,
+		StorageKey:   true,
+		DownloadName: true,
+		MD5:          true,
+		Size:         true,
+		Operator:     true,
+	}, updated))
+	require.NoError(t, h.UpdateFields(nCtx, types.PackageExportFields{WorkflowID: true}, updated))
+
+	got, err := h.Get(nCtx, exportData.ExportID)
+	require.NoError(t, err)
+	assert.Equal(t, updated.WorkflowID, got.WorkflowID)
+	assert.Equal(t, updated.StorageKey, got.StorageKey)
+	assert.Equal(t, updated.DownloadName, got.DownloadName)
+	assert.Equal(t, updated.MD5, got.MD5)
+	assert.Equal(t, updated.Size, got.Size)
+	assert.Equal(t, updated.Operator, got.Operator)
+
+	err = h.UpdateFields(testContext(t, "tenant-b"), types.PackageExportFields{WorkflowID: true}, updated)
+	assert.ErrorIs(t, err, base.ErrRecordNoFound())
+
+	err = h.UpdateFields(nCtx, types.PackageExportFields{WorkflowID: true}, &types.PackageExport{ExportID: "missing-export", WorkflowID: "value"})
+	assert.ErrorIs(t, err, base.ErrRecordNoFound())
+
+	err = h.UpdateFields(nCtx, types.PackageExportFields{}, updated)
+	assert.ErrorIs(t, err, base.ErrEmptyParamData())
+
+	err = h.UpdateFields(nCtx, types.PackageExportFields{WorkflowID: true})
+	assert.ErrorIs(t, err, base.ErrEmptyParamData())
+
+	emptyExportData := []*types.PackageExport{}
+	err = h.UpdateFields(nCtx, types.PackageExportFields{WorkflowID: true}, emptyExportData...)
+	assert.ErrorIs(t, err, base.ErrEmptyParamData())
 }
 
 func TestHandler_List(t *testing.T) {
@@ -199,4 +251,20 @@ func TestHandler_Delete(t *testing.T) {
 	require.NoError(t, err)
 	assert.Zero(t, total)
 	assert.Empty(t, items)
+}
+
+func TestHandler_UpdateFieldsRejectsDeletedRecord(t *testing.T) {
+	h := testClient(t)
+	nCtx := testContext(t, "tenant-a")
+	exportData := testPackageExport("deleted-update-export")
+
+	require.NoError(t, h.Create(nCtx, exportData))
+	require.NoError(t, h.Delete(nCtx, exportData.ExportID))
+
+	err := h.UpdateFields(nCtx, types.PackageExportFields{WorkflowID: true}, exportData)
+	assert.ErrorIs(t, err, base.ErrRecordNoFound())
+
+	got, err := h.Get(nCtx, exportData.ExportID)
+	assert.ErrorIs(t, err, base.ErrRecordNoFound())
+	assert.Nil(t, got)
 }

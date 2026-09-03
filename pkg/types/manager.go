@@ -233,3 +233,10 @@ type PackageImportParam struct {
 	Operator           string
 	PackageDeployments []*PackageDeployment
 }
+
+// PackageExportParam defines the parameters for exporting a published plugin package.
+type PackageExportParam struct {
+	Type               PackageWorkflowType
+	Operator           string
+	PackageDeployments []*PackageDeployment
+}

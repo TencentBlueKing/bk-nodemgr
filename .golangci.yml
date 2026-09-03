@@ -318,6 +318,8 @@ linters:
           alias: packagedeployment
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils
           alias: pkgUtils
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export
+          alias: packageexport
       no-unaliased: false
       no-extra-aliases: true
     interfacebloat:

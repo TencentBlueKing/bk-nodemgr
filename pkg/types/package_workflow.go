@@ -41,12 +41,15 @@ type PackageWorkflowType string
 const (
 	// PackageWorkflowTypeImport defines the package import workflow type.
 	PackageWorkflowTypeImport PackageWorkflowType = "import_package"
+
+	// PackageWorkflowTypeExport defines the package export workflow type.
+	PackageWorkflowTypeExport PackageWorkflowType = "export_package"
 )
 
 // Validate validates the package workflow type.
 func (typ PackageWorkflowType) Validate() error {
 	switch typ {
-	case PackageWorkflowTypeImport:
+	case PackageWorkflowTypeImport, PackageWorkflowTypeExport:
 		return nil
 	default:
 		return fmt.Errorf("package workflow type is invalid, type(%s)", typ)

@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,6 +51,8 @@ type handler struct {
 	daoReleasePluginBinTool release.IPluginBinTool
 	daoPlugin               plugin.IDaoPlugin
 	daoPackageWorkflow      pkgStg.IStoragePackageWorkflow
+	packageExportStorage    pkgStg.IStoragePackageExport
+	fileHandler             file.IHandler
 	daoWorkflow             workflow.IStorage
 	pkgMgrIface             managerIface.IPackageManager
 
@@ -77,6 +80,8 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		daoReleasePluginBinTool: capability.StorageRelease,
 		daoPlugin:               capability.StoragePlugin,
 		daoPackageWorkflow:      capability.StoragePackage,
+		packageExportStorage:    capability.StoragePackage,
+		fileHandler:             capability.FileHandler,
 		daoWorkflow:             capability.StorageWorkflow,
 		pkgMgrIface:             capability.Manager,
 		daoTenant:               capability.StorageTenant,
@@ -143,4 +148,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/workflow/import/v2/plugin", restserver.Handler(h.PackagePluginV2Import))
 	h.rg.POST("/workflow/import/v2/external_plugin", restserver.Handler(h.PackageExternalPluginV2Import))
 	h.rg.POST("/workflow/import_result", restserver.Handler(h.PackageImportResult))
+	h.rg.POST("/workflow/export/plugin", restserver.Handler(h.PackageExportPlugin))
+	h.rg.POST("/workflow/export_result", restserver.Handler(h.PackageExportResult))
 }

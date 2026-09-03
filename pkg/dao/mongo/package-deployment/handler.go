@@ -209,6 +209,10 @@ func convertInfoFromTypes(info *types.PackageDeploymentInfo) (*Info, error) {
 			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
 		},
+		ExportPluginPkgOptions: exportPluginPkgOptions{
+			PluginPkgName:    info.ExportPluginPkgOptions.PluginPkgName,
+			PluginPkgVersion: info.ExportPluginPkgOptions.PluginPkgVersion,
+		},
 	}, nil
 }
 
@@ -225,6 +229,10 @@ func convertInfoToTypes(info *Info) (*types.PackageDeploymentInfo, error) {
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
 			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
+		},
+		ExportPluginPkgOptions: types.PackageExportPluginPkgOptions{
+			PluginPkgName:    info.ExportPluginPkgOptions.PluginPkgName,
+			PluginPkgVersion: info.ExportPluginPkgOptions.PluginPkgVersion,
 		},
 	}, nil
 }

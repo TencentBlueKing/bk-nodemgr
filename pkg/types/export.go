@@ -31,3 +31,13 @@ type PackageExport struct {
 
 	Operator string
 }
+
+// PackageExportFields represents the fields of PackageExport to update.
+type PackageExportFields struct {
+	WorkflowID   bool
+	StorageKey   bool
+	DownloadName bool
+	MD5          bool
+	Size         bool
+	Operator     bool
+}

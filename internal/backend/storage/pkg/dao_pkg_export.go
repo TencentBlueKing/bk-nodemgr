@@ -24,18 +24,19 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	packageexport "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) listPackageExport(
-	nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) (
+func (s *Storage) listPackageExport(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) (
 	[]*types.PackageExport, int64, error) {
 
 	if nCtx == nil {
 		return nil, 0, basestorage.ErrNilContent()
 	}
 
+	page.Sort = types.WithSortFields(page.Sort, types.WithFieldDesc(base.FieldKeyCreatedAt))
 	opts, err := convertPackageExportConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, 0, err
@@ -93,6 +94,22 @@ func (s *Storage) createPackageExport(nCtx contextx.IContext, exportData *types.
 
 	if err := s.daoPackageExport.Create(nCtx, exportData); err != nil {
 		return fmt.Errorf("failed to create package export: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Storage) updatePackageExport(nCtx contextx.IContext, fields types.PackageExportFields, exportData ...*types.PackageExport) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(exportData) == 0 {
+		return errors.New("export data is empty")
+	}
+
+	if err := s.daoPackageExport.UpdateFields(nCtx, fields, exportData...); err != nil {
+		return fmt.Errorf("failed to update package export: %w", err)
 	}
 
 	return nil

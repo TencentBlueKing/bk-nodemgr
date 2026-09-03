@@ -37,14 +37,16 @@ type IStorage interface {
 // IStoragePackageExport defines the interface of package export storage.
 type IStoragePackageExport interface {
 	// ListPackageExport lists package export records.
-	ListPackageExport(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) (
-		[]*types.PackageExport, int64, error)
+	ListPackageExport(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageExportCondition) ([]*types.PackageExport, int64, error)
 
 	// CreatePackageExport creates a package export record.
 	CreatePackageExport(nCtx contextx.IContext, exportData *types.PackageExport) error
 
 	// GetPackageExport gets a package export by export ID.
 	GetPackageExport(nCtx contextx.IContext, exportID string) (*types.PackageExport, error)
+
+	// UpdatePackageExport updates package export fields.
+	UpdatePackageExport(nCtx contextx.IContext, fields types.PackageExportFields, exportData ...*types.PackageExport) error
 
 	// DeletePackageExport deletes a package export by export ID.
 	DeletePackageExport(nCtx contextx.IContext, exportID string) error
@@ -57,6 +59,9 @@ type IStoragePackageWorkflow interface {
 
 	// GetPackageWorkflow gets a package workflow by workflow ID.
 	GetPackageWorkflow(nCtx contextx.IContext, workflowID string) (*types.PackageWorkflow, error)
+
+	// GetPackageExportWorkflowByTriggerID gets the unique export workflow by trigger ID.
+	GetPackageExportWorkflowByTriggerID(nCtx contextx.IContext, triggerID string) (*types.PackageWorkflow, error)
 }
 
 // IStoragePackageDeployment defines the interface of package deployment storage.
