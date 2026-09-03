@@ -1803,7 +1803,9 @@ const autoFillDefaults = () => {
   });
 };
 
-watch(() => tableData.value?.length, () => {
+// 监听数组引用变化（如 CMDB 同步数据整体替换 formData.info），
+// 补填 login_port 为 0 的默认端口。仅监听 length 时，替换后长度不变（如单选 1 台）不会触发
+watch(() => tableData.value, () => {
   autoFillDefaults();
 }, { immediate: true });
 
