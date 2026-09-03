@@ -108,7 +108,7 @@
       :data="dialogData"
       :batch="isBatch"
       :release-type="'plugin'"
-      :plugin-name="formData.pluginName"
+      :plugin-pkg-name="selectedPluginPkgName"
       @confirm="handleConfirmVersion"
     />
   </div>
@@ -181,9 +181,15 @@ const rules = {
 };
 
 // ---------- 插件名称下拉 ----------
-const pluginOptions = ref<{ name: string }[]>([]);
+const pluginOptions = ref<{ name: string; pkg_name: string }[]>([]);
 const pluginListLoading = ref(false);
 const initialPluginName = computed(() => props.initialPluginName || '');
+
+// 当前选中插件对应的插件包名（release plugin 列表的 name 条件要求传 pkg_name）
+const selectedPluginPkgName = computed(() => {
+  const plugin = pluginOptions.value.find((item: any) => item.name === formData.value.pluginName);
+  return plugin?.pkg_name || '';
+});
 
 const loadPluginList = async () => {
   pluginListLoading.value = true;
@@ -194,8 +200,14 @@ const loadPluginList = async () => {
     } as any,
     fuzzy_include_conditions: {} as any,
   }).catch(() => ({ total: 0, items: [] }));
-  pluginOptions.value = (res.items || []).map((p: any) => ({ name: p.name }));
+  pluginOptions.value = (res.items || []).map((p: any) => ({ name: p.name, pkg_name: p.pkg_name }));
   pluginListLoading.value = false;
+
+  // 插件列表就绪后，若此前已触发过系统/架构加载（缺少 pkg_name 条件），需重新加载
+  if (formData.value.pluginName && systemLoaded.value) {
+    systemLoaded.value = false;
+    loadSystemArch();
+  }
 };
 
 // 业务选择器切换时同步更新 IP 选择器的业务 ID，确保拓扑树和主机列表跟随当前业务
@@ -435,14 +447,15 @@ const loadSystemArch = async () => {
   // 已加载过则直接返回，避免重复请求
   if (systemLoaded.value) return;
   systemLoaded.value = true;
-  const pluginName = formData.value.pluginName;
+  // release plugin 的 name 条件匹配的是插件包名（pkg_name），而不是插件名
+  const pkgName = selectedPluginPkgName.value;
   const res = await PackageService.ListReleasePluginBrief({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
     exact_include_conditions: {
       enabled: [true],
       is_hidden: [false],
-      ...(pluginName ? { name: [pluginName] } : {}),
+      ...(pkgName ? { name: [pkgName] } : {}),
     },
   }).catch(() => ({ total: 0, items: [] }));
 

@@ -222,7 +222,7 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          v-if="isReinstall && releaseType === 'proxy'"
+          v-if="false"
           field="install_origin"
           :title="$t('installProxy.installSource')"
           :min-width="150"

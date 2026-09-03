@@ -189,7 +189,8 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  pluginName: {
+  // 插件包名（release plugin 的 name 条件匹配的是 pkg_name）
+  pluginPkgName: {
     type: String,
     default: '',
   },
@@ -285,7 +286,7 @@ const getVersions = async () => {
       exact_include_conditions: {
         enabled: [true],
         is_hidden: [false],
-        ...(props.pluginName ? { name: [props.pluginName] } : {}),
+        ...(props.pluginPkgName ? { name: [props.pluginPkgName] } : {}),
       },
     }).catch(() => ({
       total: 0,

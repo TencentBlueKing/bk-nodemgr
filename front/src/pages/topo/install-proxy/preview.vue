@@ -486,6 +486,8 @@ const handleSetup = async () => {
       } = item;
       return {
         ...rest,
+        // install_method 为 auto（自动）时，后端协议要求传空字符串
+        install_method: item.install_method === 'auto' ? '' : item.install_method,
         ...(item.bk_host_id ? { bk_host_id: item.bk_host_id } : {}),
         bk_host_innerip: item.bk_host_innerip ? item.bk_host_innerip.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean) : [],
         bk_host_innerip_v6: item.bk_host_innerip_v6 ? item.bk_host_innerip_v6.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean) : [],
