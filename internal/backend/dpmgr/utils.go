@@ -28,6 +28,12 @@ func genPluginNameForSpecifyPluginPkg(pluginPkgName string, deployPolicyID int64
 	return fmt.Sprintf("%s_%d_%d", pluginPkgName, deployPolicyID, moduleID)
 }
 
+func genPluginNameForProjectPluginPkgToHosts(
+	pluginPkgName string, deployPolicyID int64, moduleID int64, hostID int64,
+) string {
+	return fmt.Sprintf("%s_%d_%d_%d", pluginPkgName, deployPolicyID, moduleID, hostID)
+}
+
 func genProcessUniqueID(hostID int64, pluginName string) string {
 	return fmt.Sprintf("%d_%s", hostID, pluginName)
 }

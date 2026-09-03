@@ -92,6 +92,8 @@ func (analyzer *Analyzer) analyze(nCtx contextx.IContext, params *AnalyzeParams)
 		return analyzer.analyzeSpecifyPluginSubConfig(nCtx, params)
 	case types.DeploySpecTypeSpecifyPluginPkg:
 		return analyzer.analyzeSpecifyPluginPkg(nCtx, params)
+	case types.DeploySpecTypeProjectPluginPkgToHosts:
+		return analyzer.analyzeProjectPluginPkgToHosts(nCtx, params)
 	case types.DeploySpecTypeSpecifyPluginSubConfigTemplate:
 		return analyzer.analyzeSpecifyPluginSubConfigTemplate(nCtx, params)
 	default:
