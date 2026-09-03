@@ -190,7 +190,7 @@
                           class="px-[16px] py-[6px] cursor-pointer hover:bg-[#f0f1f5] text-[12px] whitespace-nowrap"
                           @click="openSubWorkflowDetail(subRef)"
                         >
-                          {{ subRef.workflow_id }}
+                          {{ $t('platform.nodeMan.log.subTaskN', { n: Number(idx) + 1 }) }}
                         </li>
                       </ul>
                     </template>
