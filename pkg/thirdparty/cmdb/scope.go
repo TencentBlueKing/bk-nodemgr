@@ -102,7 +102,7 @@ func (h *Handler) getHostTargetByScopeSetTemplate(nCtx contextx.IContext, scope 
 func (h *Handler) getServiceTargetByScopeSetTemplate(nCtx contextx.IContext, scope *types.ScopeSetTemplate) ([]*types.Target, error) {
 	executor := pageexecutor.NewPageExecutor[*ServiceInstanceDetailInfo](CCPageSizeLimit, ccQueryTimeout)
 
-	moduleIDs, err := h.getModuleIDsBySetTemplateIDs(nCtx, scope.BizID, scope.SetTemplateIDs)
+	moduleIDs, err := h.getModuleIDsBySetTemplateIDs(nCtx, scope.BizID, scope.SetTemplateIDs, scope.SetIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get module IDs by set template IDs: %w", err)
 	}
@@ -142,6 +142,7 @@ func (h *Handler) getServiceTargetByScopeSetTemplate(nCtx contextx.IContext, sco
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert service instance detail to target: %w", err)
 	}
+	assignMatchedTopoRelationsByModuleID(targets, buildModuleMatchedTopoRelationsByModuleID(moduleIDs))
 
 	return targets, nil
 }
@@ -196,7 +197,7 @@ func (h *Handler) getHostTargetByScopeServiceTemplate(nCtx contextx.IContext, sc
 func (h *Handler) getServiceTargetByScopeServiceTemplate(nCtx contextx.IContext, scope *types.ScopeServiceTemplate) ([]*types.Target, error) {
 	executor := pageexecutor.NewPageExecutor[*ServiceInstanceDetailInfo](CCPageSizeLimit, ccQueryTimeout)
 
-	moduleIDs, err := h.getModuleIDsByServiceTemplateIDs(nCtx, scope.BizID, scope.ServiceTemplateIDs)
+	moduleIDs, err := h.getModuleIDsByServiceTemplateIDs(nCtx, scope.BizID, scope.ServiceTemplateIDs, scope.ModuleIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get module IDs by service template IDs: %w", err)
 	}
@@ -236,6 +237,7 @@ func (h *Handler) getServiceTargetByScopeServiceTemplate(nCtx contextx.IContext,
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert service instance detail to target: %w", err)
 	}
+	assignMatchedTopoRelationsByModuleID(targets, buildModuleMatchedTopoRelationsByModuleID(moduleIDs))
 
 	return targets, nil
 }
@@ -489,6 +491,17 @@ func (h *Handler) getServiceTargetByScopeTopo(nCtx contextx.IContext, scope *typ
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert service instance detail to target: %w", err)
 	}
+	moduleIDs := conv.SliceUnique(conv.SliceToSlice(allServiceInstances, func(inst *ServiceInstanceDetailInfo) int64 {
+		return inst.BKModuleID
+	}))
+	relationsByModuleID, err := h.getMatchedTopoRelationsByModuleID(nCtx, scope.BizID, moduleIDs, scope.Paths)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get matched topo relations by module ID: %w", err)
+	}
+	assignMatchedTopoRelationsByModuleID(targets, relationsByModuleID)
+	if !scopeTopoHasHostNode(scope.Paths) {
+		targets = filterTargetsWithMatchedTopoRelations(targets)
+	}
 
 	return targets, nil
 }
@@ -607,7 +620,37 @@ func (h *Handler) buildListServiceInstanceDetailByModuleIDFn(bizID int64, module
 }
 
 // getModuleIDsByServiceTemplateIDs gets module IDs by service template IDs.
-func (h *Handler) getModuleIDsByServiceTemplateIDs(nCtx contextx.IContext, bizID int64, serviceTemplateIDs []int64) ([]int64, error) {
+func (h *Handler) getModuleIDsByServiceTemplateIDs(
+	nCtx contextx.IContext,
+	bizID int64,
+	serviceTemplateIDs []int64,
+	moduleIDs []int64,
+) ([]int64, error) {
+	if len(serviceTemplateIDs) == 0 {
+		return conv.SliceUnique(moduleIDs), nil
+	}
+
+	matchedModuleIDs, err := h.getModuleIDsByServiceTemplate(nCtx, bizID, serviceTemplateIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(moduleIDs) == 0 {
+		return matchedModuleIDs, nil
+	}
+
+	moduleIDSet := buildInt64Set(moduleIDs)
+	filteredModuleIDs := make([]int64, 0, len(matchedModuleIDs))
+	for _, moduleID := range matchedModuleIDs {
+		if _, exists := moduleIDSet[moduleID]; exists {
+			filteredModuleIDs = append(filteredModuleIDs, moduleID)
+		}
+	}
+
+	return filteredModuleIDs, nil
+}
+
+func (h *Handler) getModuleIDsByServiceTemplate(nCtx contextx.IContext, bizID int64, serviceTemplateIDs []int64) ([]int64, error) {
 	if len(serviceTemplateIDs) == 0 {
 		return []int64{}, nil
 	}
@@ -638,8 +681,13 @@ func (h *Handler) getModuleIDsByServiceTemplateIDs(nCtx contextx.IContext, bizID
 }
 
 // getModuleIDsBySetTemplateIDs gets module IDs by set template IDs.
-func (h *Handler) getModuleIDsBySetTemplateIDs(nCtx contextx.IContext, bizID int64, setTemplateIDs []int64) ([]int64, error) {
-	if len(setTemplateIDs) == 0 {
+func (h *Handler) getModuleIDsBySetTemplateIDs(
+	nCtx contextx.IContext,
+	bizID int64,
+	setTemplateIDs []int64,
+	setIDs []int64,
+) ([]int64, error) {
+	if len(setTemplateIDs) == 0 && len(setIDs) == 0 {
 		return []int64{}, nil
 	}
 
@@ -653,15 +701,23 @@ func (h *Handler) getModuleIDsBySetTemplateIDs(nCtx contextx.IContext, bizID int
 	for _, id := range setTemplateIDs {
 		templateIDSet[id] = struct{}{}
 	}
+	setIDSet := buildInt64Set(setIDs)
 
 	// Filter modules matching set_template_id
 	moduleIDs := make([]int64, 0)
 	for _, module := range allModules {
-		if module.SetTemplateID > CCInvalidID {
-			if _, exists := templateIDSet[module.SetTemplateID]; exists {
-				moduleIDs = append(moduleIDs, module.BKModuleID)
+		if len(templateIDSet) > 0 {
+			if _, exists := templateIDSet[module.SetTemplateID]; !exists {
+				continue
 			}
 		}
+		if len(setIDSet) > 0 {
+			if _, exists := setIDSet[module.BKSetID]; !exists {
+				continue
+			}
+		}
+
+		moduleIDs = append(moduleIDs, module.BKModuleID)
 	}
 
 	return conv.SliceUnique(moduleIDs), nil
@@ -727,6 +783,149 @@ func (h *Handler) searchAllModules(nCtx contextx.IContext, bizID int64) ([]*Modu
 	}
 
 	return allModules, nil
+}
+
+func buildInt64Set(values []int64) map[int64]struct{} {
+	set := make(map[int64]struct{}, len(values))
+	for _, value := range values {
+		set[value] = struct{}{}
+	}
+
+	return set
+}
+
+func buildModuleMatchedTopoRelationsByModuleID(moduleIDs []int64) map[int64][]types.TargetMatchedTopoRelation {
+	uniqueModuleIDs := conv.SliceUnique(moduleIDs)
+	relationsByModuleID := make(map[int64][]types.TargetMatchedTopoRelation, len(uniqueModuleIDs))
+	for _, moduleID := range uniqueModuleIDs {
+		relationsByModuleID[moduleID] = []types.TargetMatchedTopoRelation{
+			{TopoObjID: TopoNodeObjIDModule, TopoInstID: moduleID},
+		}
+	}
+
+	return relationsByModuleID
+}
+
+func (h *Handler) getMatchedTopoRelationsByModuleID(
+	nCtx contextx.IContext,
+	bizID int64,
+	moduleIDs []int64,
+	topoNodes []*types.ScopeTopoNode,
+) (map[int64][]types.TargetMatchedTopoRelation, error) {
+	uniqueModuleIDs := conv.SliceUnique(moduleIDs)
+	relationsByModuleID := make(map[int64][]types.TargetMatchedTopoRelation, len(uniqueModuleIDs))
+	if len(uniqueModuleIDs) == 0 || len(topoNodes) == 0 {
+		return relationsByModuleID, nil
+	}
+
+	pathReqNodes := conv.SliceToSlice(uniqueModuleIDs, func(moduleID int64) *Node {
+		return &Node{BKObjID: TopoNodeObjIDModule, BKInstID: moduleID}
+	})
+	pathResp, err := h.cli.findTopoNodePaths(nCtx, &FindTopoNodePathsReq{
+		BKBizID: bizID,
+		BKNodes: pathReqNodes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to find topo node paths: %w", err)
+	}
+
+	pathsByModuleID := make(map[int64][][]*Node, len(uniqueModuleIDs))
+	if pathResp == nil {
+		return relationsByModuleID, nil
+	}
+	for _, nodePaths := range *pathResp {
+		if nodePaths == nil || nodePaths.BKObjID != TopoNodeObjIDModule {
+			continue
+		}
+		pathsByModuleID[nodePaths.BKInstID] = nodePaths.BKPaths
+	}
+
+	for _, moduleID := range uniqueModuleIDs {
+		for _, topoNode := range topoNodes {
+			if !topoNodeMatchesModulePaths(bizID, moduleID, pathsByModuleID[moduleID], topoNode) {
+				continue
+			}
+
+			relationsByModuleID[moduleID] = append(relationsByModuleID[moduleID], types.TargetMatchedTopoRelation{
+				TopoObjID:  topoNode.TopoObjID,
+				TopoInstID: topoNode.TopoInstID,
+			})
+		}
+	}
+
+	return relationsByModuleID, nil
+}
+
+func topoNodeMatchesModulePaths(
+	bizID int64,
+	moduleID int64,
+	modulePaths [][]*Node,
+	topoNode *types.ScopeTopoNode,
+) bool {
+	if topoNode == nil {
+		return false
+	}
+
+	if topoNode.TopoObjID == TopoNodeObjIDBiz {
+		return topoNode.TopoInstID == bizID
+	}
+	if topoNode.TopoObjID == TopoNodeObjIDModule {
+		return topoNode.TopoInstID == moduleID
+	}
+
+	for _, modulePath := range modulePaths {
+		for _, pathNode := range modulePath {
+			if pathNode == nil {
+				continue
+			}
+			if pathNode.BKObjID == topoNode.TopoObjID && pathNode.BKInstID == topoNode.TopoInstID {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func assignMatchedTopoRelationsByModuleID(
+	targets []*types.Target,
+	relationsByModuleID map[int64][]types.TargetMatchedTopoRelation,
+) {
+	for _, target := range targets {
+		if target == nil {
+			continue
+		}
+
+		relations := relationsByModuleID[target.ServiceInstance.ModuleID]
+		if len(relations) == 0 {
+			continue
+		}
+
+		target.MatchedTopoRelations = append([]types.TargetMatchedTopoRelation(nil), relations...)
+	}
+}
+
+func scopeTopoHasHostNode(topoNodes []*types.ScopeTopoNode) bool {
+	for _, topoNode := range topoNodes {
+		if topoNode != nil && topoNode.TopoObjID == TopoNodeObjIDHost {
+			return true
+		}
+	}
+
+	return false
+}
+
+func filterTargetsWithMatchedTopoRelations(targets []*types.Target) []*types.Target {
+	filteredTargets := make([]*types.Target, 0, len(targets))
+	for _, target := range targets {
+		if target == nil || len(target.MatchedTopoRelations) == 0 {
+			continue
+		}
+
+		filteredTargets = append(filteredTargets, target)
+	}
+
+	return filteredTargets
 }
 
 func convHostToTarget(hosts []*types.Host) []*types.Target {
