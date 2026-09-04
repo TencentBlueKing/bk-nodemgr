@@ -60,6 +60,7 @@ func (c *cli) operateProcV2(nCtx contextx.IContext, req *operateProcV2Req) (*ope
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
@@ -86,6 +87,7 @@ func (c *cli) operateProcMulti(nCtx contextx.IContext, req *operateProcMultiReq)
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
