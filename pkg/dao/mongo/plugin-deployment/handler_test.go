@@ -408,6 +408,9 @@ func TestConvertPluginDeploymentInfoKeepsConfigSource(t *testing.T) {
 	if err != nil {
 		t.Fatalf("convertPluginDeploymentInfoFromTypes() error = %v", err)
 	}
+	if data.ConfigSource == nil {
+		t.Fatal("convertPluginDeploymentInfoFromTypes() ConfigSource is nil")
+	}
 	if data.ConfigSource.Host.HostID != 1001 {
 		t.Fatalf("convertPluginDeploymentInfoFromTypes() ConfigSource.Host.HostID = %d, want %d",
 			data.ConfigSource.Host.HostID, 1001)
@@ -465,5 +468,24 @@ func TestConvertPluginDeploymentInfoKeepsConfigSource(t *testing.T) {
 	if got.ConfigSource.MatchedTopoRelations[0].TopoObjID != "module" {
 		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.MatchedTopoRelations[0].TopoObjID = %q, want %q",
 			got.ConfigSource.MatchedTopoRelations[0].TopoObjID, "module")
+	}
+}
+
+func TestConvertPluginDeploymentInfoOmitsEmptyConfigSource(t *testing.T) {
+	data, err := convertPluginDeploymentInfoFromTypes(&types.PluginDeploymentInfo{})
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() error = %v", err)
+	}
+	if data.ConfigSource != nil {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() ConfigSource = %+v, want nil", data.ConfigSource)
+	}
+
+	got, err := convertPluginDeploymentInfoToTypes(data)
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() error = %v", err)
+	}
+	if got.ConfigSource.Host.HostID != 0 {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() ConfigSource.Host.HostID = %d, want %d",
+			got.ConfigSource.Host.HostID, 0)
 	}
 }

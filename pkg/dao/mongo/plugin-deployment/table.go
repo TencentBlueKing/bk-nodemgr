@@ -41,7 +41,7 @@ type Data struct {
 type Info struct {
 	ActionName       string           `json:"action_name" bson:"action_name"`
 	Process          process          `json:"process" bson:"process"`
-	ConfigSource     target           `json:"config_source" bson:"config_source"`
+	ConfigSource     *target          `json:"config_source,omitempty" bson:"config_source,omitempty"`
 	InstallerRuntime installerRuntime `json:"installer_runtime" bson:"installer_runtime"`
 	BaseRuntime      baseRuntime      `json:"base_runtime" bson:"base_runtime"`
 	TransferOptions  transferOptions  `json:"transfer_options" bson:"transfer_options"`

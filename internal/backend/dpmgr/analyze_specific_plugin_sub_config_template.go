@@ -135,6 +135,7 @@ func genSpecifyPluginSubConfigTemplateApplyOrUpdateTasks(
 			Action:         ChangeActionPluginApplySubConfig,
 			Spec:           applySpec,
 			Target:         target,
+			ConfigSource:   target,
 		})
 	}
 
@@ -270,6 +271,7 @@ func genSpecifyPluginSubConfigTemplateDeleteTasks(
 			Action:         action,
 			Spec:           deleteSpec,
 			Target:         target,
+			ConfigSource:   target,
 		})
 	}
 

@@ -61,7 +61,6 @@ type pluginPkgTaskParam struct {
 	pluginPkgName       string
 	version             string
 	customConfigContext map[string]any
-	configSource        *types.Target
 }
 
 // NewExecutor create a new executor.
@@ -417,6 +416,7 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.PluginName,
 			},
+			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
 				Version: param.Version,
 			},
@@ -466,6 +466,7 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.PluginName,
 			},
+			ConfigSource: getTaskConfigSource(task),
 		}, &types.PluginDeploymentPluginConf{})
 
 		hostMap[task.Target.Host.HostID] = struct{}{}
@@ -509,6 +510,7 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.PluginName,
 			},
+			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
 				Version: param.Version,
 			},
@@ -561,6 +563,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.PluginName,
 			},
+			ConfigSource: getTaskConfigSource(task),
 		}, &types.PluginDeploymentPluginConf{
 			Set:                 genDeployPolicyProcessConfigSet(task.DeployPolicyID),
 			ConfigFilesDetail:   param.ConfigFilesDetail,
@@ -612,6 +615,7 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfig(nCtx contextx
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.PluginName,
 			},
+			ConfigSource: getTaskConfigSource(task),
 		}, &types.PluginDeploymentPluginConf{
 			RemoveConfigFileName: removeConfigFileNames,
 		})
@@ -697,7 +701,7 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 				HostID:     task.Target.Host.HostID,
 				PluginName: plugins[idx].Name,
 			},
-			ConfigSource: getTaskConfigSource(param),
+			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
 				Version: param.version,
 			},
@@ -754,7 +758,7 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.pluginName,
 			},
-			ConfigSource: getTaskConfigSource(param),
+			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
 				Version: param.version,
 			},
@@ -805,6 +809,7 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 				HostID:     task.Target.Host.HostID,
 				PluginName: param.pluginName,
 			},
+			ConfigSource: getTaskConfigSource(task),
 		}, &types.PluginDeploymentPluginConf{})
 
 		hostMap[task.Target.Host.HostID] = struct{}{}
@@ -882,16 +887,31 @@ func getProjectPluginPkgToHostsTaskParam(task *ChangeTask) (*pluginPkgTaskParam,
 		pluginPkgName:       param.PluginPkgName,
 		version:             param.Version,
 		customConfigContext: param.CustomConfigContext,
-		configSource:        task.ConfigSource,
 	}, nil
 }
 
-func getTaskConfigSource(param *pluginPkgTaskParam) types.Target {
-	if param.configSource == nil {
+func getTaskConfigSource(task *ChangeTask) types.Target {
+	if !needPluginDeploymentConfigSource(task) {
 		return types.Target{}
 	}
 
-	return *param.configSource
+	return *task.ConfigSource
+}
+
+func needPluginDeploymentConfigSource(task *ChangeTask) bool {
+	if task == nil || task.ConfigSource == nil {
+		return false
+	}
+
+	configSource := task.ConfigSource
+	if configSource.Host.HostID <= 0 {
+		return false
+	}
+	if task.Target == nil || configSource.Host.HostID != task.Target.Host.HostID {
+		return true
+	}
+
+	return configSource.ServiceInstance.ID > 0 || len(configSource.MatchedTopoRelations) > 0
 }
 
 // ===============================================================================

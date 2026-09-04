@@ -533,7 +533,11 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 	return data, nil
 }
 
-func convertConfigSourceToTypes(configSource target) types.Target {
+func convertConfigSourceToTypes(configSource *target) types.Target {
+	if configSource == nil {
+		return types.Target{}
+	}
+
 	return types.Target{
 		Host:                 convertTargetHostToTypes(configSource.Host),
 		ServiceInstance:      convertServiceInstanceToTypes(configSource.ServiceInstance),
@@ -541,8 +545,12 @@ func convertConfigSourceToTypes(configSource target) types.Target {
 	}
 }
 
-func convertConfigSourceFromTypes(configSource types.Target) target {
-	return target{
+func convertConfigSourceFromTypes(configSource types.Target) *target {
+	if configSource.Host.HostID <= 0 {
+		return nil
+	}
+
+	return &target{
 		Host:                 convertTargetHostFromTypes(configSource.Host),
 		ServiceInstance:      convertServiceInstanceFromTypes(configSource.ServiceInstance),
 		MatchedTopoRelations: convertTargetMatchedTopoRelationsFromTypes(configSource.MatchedTopoRelations),

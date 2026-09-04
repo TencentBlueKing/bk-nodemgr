@@ -72,6 +72,7 @@ func (analyzer *Analyzer) analyzeSpecifyPluginPkg(nCtx contextx.IContext, params
 				Action:         ChangeActionPluginPkgInstall,
 				Spec:           params.Spec,
 				Target:         target,
+				ConfigSource:   target,
 			})
 
 			continue
@@ -84,6 +85,7 @@ func (analyzer *Analyzer) analyzeSpecifyPluginPkg(nCtx contextx.IContext, params
 				Action:         ChangeActionPluginPkgUpgrade,
 				Spec:           params.Spec,
 				Target:         target,
+				ConfigSource:   target,
 			})
 
 			continue
