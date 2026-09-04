@@ -140,6 +140,7 @@ func (c *cli) asyncExecuteScript(nCtx contextx.IContext, req *AsyncExecuteScript
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -194,6 +195,7 @@ func (c *cli) asyncTerminateExecuteScript(nCtx contextx.IContext, req *AsyncTerm
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -219,6 +221,7 @@ func (c *cli) asyncPushFile(nCtx contextx.IContext, req *AsyncPushFileReq) (*Asy
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -244,6 +247,7 @@ func (c *cli) asyncTransferFile(nCtx contextx.IContext, req *AsyncTransferFileRe
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -298,6 +302,7 @@ func (c *cli) asyncTerminateTransferFile(nCtx contextx.IContext, req *AsyncTermi
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -322,6 +327,7 @@ func (c *cli) operateAgent(nCtx contextx.IContext, req *OperateAgentReq) (*Opera
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err

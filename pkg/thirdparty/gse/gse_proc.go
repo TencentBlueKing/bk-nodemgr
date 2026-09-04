@@ -60,6 +60,7 @@ func (c *cli) operateProcV2(nCtx contextx.IContext, req *operateProcV2Req) (*ope
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to operate proc v2: %w", err)
@@ -85,6 +86,7 @@ func (c *cli) operateProcMulti(nCtx contextx.IContext, req *operateProcMultiReq)
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
