@@ -1211,6 +1211,7 @@ components:
     cpuArchValidMessage: Please select CPU architecture
     port: Login Port
     batchEditPort: Batch Edit Port
+    batchEditInstallMethod: Batch Edit Install Method
     portTooltipDesc: Port used for SSH/WMI login to the target host
     portTooltipLinuxLabel: "Linux default port: "
     portTooltipWindowsLabel: "Windows default port: "

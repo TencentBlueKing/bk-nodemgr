@@ -863,6 +863,12 @@
         >
           <template #header>
             <span>{{ $t('components.installTable.installMethod') }}</span>
+            <BatchEdit
+              :title="$t('components.installTable.batchEditInstallMethod')"
+              type="select"
+              :options="installMethodBatchOptions"
+              @confirm="(value) => handleBatchEdit('install_method', value)"
+            />
           </template>
           <template #default="{ row }">
             <span>{{ installMethodMap[row.install_method] }}</span>
@@ -1194,6 +1200,13 @@ const installMethodMap = computed<Record<string, string>>(() => ({
   auto: t('components.installTable.installMethodAuto'),
 }));
 
+// 安装方式批量编辑选项
+const installMethodBatchOptions = computed(() => [
+  { id: 'ssh', name: t('components.installTable.installMethodSSH') },
+  { id: 'wmi', name: t('components.installTable.installMethodWMI') },
+  { id: 'auto', name: t('components.installTable.installMethodAuto') },
+]);
+
 // 根据操作系统返回可选的安装方式（Windows 有 WMI，Linux 没有）
 const getInstallMethodOptions = (osType: string) => {
   if (osType === 'windows') {
@@ -1403,6 +1416,11 @@ const handleBatchEdit = (field: string, value: any) => {
   }
 
   tableData.value?.forEach((item: any, index: number) => {
+    // Linux 不支持 WMI：批量选择 WMI 时跳过非 Windows 行
+    if (field === 'install_method' && value === 'wmi' && item.os_type === 'linux') {
+      return;
+    }
+
     if (field === 'credit') {
       if (item.login_mode === 'password') item.credit = value.password;
       else item.credit = value.key;
@@ -1411,6 +1429,11 @@ const handleBatchEdit = (field: string, value: any) => {
     }
 
     handleFieldBlur(index, field, value);
+
+    if (field === 'install_method') {
+      // 批量设置安装方式后联动默认端口（复用行内切换逻辑）
+      handleInstallMethodChange(value, item, index);
+    }
 
     if (field === 'os_type') {
       if (value === 'linux') {

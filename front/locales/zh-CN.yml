@@ -1214,6 +1214,7 @@ components:
     cpuArchValidMessage: 请选择CPU架构
     port: 登录端口
     batchEditPort: 批量编辑登录端口
+    batchEditInstallMethod: 批量编辑安装方式
     portTooltipDesc: 用于 SSH/WMI 登录目标主机的端口号
     portTooltipLinuxLabel: "Linux 默认端口："
     portTooltipWindowsLabel: "Windows 默认端口："
