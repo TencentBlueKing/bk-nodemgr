@@ -145,12 +145,14 @@ func Test_mutex_Unlock(t *testing.T) {
 			isExpire: false,
 		},
 		{
-			name: "expire",
+			// lock held longer than the default TTL should still be valid,
+			// because the watchdog keeps renewing it before it expires.
+			name: "renew_beyond_ttl",
 			args: args{
 				ctx: context.Background(),
 			},
-			want:     false,
-			wantErr:  true,
+			want:     true,
+			wantErr:  false,
 			isLock:   true,
 			isUnlock: false,
 			isExpire: true,
@@ -174,7 +176,8 @@ func Test_mutex_Unlock(t *testing.T) {
 			}
 
 			if tt.isExpire {
-				// default redsync expire time is 8s, inorder to test expire, sleep 10s.
+				// default redsync expiry is 8s; sleep beyond it to verify the
+				// watchdog keeps the lock alive.
 				time.Sleep(time.Second * 10)
 			}
 

@@ -22,11 +22,23 @@ package redsync
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
+)
+
+const (
+	// defaultExpiry is the TTL of a distributed lock. It also bounds how long a
+	// lock stays held after its owner crashes before Redis releases it.
+	defaultExpiry = 8 * time.Second
+
+	// renewIntervalRatio controls how often the watchdog renews the lock TTL.
+	// The lock is renewed every expiry/renewIntervalRatio so that it never
+	// expires while the owner is still alive.
+	renewIntervalRatio = 3
 )
 
 // Handler this is a interface.
@@ -38,39 +50,53 @@ type Handler interface {
 // Supports both standalone and cluster mode via redis.UniversalClient.
 func New(redisClient redis.UniversalClient) Handler {
 	return &handler{
-		rs: redsync.New(goredis.NewPool(redisClient)),
+		rs:     redsync.New(goredis.NewPool(redisClient)),
+		expiry: defaultExpiry,
 	}
 }
 
 // handler ...
 type handler struct {
-	rs *redsync.Redsync
+	rs     *redsync.Redsync
+	expiry time.Duration
 }
 
 // NewMutex ...
-func (l handler) NewMutex(name string) locker.Mutex {
-	return mutex{
-		mutex: l.rs.NewMutex(name),
+func (l *handler) NewMutex(name string) locker.Mutex {
+	return &mutex{
+		mutex:  l.rs.NewMutex(name, redsync.WithExpiry(l.expiry)),
+		expiry: l.expiry,
 	}
 }
 
-// mutex ...
+// mutex wraps a redsync mutex with an auto-renewal watchdog so that a lock held
+// longer than its TTL does not silently expire while its owner is still working.
 type mutex struct {
-	mutex *redsync.Mutex
+	mutex  *redsync.Mutex
+	expiry time.Duration
+
+	// cancel stops the renew goroutine. done is closed once the renew goroutine
+	// has fully exited, guaranteeing that no Extend races with Unlock.
+	cancel context.CancelFunc
+	done   chan struct{}
 }
 
-// TryLock locks the given key.
-func (mtx mutex) TryLock() error {
+// TryLock locks the given key and starts auto-renewal on success.
+func (mtx *mutex) TryLock() error {
 	ctx := context.Background()
 	if err := mtx.mutex.LockContext(ctx); err != nil {
 		return err
 	}
 
+	mtx.startWatchdog()
+
 	return nil
 }
 
-// Unlock unlocks the given key.
-func (mtx mutex) Unlock() error {
+// Unlock stops auto-renewal and unlocks the given key.
+func (mtx *mutex) Unlock() error {
+	mtx.stopWatchdog()
+
 	ctx := context.Background()
 	result, err := mtx.mutex.UnlockContext(ctx)
 	if err != nil {
@@ -85,6 +111,57 @@ func (mtx mutex) Unlock() error {
 }
 
 // Name ...
-func (mtx mutex) Name() string {
+func (mtx *mutex) Name() string {
 	return mtx.mutex.Name()
+}
+
+// startWatchdog starts a goroutine that renews the lock until cancelled.
+func (mtx *mutex) startWatchdog() {
+	if mtx.cancel != nil {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	mtx.cancel = cancel
+	mtx.done = done
+
+	go mtx.renew(ctx, done)
+}
+
+// stopWatchdog cancels the renew goroutine and waits for it to exit.
+func (mtx *mutex) stopWatchdog() {
+	if mtx.cancel == nil {
+		return
+	}
+
+	cancel := mtx.cancel
+	done := mtx.done
+	mtx.cancel = nil
+	mtx.done = nil
+
+	cancel()
+	<-done
+}
+
+// renew periodically extends the lock TTL until ctx is cancelled or the lock is lost.
+func (mtx *mutex) renew(ctx context.Context, done chan struct{}) {
+	defer close(done)
+
+	interval := mtx.expiry / renewIntervalRatio
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+
+		case <-ticker.C:
+			if _, err := mtx.mutex.ExtendContext(ctx); err != nil {
+				// The lock is already lost or expired, nothing more to renew.
+				return
+			}
+		}
+	}
 }
