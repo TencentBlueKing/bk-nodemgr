@@ -254,6 +254,8 @@ func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string
 				FieldKeyPkgName:       data.PluginPkgName,
 				FieldKeyGeneration:    data.Generation,
 				FieldKeyPlatform:      data.Platform,
+				FieldKeyBindIP:        data.BindIP,
+				FieldKeyBindPort:      data.BindPort,
 				FieldKeyInfo:          data.Info,
 				FieldKeyIdentity:      data.Identity,
 				FieldKeyController:    data.Controller,
@@ -626,6 +628,8 @@ func convertProcessToTypes(data *Process) *types.Process {
 			Arch: criteria.CPUArch(data.Platform.Arch),
 		},
 		Generation: types.Generation(data.Generation),
+		BindIP:     data.BindIP,
+		BindPort:   data.BindPort,
 		Info: types.ProcessInfo{
 			Pid:       data.Info.Pid,
 			Version:   data.Info.Version,
@@ -680,6 +684,8 @@ func convProcessFromTypes(process *types.Process) *Process {
 		PluginPkgName: process.PluginPkgName,
 		Generation:    int64(process.Generation),
 		Platform:      convPlatformFromTypes(process.Platform),
+		BindIP:        process.BindIP,
+		BindPort:      process.BindPort,
 		Info:          convProcessInfoFromTypes(process.Info),
 		Identity:      convProcessIdentityFromTypes(process.Identity),
 		Controller: processController{

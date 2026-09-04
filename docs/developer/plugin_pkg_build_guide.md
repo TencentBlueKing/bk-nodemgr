@@ -55,6 +55,9 @@ PluginInfo:
     AgentDir: Agent安装路径
     GroupID: 插件所属的Group ID
     IsMultiTenant: 是否为多租户插件，true或false
+    BindIP: 插件监听的绑定IP
+    BindPort: 插件监听的绑定端口
+    PortRange: 插件监听的端口范围
 NodeInfo:
     HostID: 主机ID
     TenantID: 租户ID

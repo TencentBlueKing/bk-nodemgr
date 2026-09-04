@@ -171,6 +171,19 @@ type PluginV3BindAddressAllocated struct {
 	BindPortAvailableRange types.PluginPkgAvailablePortRange `yaml:"bindPortAvailableRange"`
 }
 
+func buildPluginV3PkgBindAddressAllocated(config PluginV3BindAddressAllocated) types.BindAddressAllocated {
+	bindIP := config.BindIP
+	if config.Enable && bindIP == "" {
+		bindIP = "127.0.0.1"
+	}
+
+	return types.BindAddressAllocated{
+		Enable:                 config.Enable,
+		BindIP:                 bindIP,
+		BindPortAvailableRange: config.BindPortAvailableRange,
+	}
+}
+
 // PluginV3Control represents the definition.yaml file's control field.
 type PluginV3Control struct {
 	StartCmd   string `yaml:"start"`
@@ -259,11 +272,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				}
 
 				detail.Platforms = append(detail.Platforms, plat)
-				detail.BindAddressAllocated[plat.String()] = types.BindAddressAllocated{
-					Enable:                 bindAddressAllocated.Enable,
-					BindIP:                 bindAddressAllocated.BindIP,
-					BindPortAvailableRange: bindAddressAllocated.BindPortAvailableRange,
-				}
+				detail.BindAddressAllocated[plat.String()] = buildPluginV3PkgBindAddressAllocated(bindAddressAllocated)
 				detail.ConfigTemplates[plat.String()] = parsePluginV3PkgConfigTemplateFromDefinition(pluginDefinition)
 				detail.Controller[plat.String()] = buildPluginV3PkgController(plat, pluginDefinition)
 

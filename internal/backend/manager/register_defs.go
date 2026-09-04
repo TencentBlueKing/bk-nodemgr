@@ -272,6 +272,7 @@ func (mgr *Manager) registerDefPlugin() error {
 	if err := mgr.workflowMgr.RegisterActions(
 		plugin.NewActionTransferPluginPkgToNode(pluginCap),
 		plugin.NewActionRenderPluginDeployment(pluginCap),
+		plugin.NewActionAllocatePluginBindAddress(pluginCap),
 		plugin.NewActionRenderPluginConfig(pluginCap),
 		plugin.NewActionOverwritePluginConfigForCompatibility(pluginCap),
 		plugin.NewActionWaitPluginInstallerComplete(pluginCap),

@@ -29,6 +29,8 @@ func TestConvProcessFromTypesKeepsDebugCmd(t *testing.T) {
 		PluginGroup:   "plugin-group",
 		Platform:      platfmt.Platform{},
 		Generation:    3,
+		BindIP:        "127.0.0.1",
+		BindPort:      10000,
 		Info: types.ProcessInfo{
 			Pid:       4,
 			Version:   "1.0.0",
@@ -68,6 +70,8 @@ func TestConvProcessFromTypesKeepsDebugCmd(t *testing.T) {
 
 	got := convProcessFromTypes(process)
 	require.Equal(t, "debug.sh", got.Controller.DebugCmd)
+	require.Equal(t, "127.0.0.1", got.BindIP)
+	require.Equal(t, 10000, got.BindPort)
 }
 
 func TestConvertProcessToTypesKeepsDebugCmd(t *testing.T) {
@@ -83,6 +87,8 @@ func TestConvertProcessToTypesKeepsDebugCmd(t *testing.T) {
 			OS:   "linux",
 			Arch: "amd64",
 		},
+		BindIP:   "127.0.0.1",
+		BindPort: 10000,
 		Info: processInfo{
 			Pid:         4,
 			Version:     "1.0.0",
@@ -122,5 +128,7 @@ func TestConvertProcessToTypesKeepsDebugCmd(t *testing.T) {
 
 	got := convertProcessToTypes(data)
 	require.Equal(t, "debug.sh", got.Controller.DebugCmd)
+	require.Equal(t, "127.0.0.1", got.BindIP)
+	require.Equal(t, 10000, got.BindPort)
 	require.True(t, reflect.DeepEqual(data, convProcessFromTypes(got)))
 }

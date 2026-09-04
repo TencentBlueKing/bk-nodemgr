@@ -55,6 +55,12 @@ const (
 	// FieldKeyPlatform the platform field key.
 	FieldKeyPlatform = "data.platform"
 
+	// FieldKeyBindIP the bind ip field key.
+	FieldKeyBindIP = "data.bind_ip"
+
+	// FieldKeyBindPort the bind port field key.
+	FieldKeyBindPort = "data.bind_port"
+
 	// FieldKeyPlatformOS the platform os field key.
 	FieldKeyPlatformOS = "data.platform.os"
 

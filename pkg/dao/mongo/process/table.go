@@ -44,6 +44,9 @@ type Process struct {
 
 	Generation int64    `json:"generation" bson:"generation"`
 	Platform   platform `json:"platform" bson:"platform"`
+	
+	BindIP     string   `json:"bind_ip" bson:"bind_ip"`
+	BindPort   int      `json:"bind_port" bson:"bind_port"`
 
 	Info          processInfo          `json:"info" bson:"info"`
 	Identity      processIdentity      `json:"identity" bson:"identity"`

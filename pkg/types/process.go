@@ -257,6 +257,11 @@ type Process struct {
 	Platform   platform.Platform
 	Generation Generation
 
+	// BindIP and BindPort are the bind address of the process if process need to bind.
+	// They can be empty.
+	BindIP   string
+	BindPort int
+
 	Info          ProcessInfo
 	Identity      ProcessIdentity
 	Controller    ProcessController

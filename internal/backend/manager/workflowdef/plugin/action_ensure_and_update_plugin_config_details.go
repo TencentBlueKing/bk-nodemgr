@@ -73,7 +73,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Name() string {
 
 // Version returns the version of the action.
 func (act *actionEnsureAndUpdatePluginConfigDetails) Version() string {
-	return "1.0.0"
+	return "1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -152,9 +152,13 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	var renderContext map[string]any
 	switch pluginRelease.TemplateRendererType {
 	case types.TemplateRendererTypeGoTemplate:
-		renderContext = act.generateGoTemplateSystemConfigContext(std, configSourceHostInfo)
+		renderContext = act.generateGoTemplateSystemConfigContext(
+			std, configSourceHostInfo, pluginRelease.BindAddressAllocated.BindPortAvailableRange,
+		)
 	case types.TemplateRendererTypeJinja2:
-		renderContext, err = act.generateJinja2SystemConfigContext(std, hostInfo, configSourceHostInfo)
+		renderContext, err = act.generateJinja2SystemConfigContext(
+			std, hostInfo, configSourceHostInfo, pluginRelease.BindAddressAllocated.BindPortAvailableRange,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to generate jinja2 system config context: %w", err)
 		}
@@ -275,6 +279,9 @@ type ContextPluginInfo struct {
 	AgentDir      string `json:"AgentDir"`
 	GroupID       string `json:"GroupID"`
 	IsMultiTenant bool   `json:"IsMultiTenant"`
+	BindIP        string `json:"BindIP"`
+	BindPort      int    `json:"BindPort"`
+	PortRange     string `json:"PortRange"`
 }
 
 // ContextPreDefinitionConstants pre-definition constants for render context.
@@ -405,7 +412,9 @@ const (
 )
 
 func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemConfigContext(
-	std *pluginUtils.PluginActionStandarder, hostInfo *types.Host) map[string]any {
+	std *pluginUtils.PluginActionStandarder, hostInfo *types.Host,
+	portRange types.PluginPkgAvailablePortRange,
+) map[string]any {
 
 	pluginInfo := ContextPluginInfo{
 		Name:          std.DeployInfo().Process.PluginName,
@@ -420,6 +429,9 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemCon
 		AgentDir:      std.DeployInfo().BaseRuntime.GSEHomeDir,
 		GroupID:       std.DeployInfo().Process.PluginGroup,
 		IsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
+		BindIP:        std.DeployInfo().Process.BindIP,
+		BindPort:      std.DeployInfo().Process.BindPort,
+		PortRange:     string(portRange),
 	}
 
 	preDefinitionConstants := ContextPreDefinitionConstants{
@@ -535,10 +547,27 @@ const (
 	keyListenIP     = "listen_ip"
 	keyListenPort   = "listen_port"
 	keyGroupID      = "group_id"
+	keyModule       = "module"
+	keyProject      = "project"
+	keyInstallPath  = "install_path"
+	keyKillCmd      = "kill_cmd"
+	keyVersionCmd   = "version_cmd"
+	keyHealthCmd    = "health_cmd"
+	keyDebugCmd     = "debug_cmd"
+	keyOS           = "os"
+	keyProcessName  = "process_name"
+	keyPortRange    = "port_range"
+
+	controlInfoModuleGSEPlugin = "gse_plugin"
 )
 
+// nolint: funlen
 func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigContext(
-	std *pluginUtils.PluginActionStandarder, runtimeHostInfo *types.Host, configSourceHostInfo *types.Host) (map[string]any, error) {
+	std *pluginUtils.PluginActionStandarder,
+	runtimeHostInfo *types.Host,
+	configSourceHostInfo *types.Host,
+	portRange types.PluginPkgAvailablePortRange,
+) (map[string]any, error) {
 
 	runtimeHostRenderData, err := act.generateHostRenderData(std, runtimeHostInfo)
 	if err != nil {
@@ -610,15 +639,28 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 	controlInfo := map[string]any{
 		keyPluginIPC:    pluginEndpoint,
 		keyDataIPC:      dataEndpoint,
+		keyModule:       controlInfoModuleGSEPlugin,
+		keyProject:      std.DeployInfo().Process.PluginPkgName,
+		keyInstallPath:  std.DeployInfo().BaseRuntime.GSEHomeDir,
+		keyStartCmd:     std.DeployInfo().Process.Controller.StartCmd,
+		keyStopCmd:      std.DeployInfo().Process.Controller.StopCmd,
+		keyRestartCmd:   std.DeployInfo().Process.Controller.RestartCmd,
+		keyReloadCmd:    std.DeployInfo().Process.Controller.ReloadCmd,
+		keyKillCmd:      std.DeployInfo().Process.Controller.KillCmd,
+		keyVersionCmd:   std.DeployInfo().Process.Controller.VersionCmd,
+		keyHealthCmd:    std.DeployInfo().Process.Controller.HealthCmd,
+		keyDebugCmd:     std.DeployInfo().Process.Controller.DebugCmd,
+		keyOS:           std.DeployInfo().Process.Platform.OS.String(),
+		keyProcessName:  std.DeployInfo().Process.Identity.Name,
+		keyPortRange:    string(portRange),
 		keyGSEAgentHome: std.DeployInfo().BaseRuntime.GSEHomeDir,
 		keyGroupID:      std.DeployInfo().Process.PluginGroup,
 		keyLogPath:      std.DeployInfo().BaseRuntime.LogDir,
 		keyDataPath:     std.DeployInfo().BaseRuntime.DataDir,
 		keyPidPath:      std.DeployInfo().BaseRuntime.RunDir,
 		keySetupPath:    std.DeployInfo().BaseRuntime.PluginHomeDir,
-		// TODO: implement a plugin to obtain listen ip and port
-		keyListenIP:   "",
-		keyListenPort: 0,
+		keyListenIP:     std.DeployInfo().Process.BindIP,
+		keyListenPort:   std.DeployInfo().Process.BindPort,
 	}
 
 	return map[string]any{

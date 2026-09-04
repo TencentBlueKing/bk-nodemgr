@@ -317,6 +317,8 @@ func TestConvertPluginConfigDetailsTemplateName(t *testing.T) {
 func TestConvertPluginDeploymentInfoKeepsDebugCmd(t *testing.T) {
 	info := &types.PluginDeploymentInfo{
 		Process: types.Process{
+			BindIP:   "127.0.0.1",
+			BindPort: 10000,
 			Controller: types.ProcessController{
 				DebugCmd: "debug.sh",
 			},
@@ -330,6 +332,10 @@ func TestConvertPluginDeploymentInfoKeepsDebugCmd(t *testing.T) {
 	if data.Process.Controller.DebugCmd != "debug.sh" {
 		t.Fatalf("convertPluginDeploymentInfoFromTypes() DebugCmd = %q, want %q", data.Process.Controller.DebugCmd, "debug.sh")
 	}
+	if data.Process.BindIP != "127.0.0.1" || data.Process.BindPort != 10000 {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() bind address = %s:%d, want %s:%d",
+			data.Process.BindIP, data.Process.BindPort, "127.0.0.1", 10000)
+	}
 
 	got, err := convertPluginDeploymentInfoToTypes(data)
 	if err != nil {
@@ -337,6 +343,10 @@ func TestConvertPluginDeploymentInfoKeepsDebugCmd(t *testing.T) {
 	}
 	if got.Process.Controller.DebugCmd != "debug.sh" {
 		t.Fatalf("convertPluginDeploymentInfoToTypes() DebugCmd = %q, want %q", got.Process.Controller.DebugCmd, "debug.sh")
+	}
+	if got.Process.BindIP != "127.0.0.1" || got.Process.BindPort != 10000 {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() bind address = %s:%d, want %s:%d",
+			got.Process.BindIP, got.Process.BindPort, "127.0.0.1", 10000)
 	}
 }
 

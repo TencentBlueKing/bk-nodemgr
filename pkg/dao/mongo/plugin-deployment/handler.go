@@ -342,6 +342,8 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 				Arch: criteria.CPUArch(info.Process.Platform.Arch),
 			},
 			Generation: types.Generation(info.Process.Generation),
+			BindIP:     info.Process.BindIP,
+			BindPort:   info.Process.BindPort,
 			Info: types.ProcessInfo{
 				Pid:       info.Process.Info.Pid,
 				Version:   info.Process.Info.Version,
@@ -448,6 +450,8 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 				Arch: string(info.Process.Platform.Arch),
 			},
 			Generation: int64(info.Process.Generation),
+			BindIP:     info.Process.BindIP,
+			BindPort:   info.Process.BindPort,
 			Info: processInfo{
 				Pid:       info.Process.Info.Pid,
 				Version:   info.Process.Info.Version,
