@@ -29416,9 +29416,9 @@ paths:
                     properties:
                       status:
                         type: string
+                      is_finish:
+                        type: boolean
                       download_url:
-                        type: string
-                      error_message:
                         type: string
                       download_url_expired_at:
                         type: integer
