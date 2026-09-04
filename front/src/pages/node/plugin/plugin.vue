@@ -1,31 +1,10 @@
 <template>
   <div class="p-[24px]">
-    <!-- 操作栏：安装按钮 + 批量操作 -->
+    <!-- 操作栏：安装按钮 -->
     <div class="flex items-center gap-[8px] mb-[16px]">
       <Button v-if="enabledOperations.has('install')" class="w-[130px]" theme="primary" @click="handlePluginOperate('install', [], false)">
         {{ $t('pluginManagement.plugin.operate.install') }}
       </Button>
-      <Dropdown
-        theme="light"
-        trigger="click"
-        :popover-options="{ clickContentAutoHide: true }"
-      >
-        <Button :disabled="!selection.length">
-          <span>{{ $t('pluginManagement.plugin.batchOperate') }}</span>
-          <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
-        </Button>
-        <template #content>
-          <Dropdown.DropdownMenu>
-            <Dropdown.DropdownItem
-              v-for="item in batchOperateList"
-              :key="item.id"
-              @click="handlePluginOperate(item.id, selection, true)"
-            >
-              {{ item.name }}
-            </Dropdown.DropdownItem>
-          </Dropdown.DropdownMenu>
-        </template>
-      </Dropdown>
     </div>
 
     <Loading :loading="loading">
@@ -39,10 +18,7 @@
         @setting-change="handleSettingChange"
         @page-limit-change="pageLimitChange"
         @page-value-change="pageValueChange"
-        @checkbox-change="handleSelectChange"
-        @checkbox-all="handleSelectAllChange"
       >
-        <TableColumn type="checkbox" width="60" fixed="left" />
         <TableColumn
           :title="$t('pluginManagement.plugin.table.pluginName')"
           field="name"
@@ -159,7 +135,6 @@
       :columns="operateDialogColumns"
       :status-map="processStatusTextMap"
       :hide-restart-options="true"
-      :hide-checkbox="!isBatchOperate"
       :selection-confirm-formatter="selectionConfirmFormatter"
       @confirm="handleOperateConfirm"
       ></operate-dialog>
@@ -199,15 +174,6 @@ const {
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 // 插件列表数据
 const pluginList = ref<any[]>([]);
-
-// 表格选中
-const selection = computed(() => pluginList.value.filter((item: any) => item.checked));
-const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
-  if (row) row.checked = checked;
-};
-const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
-  pluginList.value.forEach((item: any) => { if (item) item.checked = checked; });
-};
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting(
@@ -274,13 +240,6 @@ const allOperations = [
   { id: 'restart', nameKey: 'pluginManagement.plugin.operate.restart' },
   { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' },
 ];
-
-// 批量操作列表 — 排除 upgrade 和 reinstall（仅单行操作可用）
-const batchOperateList = computed(() =>
-  allOperations
-    .filter(op => enabledOperations.value.has(op.id) && !['upgrade', 'reinstall'].includes(op.id))
-    .map(op => ({ id: op.id, name: t(op.nameKey) })),
-);
 
 // 单行操作列表，根据 plugin group 区分，只显示有权限的操作
 const getSingleOperateList = (row: any) => {
@@ -428,30 +387,22 @@ const handlePluginOperate = async (operateType: string, data: any[], batch = fal
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchRestartTitle')
         : t('pluginManagement.plugin.operate.restartTitle');
-      operateDialogData.subTitle = batch
-        ? t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionRestart') })
-        : '';
+      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionRestart') });
     } else if (operateType === 'uninstall') {
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchUninstallTitle')
         : t('pluginManagement.plugin.operate.uninstallTitle');
-      operateDialogData.subTitle = batch
-        ? t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionUninstall') })
-        : '';
+      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionUninstall') });
     } else if (operateType === 'stop') {
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchStopTitle')
         : t('pluginManagement.plugin.operate.stopTitle');
-      operateDialogData.subTitle = batch
-        ? t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionStop') })
-        : '';
+      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionStop') });
     } else {
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchStartTitle')
         : t('pluginManagement.plugin.operate.startTitle');
-      operateDialogData.subTitle = batch
-        ? t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionStart') })
-        : '';
+      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionStart') });
     }
     operateDialogIsShow.value = true;
   }

@@ -250,27 +250,35 @@ export const mapHostItem = (item: any) => {
   };
 };
 
-/** 获取默认业务 ID（优先 mainStore，兼容读取 localStorage） */
-const getDefaultBizId = () => {
-  // 优先从 Pinia store 读取
+/** 获取默认业务 ID 数组（优先 IP 选择器上下文，再回退 mainStore / localStorage）
+ *  多选业务场景下返回完整数组，避免只取第一个业务导致查询范围缺失 */
+const getDefaultBizIds = (): number[] => {
+  // 1. IP 选择器上下文（setBizId / setStrategyBizId 设置的 currentBizIds）
+  const effective = getEffectiveBizIds();
+  if (effective.length > 0) return [...effective];
+
+  // 2. 回退到 Pinia store 的选中业务数组
   try {
     const store = useMainStore();
-    if (store.selectedBusinessId?.[0]) return store.selectedBusinessId[0];
+    if (store.selectedBusinessId?.length) return [...store.selectedBusinessId];
   } catch {
     // ignore
   }
-  // 兼容：store 未就绪时（如页面刷新），从 localStorage 读取
+  // 3. 兼容：store 未就绪时（如页面刷新），从 localStorage 读取
   try {
     const saved = localStorage.getItem('bk_biz_id');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed.map(Number);
     }
   } catch {
     // ignore
   }
-  return undefined;
+  return [];
 };
+
+/** 获取默认业务 ID（单值，兼容旧调用） */
+const getDefaultBizId = () => getDefaultBizIds()[0];
 
 /** 通用主机列表查询（自动填充默认业务 ID） */
 const listHosts = async (params?: Partial<{
@@ -279,10 +287,10 @@ const listHosts = async (params?: Partial<{
   fuzzy: any;
 }>) => {
   const request = buildHostListParams(params);
-  const defaultBizId = getDefaultBizId();
-  if (defaultBizId && (!request.exact_include_conditions.bk_biz_id
+  const defaultBizIds = getDefaultBizIds();
+  if (defaultBizIds.length > 0 && (!request.exact_include_conditions.bk_biz_id
     || request.exact_include_conditions.bk_biz_id.length === 0)) {
-    request.exact_include_conditions.bk_biz_id = [defaultBizId];
+    request.exact_include_conditions.bk_biz_id = defaultBizIds;
   }
   return TopoService.HostList(request).catch(() => ({ total: 0, items: [] }));
 };

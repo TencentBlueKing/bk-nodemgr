@@ -17,13 +17,14 @@
 
       <!-- 操作目标数据表格（简化模式下不展示） -->
       <Table
-        v-if="showTable && isShow && data.length > 0 && columns.length > 0"
-        :data="data"
-        :max-height="500"
+        v-if="showTable && isShow && dialogTableData.length > 0 && columns.length > 0"
+        :data="dialogTableData"
+        :max-height="600"
         class="mt-[16px]"
         @checkbox-change="handleSelectChange"
         @checkbox-all="handleSelectAllChange"
       >
+        <template #prepend></template>
         <TableColumn v-if="!hideCheckbox" type="checkbox" width="60" fixed="left" />
         <TableColumn
           v-for="col in columns"
@@ -141,6 +142,8 @@ const { t } = useI18n();
 /** 勾选的行数据 */
 const selection = ref<any[]>([]);
 
+const dialogTableData = computed(() => props.data);
+
 /** 是否强制重启 */
 const isForce = ref(false);
 /** 无损重启超时时间（秒） */
@@ -164,14 +167,17 @@ const dialogWidth = computed(() => {
 const selectionConfirmText = computed(() => {
   if (!props.selectionConfirmFormatter) return '';
   // 无勾选列或简化模式下使用全部数据，表格模式下使用勾选数据
-  const items = (props.hideCheckbox || !props.showTable) ? props.data : selection.value;
+  const items = (props.hideCheckbox || !props.showTable) ? dialogTableData.value : selection.value;
   if (items.length === 0) return '';
   return props.selectionConfirmFormatter(items);
 });
 
 function handleConfirm() {
-  // 无勾选列或简化模式下使用全部数据，表格模式下使用勾选数据
-  const finalSelection = (props.hideCheckbox || !props.showTable) ? props.data : selection.value;
+  // 无勾选列、简化模式或未勾选任何行时使用全部数据，表格模式下使用勾选数据
+  const fallback = dialogTableData.value;
+  const finalSelection = (props.hideCheckbox || !props.showTable || selection.value.length === 0)
+    ? fallback
+    : selection.value;
   emit('confirm', {
     selection: finalSelection,
     isForce: isForce.value,
@@ -191,14 +197,14 @@ function handleSelectChange({ checked, row }: { checked: boolean; row: any }) {
 }
 
 function handleSelectAllChange({ checked }: { checked: boolean }) {
-  props.data.forEach((row: any) => {
+  dialogTableData.value.forEach((row: any) => {
     if (row) row.checked = checked;
   });
   syncSelection();
 }
 
 function syncSelection() {
-  selection.value = props.data.filter((row: any) => row.checked);
+  selection.value = dialogTableData.value.filter((row: any) => row.checked);
   emit('selection-change', selection.value);
 }
 
@@ -207,7 +213,7 @@ watch(
   async () => {
     if (isShow.value) {
       // 重置勾选状态
-      props.data.forEach((row: any) => {
+      dialogTableData.value.forEach((row: any) => {
         if (row) row.checked = false;
       });
       selection.value = [];

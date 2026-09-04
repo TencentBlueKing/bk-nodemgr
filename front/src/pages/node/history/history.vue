@@ -16,9 +16,9 @@
   <div class="p-[24px] mt-[41px]">
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[12px]">
-        <Checkbox v-model="hideAutoTask">{{
+        <!-- <Checkbox v-model="hideAutoTask">{{
           t("platform.nodeMan.taskHistory.button.hideAutoTask")
-        }}</Checkbox>
+        }}</Checkbox> -->
         <DatePicker
           v-model="dateValue"
           :shortcut-selected-index="1"
