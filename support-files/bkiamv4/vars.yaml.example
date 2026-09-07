@@ -1,0 +1,16 @@
+# IAM V4 Migration Variables Configuration
+# Copy this file to vars.yaml and fill in your values.
+#
+# Usage (from support-files/bkiamv4):
+#   ./render/iam-render -t templates -v vars.yaml -o output
+
+system:
+  # Creation requires id, name, and clients. Include your own app code in clients.
+  id: "bk_nodemgr"
+  name: "BlueKing Node Manager"
+  description: "BlueKing Node Manager provides node and plugin management"
+  # IAM V4 expects an array of app codes, not the IAM V3 comma-separated string.
+  clients:
+    - "bk-nodemgr"
+  callback_url: "https://bk-nodemgr.example.com/api/v3/iam/v4/resource"
+  # Managers are optional and omitted from the default migration.

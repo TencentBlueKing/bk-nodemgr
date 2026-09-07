@@ -1,0 +1,110 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云 - 节点管理 (BlueKing - Node Management) available.
+ * Copyright (C) Tencent. All rights reserved.
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+
+ * We undertake not to change the open source license (MIT license) applicable
+
+ * to the current version of the project delivered to anyone in the future.
+ */
+
+package iamv4
+
+import (
+	"encoding/json"
+	"fmt"
+
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+)
+
+// Config configures application-authenticated requests to the IAM V4 gateway.
+type Config struct {
+	BaseURL string
+	apigwclient.AppConfig
+}
+
+// Validate checks the application-only gateway configuration.
+func (c *Config) Validate() error {
+	if err := c.AppConfig.Validate(); err != nil {
+		return fmt.Errorf("invalid app config: %w", err)
+	}
+	// The shared auth helper formats JSON rather than marshaling credentials.
+	if !json.Valid([]byte(c.AppConfig.GetAuthHeader())) {
+		return fmt.Errorf("app-code or app-secret cannot be encoded by the APIGW auth helper")
+	}
+
+	return nil
+}
+
+// SystemFields preserves omitted fields separately from explicit empty values.
+// Nil preserves the remote value; a pointer to an empty value clears it.
+type SystemFields struct {
+	Name        *string   `json:"name,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Clients     *[]string `json:"clients,omitempty"`
+	Managers    *[]string `json:"managers,omitempty"`
+	CallbackURL *string   `json:"callback_url,omitempty"`
+}
+
+// RetrieveSystemReq identifies the system to retrieve.
+type RetrieveSystemReq struct {
+	SystemID string `json:"-"`
+}
+
+// CreateSystemReq is the system registration payload.
+type CreateSystemReq struct {
+	ID string `json:"id"`
+	SystemFields
+}
+
+// UpdateSystemReq identifies a system and its supplied mutable fields.
+type UpdateSystemReq struct {
+	SystemID string `json:"-"`
+	SystemFields
+}
+
+// RetrieveSystemResp contains the system identity returned by IAM.
+type RetrieveSystemResp struct {
+	ID string `json:"id"`
+}
+
+// CreateSystemResp contains the registered system identity.
+type CreateSystemResp struct {
+	ID string `json:"id"`
+}
+
+// RespError describes an IAM API error.
+type RespError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// RespCommon contains the common IAM response fields.
+type RespCommon struct {
+	Error     *RespError `json:"error"`
+	RequestID string     `json:"request_id"`
+}
+
+// BaseBroker describes an IAM response envelope.
+type BaseBroker[T any] struct {
+	RespCommon
+	Data T `json:"data"`
+}
+
+// IsFailed checks the IAM error envelope independently of the HTTP status.
+func (resp *BaseBroker[T]) IsFailed() error {
+	if resp.Error != nil {
+		// Remote messages can contain echoed request data; do not print them.
+		return fmt.Errorf("IAM error code(%s), request-id(%s)", resp.Error.Code, resp.RequestID)
+	}
+
+	return nil
+}
