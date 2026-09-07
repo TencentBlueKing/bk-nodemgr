@@ -73,7 +73,7 @@ func (act *actStartProcess) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actStartProcess) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 5 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
