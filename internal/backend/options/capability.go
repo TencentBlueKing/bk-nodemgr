@@ -49,6 +49,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv4"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
@@ -120,6 +121,8 @@ type Capability struct {
 
 	// IAMV3Handler the IAM v3 handler.
 	IAMV3Handler iamv3.IHandler
+	// IAMV4Handler the IAM v4 handler.
+	IAMV4Handler iamv4.IHandler
 
 	// MonitorHandler the monitor handler.
 	MonitorHandler monitor.IHandler

@@ -990,6 +990,17 @@ type IAMV3 struct {
 	CMDBSystemID string `yaml:"cmdbSystemID" usage:"system ID registered in IAM v3"`
 }
 
+// IAMV4 the config of IAM v4 gateway config.
+type IAMV4 struct {
+	// Enable indicates whether IAM v4 is enabled.
+	Enable           bool `yaml:"enable" usage:"enable IAM v4 permission management"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of IAM v4"`
+	// SystemID is the system identifier registered in IAM.
+	SystemID string `yaml:"systemID" usage:"system ID registered in IAM v4"`
+	// CallbackPath is the callback path for IAM resource provider.
+	CallbackPath string `yaml:"callbackPath" usage:"callback path for IAM resource provider"`
+}
+
 // Downloader defines the shared remote package downloader configuration.
 type Downloader struct {
 	AllowHosts   []string `yaml:"allowHosts" usage:"download host allow list, exact hostname match, no wildcard or subdomain"`

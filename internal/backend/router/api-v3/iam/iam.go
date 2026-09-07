@@ -22,6 +22,7 @@ package iam
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	iamv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/iam/v3"
+	iamv4 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/iam/v4"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,4 +45,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// Load IAM v3 routes
 	iamv3.Load(h.rg, capability)
+
+	// Load IAM v4 routes
+	iamv4.Load(h.rg, capability)
 }

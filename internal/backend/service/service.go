@@ -80,6 +80,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv4"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
@@ -103,7 +104,8 @@ const (
 	clientNameUserManager = "usermanager"
 	clientNameIEGTJJ      = "iegtjj"
 	clientNameFile        = "file"
-	clientNameIAM         = "iam-v3"
+	clientNameIAMV3       = "iam-v3"
+	clientNameIAMV4       = "iam-v4"
 	clientNameMonitor     = "monitor"
 
 	mongoMaxPoolSize     = uint64(500)
@@ -294,6 +296,12 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create IAM v3 handler: %w", err)
 	}
 
+	// initial IAM v4 handler.
+	svc.Cap.IAMV4Handler, err = svc.newIAMV4Handler()
+	if err != nil {
+		return fmt.Errorf("failed to create IAM v4 handler: %w", err)
+	}
+
 	// initial monitor handler.
 	svc.Cap.MonitorHandler, err = svc.newMonitorHandler()
 	if err != nil {
@@ -471,16 +479,25 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 }
 
 func (svc *Service) newAuthorizer() auth.IAuthorizer {
-	if !svc.conf.IAMV3.Enable {
-		return auth.NewNoOpAuthorizer()
+	if svc.conf.IAMV4.Enable {
+		return auth.NewIAMV4Authorizer(
+			svc.conf.IAMV4.SystemID,
+			svc.Cap.IAMV4Handler,
+			svc.Cap.AuthProviderHandler,
+			svc.Cap.AuthProviderHandler,
+		)
 	}
 
-	return auth.NewIAMV3Authorizer(
-		svc.conf.IAMV3.SystemID,
-		svc.Cap.IAMV3Handler,
-		svc.Cap.AuthProviderHandler, // IAttributeEnricher
-		svc.Cap.AuthProviderHandler, // IResolver
-	)
+	if svc.conf.IAMV3.Enable {
+		return auth.NewIAMV3Authorizer(
+			svc.conf.IAMV3.SystemID,
+			svc.Cap.IAMV3Handler,
+			svc.Cap.AuthProviderHandler, // IAttributeEnricher
+			svc.Cap.AuthProviderHandler, // IResolver
+		)
+	}
+
+	return auth.NewNoOpAuthorizer()
 }
 
 // newAuthProviderHandler creates a unified IAM callback handler with all providers registered.
@@ -522,7 +539,7 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 	}
 
 	apiGwClientCapability, err := newAPIGwClientCapability(
-		clientNameIAM,
+		clientNameIAMV3,
 		&svc.conf.IAMV3.APIGatewayClient,
 	)
 	if err != nil {
@@ -533,6 +550,33 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 		VirtualUserConfig: virtualUserConfig,
 		SystemID:          svc.conf.IAMV3.SystemID,
 		CallbackPath:      svc.conf.IAMV3.CallbackPath,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return iamHandler, nil
+}
+
+// newIAMV4Handler creates a new IAM v4 handler.
+func (svc *Service) newIAMV4Handler() (iamv4.IHandler, error) {
+	if !svc.conf.IAMV4.Enable {
+		return nil, nil
+	}
+
+	virtualUserConfig := newVirtualUserConfig(&svc.conf.IAMV4.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(
+		clientNameIAMV4,
+		&svc.conf.IAMV4.APIGatewayClient,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for IAM v4: %w", err)
+	}
+
+	iamHandler, err := iamv4.New(apiGwClientCapability, &iamv4.Config{
+		VirtualUserConfig: virtualUserConfig,
+		SystemID:          svc.conf.IAMV4.SystemID,
+		CallbackPath:      svc.conf.IAMV4.CallbackPath,
 	})
 	if err != nil {
 		return nil, err

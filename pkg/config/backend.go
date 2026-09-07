@@ -119,6 +119,7 @@ const (
 	defaultBackendUserManagerTraceServiceName = "backend-client-usermanager"
 	defaultBackendIEGTJJTraceServiceName      = "backend-client-iegtjj"
 	defaultBackendIAMV3TraceServiceName       = "backend-client-iam-v3"
+	defaultBackendIAMV4TraceServiceName       = "backend-client-iam-v4"
 	defaultBackendMonitorTraceServiceName     = "backend-client-monitor"
 
 	defaultBackendAgentBaseAlarmEventDataID = 1000
@@ -137,6 +138,7 @@ type BackendService struct {
 	GSE                GSE              `yaml:"gse" usage:"gse config of backend service"`
 	UserManager        UserManager      `yaml:"userManager" usage:"user manager config of backend service"`
 	IAMV3              IAMV3            `yaml:"iamV3" usage:"IAM v3 gateway config"`
+	IAMV4              IAMV4            `yaml:"iamV4" usage:"IAM v4 gateway config"`
 	Monitor            Monitor          `yaml:"monitor" usage:"monitor gateway config"`
 	NodeEventDataID    NodeEventDataID  `yaml:"nodeEventDataID" usage:"node event data-id config"`
 	Workflow           Workflow         `yaml:"workflow" usage:"workflow config of backend service"`
@@ -219,6 +221,14 @@ func NewBackendService() *BackendService {
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultBackendIAMV3TraceServiceName,
+				},
+			},
+		},
+		IAMV4: IAMV4{
+			SystemID: defaultIAMV3SystemID,
+			APIGatewayClient: APIGatewayClient{
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendIAMV4TraceServiceName,
 				},
 			},
 		},
@@ -487,6 +497,14 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate IAM v3 config: %w", err)
 	}
 
+	if err := svc.IAMV4.Validate(); err != nil {
+		return fmt.Errorf("failed to validate IAM v4 config: %w", err)
+	}
+
+	if svc.IAMV3.Enable && svc.IAMV4.Enable {
+		return fmt.Errorf("iamV3 and iamV4 cannot be enabled at the same time")
+	}
+
 	if err := svc.Monitor.Validate(); err != nil {
 		return fmt.Errorf("failed to validate monitor config: %w", err)
 	}
@@ -694,6 +712,27 @@ func (conf IAMV3) Validate() error {
 
 	if conf.CallbackPath == "" {
 		return fmt.Errorf("callback path is required for IAM v3")
+	}
+
+	return nil
+}
+
+// Validate validates the config.
+func (conf IAMV4) Validate() error {
+	if !conf.Enable {
+		return nil
+	}
+
+	if err := conf.APIGatewayClient.Validate(); err != nil {
+		return fmt.Errorf("failed to validate IAM v4 client config: %w", err)
+	}
+
+	if conf.SystemID == "" {
+		return fmt.Errorf("system ID is required for IAM v4")
+	}
+
+	if conf.CallbackPath == "" {
+		return fmt.Errorf("callback path is required for IAM v4")
 	}
 
 	return nil
