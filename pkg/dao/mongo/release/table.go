@@ -26,8 +26,8 @@ import (
 )
 
 // TableName release table name.
-func TableName(releaseType string) string {
-	return fmt.Sprintf("release_%s", releaseType)
+func TableName(releaseType string, tenantID string) string {
+	return fmt.Sprintf("release_%s_%s", releaseType, tenantID)
 }
 
 var _ base.IData = &Release{}

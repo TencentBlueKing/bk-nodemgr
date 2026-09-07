@@ -43,6 +43,13 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	}
 }
 
+func newDownloadHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
+	return &handler{
+		// this is a sub router, so we can use some special middleware in it and not affect the father router.
+		rg: rg.Group("/:tenant_id/api/v3"),
+	}
+}
+
 // LoadBasicAPIs register the basic apis.
 func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
@@ -61,7 +68,7 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 
 // LoadDownloadAPIs register the download apis.
 func LoadDownloadAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
-	h := newHandler(rg, capability)
+	h := newDownloadHandler(rg, capability)
 
 	// enable middlewares.
 	h.rg.Use(middlewares...)

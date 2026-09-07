@@ -470,6 +470,10 @@ func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
+	downloadSvrAddr, err := nodeUtils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build download server urls: %w", err)
+	}
 
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
@@ -480,7 +484,7 @@ func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
 			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
 		},
 		InstallerPath:   installerPath,
-		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
+		DownloadSvrAddr: downloadSvrAddr,
 		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,

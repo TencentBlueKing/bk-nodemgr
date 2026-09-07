@@ -112,6 +112,25 @@ func shouldSkipAuthByPath(path string, normalizedSkipPathPrefixes []string) bool
 	return false
 }
 
+// MiddlewarePathTenantID sets tenant id from a Gin path parameter.
+// It overwrites any tenant id that earlier middleware has already set.
+func MiddlewarePathTenantID(pathParam string) gin.HandlerFunc {
+	return func(gCtx *gin.Context) {
+		r := loadRestRequest(gCtx)
+		tenantID := gCtx.Param(pathParam)
+		mustCompile := regexp.MustCompile(TenantIDRegexp)
+		if !mustCompile.MatchString(tenantID) {
+			r.AbortWithJSONError(resterrf.InvalidParameter, []error{errors.New("failed to set tenant id: invalid tenant id")})
+
+			return
+		}
+
+		r.Data().SetTenantID(tenantID)
+
+		gCtx.Next()
+	}
+}
+
 var _ IAuthIdentity = &RestServerAuthIdentity{}
 
 // RestServerAuthIdentity verify auth info.

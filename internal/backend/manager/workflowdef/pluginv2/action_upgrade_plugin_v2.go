@@ -234,6 +234,10 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 	if err != nil {
 		return nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
+	downloadSvrAddr, err := pluginV2Utils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build download server urls: %w", err)
+	}
 
 	params := &pluginUpgradeParams{
 		PluginUpgradeParams: installer.PluginUpgradeParams{
@@ -249,7 +253,7 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 			PluginVersion:   std.DeployInfo().Process.Info.Version,
 			PluginPkgName:   targetPlugin.PkgName,
 			CallbackSvrAddr: pluginV2Utils.BuildServerURLs(callbackEndpoints...),
-			DownloadSvrAddr: pluginV2Utils.BuildServerURLs(downloadEndpoints...),
+			DownloadSvrAddr: downloadSvrAddr,
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline || len(callbackEndpoints) == 0,

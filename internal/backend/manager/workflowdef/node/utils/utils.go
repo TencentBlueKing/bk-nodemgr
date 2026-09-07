@@ -22,8 +22,10 @@ package utils
 import (
 	"fmt"
 	"math/rand/v2"
+	"net/url"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 )
@@ -90,6 +92,19 @@ func BuildServerURLs(endpoints ...discover.Endpoint) string {
 	return strings.Join(addrs, installer.ServerAddrSeparator)
 }
 
+// BuildDownloadServerURLs builds tenant-prefixed download server URLs for installers.
+func BuildDownloadServerURLs(nCtx contextx.IContext, endpoints ...discover.Endpoint) (string, error) {
+	addrs, err := buildDownloadServerURL(nCtx, true, true, endpoints...)
+	if err != nil {
+		return "", err
+	}
+	if len(addrs) == 0 {
+		return "", nil
+	}
+
+	return strings.Join(addrs, installer.ServerAddrSeparator), nil
+}
+
 // SelectOneServerV4URL selects one ipv4 address from the given endpoints.
 func SelectOneServerV4URL(endpoints []discover.Endpoint) string {
 	addrs := buildServerURL(true, false, endpoints...)
@@ -100,6 +115,19 @@ func SelectOneServerV4URL(endpoints []discover.Endpoint) string {
 	return addrs[0]
 }
 
+// SelectOneDownloadServerV4URL selects one tenant-prefixed ipv4 download address.
+func SelectOneDownloadServerV4URL(nCtx contextx.IContext, endpoints []discover.Endpoint) (string, error) {
+	addrs, err := buildDownloadServerURL(nCtx, true, false, endpoints...)
+	if err != nil {
+		return "", err
+	}
+	if len(addrs) == 0 {
+		return "", nil
+	}
+
+	return addrs[0], nil
+}
+
 // SelectOneServerV6URL selects one ipv6 address from the given endpoints.
 func SelectOneServerV6URL(endpoints []discover.Endpoint) string {
 	addrs := buildServerURL(false, true, endpoints...)
@@ -108,6 +136,41 @@ func SelectOneServerV6URL(endpoints []discover.Endpoint) string {
 	}
 
 	return addrs[0]
+}
+
+// SelectOneDownloadServerV6URL selects one tenant-prefixed ipv6 download address.
+func SelectOneDownloadServerV6URL(nCtx contextx.IContext, endpoints []discover.Endpoint) (string, error) {
+	addrs, err := buildDownloadServerURL(nCtx, false, true, endpoints...)
+	if err != nil {
+		return "", err
+	}
+	if len(addrs) == 0 {
+		return "", nil
+	}
+
+	return addrs[0], nil
+}
+
+func buildDownloadServerURL(nCtx contextx.IContext, needV4, needV6 bool, endpoints ...discover.Endpoint) ([]string, error) {
+	if nCtx == nil {
+		return nil, fmt.Errorf("nCtx is nil")
+	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	addrs := buildServerURL(needV4, needV6, endpoints...)
+	tenantAddrs := make([]string, 0, len(addrs))
+	for _, addr := range addrs {
+		tenantAddr, err := url.JoinPath(addr, nCtx.TenantID())
+		if err != nil {
+			return nil, fmt.Errorf("failed to build tenant download url: %w", err)
+		}
+
+		tenantAddrs = append(tenantAddrs, tenantAddr)
+	}
+
+	return tenantAddrs, nil
 }
 
 // SelectInstallEndpointSource selects install callback/download endpoint source from control mode.
@@ -126,7 +189,7 @@ func GenerateNodeInstallerServerEndpoints(
 	provider discover.Discover,
 	source NodeInstallerEndpointSource) (
 	[]discover.Endpoint, []discover.Endpoint, error) {
-		
+
 	switch source {
 	case NodeInstallerEndpointSourceServer:
 		return generateDirectServerEndpoints(provider)

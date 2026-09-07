@@ -17,12 +17,14 @@
  */
 
 // Package utils use to provide some common utils for plugin actions.
+// nolint: revive
 package utils
 
 import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	"net/url"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -171,6 +173,33 @@ func BuildServerURLs(endpoints ...discover.Endpoint) string {
 	}
 
 	return strings.Join(addrs, installer.ServerAddrSeparator)
+}
+
+// BuildDownloadServerURLs builds tenant-prefixed download server URLs for installers.
+func BuildDownloadServerURLs(nCtx contextx.IContext, endpoints ...discover.Endpoint) (string, error) {
+	if nCtx == nil {
+		return "", fmt.Errorf("nCtx is nil")
+	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return "", err
+	}
+
+	addrs := make([]string, 0, len(endpoints))
+	for _, ep := range endpoints {
+		addr := ep.GetIPV4Address()
+		if addr == "" {
+			continue
+		}
+
+		tenantAddr, err := url.JoinPath("http://"+addr, nCtx.TenantID())
+		if err != nil {
+			return "", fmt.Errorf("failed to build tenant download url: %w", err)
+		}
+
+		addrs = append(addrs, tenantAddr)
+	}
+
+	return strings.Join(addrs, installer.ServerAddrSeparator), nil
 }
 
 // GeneratePluginInstallerServerEndpoints generates the server URLs for installer.

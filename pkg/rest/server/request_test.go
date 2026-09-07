@@ -69,6 +69,62 @@ func newTestRequest(t *testing.T) (*server.Request, *httptest.ResponseRecorder) 
 	return req, w
 }
 
+func TestMiddlewarePathTenantID_OverridesNoneAuthTenant(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(server.MiddlewareContext())
+	router.GET(
+		"/:tenant_id/api/v3/ping",
+		server.MiddlewareAuth(server.NewNoneAuthIdentity()),
+		server.MiddlewarePathTenantID("tenant_id"),
+		server.Handler(func(rCtx server.IContext) (interface{}, error) {
+			return map[string]string{"tenant_id": rCtx.TenantID()}, nil
+		}),
+	)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/tenant-a/api/v3/ping", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", w.Code)
+	}
+
+	var resp server.Response
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	data, ok := resp.Data.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected map data, got %T", resp.Data)
+	}
+	if data["tenant_id"] != "tenant-a" {
+		t.Fatalf("expected tenant_id tenant-a, got %v", data["tenant_id"])
+	}
+}
+
+func TestMiddlewarePathTenantID_RejectsInvalidTenant(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(server.MiddlewareContext())
+	router.GET(
+		"/:tenant_id/api/v3/ping",
+		server.MiddlewarePathTenantID("tenant_id"),
+		server.Handler(func(rCtx server.IContext) (interface{}, error) {
+			return map[string]string{"tenant_id": rCtx.TenantID()}, nil
+		}),
+	)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/TenantA/api/v3/ping", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", w.Code)
+	}
+}
+
 func TestAbortWithJSONPermDenied_WithPermissionProvider(t *testing.T) {
 	req, w := newTestRequest(t)
 

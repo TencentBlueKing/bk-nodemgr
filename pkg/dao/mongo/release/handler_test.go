@@ -29,9 +29,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
+	testTenantID        = "tenant_a"
 	releaseVersionBeta1 = "v2.1.6-beta.1"
 	releaseVersionBeta2 = "v2.1.6-beta.2"
 )
@@ -39,12 +42,30 @@ const (
 func testClient(t *testing.T) IHandler {
 	t.Helper()
 
-	_, db := support.RequireMongoDatabase(t)
-	return New(db)
+	_, client := testDatabaseAndClient(t)
+	return client
 }
 
-func testContext() contextx.IContext {
-	return contextx.New(context.Background())
+func testDatabaseAndClient(t *testing.T) (*mongo.Database, IHandler) {
+	t.Helper()
+
+	_, db := support.RequireMongoDatabase(t)
+	return db, New(db)
+}
+
+func testContext(tenantID string) contextx.IContext {
+	return contextx.New(context.Background(), contextx.WithTenantID(tenantID))
+}
+
+func countReleaseDocuments(t *testing.T, db *mongo.Database, releaseType types.ReleaseType, tenantID string) int64 {
+	t.Helper()
+
+	num, err := db.Collection(TableName(string(releaseType), tenantID)).CountDocuments(context.Background(), bson.D{})
+	if err != nil {
+		t.Fatalf("CountDocuments() error = %v", err)
+	}
+
+	return num
 }
 
 func prepareData(t *testing.T, nCtx contextx.IContext) IHandler {
@@ -102,7 +123,7 @@ func releaseFixtures() []*types.Release {
 
 // Test_UpsertMany tests the upsert many.
 func Test_UpsertMany(t *testing.T) {
-	nCtx := testContext()
+	nCtx := testContext(testTenantID)
 	client := testClient(t)
 
 	if err := client.UpsertMany(nCtx, types.ReleaseTypeAgent, releaseFixtures()...); err != nil {
@@ -120,7 +141,7 @@ func Test_UpsertMany(t *testing.T) {
 }
 
 func Test_Get(t *testing.T) {
-	nCtx := testContext()
+	nCtx := testContext(testTenantID)
 	client := prepareData(t, nCtx)
 
 	got, err := client.Get(
@@ -144,7 +165,7 @@ func Test_Get(t *testing.T) {
 }
 
 func Test_List(t *testing.T) {
-	nCtx := testContext()
+	nCtx := testContext(testTenantID)
 	client := prepareData(t, nCtx)
 
 	releases, total, err := client.List(
@@ -167,7 +188,7 @@ func Test_List(t *testing.T) {
 }
 
 func Test_Delete(t *testing.T) {
-	nCtx := testContext()
+	nCtx := testContext(testTenantID)
 	client := prepareData(t, nCtx)
 
 	if err := client.Delete(nCtx, types.ReleaseTypeAgent, WithVersion(releaseVersionBeta1)); err != nil {
@@ -185,7 +206,7 @@ func Test_Delete(t *testing.T) {
 }
 
 func Test_WithIsHidden(t *testing.T) {
-	nCtx := testContext()
+	nCtx := testContext(testTenantID)
 	client := prepareData(t, nCtx)
 
 	hiddenCount, err := client.Count(nCtx, types.ReleaseTypeAgent, WithIsHidden(true))
@@ -204,5 +225,77 @@ func Test_WithIsHidden(t *testing.T) {
 
 	if visibleCount != 2 {
 		t.Fatalf("Count() visible total = %d, want %d", visibleCount, 2)
+	}
+}
+
+func Test_TenantIsolation(t *testing.T) {
+	db, client := testDatabaseAndClient(t)
+	tenantACtx := testContext("tenant_a")
+	tenantBCtx := testContext("tenant_b")
+
+	tenantARelease := releaseFixtures()[0]
+	tenantARelease.FileName = "tenant-a-agent.tgz"
+	tenantBRelease := releaseFixtures()[0]
+	tenantBRelease.FileName = "tenant-b-agent.tgz"
+
+	if err := client.UpsertMany(tenantACtx, types.ReleaseTypeAgent, tenantARelease); err != nil {
+		t.Fatalf("UpsertMany() tenant_a error = %v", err)
+	}
+
+	if err := client.UpsertMany(tenantBCtx, types.ReleaseTypeAgent, tenantBRelease); err != nil {
+		t.Fatalf("UpsertMany() tenant_b error = %v", err)
+	}
+
+	if countReleaseDocuments(t, db, types.ReleaseTypeAgent, "tenant_a") != 1 {
+		t.Fatalf("tenant_a release collection count mismatch")
+	}
+
+	if countReleaseDocuments(t, db, types.ReleaseTypeAgent, "tenant_b") != 1 {
+		t.Fatalf("tenant_b release collection count mismatch")
+	}
+
+	getOpts := []OptFn{
+		WithGeneration(types.Generation2),
+		WithVersion(releaseVersionBeta1),
+		WithPlatform(platfmt.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}),
+	}
+	tenantAGot, err := client.Get(tenantACtx, types.ReleaseTypeAgent, getOpts...)
+	if err != nil {
+		t.Fatalf("Get() tenant_a error = %v", err)
+	}
+
+	tenantBGot, err := client.Get(tenantBCtx, types.ReleaseTypeAgent, getOpts...)
+	if err != nil {
+		t.Fatalf("Get() tenant_b error = %v", err)
+	}
+
+	if tenantAGot.FileName != "tenant-a-agent.tgz" {
+		t.Fatalf("Get() tenant_a fileName = %q, want %q", tenantAGot.FileName, "tenant-a-agent.tgz")
+	}
+
+	if tenantBGot.FileName != "tenant-b-agent.tgz" {
+		t.Fatalf("Get() tenant_b fileName = %q, want %q", tenantBGot.FileName, "tenant-b-agent.tgz")
+	}
+
+	if err := client.Delete(tenantACtx, types.ReleaseTypeAgent, WithVersion(releaseVersionBeta1)); err != nil {
+		t.Fatalf("Delete() tenant_a error = %v", err)
+	}
+
+	tenantATotal, err := client.Count(tenantACtx, types.ReleaseTypeAgent)
+	if err != nil {
+		t.Fatalf("Count() tenant_a error = %v", err)
+	}
+
+	tenantBTotal, err := client.Count(tenantBCtx, types.ReleaseTypeAgent)
+	if err != nil {
+		t.Fatalf("Count() tenant_b error = %v", err)
+	}
+
+	if tenantATotal != 0 {
+		t.Fatalf("Count() tenant_a total = %d, want 0", tenantATotal)
+	}
+
+	if tenantBTotal != 1 {
+		t.Fatalf("Count() tenant_b total = %d, want 1", tenantBTotal)
 	}
 }

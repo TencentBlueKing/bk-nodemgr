@@ -229,6 +229,10 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 
 		return nil, err
 	}
+	downloadSvrAddr, err := pluginUtils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build download server urls: %w", err)
+	}
 
 	params := &pluginUpgradeParams{
 		PluginUpgradeParams: installer.PluginUpgradeParams{
@@ -244,7 +248,7 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 			PluginVersion:   std.DeployInfo().Process.Info.Version,
 			PluginPkgName:   targetPlugin.PkgName,
 			CallbackSvrAddr: pluginUtils.BuildServerURLs(callbackEndpoints...),
-			DownloadSvrAddr: pluginUtils.BuildServerURLs(downloadEndpoints...),
+			DownloadSvrAddr: downloadSvrAddr,
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline || len(callbackEndpoints) == 0,

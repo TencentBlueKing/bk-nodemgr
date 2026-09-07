@@ -150,11 +150,14 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 	var callbackSvrAddress, downloadSvrAddress string
 	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
 		callbackSvrAddress = nodeUtils.SelectOneServerV4URL(callbackSvrEndpoints)
-		downloadSvrAddress = nodeUtils.SelectOneServerV4URL(downloadSvrEndpoints)
+		downloadSvrAddress, err = act.selectDownloadServerV4URL(std, downloadSvrEndpoints)
 	}
 	if (callbackSvrAddress == "" || downloadSvrAddress == "") && len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
 		callbackSvrAddress = nodeUtils.SelectOneServerV6URL(callbackSvrEndpoints)
-		downloadSvrAddress = nodeUtils.SelectOneServerV6URL(downloadSvrEndpoints)
+		downloadSvrAddress, err = act.selectDownloadServerV6URL(std, downloadSvrEndpoints)
+	}
+	if err != nil {
+		return fmt.Errorf("failed to select download server url: %w", err)
 	}
 	if callbackSvrAddress == "" || downloadSvrAddress == "" {
 		return fmt.Errorf("failed to select service urls")
@@ -205,6 +208,26 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 		Info()
 
 	return nil
+}
+
+func (act *actionGenManualBootstrapCommand) selectDownloadServerV4URL(
+	std *nodeUtils.NodeActionStandarder, endpoints []discover.Endpoint) (string, error) {
+
+	if !std.DeployInfo().InstallOptions.DirectInstall {
+		return nodeUtils.SelectOneServerV4URL(endpoints), nil
+	}
+
+	return nodeUtils.SelectOneDownloadServerV4URL(std.Context(), endpoints)
+}
+
+func (act *actionGenManualBootstrapCommand) selectDownloadServerV6URL(
+	std *nodeUtils.NodeActionStandarder, endpoints []discover.Endpoint) (string, error) {
+
+	if !std.DeployInfo().InstallOptions.DirectInstall {
+		return nodeUtils.SelectOneServerV6URL(endpoints), nil
+	}
+
+	return nodeUtils.SelectOneDownloadServerV6URL(std.Context(), endpoints)
 }
 
 // selectServiceEndpoints selects service endpoints for download and callback servers.

@@ -174,6 +174,10 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 	if err != nil {
 		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
+	downloadSvrAddr, err := nodeUtils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	if err != nil {
+		return fmt.Errorf("failed to build download server urls: %w", err)
+	}
 
 	// generate download URL and commands
 	var installerPath string
@@ -193,7 +197,7 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
 		},
 		InstallerPath:   installerPath,
-		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
+		DownloadSvrAddr: downloadSvrAddr,
 		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
