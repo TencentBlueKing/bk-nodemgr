@@ -37,7 +37,7 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("invalid app config: %w", err)
 	}
 	// The shared auth helper formats JSON rather than marshaling credentials.
-	if !json.Valid([]byte(c.AppConfig.GetAuthHeader())) {
+	if !json.Valid([]byte(c.GetAuthHeader())) {
 		return fmt.Errorf("app-code or app-secret cannot be encoded by the APIGW auth helper")
 	}
 

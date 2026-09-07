@@ -48,6 +48,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/support-files/bkiamv4/migrate/iamv4"
 )
 
+const requestTimeout = 30 * time.Second
+
 type options struct {
 	gatewayURL string
 	appCode    string
@@ -124,7 +126,7 @@ func run(args []string) error {
 	}
 	defer httpClient.CloseIdleConnections()
 	// Bound requests and never forward application authentication on redirects.
-	httpClient.Timeout = 30 * time.Second
+	httpClient.Timeout = requestTimeout
 	httpClient.CheckRedirect = func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
 		ServiceName: "iam-v4-migrate", ServiceCategory: tracing.ServiceCategoryHTTP,
@@ -144,6 +146,7 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
+
 	return executeMigrations(nCtx, handler, migrations, opts.dryRun, os.Stdout)
 }
 
@@ -152,9 +155,12 @@ func parseHTTPURL(raw string) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid URL")
 	}
-	if (parsed.Scheme != "https" && parsed.Scheme != "http") || parsed.Hostname() == "" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+	if (parsed.Scheme != "https" && parsed.Scheme != "http") || parsed.Hostname() == "" ||
+		parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+
 		return nil, fmt.Errorf("expected an HTTP(S) URL without user info, query or fragment")
 	}
+
 	return parsed, nil
 }
 
@@ -190,6 +196,7 @@ func migrationFiles(opts options) ([]string, error) {
 		if left.number > right.number {
 			return 1
 		}
+
 		return strings.Compare(left.path, right.path)
 	})
 	if len(files) == 0 {
@@ -199,6 +206,7 @@ func migrationFiles(opts options) ([]string, error) {
 	for _, file := range files {
 		paths = append(paths, file.path)
 	}
+
 	return paths, nil
 }
 
@@ -209,38 +217,49 @@ func loadMigrations(opts options) ([]migration, error) {
 	}
 	migrations := make([]migration, 0, len(files))
 	for _, file := range files {
-		content, err := os.ReadFile(file)
+		item, err := loadMigration(file, opts.appCode)
 		if err != nil {
-			return nil, fmt.Errorf("read %s: %w", file, err)
-		}
-		var item migration
-		decoder := json.NewDecoder(bytes.NewReader(content))
-		decoder.DisallowUnknownFields()
-		if err := decoder.Decode(&item); err != nil {
-			return nil, fmt.Errorf("parse %s: %w", file, err)
-		}
-		if err := decoder.Decode(new(any)); !errors.Is(err, io.EOF) {
-			return nil, fmt.Errorf("%s must contain exactly one JSON document", file)
-		}
-		item.filename = file
-		if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,31}$`).MatchString(item.SystemID) || len(item.Operations) == 0 {
-			return nil, fmt.Errorf("%s: valid system_id and nonempty operations are required", file)
-		}
-		for index, op := range item.Operations {
-			if err := validateOperation(item.SystemID, op, opts.appCode); err != nil {
-				return nil, fmt.Errorf("%s operation %d: %w", file, index+1, err)
-			}
-			data, err := json.Marshal(op.Data)
-			if err != nil {
-				return nil, fmt.Errorf("%s operation %d: encode system fields: %w", file, index+1, err)
-			}
-			if err := json.Unmarshal(data, &item.Operations[index].fields); err != nil {
-				return nil, fmt.Errorf("%s operation %d: decode system fields: %w", file, index+1, err)
-			}
+			return nil, err
 		}
 		migrations = append(migrations, item)
 	}
+
 	return migrations, nil
+}
+
+func loadMigration(file, appCode string) (migration, error) {
+	var item migration
+	// The local operator selects input via --file or --dir; arbitrary paths are intentional.
+	content, err := os.ReadFile(file) //nolint:gosec // G304: trusted CLI input, not a remote-supplied path.
+	if err != nil {
+		return item, fmt.Errorf("read %s: %w", file, err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(content))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&item); err != nil {
+		return item, fmt.Errorf("parse %s: %w", file, err)
+	}
+	if err := decoder.Decode(new(any)); !errors.Is(err, io.EOF) {
+		return item, fmt.Errorf("%s must contain exactly one JSON document", file)
+	}
+	item.filename = file
+	if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,31}$`).MatchString(item.SystemID) || len(item.Operations) == 0 {
+		return item, fmt.Errorf("%s: valid system_id and nonempty operations are required", file)
+	}
+	for index, op := range item.Operations {
+		if err := validateOperation(item.SystemID, op, appCode); err != nil {
+			return item, fmt.Errorf("%s operation %d: %w", file, index+1, err)
+		}
+		data, err := json.Marshal(op.Data)
+		if err != nil {
+			return item, fmt.Errorf("%s operation %d: encode system fields: %w", file, index+1, err)
+		}
+		if err := json.Unmarshal(data, &item.Operations[index].fields); err != nil {
+			return item, fmt.Errorf("%s operation %d: decode system fields: %w", file, index+1, err)
+		}
+	}
+
+	return item, nil
 }
 
 func validateOperation(systemID string, op operation, appCode string) error {
@@ -255,40 +274,55 @@ func validateOperation(systemID string, op operation, appCode string) error {
 		return fmt.Errorf("data.id must equal system_id")
 	}
 	for field, raw := range op.Data {
-		if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
-			return fmt.Errorf("data.%s must not be null; omit it to preserve the remote value", field)
-		}
-		switch field {
-		case "id", "name", "description", "callback_url":
-			var value string
-			if err := json.Unmarshal(raw, &value); err != nil {
-				return fmt.Errorf("data.%s must be a string: %w", field, err)
-			}
-			if field == "name" && strings.TrimSpace(value) == "" {
-				return fmt.Errorf("data.name must not be empty")
-			}
-			if field == "callback_url" && value != "" {
-				if _, err := parseHTTPURL(value); err != nil {
-					return fmt.Errorf("invalid callback_url: %w", err)
-				}
-			}
-		case "clients", "managers":
-			var values []string
-			if err := json.Unmarshal(raw, &values); err != nil {
-				return fmt.Errorf("data.%s must be a string array: %w", field, err)
-			}
-			for _, value := range values {
-				if strings.TrimSpace(value) == "" {
-					return fmt.Errorf("data.%s must not contain empty entries", field)
-				}
-			}
-			if field == "clients" && !slices.Contains(values, appCode) {
-				return fmt.Errorf("data.clients must include the calling app-code")
-			}
-		default:
-			return fmt.Errorf("unknown system field %q", field)
+		if err := validateSystemField(field, raw, appCode); err != nil {
+			return err
 		}
 	}
+
+	return nil
+}
+
+func validateSystemField(field string, raw json.RawMessage, appCode string) error {
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return fmt.Errorf("data.%s must not be null; omit it to preserve the remote value", field)
+	}
+	switch field {
+	case "id", "name", "description", "callback_url":
+		var value string
+		if err := json.Unmarshal(raw, &value); err != nil {
+			return fmt.Errorf("data.%s must be a string: %w", field, err)
+		}
+		if field == "name" && strings.TrimSpace(value) == "" {
+			return fmt.Errorf("data.name must not be empty")
+		}
+		if field == "callback_url" && value != "" {
+			if _, err := parseHTTPURL(value); err != nil {
+				return fmt.Errorf("invalid callback_url: %w", err)
+			}
+		}
+	case "clients", "managers":
+		return validateSystemMembers(field, raw, appCode)
+	default:
+		return fmt.Errorf("unknown system field %q", field)
+	}
+
+	return nil
+}
+
+func validateSystemMembers(field string, raw json.RawMessage, appCode string) error {
+	var values []string
+	if err := json.Unmarshal(raw, &values); err != nil {
+		return fmt.Errorf("data.%s must be a string array: %w", field, err)
+	}
+	for _, value := range values {
+		if strings.TrimSpace(value) == "" {
+			return fmt.Errorf("data.%s must not contain empty entries", field)
+		}
+	}
+	if field == "clients" && !slices.Contains(values, appCode) {
+		return fmt.Errorf("data.clients must include the calling app-code")
+	}
+
 	return nil
 }
 
@@ -305,35 +339,49 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
 				}
 			}
-			action := "update_system"
-			if !exists {
-				action = "create_system"
-				if _, ok := op.Data["name"]; !ok {
-					return fmt.Errorf("%s: data.name is required to create system %s", item.filename, item.SystemID)
-				}
-				if _, ok := op.Data["clients"]; !ok {
-					return fmt.Errorf("%s: data.clients is required to create system %s", item.filename, item.SystemID)
-				}
-			}
-			if _, err := fmt.Fprintf(out, "%s operation %d: %s %s (dry-run=%t)\n", item.filename, index+1, action, item.SystemID, dryRun); err != nil {
-				return fmt.Errorf("write migration plan: %w", err)
+			if err := item.executeOperation(ctx, handler, index, op, exists, dryRun, out); err != nil {
+				return err
 			}
 			if dryRun {
 				plannedSystems[item.SystemID] = true
-				continue
-			}
-			if !exists {
-				if err := handler.CreateSystem(ctx, item.SystemID, op.fields); err != nil {
-					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
-				}
-
-				continue
-			}
-
-			if err := handler.UpdateSystem(ctx, item.SystemID, op.fields); err != nil {
-				return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
 			}
 		}
 	}
+
+	return nil
+}
+
+func (item migration) executeOperation(
+	ctx contextx.IContext, handler iamv4.IHandler, index int, op operation, exists, dryRun bool, out io.Writer,
+) error {
+
+	action := "update_system"
+	if !exists {
+		action = "create_system"
+		if _, ok := op.Data["name"]; !ok {
+			return fmt.Errorf("%s: data.name is required to create system %s", item.filename, item.SystemID)
+		}
+		if _, ok := op.Data["clients"]; !ok {
+			return fmt.Errorf("%s: data.clients is required to create system %s", item.filename, item.SystemID)
+		}
+	}
+	if _, err := fmt.Fprintf(out, "%s operation %d: %s %s (dry-run=%t)\n", item.filename, index+1, action, item.SystemID, dryRun); err != nil {
+		return fmt.Errorf("write migration plan: %w", err)
+	}
+	if dryRun {
+		return nil
+	}
+	if !exists {
+		if err := handler.CreateSystem(ctx, item.SystemID, op.fields); err != nil {
+			return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
+		}
+
+		return nil
+	}
+
+	if err := handler.UpdateSystem(ctx, item.SystemID, op.fields); err != nil {
+		return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
+	}
+
 	return nil
 }

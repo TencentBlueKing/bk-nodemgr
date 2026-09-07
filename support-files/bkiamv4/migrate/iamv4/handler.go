@@ -47,6 +47,7 @@ func New(c *restclient.Capability, conf *Config) (*Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Handler{cli: client}, nil
 }
 
@@ -69,6 +70,7 @@ func (h *Handler) CreateSystem(ctx contextx.IContext, systemID string, fields Sy
 		return fmt.Errorf("name and clients are required to create system %s", systemID)
 	}
 	_, err := h.cli.createSystem(ctx, &CreateSystemReq{ID: systemID, SystemFields: fields})
+
 	return err
 }
 

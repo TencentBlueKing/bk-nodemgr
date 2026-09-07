@@ -38,6 +38,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	outputDirPerm  = 0750
+	outputFilePerm = 0644
+)
+
 func main() {
 	var (
 		templateDir string
@@ -72,7 +77,7 @@ func main() {
 	}
 
 	// Create output directory
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
+	if err := os.MkdirAll(outputDir, outputDirPerm); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output directory: %v\n", err)
 		os.Exit(1)
 	}
@@ -119,7 +124,8 @@ func renderAll(templateDir, outputDir string, vars map[string]any) error {
 		// Write output (remove .tpl suffix)
 		outputName := strings.TrimSuffix(name, ".tpl")
 		outputPath := filepath.Join(outputDir, outputName)
-		if err := os.WriteFile(outputPath, []byte(result), 0644); err != nil { // nolint:gosec
+		//nolint:gosec // Operator-selected output contains public model data, not credentials.
+		if err := os.WriteFile(outputPath, []byte(result), outputFilePerm); err != nil {
 			return fmt.Errorf("failed to write %s: %w", outputName, err)
 		}
 
@@ -128,6 +134,7 @@ func renderAll(templateDir, outputDir string, vars map[string]any) error {
 	}
 
 	fmt.Fprintf(os.Stderr, "Total: %d files rendered\n", count)
+
 	return nil
 }
 

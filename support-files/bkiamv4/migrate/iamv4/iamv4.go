@@ -51,7 +51,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 
 func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 	header := http.Header{}
-	header.Set(apigwheader.BKGWAuthKey, c.config.AppConfig.GetAuthHeader())
+	header.Set(apigwheader.BKGWAuthKey, c.config.GetAuthHeader())
 	header.Set(apigwheader.BKGWTenantIDKey, ctx.TenantID())
 
 	return header
@@ -82,6 +82,7 @@ func (c *cli) retrieveSystem(ctx contextx.IContext, req *RetrieveSystemReq) (*Re
 	if resp.Data.ID != req.SystemID {
 		return nil, fmt.Errorf("retrieve system %s: response system ID does not match", req.SystemID)
 	}
+
 	return &resp.Data, nil
 }
 
@@ -108,6 +109,7 @@ func (c *cli) createSystem(ctx contextx.IContext, req *CreateSystemReq) (*Create
 	if resp.Data.ID != req.ID {
 		return nil, fmt.Errorf("create system %s: response system ID does not match; check remote state before rerunning", req.ID)
 	}
+
 	return &resp.Data, nil
 }
 
