@@ -25,7 +25,10 @@ import (
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -42,8 +45,10 @@ const (
 func NewActionTryStopProcess(capability *Capability) action.Definition {
 	return &actTryStopProcess{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoProcess:          capability.StoragePlugin,
+		daoPlugin:           capability.StoragePlugin,
+		daoReleasePlugin:    capability.StorageRelease,
 		daoHost:             capability.StorageTopo,
+		daoDomainGse:        capability.StorageTopo,
 		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
 	}
 }
@@ -56,8 +61,10 @@ type ActionParamTryStopProcess struct {
 // actTryStopProcess ...
 type actTryStopProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoProcess          pluginStg.IDaoProcess
+	daoPlugin           pluginStg.IDaoPlugin
+	daoReleasePlugin    releaseStg.IPlugin
 	daoHost             topoStg.IStorageHost
+	daoDomainGse        topoStg.IStorageDomainGse
 	gseHandlerProc      gse.IHandlerProc
 }
 
@@ -119,47 +126,26 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	std.InstanceData().Log().
-		Zh("尝试从数据库获取进程信息").
-		En("try get process info from database").
-		Info()
-
 	nCtx := std.Context()
-	exist, err := act.daoProcess.ExistProcess(nCtx, std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName)
+	host, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to check process existence: %w", err)
+		return fmt.Errorf("failed to get host by ID: %w", err)
 	}
 
-	if !exist {
-		std.InstanceData().Log().
-			Zh("进程在数据库中不存在, 无需停止进程").
-			En("process not exist in database, no need to stop the process.").
-			Info()
-
-		return nil
-	}
-
-	dbProcess, err := pluginUtils.GetActualExistingProcess(
-		nCtx,
-		act.daoProcess,
-		act.daoHost,
-		std.DeployInfo().Process.HostID,
-		std.DeployInfo().Process.PluginName,
-	)
+	plugin, err := act.daoPlugin.GetPlugin(nCtx, std.DeployInfo().Process.PluginName)
 	if err != nil {
-		return fmt.Errorf("failed to get process info from database: %w", err)
+		return fmt.Errorf("failed to get plugin: %w", err)
 	}
 
-	hostProcessInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, std.DeployInfo().Process.PluginName,
-		dbProcess.Identity.Name, dbProcess.Info.AgentID)
+	programName := pluginProgramName(plugin.PkgName, host.Dynamic.NodeOsType)
+
+	hostProcessInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, plugin.Name, programName, host.Dynamic.AgentID)
 	if err != nil {
 		std.InstanceData().Log().
 			Zh("查询主机上进程信息失败, agent-id(%s), plugin-name(%s), program-name(%s): %s",
-				dbProcess.Info.AgentID, std.DeployInfo().Process.PluginName,
-				dbProcess.Identity.Name, err.Error()).
+				host.Dynamic.AgentID, plugin.Name, programName, err.Error()).
 			En("failed to query process info from gse, agent-id(%s), plugin-name(%s), program-name(%s): %s",
-				dbProcess.Info.AgentID, std.DeployInfo().Process.PluginName,
-				dbProcess.Identity.Name, err.Error()).
+				host.Dynamic.AgentID, plugin.Name, programName, err.Error()).
 			Error()
 
 		return fmt.Errorf("failed to query process info from gse: %w", err)
@@ -168,32 +154,36 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) (err error) {
 	if hostProcessInfo.Status != types.ProcessStatusRunning {
 		std.InstanceData().Log().
 			Zh("主机(%d)上进程状态(%s)不为运行中, 无需停止进程",
-				dbProcess.HostID, hostProcessInfo.Status).
+				host.HostID, hostProcessInfo.Status).
 			En("host(%d) process status(%s) is not running, no need to stop the process",
-				dbProcess.HostID, hostProcessInfo.Status).
+				host.HostID, hostProcessInfo.Status).
 			Info()
 
 		return nil
 	}
 
+	processSpec, err := act.buildStopProcessSpec(std, host, plugin, hostProcessInfo.Version)
+	if err != nil {
+		return fmt.Errorf("failed to build stop process spec: %w", err)
+	}
+
 	std.InstanceData().Log().
 		Zh("主机上进程状态为运行中, 尝试执行停止插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
-			dbProcess.PluginName, dbProcess.HostID, dbProcess.Controller.StopCmd).
-		En("process status recorded in database is running, try to executed stop plugin process, "+
+			plugin.Name, host.HostID, processSpec.Controller.StopCmd).
+		En("process status on host is running, try to execute stop plugin process, "+
 			"plugin-name(%s), host-id(%d), cmd(%s)",
-			dbProcess.PluginName, dbProcess.HostID, dbProcess.Controller.StopCmd).
+			plugin.Name, host.HostID, processSpec.Controller.StopCmd).
 		Info()
 
 	std.InstanceData().Log().
 		Zh("主机上进程状态, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			hostProcessInfo.Pid, hostProcessInfo.Version, hostProcessInfo.AgentID,
 			hostProcessInfo.AutoStart, hostProcessInfo.Status).
-		En("process record in database, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		En("process status on host, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			hostProcessInfo.Pid, hostProcessInfo.Version, hostProcessInfo.AgentID,
 			hostProcessInfo.AutoStart, hostProcessInfo.Status).
 		Info()
 
-	processSpec := dbProcess.ToProcessSpec()
 	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {
 		std.InstanceData().Log().
@@ -258,6 +248,65 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) (err error) {
 		Info()
 
 	return nil
+}
+
+func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginActionStandarder,
+	host *types.Host, plugin *types.Plugin, version string,
+) (types.ProcessSpec, error) {
+	nCtx := std.Context()
+	releaseKey := types.ReleasePluginKey{
+		Generation: host.Dynamic.NodeGeneration,
+		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
+		Version:    version,
+		Name:       plugin.PkgName,
+	}
+	pluginPkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, releaseKey)
+	if err != nil {
+		std.InstanceData().Log().
+			Zh("查询运行版本的插件包失败, 回退到用户指定版本, plugin-pkg-name(%s), version(%s), fallback-version(%s): %s",
+				releaseKey.Name, version, std.DeployInfo().InstallOptions.Version, err.Error()).
+			En("failed to get plugin release for running version, falling back to user-specified version, "+
+				"plugin-pkg-name(%s), version(%s), fallback-version(%s): %s",
+				releaseKey.Name, version, std.DeployInfo().InstallOptions.Version, err.Error()).
+			Warn()
+
+		// When taking over a legacy plugin whose reported release cannot be retrieved,
+		// fall back to the user-specified release to build stop parameters, even though
+		// its version may not match the running plugin.
+		releaseKey.Version = std.DeployInfo().InstallOptions.Version
+		pluginPkg, err = act.daoReleasePlugin.GetReleasePlugin(nCtx, releaseKey)
+	}
+	if err != nil {
+		return types.ProcessSpec{}, fmt.Errorf("failed to get plugin release, name(%s), version(%s): %w",
+			releaseKey.Name, releaseKey.Version, err)
+	}
+
+	pluginConstant, err := deployconstant.GetPluginDeployConf(host.Dynamic.NodeGeneration, host.Dynamic.NodeOsType)
+	if err != nil {
+		return types.ProcessSpec{}, fmt.Errorf("failed to get plugin deploy conf: %w", err)
+	}
+	customDeployConfig, err := act.daoDomainGse.GetNetworkUnitCustomDeployConfig(nCtx,
+		host.Dynamic.NetworkUnitID, host.Dynamic.NodeOsType)
+	if err != nil {
+		return types.ProcessSpec{}, fmt.Errorf("failed to get network unit custom deploy config: %w", err)
+	}
+	pluginConstant.BaseDeployDir = conv.NonEmptyOr(customDeployConfig.PluginRuntime.BaseDeployDir, pluginConstant.BaseDeployDir)
+
+	if err := pluginUtils.EnsureHostLoginUser(std, host); err != nil {
+		return types.ProcessSpec{}, fmt.Errorf("failed to ensure host login user: %w", err)
+	}
+
+	process := types.Process{
+		PluginName:    plugin.Name,
+		PluginPkgName: plugin.PkgName,
+		Platform:      releaseKey.Platform,
+	}
+	runtime := types.PluginDeploymentBaseRuntime{
+		PluginHomeDir: pluginConstant.GeneratePluginHomeDir(plugin.Group, plugin.Name),
+		RunDir:        pluginConstant.GeneratePluginRunDir(plugin.Group, plugin.Name),
+		LogDir:        conv.NonEmptyOr(customDeployConfig.PluginRuntime.LogDir, pluginConstant.LogDir),
+	}
+	return buildPluginProcessSpec(process, host, pluginPkg, runtime), nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.

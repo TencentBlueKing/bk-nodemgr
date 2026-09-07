@@ -28,10 +28,7 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -157,59 +154,16 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err er
 
 	std.DeployInfo().Process.Controller = pluginPkg.PluginController
 
-	programName := std.DeployInfo().Process.PluginPkgName
-	if std.DeployInfo().Process.Platform.OS == criteria.OSWindows {
-		programName += ".exe"
-	}
-
-	pidFileName := fmt.Sprintf("%s.pid", std.DeployInfo().Process.PluginPkgName)
-	pidFilePath := tool.JoinPath(std.DeployInfo().Process.Platform.OS, std.DeployInfo().BaseRuntime.RunDir, pidFileName)
-
-	var mainConfigPath string
-	for _, configTemplate := range pluginPkg.ConfigTemplates {
-		if !configTemplate.IsMainConfig {
-			continue
-		}
-
-		mainConfigPath = tool.JoinPath(std.DeployInfo().Process.Platform.OS, std.DeployInfo().BaseRuntime.PluginHomeDir,
-			configTemplate.FilePath, configTemplate.Name)
-
-		break
-	}
-
 	// TODO: 接入配置管理
 	if err = pluginUtils.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
 
-	std.DeployInfo().Process.Identity = types.ProcessIdentity{
-		Name:       programName,
-		SetupPath:  std.DeployInfo().BaseRuntime.PluginHomeDir,
-		PidPath:    pidFilePath,
-		ConfigPath: mainConfigPath,
-		LogPath:    std.DeployInfo().BaseRuntime.LogDir,
-		User:       host.Dynamic.LoginUser,
-	}
-
-	// windows use user direct need provide password, so we use system user to operate the process.
-	if host.Dynamic.NodeOsType == criteria.OSWindows {
-		std.DeployInfo().Process.Identity.User = gse.WindowsOperateUser
-	}
-
-	// nolint: mnd
-	std.DeployInfo().Process.Resource = types.ProcessResource{
-		CPULimitPercent: 10,
-		MemLimitPercent: 10,
-	}
-
-	// TODO: 接入配置管理
-	// nolint: mnd
-	std.DeployInfo().Process.MonitorPolicy = types.ProcessMonitorPolicy{
-		RestartType:    types.ProcessRestartTypeAuto,
-		StartCheckSecs: 5,
-		StopCheckSecs:  5,
-		OpTimeoutSecs:  5,
-	}
+	processSpec := buildPluginProcessSpec(std.DeployInfo().Process, host, pluginPkg, std.DeployInfo().BaseRuntime)
+	std.DeployInfo().Process.Identity = processSpec.Identity
+	std.DeployInfo().Process.Controller = processSpec.Controller
+	std.DeployInfo().Process.Resource = processSpec.Resource
+	std.DeployInfo().Process.MonitorPolicy = processSpec.MonitorPolicy
 
 	if err := act.MatchConfigPolicy(std, host); err != nil {
 		return fmt.Errorf("try match plugin config policy failed: %w", err)
@@ -217,9 +171,9 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err er
 
 	if std.DeployInfo().InstallOptions.CustomSpec != nil {
 		std.InstanceData().Log().
-				Zh("存在自定义插件Spec，覆盖进程资源及监控策略.").
-				En("Custom plugins Spec exist, overriding process resource and monitoring policies.").
-				Info()
+			Zh("存在自定义插件Spec，覆盖进程资源及监控策略.").
+			En("Custom plugins Spec exist, overriding process resource and monitoring policies.").
+			Info()
 		std.DeployInfo().Process.Resource = std.DeployInfo().InstallOptions.CustomSpec.Resource
 		std.DeployInfo().Process.MonitorPolicy = std.DeployInfo().InstallOptions.CustomSpec.MonitorPolicy
 	}
