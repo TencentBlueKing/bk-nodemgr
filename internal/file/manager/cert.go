@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -147,69 +148,36 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
  * cert_encrypt.key
  * others can be ignored.
  */
+
+// Certificate files must be either at the archive root or under cert/, never both.
+// nolint: mnd
 func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) {
 	detail := new(types.OriginCertPkgDetail)
+	certFileNames := originCertFileNames()
+	var hasRootFiles, hasDirFiles bool
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameCaCrt)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameCaCrt)
+			filePathRegex: []string{".*"},
+			callback: func(paths []string, _ io.Reader) error {
+				if len(paths) > 2 {
+					return nil
+				}
+				if len(paths) == 2 && paths[0] != certDirNameRoot {
+					return nil
+				}
 
-				return nil
-			},
-		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAgentCrt)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameAgentCrt)
+				fileName := paths[len(paths)-1]
+				if !slices.Contains(certFileNames, fileName) {
+					return nil
+				}
 
-				return nil
-			},
-		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAgentKey)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameAgentKey)
+				hasRootFiles = hasRootFiles || len(paths) == 1
+				hasDirFiles = hasDirFiles || len(paths) == 2
+				if hasRootFiles && hasDirFiles {
+					return errors.New("cert package must not mix certificate files at root and under cert/")
+				}
 
-				return nil
-			},
-		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameServerCrt)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameServerCrt)
-
-				return nil
-			},
-		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameServerKey)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameServerKey)
-
-				return nil
-			},
-		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAPIClientCrt)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameAPIClientCrt)
-
-				return nil
-			},
-		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAPIClientKey)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameAPIClientKey)
-
-				return nil
-			},
-		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameCertEncryptKey)},
-			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, certFileNameCertEncryptKey)
+				detail.CertFiles = append(detail.CertFiles, fileName)
 
 				return nil
 			},
@@ -232,6 +200,19 @@ const (
 	certFileNameAPIClientCrt   = "gse_api_client.crt"
 	certFileNameAPIClientKey   = "gse_api_client.key"
 )
+
+func originCertFileNames() []string {
+	return []string{
+		certFileNameCaCrt,
+		certFileNameAgentCrt,
+		certFileNameAgentKey,
+		certFileNameServerCrt,
+		certFileNameServerKey,
+		certFileNameAPIClientCrt,
+		certFileNameAPIClientKey,
+		certFileNameCertEncryptKey,
+	}
+}
 
 // PublishReleaseCert generates release cert by upload-id.
 // nolint: funlen
@@ -329,7 +310,7 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 }
 
 // EnsureCertToLocal ensure cert to local.
-func (m *Manager) EnsureCertToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error) {
+func (m *Manager) EnsureCertToLocal(nCtx contextx.IContext, _ types.Generation) (fileiface.File, string, error) {
 	// get cert from storage.
 	cert, err := m.storageRelease.GetReleaseCert(nCtx)
 	if err != nil {
@@ -356,48 +337,7 @@ func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadClos
 		},
 		[]*tgzWriteRuleStream{{
 			sourceFile: sourceFile,
-			fileRules: []tgzWriteRuleFile{
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameCaCrt},
-					targetFilePath: []string{certDirNameRoot, certFileNameCaCrt},
-					targetFileMode: tgzModeFile,
-				},
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameAgentCrt},
-					targetFilePath: []string{certDirNameRoot, certFileNameAgentCrt},
-					targetFileMode: tgzModeFile,
-				},
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameAgentKey},
-					targetFilePath: []string{certDirNameRoot, certFileNameAgentKey},
-					targetFileMode: tgzModeFile,
-				},
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameServerCrt},
-					targetFilePath: []string{certDirNameRoot, certFileNameServerCrt},
-					targetFileMode: tgzModeFile,
-				},
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameServerKey},
-					targetFilePath: []string{certDirNameRoot, certFileNameServerKey},
-					targetFileMode: tgzModeFile,
-				},
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameAPIClientCrt},
-					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientCrt},
-					targetFileMode: tgzModeFile,
-				},
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameAPIClientKey},
-					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientKey},
-					targetFileMode: tgzModeFile,
-				},
-				{
-					sourceFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
-					targetFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
-					targetFileMode: tgzModeFile,
-				},
-			},
+			fileRules:  buildCertTgzWriteRules(),
 		}},
 	); err != nil {
 		return nil, err
@@ -409,4 +349,24 @@ func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadClos
 	}
 
 	return file.Content(nCtx)
+}
+
+func buildCertTgzWriteRules() []tgzWriteRuleFile {
+	certFileNames := originCertFileNames()
+	rules := make([]tgzWriteRuleFile, 0)
+
+	for _, certFileName := range certFileNames {
+		rules = append(rules, tgzWriteRuleFile{
+			sourceFilePath: []string{certFileName},
+			targetFilePath: []string{certDirNameRoot, certFileName},
+			targetFileMode: tgzModeFile,
+		})
+		rules = append(rules, tgzWriteRuleFile{
+			sourceFilePath: []string{certDirNameRoot, certFileName},
+			targetFilePath: []string{certDirNameRoot, certFileName},
+			targetFileMode: tgzModeFile,
+		})
+	}
+
+	return rules
 }
