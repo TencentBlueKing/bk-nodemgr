@@ -195,13 +195,7 @@ const handleUploadTypeChange = (id: string) => {
   proxyTriggerHandler(id);
 };
 
-const handleBeforeClose = () => new Promise((resolve, reject) => {
-  // 没有上传数据，直接关闭
-  if (!uploadData.value) {
-    resolve(true);
-    isShow.value = false;
-    return;
-  }
+const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
   InfoBox({
     title: t('dialog.confirmClose'),
     infoType: 'warning',

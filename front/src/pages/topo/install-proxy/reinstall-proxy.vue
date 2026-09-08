@@ -61,6 +61,7 @@
             :list="installOriginList"
             class="w-[488px]"
             trigger="click"
+            @change="handleInstallOriginChange"
           ></Cascader>
         </Form.FormItem>
         <Form.FormItem
@@ -685,6 +686,14 @@ const handleConfirm = async () => {
     });
   }
 };
+// 高级选项选择安装源时，同步替换表格每行的安装源
+const handleInstallOriginChange = (val: string[]) => {
+  if (!val?.length) return;
+  const origin = val[0] === 'custom' ? `custom:${val[1] ?? ''}` : val[0];
+  form.info.forEach((item: any) => {
+    item.install_origin = origin;
+  });
+};
 function getinstallOriginUnitId(unit_id: number) {
   if (form.method === 'offline') {
     const o = getDefaultOriginForUnit(unit_id);
@@ -697,12 +706,13 @@ function getinstallOriginUnitId(unit_id: number) {
   // 查找当前行在 form.info 中的索引，取行内 install_origin
   const row = form.info.find((item: any) => Number(item.bk_networkunit_id) === unit_id);
   const rowOrigin = row?.install_origin || '';
-  // 优先级：行内 install_origin > 全局 proxy_install_origin > 自动判断
+  // 优先级：全局 proxy_install_origin（高级选项）> 行内 install_origin > 自动判断
+  // 高级选项选择安装源后，表格所有 proxy 统一使用该安装源
   let origin: string;
-  if (rowOrigin) {
-    origin = rowOrigin;
-  } else if (form.proxy_install_origin.length > 0) {
+  if (form.proxy_install_origin.length > 0) {
     origin = form.proxy_install_origin[0];
+  } else if (rowOrigin) {
+    origin = rowOrigin;
   } else {
     origin = getDefaultOriginForUnit(unit_id);
   }

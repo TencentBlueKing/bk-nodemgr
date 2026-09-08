@@ -193,9 +193,10 @@ export function resolveLoginMode(mode: string | undefined): string {
 
 /**
  * 滚动到页面中第一个出现校验错误标红的元素
- * 优先查找类名为 .bk-form-error 的元素，如果没有则查找 .error-tip
+ * 默认查找 bkui-vue 表单的 .bk-form-error、.error-tip，
+ * 以及 install-table 表格的 .validate-cell--error（ValidateCell 组件）和 .cell-disabled--error（普通 cell）
  */
-export function scrollToFirstErrorByClassNames(classNames: string[] = ['.bk-form-error', '.error-tip']): void {
+export function scrollToFirstErrorByClassNames(classNames: string[] = ['.bk-form-error', '.error-tip', '.validate-cell--error', '.cell-disabled--error']): void {
   // 构造一个复合 CSS 选择器，例如 '.bk-form-error, .error-tip'
   const selector = classNames.join(', ');
 
