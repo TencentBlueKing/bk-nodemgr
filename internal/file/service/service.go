@@ -337,73 +337,24 @@ func (svc *Service) initialStorages() error {
 
 //nolint:funlen,gocyclo,gocognit,cyclop
 func (svc *Service) initialManager(nCtx contextx.IContext) error {
-	// init upstream origin file groups from bkrepo.
-	upstreamOriginAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/agent")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin agent file group: %w", err)
-	}
-	upstreamOriginServerFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/server")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin server file group: %w", err)
-	}
-	upstreamOriginProxyFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/proxy")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin proxy file group: %w", err)
-	}
-	upstreamOriginCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/cert")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin cert file group: %w", err)
-	}
-	upstreamOriginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/bintool")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
-	}
-	upstreamOriginPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/v2/plugin")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin plugin file group: %w", err)
-	}
-	upstreamOriginExternalPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/v2/external_plugin")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
-	}
-	upstreamOriginPluginV3, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/v3/plugin")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin plugin file group: %w", err)
-	}
+	// Resolve tenant-specific upstream file groups lazily from each request context.
+	upstreamOriginAgentFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/agent")
+	upstreamOriginServerFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/server")
+	upstreamOriginProxyFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/proxy")
+	upstreamOriginCertFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/cert")
+	upstreamOriginBinToolFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/bintool")
+	upstreamOriginPluginBinToolV2FG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/plugin_bintool")
+	upstreamOriginPluginV2 := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/v2/plugin")
+	upstreamOriginExternalPluginV2 := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/v2/external_plugin")
+	upstreamOriginPluginV3 := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/v3/plugin")
+	upstreamReleaseAgentFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/agent")
+	upstreamReleaseProxyFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/proxy")
+	upstreamReleaseCertFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/cert")
+	upstreamReleaseBinToolFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/bintool")
+	upstreamReleasePluginBinToolFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/plugin_bintool")
+	upstreamReleasePlugin := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/plugin")
+	upstreamExport := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "export")
 
-	// init upstream release file groups from bkrepo.
-	upstreamReleaseAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/agent")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release agent file group: %w", err)
-	}
-	upstreamReleaseProxyFg, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/proxy")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release proxy file group: %w", err)
-	}
-	upstreamRealseCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/cert")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release cert file group: %w", err)
-	}
-	upstreamReleaseBintoolFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/bintool")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
-	}
-	upstreamOriginPluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/plugin_bintool")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
-	}
-	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/plugin_bintool")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
-	}
-	upstreamReleasePlugin, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/plugin")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release plugin file group: %w", err)
-	}
-	upstreamExport, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "export")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream export file group: %w", err)
-	}
 	exportServerURL, err := svc.conf.ExportServer.ToURL()
 	if err != nil {
 		return fmt.Errorf("failed to create export server public URL: %w", err)
@@ -445,9 +396,9 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithUpstreamOriginBinToolFileGroup(upstreamOriginBinToolFG),
 		manager.WithUpstreamOriginPluginBinToolV2FileGroup(upstreamOriginPluginBinToolV2FG),
 		manager.WithUpstreamReleaseAgentFileGroup(upstreamReleaseAgentFG),
-		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
-		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
-		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
+		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFG),
+		manager.WithUpstreamReleaseCertFileGroup(upstreamReleaseCertFG),
+		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBinToolFG),
 		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
 		manager.WithTempFileGroup(tempFG),
 		manager.WithTempFileExpiration(time.Duration(svc.conf.TempFile.ExpirationHours)*time.Hour),

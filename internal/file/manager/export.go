@@ -71,12 +71,18 @@ func (m *Manager) ExportDownloadOriginPluginPackage(nCtx contextx.IContext, toke
 		return nil, nil, errors.New("package export record is not downloadable")
 	}
 
-	file, err := m.upstreamExport.GetFile(nCtx, record.StorageKey)
+	// Token downloads use the stored tenant, not the unauthenticated request identity.
+	exportCtx := contextx.From(nCtx, contextx.WithTenantID(record.TenantID))
+	if err := exportCtx.CheckTenantID(); err != nil {
+		return nil, nil, fmt.Errorf("invalid package export tenant: %w", err)
+	}
+
+	file, err := m.upstreamExport.GetFile(exportCtx, record.StorageKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get export package: %w", err)
 	}
 
-	content, err := file.Content(nCtx)
+	content, err := file.Content(exportCtx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open export package content: %w", err)
 	}
