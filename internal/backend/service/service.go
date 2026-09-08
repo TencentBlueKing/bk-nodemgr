@@ -30,7 +30,8 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v3"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v4"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
@@ -351,7 +352,8 @@ func (svc *Service) initialCapability() error {
 	})
 
 	// initial IAM callback handler.
-	svc.Cap.AuthProviderHandler = svc.newAuthProviderHandler()
+	svc.Cap.AuthProviderV3Handler = v3.NewProviderHandler(svc.Cap.StorageTopo, svc.Cap.StorageRelease)
+	svc.Cap.AuthProviderV4Handler = v4.NewProviderHandler(svc.Cap.StorageTopo, svc.Cap.StorageRelease)
 
 	// initial authorizer.
 	svc.Cap.Authorizer = svc.newAuthorizer()
@@ -480,47 +482,24 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 
 func (svc *Service) newAuthorizer() auth.IAuthorizer {
 	if svc.conf.IAMV4.Enable {
-		return auth.NewIAMV4Authorizer(
+		return v4.NewIAMV4Authorizer(
 			svc.conf.IAMV4.SystemID,
 			svc.Cap.IAMV4Handler,
-			svc.Cap.AuthProviderHandler,
-			svc.Cap.AuthProviderHandler,
+			svc.Cap.AuthProviderV4Handler,
+			svc.Cap.AuthProviderV4Handler,
 		)
 	}
 
 	if svc.conf.IAMV3.Enable {
-		return auth.NewIAMV3Authorizer(
+		return v3.NewIAMV3Authorizer(
 			svc.conf.IAMV3.SystemID,
 			svc.Cap.IAMV3Handler,
-			svc.Cap.AuthProviderHandler, // IAttributeEnricher
-			svc.Cap.AuthProviderHandler, // IResolver
+			svc.Cap.AuthProviderV3Handler, // IAttributeEnricher
+			svc.Cap.AuthProviderV3Handler, // IResolver
 		)
 	}
 
 	return auth.NewNoOpAuthorizer()
-}
-
-// newAuthProviderHandler creates a unified IAM callback handler with all providers registered.
-func (svc *Service) newAuthProviderHandler() *authProvider.Handler {
-	handler := authProvider.NewHandler()
-
-	// Register NetworkArea provider
-	networkAreaProvider := authProvider.NewNetworkAreaProvider(svc.Cap.StorageTopo)
-	handler.RegisterProvider(authProvider.ResourceTypeNetworkArea, networkAreaProvider)
-
-	// Register NetworkUnit provider
-	networkUnitProvider := authProvider.NewNetworkUnitProvider(svc.Cap.StorageTopo)
-	handler.RegisterProvider(authProvider.ResourceTypeNetworkUnit, networkUnitProvider)
-
-	// Register PackageType provider
-	packageTypeProvider := authProvider.NewPackageTypeProvider()
-	handler.RegisterProvider(authProvider.ResourceTypePackageType, packageTypeProvider)
-
-	// Register Package provider
-	packageProvider := authProvider.NewPackageProvider(svc.Cap.StorageRelease)
-	handler.RegisterProvider(authProvider.ResourceTypePackage, packageProvider)
-
-	return handler
 }
 
 // newIAMV3Handler creates a new IAM v3 handler.

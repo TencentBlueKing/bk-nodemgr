@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -78,7 +77,7 @@ func (h *handler) DeleteReleasePluginBinTool(rCtx restserver.IContext) (interfac
 	name := req.GetName()
 
 	// Check permission.
-	resources := authProvider.BuildPackageResources(name)
+	resources := auth.BuildPackageResources(name)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete plugin-bintool release, permission denied")
 		return nil, err

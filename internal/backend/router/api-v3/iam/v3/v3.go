@@ -22,7 +22,7 @@ package v3
 import (
 	"net/http"
 
-	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v3/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -36,7 +36,7 @@ import (
 // handler holds the router group and capabilities for IAM v3 routes.
 type handler struct {
 	rg           *gin.RouterGroup
-	dispatcher   authProvider.IDispatcher
+	dispatcher   provider.IDispatcher
 	iamV3Handler iamv3.IHandler
 }
 
@@ -45,7 +45,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// Create sub router for IAM v3 with path /v3
 		rg:           rg.Group("/v3"),
-		dispatcher:   capability.AuthProviderHandler,
+		dispatcher:   capability.AuthProviderV3Handler,
 		iamV3Handler: capability.IAMV3Handler,
 	}
 }
@@ -122,7 +122,7 @@ func (h *handler) handleResourceCallback(rCtx restserver.IContext) (interface{},
 	}
 
 	resourceType := req.GetType()
-	requestMethod := authProvider.RequestMethod(req.GetMethod())
+	requestMethod := provider.RequestMethod(req.GetMethod())
 
 	// Dispatch to handler
 	result, dispatchErr := h.dispatcher.DispatchMethod(

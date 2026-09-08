@@ -16,14 +16,18 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package auth
+// Package v4 implements IAM V4 authorization and resource provider wiring.
+package v4
 
 import (
 	"errors"
 	"fmt"
 	"sort"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v4/provider"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv4"
@@ -42,13 +46,24 @@ type iamv4Authorizer struct {
 	dispatcher        provider.IDispatcher
 }
 
+// NewProviderHandler registers the IAM V4 resource providers.
+func NewProviderHandler(topoStorage topo.IStorage, releaseStorage release.IStorage) provider.IHandler {
+	handler := provider.NewHandler()
+	handler.RegisterProvider(provider.ResourceTypeNetworkArea, provider.NewNetworkAreaProvider(topoStorage))
+	handler.RegisterProvider(provider.ResourceTypeNetworkUnit, provider.NewNetworkUnitProvider(topoStorage))
+	handler.RegisterProvider(provider.ResourceTypePackageType, provider.NewPackageTypeProvider())
+	handler.RegisterProvider(provider.ResourceTypePackage, provider.NewPackageProvider(releaseStorage))
+
+	return handler
+}
+
 // NewIAMV4Authorizer creates an IAuthorizer backed by the IAM v4 handler.
 func NewIAMV4Authorizer(
 	systemID string,
 	handler iamv4.IHandler,
 	attributeEnricher provider.IAttributeEnricher,
 	dispatcher provider.IDispatcher,
-) IAuthorizer {
+) auth.IAuthorizer {
 
 	return &iamv4Authorizer{
 		systemID:          systemID,
@@ -63,7 +78,7 @@ func (authorizer *iamv4Authorizer) enrichResourceAttributes(ctx contextx.IContex
 		return resources
 	}
 
-	grouped := groupResourcesForEnrichment(resources)
+	grouped := iamv4GroupResourcesForEnrichment(resources)
 	for key, indices := range grouped {
 		authorizer.fetchAndMergeAttributes(ctx, key.resType, indices, resources)
 	}
@@ -106,18 +121,18 @@ func (authorizer *iamv4Authorizer) fetchAndMergeAttributes(
 	}
 }
 
-func (authorizer *iamv4Authorizer) newCheckRequest(ctx contextx.IContext, action Action, resources []types.AuthResource) types.IAMCheckRequest {
+func (authorizer *iamv4Authorizer) newCheckRequest(ctx contextx.IContext, action auth.Action, resources []types.AuthResource) types.IAMCheckRequest {
 	return types.IAMCheckRequest{
 		SystemID:  authorizer.systemID,
 		Username:  ctx.BKUsername(),
 		ActionID:  string(action),
-		Resources: toIAMResources(resources),
+		Resources: iamv4ToIAMResources(resources),
 	}
 }
 
 func (authorizer *iamv4Authorizer) newMultiActionCheckRequest(
 	ctx contextx.IContext,
-	actions []Action,
+	actions []auth.Action,
 	resources []types.AuthResource,
 ) types.IAMMultiActionCheckRequest {
 
@@ -130,12 +145,12 @@ func (authorizer *iamv4Authorizer) newMultiActionCheckRequest(
 		SystemID:  authorizer.systemID,
 		Username:  ctx.BKUsername(),
 		ActionIDs: actionIDs,
-		Resources: toIAMResources(resources),
+		Resources: iamv4ToIAMResources(resources),
 	}
 }
 
 func (authorizer *iamv4Authorizer) collectDeniedResources(
-	ctx contextx.IContext, action Action, resources []types.AuthResource,
+	ctx contextx.IContext, action auth.Action, resources []types.AuthResource,
 ) ([]types.AuthResource, bool, error) {
 
 	if ctx == nil {
@@ -176,22 +191,22 @@ func (authorizer *iamv4Authorizer) collectDeniedResources(
 }
 
 func (authorizer *iamv4Authorizer) newPermissionDeniedError(
-	ctx contextx.IContext, actionResources map[Action][]types.AuthResource,
-) PermissionDeniedError {
+	ctx contextx.IContext, actionResources map[auth.Action][]types.AuthResource,
+) auth.PermissionDeniedError {
 
-	actions := sortedActions(actionResources)
+	actions := iamv4SortedActions(actionResources)
 	applyActions := make([]types.IAMApplyAction, 0, len(actions))
-	deniedActions := make([]ActionInfo, 0, len(actions))
+	deniedActions := make([]auth.ActionInfo, 0, len(actions))
 	for _, action := range actions {
-		rts := buildIAMApplyResourceTypes(actionResources[action])
+		rts := iamv4BuildIAMApplyResourceTypes(actionResources[action])
 		applyActions = append(applyActions, types.IAMApplyAction{
 			ID:                   string(action),
 			RelatedResourceTypes: rts,
 		})
-		deniedActions = append(deniedActions, ActionInfo{
+		deniedActions = append(deniedActions, auth.ActionInfo{
 			ID:                   string(action),
-			Name:                 ActionDisplayName(action),
-			RelatedResourceTypes: buildRelatedResourceTypes(rts),
+			Name:                 auth.ActionDisplayName(action),
+			RelatedResourceTypes: iamv4BuildRelatedResourceTypes(rts),
 		})
 	}
 
@@ -204,7 +219,7 @@ func (authorizer *iamv4Authorizer) newPermissionDeniedError(
 		applyURL = ""
 	}
 
-	return PermissionDeniedError{
+	return auth.PermissionDeniedError{
 		ApplyURL:   applyURL,
 		SystemID:   authorizer.systemID,
 		SystemName: types.SystemDisplayName(authorizer.systemID),
@@ -214,23 +229,24 @@ func (authorizer *iamv4Authorizer) newPermissionDeniedError(
 
 func (authorizer *iamv4Authorizer) collectDeniedActionResourcesByActions(
 	ctx contextx.IContext,
-	actionResources map[Action][]types.AuthResource,
-) (map[Action][]types.AuthResource, error) {
+	actionResources map[auth.Action][]types.AuthResource,
+) (map[auth.Action][]types.AuthResource, error) {
 
-	deniedActionResources := make(map[Action][]types.AuthResource, len(actionResources))
+	deniedActionResources := make(map[auth.Action][]types.AuthResource, len(actionResources))
 	resourcesByKey := make(map[string][]types.AuthResource)
-	actionsByKey := make(map[string][]Action)
+	actionsByKey := make(map[string][]auth.Action)
 
-	for _, action := range sortedActions(actionResources) {
+	for _, action := range iamv4SortedActions(actionResources) {
 		resources := actionResources[action]
 		if len(resources) == 0 {
 			resourcesByKey[""] = nil
 			actionsByKey[""] = append(actionsByKey[""], action)
+
 			continue
 		}
 
 		for _, resource := range resources {
-			key := buildIAMBatchLookupKey(toIAMResources([]types.AuthResource{resource}))
+			key := iamv4BuildIAMBatchLookupKey(iamv4ToIAMResources([]types.AuthResource{resource}))
 			resourcesByKey[key] = []types.AuthResource{resource}
 			actionsByKey[key] = append(actionsByKey[key], action)
 		}
@@ -272,7 +288,7 @@ func (authorizer *iamv4Authorizer) collectDeniedActionResourcesByActions(
 	return deniedActionResources, nil
 }
 
-func (authorizer *iamv4Authorizer) Check(ctx contextx.IContext, action Action, resources []types.AuthResource) error {
+func (authorizer *iamv4Authorizer) Check(ctx contextx.IContext, action auth.Action, resources []types.AuthResource) error {
 	enrichedResources := authorizer.enrichResourceAttributes(ctx, resources)
 
 	denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, enrichedResources)
@@ -283,17 +299,17 @@ func (authorizer *iamv4Authorizer) Check(ctx contextx.IContext, action Action, r
 		return nil
 	}
 
-	return authorizer.newPermissionDeniedError(ctx, map[Action][]types.AuthResource{
+	return authorizer.newPermissionDeniedError(ctx, map[auth.Action][]types.AuthResource{
 		action: denied,
 	})
 }
 
 func (authorizer *iamv4Authorizer) CheckMany(
 	ctx contextx.IContext,
-	actionResources map[Action][]types.AuthResource,
+	actionResources map[auth.Action][]types.AuthResource,
 ) error {
 
-	enrichedActionResources := make(map[Action][]types.AuthResource, len(actionResources))
+	enrichedActionResources := make(map[auth.Action][]types.AuthResource, len(actionResources))
 	for action, resources := range actionResources {
 		enrichedActionResources[action] = authorizer.enrichResourceAttributes(ctx, resources)
 	}
@@ -310,11 +326,11 @@ func (authorizer *iamv4Authorizer) CheckMany(
 }
 
 func (authorizer *iamv4Authorizer) ListAuthorizedInstances(
-	ctx contextx.IContext, action Action, resourceType types.AuthResourceType,
-) (AuthorizedScope, error) {
+	ctx contextx.IContext, action auth.Action, resourceType types.AuthResourceType,
+) (auth.AuthorizedScope, error) {
 
 	if ctx == nil {
-		return AuthorizedScope{}, errors.New("auth: ListAuthorizedInstances called with nil context")
+		return auth.AuthorizedScope{}, errors.New("auth: ListAuthorizedInstances called with nil context")
 	}
 
 	results, err := authorizer.handler.ListAuthorizedResources(ctx, types.IAMAuthorizedInstancesRequest{
@@ -324,15 +340,15 @@ func (authorizer *iamv4Authorizer) ListAuthorizedInstances(
 		ResourceType: string(resourceType),
 	})
 	if err != nil {
-		return AuthorizedScope{}, err
+		return auth.AuthorizedScope{}, err
 	}
 
 	resources, isAny, err := authorizer.resolveAuthorizedResources(ctx, resourceType, results)
 	if err != nil {
-		return AuthorizedScope{}, err
+		return auth.AuthorizedScope{}, err
 	}
 
-	return AuthorizedScope{IsAny: isAny, Resources: resources}, nil
+	return auth.AuthorizedScope{IsAny: isAny, Resources: resources}, nil
 }
 
 func (authorizer *iamv4Authorizer) resolveAuthorizedResources(

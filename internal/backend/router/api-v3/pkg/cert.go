@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -51,7 +50,6 @@ func (h *handler) ListReleaseCert(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-
 	items, num, err := h.daoReleaseCert.ListReleaseCert(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list cert release")
@@ -73,7 +71,7 @@ func (h *handler) DeleteReleaseCert(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	// check permission.
-	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeCert))
+	resources := auth.BuildPackageResources(string(types.ReleaseTypeCert))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete cert release, permission denied")
 		return nil, err

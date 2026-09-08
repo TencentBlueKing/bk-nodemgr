@@ -21,7 +21,8 @@ package options
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
+	providerV3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v3/provider"
+	providerV4 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v4/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
@@ -130,8 +131,10 @@ type Capability struct {
 	// Authorizer is the IAM authorization handler for permission checks.
 	Authorizer auth.IAuthorizer
 
-	// AuthProviderHandler is the unified handler for auth resource provider handler.
-	AuthProviderHandler provider.IHandler
+	// AuthProviderV3Handler owns IAM V3 resource queries and callbacks.
+	AuthProviderV3Handler providerV3.IHandler
+	// AuthProviderV4Handler owns IAM V4 resource queries and callbacks.
+	AuthProviderV4Handler providerV4.IHandler
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory

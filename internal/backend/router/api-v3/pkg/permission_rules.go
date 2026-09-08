@@ -22,7 +22,6 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -64,7 +63,7 @@ func (h *handler) narrowAuthorizedPackageNames(
 			}
 		}
 		// Release type not authorized - trigger permission check to generate proper error.
-		resources := authProvider.BuildPackageResources(releaseTypeStr)
+		resources := auth.BuildPackageResources(releaseTypeStr)
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPackageView, resources); checkErr != nil {
 			return nil, false, checkErr
 		}
@@ -79,7 +78,7 @@ func (h *handler) narrowAuthorizedPackageNames(
 
 	if len(narrowedNames) == 0 {
 		// User requested specific plugins but has no permission for any of them.
-		resources := authProvider.BuildPackageResources(requestedNames...)
+		resources := auth.BuildPackageResources(requestedNames...)
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPackageView, resources); checkErr != nil {
 			return nil, false, checkErr
 		}

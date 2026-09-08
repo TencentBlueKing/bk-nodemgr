@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
@@ -209,7 +208,7 @@ func (h *handler) EnableReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// Permission check: ActionPackageManage
-	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
 		return nil, authErr
 	}
@@ -253,7 +252,7 @@ func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, er
 	}
 
 	// Permission check: ActionPackageManage
-	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
 		return nil, authErr
 	}
@@ -298,7 +297,7 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 	}
 
 	// Permission check: ActionPackageManage
-	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
 		return nil, authErr
 	}
@@ -342,7 +341,7 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 	}
 
 	// Permission check: ActionPackageManage
-	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
 		return nil, authErr
 	}
@@ -386,7 +385,7 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// Permission check: ActionPackageManage
-	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
 		return nil, authErr
 	}

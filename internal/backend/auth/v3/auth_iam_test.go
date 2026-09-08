@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package auth
+package v3
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -143,7 +144,7 @@ func TestIAMV3AuthorizerCheck_AllAllowed(t *testing.T) {
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+	err := authorizer.Check(newTestIAMContext(), auth.ActionAgentOperate, []types.AuthResource{
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 	})
@@ -178,7 +179,7 @@ func TestIAMV3AuthorizerCheck_PartialDeniedReturnsPermissionDenied(t *testing.T)
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+	err := authorizer.Check(newTestIAMContext(), auth.ActionAgentOperate, []types.AuthResource{
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "3"},
@@ -187,7 +188,7 @@ func TestIAMV3AuthorizerCheck_PartialDeniedReturnsPermissionDenied(t *testing.T)
 		t.Fatal("expected permission error, got nil")
 	}
 
-	var permErr PermissionDeniedError
+	var permErr auth.PermissionDeniedError
 	if !errors.As(err, &permErr) {
 		t.Fatalf("expected PermissionDeniedError, got %T: %v", err, err)
 	}
@@ -224,7 +225,7 @@ func TestIAMV3AuthorizerCheck_BatchErrorReturnsImmediately(t *testing.T) {
 	handler := &fakeIAMBatchHandler{batchErr: sentinel}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+	err := authorizer.Check(newTestIAMContext(), auth.ActionAgentOperate, []types.AuthResource{
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
 	})
 	if !errors.Is(err, sentinel) {
@@ -244,14 +245,14 @@ func TestIAMV3AuthorizerCheck_ApplyURLErrorReturnsPermissionDeniedWithoutURL(t *
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+	err := authorizer.Check(newTestIAMContext(), auth.ActionAgentOperate, []types.AuthResource{
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
 	})
 	if err == nil {
 		t.Fatal("expected permission error, got nil")
 	}
 
-	var permErr PermissionDeniedError
+	var permErr auth.PermissionDeniedError
 	if !errors.As(err, &permErr) {
 		t.Fatalf("expected PermissionDeniedError, got %T: %v", err, err)
 	}
@@ -266,11 +267,11 @@ func TestIAMV3AuthorizerNewPermissionDeniedError_MultiActionStableOrder(t *testi
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	permErr := authorizer.newPermissionDeniedError(newTestIAMContext(), map[Action][]types.AuthResource{
-		ActionProxyView: {
+	permErr := authorizer.newPermissionDeniedError(newTestIAMContext(), map[auth.Action][]types.AuthResource{
+		auth.ActionProxyView: {
 			{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 		},
-		ActionAgentOperate: {
+		auth.ActionAgentOperate: {
 			{SystemID: types.SystemIDNodeMgr, Type: types.AuthResourceTypeNetworkArea, ID: "3"},
 		},
 	})
@@ -281,43 +282,43 @@ func TestIAMV3AuthorizerNewPermissionDeniedError_MultiActionStableOrder(t *testi
 	if len(handler.lastApplyReq.Actions) != 2 {
 		t.Fatalf("expected 2 apply actions, got %d", len(handler.lastApplyReq.Actions))
 	}
-	if handler.lastApplyReq.Actions[0].ID != string(ActionAgentOperate) {
-		t.Fatalf("expected first apply action %q, got %q", ActionAgentOperate, handler.lastApplyReq.Actions[0].ID)
+	if handler.lastApplyReq.Actions[0].ID != string(auth.ActionAgentOperate) {
+		t.Fatalf("expected first apply action %q, got %q", auth.ActionAgentOperate, handler.lastApplyReq.Actions[0].ID)
 	}
-	if handler.lastApplyReq.Actions[1].ID != string(ActionProxyView) {
-		t.Fatalf("expected second apply action %q, got %q", ActionProxyView, handler.lastApplyReq.Actions[1].ID)
+	if handler.lastApplyReq.Actions[1].ID != string(auth.ActionProxyView) {
+		t.Fatalf("expected second apply action %q, got %q", auth.ActionProxyView, handler.lastApplyReq.Actions[1].ID)
 	}
 	if len(permErr.Actions) != 2 {
 		t.Fatalf("expected 2 permission actions, got %d", len(permErr.Actions))
 	}
-	if permErr.Actions[0].ID != string(ActionAgentOperate) {
-		t.Fatalf("expected first permission action %q, got %q", ActionAgentOperate, permErr.Actions[0].ID)
+	if permErr.Actions[0].ID != string(auth.ActionAgentOperate) {
+		t.Fatalf("expected first permission action %q, got %q", auth.ActionAgentOperate, permErr.Actions[0].ID)
 	}
-	if permErr.Actions[1].ID != string(ActionProxyView) {
-		t.Fatalf("expected second permission action %q, got %q", ActionProxyView, permErr.Actions[1].ID)
+	if permErr.Actions[1].ID != string(auth.ActionProxyView) {
+		t.Fatalf("expected second permission action %q, got %q", auth.ActionProxyView, permErr.Actions[1].ID)
 	}
 	if len(permErr.Actions[0].RelatedResourceTypes) != 1 {
-		t.Fatalf("expected 1 related resource type for %q, got %d", ActionAgentOperate, len(permErr.Actions[0].RelatedResourceTypes))
+		t.Fatalf("expected 1 related resource type for %q, got %d", auth.ActionAgentOperate, len(permErr.Actions[0].RelatedResourceTypes))
 	}
 	if permErr.Actions[0].RelatedResourceTypes[0].Type != string(types.AuthResourceTypeNetworkArea) {
-		t.Fatalf("expected %q resource type for %q, got %q", types.AuthResourceTypeNetworkArea, ActionAgentOperate, permErr.Actions[0].RelatedResourceTypes[0].Type)
+		t.Fatalf("expected %q resource type for %q, got %q", types.AuthResourceTypeNetworkArea, auth.ActionAgentOperate, permErr.Actions[0].RelatedResourceTypes[0].Type)
 	}
 	if len(permErr.Actions[1].RelatedResourceTypes) != 1 {
-		t.Fatalf("expected 1 related resource type for %q, got %d", ActionProxyView, len(permErr.Actions[1].RelatedResourceTypes))
+		t.Fatalf("expected 1 related resource type for %q, got %d", auth.ActionProxyView, len(permErr.Actions[1].RelatedResourceTypes))
 	}
 	if permErr.Actions[1].RelatedResourceTypes[0].Type != string(types.AuthResourceTypeBiz) {
-		t.Fatalf("expected %q resource type for %q, got %q", types.AuthResourceTypeBiz, ActionProxyView, permErr.Actions[1].RelatedResourceTypes[0].Type)
+		t.Fatalf("expected %q resource type for %q, got %q", types.AuthResourceTypeBiz, auth.ActionProxyView, permErr.Actions[1].RelatedResourceTypes[0].Type)
 	}
 }
 
 func TestIAMV3AuthorizerCheckMany_AggregatesDeniedActions(t *testing.T) {
 	handler := &fakeIAMBatchHandler{
 		batchResultsByAction: map[string]map[string]bool{
-			string(ActionAgentView): {
+			string(auth.ActionAgentView): {
 				"1": true,
 				"2": false,
 			},
-			string(ActionProxyView): {
+			string(auth.ActionProxyView): {
 				"1": false,
 				"2": false,
 			},
@@ -330,15 +331,15 @@ func TestIAMV3AuthorizerCheckMany_AggregatesDeniedActions(t *testing.T) {
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 	}
 
-	err := authorizer.CheckMany(newTestIAMContext(), map[Action][]types.AuthResource{
-		ActionProxyView: bizResources,
-		ActionAgentView: bizResources,
+	err := authorizer.CheckMany(newTestIAMContext(), map[auth.Action][]types.AuthResource{
+		auth.ActionProxyView: bizResources,
+		auth.ActionAgentView: bizResources,
 	})
 	if err == nil {
 		t.Fatal("expected aggregated permission error, got nil")
 	}
 
-	var permErr PermissionDeniedError
+	var permErr auth.PermissionDeniedError
 	if !errors.As(err, &permErr) {
 		t.Fatalf("expected PermissionDeniedError, got %T: %v", err, err)
 	}
@@ -351,11 +352,11 @@ func TestIAMV3AuthorizerCheckMany_AggregatesDeniedActions(t *testing.T) {
 	if len(permErr.Actions) != 2 {
 		t.Fatalf("expected 2 denied actions, got %d", len(permErr.Actions))
 	}
-	if permErr.Actions[0].ID != string(ActionAgentView) {
-		t.Fatalf("expected first denied action %q, got %q", ActionAgentView, permErr.Actions[0].ID)
+	if permErr.Actions[0].ID != string(auth.ActionAgentView) {
+		t.Fatalf("expected first denied action %q, got %q", auth.ActionAgentView, permErr.Actions[0].ID)
 	}
-	if permErr.Actions[1].ID != string(ActionProxyView) {
-		t.Fatalf("expected second denied action %q, got %q", ActionProxyView, permErr.Actions[1].ID)
+	if permErr.Actions[1].ID != string(auth.ActionProxyView) {
+		t.Fatalf("expected second denied action %q, got %q", auth.ActionProxyView, permErr.Actions[1].ID)
 	}
 }
 
@@ -363,7 +364,7 @@ func TestIAMV3AuthorizerCheck_EmptyResourcesFallsBackToActionCheck(t *testing.T)
 	handler := &fakeIAMBatchHandler{checkResult: true}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, nil)
+	err := authorizer.Check(newTestIAMContext(), auth.ActionAgentOperate, nil)
 	if err != nil {
 		t.Fatalf("expected nil error, got: %v", err)
 	}
@@ -383,7 +384,7 @@ func TestIAMV3AuthorizerCheck_NonEmptyResourcesUsesBatchEvaluation(t *testing.T)
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+	err := authorizer.Check(newTestIAMContext(), auth.ActionAgentOperate, []types.AuthResource{
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "42"},
 	})
 	if err != nil {
@@ -407,7 +408,7 @@ func TestIAMV3AuthorizerListAuthorizedInstances_MapsRequestAndResponse(t *testin
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)
+	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), auth.ActionAgentView, types.AuthResourceTypeBiz)
 	if err != nil {
 		t.Fatalf("expected nil error, got: %v", err)
 	}
@@ -431,7 +432,7 @@ func TestIAMV3AuthorizerListAuthorizedInstances_ReturnsAnyScope(t *testing.T) {
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)
+	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), auth.ActionAgentView, types.AuthResourceTypeBiz)
 	if err != nil {
 		t.Fatalf("expected nil error, got: %v", err)
 	}
@@ -448,7 +449,7 @@ func TestIAMV3AuthorizerListAuthorizedInstances_PropagatesError(t *testing.T) {
 	handler := &fakeIAMBatchHandler{policyExprErr: sentinel}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	_, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)
+	_, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), auth.ActionAgentView, types.AuthResourceTypeBiz)
 	if !errors.Is(err, sentinel) {
 		t.Fatalf("expected sentinel error, got: %v", err)
 	}
@@ -543,7 +544,7 @@ func TestIAMV3AuthorizerCheck_DeniedResourcesHaveInstances(t *testing.T) {
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+	err := authorizer.Check(newTestIAMContext(), auth.ActionAgentOperate, []types.AuthResource{
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
 		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 	})

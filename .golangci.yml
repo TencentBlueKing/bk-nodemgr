@@ -104,8 +104,8 @@ linters:
     godot:
       scope: declarations
       exclude:
-        - '^fixme:'
-        - '^todo:'
+        - "^fixme:"
+        - "^todo:"
       capital: false
       period: true
     gosec:
@@ -125,7 +125,7 @@ linters:
         G302: "0600"
         G306: "0600"
         global:
-          '#nosec': '#my-custom-nosec'
+          "#nosec": "#my-custom-nosec"
           audit: true
           nosec: false
           show-ignored: true
@@ -150,8 +150,10 @@ linters:
           alias: protoFile
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth
           alias: authRouter
-        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider
-          alias: authProvider
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v3/provider
+          alias: providerV3
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v4/provider
+          alias: providerV4
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant
           alias: tenantStorage
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay
@@ -407,10 +409,10 @@ linters:
         text: weak cryptographic primitive
       - linters:
           - staticcheck
-        text: 'SA9003:'
+        text: "SA9003:"
       - linters:
           - lll
-        source: '^//go:generate '
+        source: "^//go:generate "
       - path: (.+)\.go$
         text: abcdef
       - linters:

@@ -16,7 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package auth
+// Package v3 implements IAM V3 authorization and resource provider wiring.
+package v3
 
 import (
 	"errors"
@@ -25,7 +26,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	providerV3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v3/provider"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
@@ -34,6 +38,17 @@ import (
 )
 
 const iamCacheTTL = 5 * time.Minute
+
+// NewProviderHandler registers the IAM V3 resource providers.
+func NewProviderHandler(topoStorage topo.IStorage, releaseStorage release.IStorage) providerV3.IHandler {
+	handler := providerV3.NewHandler()
+	handler.RegisterProvider(providerV3.ResourceTypeNetworkArea, providerV3.NewNetworkAreaProvider(topoStorage))
+	handler.RegisterProvider(providerV3.ResourceTypeNetworkUnit, providerV3.NewNetworkUnitProvider(topoStorage))
+	handler.RegisterProvider(providerV3.ResourceTypePackageType, providerV3.NewPackageTypeProvider())
+	handler.RegisterProvider(providerV3.ResourceTypePackage, providerV3.NewPackageProvider(releaseStorage))
+
+	return handler
+}
 
 const (
 	iamTypeKeySep             = "/"
@@ -74,8 +89,8 @@ func iamResourceTypeOrderKey(systemID, typ string) int {
 type iamv3Authorizer struct {
 	systemID          string
 	handler           iamv3.IHandler
-	attributeEnricher provider.IAttributeEnricher
-	resolver          provider.IResolver
+	attributeEnricher providerV3.IAttributeEnricher
+	resolver          providerV3.IResolver
 }
 
 // NewIAMV3Authorizer creates an IAuthorizer backed by the IAM v3 handler.
@@ -84,9 +99,9 @@ type iamv3Authorizer struct {
 func NewIAMV3Authorizer(
 	systemID string,
 	handler iamv3.IHandler,
-	attributeEnricher provider.IAttributeEnricher,
-	resolver provider.IResolver,
-) IAuthorizer {
+	attributeEnricher providerV3.IAttributeEnricher,
+	resolver providerV3.IResolver,
+) auth.IAuthorizer {
 
 	return &iamv3Authorizer{
 		systemID:          systemID,
@@ -191,7 +206,7 @@ func toIAMResources(resources []types.AuthResource) []types.IAMResource {
 	return checkResources
 }
 
-func toAuthorizedScope(isAny bool, iamResources []types.IAMResource) AuthorizedScope {
+func toAuthorizedScope(isAny bool, iamResources []types.IAMResource) auth.AuthorizedScope {
 	resources := make([]types.AuthResource, 0, len(iamResources))
 	for _, r := range iamResources {
 		resources = append(resources, types.AuthResource{
@@ -201,7 +216,7 @@ func toAuthorizedScope(isAny bool, iamResources []types.IAMResource) AuthorizedS
 		})
 	}
 
-	return AuthorizedScope{IsAny: isAny, Resources: resources}
+	return auth.AuthorizedScope{IsAny: isAny, Resources: resources}
 }
 
 func buildIAMBatchLookupKey(resources []types.IAMResource) string {
@@ -220,8 +235,8 @@ func buildIAMBatchLookupKey(resources []types.IAMResource) string {
 	return strings.Join(nodeIDs, iamBatchResultResourceSep)
 }
 
-func sortedActions(actionResources map[Action][]types.AuthResource) []Action {
-	actions := make([]Action, 0, len(actionResources))
+func sortedActions(actionResources map[auth.Action][]types.AuthResource) []auth.Action {
+	actions := make([]auth.Action, 0, len(actionResources))
 	for action := range actionResources {
 		actions = append(actions, action)
 	}
@@ -232,7 +247,7 @@ func sortedActions(actionResources map[Action][]types.AuthResource) []Action {
 	return actions
 }
 
-func (authorizer *iamv3Authorizer) newCheckRequest(ctx contextx.IContext, action Action, resources []types.AuthResource) types.IAMCheckRequest {
+func (authorizer *iamv3Authorizer) newCheckRequest(ctx contextx.IContext, action auth.Action, resources []types.AuthResource) types.IAMCheckRequest {
 	return types.IAMCheckRequest{
 		SystemID:  authorizer.systemID,
 		Username:  ctx.BKUsername(),
@@ -241,7 +256,7 @@ func (authorizer *iamv3Authorizer) newCheckRequest(ctx contextx.IContext, action
 	}
 }
 
-func (authorizer *iamv3Authorizer) newCheckRequestWithoutResource(ctx contextx.IContext, action Action) types.IAMCheckRequest {
+func (authorizer *iamv3Authorizer) newCheckRequestWithoutResource(ctx contextx.IContext, action auth.Action) types.IAMCheckRequest {
 	return types.IAMCheckRequest{
 		SystemID: authorizer.systemID,
 		Username: ctx.BKUsername(),
@@ -316,7 +331,7 @@ func buildIAMApplyResourceTypes(resources []types.AuthResource) []types.IAMApply
 //	// → [{Type: "networkarea", ID: "123"}, {Type: "networkunit", ID: "456"}]
 func buildResourceInstancePath(r types.AuthResource) types.IAMApplyResourceInstance {
 	// Try to extract parent node from _bk_iam_path_ attribute
-	parentNode := provider.ParseParentFromIAMPath(r.Attributes)
+	parentNode := providerV3.ParseParentFromIAMPath(r.Attributes)
 
 	if parentNode == nil {
 		// No parent: return single-node path
@@ -332,9 +347,9 @@ func buildResourceInstancePath(r types.AuthResource) types.IAMApplyResourceInsta
 	}
 }
 
-func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResourceType {
-	return conv.SliceToSlice(rts, func(rt types.IAMApplyResourceType) RelatedResourceType {
-		return RelatedResourceType{
+func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []auth.RelatedResourceType {
+	return conv.SliceToSlice(rts, func(rt types.IAMApplyResourceType) auth.RelatedResourceType {
+		return auth.RelatedResourceType{
 			SystemID:   rt.SystemID,
 			SystemName: types.SystemDisplayName(rt.SystemID),
 			Type:       rt.Type,
@@ -344,11 +359,11 @@ func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResour
 	})
 }
 
-func buildResourceNodes(instances []types.IAMApplyResourceInstance) []ResourceNode {
-	resourceNodes := make([]ResourceNode, 0, len(instances))
+func buildResourceNodes(instances []types.IAMApplyResourceInstance) []auth.ResourceNode {
+	resourceNodes := make([]auth.ResourceNode, 0, len(instances))
 	for _, instance := range instances {
-		nodes := conv.SliceToSlice(instance, func(node types.IAMApplyResourceNode) ResourceNode {
-			return ResourceNode{
+		nodes := conv.SliceToSlice(instance, func(node types.IAMApplyResourceNode) auth.ResourceNode {
+			return auth.ResourceNode{
 				Type:     node.Type,
 				TypeName: types.AuthResourceTypeDisplayName(types.AuthResourceType(node.Type)),
 				ID:       node.ID,
@@ -361,7 +376,7 @@ func buildResourceNodes(instances []types.IAMApplyResourceInstance) []ResourceNo
 }
 
 func (authorizer *iamv3Authorizer) collectDeniedResources(
-	ctx contextx.IContext, action Action, resources []types.AuthResource,
+	ctx contextx.IContext, action auth.Action, resources []types.AuthResource,
 ) ([]types.AuthResource, bool, error) {
 
 	if ctx == nil {
@@ -401,21 +416,21 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 }
 
 func (authorizer *iamv3Authorizer) newPermissionDeniedError(
-	ctx contextx.IContext, actionResources map[Action][]types.AuthResource,
-) PermissionDeniedError {
+	ctx contextx.IContext, actionResources map[auth.Action][]types.AuthResource,
+) auth.PermissionDeniedError {
 
 	actions := sortedActions(actionResources)
 	applyActions := make([]types.IAMApplyAction, 0, len(actions))
-	deniedActions := make([]ActionInfo, 0, len(actions))
+	deniedActions := make([]auth.ActionInfo, 0, len(actions))
 	for _, action := range actions {
 		rts := buildIAMApplyResourceTypes(actionResources[action])
 		applyActions = append(applyActions, types.IAMApplyAction{
 			ID:                   string(action),
 			RelatedResourceTypes: rts,
 		})
-		deniedActions = append(deniedActions, ActionInfo{
+		deniedActions = append(deniedActions, auth.ActionInfo{
 			ID:                   string(action),
-			Name:                 ActionDisplayName(action),
+			Name:                 auth.ActionDisplayName(action),
 			RelatedResourceTypes: buildRelatedResourceTypes(rts),
 		})
 	}
@@ -429,7 +444,7 @@ func (authorizer *iamv3Authorizer) newPermissionDeniedError(
 		applyURL = ""
 	}
 
-	return PermissionDeniedError{
+	return auth.PermissionDeniedError{
 		ApplyURL:   applyURL,
 		SystemID:   authorizer.systemID,
 		SystemName: types.SystemDisplayName(authorizer.systemID),
@@ -437,7 +452,7 @@ func (authorizer *iamv3Authorizer) newPermissionDeniedError(
 	}
 }
 
-func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, resources []types.AuthResource) error {
+func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action auth.Action, resources []types.AuthResource) error {
 	// Enrich resources with attributes from provider
 	enrichedResources := authorizer.enrichResourceAttributes(ctx, resources)
 
@@ -449,21 +464,21 @@ func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, r
 		return nil
 	}
 
-	return authorizer.newPermissionDeniedError(ctx, map[Action][]types.AuthResource{
+	return authorizer.newPermissionDeniedError(ctx, map[auth.Action][]types.AuthResource{
 		action: denied,
 	})
 }
 
 func (authorizer *iamv3Authorizer) CheckMany(
-	ctx contextx.IContext, actionResources map[Action][]types.AuthResource,
+	ctx contextx.IContext, actionResources map[auth.Action][]types.AuthResource,
 ) error {
 	// Enrich all resources first
-	enrichedActionResources := make(map[Action][]types.AuthResource, len(actionResources))
+	enrichedActionResources := make(map[auth.Action][]types.AuthResource, len(actionResources))
 	for action, resources := range actionResources {
 		enrichedActionResources[action] = authorizer.enrichResourceAttributes(ctx, resources)
 	}
 
-	deniedActionResources := make(map[Action][]types.AuthResource, len(enrichedActionResources))
+	deniedActionResources := make(map[auth.Action][]types.AuthResource, len(enrichedActionResources))
 	for _, action := range sortedActions(enrichedActionResources) {
 		denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, enrichedActionResources[action])
 		if err != nil {
@@ -481,8 +496,8 @@ func (authorizer *iamv3Authorizer) CheckMany(
 }
 
 func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
-	ctx contextx.IContext, action Action, resourceType types.AuthResourceType,
-) (AuthorizedScope, error) {
+	ctx contextx.IContext, action auth.Action, resourceType types.AuthResourceType,
+) (auth.AuthorizedScope, error) {
 
 	// Get raw policy expression from IAM
 	policyExpr, err := authorizer.handler.GetPolicyExpression(ctx, types.IAMAuthorizedInstancesRequest{
@@ -492,7 +507,7 @@ func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
 		ResourceType: string(resourceType),
 	})
 	if err != nil {
-		return AuthorizedScope{}, err
+		return auth.AuthorizedScope{}, err
 	}
 
 	// Try fast path: parse discrete policy
@@ -507,7 +522,7 @@ func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
 	case types.AuthResourceTypeNetworkUnit, types.AuthResourceTypePackage:
 		// These resource types support fallback to expression evaluation
 	default:
-		return AuthorizedScope{}, fmt.Errorf(
+		return auth.AuthorizedScope{}, fmt.Errorf(
 			"resource type %s does not support non-discrete policy: %w",
 			resourceType,
 			parseErr,
@@ -519,10 +534,10 @@ func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
 		ctx,
 		string(resourceType),
 		policyExpr,
-		types.Page{Limit: provider.MaxListInstanceByPolicyLimit},
+		types.Page{Limit: providerV3.MaxListInstanceByPolicyLimit},
 	)
 	if err != nil {
-		return AuthorizedScope{}, fmt.Errorf("failed to evaluate non-discrete policy: %w", err)
+		return auth.AuthorizedScope{}, fmt.Errorf("failed to evaluate non-discrete policy: %w", err)
 	}
 
 	// Convert provider results to AuthorizedScope
@@ -535,7 +550,7 @@ func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
 		})
 	}
 
-	return AuthorizedScope{
+	return auth.AuthorizedScope{
 		IsAny:     false,
 		Resources: resources,
 	}, nil

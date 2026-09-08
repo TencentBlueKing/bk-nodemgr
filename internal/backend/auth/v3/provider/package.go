@@ -547,22 +547,3 @@ func (p *PackageProvider) FetchInstanceList(_ contextx.IContext, _ *Request[Fetc
 func (p *PackageProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
 	return newEmptyListInstanceData(), nil
 }
-
-// BuildPackageResources constructs package resources for permission checks.
-// For agent/proxy/cert/bintool types, the resource ID is the release type itself.
-// For plugin types, the resource ID is the plugin name.
-// Supports multiple release types for batch permission checks.
-// This is the canonical helper used by router handlers to construct types.AuthResource
-// matching the resource ID format returned by this provider's IAM callbacks.
-func BuildPackageResources(releaseType ...string) []types.AuthResource {
-	resources := make([]types.AuthResource, 0, len(releaseType))
-	for _, rt := range releaseType {
-		resources = append(resources, types.AuthResource{
-			SystemID: types.SystemIDNodeMgr,
-			Type:     types.AuthResourceTypePackage,
-			ID:       rt,
-		})
-	}
-
-	return resources
-}

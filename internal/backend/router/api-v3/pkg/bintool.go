@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -51,7 +50,6 @@ func (h *handler) ListReleaseBinTool(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-
 	items, num, err := h.daoReleaseBinTool.ListReleaseBinTool(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list bintool release")
@@ -73,7 +71,7 @@ func (h *handler) DeleteReleaseBinTool(rCtx restserver.IContext) (interface{}, e
 	}
 
 	// check permission.
-	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeBinTool))
+	resources := auth.BuildPackageResources(string(types.ReleaseTypeBinTool))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete bintool release, permission denied")
 		return nil, err
