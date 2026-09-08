@@ -113,7 +113,7 @@ func (act *actionPagentDetectInfoBySSH) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionPagentDetectInfoBySSH) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 3 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.

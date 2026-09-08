@@ -83,7 +83,7 @@ func (act *actionStartProcessV2) Tags() []action.Tag {
 
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionStartProcessV2) MaxRetryCount() uint {
-	return 3 // nolint: mnd
+	return 5 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.

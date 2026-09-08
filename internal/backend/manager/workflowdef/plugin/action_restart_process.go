@@ -73,7 +73,7 @@ func (act *actionRestartProcess) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionRestartProcess) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 5 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
@@ -83,7 +83,7 @@ func (act *actionRestartProcess) Tags() []action.Tag {
 
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionRestartProcess) MaxRetryCount() uint {
-	return 3 // nolint: mnd
+	return 5 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
