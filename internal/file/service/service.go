@@ -662,7 +662,6 @@ func (svc *Service) registerDownloadServer() error {
 		restserver.WithPing(),
 		withAPIV3Download(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
-			restserver.MiddlewarePathTenantID("tenant_id"),
 		),
 	)
 	if err != nil {

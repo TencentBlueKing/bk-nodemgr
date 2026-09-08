@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/transfer"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/upload"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -72,6 +73,7 @@ func LoadDownloadAPIs(rg *gin.RouterGroup, capability *options.Capability, middl
 
 	// enable middlewares.
 	h.rg.Use(middlewares...)
+	h.rg.Use(restserver.MiddlewarePathTenantID("tenant_id"))
 
 	download.Load(h.rg, capability)
 	info.Load(h.rg, capability)
