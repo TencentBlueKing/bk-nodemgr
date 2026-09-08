@@ -32,7 +32,6 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -235,7 +234,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	if err := h.initDefaultPluginForAllTenants(rCtx, key); err != nil {
+	if err := h.createDefaultPlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "platform", plat, "version", version).
 			Error("failed to check and create default plugin for all tenants")
 
@@ -254,38 +253,14 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	return resp.GetData(), nil
 }
 
-func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, key types.ReleasePluginKey) error {
-	tenants, err := h.daoTenant.ListAllEnabledTenants(rCtx)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list all tenants")
-		return err
-	}
-
-	gp := gopool.NewPool()
-	for idx := range tenants {
-		tenant := tenants[idx]
-		nCtx := contextx.New(rCtx, contextx.WithTenantID(tenant.ID))
-
-		gp.Go(func() error {
-			return h.createDefaultPluginForTenant(nCtx, tenant.ID, key)
-		})
-	}
-
-	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("failed to create default plugin for all tenants: %w", err)
-	}
-
-	return nil
-}
-
-// createDefaultPluginForTenant creates default plugin for a single tenant.
-func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID string, key types.ReleasePluginKey) error {
+// createDefaultPlugin creates default plugin.
+func (h *handler) createDefaultPlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, key.Name)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", key.Name).
+		logger.G.Biz(nCtx).WithErr(err).With("plugin_pkg_name", key.Name).
 			Error("failed to check plugin exist for tenant")
 
-		return fmt.Errorf("failed to check plugin exist, tenant-id(%s) plugin(%s): %w", tenantID, key.Name, err)
+		return fmt.Errorf("failed to check plugin exist, plugin(%s): %w", key.Name, err)
 	}
 
 	if exist {
@@ -296,25 +271,24 @@ func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID 
 	if err != nil {
 		logger.G.Biz(nCtx).
 			WithErr(err).
-			With("tenant_id", tenantID, "key", key).
+			With("key", key).
 			Error("failed to get release plugin")
 
 		return fmt.Errorf("failed to get release plugin, key(%v): %w", key, err)
 	}
 
 	defaultPlugin := &types.Plugin{
-		TenantID: tenantID,
-		Name:     key.Name,
-		PkgName:  key.Name,
-		Group:    types.PluginGroupDefault,
-		Memo:     buildPluginMemo(plugin),
+		Name:    key.Name,
+		PkgName: key.Name,
+		Group:   types.PluginGroupDefault,
+		Memo:    buildPluginMemo(plugin),
 	}
 
 	if err := h.daoPlugin.CreatePlugin(nCtx, defaultPlugin); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "key", key).
+		logger.G.Biz(nCtx).WithErr(err).With("key", key).
 			Error("failed to create default plugin for tenant")
 
-		return fmt.Errorf("failed to create default plugin for tenant(%s) by plugin-pkg-name(%s): %w", tenantID, key.Name, err)
+		return fmt.Errorf("failed to create default plugin by plugin-pkg-name(%s): %w", key.Name, err)
 	}
 
 	return nil

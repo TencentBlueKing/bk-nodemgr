@@ -116,6 +116,7 @@ func (h *Handler) Create(nCtx contextx.IContext, plugin *types.Plugin) error {
 		return err
 	}
 
+	plugin.TenantID = nCtx.TenantID()
 	data := convPluginFromTypes(plugin)
 
 	if err := h.tenantDao(nCtx.TenantID()).Create(nCtx, data); err != nil {
