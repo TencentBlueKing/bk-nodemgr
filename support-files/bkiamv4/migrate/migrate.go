@@ -48,7 +48,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/support-files/bkiamv4/migrate/iamv4"
 )
 
-const requestTimeout = 30 * time.Second
+const (
+	requestTimeout              = 30 * time.Second
+	operationUpsertResourceType = "upsert_resource_type"
+	fieldName                   = "name"
+)
 
 type options struct {
 	gatewayURL string
@@ -256,7 +260,7 @@ func loadMigration(file, appCode string) (migration, error) {
 			return item, fmt.Errorf("%s operation %d: encode system fields: %w", file, index+1, err)
 		}
 		var target any = &item.Operations[index].fields
-		if op.Operation == "upsert_resource_type" {
+		if op.Operation == operationUpsertResourceType {
 			target = &item.Operations[index].resource
 		}
 		if err := json.Unmarshal(data, target); err != nil {
@@ -268,7 +272,7 @@ func loadMigration(file, appCode string) (migration, error) {
 }
 
 func validateOperation(systemID string, op operation, appCode string) error {
-	if op.Operation == "upsert_resource_type" {
+	if op.Operation == operationUpsertResourceType {
 		return validateResourceType(op.Data)
 	}
 	if op.Operation != "upsert_system" {
@@ -295,12 +299,12 @@ func validateSystemField(field string, raw json.RawMessage, appCode string) erro
 		return fmt.Errorf("data.%s must not be null; omit it to preserve the remote value", field)
 	}
 	switch field {
-	case "id", "name", "description", "callback_url":
+	case "id", fieldName, "description", "callback_url":
 		var value string
 		if err := json.Unmarshal(raw, &value); err != nil {
 			return fmt.Errorf("data.%s must be a string: %w", field, err)
 		}
-		if field == "name" && strings.TrimSpace(value) == "" {
+		if field == fieldName && strings.TrimSpace(value) == "" {
 			return fmt.Errorf("data.name must not be empty")
 		}
 		if field == "callback_url" && value != "" {
@@ -334,13 +338,14 @@ func validateSystemMembers(field string, raw json.RawMessage, appCode string) er
 	return nil
 }
 
+//nolint:gocognit // Keep ordered execution and dry-run state transitions together.
 func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations []migration, dryRun bool, out io.Writer) error {
 	// Track virtual creates during dry-run so later operations see the planned system.
 	plannedSystems := make(map[string]bool)
 	resourceTypes := make(map[string]map[string]iamv4.ResourceType)
 	for _, item := range migrations {
 		for index, op := range item.Operations {
-			if op.Operation == "upsert_resource_type" {
+			if op.Operation == operationUpsertResourceType {
 				resourceHandler, ok := handler.(iamv4.ResourceTypeHandler)
 				if !ok {
 					return fmt.Errorf("resource type migration handler is unavailable")
@@ -348,6 +353,7 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 				if err := item.executeResourceType(ctx, resourceHandler, op, resourceTypes, dryRun, out); err != nil {
 					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
 				}
+
 				continue
 			}
 			exists := plannedSystems[item.SystemID]
@@ -381,7 +387,7 @@ func (item migration) executeOperation(
 	action := "update_system"
 	if !exists {
 		action = "create_system"
-		if _, ok := op.Data["name"]; !ok {
+		if _, ok := op.Data[fieldName]; !ok {
 			return fmt.Errorf("%s: data.name is required to create system %s", item.filename, item.SystemID)
 		}
 		if _, ok := op.Data["clients"]; !ok {

@@ -141,6 +141,7 @@ func (c *cli) updateSystem(ctx contextx.IContext, req *UpdateSystemReq) error {
 func (c *cli) listResourceTypes(
 	ctx contextx.IContext, req *ListResourceTypesReq,
 ) (*BaseBroker[*ListResourceTypesResp], error) {
+
 	resp := new(BaseBroker[*ListResourceTypesResp])
 	result := c.client.Get().
 		SubResourcef("/rbac/model/systems/%s/resource-types/", req.SystemID).
@@ -166,6 +167,7 @@ func (c *cli) listResourceTypes(
 func (c *cli) batchCreateResourceType(
 	ctx contextx.IContext, req *BatchCreateResourceTypeReq,
 ) (*BaseBroker[BatchCreateResourceTypeResp], error) {
+
 	resp := new(BaseBroker[BatchCreateResourceTypeResp])
 	result := c.client.Post().
 		SubResourcef("/rbac/model/systems/%s/resource-types/", req.SystemID).

@@ -47,7 +47,7 @@ func validateResourceType(data map[string]json.RawMessage) error {
 		switch field {
 		case "id":
 			// Already validated above.
-		case "name":
+		case fieldName:
 			if err := json.Unmarshal(raw, &resource.Name); err != nil {
 				return fmt.Errorf("data.name must be a string: %w", err)
 			}
@@ -71,10 +71,12 @@ func validateResourceType(data map[string]json.RawMessage) error {
 	return nil
 }
 
+//nolint:gocognit // Keep topology checks and the corresponding upsert plan in one flow.
 func (item migration) executeResourceType(
 	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, op operation,
 	states map[string]map[string]iamv4.ResourceType, dryRun bool, out io.Writer,
 ) error {
+
 	resources, loaded := states[item.SystemID]
 	if !loaded {
 		listed, err := handler.ListResourceTypes(ctx, item.SystemID)
@@ -94,7 +96,7 @@ func (item migration) executeResourceType(
 			return fmt.Errorf("resource type %s ancestors differ from remote state; automatic topology changes are not supported", resource.ID)
 		}
 		resource.Ancestors = current.Ancestors
-		if _, supplied := op.Data["name"]; !supplied {
+		if _, supplied := op.Data[fieldName]; !supplied {
 			resource.Name = current.Name
 		}
 	}
@@ -147,10 +149,12 @@ func validateResourceTypeRelations(resource iamv4.ResourceType, resources map[st
 func applyResourceType(
 	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string, resource iamv4.ResourceType, exists bool,
 ) error {
+
 	if !exists {
 		if err := handler.CreateResourceType(ctx, systemID, resource); err != nil {
 			return fmt.Errorf("create resource type %s: %w", resource.ID, err)
 		}
+
 		return nil
 	}
 	// This migration only updates names; topology changes require a separate decision.

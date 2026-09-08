@@ -89,6 +89,8 @@ func (h *Handler) UpdateSystem(ctx contextx.IContext, systemID string, fields Sy
 }
 
 // ListResourceTypes retrieves the complete resource type model or returns an error.
+//
+//nolint:gocognit // Keep pagination completeness and duplicate checks beside aggregation.
 func (h *Handler) ListResourceTypes(ctx contextx.IContext, systemID string) ([]ResourceType, error) {
 	const pageSize = 100 // IAM's maximum model query page size.
 	resources := make([]ResourceType, 0)
@@ -160,6 +162,7 @@ func (h *Handler) CreateResourceType(ctx contextx.IContext, systemID string, res
 func (h *Handler) UpdateResourceType(
 	ctx contextx.IContext, systemID, resourceTypeID string, fields ResourceTypeFields,
 ) error {
+
 	return h.cli.updateResourceType(ctx, &UpdateResourceTypeReq{
 		SystemID:           systemID,
 		ResourceTypeID:     resourceTypeID,
