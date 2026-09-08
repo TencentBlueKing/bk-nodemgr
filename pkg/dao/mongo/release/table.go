@@ -44,6 +44,8 @@ type Release struct {
 	Enabled      bool           `json:"enabled" bson:"enabled"`
 	AsDefault    bool           `json:"as_default" bson:"as_default"`
 	IsHidden     bool           `json:"is_hidden" bson:"is_hidden"`
+	IsShared     bool           `json:"is_shared" bson:"is_shared"`
+	IsSynced     bool           `json:"is_synced" bson:"is_synced"`
 	FileName     string         `json:"filename" bson:"filename"`
 	MD5          string         `json:"md5" bson:"md5"`
 	UpdatedAt    time.Time      `json:"updated_at" bson:"updated_at"`

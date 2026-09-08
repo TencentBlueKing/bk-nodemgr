@@ -157,6 +157,8 @@ type Release struct {
 	MD5          string
 	Enabled      bool
 	IsHidden     bool
+	IsShared     bool
+	IsSynced     bool
 	AsDefault    bool
 	UpdatedAt    time.Time
 	Operator     string

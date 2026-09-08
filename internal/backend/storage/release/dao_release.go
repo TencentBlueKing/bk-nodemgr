@@ -230,6 +230,38 @@ func (s *Storage) setReleaseHidden(
 	return nil
 }
 
+func (s *Storage) setReleaseShared(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform,
+	version, name string, isShared bool) error {
+
+	if err := s.daoRelease.SetShared(nCtx, releaseType, isShared,
+		release.WithName(name),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	); err != nil {
+		return fmt.Errorf("failed to set release shared: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Storage) setReleaseSynced(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform,
+	version, name string, isSynced bool) error {
+
+	if err := s.daoRelease.SetSynced(nCtx, releaseType, isSynced,
+		release.WithName(name),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	); err != nil {
+		return fmt.Errorf("failed to set release synced: %w", err)
+	}
+
+	return nil
+}
+
 // deleteRelease deletes the release.
 func (s *Storage) deleteRelease(
 	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string) error {
@@ -294,6 +326,8 @@ func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([
 				release.WithPlatform(condition.ExactInclude.Platform...),
 				release.WithEnabled(condition.ExactInclude.Enabled...),
 				release.WithIsHidden(condition.ExactInclude.IsHidden...),
+				release.WithIsShared(condition.ExactInclude.IsShared...),
+				release.WithIsSynced(condition.ExactInclude.IsSynced...),
 				release.WithAsDefault(condition.ExactInclude.AsDefault...))
 		}
 

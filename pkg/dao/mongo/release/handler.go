@@ -67,6 +67,12 @@ type ISwitcher interface {
 	// SetHidden sets a release's hidden state.
 	SetHidden(nCtx contextx.IContext, releaseType types.ReleaseType, hidden bool, opts ...OptFn) error
 
+	// SetShared sets a release's shared state.
+	SetShared(nCtx contextx.IContext, releaseType types.ReleaseType, shared bool, opts ...OptFn) error
+
+	// SetSynced sets a release's synced state.
+	SetSynced(nCtx contextx.IContext, releaseType types.ReleaseType, synced bool, opts ...OptFn) error
+
 	// SetAsDefault sets a release's asDefault.
 	SetAsDefault(nCtx contextx.IContext, releaseType types.ReleaseType, asDefault bool, opts ...OptFn) error
 
@@ -264,6 +270,46 @@ func (h *Handler) SetHidden(nCtx contextx.IContext, releaseType types.ReleaseTyp
 	}
 
 	return h.releaseTypeDao(releaseType, tenantID).UpdateField(nCtx, filter, FieldKeyIsHidden, hidden)
+}
+
+// SetShared sets a release's shared state.
+func (h *Handler) SetShared(nCtx contextx.IContext, releaseType types.ReleaseType, shared bool, opts ...OptFn) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+	tenantID := nCtx.TenantID()
+
+	opts = append(opts, WithType(releaseType))
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.releaseTypeDao(releaseType, tenantID).UpdateField(nCtx, filter, FieldKeyIsShared, shared)
+}
+
+// SetSynced sets a release's synced state.
+func (h *Handler) SetSynced(nCtx contextx.IContext, releaseType types.ReleaseType, synced bool, opts ...OptFn) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+	tenantID := nCtx.TenantID()
+
+	opts = append(opts, WithType(releaseType))
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.releaseTypeDao(releaseType, tenantID).UpdateField(nCtx, filter, FieldKeyIsSynced, synced)
 }
 
 // SetAsDefault sets a release as default.
@@ -464,6 +510,8 @@ func convertReleaseToTypes(release *Release) *types.Release {
 		MD5:          release.MD5,
 		Enabled:      release.Enabled,
 		IsHidden:     release.IsHidden,
+		IsShared:     release.IsShared,
+		IsSynced:     release.IsSynced,
 		AsDefault:    release.AsDefault,
 		UpdatedAt:    release.UpdatedAt,
 		Operator:     release.Operator,
@@ -482,6 +530,8 @@ func convertReleaseFromTypes(release *types.Release) *Release {
 		Labels:       release.Labels,
 		Enabled:      release.Enabled,
 		IsHidden:     release.IsHidden,
+		IsShared:     release.IsShared,
+		IsSynced:     release.IsSynced,
 		AsDefault:    release.AsDefault,
 		FileName:     release.FileName,
 		MD5:          release.MD5,

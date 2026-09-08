@@ -643,6 +643,8 @@ type ReleaseExactFields struct {
 	AsDefault  []bool
 	Enabled    []bool
 	IsHidden   []bool
+	IsShared   []bool
+	IsSynced   []bool
 }
 
 // ReleaseFuzzyFields defines the release fuzzy fields.

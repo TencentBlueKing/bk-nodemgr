@@ -73,6 +73,16 @@ func WithIsHidden(isHidden ...bool) OptFn {
 	return base.WithValues(FieldKeyIsHidden, isHidden...)
 }
 
+// WithIsShared provides filtering by shared state.
+func WithIsShared(isShared ...bool) OptFn {
+	return base.WithValues(FieldKeyIsShared, isShared...)
+}
+
+// WithIsSynced provides filtering by synced state.
+func WithIsSynced(isSynced ...bool) OptFn {
+	return base.WithValues(FieldKeyIsSynced, isSynced...)
+}
+
 // WithFileName provides filtering by file name.
 func WithFileName(filename ...string) OptFn {
 	return base.WithValues(FieldKeyFileName, filename...)

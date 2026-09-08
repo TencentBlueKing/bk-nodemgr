@@ -136,6 +136,12 @@ type IPlugin interface {
 	// SetHiddenReleasePlugin sets the plugin release hidden state.
 	SetHiddenReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isHidden bool) error
 
+	// SetSharedReleasePlugin sets the plugin release shared state.
+	SetSharedReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isShared bool) error
+
+	// SetSyncedReleasePlugin sets the plugin release synced state.
+	SetSyncedReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isSynced bool) error
+
 	// SetAsDefaultReleasePlugin sets the plugin release as default.
 	SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
 

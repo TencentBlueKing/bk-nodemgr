@@ -46,6 +46,12 @@ const (
 	// FieldKeyIsHidden defines the field key of frontend hidden state.
 	FieldKeyIsHidden = "data.is_hidden"
 
+	// FieldKeyIsShared defines the field key of shared state.
+	FieldKeyIsShared = "data.is_shared"
+
+	// FieldKeyIsSynced defines the field key of synced state.
+	FieldKeyIsSynced = "data.is_synced"
+
 	// FieldKeyFileName defines the field key of as filename.
 	FieldKeyFileName = "data.filename"
 

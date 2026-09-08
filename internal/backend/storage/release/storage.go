@@ -65,6 +65,8 @@ const (
 	metricOperationEnableReleasePlugin              = "enable_release_plugin"
 	metricOperationDisableReleasePlugin             = "disable_release_plugin"
 	metricOperationSetHiddenReleasePlugin           = "set_hidden_release_plugin"
+	metricOperationSetSharedReleasePlugin           = "set_shared_release_plugin"
+	metricOperationSetSyncedReleasePlugin           = "set_synced_release_plugin"
 	metricOperationSetAsDefaultReleasePlugin        = "set_as_default_release_plugin"
 	metricOperationCancelAsDefaultReleasePlugin     = "cancel_as_default_release_plugin"
 	metricOperationExistReleasePlugin               = "exist_release_plugin"
@@ -574,6 +576,20 @@ func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, key types.Release
 func (s *Storage) SetHiddenReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isHidden bool) error {
 	return s.WrapFn(nCtx, metricOperationSetHiddenReleasePlugin, func(nCtx contextx.IContext) error {
 		return s.setReleaseHidden(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name, isHidden)
+	})
+}
+
+// SetSharedReleasePlugin sets the plugin release shared state.
+func (s *Storage) SetSharedReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isShared bool) error {
+	return s.WrapFn(nCtx, metricOperationSetSharedReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.setReleaseShared(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name, isShared)
+	})
+}
+
+// SetSyncedReleasePlugin sets the plugin release synced state.
+func (s *Storage) SetSyncedReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isSynced bool) error {
+	return s.WrapFn(nCtx, metricOperationSetSyncedReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.setReleaseSynced(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name, isSynced)
 	})
 }
 

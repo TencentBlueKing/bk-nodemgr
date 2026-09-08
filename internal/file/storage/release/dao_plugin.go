@@ -154,6 +154,8 @@ func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([
 				release.WithPlatform(condition.ExactInclude.Platform...),
 				release.WithEnabled(condition.ExactInclude.Enabled...),
 				release.WithIsHidden(condition.ExactInclude.IsHidden...),
+				release.WithIsShared(condition.ExactInclude.IsShared...),
+				release.WithIsSynced(condition.ExactInclude.IsSynced...),
 				release.WithAsDefault(condition.ExactInclude.AsDefault...))
 		}
 
