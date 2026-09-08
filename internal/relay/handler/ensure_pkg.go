@@ -47,19 +47,22 @@ func (h *handler) CheckPkgStats(nCtx contextx.IContext, payload []byte) {
 
 	// Each operation instance gets its own staging directory, reported back so the transfer
 	// lands there. Concurrent installations of the same package then never share a path.
-	stagingDir, err := h.storageFS.ensureInstanceDir(event.OperInstID)
+	stagingDir, err := h.storageFS.instanceDir(event.OperInstID)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("oper-inst-id", event.OperInstID).Error("failed to ensure staging dir")
+		logger.G.Biz(nCtx).WithErr(err).With("oper-inst-id", event.OperInstID).Error("failed to resolve staging dir")
 
 		return
 	}
 
 	fileStates := make([]fileState, 0)
+	needsTransfer := false
 
 	for _, fileInfo := range event.FileList {
 		statePkg := relayconstant.RelayReportPkgInComplete
 		if exists := h.fileManager.FileExists(nCtx, fileInfo.FileName, fileInfo.FileMD5); exists {
 			statePkg = relayconstant.RelayReportPkgComplete
+		} else {
+			needsTransfer = true
 		}
 
 		logger.G.Biz(nCtx).With("filename", fileInfo.FileName, "md5", fileInfo.FileMD5, "exists", statePkg).Info("check package status")
@@ -68,6 +71,18 @@ func (h *handler) CheckPkgStats(nCtx contextx.IContext, payload []byte) {
 			FileName:   fileInfo.FileName,
 			FileStatus: string(statePkg),
 		})
+	}
+
+	// Only materialize the directory when something will actually be transferred into it.
+	// The backend skips the store step entirely when every package is already cached, and it
+	// is that step which removes the directory, so creating it eagerly would leave an empty
+	// directory behind on every cache hit until the orphan gc reclaims it.
+	if needsTransfer {
+		if _, err := h.storageFS.ensureInstanceDir(event.OperInstID); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).With("oper-inst-id", event.OperInstID).Error("failed to ensure staging dir")
+
+			return
+		}
 	}
 
 	req := reportRelayFileState{

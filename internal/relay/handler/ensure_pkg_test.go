@@ -22,12 +22,17 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
+	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/stretchr/testify/assert"
@@ -35,6 +40,50 @@ import (
 )
 
 const testStorePkgName = "installer_windows_amd64.exe"
+
+// stubClientMessager records what the handler reports back instead of pushing it through GSE.
+type stubClientMessager struct {
+	mu       sync.Mutex
+	requests map[string][][]byte
+}
+
+func newStubClientMessager() *stubClientMessager {
+	return &stubClientMessager{requests: make(map[string][][]byte)}
+}
+
+func (s *stubClientMessager) ClientPushReq(_ contextx.IContext, callbackURL string, body []byte) <-chan error {
+	s.mu.Lock()
+	s.requests[callbackURL] = append(s.requests[callbackURL], body)
+	s.mu.Unlock()
+
+	ch := make(chan error, 1)
+	ch <- nil
+	close(ch)
+
+	return ch
+}
+
+// bodies returns the payloads reported to callbackURL.
+func (s *stubClientMessager) bodies(callbackURL string) [][]byte {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.requests[callbackURL]
+}
+
+func (s *stubClientMessager) RequestCallback(
+	_ contextx.IContext, _, _, _ string, _ []byte) ([]byte, int, error) {
+
+	return nil, http.StatusOK, nil
+}
+
+func (s *stubClientMessager) Start(_ contextx.IContext) error { return nil }
+
+func (s *stubClientMessager) Stop(_ contextx.IContext) error { return nil }
+
+func (s *stubClientMessager) EventDispatcher() manager.EventDispatcher {
+	return manager.NewDefaultEventDispatcher()
+}
 
 func testMD5(data []byte) string {
 	sum := md5.Sum(data)
@@ -45,6 +94,16 @@ func testMD5(data []byte) string {
 // newStoreTestHandler builds a handler over temporary staging and cache directories, plus the
 // staging dir of one operation instance holding the given packages.
 func newStoreTestHandler(t *testing.T, staged map[string][]byte) (*handler, string) {
+	t.Helper()
+
+	h, stagingDir, _ := newStoreTestHandlerWithClient(t, staged)
+
+	return h, stagingDir
+}
+
+func newStoreTestHandlerWithClient(
+	t *testing.T, staged map[string][]byte) (*handler, string, *stubClientMessager) {
+
 	t.Helper()
 
 	nCtx := contextx.New(context.Background())
@@ -63,7 +122,9 @@ func newStoreTestHandler(t *testing.T, staged map[string][]byte) (*handler, stri
 		require.NoError(t, os.WriteFile(filepath.Join(stagingDir, name), content, 0600))
 	}
 
-	return &handler{fileManager: fm, storageFS: storageFS}, stagingDir
+	client := newStubClientMessager()
+
+	return &handler{fileManager: fm, storageFS: storageFS, client: client}, stagingDir, client
 }
 
 func TestStoreTransferredPkgs_StoresVerifiedPackages(t *testing.T) {
@@ -177,8 +238,75 @@ func TestStoreTransferredPkgs_StopsAtFirstFailure(t *testing.T) {
 		"packages after the first failure must not be stored")
 }
 
+// TestCheckPkgStats_StagingDirCreatedOnlyWhenNeeded pins when the staging directory appears.
+// The backend only sends the store event, which is what removes the directory, if at least one
+// package has to be transferred. Creating it on a pure cache hit would therefore leave an empty
+// directory behind for every host in a batch install until the orphan gc caught up.
+func TestCheckPkgStats_StagingDirCreatedOnlyWhenNeeded(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+	content := []byte("already cached package")
+
+	h, stagingDir, client := newStoreTestHandlerWithClient(t, map[string][]byte{testStorePkgName: content})
+
+	// Prime the cache so the package counts as complete, then drop the staging dir that the
+	// helper created so we can observe whether CheckPkgStats recreates it.
+	_, err := h.fileManager.StoreFile(nCtx, stagingDir, testStorePkgName, testMD5(content))
+	require.NoError(t, err)
+	require.NoError(t, h.storageFS.removeInstanceDir(realOperInstID))
+
+	cached := protoRelay.FileInfo{FileName: testStorePkgName, FileMD5: testMD5(content)}
+	missing := protoRelay.FileInfo{FileName: "not-cached.tgz", FileMD5: testMD5([]byte("missing"))}
+
+	h.CheckPkgStats(nCtx, mustMarshal(t, protoRelay.CheckPkgStateReq{
+		ActionName: "ensure_pkg_to_relay",
+		OperInstID: realOperInstID,
+		FileList:   []protoRelay.FileInfo{cached},
+	}))
+
+	_, err = os.Stat(stagingDir)
+	assert.True(t, os.IsNotExist(err), "no staging dir should be created when every package is cached")
+
+	// The path is still reported: the backend rejects an empty storage dir outright, and it
+	// only needs a usable path once it actually transfers something.
+	reports := client.bodies(reportRelayFileStateURL)
+	require.Len(t, reports, 1)
+
+	var cacheHit reportRelayFileState
+	require.NoError(t, json.Unmarshal(reports[0], &cacheHit))
+	assert.Equal(t, stagingDir, cacheHit.StorageTmpDir)
+	require.Len(t, cacheHit.FileState, 1)
+	assert.Equal(t, string(relayconstant.RelayReportPkgComplete), cacheHit.FileState[0].FileStatus)
+
+	h.CheckPkgStats(nCtx, mustMarshal(t, protoRelay.CheckPkgStateReq{
+		ActionName: "ensure_pkg_to_relay",
+		OperInstID: realOperInstID,
+		FileList:   []protoRelay.FileInfo{cached, missing},
+	}))
+
+	info, err := os.Stat(stagingDir)
+	require.NoError(t, err, "a staging dir must exist once a package has to be transferred")
+	assert.True(t, info.IsDir())
+
+	reports = client.bodies(reportRelayFileStateURL)
+	require.Len(t, reports, 2)
+
+	var withMissing reportRelayFileState
+	require.NoError(t, json.Unmarshal(reports[1], &withMissing))
+	require.Len(t, withMissing.FileState, 2)
+	assert.Equal(t, string(relayconstant.RelayReportPkgInComplete), withMissing.FileState[1].FileStatus,
+		"the uncached package must be reported as incomplete so the backend transfers it")
+}
+
+func mustMarshal(t *testing.T, v any) []byte {
+	t.Helper()
+
+	data, err := json.Marshal(v)
+	require.NoError(t, err)
+
+	return data
+}
+
 func TestCollectOrphanStagingDirs(t *testing.T) {
-	t.Parallel()
 
 	nCtx := contextx.New(context.Background())
 
