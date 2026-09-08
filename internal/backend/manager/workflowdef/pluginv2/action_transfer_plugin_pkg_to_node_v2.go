@@ -179,9 +179,9 @@ func (act *actionTransferPluginPkgToNodeV2) transferRelease(std *pluginV2Utils.P
 
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName)
+		dataDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName)
 	} else {
-		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName)
+		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName)
 	}
 
 	std.InstanceData().Log().
@@ -302,9 +302,9 @@ func (act *actionTransferPluginPkgToNodeV2) pushOfflinePluginConfig(
 
 	var configDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		configDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName, "config")
+		configDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName, "config")
 	} else {
-		configDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName, "config")
+		configDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName, "config")
 	}
 
 	if err := pluginV2Utils.CheckDirPathSafe(configDir, info.Process.Platform.OS); err != nil {

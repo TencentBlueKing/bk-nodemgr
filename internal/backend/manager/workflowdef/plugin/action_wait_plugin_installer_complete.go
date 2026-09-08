@@ -306,7 +306,7 @@ func (act *actionWaitPluginInstallerComplete) buildWaitStatusScript(
 ) string {
 
 	statusFile := path.Join(
-		path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data", "plugin", std.DeployInfo().Process.PluginName),
+		path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data", "plugin", "v3", std.DeployInfo().Process.PluginName),
 		installer.StatusFileName)
 
 	// Timeout in seconds (use action timeout)
@@ -396,13 +396,13 @@ func (act *actionWaitPluginInstallerComplete) buildOfflineInstallerReadEndpoints
 	}
 
 	return &types.EndpointWithAuth{
-		Endpoint: types.Endpoint{AgentID: agentID},
-		User:     "root",
-	}, &types.EndpointWithRestrict{
-		Endpoint: types.Endpoint{AgentID: agentID},
-		Offset:   0,
-		Limit:    0,
-	}, nil
+			Endpoint: types.Endpoint{AgentID: agentID},
+			User:     "root",
+		}, &types.EndpointWithRestrict{
+			Endpoint: types.Endpoint{AgentID: agentID},
+			Offset:   0,
+			Limit:    0,
+		}, nil
 }
 
 func (act *actionWaitPluginInstallerComplete) waitInstallerField(std *pluginUtils.PluginActionStandarder, key string) (string, error) {

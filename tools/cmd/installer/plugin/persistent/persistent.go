@@ -114,7 +114,7 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		DeployEnv:     deployEnv,
 		DeployDir:     filepath.Join(baseDeployDir, deployEnv),
 		WorkDir:       filepath.Join(baseWorkDir, deployEnv),
-		DataDir:       filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName),
-		ConfigDir:     filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName, "config"),
+		DataDir:       filepath.Join(baseWorkDir, deployEnv, "data", "plugin", "v3", pluginName),
+		ConfigDir:     filepath.Join(baseWorkDir, deployEnv, "data", "plugin", "v3", pluginName, "config"),
 	}, nil
 }

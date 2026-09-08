@@ -21,9 +21,9 @@ package step
 import (
 	"fmt"
 
-	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/spf13/cobra"
