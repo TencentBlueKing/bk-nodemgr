@@ -65,7 +65,10 @@ type ServerMessagerConfig struct {
 }
 
 const (
-	serverCheckAckInterval = 10 * time.Millisecond
+	// serverCheckAckInterval is deliberately coarser than the client side one: every probe
+	// is a Redis lookup, so a batch install polling at millisecond granularity would put
+	// thousands of extra queries per second on Redis.
+	serverCheckAckInterval = 100 * time.Millisecond
 	serverCheckAckTimeout  = 3 * time.Second
 )
 
@@ -246,8 +249,8 @@ func (m *serverMessager) PushToClient(
 		defer close(resultChan)
 
 		retryErr := m.retrier.Do(nCtx, func(attempt int) error {
-			if nCtx.Err() != nil {
-				return nil
+			if err := nCtx.Err(); err != nil {
+				return err
 			}
 
 			logger.G.Biz(nCtx).With("attempt", attempt, "message-id", messageID).Info("sending message to client")
@@ -269,25 +272,7 @@ func (m *serverMessager) PushToClient(
 				return err
 			}
 
-			checkAckTicker := time.NewTicker(serverCheckAckInterval)
-			defer checkAckTicker.Stop()
-
-			select {
-			case <-nCtx.Done():
-				return nil
-
-			case <-time.After(serverCheckAckTimeout):
-				return fmt.Errorf("wait message to client ack timeout. message-id(%s)", messageID)
-
-			case <-checkAckTicker.C:
-				if acked, _ := m.isMessageAcked(nCtx, messageID); acked {
-					logger.G.Biz(nCtx).With("message-id", messageID).Info("message to client acked successfully")
-
-					return nil
-				}
-			}
-
-			return nil
+			return m.waitForAck(nCtx, messageID)
 		})
 
 		if ctxErr := nCtx.Err(); ctxErr != nil {
@@ -299,6 +284,35 @@ func (m *serverMessager) PushToClient(
 	}()
 
 	return resultChan
+}
+
+// waitForAck polls until the relay acknowledges the message or the deadline passes.
+// Reporting success for an unacked message would make the retrier treat an undelivered
+// push as delivered, so the caller can rely on a nil return meaning "the relay has it".
+func (m *serverMessager) waitForAck(nCtx contextx.IContext, messageID string) error {
+	checkAckTicker := time.NewTicker(serverCheckAckInterval)
+	defer checkAckTicker.Stop()
+
+	// The deadline is created outside the loop on purpose: recreating it per iteration
+	// would keep pushing it back so it could never fire.
+	ackTimeout := time.After(serverCheckAckTimeout)
+
+	for {
+		select {
+		case <-nCtx.Done():
+			return nil
+
+		case <-ackTimeout:
+			return fmt.Errorf("wait message to client ack timeout. message-id(%s)", messageID)
+
+		case <-checkAckTicker.C:
+			if acked, _ := m.isMessageAcked(nCtx, messageID); acked {
+				logger.G.Biz(nCtx).With("message-id", messageID).Info("message to client acked successfully")
+
+				return nil
+			}
+		}
+	}
 }
 
 // SendAck sends the ack to client.

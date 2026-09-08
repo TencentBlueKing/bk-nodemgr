@@ -318,8 +318,8 @@ func (m *clientMessager) ClientPushReq(nCtx contextx.IContext, callbackURL strin
 		defer close(resultChan)
 
 		retryErr := m.retrier.Do(nCtx, func(attempt int) error {
-			if nCtx.Err() != nil {
-				return nil
+			if err := nCtx.Err(); err != nil {
+				return err
 			}
 
 			logger.G.Sys().With("attempt", attempt, "message-id", messageID, "callback-url", callbackURL).Info("sending client push request")
@@ -327,25 +327,7 @@ func (m *clientMessager) ClientPushReq(nCtx contextx.IContext, callbackURL strin
 				return fmt.Errorf("sending client push request failed: %w", err)
 			}
 
-			checkAckTicker := time.NewTicker(clientCheckAckInterval)
-			defer checkAckTicker.Stop()
-
-			select {
-			case <-nCtx.Done():
-				return nil
-
-			case <-time.After(clientCheckAckTimeout):
-				return fmt.Errorf("wait client push request ack timeout. message-id(%s)", messageID)
-
-			case <-checkAckTicker.C:
-				if acked, _ := m.fileMsgTracker.IsAcked(nCtx, messageID); acked {
-					logger.G.Sys().With("message-id", messageID, "callback-url", callbackURL).Info("client push request acked successfully")
-
-					return nil
-				}
-			}
-
-			return nil
+			return m.waitForAck(nCtx, messageID, callbackURL)
 		})
 
 		if ctxErr := nCtx.Err(); ctxErr != nil {
@@ -357,6 +339,35 @@ func (m *clientMessager) ClientPushReq(nCtx contextx.IContext, callbackURL strin
 	}()
 
 	return resultChan
+}
+
+// waitForAck polls until the server acknowledges the message or the deadline passes.
+// Reporting success for an unacked message would make the retrier treat a lost report as
+// delivered, so the caller can rely on a nil return meaning "the server has it".
+func (m *clientMessager) waitForAck(nCtx contextx.IContext, messageID, callbackURL string) error {
+	checkAckTicker := time.NewTicker(clientCheckAckInterval)
+	defer checkAckTicker.Stop()
+
+	// The deadline is created outside the loop on purpose: recreating it per iteration
+	// would keep pushing it back so it could never fire.
+	ackTimeout := time.After(clientCheckAckTimeout)
+
+	for {
+		select {
+		case <-nCtx.Done():
+			return nil
+
+		case <-ackTimeout:
+			return fmt.Errorf("wait client push request ack timeout. message-id(%s)", messageID)
+
+		case <-checkAckTicker.C:
+			if acked, _ := m.fileMsgTracker.IsAcked(nCtx, messageID); acked {
+				logger.G.Sys().With("message-id", messageID, "callback-url", callbackURL).Info("client push request acked successfully")
+
+				return nil
+			}
+		}
+	}
 }
 
 func (m *clientMessager) newSyncronousData(messageID string) <-chan []byte {

@@ -27,6 +27,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -43,10 +44,28 @@ const (
 	backendCallbackURLPrefix = "api/v3/callback/workflow/node_install/"
 )
 
+const (
+	// asyncForwardTimeout bounds the work that handleClientPush spawns after the inbound
+	// HTTP request has already been answered. Without it a stalled hop leaks a goroutine
+	// forever, since the request context can no longer cancel it.
+	asyncForwardTimeout = 10 * time.Second
+
+	// callbackMaxIdleConnsPerHost keeps connections to the backend callback endpoint
+	// poolable. All relays report to that single host, so the net/http default of 2 would
+	// force a fresh connection per report during batch installs.
+	callbackMaxIdleConnsPerHost = 50
+
+	// callbackIdleConnTimeout mirrors the net/http default that a custom transport loses.
+	callbackIdleConnTimeout = 90 * time.Second
+)
+
 type handler struct {
 	rg             *gin.RouterGroup
 	provider       discover.IProvider
 	proxyMessanger relayhandler.IServerMessager
+
+	// callbackClient forwards relay pushes to the backend callback endpoint.
+	callbackClient *http.Client
 }
 
 // newHandler ...
@@ -56,6 +75,16 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:             rg.Group("/proxy"),
 		provider:       capability.DiscoverProvider,
 		proxyMessanger: capability.ProxyMessager,
+		callbackClient: &http.Client{
+			Timeout: asyncForwardTimeout,
+			Transport: &http.Transport{
+				Proxy:               http.ProxyFromEnvironment,
+				MaxIdleConnsPerHost: callbackMaxIdleConnsPerHost,
+				// The callback endpoint comes from service discovery and can be replaced,
+				// so idle connections must not be kept forever.
+				IdleConnTimeout: callbackIdleConnTimeout,
+			},
+		},
 	}
 }
 
@@ -208,7 +237,18 @@ func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.Serv
 }
 
 func (h *handler) handleClientPush(nCtx contextx.IContext, data *relayhandler.ServerReceivedData) {
-	go h.proxyMessanger.SendAck(nCtx, data.MessageID, data.AgentID)
+	// The ack and the callback forwarding both outlive this HTTP request, so they must not
+	// inherit the request context: net/http cancels it as soon as generalHandler returns,
+	// which made every ack fail with "context canceled" and left the relay unable to
+	// confirm that its report was delivered.
+	asyncCtx := contextx.WithoutCancel(nCtx)
+
+	go func() {
+		ackCtx, cancel := contextx.WithTimeout(asyncCtx, asyncForwardTimeout)
+		defer cancel()
+
+		h.proxyMessanger.SendAck(ackCtx, data.MessageID, data.AgentID)
+	}()
 
 	marked, err := h.proxyMessanger.TryMarkProcessed(nCtx, data.MessageID)
 	if err != nil {
@@ -231,7 +271,7 @@ func (h *handler) handleClientPush(nCtx contextx.IContext, data *relayhandler.Se
 		return
 	}
 
-	go h.callbackBackend(nCtx, msg, data.AgentID)
+	go h.callbackBackend(asyncCtx, msg, data.AgentID)
 }
 
 func (h *handler) callbackBackend(nCtx contextx.IContext, msg *protoRelay.ClientPushReq, agentID string) {
@@ -256,7 +296,7 @@ func (h *handler) callbackBackend(nCtx contextx.IContext, msg *protoRelay.Client
 	}
 
 	logger.G.Biz(nCtx).With("agent-id", agentID, "callback-url", url).Info("try to redirect request to callback")
-	resp, err := http.Post(
+	resp, err := h.callbackClient.Post(
 		fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), url),
 		"application/json",
 		bytes.NewReader(msg.Body))
@@ -267,8 +307,15 @@ func (h *handler) callbackBackend(nCtx contextx.IContext, msg *protoRelay.Client
 		return
 	}
 
+	// Drain and close the body so the connection returns to the pool instead of leaking a
+	// file descriptor per relay report.
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}()
+
 	if resp.StatusCode != http.StatusOK {
-		logger.G.Biz(nCtx).WithErr(err).With("agent-id", agentID, "status-code", resp.StatusCode).Error("failed to send request to callback")
+		logger.G.Biz(nCtx).With("agent-id", agentID, "status-code", resp.StatusCode).Error("failed to send request to callback")
 
 		return
 	}
