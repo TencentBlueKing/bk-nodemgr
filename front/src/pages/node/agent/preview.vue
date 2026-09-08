@@ -23,6 +23,7 @@
         <div class="flex justify-between mt-[16px]">
           <div class="w-[50%] flex gap-[8px]">
             <SearchSelect
+              :max-height="240"
               class="flex-1 bg-[#fff]"
               ref="searchSelect"
               :data="searchSelectData"

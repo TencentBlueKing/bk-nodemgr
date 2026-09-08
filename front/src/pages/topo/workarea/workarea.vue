@@ -45,6 +45,7 @@
       </template>
       <template #right>
         <SearchSelect
+          :max-height="240"
           class="w-[480px] bg-[#fff]"
           unique-select
           :placeholder="$t('topoManager.workArea.search.placeholder')"

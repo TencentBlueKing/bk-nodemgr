@@ -120,6 +120,7 @@
       </template>
       <template #right>
         <SearchSelect
+          :max-height="240"
           class="w-[480px] bg-[#fff]"
           :placeholder="$t('platform.nodeMan.proxySearchPlaceholder')"
           :unique-select="true"

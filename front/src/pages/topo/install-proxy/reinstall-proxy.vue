@@ -596,6 +596,7 @@ const handleConfirm = async () => {
         .map((item: any) => Number(item.bk_networkunit_id))
         .filter(unitId => !!unitId && getDefaultOriginForUnit(unitId) === '');
       if (invalidUnits.length > 0) {
+        isTargetShow.value = true;
         Message({
           theme: 'warning',
           message: t('installProxy.installSourceRequired'),

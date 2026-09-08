@@ -25,7 +25,7 @@
         class="leading-[30px] mr-[52px] text-[12px]"
       >
         <div>{{ item.name }}</div>
-        <UserNameDisplay v-if="item.prop === 'operator'" :name="item.value" />
+        <UserNameDisplay v-if="item.prop === 'operator'" :name="item.value || ''" />
         <div v-else>{{ item.value }}</div>
       </div>
     </div>
@@ -74,6 +74,7 @@
           :data="tableData"
           filter-prop="state"
           :disabled="!hasSelection"
+          :has-status-level="true"
         ></copy-ip-dropdown>
         <div
           class="h-[32px] bg-[#EAEBF0] rounded-[2px] flex items-center text-[12px] mr-[12px]"
@@ -96,6 +97,7 @@
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
+        :max-height="240"
         :placeholder="$t('platform.nodeMan.historySearchPlaceholder')"
         @update:model-value="handleSearchSelectChange"
         @paste.native="handleNativePaste"
@@ -117,7 +119,7 @@
         @page-limit-change="pageLimitChange"
         @page-value-change="pageValueChange"
       >
-        <!-- <template #prepend>
+        <template #prepend>
           <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
             <template v-if="isCrossPageSelection">
               <span>{{ $t('taskDetail.table.crossPageSelected') }}</span>
@@ -132,12 +134,16 @@
               <span class="font-bold mx-1"> {{ selection.length }} </span>
               <span> {{ $t('taskDetail.table.items') }}</span>
               <Button
+                v-if="pagination.count > pagination.limit"
                 text theme="primary" @click="handleSelectAllCrossPage">
                 {{ $t('taskDetail.table.selectAllPages', { x: pagination.count }) }}
               </Button>
+              <Button v-else text theme="primary" @click="handleClearSelection">
+                {{ $t('taskDetail.table.cancelSelection') }}
+              </Button>
             </template>
           </div>
-        </template> -->
+        </template>
 
         <TableColumn width="80" fixed="left">
           <template #header>
@@ -153,9 +159,11 @@
                     <Dropdown.DropdownItem @click="handleSelectCurrentPage">
                       {{ $t('taskDetail.filter.currentPage') }}
                     </Dropdown.DropdownItem>
-                    <!-- <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
-                      {{ $t('taskDetail.table.crossSelected') }}
-                    </Dropdown.DropdownItem> -->
+                    <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
+                      <Button text :disabled="pagination.count <= pagination.limit">
+                        {{ $t('taskDetail.filter.crossSelected') }}
+                      </Button>
+                    </Dropdown.DropdownItem>
                   </Dropdown.DropdownMenu>
                 </template>
               </Dropdown>
@@ -984,93 +992,46 @@ const pageValueChange = async (current: number) => {
 };
 
 // 复制
+// 复制：勾选IP → IP类型；所有IP → 状态(全部/成功/失败/超时) → IP类型
 const list = computed(() => [
   {
+    id: 'select',
+    name: t('components.copyIpDropdown.checkIp'),
+    children: [
+        { id: 'ipv4', name: t('taskDetail.search.ipv4') },
+        { id: 'ipv6', name: t('taskDetail.search.ipv6') },
+        { id: 'workarea+ipv4', name: `${t('topoManager.workArea.copy.workarea')}+IPv4` },
+        { id: 'workarea+ipv6', name: `${t('topoManager.workArea.copy.workarea')}+IPv6` },
+    ],
+  },
+  {
     id: 'all',
-    name: t('taskDetail.copy.all'),
+    name: t('components.copyIpDropdown.allIps'),
     children: [
-      {
-        id: 'ipv4',
-        name: t('taskDetail.search.ipv4'),
-      },
-      {
-        id: 'ipv6',
-        name: t('taskDetail.search.ipv6'),
-      },
-      {
-        id: 'workarea+ipv4',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
-      },
-      {
-        id: 'workarea+ipv6',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
-      },
-    ],
-  },
-  {
-    id: 'ignore',
-    name: t('taskDetail.copy.ignored'),
-    children: [
-      {
-        id: 'ipv4',
-        name: t('taskDetail.search.ipv4'),
-      },
-      {
-        id: 'ipv6',
-        name: t('taskDetail.search.ipv6'),
-      },
-      {
-        id: 'workarea+ipv4',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
-      },
-      {
-        id: 'workarea+ipv6',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
-      },
-    ],
-  },
-  {
-    id: 'failed',
-    name: t('taskDetail.copy.failed'),
-    children: [
-      {
-        id: 'ipv4',
-        name: t('taskDetail.search.ipv4'),
-      },
-      {
-        id: 'ipv6',
-        name: t('taskDetail.search.ipv6'),
-      },
-      {
-        id: 'workarea+ipv4',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
-      },
-      {
-        id: 'workarea+ipv6',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
-      },
-    ],
-  },
-  {
-    id: 'success',
-    name: t('taskDetail.copy.success'),
-    children: [
-      {
-        id: 'ipv4',
-        name: t('taskDetail.search.ipv4'),
-      },
-      {
-        id: 'ipv6',
-        name: t('taskDetail.search.ipv6'),
-      },
-      {
-        id: 'workarea+ipv4',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
-      },
-      {
-        id: 'workarea+ipv6',
-        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
-      },
+          { id: 'all', name: t('taskDetail.status.all'), children: [
+            { id: 'ipv4', name: t('taskDetail.search.ipv4') },
+            { id: 'ipv6', name: t('taskDetail.search.ipv6') },
+            { id: 'workarea+ipv4', name: `${t('topoManager.workArea.copy.workarea')}+IPv4` },
+            { id: 'workarea+ipv6', name: `${t('topoManager.workArea.copy.workarea')}+IPv6` },
+          ] },
+          { id: 'success', name: t('taskDetail.status.success'), children: [
+            { id: 'ipv4', name: t('taskDetail.search.ipv4') },
+            { id: 'ipv6', name: t('taskDetail.search.ipv6') },
+            { id: 'workarea+ipv4', name: `${t('topoManager.workArea.copy.workarea')}+IPv4` },
+            { id: 'workarea+ipv6', name: `${t('topoManager.workArea.copy.workarea')}+IPv6` },
+          ] },
+          { id: 'failed', name: t('taskDetail.status.failed'), children: [
+            { id: 'ipv4', name: t('taskDetail.search.ipv4') },
+            { id: 'ipv6', name: t('taskDetail.search.ipv6') },
+            { id: 'workarea+ipv4', name: `${t('topoManager.workArea.copy.workarea')}+IPv4` },
+            { id: 'workarea+ipv6', name: `${t('topoManager.workArea.copy.workarea')}+IPv6` },
+          ] },
+          { id: 'timeout', name: t('taskDetail.status.timeout'), children: [
+            { id: 'ipv4', name: t('taskDetail.search.ipv4') },
+            { id: 'ipv6', name: t('taskDetail.search.ipv6') },
+            { id: 'workarea+ipv4', name: `${t('topoManager.workArea.copy.workarea')}+IPv4` },
+            { id: 'workarea+ipv6', name: `${t('topoManager.workArea.copy.workarea')}+IPv6` },
+          ] }
     ],
   },
 ]);

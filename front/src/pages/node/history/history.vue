@@ -36,6 +36,7 @@
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
+          :max-height="240"
           :placeholder="
             t('platform.nodeMan.historySearchPlaceholder')
           "

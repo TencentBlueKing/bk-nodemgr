@@ -12,6 +12,7 @@
         class="mr-[16px]"
       >{{ t('certBintool.upload') }}</Button>
       <SearchSelect
+        :max-height="240"
         class="flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"

@@ -10,6 +10,7 @@
       >
       </DatePicker>
       <SearchSelect
+        :max-height="240"
         class="flex-1 bg-[#fff]"
         unique-select
         :placeholder="$t('topoManager.record.searchPlaceholder.searchSelect')"

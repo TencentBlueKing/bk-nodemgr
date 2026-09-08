@@ -1,5 +1,5 @@
 <template>
-  <div class="bk-notice-component-alert" v-if="alertNoticeList.length">
+  <div class="bk-notice-component-alert" v-if="alertNoticeList.length && !isClosed">
     <img class="notice-icon" src="../../public/images/alert.svg" width="14" height="14" />
     <bk-popover
       :disabled="disableTooltips"
@@ -203,7 +203,9 @@ const renderAlertContent = computed(() => currentAlert.value.content
 
 const currentDialog = computed(() => showDialogNoticeList.value[dialogIndex.value] || {});
 
+const isClosed = ref(false);
 const handleClose = () => {
+  isClosed.value = true;
   emit('show-alert-change', false);
 };
 
@@ -216,7 +218,7 @@ watch(
       timer && clearTimeout(timer);
       timer = setTimeout(changeAlertIndex, 6000);
     }
-    emit('show-alert-change', alertNoticeList.value.length > 0);
+    emit('show-alert-change', alertNoticeList.value.length > 0 && !isClosed.value);
   },
   {
     deep: true,

@@ -1,5 +1,5 @@
 <template>
-  <page-header :title="title" @click="handleBackToHistoryDetail" class="border-b border-[#e4e7ef]"></page-header>
+  <page-header :title="title" :on-back="handleBackToHistoryDetail" class="border-b border-[#e4e7ef]"></page-header>
   <div class="flex w-full h-[calc(100%-52px)]">
     <div class="w-[280px] h-full flex flex-col">
       <div class="h-[72px] p-[20px]">
@@ -9,6 +9,7 @@
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
+          :max-height="240"
           :placeholder="isNode
             ? $t('platform.nodeMan.historySearchPlaceholder')
             : $t('platform.nodeMan.log.searchPlugin')"
@@ -20,9 +21,9 @@
       <bk-loading :title="$t('table.loading')" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
         <div class="h-full overflow-y-auto">
           <div
-            v-for="(operate, index) in filterOperateList" :key="index"
+            v-for="operate in filterOperateList" :key="operate.bk_host_id"
             class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
-            :class="{ 'bg-[#e1ecff]': isNode
+            :class="{ 'bg-[#e1ecff] log-active-ip': isNode
               ? Number(route.params.hostId) === operate.bk_host_id
               : route.params.hostId === (`${operate.bk_host_id}_${operate.plugin_name}`) }"
             @click="handleChangeIp(operate.bk_host_id, operate.plugin_name)"
@@ -347,7 +348,7 @@ import {
   Spinner,
 } from 'bkui-vue/lib/icon';
 import { debounce } from 'lodash';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -601,7 +602,8 @@ const searchSelectData = computed(() => [
   {
     id: 'state',
     name: '执行状态',
-    children: distinctStates.value.map(value => ({
+    // 从当前操作列表数据中统计去重状态（与左侧 IP 列表实际状态分布一致）
+    children: Array.from(new Set(operateList.value.map((item: any) => item.state).filter(Boolean))).map((value: string) => ({
       id: value,
       name: statusMap.value[value]?.text || value,
     })),
@@ -959,12 +961,13 @@ const getOperateList = async () => {
 };
 
 const instanceLoading = ref(false);
-const getInstance = async () => {
+// keepLoading=true 时不在函数内关闭 loading，由调用方在后续请求（如 getLog）完成后统一关闭
+const getInstance = async (keepLoading = false) => {
   instanceLoading.value = true;
 
   const operationId = getCurrentOperationId();
   if (!operationId) {
-    instanceLoading.value = false;
+    if (!keepLoading) instanceLoading.value = false;
     isInterval.value = false;
     stop();
     hasErrorOrTimeout.value = false;
@@ -992,7 +995,6 @@ const getInstance = async () => {
   }));
 
   const total = res.oper_inst_data.length;
-  instanceLoading.value = false;
   curOperInstId.value = total > 0 ? res.oper_inst_data[total - 1].oper_inst_id : '';
   curOperInstVal.value = 'latest';
   curSortNames.value = total > 0 ? res.oper_inst_data[total - 1].action_names : [];
@@ -1004,6 +1006,7 @@ const getInstance = async () => {
       sort_names: res.oper_inst_data[i - 1].action_names,
     });
   }
+  if (!keepLoading) instanceLoading.value = false;
 };
 const hasErrorOrTimeout = ref(false);
 const isInterval = ref(false);
@@ -1115,14 +1118,27 @@ watch(() => isInterval.value, async (val: boolean) => {
   }
 });
 watch(() => route.path, async () => {
-  await getInstance();
+  await getInstance(true);
   await getLog();
+  // getInstance + getLog 全部完成后关闭 loading，避免切换 IP 时 loading 关闭后数据才刷新
+  instanceLoading.value = false;
+  // 路由变化后，将左侧 IP 列表滚动到当前选中的 IP 项（置顶）
+  scrollActiveIpIntoView();
   if (isInterval.value) {
     start();
   } else {
     stop();
   }
 });
+
+// 将左侧选中的 IP 滚动到列表顶部（用于从任务详情跳转后定位）
+const scrollActiveIpIntoView = async () => {
+  await nextTick();
+  const el = document.querySelector('.log-active-ip') as HTMLElement | null;
+  if (el && typeof el.scrollIntoView === 'function') {
+    el.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }
+};
 
 const debouncedGetOperateList = debounce(() => {
   getOperateList();
@@ -1140,14 +1156,17 @@ onMounted(async () => {
   await getOperateList();
   // getDistinctStates 成功路径不依赖 getInstance/getLog，与后续链并行
   await Promise.all([
-    (async () => { await getInstance(); await getLog(); })(),
+    (async () => { await getInstance(true); await getLog(); })(),
     getDistinctStates(),
   ]);
+  instanceLoading.value = false;
   if (isInterval.value) {
     start();
   } else {
     stop();
   }
+  // 首屏加载完成后，将左侧选中的 IP 置顶（从任务详情跳转进入）
+  scrollActiveIpIntoView();
 });
 </script>
 <style lang="postcss" scoped>

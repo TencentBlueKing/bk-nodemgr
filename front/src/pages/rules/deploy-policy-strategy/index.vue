@@ -2,6 +2,7 @@
   <div class="p-[24px]">
     <div class="flex items-center justify-end">
       <SearchSelect
+        :max-height="240"
         class="w-[480px] z-99 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"

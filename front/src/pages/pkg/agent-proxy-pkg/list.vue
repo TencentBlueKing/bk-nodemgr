@@ -11,6 +11,7 @@
         @mouseleave="uploadMouseLeave()"
       >{{ t('agentProxyPkg.upload') }}</Button>
       <SearchSelect
+        :max-height="240"
         class="ml-[16px] flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"

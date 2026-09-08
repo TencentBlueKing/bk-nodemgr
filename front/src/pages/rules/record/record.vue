@@ -28,6 +28,7 @@
       </div>
       <div class="flex-1 ml-[8px]">
         <SearchSelect
+          :max-height="240"
           ref="searchSelect"
           class="bg-[#fff]"
           :data="searchSelectData"

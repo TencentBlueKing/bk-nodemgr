@@ -8,7 +8,6 @@
     </div>
     <div
       v-show="expanded"
-      v-bk-tooltips="{ content: selectedBizName, placement: 'top', disabled: !selectedBizName }"
       class="mx-[12px]"
     >
       <Select
