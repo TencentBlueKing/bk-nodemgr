@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -132,6 +133,78 @@ func (c *cli) updateSystem(ctx contextx.IContext, req *UpdateSystemReq) error {
 	}
 	if err := resp.IsFailed(); err != nil {
 		return fmt.Errorf("update system failed: %w", err)
+	}
+
+	return nil
+}
+
+func (c *cli) listResourceTypes(
+	ctx contextx.IContext, req *ListResourceTypesReq,
+) (*BaseBroker[*ListResourceTypesResp], error) {
+	resp := new(BaseBroker[*ListResourceTypesResp])
+	result := c.client.Get().
+		SubResourcef("/rbac/model/systems/%s/resource-types/", req.SystemID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		WithParam("page", strconv.Itoa(req.Page)).
+		WithParam("page_size", strconv.Itoa(req.PageSize)).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return nil, fmt.Errorf("list resource types page %d: %w", req.Page, err)
+	}
+	if result.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("list_resource_types: unexpected HTTP %d (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list resource types failed: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (c *cli) batchCreateResourceType(
+	ctx contextx.IContext, req *BatchCreateResourceTypeReq,
+) (*BaseBroker[BatchCreateResourceTypeResp], error) {
+	resp := new(BaseBroker[BatchCreateResourceTypeResp])
+	result := c.client.Post().
+		SubResourcef("/rbac/model/systems/%s/resource-types/", req.SystemID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req.Resources).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return nil, fmt.Errorf("create resource type: %w", err)
+	}
+	if result.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("create_resource_type: unexpected HTTP %d (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("create resource type failed: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateResourceType(ctx contextx.IContext, req *UpdateResourceTypeReq) error {
+	// A successful update has no data payload (HTTP 204).
+	resp := new(BaseBroker[UpdateResourceTypeResp])
+	result := c.client.Put().
+		SubResourcef("/rbac/model/systems/%s/resource-types/%s/", req.SystemID, req.ResourceTypeID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return fmt.Errorf("update resource type: %w", err)
+	}
+	if result.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("update_resource_type: unexpected HTTP %d (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("update resource type failed: %w", err)
 	}
 
 	return nil

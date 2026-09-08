@@ -70,6 +70,7 @@ type operation struct {
 	Operation string                     `json:"operation"`
 	Data      map[string]json.RawMessage `json:"data"`
 	fields    iamv4.SystemFields
+	resource  iamv4.ResourceType
 }
 
 func main() {
@@ -254,8 +255,12 @@ func loadMigration(file, appCode string) (migration, error) {
 		if err != nil {
 			return item, fmt.Errorf("%s operation %d: encode system fields: %w", file, index+1, err)
 		}
-		if err := json.Unmarshal(data, &item.Operations[index].fields); err != nil {
-			return item, fmt.Errorf("%s operation %d: decode system fields: %w", file, index+1, err)
+		var target any = &item.Operations[index].fields
+		if op.Operation == "upsert_resource_type" {
+			target = &item.Operations[index].resource
+		}
+		if err := json.Unmarshal(data, target); err != nil {
+			return item, fmt.Errorf("%s operation %d: decode model fields: %w", file, index+1, err)
 		}
 	}
 
@@ -263,6 +268,9 @@ func loadMigration(file, appCode string) (migration, error) {
 }
 
 func validateOperation(systemID string, op operation, appCode string) error {
+	if op.Operation == "upsert_resource_type" {
+		return validateResourceType(op.Data)
+	}
 	if op.Operation != "upsert_system" {
 		return fmt.Errorf("unsupported operation %q", op.Operation)
 	}
@@ -329,8 +337,19 @@ func validateSystemMembers(field string, raw json.RawMessage, appCode string) er
 func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations []migration, dryRun bool, out io.Writer) error {
 	// Track virtual creates during dry-run so later operations see the planned system.
 	plannedSystems := make(map[string]bool)
+	resourceTypes := make(map[string]map[string]iamv4.ResourceType)
 	for _, item := range migrations {
 		for index, op := range item.Operations {
+			if op.Operation == "upsert_resource_type" {
+				resourceHandler, ok := handler.(iamv4.ResourceTypeHandler)
+				if !ok {
+					return fmt.Errorf("resource type migration handler is unavailable")
+				}
+				if err := item.executeResourceType(ctx, resourceHandler, op, resourceTypes, dryRun, out); err != nil {
+					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
+				}
+				continue
+			}
 			exists := plannedSystems[item.SystemID]
 			if !dryRun || !exists {
 				var err error
@@ -344,6 +363,10 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 			}
 			if dryRun {
 				plannedSystems[item.SystemID] = true
+				if !exists {
+					// The planned system cannot be queried until it is actually created.
+					resourceTypes[item.SystemID] = make(map[string]iamv4.ResourceType)
+				}
 			}
 		}
 	}

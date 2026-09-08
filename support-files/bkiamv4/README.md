@@ -2,13 +2,13 @@
 
 本目录存放 bk-nodemgr 的 IAM V4 权限模型模板、渲染工具和迁移工具。
 
-使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。当前仅支持 `upsert_system`：系统不存在时注册，已存在时更新；暂不处理资源类型、操作、角色和授权。
+使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。支持 `upsert_system` 和 `upsert_resource_type`：不存在时注册，已存在时有限更新；暂不处理操作、角色和授权。
 
 ## 文件说明
 
 | 文件                | 说明                                           |
 | ------------------- | ---------------------------------------------- |
-| `templates/`        | V4 权限模型模板，目前包含 system 模板          |
+| `templates/`        | V4 System 与四类本地 ResourceType 模板         |
 | `vars.yaml.example` | 变量配置示例                                   |
 | `render/`           | 渲染工具源码，构建后生成 `render/iam-render`   |
 | `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate` |
@@ -36,7 +36,7 @@ cp vars.yaml.example vars.yaml
 ./render/iam-render -t templates -v vars.yaml -o output
 ```
 
-渲染 `templates/` 目录下所有 `.tpl` 文件，输出到 `output/`，文件名去掉 `.tpl` 后缀。当前生成 `output/0001_bk_nodemgr_system.json`，执行迁移前可直接检查其内容。
+渲染 `templates/` 目录下所有 `.tpl` 文件，输出到 `output/`，文件名去掉 `.tpl` 后缀。当前生成 `0001_bk_nodemgr_system.json` 和 `0002_bk_nodemgr_resource_type.json`，执行迁移前检查两个文件。
 
 ### 3. 预检查
 
@@ -51,7 +51,7 @@ cp vars.yaml.example vars.yaml
   --dry-run
 ```
 
-将网关地址、应用编码和租户 ID 替换为实际值。`--dry-run` 会校验文件并查询远端 system，输出创建或更新计划，**不会写入远端**。因此预检查也需要网络和有效的应用认证。
+将网关地址、应用编码和租户 ID 替换为实际值。`--dry-run` 会校验文件并查询远端模型，输出创建、更新或跳过计划，**不会写入远端**。因此预检查也需要网络和有效的应用认证。
 
 ### 4. 执行迁移
 
@@ -104,7 +104,7 @@ cp vars.yaml.example vars.yaml
 "clients": {{ .system.clients | toJson }}
 ```
 
-迁移文件通过 `system_id` 指定系统，`operations` 中每项包含 `operation` 和 `data`。目前只接受 `upsert_system`，且 `data.id` 必须与 `system_id` 一致。
+迁移文件通过 `system_id` 指定系统，`operations` 中每项包含 `operation` 和 `data`。`upsert_system` 的 `data.id` 必须与 `system_id` 一致；`upsert_resource_type` 的 `data.id` 是该系统内的资源类型 ID。
 
 | 场景                                         | 处理方式                                        |
 | -------------------------------------------- | ----------------------------------------------- |
@@ -116,6 +116,40 @@ cp vars.yaml.example vars.yaml
 | 提供 `clients` 但不包含调用应用              | 本地报错，防止更新后失去管理权限；不会自动追加  |
 
 目录模式仅选择 `<数字>_*.json`，按数字序号排序；序号相同则按文件名排序。每个文件内按 `operations` 顺序执行。dry-run 会将同一 system 前面计划的创建纳入后续判断，不重复计划创建。
+
+### ResourceType 更新规则
+
+`0002` 模板按父资源在先的顺序注册 `networkarea`、`networkunit`、`package_type`、`package`，保留 `networkarea → networkunit` 和 `package_type → package` 两条关系，不注册 `biz`。
+
+`data` 仅接受 `id`、`name`、`ancestors`。ID 最长 32 字符，以小写字母开头，只含小写字母、数字、`_`、`-`；`ancestors` 为从根到直接父级的 ID 数组，不得重复或包含自身。
+
+| 场景                                     | 处理方式                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| 资源类型不存在                           | 要求 `name`，通过批量创建接口提交单元素数组；省略 `ancestors` 表示顶层资源 |
+| 资源类型已存在，未提供 `ancestors`       | 保留远端祖先链                                                             |
+| 显式祖先链与远端不一致，包括用 `[]` 清空 | 报错停止，不自动改拓扑或删除重建                                           |
+| 名称改变                                 | 只更新 `name`，不发送 `id` 或 `ancestors`                                  |
+| 名称未提供或相同，拓扑一致               | 跳过写入                                                                   |
+| 祖先尚未存在、祖先链不一致或名称冲突     | 报错停止；先创建祖先，再创建子资源                                         |
+
+IAM API 允许受限修改祖先链，但会受后代资源类型、角色和已有授权约束；本工具有意不自动执行这类变更。
+
+```mermaid
+flowchart TD
+    A[读取全部分页资源类型] --> B{资源类型存在?}
+    B -- 否 --> C[校验名称和祖先链后计划创建]
+    B -- 是 --> D{显式祖先链是否冲突?}
+    D -- 是 --> E[报错停止]
+    D -- 否 --> F{名称是否变化?}
+    F -- 否 --> G[跳过]
+    F -- 是 --> H[计划仅更新名称]
+    C --> I{dry-run?}
+    H --> I
+    I -- 是 --> J[只输出计划]
+    I -- 否 --> K[执行写入]
+```
+
+每个系统的资源类型列表按 `page_size=100` 读取全部分页；失败或不完整响应不会被当作空列表。dry-run 中，前面计划新建的 System 使用虚拟空列表，计划新建的 ResourceType 对后续子资源可见，不请求尚不存在的系统。单独执行 `0002` 时，System 必须已存在。dry-run 不验证服务端全部约束，也不保证后续执行期间远端状态不变。
 
 ## 失败处理
 
