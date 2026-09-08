@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/compatibility"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -208,6 +209,17 @@ func (h *handler) generateInstallNodeDeployments(
 			logger.G.Biz(nCtx).
 				With("host-id", reqHost.GetBkHostId(), "inner-ip", reqHost.GetBkHostInnerip(), "host-exited", ok).Info("generating node deployment")
 
+			// the relay ports are optional in the request, fall back to the default ports when they are absent.
+			relayCallbackPort := reqHost.GetRelayCallbackPort()
+			if relayCallbackPort <= 0 {
+				relayCallbackPort = relayconstant.DefaultCallbackPort
+			}
+
+			relayDownloadPort := reqHost.GetRelayDownloadPort()
+			if relayDownloadPort <= 0 {
+				relayDownloadPort = relayconstant.DefaultDownloadPort
+			}
+
 			nodeDeployment := types.NewNodeDeployment(
 				&types.DeploymentInfo{
 					Host: types.Host{
@@ -238,8 +250,8 @@ func (h *handler) generateInstallNodeDeployments(
 							AdvertiseIP:              reqHost.GetAdvertiseIp(),
 							AdvertiseIPV6:            reqHost.GetAdvertiseIpV6(),
 							ProxyInstallOriginUnitID: reqHost.GetProxyInstallOriginUnitId(),
-							RelayDownloadPort:        reqHost.GetRelayDownloadPort(),
-							RelayCallbackPort:        reqHost.GetRelayCallbackPort(),
+							RelayDownloadPort:        relayDownloadPort,
+							RelayCallbackPort:        relayCallbackPort,
 						},
 					},
 					CurrentVersionSupports: types.DeploymentVersionSupports{},

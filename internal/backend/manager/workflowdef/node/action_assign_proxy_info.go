@@ -25,6 +25,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -34,10 +35,6 @@ import (
 const (
 	// ActionNameAssignProxyInfo defines the action name.
 	ActionNameAssignProxyInfo = "assign_proxy_info"
-
-	// Default relay ports for proxy.
-	defaultRelayCallbackPort = 28302
-	defaultRelayDownloadPort = 28303
 )
 
 // NewActionAssignProxyInfo creates a new action.
@@ -132,16 +129,14 @@ func (act *actionAssignProxyInfo) Do(ctx *action.InstanceContext) (err error) {
 	deployInfo.Host.Dynamic.NetworkUnitID = param.NetworkUnitID
 
 	// Set relay ports with defaults if not provided.
-	if param.RelayCallbackPort > 0 {
-		deployInfo.Host.Dynamic.RelayCallbackPort = param.RelayCallbackPort
-	} else {
-		deployInfo.Host.Dynamic.RelayCallbackPort = defaultRelayCallbackPort
+	deployInfo.Host.Dynamic.RelayCallbackPort = param.RelayCallbackPort
+	if deployInfo.Host.Dynamic.RelayCallbackPort <= 0 {
+		deployInfo.Host.Dynamic.RelayCallbackPort = relayconstant.DefaultCallbackPort
 	}
 
-	if param.RelayDownloadPort > 0 {
-		deployInfo.Host.Dynamic.RelayDownloadPort = param.RelayDownloadPort
-	} else {
-		deployInfo.Host.Dynamic.RelayDownloadPort = defaultRelayDownloadPort
+	deployInfo.Host.Dynamic.RelayDownloadPort = param.RelayDownloadPort
+	if deployInfo.Host.Dynamic.RelayDownloadPort <= 0 {
+		deployInfo.Host.Dynamic.RelayDownloadPort = relayconstant.DefaultDownloadPort
 	}
 
 	if len(param.ProxyTags) > 0 {
