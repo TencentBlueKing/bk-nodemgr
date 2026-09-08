@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type workspaceFS struct {
@@ -33,23 +34,43 @@ func newWorkspaceFS(rootDir string) workspaceFS {
 	return workspaceFS{rootDir: rootDir}
 }
 
-func (fs workspaceFS) ensure(op string) error {
-	if err := os.MkdirAll(fs.rootDir, storageTmpDirMode); err != nil {
-		return fmt.Errorf("failed to ensure transfer-file dir for %s, dir(%s): %w", op, fs.rootDir, err)
+// instanceDir returns the staging directory dedicated to one operation instance.
+//
+// Every concurrent installation gets its own directory so that transfers, reads and cleanup
+// of the same package name cannot interfere: sharing a single path let one flow delete or
+// overwrite the file another flow was still using.
+func (fs workspaceFS) instanceDir(operInstID string) (string, error) {
+	segment := sanitizePathSegment(operInstID)
+	if err := validateWorkspaceFilename(segment); err != nil {
+		return "", fmt.Errorf("invalid operation instance id for staging dir. oper-inst-id(%s): %w", operInstID, err)
 	}
 
-	return nil
+	absPath := filepath.Clean(filepath.Join(fs.rootDir, segment))
+	if err := fs.checkPathInWorkspace(absPath); err != nil {
+		return "", fmt.Errorf("will not resolve staging dir outside workspace. root(%s), oper-inst-id(%s): %w",
+			fs.rootDir, operInstID, err)
+	}
+
+	return absPath, nil
 }
 
-func (fs workspaceFS) removeFile(filename string) error {
-	if err := fs.ensure("safe remove file"); err != nil {
-		return err
-	}
-	if err := validateWorkspaceFilename(filename); err != nil {
-		return err
+// ensureInstanceDir creates the staging directory of one operation instance.
+func (fs workspaceFS) ensureInstanceDir(operInstID string) (string, error) {
+	absPath, err := fs.instanceDir(operInstID)
+	if err != nil {
+		return "", err
 	}
 
-	absPath, err := fs.absPath(filename)
+	if err := os.MkdirAll(absPath, storageTmpDirMode); err != nil {
+		return "", fmt.Errorf("failed to ensure staging dir. path(%s): %w", absPath, err)
+	}
+
+	return absPath, nil
+}
+
+// removeInstanceDir drops the whole staging directory of one operation instance.
+func (fs workspaceFS) removeInstanceDir(operInstID string) error {
+	absPath, err := fs.instanceDir(operInstID)
 	if err != nil {
 		return err
 	}
@@ -57,17 +78,58 @@ func (fs workspaceFS) removeFile(filename string) error {
 	return fs.removeAll(absPath)
 }
 
-func (fs workspaceFS) absPath(filename string) (string, error) {
-	if err := validateWorkspaceFilename(filename); err != nil {
-		return "", err
+// sanitizePathSegment maps everything outside an allow-list to '_' so an identifier is safe
+// to use as a single path segment. Operation instance ids look like "oper-inst:<hex>", and
+// the colon is not portable across the platforms a relay runs on.
+func sanitizePathSegment(segment string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z',
+			r >= 'A' && r <= 'Z',
+			r >= '0' && r <= '9',
+			r == '-', r == '_':
+			return r
+		default:
+			return '_'
+		}
+	}, segment)
+}
+
+// listOrphanInstanceDirs returns the staging directories not modified since cutoff.
+//
+// Age is the criterion rather than liveness: a directory is created before its transfer
+// starts, so a freshly created empty one is normal and must not be reclaimed. Adding or
+// removing files inside a directory bumps its mtime, which keeps active ones out of range.
+func (fs workspaceFS) listOrphanInstanceDirs(cutoff time.Time) ([]string, error) {
+	entries, err := os.ReadDir(fs.rootDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("failed to read staging root. dir(%s): %w", fs.rootDir, err)
 	}
 
-	absPath := filepath.Clean(filepath.Join(fs.rootDir, filename))
-	if err := fs.checkPathInWorkspace(absPath); err != nil {
-		return "", fmt.Errorf("will not resolve path outside workspace. root(%s), filename(%s): %w", fs.rootDir, filename, err)
+	orphans := make([]string, 0)
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		info, infoErr := entry.Info()
+		if infoErr != nil {
+			continue
+		}
+
+		if info.ModTime().After(cutoff) {
+			continue
+		}
+
+		orphans = append(orphans, filepath.Join(fs.rootDir, entry.Name()))
 	}
 
-	return absPath, nil
+	return orphans, nil
 }
 
 func validateWorkspaceFilename(filename string) error {

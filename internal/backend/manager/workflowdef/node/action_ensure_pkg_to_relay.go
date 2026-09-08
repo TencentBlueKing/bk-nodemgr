@@ -410,17 +410,24 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 	std *nodeUtils.NodeActionStandarder,
 	releasePkg *types.Release,
 	installPkg fileiface.File,
-	pkgStates map[string]bool) ([]string, error) {
+	pkgStates map[string]bool) ([]protoRelay.FileInfo, error) {
 
-	var transferred []string
 	gp := gopool.NewPool()
+
+	// Each transfer records its outcome in its own variable instead of appending to a shared
+	// slice: the two closures run concurrently, so a shared slice would be a data race and
+	// could silently drop a package from the notification that follows.
+	var releaseInfo, installerInfo *protoRelay.FileInfo
 
 	if state, exists := pkgStates[releasePkg.FileName]; exists && !state {
 		gp.Go(func() error {
 			if err := act.transferReleasePkg(std, releasePkg.Type); err != nil {
 				return fmt.Errorf("failed to transfer release package: %w", err)
 			}
-			transferred = append(transferred, releasePkg.FileName)
+			releaseInfo = &protoRelay.FileInfo{
+				FileName: releasePkg.FileName,
+				FileMD5:  releasePkg.MD5,
+			}
 
 			return nil
 		})
@@ -437,7 +444,10 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 			if err := act.transferInstaller(std); err != nil {
 				return fmt.Errorf("failed to transfer installer package: %w", err)
 			}
-			transferred = append(transferred, installPkgName)
+			installerInfo = &protoRelay.FileInfo{
+				FileName: installPkgName,
+				FileMD5:  installPkg.Info().MD5,
+			}
 
 			return nil
 		})
@@ -450,6 +460,15 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 
 	if err := gp.Wait(); err != nil {
 		return nil, err
+	}
+
+	candidates := []*protoRelay.FileInfo{releaseInfo, installerInfo}
+
+	transferred := make([]protoRelay.FileInfo, 0, len(candidates))
+	for _, info := range candidates {
+		if info != nil {
+			transferred = append(transferred, *info)
+		}
 	}
 
 	return transferred, nil
@@ -556,12 +575,14 @@ func (act *actionEnsurePkgToRelay) transferInstaller(
 }
 
 func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
-	std *nodeUtils.NodeActionStandarder, pkgNames []string, relayInfo *types.RelayInfo) error {
+	std *nodeUtils.NodeActionStandarder, files []protoRelay.FileInfo, relayInfo *types.RelayInfo) error {
 
+	// FileList carries the expected MD5 so the relay can prove the transfer completed before
+	// caching it. A relay that receives no MD5 refuses to store the package.
 	event := protoRelay.NotifyReceiveReq{
 		ActionName: std.InstanceData().Name,
 		OperInstID: std.InstanceData().OperationInstanceID,
-		PkgName:    pkgNames}
+		FileList:   files}
 	data, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("failed to marshal event: %w", err)

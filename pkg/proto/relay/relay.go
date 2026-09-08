@@ -163,7 +163,14 @@ type NotifyReceiveReq struct {
 	OperInstID string `json:"oper_inst_id"`
 
 	// PkgName describes the package name.
+	//
+	// Deprecated: superseded by FileList, which also carries the MD5 the relay needs to
+	// verify a transfer before caching it. Kept so an older relay can still decode the
+	// message; new senders and receivers must use FileList.
 	PkgName []string `json:"pkg_name"`
+
+	// FileList describes the transferred files together with their expected MD5.
+	FileList []FileInfo `json:"file_list"`
 }
 
 // DetectInfoBySSHReq defines the detect info by ssh request.

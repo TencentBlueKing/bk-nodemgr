@@ -55,12 +55,14 @@ type IHandler interface {
 	DetectInfoByWMI(nCtx contextx.IContext, payload []byte)
 	// InstallPagentByWMI installs the pagent by wmi.
 	InstallPagentByWMI(nCtx contextx.IContext, payload []byte)
+
+	// StartStagingGC starts reclaiming abandoned package staging directories.
+	StartStagingGC(nCtx contextx.IContext)
 }
 
 // handler is a relay client handler.
 type handler struct {
-	storageTmpDir string
-	storageFS     workspaceFS
+	storageFS workspaceFS
 
 	fileManager file.IFileManager
 	client      relayhandler.IClientMessager
@@ -76,9 +78,8 @@ func NewClientHandler(
 	storageTmpDir := filepath.Join(conf.RelayWorkspaceFileGroup.FullPath, storageTmpDirName)
 
 	return &handler{
-		fileManager:   fm,
-		client:        client,
-		storageTmpDir: storageTmpDir,
-		storageFS:     newWorkspaceFS(storageTmpDir),
+		fileManager: fm,
+		client:      client,
+		storageFS:   newWorkspaceFS(storageTmpDir),
 	}
 }

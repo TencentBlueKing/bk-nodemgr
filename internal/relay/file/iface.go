@@ -29,9 +29,14 @@ type IFileManager interface {
 	// GetFile get file info.
 	GetFile(nCtx contextx.IContext, filename string) (iface.File, error)
 
-	// StoreFile store file form srcPath.
-	StoreFile(nCtx contextx.IContext, srcPath, filename string) (*iface.FileInfo, error)
+	// StoreFile promotes filename from the staging directory srcPath into the cache.
+	// expectedMD5 is mandatory and content that does not match it is rejected rather than
+	// stored, so a partially transferred package can never be served.
+	StoreFile(nCtx contextx.IContext, srcPath, filename, expectedMD5 string) (*iface.FileInfo, error)
 
 	// FileExists check file exists.
 	FileExists(nCtx contextx.IContext, filename, md5 string) bool
+
+	// Close releases the resources held by the manager.
+	Close() error
 }

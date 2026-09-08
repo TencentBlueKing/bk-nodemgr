@@ -39,6 +39,12 @@ type IFileCache interface {
 	// FileExists reports whether a file with the given filename and MD5 is present in the cache.
 	FileExists(filename string, expectedMD5 string) bool
 
+	// GetFile returns the cached file currently indexed under filename, without requiring the
+	// caller to know its MD5. Only entries that already passed MD5 validation are indexed, so a
+	// hit is always a verified copy. Reports false when filename is not cached.
+	// Use FileExists or GetOrFetch when the expected MD5 is known.
+	GetFile(filename string) (fileiface.File, string, bool)
+
 	// Close stops the background GC goroutine and releases resources.
 	Close() error
 }

@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -34,9 +35,11 @@ import (
 )
 
 const (
-	defaultGCInterval      = 1 * time.Hour
-	defaultExpirationTime  = 72 * time.Hour
-	dirDot                 = "."
+	defaultGCInterval     = 1 * time.Hour
+	defaultExpirationTime = 72 * time.Hour
+	dirDot                = "."
+
+	bytesPerMB = 1024 * 1024
 )
 
 // cachedEntry represents a single cached file entry.
@@ -44,6 +47,7 @@ type cachedEntry struct {
 	file       fileiface.File
 	dirPath    string // absolute path: {cacheBaseDir}/{md5}/
 	md5        string
+	size       int64
 	lastAccess time.Time
 	mu         sync.Mutex
 }
@@ -65,6 +69,7 @@ func (e *cachedEntry) getLastAccess() time.Time {
 type fileCache struct {
 	baseDir        string
 	expirationTime time.Duration
+	maxSizeBytes   int64
 
 	// indexMu protects the index map (held briefly for reads/writes).
 	indexMu sync.RWMutex
@@ -93,6 +98,10 @@ type Options struct {
 	// starts empty and warms up on first access. Enable when cache entries should
 	// survive service restarts (e.g. large files that are expensive to re-download).
 	RestoreOnStart bool
+	// MaxSizeMB caps the total size of cached files. When the cache exceeds it, the
+	// least recently used entries are evicted until it fits again. Defaults to 0,
+	// which means unlimited and keeps ExpirationTime as the only eviction trigger.
+	MaxSizeMB int64
 }
 
 // New creates a new IFileCache rooted at baseDir.
@@ -116,6 +125,7 @@ func New(nCtx contextx.IContext, baseDir string, opts Options) (IFileCache, erro
 	fc := &fileCache{
 		baseDir:        baseDir,
 		expirationTime: expiration,
+		maxSizeBytes:   opts.MaxSizeMB * bytesPerMB,
 		index:          make(map[string]*cachedEntry),
 		stopCh:         make(chan struct{}),
 		doneCh:         make(chan struct{}),
@@ -123,6 +133,9 @@ func New(nCtx contextx.IContext, baseDir string, opts Options) (IFileCache, erro
 
 	if opts.RestoreOnStart {
 		fc.restore(nCtx)
+		// Restoring can bring the cache back above the size cap, for example after the
+		// cap was lowered between restarts, so enforce it before serving traffic.
+		fc.evictBySize()
 	}
 
 	go fc.runGCLoop(gcInterval)
@@ -180,6 +193,23 @@ func (fc *fileCache) FileExists(filename string, expectedMD5 string) bool {
 	return ok
 }
 
+// GetFile implements IFileCache.
+func (fc *fileCache) GetFile(filename string) (fileiface.File, string, bool) {
+	filename = filepath.Base(filename)
+
+	fc.indexMu.RLock()
+	entry, ok := fc.index[filename]
+	fc.indexMu.RUnlock()
+
+	if !ok {
+		return nil, "", false
+	}
+
+	entry.updateLastAccess()
+
+	return entry.file, entry.dirPath, true
+}
+
 // Close implements IFileCache.
 func (fc *fileCache) Close() error {
 	close(fc.stopCh)
@@ -219,7 +249,11 @@ func isMD5Hex(s string) bool {
 	}
 
 	for _, c := range s {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+		isDigit := c >= '0' && c <= '9'
+		isLowerHex := c >= 'a' && c <= 'f'
+		isUpperHex := c >= 'A' && c <= 'F'
+
+		if !isDigit && !isLowerHex && !isUpperHex {
 			return false
 		}
 	}
@@ -301,11 +335,17 @@ func (fc *fileCache) download(
 		file:       file,
 		dirPath:    dirPath,
 		md5:        expectedMD5,
+		size:       file.Info().Size,
 		lastAccess: time.Now(),
 	}
 	fc.indexMu.Unlock()
 
 	logger.G.Sys().With("filename", filename, "md5", expectedMD5, "dir", dirPath).Info("file downloaded and cached")
+
+	// Enforce the size cap right away: waiting for the next GC tick would let a burst of
+	// downloads fill the disk. The entry just stored has the newest lastAccess, so LRU
+	// eviction will not discard it first.
+	fc.evictBySize()
 
 	return file, dirPath, nil
 }
@@ -328,6 +368,17 @@ func (fc *fileCache) restore(nCtx contextx.IContext) {
 		}
 
 		md5Val := entry.Name()
+
+		// The directory name IS the MD5, so anything that is not a valid MD5 hex string was
+		// not produced by this cache (a stale layout from an older version, a leftover temp
+		// dir, ...). Indexing it would register an entry that can never be hit yet still
+		// counts as active, keeping the orphan scan from ever reclaiming it.
+		if !isMD5Hex(md5Val) {
+			logger.G.Sys().With("dir", md5Val).Info("file cache restore: skipping non-MD5 dir")
+
+			continue
+		}
+
 		subDir := filepath.Join(fc.baseDir, md5Val)
 
 		ld, ldErr := local.NewLocalDir(subDir)
@@ -358,6 +409,7 @@ func (fc *fileCache) restore(nCtx contextx.IContext) {
 				file:       newest,
 				dirPath:    subDir,
 				md5:        md5Val,
+				size:       newest.Info().Size,
 				lastAccess: time.Now(),
 			}
 			restored++
@@ -385,13 +437,20 @@ func (fc *fileCache) runGCLoop(interval time.Duration) {
 	}
 }
 
-// runGC removes expired index entries and orphaned MD5 directories.
+// runGC removes expired index entries, enforces the size cap, and reclaims orphaned MD5 dirs.
 func (fc *fileCache) runGC() {
+	fc.removeExpired()
+	fc.evictBySize()
+
+	// The snapshot must be taken after both eviction passes so directories just dropped from
+	// the index are seen as orphans and reclaimed within this same run.
+	fc.removeOrphanDirs(fc.snapshotActiveDirs())
+}
+
+// removeExpired drops entries whose last access is older than the expiration window.
+func (fc *fileCache) removeExpired() {
 	cutoff := time.Now().Add(-fc.expirationTime)
 
-	// Remove expired entries and build a fresh activeDirs snapshot in a single critical section.
-	// Building the snapshot here (after deletions) ensures it reflects the current index state,
-	// which is used below to detect orphaned directories without a stale-read race.
 	fc.indexMu.Lock()
 
 	var toDelete []string
@@ -402,29 +461,106 @@ func (fc *fileCache) runGC() {
 		}
 	}
 
+	dirs := make([]string, 0, len(toDelete))
+
 	for _, filename := range toDelete {
 		entry := fc.index[filename]
 		delete(fc.index, filename)
 
 		// Clean up the per-filename download mutex to avoid unbounded growth.
 		fc.dlMu.Delete(filename)
+		dirs = append(dirs, entry.dirPath)
 
 		logger.G.Sys().With("filename", filename, "dir", entry.dirPath).Info("file cache GC: removing expired entry")
-
-		go func(dir string) {
-			_ = safeRemoveAll(dir, fc.baseDir)
-		}(entry.dirPath)
 	}
 
-	// Snapshot active dirs AFTER deletions so the orphan scan below sees the true live set.
+	fc.indexMu.Unlock()
+
+	fc.removeDirsAsync(dirs)
+}
+
+// evictBySize enforces MaxSizeMB by discarding the least recently used entries.
+// It is a no-op when no cap is configured, which keeps the unlimited default behaviour.
+// Unlinking a file that an in-flight download still holds open is safe: the reader keeps
+// its descriptor and finishes streaming the already-opened copy.
+func (fc *fileCache) evictBySize() {
+	if fc.maxSizeBytes <= 0 {
+		return
+	}
+
+	fc.indexMu.Lock()
+
+	total := int64(0)
+	for _, entry := range fc.index {
+		total += entry.size
+	}
+
+	if total <= fc.maxSizeBytes {
+		fc.indexMu.Unlock()
+
+		return
+	}
+
+	// Sum and sort over the index rather than tracking a running total: the index holds one
+	// entry per filename (a handful in practice), so recomputing is cheap and cannot drift
+	// out of sync with what is actually on disk.
+	coldest := make([]string, 0, len(fc.index))
+	for filename := range fc.index {
+		coldest = append(coldest, filename)
+	}
+
+	sort.Slice(coldest, func(i, j int) bool {
+		return fc.index[coldest[i]].getLastAccess().Before(fc.index[coldest[j]].getLastAccess())
+	})
+
+	dirs := make([]string, 0)
+
+	for _, filename := range coldest {
+		if total <= fc.maxSizeBytes {
+			break
+		}
+
+		entry := fc.index[filename]
+		delete(fc.index, filename)
+		fc.dlMu.Delete(filename)
+
+		total -= entry.size
+		dirs = append(dirs, entry.dirPath)
+
+		logger.G.Sys().
+			With("filename", filename, "dir", entry.dirPath, "size", entry.size, "total-after", total).
+			Info("file cache GC: evicting least recently used entry over size cap")
+	}
+
+	fc.indexMu.Unlock()
+
+	fc.removeDirsAsync(dirs)
+}
+
+// snapshotActiveDirs returns the set of directories still referenced by the index.
+func (fc *fileCache) snapshotActiveDirs() map[string]struct{} {
+	fc.indexMu.RLock()
+	defer fc.indexMu.RUnlock()
+
 	activeDirs := make(map[string]struct{}, len(fc.index))
 	for _, entry := range fc.index {
 		activeDirs[entry.dirPath] = struct{}{}
 	}
 
-	fc.indexMu.Unlock()
+	return activeDirs
+}
 
-	// Scan for orphaned MD5 directories not referenced by the index.
+// removeDirsAsync deletes the given cache directories without blocking the caller.
+func (fc *fileCache) removeDirsAsync(dirs []string) {
+	for _, dir := range dirs {
+		go func(d string) {
+			_ = safeRemoveAll(d, fc.baseDir)
+		}(dir)
+	}
+}
+
+// removeOrphanDirs deletes MD5 directories that the index no longer references.
+func (fc *fileCache) removeOrphanDirs(activeDirs map[string]struct{}) {
 	// We intentionally skip directories registered in pendingDirs: those belong to
 	// downloads that have created the directory but not yet committed to the index.
 	// Deleting them would corrupt in-flight writes (TOCTOU race).

@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/handler"
@@ -149,7 +150,13 @@ func (svc *Service) initialCapability() error {
 	// initial file manager
 	svc.Cap.FileManager, err = file.NewFileManager(
 		svc.ctx,
-		filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, fileManagerStorageDirName))
+		filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, fileManagerStorageDirName),
+		file.Options{
+			ExpirationTime: time.Duration(svc.conf.FileCache.ExpirationHours) * time.Hour,
+			GCInterval:     time.Duration(svc.conf.FileCache.GCIntervalHours) * time.Hour,
+			MaxSizeMB:      svc.conf.FileCache.MaxSizeMB,
+			RestoreOnStart: svc.conf.FileCache.RestoreOnStart,
+		})
 	if err != nil {
 		return fmt.Errorf("failed to create file manager: %w", err)
 	}
@@ -158,6 +165,8 @@ func (svc *Service) initialCapability() error {
 	clientHandler := handler.NewClientHandler(svc.Cap.FileManager,
 		svc.Cap.Messager,
 		svc.conf)
+
+	clientHandler.StartStagingGC(svc.ctx)
 
 	// register server push event handlers
 	dispatcher := svc.Cap.Messager.EventDispatcher()

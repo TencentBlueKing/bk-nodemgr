@@ -46,6 +46,12 @@ func (c *Capability) Start(nCtx contextx.IContext) error {
 
 // GracefulShutdown graceful shutdown all services in capability.
 func (c *Capability) GracefulShutdown() error {
+	if c.FileManager != nil {
+		if err := c.FileManager.Close(); err != nil {
+			return err
+		}
+	}
+
 	if err := tracing.G().ShutdownAll(contextx.Background()); err != nil {
 		return err
 	}

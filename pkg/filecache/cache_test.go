@@ -336,7 +336,7 @@ func TestRestore(t *testing.T) {
 	}
 
 	// Create a new instance: it should restore from disk.
-	fc2, err := filecache.New(nCtx, baseDir, filecache.Options{})
+	fc2, err := filecache.New(nCtx, baseDir, filecache.Options{RestoreOnStart: true})
 	if err != nil {
 		t.Fatalf("New (second): %v", err)
 	}
@@ -400,4 +400,282 @@ func TestGC_RemovesExpiredEntries(t *testing.T) {
 	}
 
 	t.Errorf("expected GC to remove dir %q, but it still exists", expectedDir)
+}
+
+// sizedContent returns a payload of roughly the requested KB, unique per tag so each
+// payload lands in its own MD5 directory.
+func sizedContent(tag string, kb int) string {
+	return tag + strings.Repeat("x", kb*1024)
+}
+
+// waitForDirGone polls until dir disappears. Cache directories are removed asynchronously,
+// so callers cannot assert on their absence immediately.
+func waitForDirGone(t *testing.T, dir string) {
+	t.Helper()
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			return
+		}
+
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	t.Errorf("expected dir %q to be removed, but it still exists", dir)
+}
+
+func TestEvictBySize_RemovesLeastRecentlyUsed(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	nCtx := testCtx()
+
+	// 1MB cap with two 600KB payloads: storing the second one must push the first out.
+	fc, err := filecache.New(nCtx, baseDir, filecache.Options{MaxSizeMB: 1})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = fc.Close() }()
+
+	oldContent, newContent := sizedContent("old", 600), sizedContent("new", 600)
+	oldMD5, newMD5 := md5sum(oldContent), md5sum(newContent)
+
+	if _, _, err = fc.GetOrFetch(nCtx, "old.tgz", oldMD5, makeFetchFn(oldContent)); err != nil {
+		t.Fatalf("GetOrFetch(old): %v", err)
+	}
+
+	// Keep the access timestamps distinguishable so LRU order is deterministic.
+	time.Sleep(10 * time.Millisecond)
+
+	if _, _, err = fc.GetOrFetch(nCtx, "new.tgz", newMD5, makeFetchFn(newContent)); err != nil {
+		t.Fatalf("GetOrFetch(new): %v", err)
+	}
+
+	if fc.FileExists("old.tgz", oldMD5) {
+		t.Error("expected the least recently used entry to be evicted, but it is still cached")
+	}
+
+	if !fc.FileExists("new.tgz", newMD5) {
+		t.Error("expected the most recently stored entry to survive eviction")
+	}
+
+	waitForDirGone(t, filepath.Join(baseDir, oldMD5))
+}
+
+func TestEvictBySize_UnlimitedByDefault(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	nCtx := testCtx()
+
+	// MaxSizeMB left at 0: this is what internal/file and backend rely on, so nothing may
+	// be evicted regardless of total size.
+	fc, err := filecache.New(nCtx, baseDir, filecache.Options{})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = fc.Close() }()
+
+	first, second := sizedContent("first", 600), sizedContent("second", 600)
+	firstMD5, secondMD5 := md5sum(first), md5sum(second)
+
+	if _, _, err = fc.GetOrFetch(nCtx, "first.tgz", firstMD5, makeFetchFn(first)); err != nil {
+		t.Fatalf("GetOrFetch(first): %v", err)
+	}
+
+	if _, _, err = fc.GetOrFetch(nCtx, "second.tgz", secondMD5, makeFetchFn(second)); err != nil {
+		t.Fatalf("GetOrFetch(second): %v", err)
+	}
+
+	if !fc.FileExists("first.tgz", firstMD5) || !fc.FileExists("second.tgz", secondMD5) {
+		t.Error("expected no eviction when MaxSizeMB is 0")
+	}
+}
+
+func TestGetFile(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	nCtx := testCtx()
+
+	fc, err := filecache.New(nCtx, baseDir, filecache.Options{})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = fc.Close() }()
+
+	content := "get file content"
+	md5val := md5sum(content)
+
+	if _, _, ok := fc.GetFile("absent.tgz"); ok {
+		t.Error("expected GetFile to report a miss for an uncached filename")
+	}
+
+	_, wantDir, err := fc.GetOrFetch(nCtx, "present.tgz", md5val, makeFetchFn(content))
+	if err != nil {
+		t.Fatalf("GetOrFetch: %v", err)
+	}
+
+	file, gotDir, ok := fc.GetFile("present.tgz")
+	if !ok {
+		t.Fatal("expected GetFile to report a hit for a cached filename")
+	}
+
+	if gotDir != wantDir {
+		t.Errorf("GetFile dir = %q, want %q", gotDir, wantDir)
+	}
+
+	if file.Info().MD5 != md5val {
+		t.Errorf("GetFile MD5 = %q, want %q", file.Info().MD5, md5val)
+	}
+}
+
+func TestGetFile_RefreshesEvictionOrder(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	nCtx := testCtx()
+
+	// 2MB cap with three 800KB payloads: the third store evicts exactly one entry.
+	// Touching the first entry via GetFile in between must make the second one the victim.
+	fc, err := filecache.New(nCtx, baseDir, filecache.Options{MaxSizeMB: 2})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = fc.Close() }()
+
+	names := []string{"a.tgz", "b.tgz", "c.tgz"}
+	md5s := make([]string, len(names))
+
+	for i, name := range names {
+		content := sizedContent(name, 800)
+		md5s[i] = md5sum(content)
+
+		if i == 2 {
+			// Refresh a.tgz so b.tgz becomes the least recently used entry.
+			if _, _, ok := fc.GetFile(names[0]); !ok {
+				t.Fatalf("expected %s to still be cached before the evicting store", names[0])
+			}
+
+			time.Sleep(10 * time.Millisecond)
+		}
+
+		if _, _, err = fc.GetOrFetch(nCtx, name, md5s[i], makeFetchFn(content)); err != nil {
+			t.Fatalf("GetOrFetch(%s): %v", name, err)
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	if !fc.FileExists(names[0], md5s[0]) {
+		t.Errorf("expected %s to survive: GetFile should have refreshed its access time", names[0])
+	}
+
+	if fc.FileExists(names[1], md5s[1]) {
+		t.Errorf("expected %s to be evicted as the least recently used entry", names[1])
+	}
+
+	if !fc.FileExists(names[2], md5s[2]) {
+		t.Errorf("expected %s to survive as the newest entry", names[2])
+	}
+}
+
+func TestRestore_SkipsNonMD5Dirs(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	nCtx := testCtx()
+
+	content := "restore filter content"
+	md5val := md5sum(content)
+
+	// A valid content-addressed entry.
+	validDir := filepath.Join(baseDir, md5val)
+	if err := os.MkdirAll(validDir, 0750); err != nil {
+		t.Fatalf("MkdirAll(valid): %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(validDir, "keep.tgz"), []byte(content), 0600); err != nil {
+		t.Fatalf("WriteFile(valid): %v", err)
+	}
+
+	// A directory from an older layout, whose name is not an MD5. Indexing it would create
+	// an entry that can never be hit yet still counts as active, so it must be skipped and
+	// then reclaimed as an orphan.
+	staleDir := filepath.Join(baseDir, "20250101120000_1")
+	if err := os.MkdirAll(staleDir, 0750); err != nil {
+		t.Fatalf("MkdirAll(stale): %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(staleDir, "stale.tgz"), []byte("stale"), 0600); err != nil {
+		t.Fatalf("WriteFile(stale): %v", err)
+	}
+
+	fc, err := filecache.New(nCtx, baseDir, filecache.Options{
+		RestoreOnStart: true,
+		GCInterval:     50 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = fc.Close() }()
+
+	if !fc.FileExists("keep.tgz", md5val) {
+		t.Error("expected the MD5-named dir to be restored into the index")
+	}
+
+	if _, _, ok := fc.GetFile("stale.tgz"); ok {
+		t.Error("expected the non-MD5 dir to be skipped during restore")
+	}
+
+	waitForDirGone(t, staleDir)
+
+	if !fc.FileExists("keep.tgz", md5val) {
+		t.Error("expected the valid entry to survive the orphan scan")
+	}
+}
+
+func TestConcurrentGetOrFetch_WithEviction(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	nCtx := testCtx()
+
+	fc, err := filecache.New(nCtx, baseDir, filecache.Options{MaxSizeMB: 1})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = fc.Close() }()
+
+	const goroutines = 12
+
+	var wg sync.WaitGroup
+
+	wg.Add(goroutines)
+
+	for i := range goroutines {
+		go func(idx int) {
+			defer wg.Done()
+
+			name := fmt.Sprintf("pkg-%d.tgz", idx)
+			content := sizedContent(name, 200)
+
+			// Eviction may remove the entry right after it is stored, which is expected under
+			// a tight cap; only a hard error is a failure here.
+			if _, _, fetchErr := fc.GetOrFetch(nCtx, name, md5sum(content), makeFetchFn(content)); fetchErr != nil {
+				t.Errorf("GetOrFetch(%s): %v", name, fetchErr)
+			}
+
+			fc.GetFile(name)
+		}(i)
+	}
+
+	wg.Wait()
 }

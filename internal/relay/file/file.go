@@ -20,339 +20,108 @@
 package file
 
 import (
-	"context"
 	"fmt"
+	"io"
 	"os"
-	"path/filepath"
-	"strings"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 )
 
-const (
-	fileRecoveryInterval  = 1 * time.Hour
-	defaultExpirationTime = 24 * time.Hour
+// Options configures the relay file manager cache.
+type Options struct {
+	// ExpirationTime is how long an entry can be unused before it is reclaimed.
+	ExpirationTime time.Duration
 
-	dirDot = "."
+	// GCInterval controls how often expired entries are reclaimed.
+	GCInterval time.Duration
 
-	fileNumbers = 1
-	fileIndex   = 0
-)
+	// MaxSizeMB caps the total size of cached packages. 0 means unlimited.
+	MaxSizeMB int64
 
+	// RestoreOnStart rebuilds the index from disk at startup so a relay restart does not
+	// force every package to be transferred again.
+	RestoreOnStart bool
+}
+
+// fileManagerImpl adapts the generic filecache to the relay's package staging workflow:
+// packages arrive in a staging directory pushed by GSE, and the relay promotes them into
+// the content-addressed cache that its download server reads from.
 type fileManagerImpl struct {
-	baseDir   string
-	baseGroup fileiface.FileGroup
-
-	fileNameToKeyMap map[string]string     // filename -> key
-	filesRegistryMap map[string]*cacheInfo // key -> cacheInfo
-	mutex            sync.RWMutex
-
-	dirSequence atomic.Int64
+	cache filecache.IFileCache
 }
 
-type cacheInfo struct {
-	fileName   string
-	fileTmpDir fileiface.FileGroup
-
-	lastAccessed     time.Time
-	lastAccessedLock sync.Mutex
-}
-
-func (info *cacheInfo) updateLastAccessed() {
-	info.lastAccessedLock.Lock()
-	defer info.lastAccessedLock.Unlock()
-
-	info.lastAccessed = time.Now()
-}
-
-func (info *cacheInfo) isExpired(cutoffTime time.Time) bool {
-	info.lastAccessedLock.Lock()
-	defer info.lastAccessedLock.Unlock()
-
-	return info.lastAccessed.Before(cutoffTime)
-}
-
-// NewFileManager creates a new file manager.
-func NewFileManager(nCtx contextx.IContext, baseDir string) (IFileManager, error) {
-	if err := os.MkdirAll(baseDir, 0750); err != nil { // nolint: mnd
-		logger.G.Sys().WithErr(err).With("basedir", baseDir).Error("failed to create base dir")
-
-		return nil, err
-	}
-
-	baseGroup, err := local.NewLocalDir(baseDir)
+// NewFileManager creates a new file manager backed by a content-addressed local cache.
+func NewFileManager(nCtx contextx.IContext, baseDir string, opts Options) (IFileManager, error) {
+	cache, err := filecache.New(nCtx, baseDir, filecache.Options{
+		ExpirationTime: opts.ExpirationTime,
+		GCInterval:     opts.GCInterval,
+		MaxSizeMB:      opts.MaxSizeMB,
+		RestoreOnStart: opts.RestoreOnStart,
+	})
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("basedir", baseDir).Error("failed to create root group")
-
-		return nil, err
+		return nil, fmt.Errorf("failed to create relay file cache. basedir(%s): %w", baseDir, err)
 	}
 
-	fm := &fileManagerImpl{
-		baseDir:          baseDir,
-		baseGroup:        baseGroup,
-		fileNameToKeyMap: make(map[string]string),
-		filesRegistryMap: make(map[string]*cacheInfo),
-	}
-	fm.restore(nCtx)
-
-	go func() {
-		ticker := time.NewTicker(fileRecoveryInterval)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-nCtx.Done():
-				return
-			case <-ticker.C:
-				fm.runGC(nCtx, defaultExpirationTime)
-			}
-		}
-	}()
-
-	return fm, nil
+	return &fileManagerImpl{cache: cache}, nil
 }
 
-// restore restores the file manager.
-func (fm *fileManagerImpl) restore(nCtx contextx.IContext) {
-	fm.mutex.Lock()
-	defer fm.mutex.Unlock()
+// StoreFile promotes filename from the staging directory srcPath into the cache.
+//
+// expectedMD5 is mandatory: the staging file is written by an external GSE transfer, so the
+// only way to know it is complete is to hash what was read. A package whose content does not
+// match is discarded instead of indexed, which keeps a torn transfer from ever being served.
+// When the cache already holds this exact content the staging file is not read at all.
+func (fm *fileManagerImpl) StoreFile(
+	nCtx contextx.IContext, srcPath, filename, expectedMD5 string) (*fileiface.FileInfo, error) {
 
-	subGroups, err := fm.baseGroup.SubGroups(nCtx)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get sub group")
-
-		return
-	}
-
-	for _, group := range subGroups {
-		files, err := group.AllFiles(nCtx)
-		if err != nil || len(files) != fileNumbers {
-			logger.G.Sys().WithErr(err).With("group", group.Name()).Error("failed to get files")
-
-			continue
-		}
-
-		// if exist, check modtime.
-		info := files[fileIndex].Info()
-		filename := info.Name
-		if groupName, ok := fm.fileNameToKeyMap[filename]; ok {
-			existsGroup := fm.filesRegistryMap[groupName].fileTmpDir
-			file, err := existsGroup.GetFile(nCtx, filename)
-			if err != nil {
-				logger.G.Sys().WithErr(err).With("group", groupName, "filename", filename).Error("failed to get file")
-
-				continue
+	file, _, err := fm.cache.GetOrFetch(nCtx, filename, expectedMD5,
+		func(_ contextx.IContext) (io.ReadCloser, error) {
+			// Resolve the name through os.Root so the kernel confines it to the staging
+			// directory: the package name arrives from a server push and must not be able
+			// to reach a file outside it.
+			root, rootErr := os.OpenRoot(srcPath)
+			if rootErr != nil {
+				return nil, fmt.Errorf("failed to open staging dir. path(%s): %w", srcPath, rootErr)
 			}
 
-			modtime := file.Info().ModTime
-			if modtime.After(info.ModTime) {
-				continue
+			defer func() { _ = root.Close() }()
+
+			staged, openErr := root.Open(filename)
+			if openErr != nil {
+				return nil, fmt.Errorf("failed to open staged package. name(%s): %w", filename, openErr)
 			}
-			fm.fileNameToKeyMap[filename] = groupName
-		}
 
-		groupName := group.Name()
-
-		fm.filesRegistryMap[groupName] = &cacheInfo{
-			fileTmpDir:   group,
-			lastAccessed: time.Now(),
-			fileName:     info.Name,
-		}
-	}
-}
-
-// StoreFile store file form srcPath. return the cache file info.
-func (fm *fileManagerImpl) StoreFile(nCtx contextx.IContext, srcPath, filename string) (*fileiface.FileInfo, error) {
-	destDir, subGroup, err := fm.createNewLocalDir()
+			return staged, nil
+		})
 	if err != nil {
 		return nil, err
 	}
 
-	shouldClean := true
-	defer func() {
-		if shouldClean {
-			fm.safeRemove(destDir)
-		}
-	}()
+	info := file.Info()
 
-	filepath := filepath.Join(srcPath, filename)
-	srcFile, err := os.Open(filepath) // nolint: gosec
-	if err != nil {
-		return nil, fmt.Errorf("failed to open source file: %w", err)
-	}
-	defer srcFile.Close() // nolint: errcheck
-
-	if err := subGroup.Store(nCtx, fileiface.FileInfo{Name: filename}, srcFile, true); err != nil {
-		return nil, fmt.Errorf("failed to store file: %w", err)
-	}
-
-	file, err := subGroup.GetFile(nCtx, filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get file: %w", err)
-	}
-
-	fm.mutex.Lock()
-	defer fm.mutex.Unlock()
-
-	fm.fileNameToKeyMap[filename] = destDir
-	fm.filesRegistryMap[destDir] = &cacheInfo{
-		fileTmpDir:   subGroup,
-		lastAccessed: time.Now(),
-		fileName:     filename,
-	}
-
-	storedInfo := file.Info()
-	shouldClean = false
-
-	return &storedInfo, nil
+	return &info, nil
 }
 
-// GetFileInfo get file info, this func will refresh the file survival time.
-func (fm *fileManagerImpl) GetFile(nCtx contextx.IContext, filename string) (fileiface.File, error) {
-	fm.mutex.RLock()
-	defer fm.mutex.RUnlock()
-
-	groupDir, exists := fm.fileNameToKeyMap[filename]
-	if !exists {
-		return nil, fmt.Errorf("file not found. fliename(%s)", filename)
+// GetFile returns the cached file indexed under filename.
+// Only MD5-validated content is indexed, so a hit is always a complete package.
+func (fm *fileManagerImpl) GetFile(_ contextx.IContext, filename string) (fileiface.File, error) {
+	file, _, ok := fm.cache.GetFile(filename)
+	if !ok {
+		return nil, fmt.Errorf("file not found. filename(%s)", filename)
 	}
 
-	info, ok := fm.filesRegistryMap[groupDir]
-	if !ok || info == nil {
-		return nil, fmt.Errorf("fileinfo not found. groupdir(%s)", groupDir)
-	}
-
-	if err := fm.ensureGroupDir(local.GetLocalFileGroupAbsDirPath(info.fileTmpDir)); err != nil {
-		return nil, err
-	}
-
-	info.updateLastAccessed()
-	logger.G.Sys().With("filename", filename).Info("update last access time")
-
-	return info.fileTmpDir.GetFile(nCtx, filename)
+	return file, nil
 }
 
-// FileExists check file exists.
-func (fm *fileManagerImpl) FileExists(nCtx contextx.IContext, filename, md5 string) bool {
-	info, err := fm.GetFile(nCtx, filename)
-	if err != nil {
-		logger.G.Sys().WithErr(err).With("filename", filename).Error("file not exists")
-
-		return false
-	}
-
-	logger.G.Sys().With("filename", filename, "expected-md5", md5, "actual-md5", info.Info().MD5).Info("check if file exists")
-
-	return info.Info().MD5 == md5
+// FileExists reports whether the cache already holds this exact content.
+func (fm *fileManagerImpl) FileExists(_ contextx.IContext, filename, md5 string) bool {
+	return fm.cache.FileExists(filename, md5)
 }
 
-func (fm *fileManagerImpl) runGC(_ context.Context, maxAge time.Duration) {
-	cutoff := time.Now().Add(-maxAge)
-
-	fm.mutex.Lock()
-	defer fm.mutex.Unlock()
-
-	keysToDelete := make([]string, 0)
-	for key, info := range fm.filesRegistryMap {
-		if info.isExpired(cutoff) {
-			keysToDelete = append(keysToDelete, key)
-		}
-	}
-
-	for _, key := range keysToDelete {
-		info := fm.filesRegistryMap[key]
-		groupname := info.fileTmpDir.Name()
-
-		delete(fm.filesRegistryMap, key)
-		go fm.safeRemove(local.GetLocalFileGroupAbsDirPath(info.fileTmpDir))
-
-		logger.G.Sys().With("group", groupname).Info("removing expired group")
-	}
-}
-
-// safeRemove remove file from file manager.check the file is in baseDir and legal dir.
-func (fm *fileManagerImpl) safeRemove(groupPath string) {
-	if !isSubPath(groupPath, fm.baseDir) {
-		logger.G.Sys().With("group-path", groupPath).Info("attempt to remove file outside of basedir")
-
-		return
-	}
-
-	if err := removeAll(groupPath); err != nil {
-		logger.G.Sys().WithErr(err).With("group-path", groupPath).Error("failed to remove group")
-
-		return
-	}
-}
-
-func isSubPath(targetPath, baseDir string) bool {
-	rel, err := filepath.Rel(baseDir, targetPath)
-	if err != nil {
-		return false
-	}
-
-	return !strings.HasPrefix(rel, dirDot) && rel != dirDot
-}
-
-func removeAll(absPath string) error {
-	if absPath == "" ||
-		absPath == "/" ||
-		strings.HasPrefix(absPath, "/dev/") ||
-		strings.HasPrefix(absPath, "/sys/") ||
-		strings.HasPrefix(absPath, "/proc/") {
-
-		return fmt.Errorf("failed to remove all, got invalid path. path(%s)", absPath)
-	}
-
-	if err := os.RemoveAll(absPath); err != nil {
-		return fmt.Errorf("failed to remove all. path(%s): %w", absPath, err)
-	}
-
-	return nil
-}
-
-func (fm *fileManagerImpl) createNewLocalDir() (string, *local.LocalDir, error) {
-	if err := fm.ensureBaseDir(); err != nil {
-		return "", nil, err
-	}
-
-	destDir := filepath.Join(fm.baseDir, fm.getStorageDirName())
-	if err := fm.ensureDir(destDir, "store dir"); err != nil {
-		return "", nil, err
-	}
-
-	subGroup, err := local.NewLocalDir(destDir)
-	if err != nil {
-		defer fm.safeRemove(destDir)
-		return "", nil, fmt.Errorf("failed to create sub group: %w", err)
-	}
-
-	return destDir, subGroup, nil
-}
-
-func (fm *fileManagerImpl) getStorageDirName() string {
-	fm.dirSequence.Add(1)
-	return fmt.Sprintf("%s_%d", time.Now().Format("20060102150405"), fm.dirSequence.Load())
-}
-
-func (fm *fileManagerImpl) ensureBaseDir() error {
-	return fm.ensureDir(fm.baseDir, "base dir")
-}
-
-func (fm *fileManagerImpl) ensureGroupDir(groupPath string) error {
-	return fm.ensureDir(groupPath, "group dir")
-}
-
-func (fm *fileManagerImpl) ensureDir(path, operation string) error {
-	if err := os.MkdirAll(path, 0750); err != nil { // nolint: mnd
-		return fmt.Errorf("failed to ensure %s. path(%s): %w", operation, path, err)
-	}
-
-	return nil
+// Close stops the background reclaim goroutine.
+func (fm *fileManagerImpl) Close() error {
+	return fm.cache.Close()
 }

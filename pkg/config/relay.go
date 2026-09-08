@@ -67,6 +67,13 @@ const (
 
 	defaultRelayWorkspaceGroupFullPath = "/data/plugin-relay"
 
+	// A relay caches installation packages shared by every node it installs, so entries are
+	// kept for a week to survive cross-week reinstalls, with a size cap as the hard backstop.
+	defaultRelayFileCacheExpirationHours = 168
+	defaultRelayFileCacheGCIntervalHours = 1
+	defaultRelayFileCacheMaxSizeMB       = 10240
+	defaultRelayFileCacheRestoreOnStart  = true
+
 	defaultRelayTracingExporterType    = "stdout"
 	defaultRelayGlobalTraceServiceName = "relay"
 )
@@ -83,9 +90,54 @@ type RelayService struct {
 
 	RelayWorkspaceFileGroup FileGroup `yaml:"relayWorkspaceFileGroup" usage:"relay workspace file group config of relay service"`
 
+	FileCache RelayFileCache `yaml:"fileCache" usage:"installation package cache config of relay service"`
+
 	Tracing   Tracing   `yaml:"tracing" usage:"tracing config of relay service"`
 	Profiling Profiling `yaml:"profiling" usage:"profiling config of relay service"`
 	Log       Log       `yaml:"log" usage:"log config of relay service"`
+}
+
+// RelayFileCache configures the local installation package cache used by the relay.
+// The relay serves these packages to every node it installs, so entries are shared across
+// installations and only reclaimed once unused.
+type RelayFileCache struct {
+	// ExpirationHours is the number of hours after which an unused cache entry is evicted by GC.
+	// Defaults to 168 hours (7 days).
+	ExpirationHours int `yaml:"expirationHours" usage:"number of hours an unused cache entry is retained"`
+
+	// GCIntervalHours is the number of hours between garbage collection runs.
+	// Defaults to 1 hour.
+	GCIntervalHours int `yaml:"gcIntervalHours" usage:"number of hours between garbage collection runs"`
+
+	// MaxSizeMB caps the total size of cached packages. When exceeded, the least recently used
+	// entries are evicted until the cache fits again. Defaults to 10240 MB (10 GB).
+	// Set to 0 to disable the cap and rely on ExpirationHours alone.
+	MaxSizeMB int64 `yaml:"maxSizeMB" usage:"maximum total size in MB of cached packages, 0 means unlimited"`
+
+	// RestoreOnStart controls whether existing cache entries on disk are loaded into the
+	// in-memory index at startup. Defaults to true: without it a relay restart would force
+	// every package to be transferred again.
+	RestoreOnStart bool `yaml:"restoreOnStart" usage:"restore cache entries from disk on startup"`
+}
+
+// Validate validates the relay file cache config.
+// Negative values are rejected rather than normalized: the cache treats a non-positive
+// MaxSizeMB as "unlimited", so silently accepting a typo would remove the very disk
+// safeguard this config exists to provide.
+func (conf RelayFileCache) Validate() error {
+	if conf.ExpirationHours < 0 {
+		return fmt.Errorf("file cache expiration hours must not be negative, got(%d)", conf.ExpirationHours)
+	}
+
+	if conf.GCIntervalHours < 0 {
+		return fmt.Errorf("file cache gc interval hours must not be negative, got(%d)", conf.GCIntervalHours)
+	}
+
+	if conf.MaxSizeMB < 0 {
+		return fmt.Errorf("file cache max size mb must not be negative, got(%d)", conf.MaxSizeMB)
+	}
+
+	return nil
 }
 
 // NewRelayService generates a new RelayService with default value.
@@ -155,6 +207,12 @@ func NewRelayService() *RelayService {
 		RelayWorkspaceFileGroup: FileGroup{
 			FullPath: defaultRelayWorkspaceGroupFullPath,
 		},
+		FileCache: RelayFileCache{
+			ExpirationHours: defaultRelayFileCacheExpirationHours,
+			GCIntervalHours: defaultRelayFileCacheGCIntervalHours,
+			MaxSizeMB:       defaultRelayFileCacheMaxSizeMB,
+			RestoreOnStart:  defaultRelayFileCacheRestoreOnStart,
+		},
 		Tracing: Tracing{
 			ExporterType: defaultRelayTracingExporterType,
 			GlobalService: TraceService{
@@ -206,6 +264,10 @@ func (svc *RelayService) Validate() error {
 
 	if err := svc.RelayWorkspaceFileGroup.Validate(); err != nil {
 		return fmt.Errorf("failed to validate workspace file group config: %w", err)
+	}
+
+	if err := svc.FileCache.Validate(); err != nil {
+		return fmt.Errorf("failed to validate file cache config: %w", err)
 	}
 
 	if err := svc.Log.Validate(); err != nil {
