@@ -21,6 +21,7 @@ package v3
 
 import (
 	"net/http"
+	"regexp"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v3/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -29,6 +30,7 @@ import (
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/gin-gonic/gin"
 )
@@ -65,6 +67,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 // using the IAM system token.
 // nolint: varnamelen
 func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
+	tenantIDPattern := regexp.MustCompile(restserver.TenantIDRegexp)
+
 	return func(c *gin.Context) {
 		// Extract Basic Auth credentials from HTTP Header
 		username, password, ok := c.Request.BasicAuth()
@@ -78,8 +82,30 @@ func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Create context for IAM handler
-		ctx := contextx.FromContext(c.Request.Context())
+		rCtx, err := restserver.GenRestContext(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code": http.StatusUnauthorized, "message": "missing rest context",
+			})
+
+			return
+		}
+
+		tenantID := tenant.SingleModeTenantID
+		if tenant.GetMode() == tenant.ModeMultiple {
+			tenantID = c.GetHeader(apigwheader.BKGWTenantIDKey)
+			if !tenantIDPattern.MatchString(tenantID) {
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+					"code": http.StatusBadRequest, "message": "invalid tenant id",
+				})
+
+				return
+			}
+		}
+
+		// Keep token validation and downstream provider queries in the same tenant.
+		rCtx.Data().SetTenantID(tenantID)
+		ctx := contextx.From(rCtx, contextx.WithTenantID(tenantID))
 
 		// Validate credentials using IAMV3Handler
 		if err := h.iamV3Handler.IsBasicAuthAllowed(ctx, username, password); err != nil {
@@ -90,10 +116,6 @@ func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 			})
 
 			return
-		}
-
-		if rCtx, err := restserver.GenRestContext(c); err == nil && rCtx.Data().GetTenantID() == "" {
-			rCtx.Data().SetTenantID(tenant.SingleModeTenantID)
 		}
 
 		// Authentication successful, continue processing
