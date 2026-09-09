@@ -44,6 +44,7 @@ type DeployPolicy struct {
 	Specs          []*Spec   `json:"specs" bson:"specs"`
 	Scopes         []*Scope  `json:"scopes" bson:"scopes"`
 	Enabled        bool      `json:"enabled" bson:"enabled"`
+	EnsureAbsent   bool      `json:"ensure_absent" bson:"ensure_absent"`
 	LifeCycle      LifeCycle `json:"life_cycle" bson:"life_cycle"`
 	Operator       string    `json:"operator" bson:"operator"`
 }

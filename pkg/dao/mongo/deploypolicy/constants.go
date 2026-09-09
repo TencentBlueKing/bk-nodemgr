@@ -31,6 +31,9 @@ const (
 	// FieldKeyEnabled the enabled field key.
 	FieldKeyEnabled = "data.enabled"
 
+	// FieldKeyEnsureAbsent the ensure absent field key.
+	FieldKeyEnsureAbsent = "data.ensure_absent"
+
 	// FieldKeyOperator the operator field key.
 	FieldKeyOperator = "data.operator"
 

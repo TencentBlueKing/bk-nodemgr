@@ -214,6 +214,7 @@ func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy) (*DeployPolicy,
 		Scopes:         scopes,
 		Operator:       deployPolicy.Operator,
 		Enabled:        deployPolicy.Enabled,
+		EnsureAbsent:   deployPolicy.EnsureAbsent,
 	}, nil
 }
 
@@ -548,6 +549,7 @@ func convDeployPolicyToTypes(deployPolicy *DeployPolicy) (*types.DeployPolicy, e
 		Specs:          specs,
 		Operator:       deployPolicy.GetOperator(),
 		Enabled:        deployPolicy.GetEnabled(),
+		EnsureAbsent:   deployPolicy.GetEnsureAbsent(),
 	}, nil
 }
 
@@ -878,10 +880,11 @@ func (x *DeployPolicyUpdateReq) ConvertFieldsToTypes() types.DeployPolicyFields 
 	}
 
 	return types.DeployPolicyFields{
-		Meta:    x.GetFields().GetMeta(),
-		Scopes:  x.GetFields().GetScopes(),
-		Specs:   x.GetFields().GetSpecs(),
-		Enabled: x.GetFields().GetEnabled(),
+		Meta:         x.GetFields().GetMeta(),
+		Scopes:       x.GetFields().GetScopes(),
+		Specs:        x.GetFields().GetSpecs(),
+		Enabled:      x.GetFields().GetEnabled(),
+		EnsureAbsent: x.GetFields().GetEnsureAbsent(),
 	}
 }
 

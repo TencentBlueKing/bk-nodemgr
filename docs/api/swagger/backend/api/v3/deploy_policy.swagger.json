@@ -252,6 +252,10 @@
         },
         "enabled": {
           "type": "boolean"
+        },
+        "ensure_absent": {
+          "type": "boolean",
+          "description": "Whether all specs should ensure absence. Defaults to false (forward).\nCurrently stored only; execution does not interpret this field yet."
         }
       },
       "description": "DeployPolicy describes the deploy policy."
@@ -414,6 +418,10 @@
         },
         "enabled": {
           "type": "boolean"
+        },
+        "ensure_absent": {
+          "type": "boolean",
+          "description": "Update ensure_absent, including an explicit false value."
         }
       },
       "description": "DeployPolicyFields describes the fields of deploy policy."

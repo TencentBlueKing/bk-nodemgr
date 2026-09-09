@@ -150,6 +150,7 @@ func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy, tenantID string
 		Scopes:         scopes,
 		Operator:       deployPolicy.Operator,
 		Enabled:        deployPolicy.Enabled,
+		EnsureAbsent:   deployPolicy.EnsureAbsent,
 		LifeCycle:      convDeployPolicyLifeCycleFromTypes(deployPolicy.LifeCycle),
 	}
 
@@ -455,6 +456,7 @@ func convDeployPolicyToTypes(data *DeployPolicy) (*types.DeployPolicy, error) {
 		DsuID:          data.DsuID,
 		Operator:       data.Operator,
 		Enabled:        data.Enabled,
+		EnsureAbsent:   data.EnsureAbsent,
 		LifeCycle:      convDeployPolicyLifeCycleToTypes(data.LifeCycle),
 	}
 
@@ -829,7 +831,7 @@ func (h *Handler) UpdateFields(nCtx contextx.IContext, fields types.DeployPolicy
 	}
 
 	// Check if at least one field is set to update
-	if !fields.Meta && !fields.Scopes && !fields.Specs && !fields.Enabled {
+	if !fields.Meta && !fields.Scopes && !fields.Specs && !fields.Enabled && !fields.EnsureAbsent {
 		return base.ErrInvalidParam(fmt.Errorf("at least one field must be set to update"))
 	}
 
@@ -900,6 +902,10 @@ func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *
 
 	if fields.Enabled {
 		updates[FieldKeyEnabled] = deployPolicy.Enabled
+	}
+
+	if fields.EnsureAbsent {
+		updates[FieldKeyEnsureAbsent] = deployPolicy.EnsureAbsent
 	}
 
 	return updates, nil

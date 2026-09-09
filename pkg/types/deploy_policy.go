@@ -37,6 +37,8 @@ type DeployPolicy struct {
 
 	Operator string
 	Enabled  bool
+	// EnsureAbsent declares absence for all specs; false preserves forward behavior.
+	EnsureAbsent bool
 
 	LifeCycle DeployPolicyLifeCycle
 }
@@ -562,18 +564,20 @@ func (param *ProjectPluginConfigTemplateToHostsParam) Validate() error {
 
 // DeployPolicyFields represents the fields of DeployPolicy.
 type DeployPolicyFields struct {
-	Meta    bool
-	Scopes  bool
-	Specs   bool
-	Enabled bool
+	Meta         bool
+	Scopes       bool
+	Specs        bool
+	Enabled      bool
+	EnsureAbsent bool
 }
 
 // NewAllDeployPolicyFields returns all fields of DeployPolicy.
 func NewAllDeployPolicyFields() DeployPolicyFields {
 	return DeployPolicyFields{
-		Meta:    true,
-		Scopes:  true,
-		Specs:   true,
-		Enabled: true,
+		Meta:         true,
+		Scopes:       true,
+		Specs:        true,
+		Enabled:      true,
+		EnsureAbsent: true,
 	}
 }

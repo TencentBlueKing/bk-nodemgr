@@ -123,6 +123,9 @@ message DeployPolicy {
 
   string operator = 6;
   bool enabled = 7;
+  // Whether all specs should ensure absence. Defaults to false (forward).
+  // Currently stored only; execution does not interpret this field yet.
+  bool ensure_absent = 8;
 }
 
 // DeployPolicyExactConditions describes exact conditions of deploy policy.
@@ -192,6 +195,8 @@ message DeployPolicyFields {
   bool scopes = 2;
   bool specs = 3;
   bool enabled = 4;
+  // Update ensure_absent, including an explicit false value.
+  bool ensure_absent = 5;
 }
 
 // DeployPolicyUpdateReq describes HTTP request body when update deploy policy.
