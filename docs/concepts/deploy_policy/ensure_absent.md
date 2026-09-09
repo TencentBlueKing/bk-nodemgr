@@ -1,25 +1,25 @@
 ## ensure_absent
 
-`ensure_absent` is a policy-level boolean that records the desired-state direction for the policy's specs. It defaults to `false`, preserving forward deployment. `enabled` controls whether a policy participates; it does not select forward or reverse behavior. Disabling a policy does not request removal.
+`ensure_absent` 是策略级布尔字段，统一声明策略内所有 spec 的期望状态方向。默认值为 `false`，保持正向部署。`enabled` 控制策略是否参与计算，不决定正向或反向；停用策略不表示要求删除目标。
 
-### Current Behavior
+### 当前能力
 
-**Unreleased:** Update saves `ensure_absent`; Backend list returns it. The current executor ignores the field, so executing a policy with `ensure_absent: true` still runs existing logic, not safe absence enforcement.
+**未发布：** 更新接口保存 `ensure_absent`，Backend 列表接口返回该字段。当前执行器尚未处理该字段，即使设置为 `true`，执行策略时仍会运行现有逻辑，不会确保目标不存在，不能用于反向清理。
 
-Create is unchanged: new policies and existing policies without the stored field default to `false`. No new endpoints, filters, frontend controls, or Agent/Proxy absence support are added.
+创建接口保持不变：新策略以及未存储该字段的旧策略均默认为 `false`。本阶段不新增接口、筛选条件、前端控件，也不增加 Agent/Proxy 的反向能力。
 
-### Update Contract
+### 更新契约
 
-`POST /api/v3/deploy_policy/update` saves without triggering execution. `fields.ensure_absent` is an optional boolean mask applying to every `deploy_policies` entry; `deploy_policies[n].ensure_absent` is the optional boolean value.
+`POST /api/v3/deploy_policy/update` 只保存声明，不触发执行。`fields.ensure_absent` 是可选的布尔字段掩码，控制是否更新 `deploy_policies` 中每条策略的该字段；`deploy_policies[n].ensure_absent` 是各条策略要保存的可选布尔值。
 
-| `fields.ensure_absent` | Entry `ensure_absent` | Saved value                 |
-| ---------------------- | --------------------- | --------------------------- |
-| Omitted or `false`     | Any value or omitted  | Preserve the existing value |
-| `true`                 | `true`                | `true`                      |
-| `true`                 | `false`               | `false`                     |
-| `true`                 | Omitted               | `false`                     |
+| `fields.ensure_absent` | 策略中的 `ensure_absent` | 保存结果 |
+| ---------------------- | ------------------------ | -------- |
+| 未传或 `false`         | 任意值或未传             | 保留原值 |
+| `true`                 | `true`                   | `true`   |
+| `true`                 | `false`                  | `false`  |
+| `true`                 | 未传                     | `false`  |
 
-Save absence intent:
+保存“确保不存在”的声明：
 
 ```json
 {
@@ -35,41 +35,41 @@ Save absence intent:
 }
 ```
 
-To restore forward intent, keep the mask `true` and set the entry value to `false`. Update returns `data: null`, without a policy ID or trigger ID; Backend list returns `data.items[n].ensure_absent`.
+恢复正向声明时，保持字段掩码为 `true`，将策略中的值设为 `false`。更新接口返回 `data: null`，不返回策略 ID 或触发 ID；通过 Backend 列表接口的 `data.items[n].ensure_absent` 读取保存结果。
 
-### Agreed Future Semantics
+### 已约定的反向语义
 
-These rules are not implemented. For participating policies, `false` selects each spec's forward state; `true` selects absence of its identified plugin or configuration outputs.
+以下规则尚未实现。对于参与计算的策略，`false` 表示按各 spec 的正向期望状态收敛；`true` 表示确保各 spec 标识的插件或配置产物不存在。
 
-Conflict priority remains oldest-created-first. Reverse policies receive no special priority over forward policies. Absence matching does not filter by version: a matching installed plugin must be removed even when its version differs from the spec's version.
+策略冲突仍按创建时间排序，先创建的策略优先，反向策略不比正向策略具有更高优先级。反向匹配不按版本筛选：只要已安装插件匹配目标，即使其版本与 spec 中的版本不同，也需要卸载。
 
-#### Target Selection And Ownership
+#### 目标选择与归属
 
-| Spec category                                                                                 | Future absence target                                                                                                                                                                                           |
-| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `specify_plugin`                                                                              | Plugins matching `plugin_name` within the **current scope**, regardless of installation origin or ownership. Installed but stopped plugins are included. This does not include hosts outside the current scope. |
-| Ownership-backed plugin specs, such as `specify_plugin_pkg` and `project_plugin_pkg_to_hosts` | Outputs attributable to the respective spec, using the plugin group equal to the policy ID as ownership evidence. Include that spec's outputs left at old scope targets or old placement hosts.                 |
-| Ownership-backed configuration specs                                                          | Configuration outputs attributable to the respective spec, using the configuration set `deploy_policy_<ID>` as ownership evidence. Include that spec's outputs left at old scope targets or old placements.     |
+| spec 类别                                                                       | 反向清理目标                                                                                                                        |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `specify_plugin`                                                                | **当前 scope** 内与 `plugin_name` 匹配的插件，不区分安装来源或归属。包括已安装但已停止的插件，不包含当前 scope 之外的主机。         |
+| 有归属标记的插件 spec，例如 `specify_plugin_pkg`、`project_plugin_pkg_to_hosts` | 归属于当前 spec 的插件产物，以值为策略 ID 的插件 `group` 作为策略归属依据。包括该 spec 遗留在旧 scope 目标或旧承载主机上的产物。    |
+| 有归属标记的配置 spec                                                           | 归属于当前 spec 的配置产物，以配置集合 `deploy_policy_<ID>` 作为策略归属依据。包括该 spec 遗留在旧 scope 目标或旧承载位置上的产物。 |
 
-The plugin `group` is the policy ID as a string; the configuration set is `deploy_policy_<ID>` (for example, `deploy_policy_1001`). These markers prove policy ownership, not complete spec identity. Cleanup must establish attribution to the respective spec, not indiscriminately delete policy-wide historical outputs, other specs' outputs, or outputs of removed specs.
+插件 `group` 的值为字符串形式的策略 ID；配置集合为 `deploy_policy_<ID>`，例如 `deploy_policy_1001`。这些标记只能证明产物属于某条策略，不能完整标识具体 spec。清理时必须确认产物属于当前 spec，不能直接清空整条策略的历史产物，也不能删除其他 spec 或已移除 spec 的产物。
 
-#### Spec Identity
+#### spec 身份约束
 
-A spec's `type` is immutable under the agreed future rule, not currently enforced. Versions, configuration content, and placement remain mutable; other identity fields and attribution rules remain to be determined per spec.
+约定 spec 的 `type` 不可修改，当前尚未执行这一校验。版本、配置内容和承载位置允许修改；其他身份字段的修改限制及产物归属规则，需要按 spec 类型逐一确定。
 
-#### Completion Rules
+#### 收敛判定
 
-| Observed state or result                                                  | Future required behavior                                                                                |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Matching plugin is installed, running or stopped                          | Uninstall it; stopping the process is not absence                                                       |
-| Matching configuration file exists                                        | Actually delete the file and synchronize its management record; deleting only the record is not absence |
-| Target is confirmed already absent                                        | No-op; repeated reconciliation is idempotent                                                            |
-| Host is unreachable, deletion/uninstall fails, or actual state is unknown | Do not report successful absence                                                                        |
+| 实际状态或执行结果                       | 收敛要求                                           |
+| ---------------------------------------- | -------------------------------------------------- |
+| 匹配的插件已安装，无论运行中还是已停止   | 完成卸载；仅停止进程不算不存在                     |
+| 匹配的配置文件存在                       | 实际删除文件，并同步管理记录；仅删除记录不算不存在 |
+| 已确认目标不存在                         | 不操作，重复收敛保持幂等                           |
+| 主机不可达、删除或卸载失败、实际状态未知 | 不得报告已成功收敛到不存在状态                     |
 
-Stopped or missing Running processes do not prove file absence; record-only forward cleanup does not satisfy this contract.
+进程已停止或缺少 Running 记录，不能证明文件不存在。现有正向清理中仅删除记录的行为，不满足这里的反向契约。
 
-### References
+### 相关文档
 
-- [Deploy specs](spec.md)
-- [Update API](../../../apigw/apidocs/en/DeployPolicySvc_Update.md)
-- [Backend list API](../../../apigw/apidocs/en/DeployPolicySvc_List.md)
+- [部署规格](spec.md)
+- [更新部署策略](../../../apigw/apidocs/zh/DeployPolicySvc_Update.md)
+- [查询部署策略列表](../../../apigw/apidocs/zh/DeployPolicySvc_List.md)
