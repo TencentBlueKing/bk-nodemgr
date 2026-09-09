@@ -64,7 +64,11 @@ downloadServer:
   traceSampleRate: 0
 
 relayWorkspaceFileGroup:
-  fullPath: {{ .CustomContext.WorkspaceFileGroupFullPath | default "/tmp/bknm/relay" }}
+  {{- if eq .NodeInfo.Dynamic.NodeOsType "windows" }}
+  fullPath: {{ .CustomContext.WorkspaceFileGroupFullPath | default (printf "c:/tmp/bknm/%s/relay" (.PluginInfo.DeployEnv | default "dev")) }}
+  {{- else }}
+  fullPath: {{ .CustomContext.WorkspaceFileGroupFullPath | default (printf "/tmp/bknm/%s/relay" (.PluginInfo.DeployEnv | default "dev")) }}
+  {{- end }}
 
 log:
   dir: {{ .CustomContext.Log.LogDir | default .PluginInfo.LogPath }}

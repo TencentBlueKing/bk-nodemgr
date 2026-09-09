@@ -33,6 +33,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -282,6 +283,9 @@ type ContextPluginInfo struct {
 	BindIP        string `json:"BindIP"`
 	BindPort      int    `json:"BindPort"`
 	PortRange     string `json:"PortRange"`
+	// DeployEnv lets a template isolate its own paths per environment, the way the installer
+	// derives deploy/work dirs. Needed by plugins that write outside the env-scoped GSE dirs.
+	DeployEnv string `json:"DeployEnv"`
 }
 
 // ContextPreDefinitionConstants pre-definition constants for render context.
@@ -432,6 +436,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemCon
 		BindIP:        std.DeployInfo().Process.BindIP,
 		BindPort:      std.DeployInfo().Process.BindPort,
 		PortRange:     string(portRange),
+		DeployEnv:     system.GetEnv(),
 	}
 
 	preDefinitionConstants := ContextPreDefinitionConstants{

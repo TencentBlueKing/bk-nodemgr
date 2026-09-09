@@ -83,10 +83,10 @@ configTemplates:
             properties:
       - title: WorkspaceFileGroupFullPath
         type: string
-        default: /tmp/bknm/relay/
+        default: ""
         required: false
-        description: 文件分发工作空间路径
-        descriptionEn: File Distribution Workspace Path
+        description: 文件分发工作空间路径，留空则按部署环境自动隔离为 /tmp/bknm/{部署环境}/relay（Windows 为 c:/tmp/bknm/{部署环境}/relay）
+        descriptionEn: File distribution workspace path. Leave empty to isolate per deploy env at /tmp/bknm/{deploy_env}/relay (c:/tmp/bknm/{deploy_env}/relay on Windows)
         properties:
 control:
   start: "./start.sh bk-nodemgr-relay"

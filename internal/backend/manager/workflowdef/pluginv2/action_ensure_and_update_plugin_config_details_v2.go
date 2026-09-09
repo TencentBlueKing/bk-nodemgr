@@ -33,6 +33,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -261,6 +262,9 @@ type ContextPluginInfo struct {
 	AgentDir      string `json:"AgentDir"`
 	GroupID       string `json:"GroupID"`
 	IsMultiTenant bool   `json:"IsMultiTenant"`
+	// DeployEnv lets a template isolate its own paths per environment, the way the installer
+	// derives deploy/work dirs. Needed by plugins that write outside the env-scoped GSE dirs.
+	DeployEnv string `json:"DeployEnv"`
 }
 
 // ContextPreDefinitionConstants pre-definition constants for render context.
@@ -406,6 +410,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) generateGoTemplateSystemC
 		AgentDir:      std.DeployInfo().BaseRuntime.GSEHomeDir,
 		GroupID:       std.DeployInfo().Process.PluginGroup,
 		IsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
+		DeployEnv:     system.GetEnv(),
 	}
 
 	preDefinitionConstants := ContextPreDefinitionConstants{

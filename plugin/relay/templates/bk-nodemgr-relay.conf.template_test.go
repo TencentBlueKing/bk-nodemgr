@@ -286,6 +286,104 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 			},
 		},
 		{
+			name: "Workspace path is isolated per deploy env on linux",
+			data: map[string]any{
+				"PluginInfo": map[string]any{
+					"Name":      "bk-nodemgr-relay",
+					"PidPath":   "/var/run",
+					"LogPath":   "/var/log",
+					"PluginIPC": "/tmp/ipc.sock",
+					"DeployEnv": "gse2_opbk",
+				},
+				"NodeInfo": map[string]any{
+					"Dynamic": map[string]any{
+						"NodeOsType": "linux",
+					},
+				},
+				"CustomContext": map[string]any{},
+			},
+			validate: func(t *testing.T, result string) {
+				if !strings.Contains(result, "fullPath: /tmp/bknm/gse2_opbk/relay") {
+					t.Error("Workspace path should carry the deploy env so relays of different envs stay isolated")
+				}
+			},
+		},
+		{
+			name: "Workspace path is isolated per deploy env on windows",
+			data: map[string]any{
+				"PluginInfo": map[string]any{
+					"Name":      "bk-nodemgr-relay",
+					"PidPath":   `c:\var\run`,
+					"LogPath":   `c:\var\log`,
+					"PluginIPC": "26000",
+					"DeployEnv": "gse2_opbk",
+				},
+				"NodeInfo": map[string]any{
+					"Dynamic": map[string]any{
+						"NodeOsType": "windows",
+					},
+				},
+				"CustomContext": map[string]any{},
+			},
+			validate: func(t *testing.T, result string) {
+				if !strings.Contains(result, "fullPath: c:/tmp/bknm/gse2_opbk/relay") {
+					t.Error("Windows workspace path should carry the deploy env")
+				}
+			},
+		},
+		{
+			name: "Explicit workspace path overrides the per env default",
+			data: map[string]any{
+				"PluginInfo": map[string]any{
+					"Name":      "bk-nodemgr-relay",
+					"PidPath":   "/var/run",
+					"LogPath":   "/var/log",
+					"PluginIPC": "/tmp/ipc.sock",
+					"DeployEnv": "gse2_opbk",
+				},
+				"NodeInfo": map[string]any{
+					"Dynamic": map[string]any{
+						"NodeOsType": "linux",
+					},
+				},
+				"CustomContext": map[string]any{
+					"WorkspaceFileGroupFullPath": "/data/bknm/relay",
+				},
+			},
+			validate: func(t *testing.T, result string) {
+				if !strings.Contains(result, "fullPath: /data/bknm/relay") {
+					t.Error("An explicitly configured workspace path must win over the default")
+				}
+				if strings.Contains(result, "/tmp/bknm/gse2_opbk/relay") {
+					t.Error("The per env default must not be emitted when overridden")
+				}
+			},
+		},
+		{
+			name: "Workspace path falls back to dev when deploy env is absent",
+			data: map[string]any{
+				"PluginInfo": map[string]any{
+					"Name":      "bk-nodemgr-relay",
+					"PidPath":   "/var/run",
+					"LogPath":   "/var/log",
+					"PluginIPC": "/tmp/ipc.sock",
+				},
+				"NodeInfo": map[string]any{
+					"Dynamic": map[string]any{
+						"NodeOsType": "linux",
+					},
+				},
+				"CustomContext": map[string]any{},
+			},
+			validate: func(t *testing.T, result string) {
+				// Never render an empty segment: /tmp/bknm//relay would silently collapse the
+				// isolation this default exists to provide.
+				if !strings.Contains(result, "fullPath: /tmp/bknm/dev/relay") {
+					t.Error("A missing deploy env should fall back to dev, not produce an empty path segment")
+				}
+			},
+		},
+		{
 			name: "Tracing config is not included",
 			data: map[string]any{
 				"PluginInfo": map[string]any{
