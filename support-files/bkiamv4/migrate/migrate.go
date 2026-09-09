@@ -51,7 +51,9 @@ import (
 const (
 	requestTimeout              = 30 * time.Second
 	operationUpsertResourceType = "upsert_resource_type"
+	operationUpsertAction       = "upsert_action"
 	fieldName                   = "name"
+	fieldID                     = "id"
 )
 
 type options struct {
@@ -75,6 +77,7 @@ type operation struct {
 	Data      map[string]json.RawMessage `json:"data"`
 	fields    iamv4.SystemFields
 	resource  iamv4.ResourceType
+	action    iamv4.Action
 }
 
 func main() {
@@ -263,6 +266,9 @@ func loadMigration(file, appCode string) (migration, error) {
 		if op.Operation == operationUpsertResourceType {
 			target = &item.Operations[index].resource
 		}
+		if op.Operation == operationUpsertAction {
+			target = &item.Operations[index].action
+		}
 		if err := json.Unmarshal(data, target); err != nil {
 			return item, fmt.Errorf("%s operation %d: decode model fields: %w", file, index+1, err)
 		}
@@ -272,6 +278,9 @@ func loadMigration(file, appCode string) (migration, error) {
 }
 
 func validateOperation(systemID string, op operation, appCode string) error {
+	if op.Operation == operationUpsertAction {
+		return validateAction(op.Data)
+	}
 	if op.Operation == operationUpsertResourceType {
 		return validateResourceType(op.Data)
 	}
@@ -279,7 +288,7 @@ func validateOperation(systemID string, op operation, appCode string) error {
 		return fmt.Errorf("unsupported operation %q", op.Operation)
 	}
 	var id string
-	if err := json.Unmarshal(op.Data["id"], &id); err != nil {
+	if err := json.Unmarshal(op.Data[fieldID], &id); err != nil {
 		return fmt.Errorf("data.id is required: %w", err)
 	}
 	if id != systemID {
@@ -299,7 +308,7 @@ func validateSystemField(field string, raw json.RawMessage, appCode string) erro
 		return fmt.Errorf("data.%s must not be null; omit it to preserve the remote value", field)
 	}
 	switch field {
-	case "id", fieldName, "description", "callback_url":
+	case fieldID, fieldName, "description", "callback_url":
 		var value string
 		if err := json.Unmarshal(raw, &value); err != nil {
 			return fmt.Errorf("data.%s must be a string: %w", field, err)
@@ -343,8 +352,16 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 	// Track virtual creates during dry-run so later operations see the planned system.
 	plannedSystems := make(map[string]bool)
 	resourceTypes := make(map[string]map[string]iamv4.ResourceType)
+	actions := make(map[string]map[string]iamv4.Action)
 	for _, item := range migrations {
 		for index, op := range item.Operations {
+			if op.Operation == operationUpsertAction {
+				if err := item.executeAction(ctx, handler, op, actions, resourceTypes, dryRun, out); err != nil {
+					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
+				}
+
+				continue
+			}
 			if op.Operation == operationUpsertResourceType {
 				resourceHandler, ok := handler.(iamv4.ResourceTypeHandler)
 				if !ok {
@@ -372,6 +389,7 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 				if !exists {
 					// The planned system cannot be queried until it is actually created.
 					resourceTypes[item.SystemID] = make(map[string]iamv4.ResourceType)
+					actions[item.SystemID] = make(map[string]iamv4.Action)
 				}
 			}
 		}

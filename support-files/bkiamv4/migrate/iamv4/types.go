@@ -128,6 +128,46 @@ type UpdateResourceTypeReq struct {
 // UpdateResourceTypeResp represents the absence of data on a successful HTTP 204.
 type UpdateResourceTypeResp struct{}
 
+// Action describes an IAM action; an empty resource type ID means no resource binding.
+type Action struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	ResourceTypeID string `json:"resource_type_id"`
+}
+
+// ListActionsReq identifies one page of a system's actions.
+type ListActionsReq struct {
+	SystemID string `json:"-"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"page_size"`
+}
+
+// ListActionsResp contains one page and the total action count.
+type ListActionsResp struct {
+	// A pointer distinguishes an omitted count from a valid empty collection.
+	Count   *int     `json:"count"`
+	Results []Action `json:"results"`
+}
+
+// BatchCreateActionReq identifies the system and the array sent as the body.
+type BatchCreateActionReq struct {
+	SystemID string   `json:"-"`
+	Actions  []Action `json:"-"`
+}
+
+// BatchCreateActionResp contains the registered action IDs.
+type BatchCreateActionResp []string
+
+// UpdateActionReq identifies an action and its new name; binding updates are not supported.
+type UpdateActionReq struct {
+	SystemID string `json:"-"`
+	ActionID string `json:"-"`
+	Name     string `json:"name"`
+}
+
+// UpdateActionResp represents the absence of data on a successful HTTP 204.
+type UpdateActionResp struct{}
+
 // RespError describes an IAM API error.
 type RespError struct {
 	Code    string `json:"code"`

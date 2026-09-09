@@ -211,3 +211,70 @@ func (c *cli) updateResourceType(ctx contextx.IContext, req *UpdateResourceTypeR
 
 	return nil
 }
+
+func (c *cli) listActions(ctx contextx.IContext, req *ListActionsReq) (*BaseBroker[*ListActionsResp], error) {
+	resp := new(BaseBroker[*ListActionsResp])
+	result := c.client.Get().
+		SubResourcef("/rbac/model/systems/%s/actions/", req.SystemID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		WithParam("page", strconv.Itoa(req.Page)).
+		WithParam("page_size", strconv.Itoa(req.PageSize)).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return nil, fmt.Errorf("list actions page %d: %w", req.Page, err)
+	}
+	if result.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("list_actions: unexpected HTTP %d (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list actions failed: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq) (*BaseBroker[BatchCreateActionResp], error) {
+	resp := new(BaseBroker[BatchCreateActionResp])
+	result := c.client.Post().
+		SubResourcef("/rbac/model/systems/%s/actions/", req.SystemID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req.Actions).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return nil, fmt.Errorf("create action: %w", err)
+	}
+	if result.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("create_action: unexpected HTTP %d (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("create action failed: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateAction(ctx contextx.IContext, req *UpdateActionReq) error {
+	resp := new(BaseBroker[UpdateActionResp])
+	result := c.client.Put().
+		SubResourcef("/rbac/model/systems/%s/actions/%s/", req.SystemID, req.ActionID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return fmt.Errorf("update action: %w", err)
+	}
+	if result.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("update_action: unexpected HTTP %d (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("update action failed: %w", err)
+	}
+
+	return nil
+}

@@ -34,7 +34,7 @@ import (
 func validateResourceType(data map[string]json.RawMessage) error {
 	var resource iamv4.ResourceType
 	idPattern := regexp.MustCompile(`^[a-z][a-z0-9_-]{0,31}$`)
-	if err := json.Unmarshal(data["id"], &resource.ID); err != nil {
+	if err := json.Unmarshal(data[fieldID], &resource.ID); err != nil {
 		return fmt.Errorf("data.id is required: %w", err)
 	}
 	if !idPattern.MatchString(resource.ID) {
@@ -45,7 +45,7 @@ func validateResourceType(data map[string]json.RawMessage) error {
 			return fmt.Errorf("data.%s must not be null; omit it to preserve the remote value", field)
 		}
 		switch field {
-		case "id":
+		case fieldID:
 			// Already validated above.
 		case fieldName:
 			if err := json.Unmarshal(raw, &resource.Name); err != nil {
@@ -77,17 +77,9 @@ func (item migration) executeResourceType(
 	states map[string]map[string]iamv4.ResourceType, dryRun bool, out io.Writer,
 ) error {
 
-	resources, loaded := states[item.SystemID]
-	if !loaded {
-		listed, err := handler.ListResourceTypes(ctx, item.SystemID)
-		if err != nil {
-			return fmt.Errorf("list resource types for %s: %w", item.SystemID, err)
-		}
-		resources = make(map[string]iamv4.ResourceType, len(listed))
-		for _, resource := range listed {
-			resources[resource.ID] = resource
-		}
-		states[item.SystemID] = resources
+	resources, err := loadResourceTypes(ctx, handler, item.SystemID, states)
+	if err != nil {
+		return err
 	}
 	resource := op.resource
 	current, exists := resources[resource.ID]
@@ -125,6 +117,27 @@ func (item migration) executeResourceType(
 	resources[resource.ID] = resource
 
 	return nil
+}
+
+func loadResourceTypes(
+	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string,
+	states map[string]map[string]iamv4.ResourceType,
+) (map[string]iamv4.ResourceType, error) {
+
+	if resources, loaded := states[systemID]; loaded {
+		return resources, nil
+	}
+	listed, err := handler.ListResourceTypes(ctx, systemID)
+	if err != nil {
+		return nil, fmt.Errorf("list resource types for %s: %w", systemID, err)
+	}
+	resources := make(map[string]iamv4.ResourceType, len(listed))
+	for _, resource := range listed {
+		resources[resource.ID] = resource
+	}
+	states[systemID] = resources
+
+	return resources, nil
 }
 
 func validateResourceTypeRelations(resource iamv4.ResourceType, resources map[string]iamv4.ResourceType) error {

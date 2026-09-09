@@ -2,16 +2,16 @@
 
 本目录存放 bk-nodemgr 的 IAM V4 权限模型模板、渲染工具和迁移工具。
 
-使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。支持 `upsert_system` 和 `upsert_resource_type`：不存在时注册，已存在时有限更新；暂不处理操作、角色和授权。
+使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。支持 `upsert_system`、`upsert_resource_type` 和 `upsert_action`：不存在时注册，已存在时有限更新；不处理操作依赖、分组、角色和授权。
 
 ## 文件说明
 
-| 文件                | 说明                                           |
-| ------------------- | ---------------------------------------------- |
-| `templates/`        | V4 System 与四类本地 ResourceType 模板         |
-| `vars.yaml.example` | 变量配置示例                                   |
-| `render/`           | 渲染工具源码，构建后生成 `render/iam-render`   |
-| `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate` |
+| 文件                | 说明                                                        |
+| ------------------- | ----------------------------------------------------------- |
+| `templates/`        | V4 System、四类本地 ResourceType 与 16 个非业务 Action 模板 |
+| `vars.yaml.example` | 变量配置示例                                                |
+| `render/`           | 渲染工具源码，构建后生成 `render/iam-render`                |
+| `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`              |
 
 V4 工具独立维护，不修改 V3 工具。运行时不依赖 `bk-cli`。
 
@@ -36,7 +36,7 @@ cp vars.yaml.example vars.yaml
 ./render/iam-render -t templates -v vars.yaml -o output
 ```
 
-渲染 `templates/` 目录下所有 `.tpl` 文件，输出到 `output/`，文件名去掉 `.tpl` 后缀。当前生成 `0001_bk_nodemgr_system.json` 和 `0002_bk_nodemgr_resource_type.json`，执行迁移前检查两个文件。
+渲染 `templates/` 目录下所有 `.tpl` 文件，输出到 `output/`，文件名去掉 `.tpl` 后缀。当前生成 `0001_bk_nodemgr_system.json`、`0002_bk_nodemgr_resource_type.json` 和 `0003_bk_nodemgr_actions.json`，执行迁移前检查三个文件。
 
 ### 3. 预检查
 
@@ -104,7 +104,7 @@ cp vars.yaml.example vars.yaml
 "clients": {{ .system.clients | toJson }}
 ```
 
-迁移文件通过 `system_id` 指定系统，`operations` 中每项包含 `operation` 和 `data`。`upsert_system` 的 `data.id` 必须与 `system_id` 一致；`upsert_resource_type` 的 `data.id` 是该系统内的资源类型 ID。
+迁移文件通过 `system_id` 指定系统，`operations` 中每项包含 `operation` 和 `data`。`upsert_system` 的 `data.id` 必须与 `system_id` 一致；`upsert_resource_type`、`upsert_action` 的 `data.id` 分别是该系统内的资源类型 ID、操作 ID，每项只处理一个对象。
 
 | 场景                                         | 处理方式                                        |
 | -------------------------------------------- | ----------------------------------------------- |
@@ -150,6 +150,26 @@ flowchart TD
 ```
 
 每个系统的资源类型列表按 `page_size=100` 读取全部分页；失败或不完整响应不会被当作空列表。dry-run 中，前面计划新建的 System 使用虚拟空列表，计划新建的 ResourceType 对后续子资源可见，不请求尚不存在的系统。单独执行 `0002` 时，System 必须已存在。dry-run 不验证服务端全部约束，也不保证后续执行期间远端状态不变。
+
+### Action 更新规则
+
+`0003` 模板保留 V3 的 16 个非业务操作 ID、名称和资源绑定：15 个绑定本地资源类型，`networkarea_create` 的 `resource_type_id` 为 `""`，表示无资源绑定。`networkunit_create` 仍绑定父资源 `networkarea`，`package_type_upload` 仍绑定 `package_type`。
+
+`data` 仅接受 `id`、`name`、`resource_type_id`；ID 格式与 ResourceType 一致，显式提供的 `name` 不得为空或仅含空白，所有字段都不接受 `null`。
+
+| 场景                                 | 处理方式                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| 操作不存在                           | 要求 `name`，通过批量创建接口提交单元素数组；省略绑定或提供 `""` 均表示无资源 |
+| 新操作绑定非空资源类型               | 资源类型必须在远端或前序计划中存在，不自动创建                                |
+| 操作已存在，未提供名称或绑定         | 保留对应远端值                                                                |
+| 显式绑定与远端不同，包括用 `""` 清空 | 报错停止，不更新绑定或删除重建                                                |
+| 名称改变                             | 只提交 `name`，不发送 `id` 或 `resource_type_id`                              |
+| 名称相同且绑定无冲突                 | 跳过写入                                                                      |
+| 名称被其他操作占用                   | 报错停止                                                                      |
+
+每个系统的 Action 按 `page_size=100` 读取全部分页，完整性检查通过后再决定写入。创建响应必须是 HTTP 201 且只返回对应 ID，更新必须是 HTTP 204。dry-run 复用前序 System、ResourceType 和 Action 的虚拟状态；实际成功写入也对后续操作可见。单独执行 `0003` 时，System 和所需 ResourceType 必须已存在。
+
+以下 16 个 V3 操作绑定 `bk_cmdb:biz`，本次不注册，也不改绑到本地资源：`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、`plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`、`deploy_policy_view`、`deploy_policy_manage`、`deploy_policy_history_view`。V3 的操作依赖、分组、常用操作、角色和创建者授权配置均不迁移。
 
 ## 失败处理
 
