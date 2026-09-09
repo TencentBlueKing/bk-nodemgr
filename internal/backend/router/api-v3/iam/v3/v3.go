@@ -91,8 +91,11 @@ func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		tenantID := tenant.SingleModeTenantID
-		if tenant.GetMode() == tenant.ModeMultiple {
+		var tenantID string
+		switch tenant.GetMode() {
+		case tenant.ModeSingle:
+			tenantID = tenant.SingleModeTenantID
+		case tenant.ModeMultiple:
 			tenantID = c.GetHeader(apigwheader.BKGWTenantIDKey)
 			if !tenantIDPattern.MatchString(tenantID) {
 				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -101,6 +104,12 @@ func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 
 				return
 			}
+		default:
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"code": http.StatusInternalServerError, "message": "invalid tenant mode",
+			})
+
+			return
 		}
 
 		// Keep token validation and downstream provider queries in the same tenant.
