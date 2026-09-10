@@ -65,6 +65,8 @@ func (c *cli) retrieveSystem(ctx contextx.IContext, req *RetrieveSystemReq) (*Re
 		SubResourcef("/rbac/model/systems/%s/", req.SystemID).
 		WithContext(ctx).
 		WithHeaders(header).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return nil, err
@@ -96,6 +98,7 @@ func (c *cli) createSystem(ctx contextx.IContext, req *CreateSystemReq) (*Create
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return nil, err
@@ -123,6 +126,8 @@ func (c *cli) updateSystem(ctx contextx.IContext, req *UpdateSystemReq) error {
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return err
@@ -149,6 +154,8 @@ func (c *cli) listResourceTypes(
 		WithHeaders(c.getHeader(ctx)).
 		WithParam("page", strconv.Itoa(req.Page)).
 		WithParam("page_size", strconv.Itoa(req.PageSize)).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return nil, fmt.Errorf("list resource types page %d: %w", req.Page, err)
@@ -174,6 +181,8 @@ func (c *cli) batchCreateResourceType(
 		WithContext(ctx).
 		WithHeaders(c.getHeader(ctx)).
 		Body(req.Resources).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return nil, fmt.Errorf("create resource type: %w", err)
@@ -197,6 +206,8 @@ func (c *cli) updateResourceType(ctx contextx.IContext, req *UpdateResourceTypeR
 		WithContext(ctx).
 		WithHeaders(c.getHeader(ctx)).
 		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return fmt.Errorf("update resource type: %w", err)
@@ -220,6 +231,8 @@ func (c *cli) listActions(ctx contextx.IContext, req *ListActionsReq) (*BaseBrok
 		WithHeaders(c.getHeader(ctx)).
 		WithParam("page", strconv.Itoa(req.Page)).
 		WithParam("page_size", strconv.Itoa(req.PageSize)).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return nil, fmt.Errorf("list actions page %d: %w", req.Page, err)
@@ -242,6 +255,8 @@ func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq
 		WithContext(ctx).
 		WithHeaders(c.getHeader(ctx)).
 		Body(req.Actions).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return nil, fmt.Errorf("create action: %w", err)
@@ -264,6 +279,8 @@ func (c *cli) updateAction(ctx contextx.IContext, req *UpdateActionReq) error {
 		WithContext(ctx).
 		WithHeaders(c.getHeader(ctx)).
 		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return fmt.Errorf("update action: %w", err)
