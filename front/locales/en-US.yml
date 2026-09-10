@@ -203,7 +203,7 @@ platform:
     bussinessTopology: Business Topology
     agentSearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
     proxySearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
-    historySearchPlaceholder: Enter IP or Network Area ID:IP for quick search
+    historySearchPlaceholder: Enter IP or execution status for quick search
     inner_ip: Private IPv4
     inner_ipv6: Private IPv6
     addressing_mode: Addressing Mode
@@ -842,6 +842,8 @@ taskDetail:
     terminateConfirmSubTitle: This action cannot be undone. Continue?
     terminateBatchConfirmSubTitle: Will terminate {count} running task(s). Tasks in other states will not be affected. This action cannot be undone. Continue?
     terminateFailedMsg: Terminate operation failed, please try again
+    noRetryableItems: No retryable failed items in the selected scope
+    noTerminableItems: No terminable running items in the selected scope
   filter:
     currentPage: Select current page
     crossSelected: Select all pages

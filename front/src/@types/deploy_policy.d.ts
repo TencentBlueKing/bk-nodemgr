@@ -10,6 +10,7 @@ export interface PluginConfigDetail {
   name: string;
   content: string;
   is_main_config: boolean;
+  template_name: string;
 }
 
 // SpecifyAgentParam describes the specify agent param structure.
@@ -36,9 +37,34 @@ export interface SpecifyPluginPkgParam {
   custom_config_context: Record<string, any>;
 }
 
+// ProjectPluginPkgToHostsParam describes the project plugin pkg to hosts param
+// structure.
+export interface ProjectPluginPkgToHostsParam {
+  plugin_pkg_name: string;
+  version: string;
+  custom_config_context: Record<string, any>;
+  placement_host_ids: number[];
+}
+
+// ProjectPluginConfigTemplateToHostsParam describes the project plugin config
+// template to hosts param structure.
+export interface ProjectPluginConfigTemplateToHostsParam {
+  plugin_name: string;
+  config_files_detail: PluginConfigDetail[];
+  custom_config_context: Record<string, any>;
+}
+
 // SpecifyPluginSubConfigParam describes the specify plugin sub config param
 // structure.
 export interface SpecifyPluginSubConfigParam {
+  plugin_name: string;
+  config_files_detail: PluginConfigDetail[];
+  custom_config_context: Record<string, any>;
+}
+
+// SpecifyPluginSubConfigTemplateParam describes the specify plugin sub config
+// template param structure.
+export interface SpecifyPluginSubConfigTemplateParam {
   plugin_name: string;
   config_files_detail: PluginConfigDetail[];
   custom_config_context: Record<string, any>;

@@ -203,7 +203,7 @@ platform:
     bussinessTopology: 业务拓扑
     agentSearchPlaceholder: 输入IP、管控区域ID:IP、AgentID快速搜索
     proxySearchPlaceholder: 输入IP、管控区域ID:IP、AgentID快速搜索
-    historySearchPlaceholder: 输入IP、管控区域ID:IP快速搜索
+    historySearchPlaceholder: 输入IP、执行状态快速搜索
     inner_ip: 内网IPv4
     inner_ipv6: 内网IPv6
     addressing_mode: 寻址方式
@@ -842,6 +842,8 @@ taskDetail:
     terminateConfirmSubTitle: 终止后无法恢复，确认继续？
     terminateBatchConfirmSubTitle: 将终止 {count} 个运行中的任务，其他状态的任务不受影响，终止后无法恢复，确认继续？
     terminateFailedMsg: 终止操作失败，请重试
+    noRetryableItems: 所选范围内没有可重试的失败项
+    noTerminableItems: 所选范围内没有可终止的运行中项
   filter:
     currentPage: 本页全选
     crossSelected: 跨页全选

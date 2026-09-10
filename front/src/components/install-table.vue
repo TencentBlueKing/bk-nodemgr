@@ -1038,7 +1038,7 @@
             </Button>
             <Button
               text
-              :disabled="isUpgrade || tableData?.length <= 1"
+              :disabled="tableData?.length <= 1"
               @click="handleDelRow(rowIndex)"
               style="margin-left: 8px"
             >

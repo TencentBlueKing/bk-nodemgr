@@ -18,10 +18,10 @@
         >
         </SearchSelect>
       </div>
-      <bk-loading :title="$t('table.loading')" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
-        <div class="h-full overflow-y-auto">
+      <bk-loading :title="$t('table.loading')" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)] flex flex-col">
+        <div class="flex-1 overflow-y-auto">
           <div
-            v-for="operate in filterOperateList" :key="operate.bk_host_id"
+            v-for="operate in operateList" :key="operate.bk_host_id"
             class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
             :class="{ 'bg-[#e1ecff] log-active-ip': isNode
               ? Number(route.params.hostId) === operate.bk_host_id
@@ -46,6 +46,28 @@
               {{ operate.bk_host_inner_list }} <span v-if="operate.plugin_name">({{ operate.plugin_name }})</span>
             </bk-overflow-title>
           </div>
+        </div>
+        <!-- 左侧 IP 列表分页（后端分页） -->
+        <div v-if="totalPages > 1" class="flex items-center justify-center gap-[12px] py-[6px] border-t border-[#dcdee5] text-[12px] text-[#63656e]">
+          <Button
+            size="small"
+            theme="primary"
+            text
+            :disabled="pagination.current <= 1"
+            @click="goIpPage(pagination.current - 1)"
+          >
+            <i class="nodeman-icon nc-arrow-left text-[14px]"></i>
+          </Button>
+          <span>{{ pagination.current }} / {{ totalPages }}</span>
+          <Button
+            size="small"
+            theme="primary"
+            text
+            :disabled="pagination.current >= totalPages"
+            @click="goIpPage(pagination.current + 1)"
+          >
+            <i class="nodeman-icon nc-arrow-right text-[14px]"></i>
+          </Button>
         </div>
       </bk-loading>
     </div>
@@ -348,7 +370,7 @@ import {
   Spinner,
 } from 'bkui-vue/lib/icon';
 import { debounce } from 'lodash';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -428,23 +450,44 @@ const serviceCaller = {
 };
 const activeKey = ref('');
 const isNode = computed(() => route.query.active !== 'plugin');
-const operateList = ref<any[]>([]); // 子任务列表
-const matchesSearchSelect = (row: any) => searchSelectValue.value.every((searchItem: any) => {
-  const { id: searchField, values } = searchItem;
-  const searchIds = values?.map((value: { id: string }) => value.id);
-  // 合并后的 IP 字段：同时匹配 IPv4 和 IPv6 列
-  if (searchField === 'ip') {
-    const ipList = (row.bk_host_inner_list || '').split(',').map((ip: string) => ip.trim());
-    const ipv6List = (row.bk_host_innerip_v6_list || '').split(',').map((ip: string) => ip.trim());
-    return searchIds.some(id => ipList.includes(id) || ipv6List.includes(id));
+const operateList = ref<any[]>([]); // 子任务列表（后端分页，仅当前页数据）
+// 左侧 IP 列表分页（后端分页）
+const pagination = reactive({ count: 0, limit: 20, current: 1 });
+const totalPages = computed(() => Math.max(1, Math.ceil(pagination.count / pagination.limit)));
+const goIpPage = (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  pagination.current = page;
+  getOperateList();
+};
+
+// 当前选中的子任务（从列表当前页查找；跳转进入时通过路由带入的 IP 搜索条件保证目标在结果中）
+const currentOperate = ref<any>(null);
+// 定位当前选中子任务：hostId 在当前页内（IP 搜索过滤后结果极少，目标必在列表）
+const locateCurrentOperate = () => {
+  const hostIdParam = String(route.params.hostId ?? '');
+  if (!hostIdParam) {
+    currentOperate.value = null;
+    return;
   }
-  return searchIds.includes(row[searchField]);
-});
-const filterOperateList = computed(() => operateList.value.filter(matchesSearchSelect));
-// 搜索过滤
-const currentOperate = computed(() => operateList.value.find(item => (isNode.value
-  ? item.bk_host_id === Number(route.params.hostId)
-  : route.params.hostId === (`${item.bk_host_id}_${item.plugin_name}`))));
+  const matches = (item: any): boolean => (isNode.value
+    ? Number(item.bk_host_id) === Number(hostIdParam)
+    : `${item.bk_host_id}_${item.plugin_name}` === hostIdParam);
+  currentOperate.value = operateList.value.find(matches) ?? null;
+};
+// 轻量刷新选中子任务的 state（launched/init 期间防抖调用，只请求该 operation 的实例）
+const refreshCurrentOperateState = async () => {
+  const operationId = currentOperate.value?.operation_id;
+  if (!operationId) return;
+  const params = isNode.value
+    ? { operation_id: operationId }
+    : { operation_id: [operationId] };
+  const res = await serviceCaller.call('operationInstanceList', params).catch(() => ({ oper_inst_data: [] }));
+  const instances = res?.oper_inst_data ?? [];
+  const latest = instances[instances.length - 1];
+  if (latest?.life_cycle?.state) {
+    currentOperate.value = { ...currentOperate.value, state: latest.life_cycle.state };
+  }
+};
 const isManual = computed(() => !!currentOperate.value?.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script'));
 const isOffline = computed(() => isOfflineGuideStep(currentOperate.value?.latest_action_inst_brief_data?.tags ?? []));
 
@@ -596,14 +639,73 @@ const getDistinctStates = async () => {
 };
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+// 搜索条件 → 后端 exact_include_conditions（ip 按 IPv4/IPv6 分类）
+const buildExactConditions = (): Record<string, any> | undefined => {
+  const cond: Record<string, any> = {};
+  searchSelectValue.value.forEach((item: any) => {
+    if (item.id === 'ip' && item.values?.length) {
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      item.values.forEach((v: any) => {
+        if (IPV4_REG.test(v.id)) ipv4List.push(v.id);
+        else if (IPV6_REG.test(v.id)) ipv6List.push(v.id);
+      });
+      if (ipv4List.length) cond.bk_host_innerip = ipv4List;
+      if (ipv6List.length) cond.bk_host_innerip_v6 = ipv6List;
+      return;
+    }
+    if (item.id === 'state' && item.values?.length) {
+      cond.state = item.values.map((v: any) => v.id);
+      return;
+    }
+    if (item.id === 'plugin_name' && item.values?.length) {
+      cond.plugin_name = item.values.map((v: any) => v.id);
+    }
+  });
+  return Object.keys(cond).length > 0 ? cond : undefined;
+};
+// 从任务详情跳转进入时，把路由带入的目标主机条件初始化到搜索栏，
+// 复用「搜索→后端过滤」链路直接命中当前机器；用户清空搜索条件即恢复全量
+const initSearchFromRoute = () => {
+  if (isNode.value) {
+    // node：协议支持 bk_host_innerip / bk_host_innerip_v6 过滤，搜索栏带 IP
+    const ipStr = String(route.query.ip ?? '');
+    const ipv6Str = String(route.query.ipv6 ?? '');
+    const ips = [...parseMultiDelimiterInput(ipStr), ...parseMultiDelimiterInput(ipv6Str)]
+      .filter(ip => !!ip);
+    if (ips.length === 0) return;
+    searchSelectValue.value = [{
+      id: 'ip',
+      name: 'IP',
+      values: Array.from(new Set(ips)).map(ip => ({ id: ip, name: ip })),
+    }];
+    return;
+  }
+  // plugin：协议无 IP 过滤条件，改带 plugin_name（hostId 格式为 `${bk_host_id}_${plugin_name}`）。
+  // 列表会显示该任务下同插件的所有主机，locateCurrentOperate 按 hostId 字符串精确匹配定位目标
+  const hostIdParam = String(route.params.hostId ?? '');
+  const sepIndex = hostIdParam.indexOf('_');
+  if (sepIndex < 0) return;
+  const pluginName = hostIdParam.slice(sepIndex + 1);
+  searchSelectValue.value = [{
+    id: 'plugin_name',
+    name: '插件名',
+    values: [{ id: pluginName, name: pluginName }],
+  }];
+};
+// 搜索条件变化：重置到第一页并触发后端查询
+watch(searchSelectValue, () => {
+  pagination.current = 1;
+  getOperateList();
+}, { deep: true });
 const searchSelectData = computed(() => [
   { id: 'ip', name: 'IP', multiple: true },
   ...(isNode.value ? [] : [{ id: 'plugin_name', name: '插件名' }]),
   {
     id: 'state',
     name: '执行状态',
-    // 从当前操作列表数据中统计去重状态（与左侧 IP 列表实际状态分布一致）
-    children: Array.from(new Set(operateList.value.map((item: any) => item.state).filter(Boolean))).map((value: string) => ({
+    // 状态选项来自 operationDistinct 接口（全量去重，与后端分页解耦）
+    children: distinctStates.value.map((value: string) => ({
       id: value,
       name: statusMap.value[value]?.text || value,
     })),
@@ -922,42 +1024,31 @@ const getOperateList = async () => {
   if (!route.params.taskId) return;
 
   operateLoading.value = true;
-  const res = await serviceCaller.call('operationList', {
-    page: { limit: 500, offset: 0 },
+  // 后端分页：单页请求，搜索条件透传给后端过滤
+  const params: Record<string, any> = {
+    page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
     workflow_id: route.params.taskId,
-    exact_include_conditions: {
-      state: route.query.status ? [route.query.status] : [],
-    },
-  }).catch(() => ({
+  };
+  const exact = buildExactConditions();
+  if (exact) params.exact_include_conditions = exact;
+  const res = await serviceCaller.call('operationList', params).catch(() => ({
     operations: [],
-    total_count: 0,
+    total: 0,
   }));
   operateLoading.value = false;
-  if (route.query.active !== 'plugin') {
-    operateList.value = res.operations.map((item) => {
-      const briefData = item.latest_oper_inst_brief_data;
-      return {
-        ...item.node_deployment_info,
-        ...(briefData ? briefData.life_cycle : {}),
-        latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
-        bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
-        bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
-        operation_id: item.operation_id,
-      };
-    });
-  } else {
-    operateList.value = res.operations.map((item) => {
-      const briefData = item.latest_oper_inst_brief_data;
-      return {
-        ...item.plugin_deployment_info,
-        ...(briefData ? briefData.life_cycle : {}),
-        latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
-        bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
-        bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
-        operation_id: item.operation_id,
-      };
-    });
-  }
+  pagination.count = res?.total ?? 0;
+  operateList.value = (res?.operations ?? []).map((item) => {
+    const briefData = item.latest_oper_inst_brief_data;
+    const deployInfo = route.query.active !== 'plugin' ? item.node_deployment_info : item.plugin_deployment_info;
+    return {
+      ...deployInfo,
+      ...(briefData ? briefData.life_cycle : {}),
+      latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
+      bk_host_inner_list: deployInfo?.bk_host_inner_list?.join(',') || deployInfo?.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6_list: deployInfo?.bk_host_innerip_v6_list?.join(',') || deployInfo?.bk_host_innerip_v6_list?.join(','),
+      operation_id: item.operation_id,
+    };
+  });
 };
 
 const instanceLoading = ref(false);
@@ -1118,6 +1209,7 @@ watch(() => isInterval.value, async (val: boolean) => {
   }
 });
 watch(() => route.path, async () => {
+  locateCurrentOperate();
   await getInstance(true);
   await getLog();
   // getInstance + getLog 全部完成后关闭 loading，避免切换 IP 时 loading 关闭后数据才刷新
@@ -1140,12 +1232,13 @@ const scrollActiveIpIntoView = async () => {
   }
 };
 
-const debouncedGetOperateList = debounce(() => {
-  getOperateList();
+// launched/init 期间只轮询刷新"当前选中那一台"的 state（单请求），不再整表刷新
+const debouncedRefreshCurrentOperateState = debounce(() => {
+  refreshCurrentOperateState();
 }, 1000);
-watch(() => currentOperate.value, async () => {
-  if (['launched', 'init'].includes(currentOperate.value?.state)) {
-    await debouncedGetOperateList();
+watch(() => currentOperate.value?.state, async (state) => {
+  if (['launched', 'init'].includes(state)) {
+    await debouncedRefreshCurrentOperateState();
   }
 });
 
@@ -1153,7 +1246,10 @@ onBeforeUnmount(() => {
   stop();
 });
 onMounted(async () => {
+  // 跳转进入：把路由带入的 IP 初始化到搜索栏（触发 watch 拉取，此处再拉一次兜底时序）
+  initSearchFromRoute();
   await getOperateList();
+  locateCurrentOperate();
   // getDistinctStates 成功路径不依赖 getInstance/getLog，与后续链并行
   await Promise.all([
     (async () => { await getInstance(true); await getLog(); })(),

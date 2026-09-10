@@ -38,7 +38,7 @@
             clickContentAutoHide: true,
           }"
         >
-          <Button :disabled="!failedSelection.length">
+          <Button :disabled="!failedSelection.length && !isCrossPageSelection">
             <span>{{ $t('taskDetail.batchRetry') }}</span>
             <i
               class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
@@ -57,14 +57,14 @@
               >
                 <Button
                   text
-                  :disabled="!!failedSelection.find(el => el.state === 'terminated') && item.id === 'PARTIAL'"
+                  :disabled="!isCrossPageSelection && !!failedSelection.find(el => el.state === 'terminated') && item.id === 'PARTIAL'"
                 >{{ item.name }}</Button>
               </Dropdown.DropdownItem>
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown>
         <Button
-          :disabled="!runningSelection.length"
+          :disabled="!runningSelection.length && !isCrossPageSelection"
           @click="handleBatchTerminate">
           {{ $t('taskDetail.batchTerminate') }}
         </Button>
@@ -75,6 +75,8 @@
           filter-prop="state"
           :disabled="!hasSelection"
           :has-status-level="true"
+          :is-cross-page-selection="isCrossPageSelection"
+          :fetch-all-data="fetchAllOperationsForCopy"
         ></copy-ip-dropdown>
         <div
           class="h-[32px] bg-[#EAEBF0] rounded-[2px] flex items-center text-[12px] mr-[12px]"
@@ -1066,17 +1068,19 @@ const handleRowCheck = (checked: boolean, row: any) => {
   }
 };
 
-// 2. 跨页全选
+// 2. 跨页全选：置为跨页模式并触发全量数据拉取（供复制/重试/终止复用）
 const handleSelectAllCrossPage = () => {
   isCrossPageSelection.value = true;
   excludedIds.value.clear();
   tableData.value.forEach(item => (item.checked = true));
+  loadCrossPageAllOperations();
 };
 
 // 3. 取消选择
 const handleClearSelection = () => {
   isCrossPageSelection.value = false;
   excludedIds.value.clear();
+  clearCrossPageAllOperations();
   tableData.value.forEach(item => (item.checked = false));
 };
 
@@ -1095,6 +1099,7 @@ const handleChangeRadio = (state: string) => {
   // 切换状态tab，重置选择状态
   isCrossPageSelection.value = false;
   excludedIds.value.clear();
+  clearCrossPageAllOperations();
   tableData.value.forEach(item => (item.checked = false));
 
   // 清除状态搜索条件
@@ -1313,6 +1318,8 @@ const handleRetry = async (row: any, type: string) => {
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
+    // 重试改变了子任务状态，跨页缓存过期
+    clearCrossPageAllOperations();
     // 延迟 300ms 等后端更新状态后再刷新
     await new Promise(r => setTimeout(r, 300));
     await getOperateList();
@@ -1321,15 +1328,88 @@ const handleRetry = async (row: any, type: string) => {
     await updataCurrentTaskInfo();
   }
 };
+// 跨页模式：按当前筛选条件循环分页拉取全量 operation 列表（精简字段）
+const fetchAllOperations = async (): Promise<any[]> => {
+  const all: any[] = [];
+  // 后端 operation/list 的 page.limit 上限为 500（maxNodeWorkflowLimit / maxPluginWorkflowLimit）
+  const pageSize = 500;
+  let offset = 0;
+  let hasMore = true;
+  while (hasMore) {
+    const params = getParams();
+    params.page = { offset, limit: pageSize };
+    const res = await serviceCaller.call('operationList', params).catch(() => ({ operations: [], total: 0 }));
+    const ops = res?.operations ?? [];
+    ops.forEach((item) => {
+      const briefData = item.latest_oper_inst_brief_data;
+      const deployInfo = route.query.active !== 'plugin' ? item.node_deployment_info : item.plugin_deployment_info;
+      all.push({
+        bk_host_id: deployInfo?.bk_host_id,
+        state: briefData?.life_cycle?.state,
+        operation_id: item.operation_id,
+        // 复制用字段（与表格行一致：逗号拼接字符串）
+        bk_host_innerip: (deployInfo?.bk_host_innerip_list ?? []).join(','),
+        bk_host_innerip_v6: (deployInfo?.bk_host_innerip_v6_list ?? []).join(','),
+        bk_networkarea_id: deployInfo?.bk_networkarea_id,
+      });
+    });
+    offset += ops.length;
+    // 本页不足 pageSize 说明已到末尾；total 有效时累计达到 total 也停止（防止后端忽略分页导致死循环）
+    const total = res?.total ?? 0;
+    if (ops.length < pageSize || (total > 0 && all.length >= total)) hasMore = false;
+  }
+  return all;
+};
+
+// 跨页全选预拉取的全量数据缓存（点击跨页全选时触发，复制复用，避免每次复制重复请求）
+const crossPageAllOperations = ref<any[]>([]);
+const loadCrossPageAllOperations = async (): Promise<any[]> => {
+  if (crossPageAllOperations.value.length > 0) return crossPageAllOperations.value;
+  crossPageAllOperations.value = await fetchAllOperations();
+  return crossPageAllOperations.value;
+};
+// 数据集合变化（取消选择/切换状态tab/搜索条件变化）时清缓存，下次按需重拉
+const clearCrossPageAllOperations = () => {
+  crossPageAllOperations.value = [];
+};
+
+// 复制下拉用：全量数据 + 勾选标记（跨页全选模式下排除手动取消勾选的行）
+const fetchAllOperationsForCopy = async (): Promise<any[]> => {
+  const all = await loadCrossPageAllOperations();
+  return all.map((item: any) => ({
+    ...item,
+    checked: isCrossPageSelection.value ? !excludedIds.value.has(item.bk_host_id) : true,
+  }));
+};
+
+// 跨页模式：选中范围内指定状态的操作 id（排除被手动取消勾选的）。
+// 重试/终止不复用缓存：按 state 筛选目标，需每次拉最新全量保证状态准确
+const getCrossPageOperationIds = async (states: string[]): Promise<string[]> => {
+  const allOps = await fetchAllOperations();
+  return allOps
+    .filter(item => states.includes(item.state) && !excludedIds.value.has(item.bk_host_id))
+    .map(item => item.operation_id);
+};
+
 const handleFullRetry = async (type: string) => {
   if (!route.params.taskId) return;
 
+  const operationIds = isCrossPageSelection.value
+    ? await getCrossPageOperationIds(['failed', 'timeout', 'terminated'])
+    : failedSelection.value.map(item => item.operation_id);
+  if (operationIds.length === 0) {
+    Message({ theme: 'warning', message: t('taskDetail.table.noRetryableItems') });
+    return;
+  }
+
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
-    operation_ids: failedSelection.value.map(item => item.operation_id),
+    operation_ids: operationIds,
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
+    // 重试改变了子任务状态，跨页缓存过期
+    clearCrossPageAllOperations();
     // 延迟 300ms 等后端更新状态后再刷新
     await new Promise(r => setTimeout(r, 300));
     await getOperateList();
@@ -1354,6 +1434,8 @@ const handleTerminate = (row: any) => {
         return false;
       });
       if (res !== false) {
+        // 终止改变了子任务状态，跨页缓存过期
+        clearCrossPageAllOperations();
         await getOperateList();
         if (currentTaskStatus.value === 'running' && needInterval.value) {
           start();
@@ -1364,20 +1446,30 @@ const handleTerminate = (row: any) => {
   });
 };
 // 批量终止
-const handleBatchTerminate = () => {
+const handleBatchTerminate = async () => {
   if (!route.params.taskId) return;
+
+  const operationIds = isCrossPageSelection.value
+    ? await getCrossPageOperationIds(['running'])
+    : runningSelection.value.map(item => item.operation_id);
+  if (operationIds.length === 0) {
+    Message({ theme: 'warning', message: t('taskDetail.table.noTerminableItems') });
+    return;
+  }
   InfoBox({
     title: t('taskDetail.table.terminateConfirmTitle'),
-    subTitle: t('taskDetail.table.terminateBatchConfirmSubTitle', { count: runningSelection.value.length }),
+    subTitle: t('taskDetail.table.terminateBatchConfirmSubTitle', { count: operationIds.length }),
     onConfirm: async () => {
       const res = await serviceCaller.call('terminate', {
         workflow_id: route.params.taskId,
-        operation_ids: runningSelection.value.map(item => item.operation_id),
+        operation_ids: operationIds,
       }).catch(() => {
         Message({ theme: 'error', message: t('taskDetail.table.terminateFailedMsg') });
         return false;
       });
       if (res !== false) {
+        // 终止改变了子任务状态，跨页缓存过期
+        clearCrossPageAllOperations();
         await getOperateList();
         if (currentTaskStatus.value === 'running' && needInterval.value) {
           start();
@@ -1564,6 +1656,11 @@ const handleViewLog = async (row: any) => {
     query: {
       active: route.query?.active,
       status: route.query?.status,
+      // node：带上目标主机的 IP，日志页初始化到搜索栏，后端过滤直接命中当前机器；
+      // plugin：协议无 IP 过滤，日志页从 hostId 里拆插件名进搜索栏，无需 IP 参数
+      ...(route.query?.active === 'plugin'
+        ? {}
+        : { ip: row.bk_host_innerip, ipv6: row.bk_host_innerip_v6 }),
     },
   });
 };
@@ -1619,6 +1716,8 @@ watch(
 watch(
   () => searchSelectValue,
   async () => {
+    // 搜索条件变化：全量数据集合已变，复制缓存失效
+    clearCrossPageAllOperations();
     await getOperateList();
   },
   { deep: true },

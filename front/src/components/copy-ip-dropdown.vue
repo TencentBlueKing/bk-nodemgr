@@ -62,6 +62,11 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // 所有IP / 跨页全选勾选IP 跨页拉全量数据的函数（返回含 state / checked / bk_host_innerip / bk_host_innerip_v6 / bk_networkarea_id 的行）
+  fetchAllData: {
+    type: Function,
+    default: null,
+  },
 });
 
 const { t } = useI18n();
@@ -205,10 +210,22 @@ const handleChange = async () => {
   if (props.hasStatusLevel && scope === 'all' && !status) return;
 
   // 准备基础数据
-  let copyData: any[] = props.isCrossPageSelection ? crossPageSelectionData.value : props.data;
+  let copyData: any[] = props.data;
 
-  // 跨页全选场景：按 IP 类型拉数据
-  if (props.isCrossPageSelection) {
+  // 任务详情模式：所有IP 或 跨页全选下的勾选IP，需跨页拉全量子任务（当前页仅 50 条）
+  const needFetchAll = typeof props.fetchAllData === 'function'
+    && (scope === 'all' || (scope === 'select' && props.isCrossPageSelection));
+  if (needFetchAll) {
+    crossPageSelectLoading.value = true;
+    try {
+      copyData = await props.fetchAllData();
+    } catch (error) {
+      console.error('获取全量数据失败:', error);
+    } finally {
+      crossPageSelectLoading.value = false;
+    }
+  } else if (props.isCrossPageSelection) {
+    // 跨页全选场景（主机选择等）：按 IP 类型拉数据
     await getCorssPageIps(type);
     copyData = crossPageSelectionData.value;
   }
