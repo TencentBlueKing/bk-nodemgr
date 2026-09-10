@@ -20,8 +20,11 @@ package iamv4
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IHandlerAction exposes action operations without HTTP details.
@@ -33,12 +36,18 @@ type IHandlerAction interface {
 
 // ListActions retrieves the complete action model or returns an error.
 func (h *Handler) ListActions(ctx contextx.IContext, systemID string) ([]Action, error) {
-	const pageSize = 100 // IAM's maximum model query page size.
-	actions := make([]Action, 0)
+	const pageSize = 100             // IAM's maximum model query page size.
+	const timeout = 30 * time.Second // Bound the complete model query, not each page.
 	seen := make(map[string]struct{})
 	total := 0
-	for page := 1; ; page++ {
-		req := &ListActionsReq{SystemID: systemID, Page: page, PageSize: pageSize}
+	requestID := ""
+	executor := pageexecutor.NewPageExecutor[Action](pageSize, timeout)
+	fn := func(ctx contextx.IContext, p types.Page) ([]Action, error) {
+		if p.Offset > 0 && len(seen) == total {
+			// The last full page already completed the model.
+			return nil, nil
+		}
+		req := &ListActionsReq{SystemID: systemID, Page: p.Offset/pageSize + 1, PageSize: pageSize}
 		resp, err := h.cli.listActions(ctx, req)
 		if err != nil {
 			return nil, err
@@ -47,14 +56,19 @@ func (h *Handler) ListActions(ctx contextx.IContext, systemID string) ([]Action,
 			return nil, err
 		}
 		total = *resp.Data.Count
-		actions = append(actions, resp.Data.Results...)
-		if len(actions) == total {
-			return actions, nil
-		}
-		if len(resp.Data.Results) == 0 {
-			return nil, fmt.Errorf("list actions page %d: pagination made no progress (request-id: %s)", page, resp.RequestID)
-		}
+		requestID = resp.RequestID
+
+		return resp.Data.Results, nil
 	}
+	actions, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
+	if err != nil {
+		return nil, fmt.Errorf("list actions: %w", err)
+	}
+	if len(actions.Items) != total {
+		return nil, fmt.Errorf("list actions: incomplete pagination, got %d of %d (request-id: %s)", len(actions.Items), total, requestID)
+	}
+
+	return actions.Items, nil
 }
 
 func validateActionPage(

@@ -21,8 +21,11 @@ package iamv4
 import (
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IHandlerResourceType exposes resource type operations without HTTP details.
@@ -33,48 +36,66 @@ type IHandlerResourceType interface {
 }
 
 // ListResourceTypes retrieves the complete resource type model or returns an error.
-//
-//nolint:gocognit // Keep pagination completeness and duplicate checks beside aggregation.
 func (h *Handler) ListResourceTypes(ctx contextx.IContext, systemID string) ([]ResourceType, error) {
-	const pageSize = 100 // IAM's maximum model query page size.
-	resources := make([]ResourceType, 0)
+	const pageSize = 100             // IAM's maximum model query page size.
+	const timeout = 30 * time.Second // Bound the complete model query, not each page.
 	seen := make(map[string]struct{})
 	total := 0
-	for page := 1; ; page++ {
-		resp, err := h.cli.listResourceTypes(ctx, &ListResourceTypesReq{
-			SystemID: systemID,
-			Page:     page,
-			PageSize: pageSize,
-		})
+	requestID := ""
+	executor := pageexecutor.NewPageExecutor[ResourceType](pageSize, timeout)
+	fn := func(ctx contextx.IContext, p types.Page) ([]ResourceType, error) {
+		if p.Offset > 0 && len(seen) == total {
+			// The last full page already completed the model.
+			return nil, nil
+		}
+		req := &ListResourceTypesReq{SystemID: systemID, Page: p.Offset/pageSize + 1, PageSize: pageSize}
+		resp, err := h.cli.listResourceTypes(ctx, req)
 		if err != nil {
 			return nil, err
 		}
-		if resp.Data == nil || resp.Data.Count == nil || *resp.Data.Count < 0 || resp.Data.Results == nil {
-			return nil, fmt.Errorf("list resource types page %d: incomplete response (request-id: %s)", page, resp.RequestID)
+		if err := validateResourceTypePage(req, resp, total, seen); err != nil {
+			return nil, err
 		}
-		if page == 1 {
-			total = *resp.Data.Count
-		}
-		if *resp.Data.Count != total || len(resp.Data.Results) > pageSize || len(resp.Data.Results) > total-len(resources) {
-			return nil, fmt.Errorf("list resource types page %d: inconsistent count (request-id: %s)", page, resp.RequestID)
-		}
-		for _, resource := range resp.Data.Results {
-			if resource.ID == "" || resource.Name == "" || resource.Ancestors == nil || slices.Contains(resource.Ancestors, "") {
-				return nil, fmt.Errorf("list resource types page %d: malformed resource type (request-id: %s)", page, resp.RequestID)
-			}
-			if _, exists := seen[resource.ID]; exists {
-				return nil, fmt.Errorf("list resource types page %d: duplicate resource type ID (request-id: %s)", page, resp.RequestID)
-			}
-			seen[resource.ID] = struct{}{}
-			resources = append(resources, resource)
-		}
-		if len(resources) == total {
-			return resources, nil
-		}
-		if len(resp.Data.Results) == 0 {
-			return nil, fmt.Errorf("list resource types page %d: pagination made no progress (request-id: %s)", page, resp.RequestID)
-		}
+		total = *resp.Data.Count
+		requestID = resp.RequestID
+
+		return resp.Data.Results, nil
 	}
+	resources, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
+	if err != nil {
+		return nil, fmt.Errorf("list resource types: %w", err)
+	}
+	if len(resources.Items) != total {
+		return nil, fmt.Errorf("list resource types: incomplete pagination, got %d of %d (request-id: %s)", len(resources.Items), total, requestID)
+	}
+
+	return resources.Items, nil
+}
+
+func validateResourceTypePage(
+	req *ListResourceTypesReq, resp *BaseBroker[*ListResourceTypesResp], total int, seen map[string]struct{},
+) error {
+
+	if resp.Data == nil || resp.Data.Count == nil || *resp.Data.Count < 0 || resp.Data.Results == nil {
+		return fmt.Errorf("list resource types page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	}
+	if req.Page == 1 {
+		total = *resp.Data.Count
+	}
+	if *resp.Data.Count != total || len(resp.Data.Results) > req.PageSize || len(resp.Data.Results) > total-len(seen) {
+		return fmt.Errorf("list resource types page %d: inconsistent count (request-id: %s)", req.Page, resp.RequestID)
+	}
+	for _, resource := range resp.Data.Results {
+		if resource.ID == "" || resource.Name == "" || resource.Ancestors == nil || slices.Contains(resource.Ancestors, "") {
+			return fmt.Errorf("list resource types page %d: malformed resource type (request-id: %s)", req.Page, resp.RequestID)
+		}
+		if _, exists := seen[resource.ID]; exists {
+			return fmt.Errorf("list resource types page %d: duplicate resource type ID (request-id: %s)", req.Page, resp.RequestID)
+		}
+		seen[resource.ID] = struct{}{}
+	}
+
+	return nil
 }
 
 // CreateResourceType registers a resource type with its ancestor chain.

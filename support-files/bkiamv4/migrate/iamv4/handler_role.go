@@ -20,8 +20,11 @@ package iamv4
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IHandlerRole exposes role and member operations without HTTP details.
@@ -34,12 +37,18 @@ type IHandlerRole interface {
 
 // ListRoles retrieves the complete role model or returns an error.
 func (h *Handler) ListRoles(ctx contextx.IContext, systemID string) ([]Role, error) {
-	const pageSize = 100 // IAM's maximum model query page size.
-	roles := make([]Role, 0)
+	const pageSize = 100             // IAM's maximum model query page size.
+	const timeout = 30 * time.Second // Bound the complete model query, not each page.
 	seen := make(map[string]struct{})
 	total := 0
-	for page := 1; ; page++ {
-		req := &ListRolesReq{SystemID: systemID, Page: page, PageSize: pageSize}
+	requestID := ""
+	executor := pageexecutor.NewPageExecutor[Role](pageSize, timeout)
+	fn := func(ctx contextx.IContext, p types.Page) ([]Role, error) {
+		if p.Offset > 0 && len(seen) == total {
+			// The last full page already completed the model.
+			return nil, nil
+		}
+		req := &ListRolesReq{SystemID: systemID, Page: p.Offset/pageSize + 1, PageSize: pageSize}
 		resp, err := h.cli.listRoles(ctx, req)
 		if err != nil {
 			return nil, err
@@ -48,14 +57,19 @@ func (h *Handler) ListRoles(ctx contextx.IContext, systemID string) ([]Role, err
 			return nil, err
 		}
 		total = *resp.Data.Count
-		roles = append(roles, resp.Data.Results...)
-		if len(roles) == total {
-			return roles, nil
-		}
-		if len(resp.Data.Results) == 0 {
-			return nil, fmt.Errorf("list roles page %d: pagination made no progress (request-id: %s)", page, resp.RequestID)
-		}
+		requestID = resp.RequestID
+
+		return resp.Data.Results, nil
 	}
+	roles, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
+	if err != nil {
+		return nil, fmt.Errorf("list roles: %w", err)
+	}
+	if len(roles.Items) != total {
+		return nil, fmt.Errorf("list roles: incomplete pagination, got %d of %d (request-id: %s)", len(roles.Items), total, requestID)
+	}
+
+	return roles.Items, nil
 }
 
 func validateRolePage(
