@@ -21604,6 +21604,122 @@ paths:
           appVerifiedRequired: false
           resourcePermissionRequired: false
         descriptionEn: Provide Node Manager resource data to BlueKing IAM callbacks, dispatching requests by resource type and callback method.
+  /api/v3/iam/v4/resource:
+    post:
+      operationId: IAM_IAMV4ResourceCallback
+      description: 供 BlueKing IAM V4 回调查询节点管理资源实例列表和详情。
+      tags:
+        - IAM
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    description: Callback result; list_instance returns an object with count and results, while fetch_instance_info returns an array of instance objects with flattened attributes.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: INVALID_ARGUMENT (400), UNAUTHENTICATED (401), NOT_FOUND (404), or INTERNAL (500).
+                      message:
+                        type: string
+          description: An IAM V4 callback error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - method
+              properties:
+                type:
+                  type: string
+                  description: Resource type; registered providers are biz, networkarea, networkunit, package_type, and package.
+                method:
+                  type: string
+                  enum:
+                    - list_instance
+                    - fetch_instance_info
+                  description: IAM V4 callback method, encoded as a string.
+                filter:
+                  type: object
+                  description: Optional for list_instance; required with ids for fetch_instance_info. Must not be null when supplied.
+                  properties:
+                    parent:
+                      type: object
+                      description: Optional direct parent for list_instance; supported by networkunit (networkarea parent) and package (package_type parent).
+                      required:
+                        - type
+                        - id
+                      properties:
+                        type:
+                          type: string
+                          minLength: 1
+                        id:
+                          type: string
+                          minLength: 1
+                    keyword:
+                      type: string
+                      description: Optional display-name filter for list_instance, intersected with parent when both are supplied.
+                    ids:
+                      type: array
+                      maxItems: 1000
+                      items:
+                        type: string
+                        minLength: 1
+                      description: Required for fetch_instance_info; an empty array returns an empty data array.
+                page:
+                  type: object
+                  description: Required only for list_instance; fetch_instance_info does not use pagination. Must not be null when supplied.
+                  required:
+                    - page
+                    - page_size
+                  properties:
+                    page:
+                      type: integer
+                      format: int64
+                      minimum: 1
+                    page_size:
+                      type: integer
+                      format: int64
+                      minimum: 1
+                      maximum: 1000
+                requires:
+                  type: array
+                  items:
+                    type: string
+                  description: Top-level attribute selection for fetch_instance_info only. Omitted or empty selects all supported attributes; unknown attributes are ignored and id is always returned.
+        required: true
+        description: IAM V4 resource callback request. Authentication uses Basic Auth with username bk_iam and the IAM V4 system token as password. Multi-tenant mode requires X-Bk-Tenant-Id; the callback echoes X-Request-Id in the response header.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/iam/v4/resource
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: false
+          resourcePermissionRequired: false
+        descriptionEn: Provide Node Manager resource instance lists and details to BlueKing IAM V4 callbacks.
   /api/v3/node/agent/assign_unit:
     post:
       operationId: NodeAgent_NodeAgentAssignUnit

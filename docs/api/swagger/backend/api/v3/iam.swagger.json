@@ -49,6 +49,40 @@
           "IAM"
         ]
       }
+    },
+    "/api/v3/iam/v4/resource": {
+      "post": {
+        "summary": "IAMV4ResourceCallback queries resources for IAM V4 using Basic Auth.\nThe username is bk_iam and the password is the IAM V4 system token.",
+        "operationId": "IAM_IAMV4ResourceCallback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3IAMV4ResourceCallbackResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "IAMV4ResourceCallbackReq describes the existing IAM V4 HTTP callback\ncontract. The HTTP handler retains strict JSON validation for method-specific\nfields.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3IAMV4ResourceCallbackReq"
+            }
+          }
+        ],
+        "tags": [
+          "IAM"
+        ]
+      }
     }
   },
   "definitions": {
@@ -141,6 +175,76 @@
         }
       },
       "description": "IAMResourceCallbackResp describes the IAM resource callback response.\nThis is the standard response format defined by BlueKing IAM."
+    },
+    "v3IAMV4ResourceCallbackError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "code is INVALID_ARGUMENT, UNAUTHENTICATED, NOT_FOUND, or INTERNAL."
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "description": "IAMV4ResourceCallbackError describes a non-200 IAM V4 callback error."
+    },
+    "v3IAMV4ResourceCallbackPage": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page must be at least 1."
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size must be between 1 and 1000."
+        }
+      },
+      "description": "IAMV4ResourceCallbackPage describes one-based IAM V4 pagination."
+    },
+    "v3IAMV4ResourceCallbackReq": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "type is biz, networkarea, networkunit, package_type, or package."
+        },
+        "method": {
+          "type": "string",
+          "description": "method is list_instance or fetch_instance_info."
+        },
+        "filter": {
+          "type": "object",
+          "description": "filter contains optional parent/keyword for list_instance, or required ids\n(at most 1000 nonempty strings; an empty array is allowed) for\nfetch_instance_info."
+        },
+        "page": {
+          "$ref": "#/definitions/v3IAMV4ResourceCallbackPage",
+          "description": "page is required for list_instance."
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "requires selects fetch_instance_info attributes; omitted or empty means\nall."
+        }
+      },
+      "description": "IAMV4ResourceCallbackReq describes the existing IAM V4 HTTP callback\ncontract. The HTTP handler retains strict JSON validation for method-specific\nfields."
+    },
+    "v3IAMV4ResourceCallbackResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "description": "data is {count, results} for list_instance, or an array of instance objects\nfor fetch_instance_info."
+        },
+        "error": {
+          "$ref": "#/definitions/v3IAMV4ResourceCallbackError"
+        }
+      },
+      "description": "IAMV4ResourceCallbackResp documents the IAM V4 HTTP response envelope.\nSuccess contains only data; failure contains only error, with a non-200\nstatus."
     }
   }
 }

@@ -77,6 +77,50 @@ message IAMResourceListResult {
   repeated IAMResourceInstance results = 2;
 }
 
+// IAMV4ResourceCallbackPage describes one-based IAM V4 pagination.
+message IAMV4ResourceCallbackPage {
+  // page must be at least 1.
+  int64 page = 1;
+  // page_size must be between 1 and 1000.
+  int64 page_size = 2;
+}
+
+// IAMV4ResourceCallbackReq describes the existing IAM V4 HTTP callback
+// contract. The HTTP handler retains strict JSON validation for method-specific
+// fields.
+message IAMV4ResourceCallbackReq {
+  // type is biz, networkarea, networkunit, package_type, or package.
+  string type = 1;
+  // method is list_instance or fetch_instance_info.
+  string method = 2;
+  // filter contains optional parent/keyword for list_instance, or required ids
+  // (at most 1000 nonempty strings; an empty array is allowed) for
+  // fetch_instance_info.
+  google.protobuf.Struct filter = 3;
+  // page is required for list_instance.
+  IAMV4ResourceCallbackPage page = 4;
+  // requires selects fetch_instance_info attributes; omitted or empty means
+  // all.
+  repeated string requires = 5;
+}
+
+// IAMV4ResourceCallbackError describes a non-200 IAM V4 callback error.
+message IAMV4ResourceCallbackError {
+  // code is INVALID_ARGUMENT, UNAUTHENTICATED, NOT_FOUND, or INTERNAL.
+  string code = 1;
+  string message = 2;
+}
+
+// IAMV4ResourceCallbackResp documents the IAM V4 HTTP response envelope.
+// Success contains only data; failure contains only error, with a non-200
+// status.
+message IAMV4ResourceCallbackResp {
+  // data is {count, results} for list_instance, or an array of instance objects
+  // for fetch_instance_info.
+  google.protobuf.Value data = 1;
+  IAMV4ResourceCallbackError error = 2;
+}
+
 // IAM service provides IAM resource callback APIs.
 // These APIs are called by BlueKing IAM to query resource information.
 // Authentication: Basic Auth with system_id as username and system token as
@@ -89,6 +133,16 @@ service IAM {
       returns (IAMResourceCallbackResp) {
     option (google.api.http) = {
       post : "/api/v3/iam/v3/resource"
+      body : "*"
+    };
+  }
+
+  // IAMV4ResourceCallback queries resources for IAM V4 using Basic Auth.
+  // The username is bk_iam and the password is the IAM V4 system token.
+  rpc IAMV4ResourceCallback(IAMV4ResourceCallbackReq)
+      returns (IAMV4ResourceCallbackResp) {
+    option (google.api.http) = {
+      post : "/api/v3/iam/v4/resource"
       body : "*"
     };
   }
