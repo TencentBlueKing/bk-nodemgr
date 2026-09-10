@@ -49,6 +49,7 @@ type iamv4Authorizer struct {
 // NewProviderHandler registers the IAM V4 resource providers.
 func NewProviderHandler(topoStorage topo.IStorage, releaseStorage release.IStorage) provider.IHandler {
 	handler := provider.NewHandler()
+	handler.RegisterProvider(provider.ResourceTypeBiz, provider.NewBizProvider(topoStorage))
 	handler.RegisterProvider(provider.ResourceTypeNetworkArea, provider.NewNetworkAreaProvider(topoStorage))
 	handler.RegisterProvider(provider.ResourceTypeNetworkUnit, provider.NewNetworkUnitProvider(topoStorage))
 	handler.RegisterProvider(provider.ResourceTypePackageType, provider.NewPackageTypeProvider())
