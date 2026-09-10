@@ -412,7 +412,7 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 }
 
 func (item migration) executeOperation(
-	ctx contextx.IContext, handler iamv4.SystemHandler, index int, op operation, exists, dryRun bool, out io.Writer,
+	ctx contextx.IContext, handler iamv4.IHandlerSystem, index int, op operation, exists, dryRun bool, out io.Writer,
 ) error {
 
 	action := "update_system"

@@ -1,0 +1,166 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云 - 节点管理 (BlueKing - Node Management) available.
+ * Copyright (C) Tencent. All rights reserved.
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+
+ * We undertake not to change the open source license (MIT license) applicable
+
+ * to the current version of the project delivered to anyone in the future.
+ */
+
+package iamv4
+
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+)
+
+// IHandlerRole exposes role and member operations without HTTP details.
+type IHandlerRole interface {
+	ListRoles(ctx contextx.IContext, systemID string) ([]Role, error)
+	CreateRole(ctx contextx.IContext, systemID string, role Role) error
+	UpdateRole(ctx contextx.IContext, systemID, roleID string, fields RoleFields) error
+	AddRoleActions(ctx contextx.IContext, systemID, roleID string, actions []RoleAction) error
+}
+
+// ListRoles retrieves the complete role model or returns an error.
+func (h *Handler) ListRoles(ctx contextx.IContext, systemID string) ([]Role, error) {
+	const pageSize = 100 // IAM's maximum model query page size.
+	roles := make([]Role, 0)
+	seen := make(map[string]struct{})
+	total := 0
+	for page := 1; ; page++ {
+		req := &ListRolesReq{SystemID: systemID, Page: page, PageSize: pageSize}
+		resp, err := h.cli.listRoles(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		if err := validateRolePage(req, resp, total, seen); err != nil {
+			return nil, err
+		}
+		total = *resp.Data.Count
+		roles = append(roles, resp.Data.Results...)
+		if len(roles) == total {
+			return roles, nil
+		}
+		if len(resp.Data.Results) == 0 {
+			return nil, fmt.Errorf("list roles page %d: pagination made no progress (request-id: %s)", page, resp.RequestID)
+		}
+	}
+}
+
+func validateRolePage(
+	req *ListRolesReq, resp *BaseBroker[*ListRolesResp], total int, seen map[string]struct{},
+) error {
+
+	if resp.Data == nil || resp.Data.Count == nil || *resp.Data.Count < 0 || resp.Data.Results == nil {
+		return fmt.Errorf("list roles page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	}
+	if req.Page == 1 {
+		total = *resp.Data.Count
+	}
+	if *resp.Data.Count != total || len(resp.Data.Results) > req.PageSize || len(resp.Data.Results) > total-len(seen) {
+		return fmt.Errorf("list roles page %d: inconsistent count (request-id: %s)", req.Page, resp.RequestID)
+	}
+	for _, role := range resp.Data.Results {
+		if role.ID == "" || role.Name == "" || role.Actions == nil {
+			return fmt.Errorf("list roles page %d: malformed role (request-id: %s)", req.Page, resp.RequestID)
+		}
+		if _, exists := seen[role.ID]; exists {
+			return fmt.Errorf("list roles page %d: duplicate role ID (request-id: %s)", req.Page, resp.RequestID)
+		}
+		seen[role.ID] = struct{}{}
+		if err := validateRoleActions(role.Actions); err != nil {
+			return fmt.Errorf("list roles page %d: %w (request-id: %s)", req.Page, err, resp.RequestID)
+		}
+	}
+
+	return nil
+}
+
+func validateRoleActions(actions []RoleAction) error {
+	seen := make(map[string]struct{}, len(actions))
+	for _, action := range actions {
+		if action.ID == "" {
+			return fmt.Errorf("malformed role action")
+		}
+		if _, exists := seen[action.ID]; exists {
+			return fmt.Errorf("duplicate role action ID")
+		}
+		seen[action.ID] = struct{}{}
+	}
+
+	return nil
+}
+
+// CreateRole registers one role through the batch API and verifies the created ID.
+func (h *Handler) CreateRole(ctx contextx.IContext, systemID string, role Role) error {
+	// Roles without member actions must send an empty array rather than JSON null.
+	if role.Actions == nil {
+		role.Actions = make([]RoleAction, 0)
+	}
+	resp, err := h.cli.batchCreateRole(ctx, &BatchCreateRoleReq{SystemID: systemID, Roles: []Role{role}})
+	if err != nil {
+		return err
+	}
+	if len(resp.Data) != 1 || resp.Data[0] != role.ID {
+		return fmt.Errorf("create role: response ID does not match; check remote state before rerunning (request-id: %s)",
+			resp.RequestID)
+	}
+
+	return nil
+}
+
+// UpdateRole sends supplied fields; the caller owns member drift checks.
+func (h *Handler) UpdateRole(ctx contextx.IContext, systemID, roleID string, fields RoleFields) error {
+	return h.cli.updateRole(ctx, &UpdateRoleReq{SystemID: systemID, RoleID: roleID, RoleFields: fields})
+}
+
+// AddRoleActions adds member actions and verifies the returned IDs independently of order.
+func (h *Handler) AddRoleActions(ctx contextx.IContext, systemID, roleID string, actions []RoleAction) error {
+	resp, err := h.cli.batchCreateRoleAction(ctx, &BatchCreateRoleActionReq{
+		SystemID: systemID,
+		RoleID:   roleID,
+		Actions:  actions,
+	})
+	if err != nil {
+		return err
+	}
+	if len(resp.Data) != len(actions) {
+		return fmt.Errorf("add role actions: response ID count does not match; check remote state before rerunning (request-id: %s)",
+			resp.RequestID)
+	}
+	seen := make(map[string]bool, len(actions))
+	for _, action := range actions {
+		seen[action.ID] = false
+	}
+	for _, id := range resp.Data {
+		found, expected := seen[id]
+		if !expected {
+			return fmt.Errorf("add role actions: unexpected response ID %s; check remote state before rerunning (request-id: %s)",
+				id, resp.RequestID)
+		}
+		if found {
+			return fmt.Errorf("add role actions: duplicate response ID %s; check remote state before rerunning (request-id: %s)",
+				id, resp.RequestID)
+		}
+		seen[id] = true
+	}
+	for _, action := range actions {
+		if !seen[action.ID] {
+			return fmt.Errorf("add role actions: missing response ID %s; check remote state before rerunning (request-id: %s)",
+				action.ID, resp.RequestID)
+		}
+	}
+
+	return nil
+}

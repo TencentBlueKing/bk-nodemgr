@@ -225,7 +225,7 @@ func containsRoleActions(desired, current []iamv4.RoleAction) bool {
 }
 
 func loadActions(
-	ctx contextx.IContext, handler iamv4.ActionHandler, systemID string, states map[string]map[string]iamv4.Action,
+	ctx contextx.IContext, handler iamv4.IHandlerAction, systemID string, states map[string]map[string]iamv4.Action,
 ) (map[string]iamv4.Action, error) {
 
 	if actions, loaded := states[systemID]; loaded {
@@ -277,7 +277,7 @@ func validateRoleRelations(
 }
 
 func validateRoleDimension(
-	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string, member iamv4.RoleAction, action iamv4.Action,
+	ctx contextx.IContext, handler iamv4.IHandlerResourceType, systemID string, member iamv4.RoleAction, action iamv4.Action,
 	states map[string]map[string]iamv4.ResourceType,
 ) error {
 

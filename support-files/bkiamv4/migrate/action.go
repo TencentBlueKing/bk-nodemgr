@@ -139,7 +139,7 @@ func prepareAction(op operation, actions map[string]iamv4.Action) (iamv4.Action,
 }
 
 func validateActionCreation(
-	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string, action iamv4.Action,
+	ctx contextx.IContext, handler iamv4.IHandlerResourceType, systemID string, action iamv4.Action,
 	states map[string]map[string]iamv4.ResourceType,
 ) error {
 
@@ -161,7 +161,7 @@ func validateActionCreation(
 	return nil
 }
 
-func applyAction(ctx contextx.IContext, handler iamv4.ActionHandler, systemID string, action iamv4.Action, exists bool) error {
+func applyAction(ctx contextx.IContext, handler iamv4.IHandlerAction, systemID string, action iamv4.Action, exists bool) error {
 	if !exists {
 		if err := handler.CreateAction(ctx, systemID, action); err != nil {
 			return fmt.Errorf("create action %s: %w", action.ID, err)

@@ -73,7 +73,7 @@ func validateResourceType(data map[string]json.RawMessage) error {
 
 //nolint:gocognit // Keep topology checks and the corresponding upsert plan in one flow.
 func (item migration) executeResourceType(
-	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, op operation,
+	ctx contextx.IContext, handler iamv4.IHandlerResourceType, op operation,
 	states map[string]map[string]iamv4.ResourceType, dryRun bool, out io.Writer,
 ) error {
 
@@ -120,7 +120,7 @@ func (item migration) executeResourceType(
 }
 
 func loadResourceTypes(
-	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string,
+	ctx contextx.IContext, handler iamv4.IHandlerResourceType, systemID string,
 	states map[string]map[string]iamv4.ResourceType,
 ) (map[string]iamv4.ResourceType, error) {
 
@@ -160,7 +160,7 @@ func validateResourceTypeRelations(resource iamv4.ResourceType, resources map[st
 }
 
 func applyResourceType(
-	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string, resource iamv4.ResourceType, exists bool,
+	ctx contextx.IContext, handler iamv4.IHandlerResourceType, systemID string, resource iamv4.ResourceType, exists bool,
 ) error {
 
 	if !exists {
