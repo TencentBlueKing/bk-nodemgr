@@ -41,7 +41,6 @@ func (h *Handler) ListResourceTypes(ctx contextx.IContext, systemID string) ([]R
 	const timeout = 30 * time.Second // Bound the complete model query, not each page.
 	seen := make(map[string]struct{})
 	total := 0
-	requestID := ""
 	executor := pageexecutor.NewPageExecutor[ResourceType](pageSize, timeout)
 	fn := func(ctx contextx.IContext, p types.Page) ([]ResourceType, error) {
 		if p.Offset > 0 && len(seen) == total {
@@ -56,41 +55,40 @@ func (h *Handler) ListResourceTypes(ctx contextx.IContext, systemID string) ([]R
 		if err := validateResourceTypePage(req, resp, total, seen); err != nil {
 			return nil, err
 		}
-		total = *resp.Data.Count
-		requestID = resp.RequestID
+		total = *resp.Count
 
-		return resp.Data.Results, nil
+		return resp.Results, nil
 	}
 	resources, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return nil, fmt.Errorf("list resource types: %w", err)
 	}
 	if len(resources.Items) != total {
-		return nil, fmt.Errorf("list resource types: incomplete pagination, got %d of %d (request-id: %s)", len(resources.Items), total, requestID)
+		return nil, fmt.Errorf("list resource types: incomplete pagination, got %d of %d", len(resources.Items), total)
 	}
 
 	return resources.Items, nil
 }
 
 func validateResourceTypePage(
-	req *ListResourceTypesReq, resp *BaseBroker[*ListResourceTypesResp], total int, seen map[string]struct{},
+	req *ListResourceTypesReq, resp *ListResourceTypesResp, total int, seen map[string]struct{},
 ) error {
 
-	if resp.Data == nil || resp.Data.Count == nil || *resp.Data.Count < 0 || resp.Data.Results == nil {
-		return fmt.Errorf("list resource types page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	if resp.Count == nil || *resp.Count < 0 || resp.Results == nil {
+		return fmt.Errorf("list resource types page %d: incomplete response", req.Page)
 	}
 	if req.Page == 1 {
-		total = *resp.Data.Count
+		total = *resp.Count
 	}
-	if *resp.Data.Count != total || len(resp.Data.Results) > req.PageSize || len(resp.Data.Results) > total-len(seen) {
-		return fmt.Errorf("list resource types page %d: inconsistent count (request-id: %s)", req.Page, resp.RequestID)
+	if *resp.Count != total || len(resp.Results) > req.PageSize || len(resp.Results) > total-len(seen) {
+		return fmt.Errorf("list resource types page %d: inconsistent count", req.Page)
 	}
-	for _, resource := range resp.Data.Results {
+	for _, resource := range resp.Results {
 		if resource.ID == "" || resource.Name == "" || resource.Ancestors == nil || slices.Contains(resource.Ancestors, "") {
-			return fmt.Errorf("list resource types page %d: malformed resource type (request-id: %s)", req.Page, resp.RequestID)
+			return fmt.Errorf("list resource types page %d: malformed resource type", req.Page)
 		}
 		if _, exists := seen[resource.ID]; exists {
-			return fmt.Errorf("list resource types page %d: duplicate resource type ID (request-id: %s)", req.Page, resp.RequestID)
+			return fmt.Errorf("list resource types page %d: duplicate resource type ID", req.Page)
 		}
 		seen[resource.ID] = struct{}{}
 	}
@@ -115,9 +113,8 @@ func (h *Handler) CreateResourceType(ctx contextx.IContext, systemID string, res
 	if err != nil {
 		return err
 	}
-	if len(resp.Data) != 1 || resp.Data[0] != resource.ID {
-		return fmt.Errorf("create resource type: response ID does not match; check remote state before rerunning (request-id: %s)",
-			resp.RequestID)
+	if len(resp) != 1 || resp[0] != resource.ID {
+		return fmt.Errorf("create resource type: response ID does not match; check remote state before rerunning")
 	}
 
 	return nil

@@ -26,7 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
-func (c *cli) listRoles(ctx contextx.IContext, req *ListRolesReq) (*BaseBroker[*ListRolesResp], error) {
+func (c *cli) listRoles(ctx contextx.IContext, req *ListRolesReq) (*ListRolesResp, error) {
 	resp := new(BaseBroker[*ListRolesResp])
 	result := c.client.Get().
 		SubResourcef("/rbac/model/systems/%s/roles/", req.SystemID).
@@ -48,10 +48,14 @@ func (c *cli) listRoles(ctx contextx.IContext, req *ListRolesReq) (*BaseBroker[*
 		return nil, fmt.Errorf("list roles failed: %w", err)
 	}
 
-	return resp, nil
+	if resp.Data == nil {
+		return nil, fmt.Errorf("list roles page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	}
+
+	return resp.Data, nil
 }
 
-func (c *cli) batchCreateRole(ctx contextx.IContext, req *BatchCreateRoleReq) (*BaseBroker[BatchCreateRoleResp], error) {
+func (c *cli) batchCreateRole(ctx contextx.IContext, req *BatchCreateRoleReq) (BatchCreateRoleResp, error) {
 	resp := new(BaseBroker[BatchCreateRoleResp])
 	result := c.client.Post().
 		SubResourcef("/rbac/model/systems/%s/roles/", req.SystemID).
@@ -72,7 +76,7 @@ func (c *cli) batchCreateRole(ctx contextx.IContext, req *BatchCreateRoleReq) (*
 		return nil, fmt.Errorf("create role failed: %w", err)
 	}
 
-	return resp, nil
+	return resp.Data, nil
 }
 
 func (c *cli) updateRole(ctx contextx.IContext, req *UpdateRoleReq) error {
@@ -101,7 +105,7 @@ func (c *cli) updateRole(ctx contextx.IContext, req *UpdateRoleReq) error {
 
 func (c *cli) batchCreateRoleAction(
 	ctx contextx.IContext, req *BatchCreateRoleActionReq,
-) (*BaseBroker[BatchCreateRoleActionResp], error) {
+) (BatchCreateRoleActionResp, error) {
 
 	resp := new(BaseBroker[BatchCreateRoleActionResp])
 	result := c.client.Post().
@@ -124,5 +128,5 @@ func (c *cli) batchCreateRoleAction(
 		return nil, fmt.Errorf("add role actions failed: %w; check remote state before rerunning", err)
 	}
 
-	return resp, nil
+	return resp.Data, nil
 }

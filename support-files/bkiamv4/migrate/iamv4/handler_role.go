@@ -41,7 +41,6 @@ func (h *Handler) ListRoles(ctx contextx.IContext, systemID string) ([]Role, err
 	const timeout = 30 * time.Second // Bound the complete model query, not each page.
 	seen := make(map[string]struct{})
 	total := 0
-	requestID := ""
 	executor := pageexecutor.NewPageExecutor[Role](pageSize, timeout)
 	fn := func(ctx contextx.IContext, p types.Page) ([]Role, error) {
 		if p.Offset > 0 && len(seen) == total {
@@ -56,45 +55,44 @@ func (h *Handler) ListRoles(ctx contextx.IContext, systemID string) ([]Role, err
 		if err := validateRolePage(req, resp, total, seen); err != nil {
 			return nil, err
 		}
-		total = *resp.Data.Count
-		requestID = resp.RequestID
+		total = *resp.Count
 
-		return resp.Data.Results, nil
+		return resp.Results, nil
 	}
 	roles, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return nil, fmt.Errorf("list roles: %w", err)
 	}
 	if len(roles.Items) != total {
-		return nil, fmt.Errorf("list roles: incomplete pagination, got %d of %d (request-id: %s)", len(roles.Items), total, requestID)
+		return nil, fmt.Errorf("list roles: incomplete pagination, got %d of %d", len(roles.Items), total)
 	}
 
 	return roles.Items, nil
 }
 
 func validateRolePage(
-	req *ListRolesReq, resp *BaseBroker[*ListRolesResp], total int, seen map[string]struct{},
+	req *ListRolesReq, resp *ListRolesResp, total int, seen map[string]struct{},
 ) error {
 
-	if resp.Data == nil || resp.Data.Count == nil || *resp.Data.Count < 0 || resp.Data.Results == nil {
-		return fmt.Errorf("list roles page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	if resp.Count == nil || *resp.Count < 0 || resp.Results == nil {
+		return fmt.Errorf("list roles page %d: incomplete response", req.Page)
 	}
 	if req.Page == 1 {
-		total = *resp.Data.Count
+		total = *resp.Count
 	}
-	if *resp.Data.Count != total || len(resp.Data.Results) > req.PageSize || len(resp.Data.Results) > total-len(seen) {
-		return fmt.Errorf("list roles page %d: inconsistent count (request-id: %s)", req.Page, resp.RequestID)
+	if *resp.Count != total || len(resp.Results) > req.PageSize || len(resp.Results) > total-len(seen) {
+		return fmt.Errorf("list roles page %d: inconsistent count", req.Page)
 	}
-	for _, role := range resp.Data.Results {
+	for _, role := range resp.Results {
 		if role.ID == "" || role.Name == "" || role.Actions == nil {
-			return fmt.Errorf("list roles page %d: malformed role (request-id: %s)", req.Page, resp.RequestID)
+			return fmt.Errorf("list roles page %d: malformed role", req.Page)
 		}
 		if _, exists := seen[role.ID]; exists {
-			return fmt.Errorf("list roles page %d: duplicate role ID (request-id: %s)", req.Page, resp.RequestID)
+			return fmt.Errorf("list roles page %d: duplicate role ID", req.Page)
 		}
 		seen[role.ID] = struct{}{}
 		if err := validateRoleActions(role.Actions); err != nil {
-			return fmt.Errorf("list roles page %d: %w (request-id: %s)", req.Page, err, resp.RequestID)
+			return fmt.Errorf("list roles page %d: %w", req.Page, err)
 		}
 	}
 
@@ -126,9 +124,8 @@ func (h *Handler) CreateRole(ctx contextx.IContext, systemID string, role Role) 
 	if err != nil {
 		return err
 	}
-	if len(resp.Data) != 1 || resp.Data[0] != role.ID {
-		return fmt.Errorf("create role: response ID does not match; check remote state before rerunning (request-id: %s)",
-			resp.RequestID)
+	if len(resp) != 1 || resp[0] != role.ID {
+		return fmt.Errorf("create role: response ID does not match; check remote state before rerunning")
 	}
 
 	return nil
@@ -149,30 +146,26 @@ func (h *Handler) AddRoleActions(ctx contextx.IContext, systemID, roleID string,
 	if err != nil {
 		return err
 	}
-	if len(resp.Data) != len(actions) {
-		return fmt.Errorf("add role actions: response ID count does not match; check remote state before rerunning (request-id: %s)",
-			resp.RequestID)
+	if len(resp) != len(actions) {
+		return fmt.Errorf("add role actions: response ID count does not match; check remote state before rerunning")
 	}
 	seen := make(map[string]bool, len(actions))
 	for _, action := range actions {
 		seen[action.ID] = false
 	}
-	for _, id := range resp.Data {
+	for _, id := range resp {
 		found, expected := seen[id]
 		if !expected {
-			return fmt.Errorf("add role actions: unexpected response ID %s; check remote state before rerunning (request-id: %s)",
-				id, resp.RequestID)
+			return fmt.Errorf("add role actions: unexpected response ID %s; check remote state before rerunning", id)
 		}
 		if found {
-			return fmt.Errorf("add role actions: duplicate response ID %s; check remote state before rerunning (request-id: %s)",
-				id, resp.RequestID)
+			return fmt.Errorf("add role actions: duplicate response ID %s; check remote state before rerunning", id)
 		}
 		seen[id] = true
 	}
 	for _, action := range actions {
 		if !seen[action.ID] {
-			return fmt.Errorf("add role actions: missing response ID %s; check remote state before rerunning (request-id: %s)",
-				action.ID, resp.RequestID)
+			return fmt.Errorf("add role actions: missing response ID %s; check remote state before rerunning", action.ID)
 		}
 	}
 

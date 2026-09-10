@@ -26,7 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
-func (c *cli) listActions(ctx contextx.IContext, req *ListActionsReq) (*BaseBroker[*ListActionsResp], error) {
+func (c *cli) listActions(ctx contextx.IContext, req *ListActionsReq) (*ListActionsResp, error) {
 	resp := new(BaseBroker[*ListActionsResp])
 	result := c.client.Get().
 		SubResourcef("/rbac/model/systems/%s/actions/", req.SystemID).
@@ -48,10 +48,14 @@ func (c *cli) listActions(ctx contextx.IContext, req *ListActionsReq) (*BaseBrok
 		return nil, fmt.Errorf("list actions failed: %w", err)
 	}
 
-	return resp, nil
+	if resp.Data == nil {
+		return nil, fmt.Errorf("list actions page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	}
+
+	return resp.Data, nil
 }
 
-func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq) (*BaseBroker[BatchCreateActionResp], error) {
+func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq) (BatchCreateActionResp, error) {
 	resp := new(BaseBroker[BatchCreateActionResp])
 	result := c.client.Post().
 		SubResourcef("/rbac/model/systems/%s/actions/", req.SystemID).
@@ -72,7 +76,7 @@ func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq
 		return nil, fmt.Errorf("create action failed: %w", err)
 	}
 
-	return resp, nil
+	return resp.Data, nil
 }
 
 func (c *cli) updateAction(ctx contextx.IContext, req *UpdateActionReq) error {

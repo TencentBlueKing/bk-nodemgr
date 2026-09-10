@@ -40,7 +40,6 @@ func (h *Handler) ListActions(ctx contextx.IContext, systemID string) ([]Action,
 	const timeout = 30 * time.Second // Bound the complete model query, not each page.
 	seen := make(map[string]struct{})
 	total := 0
-	requestID := ""
 	executor := pageexecutor.NewPageExecutor[Action](pageSize, timeout)
 	fn := func(ctx contextx.IContext, p types.Page) ([]Action, error) {
 		if p.Offset > 0 && len(seen) == total {
@@ -55,41 +54,40 @@ func (h *Handler) ListActions(ctx contextx.IContext, systemID string) ([]Action,
 		if err := validateActionPage(req, resp, total, seen); err != nil {
 			return nil, err
 		}
-		total = *resp.Data.Count
-		requestID = resp.RequestID
+		total = *resp.Count
 
-		return resp.Data.Results, nil
+		return resp.Results, nil
 	}
 	actions, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return nil, fmt.Errorf("list actions: %w", err)
 	}
 	if len(actions.Items) != total {
-		return nil, fmt.Errorf("list actions: incomplete pagination, got %d of %d (request-id: %s)", len(actions.Items), total, requestID)
+		return nil, fmt.Errorf("list actions: incomplete pagination, got %d of %d", len(actions.Items), total)
 	}
 
 	return actions.Items, nil
 }
 
 func validateActionPage(
-	req *ListActionsReq, resp *BaseBroker[*ListActionsResp], total int, seen map[string]struct{},
+	req *ListActionsReq, resp *ListActionsResp, total int, seen map[string]struct{},
 ) error {
 
-	if resp.Data == nil || resp.Data.Count == nil || *resp.Data.Count < 0 || resp.Data.Results == nil {
-		return fmt.Errorf("list actions page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	if resp.Count == nil || *resp.Count < 0 || resp.Results == nil {
+		return fmt.Errorf("list actions page %d: incomplete response", req.Page)
 	}
 	if req.Page == 1 {
-		total = *resp.Data.Count
+		total = *resp.Count
 	}
-	if *resp.Data.Count != total || len(resp.Data.Results) > req.PageSize || len(resp.Data.Results) > total-len(seen) {
-		return fmt.Errorf("list actions page %d: inconsistent count (request-id: %s)", req.Page, resp.RequestID)
+	if *resp.Count != total || len(resp.Results) > req.PageSize || len(resp.Results) > total-len(seen) {
+		return fmt.Errorf("list actions page %d: inconsistent count", req.Page)
 	}
-	for _, action := range resp.Data.Results {
+	for _, action := range resp.Results {
 		if action.ID == "" || action.Name == "" {
-			return fmt.Errorf("list actions page %d: malformed action (request-id: %s)", req.Page, resp.RequestID)
+			return fmt.Errorf("list actions page %d: malformed action", req.Page)
 		}
 		if _, exists := seen[action.ID]; exists {
-			return fmt.Errorf("list actions page %d: duplicate action ID (request-id: %s)", req.Page, resp.RequestID)
+			return fmt.Errorf("list actions page %d: duplicate action ID", req.Page)
 		}
 		seen[action.ID] = struct{}{}
 	}
@@ -103,9 +101,8 @@ func (h *Handler) CreateAction(ctx contextx.IContext, systemID string, action Ac
 	if err != nil {
 		return err
 	}
-	if len(resp.Data) != 1 || resp.Data[0] != action.ID {
-		return fmt.Errorf("create action: response ID does not match; check remote state before rerunning (request-id: %s)",
-			resp.RequestID)
+	if len(resp) != 1 || resp[0] != action.ID {
+		return fmt.Errorf("create action: response ID does not match; check remote state before rerunning")
 	}
 
 	return nil

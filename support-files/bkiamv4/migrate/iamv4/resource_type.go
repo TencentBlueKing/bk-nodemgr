@@ -28,7 +28,7 @@ import (
 
 func (c *cli) listResourceTypes(
 	ctx contextx.IContext, req *ListResourceTypesReq,
-) (*BaseBroker[*ListResourceTypesResp], error) {
+) (*ListResourceTypesResp, error) {
 
 	resp := new(BaseBroker[*ListResourceTypesResp])
 	result := c.client.Get().
@@ -51,12 +51,16 @@ func (c *cli) listResourceTypes(
 		return nil, fmt.Errorf("list resource types failed: %w", err)
 	}
 
-	return resp, nil
+	if resp.Data == nil {
+		return nil, fmt.Errorf("list resource types page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	}
+
+	return resp.Data, nil
 }
 
 func (c *cli) batchCreateResourceType(
 	ctx contextx.IContext, req *BatchCreateResourceTypeReq,
-) (*BaseBroker[BatchCreateResourceTypeResp], error) {
+) (BatchCreateResourceTypeResp, error) {
 
 	resp := new(BaseBroker[BatchCreateResourceTypeResp])
 	result := c.client.Post().
@@ -78,7 +82,7 @@ func (c *cli) batchCreateResourceType(
 		return nil, fmt.Errorf("create resource type failed: %w", err)
 	}
 
-	return resp, nil
+	return resp.Data, nil
 }
 
 func (c *cli) updateResourceType(ctx contextx.IContext, req *UpdateResourceTypeReq) error {
