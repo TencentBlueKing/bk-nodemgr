@@ -9,7 +9,7 @@ description: Use when making or reviewing bk-nodemgr architecture decisions, esp
 
 Use this skill to make architecture judgment explicit before or after risky bk-nodemgr work. It is an advisory guardrail and review lens, not a refactor executor. It helps decide whether a change should stop, proceed with warnings, or continue through the existing project path.
 
-This skill never authorizes code changes by itself. Implementation still requires a separate user request or approved plan.
+This skill never authorizes code changes by itself. Implementation still requires a separate user request or approved plan. Apply the `AGENTS.md` consistency approval rules: a departure requires explicit approval of the disclosed old/new approach and scope; generic implementation or optimization authorization is insufficient. Evidence of benefit and a `Warn` verdict do not grant that approval.
 
 ## When to Use
 
@@ -55,10 +55,12 @@ Before judging architecture, gather local evidence:
 
 Emit exactly one final verdict. Precedence is `Stop` over `Warn` over `Continue`.
 
+If the intended path requires an unapproved departure, return `Stop` for that path. If the existing approach safely meets the task, assess that approach instead and defer the optional proposal to delivery; do not block unrelated work. An approved departure remains subject to hard rules and the risk checks below.
+
 | Verdict    | Use when                                                                                                                                                                                                                                                                                                                       | Required behavior                                                                                                         |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
 | `Stop`     | A hard `AGENTS.md` rule is violated; proto/front contract, public handler/interface, storage data format, tenant/auth/permission/trust boundary, irreversible action, or long-lived cross-component decision is materially unresolved; evidence is insufficient to choose safely; deepening-scan user choice is still pending. | Do not recommend or begin implementation. State the blocker, evidence, and one precise decision or fact needed to resume. |
-| `Warn`     | The path is reversible and locally actionable, but has documented architecture risk: under-proven `pkg` helper/interface/converter/adapter, one-adapter hypothetical seam, terminology conflict, duplication risk, or justified drift.                                                                                         | Continue only with the warning, simplest safe path, and verification requirement recorded.                                |
+| `Warn`     | The path is reversible and locally actionable, but has documented architecture risk: under-proven `pkg` helper/interface/converter/adapter, one-adapter hypothetical seam, terminology conflict, duplication risk, or explicitly approved drift. | Within the approved scope only, record the warning, simplest safe path, and verification requirement; this verdict does not authorize a departure. |
 | `Continue` | Evidence backs the decision, scoped instructions and dominant local patterns agree, and no unresolved architecture-level risk remains.                                                                                                                                                                                         | State why proceeding is safe and preserve implementation guardrails.                                                      |
 
 Common hard stops in bk-nodemgr:
@@ -191,7 +193,7 @@ Use bk-nodemgr vocabulary for code ownership:
 
 - `router`, `handler`, `service`, `storage`, `DAO`, `pkg/types`, `pkg/proto`, `proto boundary`, `converter`, `contextx`, `tenant/user`, `permission action/resource`.
 
-Do not rename project concepts into upstream architecture vocabulary. If terms conflict across `AGENTS.md`, proto, `pkg/types`, API JSON, frontend, and docs, report the conflict as `Warn` and use the dominant local term.
+Do not rename project concepts into upstream architecture vocabulary. If terms conflict across `AGENTS.md`, proto, `pkg/types`, API JSON, frontend, and docs, use the `AGENTS.md` consistency evidence rules rather than automatically choosing the dominant term. Return `Stop` if the current task needs a choice that applicable rules and evidence cannot resolve; unrelated historical conflicts do not block the task.
 
 ## Side-effect Policy
 
