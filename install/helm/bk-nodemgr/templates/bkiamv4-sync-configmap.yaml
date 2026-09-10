@@ -1,0 +1,24 @@
+{{- if .Values.iamV4.enabled }}
+{{- $callbackURL := "" }}
+{{- if .Values.iamV4.provider.host }}
+{{- $callbackURL = printf "%s/%s" (trimAll "/" .Values.iamV4.provider.host) (trimAll "/" .Values.iamV4.provider.path) }}
+{{- end }}
+{{- $system := deepCopy .Values.iamV4.system }}
+{{- $_ := set $system "callback_url" $callbackURL }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-bkiamv4-vars
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" $) | nindent 4 }}
+  {{- end }}
+data:
+  vars.yaml: |
+    system:
+      {{- $system | toYaml | nindent 6 }}
+{{- end }}

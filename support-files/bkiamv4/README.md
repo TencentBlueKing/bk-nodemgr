@@ -67,6 +67,36 @@ cp vars.yaml.example vars.yaml
 
 该命令直接执行，不会再次询问确认。如只执行一个文件，将 `--dir output` 替换为 `--file output/0001_bk_nodemgr_system.json`，两者不能同时使用。
 
+## Helm 初始化
+
+Chart 的 `iamV4.enabled` 默认关闭，与运行时鉴权开关独立。启用前使用包含两个 V4 工具的新 Backend 镜像，并配置以下 values：
+
+```yaml
+iamV4:
+  enabled: true
+  gatewayURL: "https://bkapi.example.com/api/bkiam/prod/"
+  appCode: "bk-nodemgr"
+  # Supply appSecret through deployment values; do not commit real credentials.
+  appSecret: ""
+  system:
+    id: "bk_nodemgr"
+    name: "BlueKing Node Manager"
+    description: "BlueKing Node Manager"
+    clients:
+      - "bk-nodemgr"
+  provider:
+    host: "https://bk-nodemgr.example.com"
+    path: "/api/v3/iam/v4/resource"
+```
+
+ConfigMap 将 `provider.host` 和 `provider.path` 拼为 `system.callback_url`，连接处保留一个 `/`；host 为空则输出空字符串，不做 Helm 必填校验。空值仍可能被 CLI 或 IAM 拒绝。`appSecret` 仅通过 Job 的 `BK_APP_SECRET` 环境变量传给工具，不进入变量文件或 shell 参数，但仍存在于 Helm release 和 Job 配置中，应限制读取权限。
+
+Job 在 `post-install,post-upgrade` 执行，weight 为 `10`，先渲染再按 System → ResourceType → Action → Role 迁移。租户遵循 V3 Job：`backend.config.tenantMode=single` 使用 `default`，其他模式使用 `system`，不遍历租户。
+
+`iamV4.syncJob` 默认 `backoffLimit=3`、`parallelism=1`、`ttlSecondsAfterFinished=600`。成功后删除 Job；下次 hook 执行前清理旧 Job。失败会阻塞 Helm 发布，但不会回滚已经写入 IAM 的模型；Job 重试会重新执行整个迁移流程，排障后重跑仍需检查远端状态。TTL 是完成后的清理时间，不是执行超时。
+
+根目录 `make support-files` 编译 `render/iam-render` 和 `migrate/iam-migrate`，随 Backend 镜像安装到 `/bk-nodemgr/support-files/bkiamv4/`。V4 打包仅包含模板和新编译的工具，不包含本地变量、渲染产物或旧二进制。模型初始化不代表 Provider、运行时鉴权和用户授权已就绪。
+
 ## 变量配置
 
 变量由 `vars.yaml` 提供，示例值不是工具自动补充的默认值。

@@ -7,8 +7,8 @@
 system:
   # Creation requires id, name, and clients. Include your own app code in clients.
   id: "bk_nodemgr"
-  name: "BlueKing Node Manager"
-  description: "BlueKing Node Manager provides node and plugin management"
+  name: "节点管理"
+  description: "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能"
   # IAM V4 expects an array of app codes, not the IAM V3 comma-separated string.
   clients:
     - "bk-nodemgr"

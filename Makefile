@@ -114,7 +114,16 @@ scripts: | pre
 
 support-files: | pre
 	@$(ECHO) "Building support-files..."
-	@$(CP) -R $(ROOT_DIR)/support-files $(OUTPUT_DIR)
+	@$(MKDIR) $(OUTPUT_DIR)/support-files
+	@for entry in $(ROOT_DIR)/support-files/* $(ROOT_DIR)/support-files/.[!.]* $(ROOT_DIR)/support-files/..?*; do \
+		[ -e "$$entry" ] || [ -L "$$entry" ] || continue; \
+		if [ "$${entry##*/}" != "bkiamv4" ]; then $(CP) -R "$$entry" $(OUTPUT_DIR)/support-files/ || exit 1; fi; \
+	done
+	@$(RM) -rf $(OUTPUT_DIR)/support-files/bkiamv4
+	@$(MKDIR) $(OUTPUT_DIR)/support-files/bkiamv4/render $(OUTPUT_DIR)/support-files/bkiamv4/migrate $(OUTPUT_DIR)/support-files/bkiamv4/templates
+	@$(CP) $(ROOT_DIR)/support-files/bkiamv4/templates/*.json.tpl $(OUTPUT_DIR)/support-files/bkiamv4/templates/
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/support-files/bkiamv4/render/iam-render ./support-files/bkiamv4/render
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/support-files/bkiamv4/migrate/iam-migrate ./support-files/bkiamv4/migrate
 	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/support-files/initpackage/jwt-generator $(ROOT_DIR)/support-files/initpackage/jwt_generator/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/support-files/initpackage/jwt-generator"
 

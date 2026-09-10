@@ -1,0 +1,98 @@
+{{- if .Values.iamV4.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-bkiamv4-sync
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" $) | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.iamV4.syncJob.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.iamV4.syncJob.backoffLimit }}
+  parallelism: {{ .Values.iamV4.syncJob.parallelism }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        {{- if .Values.podLabels }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
+        {{- end }}
+        app: nodemgr-bkiamv4-sync
+    spec:
+      {{- include "bk-nodemgr.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ template "bk-nodemgr.fullname" . }}-bkiamv4-sync
+          {{- if len .Values.backend.image.tag }}
+          {{- if len .Values.global.imageRegistry }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
+          {{- else }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
+          {{- end }}
+          {{- else }}
+          image: {{ template "bk-nodemgr.image" . }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: BK_APP_SECRET
+              value: {{ .Values.iamV4.appSecret | quote }}
+            - name: IAM_GATEWAY_URL
+              value: {{ .Values.iamV4.gatewayURL | quote }}
+            - name: IAM_APP_CODE
+              value: {{ .Values.iamV4.appCode | quote }}
+            - name: IAM_TENANT_ID
+              value: {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -eu
+              BKIAMV4_DIR="/bk-nodemgr/support-files/bkiamv4"
+              OUTPUT_DIR="$(mktemp -d /tmp/bkiamv4-output.XXXXXX)"
+              trap 'rm -rf "$OUTPUT_DIR"' EXIT
+              "${BKIAMV4_DIR}/render/iam-render" \
+                -t "${BKIAMV4_DIR}/templates" \
+                -v "${BKIAMV4_DIR}/vars.yaml" -o "${OUTPUT_DIR}"
+              "${BKIAMV4_DIR}/migrate/iam-migrate" \
+                --gateway-url "${IAM_GATEWAY_URL}" \
+                --app-code "${IAM_APP_CODE}" \
+                --tenant-id "${IAM_TENANT_ID}" --dir "${OUTPUT_DIR}"
+          volumeMounts:
+            - name: bkiamv4-vars
+              mountPath: /bk-nodemgr/support-files/bkiamv4/vars.yaml
+              subPath: vars.yaml
+              readOnly: true
+          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
+      volumes:
+        - name: bkiamv4-vars
+          configMap:
+            name: {{ template "bk-nodemgr.fullname" . }}-bkiamv4-vars
+      restartPolicy: Never
+{{- end }}

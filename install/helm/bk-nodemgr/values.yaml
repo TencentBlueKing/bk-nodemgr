@@ -1918,6 +1918,29 @@ iamV3:
         # Instance selection ID for business picker in IAM
         instance_selection_id: "business"
 
+## IAM V4 model initialization, independent of runtime authorization.
+iamV4:
+  enabled: false
+  # Full API Gateway URL, including gateway name and stage.
+  gatewayURL: ""
+  appCode: "bk-nodemgr"
+  # Injected as BK_APP_SECRET; still stored in Helm release and Job configuration.
+  appSecret: ""
+  syncJob:
+    ttlSecondsAfterFinished: 600
+    backoffLimit: 3
+    parallelism: 1
+  system:
+    id: "bk_nodemgr"
+    name: "节点管理"
+    description: "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能"
+    clients:
+      - "bk-nodemgr"
+  provider:
+    # Externally reachable host; empty host produces an empty callback_url.
+    host: ""
+    path: "/api/v3/iam/v4/resource"
+
 ## ServiceMonitor configuration
 ##
 serviceMonitor:
