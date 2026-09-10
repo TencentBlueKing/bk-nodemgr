@@ -52,6 +52,7 @@ const (
 	requestTimeout              = 30 * time.Second
 	operationUpsertResourceType = "upsert_resource_type"
 	operationUpsertAction       = "upsert_action"
+	operationUpsertRole         = "upsert_role"
 	fieldName                   = "name"
 	fieldID                     = "id"
 )
@@ -78,6 +79,7 @@ type operation struct {
 	fields    iamv4.SystemFields
 	resource  iamv4.ResourceType
 	action    iamv4.Action
+	role      iamv4.Role
 }
 
 func main() {
@@ -269,6 +271,9 @@ func loadMigration(file, appCode string) (migration, error) {
 		if op.Operation == operationUpsertAction {
 			target = &item.Operations[index].action
 		}
+		if op.Operation == operationUpsertRole {
+			target = &item.Operations[index].role
+		}
 		if err := json.Unmarshal(data, target); err != nil {
 			return item, fmt.Errorf("%s operation %d: decode model fields: %w", file, index+1, err)
 		}
@@ -278,6 +283,9 @@ func loadMigration(file, appCode string) (migration, error) {
 }
 
 func validateOperation(systemID string, op operation, appCode string) error {
+	if op.Operation == operationUpsertRole {
+		return validateRole(op.Data)
+	}
 	if op.Operation == operationUpsertAction {
 		return validateAction(op.Data)
 	}
@@ -353,8 +361,16 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 	plannedSystems := make(map[string]bool)
 	resourceTypes := make(map[string]map[string]iamv4.ResourceType)
 	actions := make(map[string]map[string]iamv4.Action)
+	roles := make(map[string]map[string]iamv4.Role)
 	for _, item := range migrations {
 		for index, op := range item.Operations {
+			if op.Operation == operationUpsertRole {
+				if err := item.executeRole(ctx, handler, op, roles, actions, resourceTypes, dryRun, out); err != nil {
+					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
+				}
+
+				continue
+			}
 			if op.Operation == operationUpsertAction {
 				if err := item.executeAction(ctx, handler, op, actions, resourceTypes, dryRun, out); err != nil {
 					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
@@ -390,6 +406,7 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 					// The planned system cannot be queried until it is actually created.
 					resourceTypes[item.SystemID] = make(map[string]iamv4.ResourceType)
 					actions[item.SystemID] = make(map[string]iamv4.Action)
+					roles[item.SystemID] = make(map[string]iamv4.Role)
 				}
 			}
 		}

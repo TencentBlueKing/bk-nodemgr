@@ -2,16 +2,16 @@
 
 本目录存放 bk-nodemgr 的 IAM V4 权限模型模板、渲染工具和迁移工具。
 
-使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。支持 `upsert_system`、`upsert_resource_type` 和 `upsert_action`：不存在时注册，已存在时有限更新；不处理操作依赖、分组、角色和授权。
+使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。支持 `upsert_system`、`upsert_resource_type`、`upsert_action` 和 `upsert_role`：不存在时注册，已存在时有限更新；不自动展开操作依赖，不处理用户组授权、资源范围分配或审批。
 
 ## 文件说明
 
-| 文件                | 说明                                                  |
-| ------------------- | ----------------------------------------------------- |
-| `templates/`        | V4 System、五类本地 ResourceType 与 32 个 Action 模板 |
-| `vars.yaml.example` | 变量配置示例                                          |
-| `render/`           | 渲染工具源码，构建后生成 `render/iam-render`          |
-| `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`        |
+| 文件                | 说明                                                            |
+| ------------------- | --------------------------------------------------------------- |
+| `templates/`        | V4 System、五类本地 ResourceType、32 个 Action 与四个 Role 模板 |
+| `vars.yaml.example` | 变量配置示例                                                    |
+| `render/`           | 渲染工具源码，构建后生成 `render/iam-render`                    |
+| `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`                  |
 
 V4 工具独立维护，不修改 V3 工具。运行时不依赖 `bk-cli`。
 
@@ -36,7 +36,7 @@ cp vars.yaml.example vars.yaml
 ./render/iam-render -t templates -v vars.yaml -o output
 ```
 
-渲染 `templates/` 目录下所有 `.tpl` 文件，输出到 `output/`，文件名去掉 `.tpl` 后缀。当前生成 `0001_bk_nodemgr_system.json`、`0002_bk_nodemgr_resource_type.json` 和 `0003_bk_nodemgr_actions.json`，执行迁移前检查三个文件。
+渲染 `templates/` 目录下所有 `.tpl` 文件，输出到 `output/`，文件名去掉 `.tpl` 后缀。当前生成 `0001_bk_nodemgr_system.json`、`0002_bk_nodemgr_resource_type.json`、`0003_bk_nodemgr_actions.json` 和 `0004_bk_nodemgr_roles.json`，执行迁移前检查四个文件。
 
 ### 3. 预检查
 
@@ -171,7 +171,39 @@ flowchart TD
 
 绑定本系统 `biz` 的 16 个操作为：`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、`plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`、`deploy_policy_view`、`deploy_policy_manage`、`deploy_policy_history_view`。先执行 `0002` 注册 `biz`，再执行 `0003`；已有 Action 的绑定冲突仍按上表报错，不自动改绑。
 
-本轮仅补齐模型初始化，`biz` Provider 尚未提供，需要另行建设；资源查询与运行时鉴权链路也需单独验证。**模型注册成功不代表业务权限链路已就绪。** V3 模型及已有授权数据不变，V3 的操作依赖、分组、常用操作、角色和创建者授权配置均不迁移。
+本工具仅补齐模型初始化，Provider、资源查询与运行时鉴权链路需另行建设和验证。**模型注册成功不代表业务权限链路已就绪。** V3 模型及已有授权数据不变，不自动迁移 V3 的操作依赖、分组和创建者授权配置。
+
+### Role 更新规则
+
+`0004` 在 Action 之后注册以下四个角色。成员以 V3 CommonActions 为起点；业务节点管理员显式补入 `networkarea_view`，不自动展开 `related_actions`。
+
+| Role ID               | 名称           | Action 数 |
+| --------------------- | -------------- | --------- |
+| `agent_manager`       | 业务节点管理员 | 9         |
+| `networkarea_manager` | 管控区域管理员 | 15        |
+| `policy_manager`      | 策略管理员     | 7         |
+| `package_manager`     | 资源包管理员   | 4         |
+
+`data` 仅接受 `id`、`name`、`description`、`actions`。每次 upsert 都必须提供完整、非空的 `actions` 数组；每个成员必须显式提供 `id` 和 `resource_type_id`，不允许重复 Action ID、未知字段或 `null`。名称非空，描述允许空字符串。
+
+模板成员保持 Action 当前直接资源绑定，包括 `networkunit_create → networkarea` 和无资源的 `networkarea_create → ""`。工具也支持 IAM 允许的祖先维度；非空维度必须是 Action 绑定或其祖先，所引用的 Action 和 ResourceType 必须在远端或前序计划中存在。
+
+| 场景                                  | 处理方式                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| Role 不存在                           | 要求名称，提交包含成员的单元素数组创建                                               |
+| Role 已存在                           | 按 `(Action ID, resource_type_id)` 集合比较，忽略成员顺序                            |
+| 保留全部已有成员及其维度，新增 Action | 仅通过追加接口提交缺少的成员，不重复提交已有成员                                     |
+| 删除已有成员或改变其维度              | 报错停止，不自动删除、改维度或删除重建                                               |
+| 显式名称或描述改变                    | 仅发送发生变化的元数据字段；空描述用于清除描述。若同时新增成员，先追加，再更新元数据 |
+| 名称或描述省略                        | 保留远端对应值                                                                       |
+| 成员一致且元数据无变化                | 跳过写入                                                                             |
+| 名称冲突、Action 缺失或维度不合法     | 报错停止                                                                             |
+
+Role 列表读取全部分页后再决策，异常或不完整响应不会被当作空列表。dry-run 复用前序 System、ResourceType、Action 和 Role 的虚拟状态，不写入远端；成功写入也对后续操作可见。单独执行 `0004` 时，其前置模型必须已存在。Role 注册不包含用户组授权或资源范围分配。
+
+新增 Action 关联的资源类型已在 Role 中时，IAM 会使已有用户在原授权资源范围内获得该 Action 权限；关联新资源类型时，同样追加模型成员，但用户需要另行申请该资源类型的权限。工具不替用户授权或扩大资源范围。
+
+追加成员与更新元数据是两次独立请求。如果追加成功、元数据更新失败，已追加成员不会回滚；检查远端后重跑，只补充仍缺少的成员并更新尚未生效的元数据。dry-run 输出 `add_role_actions` 或 `add_role_actions+update_role`，后续操作可见计划中的新成员。
 
 ## 失败处理
 

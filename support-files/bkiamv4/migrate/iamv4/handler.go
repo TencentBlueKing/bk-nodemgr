@@ -49,6 +49,18 @@ type ActionHandler interface {
 	UpdateAction(ctx contextx.IContext, systemID, actionID, name string) error
 }
 
+// RoleHandler exposes role operations without HTTP details or member modification.
+type RoleHandler interface {
+	ListRoles(ctx contextx.IContext, systemID string) ([]Role, error)
+	CreateRole(ctx contextx.IContext, systemID string, role Role) error
+	UpdateRole(ctx contextx.IContext, systemID, roleID string, fields RoleFields) error
+}
+
+// RoleActionHandler exposes additive role member operations without HTTP details.
+type RoleActionHandler interface {
+	AddRoleActions(ctx contextx.IContext, systemID, roleID string, actions []RoleAction) error
+}
+
 // Handler adapts model registration operations to the IAM V4 client.
 type Handler struct {
 	cli *cli
@@ -57,6 +69,8 @@ type Handler struct {
 var _ IHandler = (*Handler)(nil)
 var _ ResourceTypeHandler = (*Handler)(nil)
 var _ ActionHandler = (*Handler)(nil)
+var _ RoleHandler = (*Handler)(nil)
+var _ RoleActionHandler = (*Handler)(nil)
 
 // New initializes the migration tool's IAM V4 handler.
 func New(c *restclient.Capability, conf *Config) (*Handler, error) {
@@ -247,4 +261,137 @@ func (h *Handler) CreateAction(ctx contextx.IContext, systemID string, action Ac
 // UpdateAction updates only the action name, preserving its immutable binding.
 func (h *Handler) UpdateAction(ctx contextx.IContext, systemID, actionID, name string) error {
 	return h.cli.updateAction(ctx, &UpdateActionReq{SystemID: systemID, ActionID: actionID, Name: name})
+}
+
+// ListRoles retrieves the complete role model or returns an error.
+func (h *Handler) ListRoles(ctx contextx.IContext, systemID string) ([]Role, error) {
+	const pageSize = 100 // IAM's maximum model query page size.
+	roles := make([]Role, 0)
+	seen := make(map[string]struct{})
+	total := 0
+	for page := 1; ; page++ {
+		req := &ListRolesReq{SystemID: systemID, Page: page, PageSize: pageSize}
+		resp, err := h.cli.listRoles(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		if err := validateRolePage(req, resp, total, seen); err != nil {
+			return nil, err
+		}
+		total = *resp.Data.Count
+		roles = append(roles, resp.Data.Results...)
+		if len(roles) == total {
+			return roles, nil
+		}
+		if len(resp.Data.Results) == 0 {
+			return nil, fmt.Errorf("list roles page %d: pagination made no progress (request-id: %s)", page, resp.RequestID)
+		}
+	}
+}
+
+func validateRolePage(
+	req *ListRolesReq, resp *BaseBroker[*ListRolesResp], total int, seen map[string]struct{},
+) error {
+
+	if resp.Data == nil || resp.Data.Count == nil || *resp.Data.Count < 0 || resp.Data.Results == nil {
+		return fmt.Errorf("list roles page %d: incomplete response (request-id: %s)", req.Page, resp.RequestID)
+	}
+	if req.Page == 1 {
+		total = *resp.Data.Count
+	}
+	if *resp.Data.Count != total || len(resp.Data.Results) > req.PageSize || len(resp.Data.Results) > total-len(seen) {
+		return fmt.Errorf("list roles page %d: inconsistent count (request-id: %s)", req.Page, resp.RequestID)
+	}
+	for _, role := range resp.Data.Results {
+		if role.ID == "" || role.Name == "" || role.Actions == nil {
+			return fmt.Errorf("list roles page %d: malformed role (request-id: %s)", req.Page, resp.RequestID)
+		}
+		if _, exists := seen[role.ID]; exists {
+			return fmt.Errorf("list roles page %d: duplicate role ID (request-id: %s)", req.Page, resp.RequestID)
+		}
+		seen[role.ID] = struct{}{}
+		if err := validateRoleActions(role.Actions); err != nil {
+			return fmt.Errorf("list roles page %d: %w (request-id: %s)", req.Page, err, resp.RequestID)
+		}
+	}
+
+	return nil
+}
+
+func validateRoleActions(actions []RoleAction) error {
+	seen := make(map[string]struct{}, len(actions))
+	for _, action := range actions {
+		if action.ID == "" {
+			return fmt.Errorf("malformed role action")
+		}
+		if _, exists := seen[action.ID]; exists {
+			return fmt.Errorf("duplicate role action ID")
+		}
+		seen[action.ID] = struct{}{}
+	}
+
+	return nil
+}
+
+// CreateRole registers one role through the batch API and verifies the created ID.
+func (h *Handler) CreateRole(ctx contextx.IContext, systemID string, role Role) error {
+	// Roles without member actions must send an empty array rather than JSON null.
+	if role.Actions == nil {
+		role.Actions = make([]RoleAction, 0)
+	}
+	resp, err := h.cli.batchCreateRole(ctx, &BatchCreateRoleReq{SystemID: systemID, Roles: []Role{role}})
+	if err != nil {
+		return err
+	}
+	if len(resp.Data) != 1 || resp.Data[0] != role.ID {
+		return fmt.Errorf("create role: response ID does not match; check remote state before rerunning (request-id: %s)",
+			resp.RequestID)
+	}
+
+	return nil
+}
+
+// UpdateRole sends supplied fields; the caller owns member drift checks.
+func (h *Handler) UpdateRole(ctx contextx.IContext, systemID, roleID string, fields RoleFields) error {
+	return h.cli.updateRole(ctx, &UpdateRoleReq{SystemID: systemID, RoleID: roleID, RoleFields: fields})
+}
+
+// AddRoleActions adds member actions and verifies the returned IDs independently of order.
+func (h *Handler) AddRoleActions(ctx contextx.IContext, systemID, roleID string, actions []RoleAction) error {
+	resp, err := h.cli.batchCreateRoleAction(ctx, &BatchCreateRoleActionReq{
+		SystemID: systemID,
+		RoleID:   roleID,
+		Actions:  actions,
+	})
+	if err != nil {
+		return err
+	}
+	if len(resp.Data) != len(actions) {
+		return fmt.Errorf("add role actions: response ID count does not match; check remote state before rerunning (request-id: %s)",
+			resp.RequestID)
+	}
+	seen := make(map[string]bool, len(actions))
+	for _, action := range actions {
+		seen[action.ID] = false
+	}
+	for _, id := range resp.Data {
+		found, expected := seen[id]
+		if !expected {
+			return fmt.Errorf("add role actions: unexpected response ID %s; check remote state before rerunning (request-id: %s)",
+				id, resp.RequestID)
+		}
+		if found {
+			return fmt.Errorf("add role actions: duplicate response ID %s; check remote state before rerunning (request-id: %s)",
+				id, resp.RequestID)
+		}
+		seen[id] = true
+	}
+	for _, action := range actions {
+		if !seen[action.ID] {
+			return fmt.Errorf("add role actions: missing response ID %s; check remote state before rerunning (request-id: %s)",
+				action.ID, resp.RequestID)
+		}
+	}
+
+	return nil
 }

@@ -168,6 +168,70 @@ type UpdateActionReq struct {
 // UpdateActionResp represents the absence of data on a successful HTTP 204.
 type UpdateActionResp struct{}
 
+// Role describes an IAM role and its member actions.
+type Role struct {
+	ID          string       `json:"id"`
+	Name        string       `json:"name"`
+	Description string       `json:"description,omitempty"`
+	Actions     []RoleAction `json:"actions"`
+}
+
+// RoleAction identifies a member action; an empty resource type ID means no resource binding.
+type RoleAction struct {
+	ID             string `json:"id"`
+	ResourceTypeID string `json:"resource_type_id"`
+}
+
+// RoleFields preserves omitted fields separately from explicit empty updates.
+// Nil leaves a field unchanged; a pointer to an empty string clears it.
+type RoleFields struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+// ListRolesReq identifies one page of a system's roles.
+type ListRolesReq struct {
+	SystemID string `json:"-"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"page_size"`
+}
+
+// ListRolesResp contains one page and the total role count.
+type ListRolesResp struct {
+	// A pointer distinguishes an omitted count from a valid empty collection.
+	Count   *int   `json:"count"`
+	Results []Role `json:"results"`
+}
+
+// BatchCreateRoleReq identifies the system and the array sent as the body.
+type BatchCreateRoleReq struct {
+	SystemID string `json:"-"`
+	Roles    []Role `json:"-"`
+}
+
+// BatchCreateRoleResp contains the registered role IDs.
+type BatchCreateRoleResp []string
+
+// BatchCreateRoleActionReq identifies the role and the member array sent as the body.
+type BatchCreateRoleActionReq struct {
+	SystemID string       `json:"-"`
+	RoleID   string       `json:"-"`
+	Actions  []RoleAction `json:"-"`
+}
+
+// BatchCreateRoleActionResp contains the added member action IDs.
+type BatchCreateRoleActionResp []string
+
+// UpdateRoleReq identifies a role and its supplied mutable fields, excluding actions.
+type UpdateRoleReq struct {
+	SystemID string `json:"-"`
+	RoleID   string `json:"-"`
+	RoleFields
+}
+
+// UpdateRoleResp represents the absence of data on a successful HTTP 204.
+type UpdateRoleResp struct{}
+
 // RespError describes an IAM API error.
 type RespError struct {
 	Code    string `json:"code"`
