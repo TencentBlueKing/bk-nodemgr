@@ -1,0 +1,42 @@
+{
+  "skill_name": "bk-nodemgr-thirdparty",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "unconfirmed-api-and-shortcut-client",
+      "prompt": "Read-only design: Add a CLI-local adapter to support-files/bkiamv4/migrate for an external process endpoint. API name not confirmed; POST operates on processes, request includes system path ID and process ID array; response contains job ID. Caller also decides migration order. Propose handler/client signatures and placement; user wants it quickly and suggests raw map input and net/http to avoid setup. Inspect local contracts, do not edit or call remote APIs.",
+      "expected_output": "Research before naming, label any name as provisional and confirm purpose/Req/Resp/capability together. Reuse existing client and keep migration sequencing in the runner; no tool-specific registration in pkg.",
+      "files": [],
+      "expectations": [
+        "Does not bless an unconfirmed semantic API name or invent a final endpoint.",
+        "Raw method takes context and one named pointer Req and returns a named pointer Resp plus error.",
+        "Handler exposes a caller capability while runner retains sequencing; rejects raw-map and parallel transport shortcuts."
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "empty-response-and-required-capability",
+      "prompt": "Read-only design: Extend that CLI-local adapter with a domain API that returns HTTP 204. Existing nearby methods return error only and ListResourceTypes returns BaseBroker. Handler caller only needs success/failure. Propose exact raw client signature and response type; required domain functionality currently discovered with handler.(RoleHandler). Suggest contract organization without editing existing unrelated methods. Inspect local examples.",
+      "expected_output": "Uses named pointer Resp even for 204, allows error-only Handler capability, composes required IHandlerXxx statically, and does not rewrite legacy methods or expose generic Broker as the new raw signature.",
+      "files": [],
+      "expectations": [
+        "New 204 raw method returns a named pointer Resp and error, with an empty response type and correct empty-body semantics.",
+        "Separates the raw signature rule from the flexible Handler capability signature.",
+        "Required domain capabilities are static interfaces, not runtime assertions; unrelated legacy signatures remain unchanged."
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "validation-pagination-and-response-reuse",
+      "prompt": "Read-only design: Existing migration runner validates user input; user suggests adding Validate on every request and copying EnableLogResponse plus decodeResponse(io.ReadAll) from a neighbor. A list method caller requires all items. Describe validation ownership, pagination, response reuse/safety investigation, and verification. Inspect shared client source before choosing. Do not edit or call remote APIs.",
+      "expected_output": "Follows scoped runner validation, distinguishes config/input/remote-response checks, one-page raw and complete Handler, uses named raw Req/Resp, inspects existing decoder/log/error chain rather than inventing a decoder or declaring header masking sufficient. Proposes approval for a demonstrated gap and includes lint verification.",
+      "files": [],
+      "expectations": [
+        "Keeps runner validation and separates startup configuration and response validation rather than adding Validate everywhere.",
+        "Raw list has named pointer Req/Resp and one-page semantics; Handler fulfills completeness without generalizing all APIs to all-page.",
+        "Inspects shared response/error/log behavior and neither copies a decoder blindly nor assumes headers protect bodies.",
+        "Requires evidence and approval for a needed deviation and includes scoped lint/build verification without remote writes."
+      ]
+    }
+  ]
+}

@@ -56,6 +56,7 @@ Project-specific skills take precedence over generic Go skills when the task tou
 | `pkg/runtime/retrier`, polling, backoff, fallback candidates, `err == nil` success branches | `bk-nodemgr-retrier`, `bk-nodemgr-error-handling` | `golang-context`, `golang-observability` |
 | Go error creation, propagation, wrapping, inspection, aggregation, `err == nil`, panic/recover, `resterrf.ErrWrap`, log-or-return responsibility | `bk-nodemgr-error-handling` | `golang-safety`, `golang-error-handling` only for language details not covered by the project skill |
 | `pkg/logger`, Biz/Sys logs, fields, levels, third-party logger adapters | `bk-nodemgr-logger` | `bk-nodemgr-error-handling` for error responsibility, `golang-observability` for general concepts |
+| Third-party adapters, handler/client isolation, named API Req/Resp, domain interfaces, CLI-local APIGW adapters | `bk-nodemgr-thirdparty` | Project error/logger/contextx skills as needed; generic Go skills only for language-level gaps |
 | `testsuite/support`, package-level Mongo/Redis integration tests, `NODEMGR_TEST_*`, `RequireMongoDatabase`, `RequireRedisClientWithKeyPrefix` | `bk-nodemgr-testsuite-support` | `golang-testing`, `golang-database` |
 | Cross-layer placement, competing designs, dependency direction, shared-contract changes, pre-flight/post-flight judgment, explicit deepening scans | `bk-nodemgr-architecture-judgment` | Narrow project skill for the affected surface, then generic Go skills only for language-level gaps |
 | New REST/proto endpoint scaffolding | `api-scaffold`, `bk-nodemgr-error-handling` | `golang-grpc`, `golang-testing` when implementation requires them |
@@ -130,6 +131,7 @@ Pressure prompts live in `evals/evals.json`. Keep run outputs, timing, grading, 
 - `bk-nodemgr-retrier`: project retry primitive selection.
 - `bk-nodemgr-error-handling`: project Go error semantics, wrapping, REST mapping, log-or-return responsibility, and `err == nil` migration.
 - `bk-nodemgr-logger`: project logging conventions.
+- `bk-nodemgr-thirdparty`: provider capabilities, raw API contracts, and shared client reuse, including CLI-local adapters.
 - `bk-nodemgr-testsuite-support`: project package-level Mongo/Redis integration test support.
 - `bk-nodemgr-architecture-judgment`: pre-flight/post-flight architecture judgment and explicit deepening scans.
 - `api-scaffold`: project API endpoint scaffolding.
