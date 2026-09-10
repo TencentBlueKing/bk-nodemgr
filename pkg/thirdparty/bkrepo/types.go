@@ -43,7 +43,7 @@ const (
 // RespCommon describes the common response.
 type RespCommon struct {
 	Code    int    `json:"code"`
-	Message string `json:"messaage"`
+	Message string `json:"message"`
 	TraceID string `json:"traceId"`
 }
 
@@ -218,4 +218,31 @@ type MkdirReq struct {
 
 // MkdirResp describe the mkdir response.
 type MkdirResp struct {
+}
+
+// CopyNodeReq describes the request for copying a node.
+type CopyNodeReq struct {
+	SrcProjectID  string `json:"srcProjectId"`
+	SrcRepoName   string `json:"srcRepoName"`
+	SrcFullPath   string `json:"srcFullPath"`
+	DestProjectID string `json:"destProjectId"`
+	DestRepoName  string `json:"destRepoName"`
+	DestFullPath  string `json:"destFullPath"`
+	Overwrite     bool   `json:"overwrite"`
+}
+
+// CopyNodeResp describes the response for copying a node.
+type CopyNodeResp struct {
+}
+
+// DeleteNodeReq describes the request for deleting a node.
+type DeleteNodeReq struct {
+	Path string
+}
+
+// DeleteNodeResp describes the response for deleting a node.
+type DeleteNodeResp struct {
+	DeletedNumber int    `json:"deletedNumber"`
+	DeletedSize   int64  `json:"deletedSize"`
+	DeletedTime   string `json:"deletedTime"`
 }

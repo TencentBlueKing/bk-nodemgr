@@ -148,6 +148,21 @@ func runClientRequestsRespectTenantMode(t *testing.T, mode tenant.Mode) {
 			path:         "/repository/api/node/mkdir/" + effectiveProjectID + "/" + testRepoName + "/packages/new/",
 			responseBody: `{"code":0,"message":"OK","data":{}}`,
 		},
+		{
+			method: http.MethodPost,
+			path:   "/repository/api/node/copy",
+			body: `{"srcProjectId":"` + effectiveProjectID + `","srcRepoName":"` + testRepoName +
+				`","srcFullPath":"/system/release/plugin/source.tgz","destProjectId":"` + effectiveProjectID +
+				`","destRepoName":"` + testRepoName +
+				`","destFullPath":"/tenant-a/release/plugin","overwrite":false}`,
+			responseBody: `{"code":0,"message":"OK","data":{}}`,
+		},
+		{
+			method: http.MethodDelete,
+			path:   "/repository/api/node/delete/" + effectiveProjectID + "/" + testRepoName + "/packages/obsolete.tgz",
+			responseBody: `{"code":0,"message":"OK","data":{` +
+				`"deletedNumber":1,"deletedSize":128,"deletedTime":"2026-09-09T00:00:00Z"}}`,
+		},
 	}
 
 	server, observedRequests := newBKRepoRequestServer(requests)
@@ -188,7 +203,78 @@ func runClientRequestsRespectTenantMode(t *testing.T, mode tenant.Mode) {
 	err = client.MkDir(nCtx, &MkdirReq{Path: "packages/new/"})
 	require.NoError(t, err)
 
+	handler := &Handler{cli: client}
+	sourceGroup := &FileGroup{
+		info: NodeInfo{
+			ProjectID: effectiveProjectID,
+			RepoName:  testRepoName,
+			FullPath:  "/system/release/plugin",
+		},
+		handler: handler,
+	}
+	destinationGroup := &FileGroup{
+		info: NodeInfo{
+			ProjectID: effectiveProjectID,
+			RepoName:  testRepoName,
+			FullPath:  "/tenant-a/release/plugin",
+		},
+		handler: handler,
+	}
+	err = sourceGroup.Copy(nCtx, "source.tgz", destinationGroup, ".", false)
+	require.NoError(t, err)
+
+	deleteNodeResp, err := client.DeleteNode(nCtx, &DeleteNodeReq{Path: "packages/obsolete.tgz"})
+	require.NoError(t, err)
+	assert.Equal(t, 1, deleteNodeResp.DeletedNumber)
+	assert.Equal(t, int64(128), deleteNodeResp.DeletedSize)
+	assert.Equal(t, "2026-09-09T00:00:00Z", deleteNodeResp.DeletedTime)
+
 	assertObservedRequests(t, requests, observedRequests(), wantTenantID)
+}
+
+func TestCopyAndDeleteNodeRejectBusinessFailure(t *testing.T) {
+	originalMode := tenant.GetMode()
+	tenant.SetMode(tenant.ModeSingle)
+	t.Cleanup(func() {
+		tenant.SetMode(originalMode)
+	})
+
+	requests := []bkrepoRequestExpectation{
+		{
+			method: http.MethodPost,
+			path:   "/repository/api/node/copy",
+			body: `{"srcProjectId":"blueking","srcRepoName":"agent",` +
+				`"srcFullPath":"packages/source.tgz","destProjectId":"blueking",` +
+				`"destRepoName":"agent","destFullPath":"packages/destination.tgz","overwrite":false}`,
+			responseBody: `{"code":1,"message":"copy rejected"}`,
+		},
+		{
+			method:       http.MethodDelete,
+			path:         "/repository/api/node/delete/blueking/agent/packages/obsolete.tgz",
+			responseBody: `{"code":2,"message":"delete rejected"}`,
+		},
+	}
+
+	server, observedRequests := newBKRepoRequestServer(requests)
+	defer server.Close()
+
+	client := newBKRepoTestClient(t, server.URL)
+	nCtx := contextx.New(context.Background())
+
+	_, err := client.CopyNode(nCtx, &CopyNodeReq{
+		SrcProjectID:  testProjectID,
+		SrcRepoName:   testRepoName,
+		SrcFullPath:   "packages/source.tgz",
+		DestProjectID: testProjectID,
+		DestRepoName:  testRepoName,
+		DestFullPath:  "packages/destination.tgz",
+	})
+	require.ErrorContains(t, err, "copy rejected")
+
+	_, err = client.DeleteNode(nCtx, &DeleteNodeReq{Path: "packages/obsolete.tgz"})
+	require.ErrorContains(t, err, "delete rejected")
+
+	assertObservedRequests(t, requests, observedRequests(), "")
 }
 
 func newBKRepoTestClient(t *testing.T, endpoint string) *cli {

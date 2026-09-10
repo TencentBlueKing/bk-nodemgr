@@ -27,6 +27,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
 
 var _ fileiface.FileGroup = (*upstreamFileGroup)(nil)
@@ -102,6 +103,57 @@ func (group *upstreamFileGroup) Store(nCtx contextx.IContext, info fileiface.Fil
 	}
 
 	return tenantGroup.Store(nCtx, info, reader, overwrite)
+}
+
+// Copy copies a file or subgroup from the system tenant to the destination tenant.
+func (group *upstreamFileGroup) Copy(nCtx contextx.IContext, srcPath string, destGroup fileiface.FileGroup, destPath string, overwrite bool) error {
+	if nCtx == nil {
+		return errors.New("context is nil")
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("invalid destination tenant: %w", err)
+	}
+
+	destUpstreamGroup, ok := destGroup.(*upstreamFileGroup)
+	if !ok || destUpstreamGroup == nil {
+		return errors.New("destination file group is not an upstream file group")
+	}
+
+	srcCtx := contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID))
+	srcTenantGroup, err := group.resolve(srcCtx)
+	if err != nil {
+		return fmt.Errorf("failed to resolve source upstream file group, base-path(%s): %w", group.basePath, err)
+	}
+
+	destTenantGroup, err := destUpstreamGroup.resolve(nCtx)
+	if err != nil {
+		return fmt.Errorf(
+			"failed to resolve destination upstream file group, base-path(%s): %w",
+			destUpstreamGroup.basePath,
+			err,
+		)
+	}
+
+	if err := srcTenantGroup.Copy(nCtx, srcPath, destTenantGroup, destPath, overwrite); err != nil {
+		return fmt.Errorf("failed to copy upstream file group node: %w", err)
+	}
+
+	return nil
+}
+
+// Remove deletes a file or subgroup from the tenant's upstream file group.
+func (group *upstreamFileGroup) Remove(nCtx contextx.IContext, path string) error {
+	tenantGroup, err := group.resolve(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to resolve upstream file group, base-path(%s): %w", group.basePath, err)
+	}
+
+	if err := tenantGroup.Remove(nCtx, path); err != nil {
+		return fmt.Errorf("failed to remove upstream file group node: %w", err)
+	}
+
+	return nil
 }
 
 func (group *upstreamFileGroup) resolve(nCtx contextx.IContext) (fileiface.FileGroup, error) {

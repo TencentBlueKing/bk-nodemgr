@@ -55,8 +55,11 @@ type FileGroup interface {
 	// Store the func will store a file into the file group.
 	Store(nCtx contextx.IContext, info FileInfo, file io.ReadCloser, overwrite bool) error
 
-	// Remove the func will delete a file from the file group.
-	// Remove(nCtx contextx.IContext, name string) error
+	// Copy copies a file or subgroup to another file group.
+	Copy(nCtx contextx.IContext, srcPath string, destGroup FileGroup, destPath string, overwrite bool) error
+
+	// Remove deletes a file or subgroup from the file group.
+	Remove(nCtx contextx.IContext, path string) error
 }
 
 // File file interface.

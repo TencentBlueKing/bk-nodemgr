@@ -21,9 +21,11 @@ package bkrepo
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -59,6 +61,7 @@ func testClient(t *testing.T) IHandler {
 		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{os.Getenv("BK_REPO_ENDPOINT")}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
+		TraceSvc:             bkrepoTestTraceService{},
 	}
 
 	h, err := New(clientCap, &Config{
@@ -163,6 +166,86 @@ func Test_Store(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Test_CopyAndRemove tests Copy and Remove.
+func Test_CopyAndRemove(t *testing.T) {
+	nCtx := contextx.New(t.Context(), contextx.WithTenantID("single"))
+	client := testClient(t)
+
+	rootGroup, err := client.EnsureFileGroup(nCtx, "/unittest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	runDir := fmt.Sprintf("copy-remove-%d", time.Now().UnixNano())
+	removed := false
+	t.Cleanup(func() {
+		if removed {
+			return
+		}
+
+		cleanupCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
+		if err := rootGroup.Remove(cleanupCtx, runDir); err != nil {
+			t.Errorf("failed to clean up BKRepo integration test directory %q: %v", runDir, err)
+		}
+	})
+
+	sourceGroup, err := client.EnsureFileGroup(nCtx, "/unittest/"+runDir+"/system/release/plugin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	destinationGroup, err := client.EnsureFileGroup(nCtx, "/unittest/"+runDir+"/tenant-a/release/plugin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	const fileName = "source.tgz"
+	const content = "copy-remove-integration-test"
+	err = sourceGroup.Store(
+		nCtx,
+		fileiface.FileInfo{Name: fileName},
+		io.NopCloser(bytes.NewReader([]byte(content))),
+		false,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sourceFile, err := sourceGroup.GetFile(nCtx, fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("source file: info=%+v, absDirs=%v", sourceFile.Info(), sourceFile.AbsDirs())
+
+	if err := sourceGroup.Copy(nCtx, fileName, destinationGroup, ".", false); err != nil {
+		t.Fatal(err)
+	}
+
+	copiedFile, err := destinationGroup.GetFile(nCtx, fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("copied file: info=%+v, absDirs=%v", copiedFile.Info(), copiedFile.AbsDirs())
+
+	reader, err := copiedFile.Content(nCtx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reader.Close()
+
+	got, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != content {
+		t.Fatalf("copied file content = %q, want %q", got, content)
+	}
+
+	if err := rootGroup.Remove(nCtx, runDir); err != nil {
+		t.Fatal(err)
+	}
+	removed = true
 }
 
 // Test_List tests List.

@@ -25,7 +25,9 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -288,6 +290,87 @@ func (h *Handler) storeFile(
 	}
 
 	return nil
+}
+
+func (h *Handler) copyNode(
+	nCtx contextx.IContext, srcGroup *FileGroup, srcPath string, destGroup *FileGroup, destPath string, overwrite bool) error {
+
+	if nCtx == nil {
+		return errInvalidContext
+	}
+
+	if srcGroup.handler != destGroup.handler || srcGroup.handler != h {
+		return errors.New("source and destination file groups must use the same handler")
+	}
+	isDifferentProject := srcGroup.info.ProjectID != destGroup.info.ProjectID
+	isDifferentRepo := srcGroup.info.RepoName != destGroup.info.RepoName
+	if isDifferentProject || isDifferentRepo {
+		return errors.New("source and destination file groups must use the same project and repository")
+	}
+
+	srcFullPath, err := resolveNodePath(srcGroup, srcPath, false)
+	if err != nil {
+		return fmt.Errorf("resolve source node path failed: %w", err)
+	}
+	destFullPath, err := resolveNodePath(destGroup, destPath, true)
+	if err != nil {
+		return fmt.Errorf("resolve destination node path failed: %w", err)
+	}
+
+	_, err = h.cli.CopyNode(nCtx, &CopyNodeReq{
+		SrcProjectID:  h.cli.effectiveProjectID(),
+		SrcRepoName:   h.cli.config.RepoName,
+		SrcFullPath:   srcFullPath,
+		DestProjectID: h.cli.effectiveProjectID(),
+		DestRepoName:  h.cli.config.RepoName,
+		DestFullPath:  destFullPath,
+		Overwrite:     overwrite,
+	})
+	if err != nil {
+		return fmt.Errorf("copy node failed: %w", err)
+	}
+
+	return nil
+}
+
+func (h *Handler) deleteNode(nCtx contextx.IContext, group *FileGroup, nodePath string) error {
+	if nCtx == nil {
+		return errInvalidContext
+	}
+
+	fullPath, err := resolveNodePath(group, nodePath, false)
+	if err != nil {
+		return fmt.Errorf("resolve node path failed: %w", err)
+	}
+
+	if _, err := h.cli.DeleteNode(nCtx, &DeleteNodeReq{Path: fullPath}); err != nil {
+		return fmt.Errorf("delete node failed: %w", err)
+	}
+
+	return nil
+}
+
+func resolveNodePath(group *FileGroup, relativePath string, allowGroupRoot bool) (string, error) {
+	if relativePath == "" {
+		return "", errEmptyPathOrName
+	}
+	if path.IsAbs(relativePath) {
+		return "", errors.New("path must be relative")
+	}
+
+	cleanedPath := path.Clean(relativePath)
+	if cleanedPath == "." {
+		if allowGroupRoot {
+			return path.Clean(group.info.FullPath), nil
+		}
+
+		return "", errors.New("path must identify a node in the file group")
+	}
+	if cleanedPath == ".." || strings.HasPrefix(cleanedPath, "../") {
+		return "", errors.New("path must not escape the file group")
+	}
+
+	return path.Join(group.info.FullPath, cleanedPath), nil
 }
 
 func (h *Handler) getFileContent(nCtx contextx.IContext, path string) (io.ReadCloser, error) {

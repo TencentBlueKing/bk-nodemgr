@@ -28,6 +28,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,6 +73,14 @@ type fakeTenantFileGroup struct {
 	getFileNames    []string
 	storedFileInfo  []fileiface.FileInfo
 	storedOverwrite []bool
+	copyCalls       []fakeCopyCall
+}
+
+type fakeCopyCall struct {
+	srcPath   string
+	destGroup fileiface.FileGroup
+	destPath  string
+	overwrite bool
 }
 
 func (group *fakeTenantFileGroup) Name() string {
@@ -98,6 +107,27 @@ func (group *fakeTenantFileGroup) GetFile(_ contextx.IContext, name string) (fil
 func (group *fakeTenantFileGroup) Store(_ contextx.IContext, info fileiface.FileInfo, _ io.ReadCloser, overwrite bool) error {
 	group.storedFileInfo = append(group.storedFileInfo, info)
 	group.storedOverwrite = append(group.storedOverwrite, overwrite)
+	return nil
+}
+
+func (group *fakeTenantFileGroup) Copy(
+	_ contextx.IContext,
+	srcPath string,
+	destGroup fileiface.FileGroup,
+	destPath string,
+	overwrite bool,
+) error {
+	group.copyCalls = append(group.copyCalls, fakeCopyCall{
+		srcPath:   srcPath,
+		destGroup: destGroup,
+		destPath:  destPath,
+		overwrite: overwrite,
+	})
+
+	return nil
+}
+
+func (group *fakeTenantFileGroup) Remove(_ contextx.IContext, _ string) error {
 	return nil
 }
 
@@ -213,6 +243,30 @@ func TestUpstreamFileGroupDelegatesOperations(t *testing.T) {
 	require.Equal(t, []fileiface.FileInfo{info}, tenantGroup.storedFileInfo)
 	require.Equal(t, []bool{true}, tenantGroup.storedOverwrite)
 	require.Equal(t, []string{"/system/origin/v3/plugin"}, handler.paths())
+}
+
+func TestUpstreamFileGroupCopiesFromSystemToRequestTenant(t *testing.T) {
+	handler := new(fakeUpstreamHandler)
+	group := &upstreamFileGroup{ensurer: handler, basePath: "release/plugin"}
+	nCtx := contextx.New(t.Context(), contextx.WithTenantID("tenant-a"))
+
+	err := group.Copy(nCtx, "source.tgz", group, ".", false)
+	require.NoError(t, err)
+
+	systemGroup, err := group.resolve(contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID)))
+	require.NoError(t, err)
+	destinationGroup, err := group.resolve(nCtx)
+	require.NoError(t, err)
+
+	systemFileGroup, ok := systemGroup.(*fakeTenantFileGroup)
+	require.True(t, ok)
+	require.Equal(t, []fakeCopyCall{{
+		srcPath:   "source.tgz",
+		destGroup: destinationGroup,
+		destPath:  ".",
+		overwrite: false,
+	}}, systemFileGroup.copyCalls)
+	require.Equal(t, []string{"/system/release/plugin", "/tenant-a/release/plugin"}, handler.paths())
 }
 
 func TestUpstreamFileGroupConcurrentResolveInitializesOnce(t *testing.T) {

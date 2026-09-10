@@ -43,6 +43,8 @@
 | `GET`  | `repository/api/node/detail/{projectID}/{repoName}/{path}` | 查询文件或目录节点详情    |
 | `GET`  | `repository/api/node/page/{projectID}/{repoName}/{path}`   | 分页列出目录下的文件和子目录 |
 | `POST` | `repository/api/node/mkdir/{projectID}/{repoName}/{path}`  | 创建目录           |
+| `POST` | `repository/api/node/copy`                                | 复制文件或目录节点      |
+| `DELETE` | `repository/api/node/delete/{projectID}/{repoName}/{path}` | 删除文件或目录节点      |
 
 ## 代码入口
 
@@ -54,6 +56,11 @@
 | `FileGroup.GetFile(name)` / `GetFile(path)`      | `repository/api/node/detail/{projectID}/{repoName}/{path}`               |
 | `File.Content()`                                 | `generic/{projectID}/{repoName}/{path}?download=true`                    |
 | `FileGroup.Store(...)`                           | `generic/{projectID}/{repoName}/{path}`                                  |
+| `FileGroup.Copy(...)`                            | `repository/api/node/copy`                                               |
+| `FileGroup.Remove(path)`                         | `repository/api/node/delete/{projectID}/{repoName}/{path}`                |
+
+多租户模式下，file manager 的 upstream `FileGroup.Copy` 从 `/system/{basePath}` 复制到请求租户的
+`/{tenantID}/{basePath}`；BKRepo project 和 repository 保持不变。
 
 ## bkrepo 系统注册
 

@@ -19,6 +19,7 @@
 package bkrepo
 
 import (
+	"errors"
 	"io"
 	"path"
 
@@ -63,6 +64,21 @@ func (group *FileGroup) Store(
 ) error {
 
 	return group.handler.storeFile(nCtx, group.info.FullPath, info, reader, overwrite)
+}
+
+// Copy copies a node from this group to a destination BKRepo group.
+func (group *FileGroup) Copy(nCtx contextx.IContext, srcPath string, destGroup fileiface.FileGroup, destPath string, overwrite bool) error {
+	destBKRepoGroup, ok := destGroup.(*FileGroup)
+	if !ok || destBKRepoGroup == nil {
+		return errors.New("destination file group must be a bkrepo file group")
+	}
+
+	return group.handler.copyNode(nCtx, group, srcPath, destBKRepoGroup, destPath, overwrite)
+}
+
+// Remove deletes a node in this group.
+func (group *FileGroup) Remove(nCtx contextx.IContext, path string) error {
+	return group.handler.deleteNode(nCtx, group, path)
 }
 
 // AbsDirs the func will return the abs dirs of file group.

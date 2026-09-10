@@ -20,6 +20,7 @@ package bkrepo
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -199,4 +200,59 @@ func (c *cli) MkDir(nCtx contextx.IContext, req *MkdirReq) error {
 	}
 
 	return nil
+}
+
+// CopyNode copies a node in BKRepo.
+func (c *cli) CopyNode(nCtx contextx.IContext, req *CopyNodeReq) (*CopyNodeResp, error) {
+	if nCtx == nil {
+		return nil, errInvalidContext
+	}
+	if req == nil {
+		return nil, errors.New("copy node request is nil")
+	}
+
+	resp := new(BaseBroker[*CopyNodeResp])
+
+	err := c.client.Post().
+		SubResourcef("/repository/api/node/copy").
+		WithContext(nCtx).
+		WithHeaders(c.getCommonHeader()).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("copy node failed: %w", err)
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("copy node failed: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// DeleteNode deletes a node in BKRepo.
+func (c *cli) DeleteNode(nCtx contextx.IContext, req *DeleteNodeReq) (*DeleteNodeResp, error) {
+	if nCtx == nil {
+		return nil, errInvalidContext
+	}
+	if req == nil {
+		return nil, errors.New("delete node request is nil")
+	}
+
+	resp := new(BaseBroker[*DeleteNodeResp])
+
+	err := c.client.Delete().
+		SubResourcef("/repository/api/node/delete/%s/%s/%s", c.effectiveProjectID(), c.config.RepoName, req.Path).
+		WithContext(nCtx).
+		WithHeaders(c.getCommonHeader()).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("delete node failed: %w", err)
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("delete node failed: %w", err)
+	}
+
+	return resp.Data, nil
 }
