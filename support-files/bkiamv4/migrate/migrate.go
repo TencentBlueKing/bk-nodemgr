@@ -379,11 +379,7 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 				continue
 			}
 			if op.Operation == operationUpsertResourceType {
-				resourceHandler, ok := handler.(iamv4.ResourceTypeHandler)
-				if !ok {
-					return fmt.Errorf("resource type migration handler is unavailable")
-				}
-				if err := item.executeResourceType(ctx, resourceHandler, op, resourceTypes, dryRun, out); err != nil {
+				if err := item.executeResourceType(ctx, handler, op, resourceTypes, dryRun, out); err != nil {
 					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
 				}
 
@@ -416,7 +412,7 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 }
 
 func (item migration) executeOperation(
-	ctx contextx.IContext, handler iamv4.IHandler, index int, op operation, exists, dryRun bool, out io.Writer,
+	ctx contextx.IContext, handler iamv4.SystemHandler, index int, op operation, exists, dryRun bool, out io.Writer,
 ) error {
 
 	action := "update_system"

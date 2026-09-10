@@ -28,8 +28,17 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 )
 
-// IHandler exposes system registration operations without HTTP details.
+// IHandler combines all model registration operations without HTTP details.
 type IHandler interface {
+	SystemHandler
+	ResourceTypeHandler
+	ActionHandler
+	RoleHandler
+	RoleActionHandler
+}
+
+// SystemHandler exposes system registration operations without HTTP details.
+type SystemHandler interface {
 	SystemExists(ctx contextx.IContext, systemID string) (bool, error)
 	CreateSystem(ctx contextx.IContext, systemID string, fields SystemFields) error
 	UpdateSystem(ctx contextx.IContext, systemID string, fields SystemFields) error
@@ -67,10 +76,6 @@ type Handler struct {
 }
 
 var _ IHandler = (*Handler)(nil)
-var _ ResourceTypeHandler = (*Handler)(nil)
-var _ ActionHandler = (*Handler)(nil)
-var _ RoleHandler = (*Handler)(nil)
-var _ RoleActionHandler = (*Handler)(nil)
 
 // New initializes the migration tool's IAM V4 handler.
 func New(c *restclient.Capability, conf *Config) (*Handler, error) {

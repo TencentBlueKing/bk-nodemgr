@@ -74,13 +74,9 @@ func (item migration) executeAction(
 	dryRun bool, out io.Writer,
 ) error {
 
-	actionHandler, ok := handler.(iamv4.ActionHandler)
-	if !ok {
-		return fmt.Errorf("action migration handler is unavailable")
-	}
 	actions, loaded := states[item.SystemID]
 	if !loaded {
-		listed, err := actionHandler.ListActions(ctx, item.SystemID)
+		listed, err := handler.ListActions(ctx, item.SystemID)
 		if err != nil {
 			return fmt.Errorf("list actions for %s: %w", item.SystemID, err)
 		}
@@ -111,7 +107,7 @@ func (item migration) executeAction(
 		return fmt.Errorf("write action plan: %w", err)
 	}
 	if !dryRun && plan != "skip_action" {
-		if err := applyAction(ctx, actionHandler, item.SystemID, action, exists); err != nil {
+		if err := applyAction(ctx, handler, item.SystemID, action, exists); err != nil {
 			return err
 		}
 	}
@@ -143,7 +139,7 @@ func prepareAction(op operation, actions map[string]iamv4.Action) (iamv4.Action,
 }
 
 func validateActionCreation(
-	ctx contextx.IContext, handler iamv4.IHandler, systemID string, action iamv4.Action,
+	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string, action iamv4.Action,
 	states map[string]map[string]iamv4.ResourceType,
 ) error {
 
@@ -154,11 +150,7 @@ func validateActionCreation(
 		// Omitted and explicitly empty bindings both create a resource-free action.
 		return nil
 	}
-	resourceHandler, ok := handler.(iamv4.ResourceTypeHandler)
-	if !ok {
-		return fmt.Errorf("resource type migration handler is unavailable")
-	}
-	resources, err := loadResourceTypes(ctx, resourceHandler, systemID, states)
+	resources, err := loadResourceTypes(ctx, handler, systemID, states)
 	if err != nil {
 		return err
 	}

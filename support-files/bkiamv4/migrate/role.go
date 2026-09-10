@@ -115,13 +115,9 @@ func (item migration) executeRole(
 	resourceTypes map[string]map[string]iamv4.ResourceType, dryRun bool, out io.Writer,
 ) error {
 
-	roleHandler, ok := handler.(iamv4.RoleHandler)
-	if !ok {
-		return fmt.Errorf("role migration handler is unavailable")
-	}
 	roles, loaded := states[item.SystemID]
 	if !loaded {
-		listed, err := roleHandler.ListRoles(ctx, item.SystemID)
+		listed, err := handler.ListRoles(ctx, item.SystemID)
 		if err != nil {
 			return fmt.Errorf("list roles for %s: %w", item.SystemID, err)
 		}
@@ -159,7 +155,7 @@ func (item migration) executeRole(
 		return fmt.Errorf("write role plan: %w", err)
 	}
 	if !dryRun && plan != "skip_role" {
-		if err := applyRole(ctx, roleHandler, item.SystemID, role, fields, exists, additions); err != nil {
+		if err := applyRole(ctx, handler, item.SystemID, role, fields, exists, additions); err != nil {
 			return err
 		}
 	}
@@ -229,17 +225,13 @@ func containsRoleActions(desired, current []iamv4.RoleAction) bool {
 }
 
 func loadActions(
-	ctx contextx.IContext, handler iamv4.IHandler, systemID string, states map[string]map[string]iamv4.Action,
+	ctx contextx.IContext, handler iamv4.ActionHandler, systemID string, states map[string]map[string]iamv4.Action,
 ) (map[string]iamv4.Action, error) {
 
 	if actions, loaded := states[systemID]; loaded {
 		return actions, nil
 	}
-	actionHandler, ok := handler.(iamv4.ActionHandler)
-	if !ok {
-		return nil, fmt.Errorf("action migration handler is unavailable")
-	}
-	listed, err := actionHandler.ListActions(ctx, systemID)
+	listed, err := handler.ListActions(ctx, systemID)
 	if err != nil {
 		return nil, fmt.Errorf("list actions for %s: %w", systemID, err)
 	}
@@ -285,15 +277,11 @@ func validateRoleRelations(
 }
 
 func validateRoleDimension(
-	ctx contextx.IContext, handler iamv4.IHandler, systemID string, member iamv4.RoleAction, action iamv4.Action,
+	ctx contextx.IContext, handler iamv4.ResourceTypeHandler, systemID string, member iamv4.RoleAction, action iamv4.Action,
 	states map[string]map[string]iamv4.ResourceType,
 ) error {
 
-	resourceHandler, ok := handler.(iamv4.ResourceTypeHandler)
-	if !ok {
-		return fmt.Errorf("resource type migration handler is unavailable")
-	}
-	resources, err := loadResourceTypes(ctx, resourceHandler, systemID, states)
+	resources, err := loadResourceTypes(ctx, handler, systemID, states)
 	if err != nil {
 		return err
 	}
@@ -312,7 +300,7 @@ func validateRoleDimension(
 }
 
 func applyRole(
-	ctx contextx.IContext, handler iamv4.RoleHandler, systemID string,
+	ctx contextx.IContext, handler iamv4.IHandler, systemID string,
 	role iamv4.Role, fields iamv4.RoleFields, exists bool, additions []iamv4.RoleAction,
 ) error {
 
@@ -324,11 +312,7 @@ func applyRole(
 		return nil
 	}
 	if len(additions) > 0 {
-		actionHandler, ok := handler.(iamv4.RoleActionHandler)
-		if !ok {
-			return fmt.Errorf("role action migration handler is unavailable")
-		}
-		if err := actionHandler.AddRoleActions(ctx, systemID, role.ID, additions); err != nil {
+		if err := handler.AddRoleActions(ctx, systemID, role.ID, additions); err != nil {
 			return fmt.Errorf("add actions to role %s: %w", role.ID, err)
 		}
 	}
