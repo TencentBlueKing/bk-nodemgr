@@ -1013,23 +1013,28 @@ const getProcessList = async () => {
 
   let hostListMap = new Map<number, any>();
   if (props.type === 'plugin') {
-    const hostList = await TopoService.HostList({
-      page: {
-        limit: pagination.limit,
-        offset: (pagination.current - 1) * pagination.limit,
-      },
-      exact_include_conditions: {
-        bk_host_id: res.items.map(item => item.bk_host_id),
-        bk_biz_id: mainStore.selectedBusinessId,
-        ...(nodeRoleFilter.length > 0 ? { node_role: nodeRoleFilter } : {}),
-      },
-    }).catch((err) => {
-      console.log(err);
-      return {
-        items: [],
-      };
-    });
-    hostListMap = new Map(hostList.items.map(item => [item.bk_host_id, item]));
+    const hostIds = res.items.map(item => item.bk_host_id);
+    let hostList: { items: any[] } = { items: [] };
+    if (hostIds.length > 0) {
+      // host 查询用 bk_host_id 精确过滤已限定范围，limit 0 表示不分页，
+      // 不能再叠加进程列表的 offset，否则第 2 页起会把过滤结果全部跳过
+      hostList = await TopoService.HostList({
+        page: {
+          limit: 0,
+        },
+        exact_include_conditions: {
+          bk_host_id: hostIds,
+          bk_biz_id: mainStore.selectedBusinessId,
+          ...(nodeRoleFilter.length > 0 ? { node_role: nodeRoleFilter } : {}),
+        },
+      }).catch((err) => {
+        console.log(err);
+        return {
+          items: [],
+        };
+      });
+      hostListMap = new Map(hostList.items.map(item => [item.bk_host_id, item]));
+    }
 
     // 补充管控单元名称：收集 bk_networkunit_id → 调 brief 接口 → 构建 Map
     // 0 是正常单元 ID（从 0 开始），只过滤 null/undefined；负数（-1 等）为未匹配，brief 不会返回

@@ -234,7 +234,9 @@ onMounted(async () => {
     setType(queryType);
   }
 
-  loadPluginList();
+  // 等待插件列表就绪后再加载默认版本（selectedPluginPkgName 依赖 pluginOptions），
+  // 否则并发请求时 loadSystemArch 拿不到 pkgName，会拉回所有插件的 packages 污染 defaultVersionMap
+  await loadPluginList();
   loadDefaultVersions();
 
   // 回填预填主机数据（重装/升级从 process/list 获取的主机ID列表）
@@ -446,9 +448,12 @@ const selectableSystemData = computed(() => systemData.value.filter(item => isRo
 const loadSystemArch = async () => {
   // 已加载过则直接返回，避免重复请求
   if (systemLoaded.value) return;
-  systemLoaded.value = true;
-  // release plugin 的 name 条件匹配的是插件包名（pkg_name），而不是插件名
+  // release plugin 的 name 条件匹配的是插件包名（pkg_name），而不是插件名。
+  // pkgName 为空时（pluginOptions 还没就绪）直接拒绝加载，避免 brief 不带 name 过滤
+  // 返回所有插件的 releases，导致 defaultVersionMap 被其他插件（如 bkmonitorbeat）的默认版本抢占
   const pkgName = selectedPluginPkgName.value;
+  if (!pkgName) return;
+  systemLoaded.value = true;
   const res = await PackageService.ListReleasePluginBrief({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
@@ -527,6 +532,14 @@ watch(() => formData.value.pluginName, () => {
   systemData.value = [];
   formData.value.selectedVersion = '';
   loadSystemArch();
+});
+// pluginOptions 就绪后，若系统/架构列表未加载（pkgName 为空时 loadSystemArch 已拒绝）则补加载，
+// 覆盖 onMounted 里 loadPluginList 与 loadSystemArch 竞争时丢数据的情况
+watch(() => pluginOptions.value, () => {
+  const pkgName = selectedPluginPkgName.value;
+  if (pkgName && !systemLoaded.value) {
+    loadSystemArch();
+  }
 });
 const isShowDialog = ref(false);
 const dialogData = ref<{ os: string; version: string }[]>([{ os: '', version: '' }]);

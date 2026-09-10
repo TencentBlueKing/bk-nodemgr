@@ -143,7 +143,7 @@
 
 <script setup lang="ts">
 import { Button, Dropdown, Loading, Message } from 'bkui-vue';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -519,6 +519,12 @@ const openSidebar = async (plugin: any) => {
 // 组件挂载时加载数据
 onMounted(() => {
   loadPermittedOperations();
+  loadPluginList();
+});
+
+// 切换业务时重置分页并重新查询
+watch(() => mainStore.selectedBusinessId, () => {
+  pagination.current = 1;
   loadPluginList();
 });
 </script>
