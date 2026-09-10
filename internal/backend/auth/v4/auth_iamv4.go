@@ -43,7 +43,7 @@ type iamv4Authorizer struct {
 	systemID          string
 	handler           iamv4.IHandler
 	attributeEnricher provider.IAttributeEnricher
-	dispatcher        provider.IDispatcher
+	instanceLister    provider.IInstanceLister
 }
 
 // NewProviderHandler registers the IAM V4 resource providers.
@@ -62,14 +62,14 @@ func NewIAMV4Authorizer(
 	systemID string,
 	handler iamv4.IHandler,
 	attributeEnricher provider.IAttributeEnricher,
-	dispatcher provider.IDispatcher,
+	instanceLister provider.IInstanceLister,
 ) auth.IAuthorizer {
 
 	return &iamv4Authorizer{
 		systemID:          systemID,
 		handler:           handler,
 		attributeEnricher: attributeEnricher,
-		dispatcher:        dispatcher,
+		instanceLister:    instanceLister,
 	}
 }
 
@@ -233,24 +233,7 @@ func (authorizer *iamv4Authorizer) collectDeniedActionResourcesByActions(
 ) (map[auth.Action][]types.AuthResource, error) {
 
 	deniedActionResources := make(map[auth.Action][]types.AuthResource, len(actionResources))
-	resourcesByKey := make(map[string][]types.AuthResource)
-	actionsByKey := make(map[string][]auth.Action)
-
-	for _, action := range iamv4SortedActions(actionResources) {
-		resources := actionResources[action]
-		if len(resources) == 0 {
-			resourcesByKey[""] = nil
-			actionsByKey[""] = append(actionsByKey[""], action)
-
-			continue
-		}
-
-		for _, resource := range resources {
-			key := iamv4BuildIAMBatchLookupKey(iamv4ToIAMResources([]types.AuthResource{resource}))
-			resourcesByKey[key] = []types.AuthResource{resource}
-			actionsByKey[key] = append(actionsByKey[key], action)
-		}
-	}
+	resourcesByKey, actionsByKey := iamv4GroupActionsByResource(actionResources)
 
 	keys := make([]string, 0, len(actionsByKey))
 	for key := range actionsByKey {
@@ -286,6 +269,32 @@ func (authorizer *iamv4Authorizer) collectDeniedActionResourcesByActions(
 	}
 
 	return deniedActionResources, nil
+}
+
+func iamv4GroupActionsByResource(
+	actionResources map[auth.Action][]types.AuthResource,
+) (map[string][]types.AuthResource, map[string][]auth.Action) {
+
+	resourcesByKey := make(map[string][]types.AuthResource)
+	actionsByKey := make(map[string][]auth.Action)
+
+	for _, action := range iamv4SortedActions(actionResources) {
+		resources := actionResources[action]
+		if len(resources) == 0 {
+			resourcesByKey[""] = nil
+			actionsByKey[""] = append(actionsByKey[""], action)
+
+			continue
+		}
+
+		for _, resource := range resources {
+			key := iamv4BuildIAMBatchLookupKey(iamv4ToIAMResources([]types.AuthResource{resource}))
+			resourcesByKey[key] = []types.AuthResource{resource}
+			actionsByKey[key] = append(actionsByKey[key], action)
+		}
+	}
+
+	return resourcesByKey, actionsByKey
 }
 
 func (authorizer *iamv4Authorizer) Check(ctx contextx.IContext, action auth.Action, resources []types.AuthResource) error {
@@ -434,9 +443,9 @@ func (authorizer *iamv4Authorizer) expandAuthorizedResources(
 			return authorizer.listAllResourceIDs(ctx, targetType, nil)
 		}
 
-		parent := map[string]interface{}{
-			"type": string(parentType),
-			"id":   parentID,
+		parent := &provider.ParentFilter{
+			Type: string(parentType),
+			ID:   parentID,
 		}
 		expanded, err := authorizer.listAllResourceIDs(ctx, targetType, parent)
 		if err != nil {
@@ -462,43 +471,45 @@ func canExpandAuthorizedParent(parentType, targetType types.AuthResourceType) bo
 func (authorizer *iamv4Authorizer) listAllResourceIDs(
 	ctx contextx.IContext,
 	resourceType types.AuthResourceType,
-	parent map[string]interface{},
+	parent *provider.ParentFilter,
 ) ([]string, error) {
 
-	if authorizer.dispatcher == nil {
-		return nil, fmt.Errorf("auth provider dispatcher is nil")
+	if authorizer.instanceLister == nil {
+		return nil, fmt.Errorf("auth provider instance lister is nil")
 	}
 
 	ids := make([]string, 0)
-	page := types.Page{Limit: provider.MaxListInstanceByPolicyLimit}
+	page := types.Page{Limit: provider.MaxListInstancePageSize}
+	var expectedCount int64
+	seen := make(map[string]struct{})
 	for {
-		filter := map[string]interface{}{}
-		if parent != nil {
-			filter["parent"] = parent
-		}
-
-		result, err := authorizer.dispatcher.DispatchMethod(
-			ctx,
-			string(resourceType),
-			provider.RequestMethodListInstance,
-			filter,
-			page,
-		)
+		data, err := authorizer.instanceLister.ListInstance(ctx, string(resourceType), &provider.Request[provider.ListInstanceFilter]{
+			Filter: provider.ListInstanceFilter{Parent: parent}, Page: page,
+		})
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to enumerate resource instances: %w", err)
 		}
-
-		data, ok := result.(*provider.ListInstanceData)
-		if !ok {
-			return nil, fmt.Errorf("unexpected list_instance result type %T", result)
+		if data == nil || data.Count < 0 {
+			return nil, fmt.Errorf("invalid list_instance result")
+		}
+		if page.Offset == 0 {
+			expectedCount = data.Count
+		}
+		remaining := expectedCount - int64(page.Offset)
+		if data.Count != expectedCount || int64(len(data.Results)) != min(int64(page.Limit), remaining) {
+			return nil, fmt.Errorf("incomplete or changing list_instance pages")
 		}
 
 		for _, instance := range data.Results {
+			if _, duplicate := seen[instance.ID]; duplicate || instance.ID == "" {
+				return nil, fmt.Errorf("invalid or duplicate list_instance ID")
+			}
+			seen[instance.ID] = struct{}{}
 			ids = append(ids, instance.ID)
 		}
 
 		page.Offset += len(data.Results)
-		if int64(page.Offset) >= data.Count || len(data.Results) == 0 {
+		if int64(page.Offset) == expectedCount {
 			break
 		}
 	}

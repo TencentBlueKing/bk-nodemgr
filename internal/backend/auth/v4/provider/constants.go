@@ -20,7 +20,6 @@ package provider
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/iam-go-sdk/expression"
 )
 
 // packageTypeDisplayNames maps ReleaseType to Chinese display names.
@@ -53,10 +52,7 @@ const (
 	AttrID = "id"
 
 	// AttrIAMPath represents the resource topology path attribute.
-	// Reuses expression.KeywordBKIAMPath from iam-go-sdk for consistency.
-	// Format: []/parent_type,parent_id/"].
-	// This attribute is used by IAM for hierarchical authorization checks.
-	AttrIAMPath = expression.KeywordBKIAMPath
+	AttrIAMPath = "_bk_iam_path_"
 
 	// AttrIAMApprover represents the resource approver attribute.
 	// Format: ["user1", "user2"].

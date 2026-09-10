@@ -16,13 +16,11 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package provider provides IAM resource callback providers for different resource types.
 package provider
 
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -31,224 +29,96 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// ResourceTypeNetworkUnit is the IAM resource type for network unit.
+// ResourceTypeNetworkUnit is the IAM resource type for network units.
 const ResourceTypeNetworkUnit = "networkunit"
 
-// NetworkUnitProvider implements resource.Provider interface for network unit resources.
-type NetworkUnitProvider struct {
-	storage topo.IStorage
-}
+// NetworkUnitProvider queries network units in the current tenant.
+type NetworkUnitProvider struct{ storage topo.IStorage }
 
-// NewNetworkUnitProvider creates a new NetworkUnitProvider.
+// NewNetworkUnitProvider creates a network unit provider.
 func NewNetworkUnitProvider(storage topo.IStorage) *NetworkUnitProvider {
-	return &NetworkUnitProvider{
-		storage: storage,
-	}
+	return &NetworkUnitProvider{storage: storage}
 }
 
-// ListAttr returns empty result as network unit has no attributes.
-func (p *NetworkUnitProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
-	data := ListAttrData([]ResourceAttribute{})
-
-	return &data, nil
-}
-
-// ListAttrValue returns empty result as network unit has no attribute values.
-func (p *NetworkUnitProvider) ListAttrValue(_ contextx.IContext, _ *Request[ListAttrValueFilter]) (*ListAttrValueData, error) {
-	data := &ListAttrValueData{
-		Count:   0,
-		Results: []AttributeValue{},
-	}
-
-	return data, nil
-}
-
-// ListInstance lists network unit instances with pagination.
-// NOTE: NetworkUnit resource has a required parent (networkarea) in IAM permission model.
-// When parent=nil, return empty result because IAM will never send list_instance requests
-// without specifying the parent network area.
+// ListInstance intersects optional parent and display-name filters.
 func (p *NetworkUnitProvider) ListInstance(ctx contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error) {
-	// Check if parent is specified
-	if req.Filter.Parent == nil {
-		return newEmptyListInstanceData(), nil
+	condition := &types.NetworkUnitCondition{}
+	if parent := req.Filter.Parent; parent != nil {
+		areaID, exists, err := p.findParentNetworkArea(ctx, parent)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			return newEmptyListInstanceData(), nil
+		}
+		condition.ExactInclude = &types.NetworkUnitExactFields{NetworkAreaID: []int64{areaID}}
 	}
-
-	// Parse parent network area ID
-	areaID, err := conv.ToInt64(req.Filter.Parent.ID)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to parse parent network area ID")
-		return nil, fmt.Errorf("failed to parse parent network area ID: %w", err)
+	if req.Filter.Keyword != "" {
+		condition.FuzzyInclude = &types.NetworkUnitFuzzyFields{NetworkUnitName: []string{req.Filter.Keyword}}
 	}
-
-	condition := &types.NetworkUnitCondition{
-		ExactInclude: &types.NetworkUnitExactFields{
-			NetworkAreaID: []int64{areaID},
-		},
-	}
-
-	networkUnits, total, err := p.storage.ListNetworkUnit(ctx, req.Page, condition)
+	units, total, err := p.storage.ListNetworkUnit(ctx, req.Page, condition)
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to list network units")
 		return nil, fmt.Errorf("failed to list network units: %w", err)
 	}
-
-	// Convert to IAM response format
-	results := make([]ResourceInstance, 0, len(networkUnits))
-	for _, unit := range networkUnits {
-		results = append(results, ResourceInstance{
-			ID:          strconv.FormatInt(unit.ID, 10),
-			DisplayName: unit.Name,
-		})
+	results := make([]ResourceInstance, 0, len(units))
+	for _, unit := range units {
+		results = append(results, ResourceInstance{ID: strconv.FormatInt(unit.ID, 10), DisplayName: unit.Name})
 	}
 
-	data := &ListInstanceData{
-		Count:   total,
-		Results: results,
-	}
-
-	return data, nil
+	return &ListInstanceData{Count: total, Results: results}, nil
 }
 
-// FetchInstanceInfo fetches network unit details by IDs.
+func (p *NetworkUnitProvider) findParentNetworkArea(ctx contextx.IContext, parent *ParentFilter) (int64, bool, error) {
+	if parent.Type != ResourceTypeNetworkArea {
+		return 0, false, ErrInvalidArgument
+	}
+	areaID, err := conv.ToInt64(parent.ID)
+	if err != nil {
+		return 0, false, fmt.Errorf("%w: invalid parent ID", ErrInvalidArgument)
+	}
+	if areaID < 0 || strconv.FormatInt(areaID, 10) != parent.ID {
+		return 0, false, ErrInvalidArgument
+	}
+	areas, _, err := p.storage.ListNetworkArea(ctx, types.SingleItemPage(), &types.NetworkAreaCondition{
+		ExactInclude: &types.NetworkAreaExactFields{NetworkAreaID: []int64{areaID}},
+	})
+	if err != nil {
+		logger.G.Biz(ctx).WithErr(err).Error("failed to fetch parent network area")
+		return 0, false, fmt.Errorf("failed to fetch parent network area: %w", err)
+	}
+
+	return areaID, len(areas) > 0, nil
+}
+
+// FetchInstanceInfo fetches existing network units and their ancestor paths.
 func (p *NetworkUnitProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request[FetchInstanceFilter]) (*FetchInstanceInfoData, error) {
-	// Convert IDs from []string to []int64
-	// Skip invalid IDs with warning to allow partial success
 	ids := make([]int64, 0, len(req.Filter.IDs))
-	for _, idStr := range req.Filter.IDs {
-		id, err := conv.ToInt64(idStr)
+	for _, raw := range req.Filter.IDs {
+		id, err := conv.ToInt64(raw)
 		if err != nil {
-			// Log warning but continue processing other IDs (partial success strategy)
-			logger.G.Biz(ctx).With("id", idStr).Warn("skipped invalid ID in FetchInstanceInfo")
+			continue
+		}
+		if strconv.FormatInt(id, 10) != raw {
 			continue
 		}
 		ids = append(ids, id)
 	}
-
+	data := FetchInstanceInfoData{}
 	if len(ids) == 0 {
-		data := FetchInstanceInfoData([]InstanceInfo{})
 		return &data, nil
 	}
-
-	// Query network units by IDs
-	condition := &types.NetworkUnitCondition{
-		ExactInclude: &types.NetworkUnitExactFields{
-			NetworkUnitID: ids,
-		},
-	}
-
-	networkUnits, _, err := p.storage.ListNetworkUnit(ctx, types.Page{Limit: len(ids)}, condition)
+	condition := &types.NetworkUnitCondition{ExactInclude: &types.NetworkUnitExactFields{NetworkUnitID: ids}}
+	units, _, err := p.storage.ListNetworkUnit(ctx, types.Page{Limit: len(ids)}, condition)
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to fetch network unit info")
 		return nil, fmt.Errorf("failed to fetch network unit info: %w", err)
 	}
-
-	// Convert to IAM response format
-	results := make([]InstanceInfo, 0, len(networkUnits))
-	for _, unit := range networkUnits {
-		results = append(results, InstanceInfo{
-			ID:          strconv.FormatInt(unit.ID, 10),
-			DisplayName: unit.Name,
-			Attributes:  buildInstanceAttributes(strconv.FormatInt(unit.ID, 10), ResourceTypeNetworkArea, strconv.FormatInt(unit.NetworkAreaID, 10)),
-		})
+	for _, unit := range units {
+		id := strconv.FormatInt(unit.ID, 10)
+		data = append(data, InstanceInfo{ID: id, DisplayName: unit.Name,
+			Attributes: buildInstanceAttributes(id, ResourceTypeNetworkArea, strconv.FormatInt(unit.NetworkAreaID, 10))})
 	}
-
-	data := FetchInstanceInfoData(results)
 
 	return &data, nil
-}
-
-// ListInstanceByPolicy lists network unit instances filtered by IAM policy expression.
-func (p *NetworkUnitProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
-	// Load all network units (use large limit for in-memory evaluation)
-	networkUnits, _, err := p.storage.ListNetworkUnit(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit}, nil)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to list network units")
-		return nil, fmt.Errorf("failed to list network units: %w", err)
-	}
-
-	// Build instances with attributes for expression evaluation
-	instances := make([]InstanceForEval, 0, len(networkUnits))
-	for _, unit := range networkUnits {
-		instances = append(instances, InstanceForEval{
-			Instance: ResourceInstance{
-				ID:          strconv.FormatInt(unit.ID, 10),
-				DisplayName: unit.Name,
-			},
-			Attributes: buildInstanceAttributes(strconv.FormatInt(unit.ID, 10), ResourceTypeNetworkArea, strconv.FormatInt(unit.NetworkAreaID, 10)),
-		})
-	}
-
-	// Evaluate expression filter and apply pagination
-	return evalExpressionFilter(req.Filter.Expression, ResourceTypeNetworkUnit, instances, req.Page)
-}
-
-// SearchInstance searches network units by keyword and parent filter.
-func (p *NetworkUnitProvider) SearchInstance(ctx contextx.IContext, req *Request[SearchInstanceFilter]) (*ListInstanceData, error) {
-	// Check if parent is specified
-	if req.Filter.Parent == nil {
-		return newEmptyListInstanceData(), nil
-	}
-
-	// Parse parent network area ID
-	areaID, err := conv.ToInt64(req.Filter.Parent.ID)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to parse parent network area ID")
-		return nil, fmt.Errorf("failed to parse parent network area ID: %w", err)
-	}
-
-	keyword := strings.TrimSpace(req.Filter.Keyword)
-
-	// Build condition with parent filter and optional keyword filter
-	var condition *types.NetworkUnitCondition
-	if keyword != "" {
-		condition = &types.NetworkUnitCondition{
-			ExactInclude: &types.NetworkUnitExactFields{
-				NetworkAreaID: []int64{areaID},
-			},
-			FuzzyInclude: &types.NetworkUnitFuzzyFields{
-				NetworkUnitName: []string{keyword},
-			},
-		}
-	} else {
-		condition = &types.NetworkUnitCondition{
-			ExactInclude: &types.NetworkUnitExactFields{
-				NetworkAreaID: []int64{areaID},
-			},
-		}
-	}
-
-	// Query network units
-	networkUnits, total, err := p.storage.ListNetworkUnit(ctx, req.Page, condition)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to search network units")
-		return nil, fmt.Errorf("failed to search network units: %w", err)
-	}
-
-	// Convert to IAM response format
-	results := make([]ResourceInstance, 0, len(networkUnits))
-	for _, unit := range networkUnits {
-		results = append(results, ResourceInstance{
-			ID:          strconv.FormatInt(unit.ID, 10),
-			DisplayName: unit.Name,
-		})
-	}
-
-	data := &ListInstanceData{
-		Count:   total,
-		Results: results,
-	}
-
-	return data, nil
-}
-
-// FetchInstanceList returns empty result as this is for audit center.
-func (p *NetworkUnitProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
-	return newEmptyListInstanceData(), nil
-}
-
-// FetchResourceTypeSchema returns empty schema as network unit has no custom schema.
-func (p *NetworkUnitProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
-	// This method doesn't match any standard IAM callback API
-	// Return empty list for now
-	return newEmptyListInstanceData(), nil
 }

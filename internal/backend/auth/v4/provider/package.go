@@ -20,7 +20,7 @@ package provider
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -28,522 +28,128 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	// fetchInstanceInfoLimitMultiplier is used to calculate page limit when fetching releases.
-	// We multiply by this factor to ensure we get enough results for distinct name matching.
-	fetchInstanceInfoLimitMultiplier = 10
-)
-
-// ResourceTypePackage is the IAM resource type for package.
+// ResourceTypePackage is the IAM resource type for packages.
 const ResourceTypePackage = "package"
 
 type packageStorage interface {
 	DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
-	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)
 	DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
-	ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-		[]*types.ReleasePluginBinTool, int64, error)
 }
 
-// PackageProvider implements resource.Provider interface for package resources.
-type PackageProvider struct {
-	storage packageStorage
-}
+// PackageProvider queries canonical package names without release-version truncation.
+type PackageProvider struct{ storage packageStorage }
 
-// NewPackageProvider creates a new PackageProvider.
+// NewPackageProvider creates a package provider.
 func NewPackageProvider(storage packageStorage) *PackageProvider {
-	return &PackageProvider{
-		storage: storage,
-	}
+	return &PackageProvider{storage: storage}
 }
 
-func (p *PackageProvider) listInstancesForPolicy(ctx contextx.IContext) ([]InstanceForEval, error) {
-	instances := make([]InstanceForEval, 0)
-
-	// Fixed types: agent, proxy, cert, bintool
-	fixedTypes := []struct {
-		releaseType types.ReleaseType
-		id          string
-		displayName string
-	}{
-		{types.ReleaseTypeAgent, string(types.ReleaseTypeAgent), string(types.ReleaseTypeAgent)},
-		{types.ReleaseTypeProxy, string(types.ReleaseTypeProxy), string(types.ReleaseTypeProxy)},
-		{types.ReleaseTypeCert, string(types.ReleaseTypeCert), string(types.ReleaseTypeCert)},
-		{types.ReleaseTypeBinTool, string(types.ReleaseTypeBinTool), string(types.ReleaseTypeBinTool)},
+// ListInstance enumerates packages under an optional package type.
+func (p *PackageProvider) ListInstance(ctx contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error) {
+	releaseTypes := allPackageTypes()
+	if parent := req.Filter.Parent; parent != nil {
+		if parent.Type != ResourceTypePackageType || parent.ID == "" || strings.ContainsAny(parent.ID, "/, \t\r\n") {
+			return nil, ErrInvalidArgument
+		}
+		if !slices.Contains(releaseTypes, types.ReleaseType(parent.ID)) {
+			return newEmptyListInstanceData(), nil
+		}
+		releaseTypes = []types.ReleaseType{types.ReleaseType(parent.ID)}
+	}
+	names := make([]string, 0)
+	seen := make(map[string]types.ReleaseType)
+	for _, releaseType := range releaseTypes {
+		typeNames, err := p.packageNames(ctx, releaseType)
+		if err != nil {
+			return nil, err
+		}
+		for _, name := range typeNames {
+			if previous, ok := seen[name]; ok && previous != releaseType {
+				return nil, fmt.Errorf("ambiguous canonical package ID %q across package types", name)
+			}
+			seen[name] = releaseType
+			names = append(names, name)
+		}
+	}
+	filtered := make([]string, 0, len(names))
+	for _, name := range names {
+		if strings.Contains(strings.ToLower(name), strings.ToLower(req.Filter.Keyword)) {
+			filtered = append(filtered, name)
+		}
+	}
+	pageNames, total := distinctNamesWithPagination(filtered, req.Page)
+	results := make([]ResourceInstance, 0, len(pageNames))
+	for _, name := range pageNames {
+		results = append(results, ResourceInstance{ID: name, DisplayName: name})
 	}
 
-	for _, ft := range fixedTypes {
-		instances = append(instances, InstanceForEval{
-			Instance: ResourceInstance{
-				ID:          ft.id,
-				DisplayName: ft.displayName,
-			},
-			Attributes: buildInstanceAttributes(ft.id, ResourceTypePackageType, ft.id),
-		})
-	}
-
-	pluginBinToolNames, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
-		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
-	}
-
-	for _, name := range pluginBinToolNames {
-		instances = append(instances, InstanceForEval{
-			Instance: ResourceInstance{
-				ID:          name,
-				DisplayName: name,
-			},
-			Attributes: buildInstanceAttributes(name, ResourceTypePackageType, string(types.ReleaseTypePluginBinTool)),
-		})
-	}
-
-	pluginNames, err := p.storage.DistinctNameReleasePlugin(ctx)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
-		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
-	}
-
-	for _, name := range pluginNames {
-		instances = append(instances, InstanceForEval{
-			Instance: ResourceInstance{
-				ID:          name,
-				DisplayName: name,
-			},
-			Attributes: buildInstanceAttributes(name, ResourceTypePackageType, string(types.ReleaseTypePlugin)),
-		})
-	}
-
-	return instances, nil
+	return &ListInstanceData{Count: total, Results: results}, nil
 }
 
-// distinctNamesWithPagination gets distinct names, sorts them, and applies pagination.
 func distinctNamesWithPagination(names []string, page types.Page) ([]string, int64) {
-	// Sort for stable pagination
-	sort.Strings(names)
-
+	slices.Sort(names)
 	total := int64(len(names))
-
-	// Apply pagination
-	start := page.Offset
-	if start > len(names) {
+	if page.Offset >= len(names) {
 		return []string{}, total
 	}
+	end := page.Offset + min(page.Limit, len(names)-page.Offset)
 
-	end := start + page.Limit
-	if end > len(names) {
-		end = len(names)
-	}
-
-	return names[start:end], total
+	return names[page.Offset:end], total
 }
 
-// ListAttr returns empty result as package has no attributes.
-func (p *PackageProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
-	data := ListAttrData([]ResourceAttribute{})
+func (p *PackageProvider) packageNames(
+	ctx contextx.IContext, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition,
+) ([]string, error) {
 
-	return &data, nil
-}
-
-// ListAttrValue returns empty result as package has no attribute values.
-func (p *PackageProvider) ListAttrValue(_ contextx.IContext, _ *Request[ListAttrValueFilter]) (*ListAttrValueData, error) {
-	data := &ListAttrValueData{
-		Count:   0,
-		Results: []AttributeValue{},
-	}
-
-	return data, nil
-}
-
-// ListInstance lists package instances with pagination and parent filtering.
-// NOTE: Package resource has a required parent (package_type) in IAM permission model
-// (see support-files/bkiamv3/templates/0002_bk_nodemgr_resource_type.json.tpl lines 55-69).
-// When parent=nil, return empty result because IAM will never send list_instance requests
-// without specifying the parent package_type. This differs from networkarea which has no parent.
-func (p *PackageProvider) ListInstance(ctx contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error) {
-	// Check if parent is specified
-	if req.Filter.Parent == nil {
-		return newEmptyListInstanceData(), nil
-	}
-
-	// Validate parent type
-	if req.Filter.Parent.Type != ResourceTypePackageType {
-		err := fmt.Errorf("invalid parent type: expected %s, got %s",
-			ResourceTypePackageType, req.Filter.Parent.Type)
-		logger.G.Biz(ctx).WithErr(err).Error("invalid parent type in package provider")
-
-		return nil, err
-	}
-
-	releaseType := types.ReleaseType(req.Filter.Parent.ID)
-
-	// Handle fixed types (agent, proxy, cert, bintool)
+	var names []string
+	var err error
 	switch releaseType {
-	case types.ReleaseTypeAgent:
-		return &ListInstanceData{
-			Count:   1,
-			Results: []ResourceInstance{{ID: string(types.ReleaseTypeAgent), DisplayName: string(types.ReleaseTypeAgent)}},
-		}, nil
-	case types.ReleaseTypeProxy:
-		return &ListInstanceData{
-			Count:   1,
-			Results: []ResourceInstance{{ID: string(types.ReleaseTypeProxy), DisplayName: string(types.ReleaseTypeProxy)}},
-		}, nil
-	case types.ReleaseTypeCert:
-		return &ListInstanceData{
-			Count:   1,
-			Results: []ResourceInstance{{ID: string(types.ReleaseTypeCert), DisplayName: string(types.ReleaseTypeCert)}},
-		}, nil
-	case types.ReleaseTypeBinTool:
-		return &ListInstanceData{
-			Count:   1,
-			Results: []ResourceInstance{{ID: string(types.ReleaseTypeBinTool), DisplayName: string(types.ReleaseTypeBinTool)}},
-		}, nil
-	case types.ReleaseTypePluginBinTool:
-		return p.listPluginBinToolInstances(ctx, req.Page)
 	case types.ReleaseTypePlugin:
-		return p.listPluginInstances(ctx, req.Page)
+		names, err = p.storage.DistinctNameReleasePlugin(ctx, conditions...)
+	case types.ReleaseTypePluginBinTool:
+		names, err = p.storage.DistinctNameReleasePluginBinTool(ctx, conditions...)
 	default:
-		// Unknown type, return empty
-		return newEmptyListInstanceData(), nil
+		return []string{string(releaseType)}, nil
 	}
-}
-
-// listPluginBinToolInstances lists plugin bintool instances, distinct by Name.
-func (p *PackageProvider) listPluginBinToolInstances(ctx contextx.IContext, page types.Page) (*ListInstanceData, error) {
-	// Use DistinctName to get all unique plugin bintool names
-	names, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
-		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct package names")
+		return nil, fmt.Errorf("failed to get distinct %s names: %w", releaseType, err)
 	}
 
-	// Sort and paginate
-	paginatedNames, total := distinctNamesWithPagination(names, page)
-
-	// Build results
-	results := make([]ResourceInstance, 0, len(paginatedNames))
-	for _, name := range paginatedNames {
-		results = append(results, ResourceInstance{
-			ID:          name,
-			DisplayName: name,
-		})
-	}
-
-	data := &ListInstanceData{
-		Count:   total,
-		Results: results,
-	}
-
-	return data, nil
+	return names, nil
 }
 
-// listPluginInstances lists plugin instances, distinct by Name.
-func (p *PackageProvider) listPluginInstances(ctx contextx.IContext, page types.Page) (*ListInstanceData, error) {
-	// Use DistinctName to get all unique plugin names
-	names, err := p.storage.DistinctNameReleasePlugin(ctx)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
-		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
-	}
-
-	// Sort and paginate
-	paginatedNames, total := distinctNamesWithPagination(names, page)
-
-	// Build results
-	results := make([]ResourceInstance, 0, len(paginatedNames))
-	for _, name := range paginatedNames {
-		results = append(results, ResourceInstance{
-			ID:          name,
-			DisplayName: name,
-		})
-	}
-
-	data := &ListInstanceData{
-		Count:   total,
-		Results: results,
-	}
-
-	return data, nil
-}
-
-// FetchInstanceInfo fetches package details by IDs (Release.Name).
+// FetchInstanceInfo preserves plugin, pluginbintool, then fixed-type precedence.
 func (p *PackageProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request[FetchInstanceFilter]) (*FetchInstanceInfoData, error) {
-	// ids are already []string
-	ids := req.Filter.IDs
-
-	if len(ids) == 0 {
-		data := FetchInstanceInfoData(nil)
+	data := FetchInstanceInfoData{}
+	if len(req.Filter.IDs) == 0 {
 		return &data, nil
 	}
-
-	// Build name set for quick lookup
-	nameSet := make(map[string]bool)
-	for _, id := range ids {
-		nameSet[id] = true
-	}
-
-	results := make([]InstanceInfo, 0)
-	addedSet := make(map[string]bool)
-
-	// Check plugin releases
-	if err := p.addPluginReleases(ctx, nameSet, addedSet, &results); err != nil {
-		return nil, err
-	}
-
-	// Check plugin bintool releases
-	if err := p.addPluginBinToolReleases(ctx, nameSet, addedSet, &results); err != nil {
-		return nil, err
-	}
-
-	// Check fixed types (agent, proxy, cert, bintool)
-	p.addFixedTypePackages(nameSet, addedSet, &results)
-
-	data := FetchInstanceInfoData(results)
-
-	return &data, nil
-}
-
-// addPluginReleases adds matching plugin releases to results.
-func (p *PackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo) error {
-	// Calculate page limit with multiplier to handle multiple versions per name.
-	// Cap at MaxListInstanceByPolicyLimit to avoid excessive database load.
-	pageLimit := len(nameSet) * fetchInstanceInfoLimitMultiplier
-	if pageLimit > MaxListInstanceByPolicyLimit {
-		pageLimit = MaxListInstanceByPolicyLimit
-	}
-
-	pluginReleases, _, err := p.storage.ListReleasePlugin(ctx, types.Page{Limit: pageLimit})
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin releases for FetchInstanceInfo")
-		return fmt.Errorf("failed to list plugin releases: %w", err)
-	}
-
-	for _, r := range pluginReleases {
-		if nameSet[r.Name] && !addedSet[r.Name] {
-			*results = append(*results, InstanceInfo{
-				ID:          r.Name,
-				DisplayName: r.Name,
-				Attributes:  buildInstanceAttributes(r.Name, ResourceTypePackageType, string(types.ReleaseTypePlugin)),
-			})
-			addedSet[r.Name] = true
+	condition := &types.ReleaseCondition{ExactInclude: &types.ReleaseExactFields{Name: req.Filter.IDs}}
+	parents := make(map[string]types.ReleaseType)
+	for _, releaseType := range []types.ReleaseType{types.ReleaseTypePlugin, types.ReleaseTypePluginBinTool} {
+		names, err := p.packageNames(ctx, releaseType, condition)
+		if err != nil {
+			return nil, err
+		}
+		for _, name := range names {
+			if _, ok := parents[name]; !ok {
+				parents[name] = releaseType
+			}
 		}
 	}
-
-	return nil
-}
-
-// addPluginBinToolReleases adds matching plugin bintool releases to results.
-func (p *PackageProvider) addPluginBinToolReleases(
-	ctx contextx.IContext, nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo,
-) error {
-	// Calculate page limit with multiplier to handle multiple versions per name.
-	// Cap at MaxListInstanceByPolicyLimit to avoid excessive database load.
-	pageLimit := len(nameSet) * fetchInstanceInfoLimitMultiplier
-	if pageLimit > MaxListInstanceByPolicyLimit {
-		pageLimit = MaxListInstanceByPolicyLimit
-	}
-
-	pluginBinToolReleases, _, err := p.storage.ListReleasePluginBinTool(ctx, types.Page{Limit: pageLimit})
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin bintool releases for FetchInstanceInfo")
-		return fmt.Errorf("failed to list plugin bintool releases: %w", err)
-	}
-
-	for _, r := range pluginBinToolReleases {
-		if nameSet[r.Name] && !addedSet[r.Name] {
-			*results = append(*results, InstanceInfo{
-				ID:          r.Name,
-				DisplayName: r.Name,
-				Attributes:  buildInstanceAttributes(r.Name, ResourceTypePackageType, string(types.ReleaseTypePluginBinTool)),
-			})
-			addedSet[r.Name] = true
+	for _, releaseType := range []types.ReleaseType{types.ReleaseTypeAgent, types.ReleaseTypeProxy, types.ReleaseTypeCert, types.ReleaseTypeBinTool} {
+		if _, ok := parents[string(releaseType)]; !ok {
+			parents[string(releaseType)] = releaseType
 		}
 	}
-
-	return nil
-}
-
-// addFixedTypePackages adds fixed type packages to results.
-func (p *PackageProvider) addFixedTypePackages(nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo) {
-	fixedTypes := map[string]string{
-		string(types.ReleaseTypeAgent):   string(types.ReleaseTypeAgent),
-		string(types.ReleaseTypeProxy):   string(types.ReleaseTypeProxy),
-		string(types.ReleaseTypeCert):    string(types.ReleaseTypeCert),
-		string(types.ReleaseTypeBinTool): string(types.ReleaseTypeBinTool),
-	}
-
-	for name := range nameSet {
-		if addedSet[name] {
-			continue
-		}
-
-		_, ok := fixedTypes[name]
+	for _, id := range req.Filter.IDs {
+		parent, ok := parents[id]
 		if !ok {
 			continue
 		}
-
-		*results = append(*results, InstanceInfo{
-			ID:          name,
-			DisplayName: name,
-			Attributes:  buildInstanceAttributes(name, ResourceTypePackageType, name),
-		})
-		addedSet[name] = true
-	}
-}
-
-// ListInstanceByPolicy lists package instances filtered by IAM policy expression.
-func (p *PackageProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
-	instances, err := p.listInstancesForPolicy(ctx)
-	if err != nil {
-		return nil, err
+		data = append(data, InstanceInfo{ID: id, DisplayName: id, Attributes: buildInstanceAttributes(id, ResourceTypePackageType, string(parent))})
 	}
 
-	// Evaluate expression filter and apply pagination
-	return evalExpressionFilter(req.Filter.Expression, ResourceTypePackage, instances, req.Page)
-}
-
-// SearchInstance searches packages by keyword with optional parent filtering.
-func (p *PackageProvider) SearchInstance(ctx contextx.IContext, req *Request[SearchInstanceFilter]) (*ListInstanceData, error) {
-	// Check if parent is specified
-	if req.Filter.Parent == nil {
-		return newEmptyListInstanceData(), nil
-	}
-
-	// Validate parent type
-	if req.Filter.Parent.Type != ResourceTypePackageType {
-		err := fmt.Errorf("invalid parent type: expected %s, got %s",
-			ResourceTypePackageType, req.Filter.Parent.Type)
-		logger.G.Biz(ctx).WithErr(err).Error("invalid parent type in package provider")
-
-		return nil, err
-	}
-
-	keyword := strings.TrimSpace(req.Filter.Keyword)
-	releaseType := types.ReleaseType(req.Filter.Parent.ID)
-
-	// Handle fixed types
-	switch releaseType {
-	case types.ReleaseTypeAgent:
-		return p.searchFixedType(string(types.ReleaseTypeAgent), keyword)
-	case types.ReleaseTypeProxy:
-		return p.searchFixedType(string(types.ReleaseTypeProxy), keyword)
-	case types.ReleaseTypeCert:
-		return p.searchFixedType(string(types.ReleaseTypeCert), keyword)
-	case types.ReleaseTypeBinTool:
-		return p.searchFixedType(string(types.ReleaseTypeBinTool), keyword)
-	case types.ReleaseTypePluginBinTool:
-		return p.searchPluginBinToolInstances(ctx, keyword, req.Page)
-	case types.ReleaseTypePlugin:
-		return p.searchPluginInstances(ctx, keyword, req.Page)
-	default:
-		return newEmptyListInstanceData(), nil
-	}
-}
-
-// searchFixedType searches fixed type packages by keyword.
-// Uses simple case-insensitive string matching (not regex), so no need for QuoteMeta.
-func (p *PackageProvider) searchFixedType(name, keyword string) (*ListInstanceData, error) {
-	if keyword == "" {
-		return &ListInstanceData{
-			Count:   1,
-			Results: []ResourceInstance{{ID: name, DisplayName: name}},
-		}, nil
-	}
-
-	keywordLower := strings.ToLower(keyword)
-	if strings.Contains(strings.ToLower(name), keywordLower) {
-		return &ListInstanceData{
-			Count:   1,
-			Results: []ResourceInstance{{ID: name, DisplayName: name}},
-		}, nil
-	}
-
-	return newEmptyListInstanceData(), nil
-}
-
-// searchPluginBinToolInstances searches plugin bintool instances by keyword.
-func (p *PackageProvider) searchPluginBinToolInstances(ctx contextx.IContext, keyword string, page types.Page) (*ListInstanceData, error) {
-	// Get all distinct names
-	allNames, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
-		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
-	}
-
-	// Filter by keyword (case-insensitive)
-	lowerKeyword := strings.ToLower(keyword)
-	filteredNames := make([]string, 0)
-	for _, name := range allNames {
-		if strings.Contains(strings.ToLower(name), lowerKeyword) {
-			filteredNames = append(filteredNames, name)
-		}
-	}
-
-	// Sort and paginate
-	paginatedNames, total := distinctNamesWithPagination(filteredNames, page)
-
-	// Build results
-	results := make([]ResourceInstance, 0, len(paginatedNames))
-	for _, name := range paginatedNames {
-		results = append(results, ResourceInstance{
-			ID:          name,
-			DisplayName: name,
-		})
-	}
-
-	data := &ListInstanceData{
-		Count:   total,
-		Results: results,
-	}
-
-	return data, nil
-}
-
-// searchPluginInstances searches plugin instances by keyword.
-func (p *PackageProvider) searchPluginInstances(ctx contextx.IContext, keyword string, page types.Page) (*ListInstanceData, error) {
-	// Get all distinct names
-	allNames, err := p.storage.DistinctNameReleasePlugin(ctx)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
-		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
-	}
-
-	// Filter by keyword (case-insensitive)
-	lowerKeyword := strings.ToLower(keyword)
-	filteredNames := make([]string, 0)
-	for _, name := range allNames {
-		if strings.Contains(strings.ToLower(name), lowerKeyword) {
-			filteredNames = append(filteredNames, name)
-		}
-	}
-
-	// Sort and paginate
-	paginatedNames, total := distinctNamesWithPagination(filteredNames, page)
-
-	// Build results
-	results := make([]ResourceInstance, 0, len(paginatedNames))
-	for _, name := range paginatedNames {
-		results = append(results, ResourceInstance{
-			ID:          name,
-			DisplayName: name,
-		})
-	}
-
-	data := &ListInstanceData{
-		Count:   total,
-		Results: results,
-	}
-
-	return data, nil
-}
-
-// FetchInstanceList returns empty result as this is for audit center.
-func (p *PackageProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
-	return newEmptyListInstanceData(), nil
-}
-
-// FetchResourceTypeSchema returns empty schema as package has no custom schema.
-func (p *PackageProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
-	return newEmptyListInstanceData(), nil
+	return &data, nil
 }

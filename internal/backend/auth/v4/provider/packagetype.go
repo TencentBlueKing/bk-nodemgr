@@ -19,151 +19,42 @@
 package provider
 
 import (
-	"strings"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// ResourceTypePackageType is the IAM resource type for package type.
+// ResourceTypePackageType is the IAM resource type for package types.
 const ResourceTypePackageType = "package_type"
 
-// PackageTypeProvider implements resource.Provider interface for package type resources.
+// PackageTypeProvider exposes the supported package types.
 type PackageTypeProvider struct{}
 
-// NewPackageTypeProvider creates a new PackageTypeProvider.
-func NewPackageTypeProvider() *PackageTypeProvider {
-	return &PackageTypeProvider{}
-}
+// NewPackageTypeProvider creates a package type provider.
+func NewPackageTypeProvider() *PackageTypeProvider { return &PackageTypeProvider{} }
 
-// ListAttr returns empty result as package type has no attributes.
-func (p *PackageTypeProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
-	data := ListAttrData([]ResourceAttribute{})
-
-	return &data, nil
-}
-
-// ListAttrValue returns empty result as package type has no attribute values.
-func (p *PackageTypeProvider) ListAttrValue(_ contextx.IContext, _ *Request[ListAttrValueFilter]) (*ListAttrValueData, error) {
-	data := &ListAttrValueData{
-		Count:   0,
-		Results: []AttributeValue{},
+// ListInstance filters and paginates supported package types.
+func (p *PackageTypeProvider) ListInstance(_ contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error) {
+	if req.Filter.Parent != nil {
+		return nil, ErrInvalidArgument
+	}
+	names := packageTypeDisplayNames()
+	results := make([]ResourceInstance, 0, len(names))
+	for _, releaseType := range allPackageTypes() {
+		results = append(results, ResourceInstance{ID: string(releaseType), DisplayName: names[releaseType]})
 	}
 
-	return data, nil
+	return paginateInstances(results, req.Filter.Keyword, req.Page), nil
 }
 
-// ListInstance lists package type instances.
-func (p *PackageTypeProvider) ListInstance(_ contextx.IContext, _ *Request[ListInstanceFilter]) (*ListInstanceData, error) {
-	// Return predefined package types (excluding origin_* types)
-	allTypes := allPackageTypes()
-	results := make([]ResourceInstance, 0, len(allTypes))
-	packageTypeDisplayNameMap := packageTypeDisplayNames()
-	for _, rt := range allTypes {
-		results = append(results, ResourceInstance{
-			ID:          string(rt),
-			DisplayName: packageTypeDisplayNameMap[rt],
-		})
-	}
-
-	data := &ListInstanceData{
-		Count:   int64(len(results)),
-		Results: results,
-	}
-
-	return data, nil
-}
-
-// FetchInstanceInfo fetches package type details by IDs.
+// FetchInstanceInfo returns existing package type names.
 func (p *PackageTypeProvider) FetchInstanceInfo(_ contextx.IContext, req *Request[FetchInstanceFilter]) (*FetchInstanceInfoData, error) {
-	// ids are already []string
-	ids := req.Filter.IDs
-
-	if len(ids) == 0 {
-		data := FetchInstanceInfoData(nil)
-		return &data, nil
-	}
-
-	// Convert to IAM response format
-	packageTypeDisplayNameMap := packageTypeDisplayNames()
-	results := make([]InstanceInfo, 0, len(ids))
-	for _, id := range ids {
-		if displayName, ok := packageTypeDisplayNameMap[types.ReleaseType(id)]; ok {
-			results = append(results, InstanceInfo{
-				ID:          id,
-				DisplayName: displayName,
-				Attributes:  make(map[string]interface{}),
-			})
+	names := packageTypeDisplayNames()
+	data := FetchInstanceInfoData{}
+	for _, id := range req.Filter.IDs {
+		if name, ok := names[types.ReleaseType(id)]; ok {
+			data = append(data, InstanceInfo{ID: id, DisplayName: name})
 		}
 	}
-
-	data := FetchInstanceInfoData(results)
 
 	return &data, nil
-}
-
-// ListInstanceByPolicy lists package type instances filtered by IAM policy expression.
-func (p *PackageTypeProvider) ListInstanceByPolicy(_ contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
-	// Build all package type instances
-	allTypesSlice := allPackageTypes()
-	packageTypeDisplayNameMap := packageTypeDisplayNames()
-	allTypes := make([]InstanceForEval, 0, len(allTypesSlice))
-	for _, rt := range allTypesSlice {
-		allTypes = append(allTypes, InstanceForEval{
-			Instance:   ResourceInstance{ID: string(rt), DisplayName: packageTypeDisplayNameMap[rt]},
-			Attributes: map[string]interface{}{},
-		})
-	}
-
-	// Evaluate expression filter and apply pagination
-	return evalExpressionFilter(req.Filter.Expression, ResourceTypePackageType, allTypes, req.Page)
-}
-
-// SearchInstance searches package types by keyword.
-func (p *PackageTypeProvider) SearchInstance(_ contextx.IContext, req *Request[SearchInstanceFilter]) (*ListInstanceData, error) {
-	keyword := strings.TrimSpace(req.Filter.Keyword)
-
-	// All package types
-	allTypesSlice := allPackageTypes()
-	packageTypeDisplayNameMap := packageTypeDisplayNames()
-	allTypes := make([]ResourceInstance, 0, len(allTypesSlice))
-	for _, rt := range allTypesSlice {
-		allTypes = append(allTypes, ResourceInstance{
-			ID:          string(rt),
-			DisplayName: packageTypeDisplayNameMap[rt],
-		})
-	}
-
-	// Filter by keyword if provided
-	results := make([]ResourceInstance, 0)
-	if keyword == "" {
-		results = allTypes
-	} else {
-		keywordLower := strings.ToLower(keyword)
-
-		for _, t := range allTypes {
-			nameMatch := strings.Contains(strings.ToLower(t.ID), keywordLower) ||
-				strings.Contains(strings.ToLower(t.DisplayName), keywordLower)
-			if nameMatch {
-				results = append(results, t)
-			}
-		}
-	}
-
-	data := &ListInstanceData{
-		Count:   int64(len(results)),
-		Results: results,
-	}
-
-	return data, nil
-}
-
-// FetchInstanceList returns empty result as this is for audit center.
-func (p *PackageTypeProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
-	return newEmptyListInstanceData(), nil
-}
-
-// FetchResourceTypeSchema returns empty schema as package type has no custom schema.
-func (p *PackageTypeProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
-	return newEmptyListInstanceData(), nil
 }

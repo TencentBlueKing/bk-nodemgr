@@ -20,6 +20,7 @@ package iamv4
 
 import (
 	"crypto/subtle"
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,6 +33,9 @@ import (
 // IAM docs recommend caching queried system token, but token query protocol exposes no expiration;
 // this 1min value is a conservative bk-nodemgr local TTL, not official IAM token lifetime.
 const systemTokenCacheExpiration = time.Minute
+
+// ErrInvalidCredentials identifies callback credential mismatches, not token-service failures.
+var ErrInvalidCredentials = errors.New("invalid IAM v4 callback credentials")
 
 // IHandler is the handler interface for IAM v4 permission checks and token management.
 type IHandler interface {
@@ -233,7 +237,7 @@ func (h *Handler) refreshSystemToken(ctx contextx.IContext, cacheKey string) (st
 // IsBasicAuthAllowed checks if basic authentication credentials are valid.
 func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password string) error {
 	if subtle.ConstantTimeCompare([]byte(username), []byte("bk_iam")) != 1 {
-		return fmt.Errorf("invalid IAM v4 callback username")
+		return ErrInvalidCredentials
 	}
 
 	token, err := h.GetToken(ctx)
@@ -242,7 +246,7 @@ func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password s
 	}
 
 	if subtle.ConstantTimeCompare([]byte(password), []byte(token)) != 1 {
-		return fmt.Errorf("invalid IAM v4 callback password")
+		return ErrInvalidCredentials
 	}
 
 	return nil
