@@ -43,7 +43,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	workflowID := req.GetWorkflowID()
-	if err := h.authorizedPluginOperate(rCtx, workflowID); err != nil {
+	if err := h.authorizedPluginHistoryView(rCtx, workflowID); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("workflow-id", workflowID).
 			Error("failed to list operation, permission denied")
@@ -251,7 +251,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	}
 
 	// Check permission
-	if err := h.authorizedPluginOperate(rCtx, targetWorkflow.WorkflowID); err != nil {
+	if err := h.authorizedPluginHistoryView(rCtx, targetWorkflow.WorkflowID); err != nil {
 		return nil, err
 	}
 
@@ -317,7 +317,7 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 	}
 
 	// Check permission
-	if err := h.authorizedPluginOperate(rCtx, targetWorkflow.WorkflowID); err != nil {
+	if err := h.authorizedPluginHistoryView(rCtx, targetWorkflow.WorkflowID); err != nil {
 		return nil, err
 	}
 

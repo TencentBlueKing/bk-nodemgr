@@ -27,6 +27,41 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+func (h *handler) checkWorkflowHistoryViewPermission(rCtx restserver.IContext, workflowID string) error {
+	nodeWorkflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, workflowID)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to check workflow history view permission, failed to get the target node workflow")
+		return resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
+	resources := authRouter.BuildBizResources(nodeWorkflow.BizIDs...)
+	actionResources := make(map[auth.Action][]types.AuthResource)
+	for _, nodeRole := range nodeWorkflow.NodeRoles {
+		switch nodeRole {
+		case types.NodeRoleBlank, types.NodeRoleAgent:
+			actionResources[auth.ActionAgentHistoryView] = resources
+		case types.NodeRoleProxy:
+			actionResources[auth.ActionProxyHistoryView] = resources
+		default:
+			// Unknown roles require both history view permissions.
+			actionResources[auth.ActionAgentHistoryView] = resources
+			actionResources[auth.ActionProxyHistoryView] = resources
+		}
+	}
+	if len(actionResources) == 0 {
+		// Missing roles require both history view permissions.
+		actionResources[auth.ActionAgentHistoryView] = resources
+		actionResources[auth.ActionProxyHistoryView] = resources
+	}
+
+	if authErr := h.authorizer.CheckMany(rCtx, actionResources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check workflow history view permission, permission denied")
+		return resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	return nil
+}
+
 func (h *handler) checkWorkflowOperatePermission(rCtx restserver.IContext, workflowID string) error {
 	nodeWorkflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, workflowID)
 	if err != nil {

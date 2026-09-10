@@ -26,6 +26,22 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
+func (h *handler) authorizedPluginHistoryView(rCtx restserver.IContext, workflowID string) error {
+	pluginWorkflow, err := h.daoPluginWorkflow.GetPluginWorkflow(rCtx, workflowID)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to check workflow history view permission, failed to get the target plugin workflow")
+		return resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
+	resources := authRouter.BuildBizResources(pluginWorkflow.BizIDs...)
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPluginHistoryView, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check workflow history view permission, permission denied")
+		return resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	return nil
+}
+
 func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, workflowID string) error {
 	pluginWorkflow, err := h.daoPluginWorkflow.GetPluginWorkflow(rCtx, workflowID)
 	if err != nil {

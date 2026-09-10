@@ -41,8 +41,8 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 
 	workflowID := req.GetWorkflowID()
 
-	// Check permission before listing operations
-	if err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+	// Check history view permission before listing operations.
+	if err := h.checkWorkflowHistoryViewPermission(rCtx, workflowID); err != nil {
 		return nil, err
 	}
 
@@ -220,7 +220,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	}
 
 	// Check permission
-	if err := h.checkWorkflowOperatePermission(rCtx, targetWorkflow.WorkflowID); err != nil {
+	if err := h.checkWorkflowHistoryViewPermission(rCtx, targetWorkflow.WorkflowID); err != nil {
 		return nil, err
 	}
 
@@ -291,7 +291,7 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 	}
 
 	// Check permission
-	if err := h.checkWorkflowOperatePermission(rCtx, targetWorkflow.WorkflowID); err != nil {
+	if err := h.checkWorkflowHistoryViewPermission(rCtx, targetWorkflow.WorkflowID); err != nil {
 		return nil, err
 	}
 

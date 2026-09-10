@@ -26,15 +26,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// workflowListBizActions determines which view actions are required based on node roles in the query condition.
-// Returns ActionAgentView, ActionProxyView, or both depending on the roles present.
+// workflowListBizActions determines which history view actions are required based on node roles in the query condition.
+// Returns ActionAgentHistoryView, ActionProxyHistoryView, or both depending on the roles present.
 func workflowListBizActions(condition *types.NodeWorkflowCondition) []auth.Action {
 	// If no NodeRole filter is specified, need to check both Agent and Proxy permissions
 	if condition == nil || condition.ExactInclude == nil || len(condition.ExactInclude.NodeRole) == 0 {
 		return []auth.Action{auth.ActionAgentHistoryView, auth.ActionProxyHistoryView}
 	}
 
-	// Pre-allocate for at most 2 actions: AgentView and ProxyView
+	// Pre-allocate for at most 2 actions: AgentHistoryView and ProxyHistoryView.
 	const maxActions = 2
 	actions := make([]auth.Action, 0, maxActions)
 	needAgentView := false
@@ -55,14 +55,14 @@ func workflowListBizActions(condition *types.NodeWorkflowCondition) []auth.Actio
 	}
 
 	if needAgentView {
-		actions = append(actions, auth.ActionAgentView)
+		actions = append(actions, auth.ActionAgentHistoryView)
 	}
 	if needProxyView {
-		actions = append(actions, auth.ActionProxyView)
+		actions = append(actions, auth.ActionProxyHistoryView)
 	}
 
 	if len(actions) == 0 {
-		return []auth.Action{auth.ActionAgentView, auth.ActionProxyView}
+		return []auth.Action{auth.ActionAgentHistoryView, auth.ActionProxyHistoryView}
 	}
 
 	return actions
