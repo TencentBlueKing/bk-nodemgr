@@ -6,12 +6,12 @@
 
 ## 文件说明
 
-| 文件                | 说明                                                        |
-| ------------------- | ----------------------------------------------------------- |
-| `templates/`        | V4 System、四类本地 ResourceType 与 16 个非业务 Action 模板 |
-| `vars.yaml.example` | 变量配置示例                                                |
-| `render/`           | 渲染工具源码，构建后生成 `render/iam-render`                |
-| `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`              |
+| 文件                | 说明                                                  |
+| ------------------- | ----------------------------------------------------- |
+| `templates/`        | V4 System、五类本地 ResourceType 与 32 个 Action 模板 |
+| `vars.yaml.example` | 变量配置示例                                          |
+| `render/`           | 渲染工具源码，构建后生成 `render/iam-render`          |
+| `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`        |
 
 V4 工具独立维护，不修改 V3 工具。运行时不依赖 `bk-cli`。
 
@@ -119,7 +119,7 @@ cp vars.yaml.example vars.yaml
 
 ### ResourceType 更新规则
 
-`0002` 模板按父资源在先的顺序注册 `networkarea`、`networkunit`、`package_type`、`package`，保留 `networkarea → networkunit` 和 `package_type → package` 两条关系，不注册 `biz`。
+`0002` 模板按父资源在先的顺序注册 `biz`、`networkarea`、`networkunit`、`package_type`、`package`，保留 `networkarea → networkunit` 和 `package_type → package` 两条关系。`biz` 是本系统提供的顶层资源，`ancestors` 为 `[]`；业务 ID、含义和使用方式沿用原有约定，IAM 资源提供方由 `bk_cmdb` 改为 `bk_nodemgr`。
 
 `data` 仅接受 `id`、`name`、`ancestors`。ID 最长 32 字符，以小写字母开头，只含小写字母、数字、`_`、`-`；`ancestors` 为从根到直接父级的 ID 数组，不得重复或包含自身。
 
@@ -153,7 +153,7 @@ flowchart TD
 
 ### Action 更新规则
 
-`0003` 模板保留 V3 的 16 个非业务操作 ID、名称和资源绑定：15 个绑定本地资源类型，`networkarea_create` 的 `resource_type_id` 为 `""`，表示无资源绑定。`networkunit_create` 仍绑定父资源 `networkarea`，`package_type_upload` 仍绑定 `package_type`。
+`0003` 模板保留 V3 的全部 32 个操作 ID 和名称：16 个业务操作绑定本系统的 `biz`，15 个操作保持其他本地资源绑定，`networkarea_create` 的 `resource_type_id` 为 `""`，表示无资源绑定。`networkunit_create` 仍绑定父资源 `networkarea`，`package_type_upload` 仍绑定 `package_type`。
 
 `data` 仅接受 `id`、`name`、`resource_type_id`；ID 格式与 ResourceType 一致，显式提供的 `name` 不得为空或仅含空白，所有字段都不接受 `null`。
 
@@ -169,7 +169,9 @@ flowchart TD
 
 每个系统的 Action 按 `page_size=100` 读取全部分页，完整性检查通过后再决定写入。创建响应必须是 HTTP 201 且只返回对应 ID，更新必须是 HTTP 204。dry-run 复用前序 System、ResourceType 和 Action 的虚拟状态；实际成功写入也对后续操作可见。单独执行 `0003` 时，System 和所需 ResourceType 必须已存在。
 
-以下 16 个 V3 操作绑定 `bk_cmdb:biz`，本次不注册，也不改绑到本地资源：`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、`plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`、`deploy_policy_view`、`deploy_policy_manage`、`deploy_policy_history_view`。V3 的操作依赖、分组、常用操作、角色和创建者授权配置均不迁移。
+绑定本系统 `biz` 的 16 个操作为：`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、`plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`、`deploy_policy_view`、`deploy_policy_manage`、`deploy_policy_history_view`。先执行 `0002` 注册 `biz`，再执行 `0003`；已有 Action 的绑定冲突仍按上表报错，不自动改绑。
+
+本轮仅补齐模型初始化，`biz` Provider 尚未提供，需要另行建设；资源查询与运行时鉴权链路也需单独验证。**模型注册成功不代表业务权限链路已就绪。** V3 模型及已有授权数据不变，V3 的操作依赖、分组、常用操作、角色和创建者授权配置均不迁移。
 
 ## 失败处理
 

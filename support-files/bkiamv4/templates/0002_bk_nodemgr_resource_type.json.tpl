@@ -4,6 +4,14 @@
     {
       "operation": "upsert_resource_type",
       "data": {
+        "id": "biz",
+        "name": "业务",
+        "ancestors": []
+      }
+    },
+    {
+      "operation": "upsert_resource_type",
+      "data": {
         "id": "networkarea",
         "name": "管控区域",
         "ancestors": []
