@@ -72,12 +72,17 @@ cp vars.yaml.example vars.yaml
 Chart 的 `iamV4.enabled` 默认关闭，与运行时鉴权开关独立。启用前使用包含两个 V4 工具的新 Backend 镜像，并配置以下 values：
 
 ```yaml
+backend:
+  config:
+    iamV4:
+      enable: false
+      endpoints:
+        - "https://bkapi.example.com/api/bkiam/prod/"
+      appCode: "bk-nodemgr"
+      # Supply appSecret through deployment values; do not commit real credentials.
+      appSecret: ""
 iamV4:
   enabled: true
-  gatewayURL: "https://bkapi.example.com/api/bkiam/prod/"
-  appCode: "bk-nodemgr"
-  # Supply appSecret through deployment values; do not commit real credentials.
-  appSecret: ""
   system:
     id: "bk_nodemgr"
     name: "BlueKing Node Manager"
@@ -89,7 +94,9 @@ iamV4:
     path: "/api/v3/iam/v4/resource"
 ```
 
-ConfigMap 将 `provider.host` 和 `provider.path` 拼为 `system.callback_url`，连接处保留一个 `/`；host 为空则输出空字符串，不做 Helm 必填校验。空值仍可能被 CLI 或 IAM 拒绝。`appSecret` 仅通过 Job 的 `BK_APP_SECRET` 环境变量传给工具，不进入变量文件或 shell 参数，但仍存在于 Helm release 和 Job 配置中，应限制读取权限。
+沿用 V3 Job 的取值方式，但使用独立的 `backend.config.iamV4`：网关取 `endpoints` 第一项，应用凭据取 `appCode` 和 `appSecret`，不引用 V3 配置，也不在顶层 `iamV4` 下重复配置。`system.clients` 必须包含该 appCode。V4 网关为 `bkiam`，与 V3 的 `bk-iam` 不同。Backend ConfigMap 同步输出该配置；`backend.config.iamV4.enable` 控制运行时鉴权，默认关闭，不随初始化 Job 开启，且不能与 V3 运行时鉴权同时开启。
+
+ConfigMap 将 `provider.host` 和 `provider.path` 拼为 `system.callback_url`，连接处保留一个 `/`；host 为空则输出空字符串，不做 Helm 必填校验。空值仍可能被 CLI 或 IAM 拒绝。复用的 `appSecret` 仅通过 V4 Job 的 `BK_APP_SECRET` 环境变量传给工具，不进入变量文件或 shell 参数，但仍存在于 Helm release 和 Job 配置中，应限制读取权限。
 
 Job 在 `post-install,post-upgrade` 执行，weight 为 `10`，先渲染再按 System → ResourceType → Action → Role 迁移。租户遵循 V3 Job：`backend.config.tenantMode=single` 使用 `default`，其他模式使用 `system`，不遍历租户。
 

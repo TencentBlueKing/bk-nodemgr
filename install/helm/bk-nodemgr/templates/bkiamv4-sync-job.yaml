@@ -61,11 +61,11 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
             - name: BK_APP_SECRET
-              value: {{ .Values.iamV4.appSecret | quote }}
+              value: {{ .Values.backend.config.iamV4.appSecret | quote }}
             - name: IAM_GATEWAY_URL
-              value: {{ .Values.iamV4.gatewayURL | quote }}
+              value: {{ index .Values.backend.config.iamV4.endpoints 0 | quote }}
             - name: IAM_APP_CODE
-              value: {{ .Values.iamV4.appCode | quote }}
+              value: {{ .Values.backend.config.iamV4.appCode | quote }}
             - name: IAM_TENANT_ID
               value: {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
           command:

@@ -1509,6 +1509,20 @@ backend:
         # the password to decrypt the certificate.
         password: ""
 
+    ## defines the IAM v4 related settings.
+    iamV4:
+      # Runtime authorization is independent of the iamV4.enabled initialization Job.
+      # IAM v3 and v4 runtime authorization cannot both be enabled.
+      enable: false
+      # Full gateway URLs; the initialization Job uses the first endpoint.
+      endpoints:
+        - "https://example.com/api/bkiam/prod"
+      appCode: ""
+      appSecret: ""
+      authMode: "un"
+      systemID: "bk_nodemgr"
+      callbackPath: "/api/v3/iam/v4/resource"
+
     ## defines the file related settings.
     file:
       # trace name for file service client
@@ -1921,11 +1935,7 @@ iamV3:
 ## IAM V4 model initialization, independent of runtime authorization.
 iamV4:
   enabled: false
-  # Full API Gateway URL, including gateway name and stage.
-  gatewayURL: ""
-  appCode: "bk-nodemgr"
-  # Injected as BK_APP_SECRET; still stored in Helm release and Job configuration.
-  appSecret: ""
+  # Gateway endpoint and application credentials come from backend.config.iamV4.
   syncJob:
     ttlSecondsAfterFinished: 600
     backoffLimit: 3
