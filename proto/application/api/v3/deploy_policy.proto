@@ -201,7 +201,68 @@ message DeployPolicyExecuteResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string trigger_id = 1; }
+  message Data {
+    reserved 1;
+    reserved "trigger_id";
+    // Identifies the requested policy's execution, not a child workflow.
+    string workflow_id = 2;
+  }
+  Data data = 5;
+}
+
+// DeployPolicyChildWorkflow describes one associated node or plugin workflow.
+message DeployPolicyChildWorkflow {
+  // node or plugin. The pair (type, workflow_id) is unique within a result.
+  string type = 1;
+  string workflow_id = 2;
+  // running, success, failed, partial_failed, or unknown when unavailable.
+  string status = 3;
+  // True if a previously created child record is missing; status is unknown.
+  bool missing = 4;
+}
+
+// DeployPolicyWorkflowResultReq queries one execution in the current tenant.
+message DeployPolicyWorkflowResultReq {
+  // Required, non-empty deploy policy workflow ID returned by Execute.
+  string workflow_id = 1;
+}
+
+// DeployPolicyWorkflowResultResp describes a freshly aggregated execution
+// result. Unknown takes precedence over running. Finished statuses are success,
+// failed, and partial_failed. A child retry can make a later query return
+// running again.
+message DeployPolicyWorkflowResultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  message Data {
+    string workflow_id = 1;
+    int64 deploy_policy_id = 2;
+    // running, success, failed, partial_failed, or unknown.
+    string status = 3;
+    // Known actually created children, including missing records. Equals the
+    // length of children; excludes unconfirmed creation intents. Not a final
+    // total while dispatch is running or evidence is incomplete.
+    int64 total_count = 4;
+    // Children currently success, failed, or partial_failed. Missing children
+    // do not count as finished. Equality with total_count does not imply
+    // finish.
+    int64 finished_count = 5;
+    // running: dispatch/retries open; success: dispatch normally closed;
+    // failed: dispatch finally failed and closed; unknown: closure uncertain.
+    // Engine timeout alone does not confirm dispatch closure.
+    string dispatch_status = 6;
+    // Latest dispatch error, or empty when none. May coexist with running
+    // during automatic retries; not an API error or a child failure message.
+    string dispatch_error = 7;
+    // Full associated set, without pagination or permission-filtered subsets.
+    // A child may be shared by multiple policy workflows in the same execution.
+    repeated DeployPolicyChildWorkflow children = 8;
+    // Non-empty explanation for unknown; empty otherwise. Not a machine code.
+    string unknown_reason = 9;
+  }
   Data data = 5;
 }
 
@@ -220,6 +281,15 @@ service DeployPolicyAPI {
       returns (DeployPolicyExecuteResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/execute"
+      body : "*"
+    };
+  }
+
+  // DeployPolicyWorkflowResult queries one execution without blocking.
+  rpc DeployPolicyWorkflowResult(DeployPolicyWorkflowResultReq)
+      returns (DeployPolicyWorkflowResultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/workflow/result"
       body : "*"
     };
   }

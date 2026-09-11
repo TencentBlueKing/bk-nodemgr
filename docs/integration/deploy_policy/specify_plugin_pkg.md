@@ -1,5 +1,7 @@
 # specify_plugin_pkg
 
+See [Workflow usage](workflow.md) for execution result polling.
+
 ## 目的与适用场景
 
 当第三方平台希望目标节点拥有基于指定插件包和版本安装出的插件时，使用 `specify_plugin_pkg`。
@@ -10,11 +12,11 @@
 
 该 mode 的 desired-state 字段：
 
-| Field | Required | 含义 |
-| --- | --- | --- |
-| `plugin_pkg_name` | yes | 作为安装来源的插件包名称 |
-| `version` | yes | 需要确保的插件包版本 |
-| `custom_config_context` | no | 以结构化对象传入的自定义值 |
+| Field                   | Required | 含义                       |
+| ----------------------- | -------- | -------------------------- |
+| `plugin_pkg_name`       | yes      | 作为安装来源的插件包名称   |
+| `version`               | yes      | 需要确保的插件包版本       |
+| `custom_config_context` | no       | 以结构化对象传入的自定义值 |
 
 当你的接入需要生成的插件 identity 体现 service/module 位置时，使用 `service_instance` scope。概念文档说明生成插件名称依赖 deploy policy ID 和 module ID。
 
@@ -63,14 +65,14 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-使用返回的 ID 执行策略，并提取 `data.trigger_id`：
+使用返回的 ID 执行策略，并提取 `data.workflow_id`：
 
 ```bash
 EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
   -H "Content-Type: application/json" \
   -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}")"
 
-TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
+WORKFLOW_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.workflow_id')"
 ```
 
 ## 系统解释
@@ -89,7 +91,7 @@ TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 
 create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-execute 返回 `data.trigger_id`，用于标识已发起的执行任务。
+execute 返回 `data.workflow_id`，用于标识已发起的执行任务。
 
 这些即时输出不是生成插件实例已经存在于每个目标上的最终证明。
 
@@ -105,16 +107,16 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 
 执行成功后可以在目标机核对：
 
-| 产物 | 路径 |
-| --- | --- |
-| 插件 package 内容 | `<plugin_home>/`；archive 内部相对路径保持不变 |
-| 配置根目录 | `<plugin_home>/etc/` |
-| 主配置文件 | `<plugin_home>/<config_template.file_path>/<config_template.name>` |
-| 运行目录 | `<plugin_home>/run/` |
-| PID 文件 | `<plugin_home>/run/<plugin_pkg_name>.pid` |
-| 数据目录 | `<plugin_home>/data/` |
-| 默认日志目录（Unix） | `/var/log/<deploy_env>/plugin/` |
-| 默认日志目录（Windows） | `C:\<deploy_env>\logs\plugin\` |
+| 产物                    | 路径                                                               |
+| ----------------------- | ------------------------------------------------------------------ |
+| 插件 package 内容       | `<plugin_home>/`；archive 内部相对路径保持不变                     |
+| 配置根目录              | `<plugin_home>/etc/`                                               |
+| 主配置文件              | `<plugin_home>/<config_template.file_path>/<config_template.name>` |
+| 运行目录                | `<plugin_home>/run/`                                               |
+| PID 文件                | `<plugin_home>/run/<plugin_pkg_name>.pid`                          |
+| 数据目录                | `<plugin_home>/data/`                                              |
+| 默认日志目录（Unix）    | `/var/log/<deploy_env>/plugin/`                                    |
+| 默认日志目录（Windows） | `C:\<deploy_env>\logs\plugin\`                                     |
 
 进程名为 `plugin_pkg_name`；Windows 会追加 `.exe`。安装器会把 release package 解压到 `<plugin_home>/`，并把渲染后的配置复制到 `<plugin_home>/etc/`。
 
@@ -131,7 +133,7 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 - 无效 `scope` 会阻止目标解析。
 - 生成 `plugin_name` 需要 `module_id`；因此该 mode 应使用能够产生 `service_instance` target 的 scope。
 - 成功的 `execute` 响应只表示执行任务已发起。
-- 机器侧验收应检查上述生成目录、请求版本和目标进程状态，不能只检查 `trigger_id`。
+- 机器侧验收应检查上述生成目录、请求版本和目标进程状态，不能只检查 `workflow_id`。
 
 ## Contract 参考
 

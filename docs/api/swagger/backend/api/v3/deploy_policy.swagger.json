@@ -151,6 +151,40 @@
           "DeployPolicySvc"
         ]
       }
+    },
+    "/api/v3/deploy_policy/workflow/result": {
+      "post": {
+        "summary": "WorkflowResult queries one deploy policy execution without blocking.",
+        "operationId": "DeployPolicySvc_WorkflowResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyWorkflowResultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DeployPolicyWorkflowResultReq queries one execution in the current tenant.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyWorkflowResultReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicySvc"
+        ]
+      }
     }
   },
   "definitions": {
@@ -259,6 +293,27 @@
         }
       },
       "description": "DeployPolicy describes the deploy policy."
+    },
+    "v3DeployPolicyChildWorkflow": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "node or plugin. The pair (type, workflow_id) is unique within a result."
+        },
+        "workflow_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "description": "running, success, failed, partial_failed, or unknown when unavailable."
+        },
+        "missing": {
+          "type": "boolean",
+          "description": "True if a previously created child record is missing; status is unknown."
+        }
+      },
+      "description": "DeployPolicyChildWorkflow describes one associated node or plugin workflow."
     },
     "v3DeployPolicyCreateReq": {
       "type": "object",
@@ -399,8 +454,9 @@
     "v3DeployPolicyExecuteRespData": {
       "type": "object",
       "properties": {
-        "trigger_id": {
-          "type": "string"
+        "workflow_id": {
+          "type": "string",
+          "description": "Identifies the requested policy's execution, not a child workflow."
         }
       }
     },
@@ -571,6 +627,87 @@
         "deploy_policy_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3DeployPolicyWorkflowResultReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "description": "Required, non-empty deploy policy workflow ID returned by Execute."
+        }
+      },
+      "description": "DeployPolicyWorkflowResultReq queries one execution in the current tenant."
+    },
+    "v3DeployPolicyWorkflowResultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyWorkflowResultRespData"
+        }
+      },
+      "description": "DeployPolicyWorkflowResultResp describes a freshly aggregated execution\nresult. Unknown takes precedence over running. Finished statuses are success,\nfailed, and partial_failed. A child retry can make a later query return\nrunning again."
+    },
+    "v3DeployPolicyWorkflowResultRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "deploy_policy_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "status": {
+          "type": "string",
+          "description": "running, success, failed, partial_failed, or unknown."
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Known actually created children, including missing records. Equals the\nlength of children; excludes unconfirmed creation intents. Not a final\ntotal while dispatch is running or evidence is incomplete."
+        },
+        "finished_count": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Children currently success, failed, or partial_failed. Missing children\ndo not count as finished. Equality with total_count does not imply\nfinish."
+        },
+        "dispatch_status": {
+          "type": "string",
+          "description": "running: dispatch/retries open; success: dispatch normally closed;\nfailed: dispatch finally failed and closed; unknown: closure uncertain.\nEngine timeout alone does not confirm dispatch closure."
+        },
+        "dispatch_error": {
+          "type": "string",
+          "description": "Latest dispatch error, or empty when none. May coexist with running\nduring automatic retries; not an API error or a child failure message."
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeployPolicyChildWorkflow"
+          },
+          "description": "Full associated set, without pagination or permission-filtered subsets.\nA child may be shared by multiple policy workflows in the same execution."
+        },
+        "unknown_reason": {
+          "type": "string",
+          "description": "Non-empty explanation for unknown; empty otherwise. Not a machine code."
         }
       }
     },

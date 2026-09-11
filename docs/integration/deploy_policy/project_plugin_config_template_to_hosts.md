@@ -1,5 +1,7 @@
 # project_plugin_config_template_to_hosts
 
+See [Workflow usage](workflow.md) for execution result polling.
+
 ## 目的与适用场景
 
 当第三方平台希望把一批 scope source targets 投射为某个已安装插件的一组配置文件时，使用 `project_plugin_config_template_to_hosts`。
@@ -76,14 +78,14 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-使用返回的 ID 执行策略，并提取 `data.trigger_id`：
+使用返回的 ID 执行策略，并提取 `data.workflow_id`：
 
 ```bash
 EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
   -H "Content-Type: application/json" \
   -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}")"
 
-TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
+WORKFLOW_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.workflow_id')"
 ```
 
 ## 系统解释
@@ -109,9 +111,9 @@ TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 
 create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-execute 返回 `data.trigger_id`，用于标识已发起的配置收敛任务。
+execute 返回 `data.workflow_id`，用于标识已发起的配置收敛任务。
 
-`trigger_id` 不证明配置文件已经写入、插件已经 reload 或最终状态已经收敛。机器侧验收应检查目标配置文件及插件状态。
+`workflow_id` 不证明配置文件已经写入、插件已经 reload 或最终状态已经收敛。机器侧验收应检查目标配置文件及插件状态。
 
 ## 最终或机器侧可见产物
 

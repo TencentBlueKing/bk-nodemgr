@@ -34,7 +34,8 @@ curl template 按 mode 拆分：
 3. 调用 `POST /api/v3/deploy_policy/create`。
 4. 从 create 响应保存 `data.deploy_policy_id`。
 5. 用该 `deploy_policy_id` 调用 `POST /api/v3/deploy_policy/execute`，让目标收敛到声明的插件或配置状态。
-6. 从 execute 响应保存 `data.trigger_id`，作为执行任务标识。
+6. Save execute `data.workflow_id` for this policy execution.
+7. Follow [Workflow usage](workflow.md) to poll the result and decide when to execute the next policy.
 
 ## 接入流程
 
@@ -42,12 +43,13 @@ curl template 按 mode 拆分：
 
 公开的 deploy-policy endpoints：
 
-| 步骤     | Method and path                      | 即时输出                   |
-| -------- | ------------------------------------ | -------------------------- |
-| 创建策略 | `POST /api/v3/deploy_policy/create`  | `data.deploy_policy_id`    |
-| 执行策略 | `POST /api/v3/deploy_policy/execute` | `data.trigger_id`          |
-| 查询策略 | `POST /api/v3/deploy_policy/list`    | `data.total`, `data.items` |
-| 更新策略 | `POST /api/v3/deploy_policy/update`  | 响应结构见 Swagger         |
+| 步骤            | Method and path                              | 即时输出                                |
+| --------------- | -------------------------------------------- | --------------------------------------- |
+| 创建策略        | `POST /api/v3/deploy_policy/create`          | `data.deploy_policy_id`                 |
+| 执行策略        | `POST /api/v3/deploy_policy/execute`         | `data.workflow_id`                      |
+| Workflow result | `POST /api/v3/deploy_policy/workflow/result` | `data.status`, child counts and details |
+| 查询策略        | `POST /api/v3/deploy_policy/list`            | `data.total`, `data.items`              |
+| 更新策略        | `POST /api/v3/deploy_policy/update`          | 响应结构见 Swagger                      |
 
 curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部署的 API base URL；deploy-policy contract 不定义统一 gateway 或认证 header。
 
@@ -137,9 +139,9 @@ create 响应包含 `data.deploy_policy_id`。把它保存为策略 identity，�
 
 ### 5. 解读即时输出
 
-`POST /api/v3/deploy_policy/execute` 接收 `deploy_policy_id`，返回 `data.trigger_id`。
+`POST /api/v3/deploy_policy/execute` accepts `deploy_policy_id` and returns `data.workflow_id` for the requested policy's execution.
 
-`trigger_id` 表示平台已发起执行任务。它不等于最终插件健康状态、最终进程状态，也不保证机器已经收敛。
+The ID confirms launch, not completion or machine health. Query `POST /api/v3/deploy_policy/workflow/result` with this ID. `success`, `failed`, and `partial_failed` mean currently finished; `running` means unfinished; `unknown` cannot prove completion. See [Workflow usage](workflow.md) for polling examples, dispatch rules, shared children, and retry limits.
 
 ### 6. 观察最终产物
 
@@ -190,6 +192,9 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 
 ## Contract 参考
 
+- [Workflow usage](workflow.md)
+- [Execute API reference](../../../apigw/apidocs/en/DeployPolicySvc_Execute.md)
+- [Workflow result API reference](../../../apigw/apidocs/en/DeployPolicySvc_WorkflowResult.md)
 - [Scope 概念](../../concepts/deploy_policy/scope.md)
 - [Spec 概念](../../concepts/deploy_policy/spec.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)

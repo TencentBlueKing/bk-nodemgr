@@ -1,5 +1,7 @@
 # specify_plugin_sub_config
 
+See [Workflow usage](workflow.md) for execution result polling.
+
 ## 目的与适用场景
 
 当第三方平台希望声明已安装插件的配置时，使用 `specify_plugin_sub_config`。
@@ -10,18 +12,18 @@
 
 该 mode 的 desired-state 字段：
 
-| Field | Required | 含义 |
-| --- | --- | --- |
-| `plugin_name` | yes | 被声明配置的已安装插件 |
-| `config_files_detail` | no | 要更新的配置文件详情；声明文件内容时提供 |
-| `custom_config_context` | no | 以结构化对象传入的自定义值 |
+| Field                   | Required | 含义                                     |
+| ----------------------- | -------- | ---------------------------------------- |
+| `plugin_name`           | yes      | 被声明配置的已安装插件                   |
+| `config_files_detail`   | no       | 要更新的配置文件详情；声明文件内容时提供 |
+| `custom_config_context` | no       | 以结构化对象传入的自定义值               |
 
 每个 `config_files_detail` item 遵循 proto 文档化结构：
 
-| Field | 含义 |
-| --- | --- |
-| `name` | 配置文件名称 |
-| `content` | 配置文件内容 |
+| Field            | 含义                                                   |
+| ---------------- | ------------------------------------------------------ |
+| `name`           | 配置文件名称                                           |
+| `content`        | 配置文件内容                                           |
 | `is_main_config` | 该项是否为主配置；该 mode 使用 `false` 声明 sub config |
 
 ## 最小 payload 和 curl template
@@ -75,14 +77,14 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-使用返回的 ID 执行策略，并提取 `data.trigger_id`：
+使用返回的 ID 执行策略，并提取 `data.workflow_id`：
 
 ```bash
 EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
   -H "Content-Type: application/json" \
   -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}")"
 
-TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
+WORKFLOW_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.workflow_id')"
 ```
 
 ## 系统解释
@@ -95,9 +97,9 @@ TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 
 create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-execute 返回 `data.trigger_id`，用于标识已发起的配置收敛任务。
+execute 返回 `data.workflow_id`，用于标识已发起的配置收敛任务。
 
-`trigger_id` 不证明配置文件已经写入、插件已经 reload 或最终状态已经收敛。机器侧验收应检查目标配置文件及插件状态。
+`workflow_id` 不证明配置文件已经写入、插件已经 reload 或最终状态已经收敛。机器侧验收应检查目标配置文件及插件状态。
 
 ## 最终或机器侧可见产物
 

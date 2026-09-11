@@ -1,5 +1,7 @@
 # project_plugin_pkg_to_hosts
 
+See [Workflow usage](workflow.md) for execution result polling.
+
 ## 目的与适用场景
 
 当第三方平台希望基于插件包为一组 remote targets 生成插件实例，并把这些插件实例部署到指定承载主机时，使用 `project_plugin_pkg_to_hosts`。
@@ -66,14 +68,14 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-使用返回的 ID 执行策略，并提取 `data.trigger_id`：
+使用返回的 ID 执行策略，并提取 `data.workflow_id`：
 
 ```bash
 EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
   -H "Content-Type: application/json" \
   -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}")"
 
-TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
+WORKFLOW_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.workflow_id')"
 ```
 
 ## 系统解释
@@ -94,7 +96,7 @@ TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 
 create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-execute 返回 `data.trigger_id`，用于标识已发起的执行任务。
+execute 返回 `data.workflow_id`，用于标识已发起的执行任务。
 
 这些即时输出不是承载主机上插件实例已经安装、升级或卸载完成的最终证明。
 
