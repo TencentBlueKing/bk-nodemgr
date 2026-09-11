@@ -21,6 +21,8 @@ package v3
 
 import (
 	"fmt"
+	"math"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -32,6 +34,9 @@ const (
 
 	// IAMCallbackDefaultPageLimit is the default page limit for IAM callback APIs.
 	IAMCallbackDefaultPageLimit = 100
+
+	// IAMV4CallbackMaxPageSize is the V4 list callback page size limit.
+	IAMV4CallbackMaxPageSize = 1000
 )
 
 // ValidateIAMCallbackPage validates IAM callback page parameters.
@@ -77,4 +82,59 @@ func ConvIAMCallbackPageToTypes(reqPage *IAMResourceCallbackPage) (types.Page, e
 	}
 
 	return page, nil
+}
+
+// Validate validates IAM V4 callback fields without applying V3 defaults.
+func (x *IAMV4ResourceCallbackReq) Validate() error {
+	if strings.TrimSpace(x.GetType()) == "" || strings.TrimSpace(x.GetMethod()) == "" {
+		return fmt.Errorf("type and method are required")
+	}
+	fields := x.GetFilter().AsMap()
+	switch x.GetMethod() {
+	case "list_instance":
+		if _, err := x.GetPage().ConvertToTypes(); err != nil {
+			return err
+		}
+		if keyword, exists := fields["keyword"]; exists {
+			if _, ok := keyword.(string); !ok {
+				return fmt.Errorf("filter.keyword must be a string")
+			}
+		}
+		if parent, exists := fields["parent"]; exists {
+			object, ok := parent.(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("filter.parent must be an object")
+			}
+			parentType, typeOK := object["type"].(string)
+			parentID, idOK := object["id"].(string)
+			if !typeOK || !idOK || parentType == "" || parentID == "" {
+				return fmt.Errorf("filter.parent.type and filter.parent.id must be nonempty strings")
+			}
+		}
+	case "fetch_instance_info":
+		ids, ok := fields["ids"].([]interface{})
+		if !ok {
+			return fmt.Errorf("filter.ids must be a string array")
+		}
+		for _, id := range ids {
+			if _, ok := id.(string); !ok {
+				return fmt.Errorf("filter.ids must contain only strings")
+			}
+		}
+	}
+
+	return nil
+}
+
+// ConvertToTypes converts V4 page numbers to offsets without defaults.
+func (x *IAMV4ResourceCallbackPage) ConvertToTypes() (types.Page, error) {
+	page, pageSize := x.GetPage(), x.GetPageSize()
+	if page < 1 || pageSize < 1 || pageSize > IAMV4CallbackMaxPageSize {
+		return types.Page{}, fmt.Errorf("page must be >= 1 and page_size must be between 1 and %d", IAMV4CallbackMaxPageSize)
+	}
+	if page-1 > int64(math.MaxInt)/pageSize {
+		return types.Page{}, fmt.Errorf("page offset overflows int")
+	}
+
+	return types.Page{Offset: int((page - 1) * pageSize), Limit: int(pageSize)}, nil
 }

@@ -23,21 +23,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"math"
 	"net/http"
 	"regexp"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v4/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv4"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -129,8 +127,12 @@ func (h *handler) handleResourceCallback(gCtx *gin.Context) {
 		callbackError(gCtx, contextx.FromContext(gCtx.Request.Context()), http.StatusInternalServerError, err)
 		return
 	}
-	req, err := parseCallbackRequest(gCtx.Request.Body)
-	if err != nil {
+	req := new(protoBackend.IAMV4ResourceCallbackReq)
+	if err := gCtx.ShouldBindJSON(req); err != nil {
+		callbackError(gCtx, rCtx, http.StatusBadRequest, err)
+		return
+	}
+	if err := req.Validate(); err != nil {
 		callbackError(gCtx, rCtx, http.StatusBadRequest, err)
 		return
 	}
@@ -157,152 +159,32 @@ func (h *handler) handleResourceCallback(gCtx *gin.Context) {
 	gCtx.Data(http.StatusOK, "application/json; charset=utf-8", body)
 }
 
-type callbackRequest struct {
-	Type     string          `json:"type"`
-	Method   string          `json:"method"`
-	Filter   json.RawMessage `json:"filter"`
-	Page     json.RawMessage `json:"page"`
-	Requires json.RawMessage `json:"requires"`
-}
-
-func parseCallbackRequest(body io.Reader) (*callbackRequest, error) {
-	decoder := json.NewDecoder(body)
-	var req *callbackRequest
-	if err := decoder.Decode(&req); err != nil {
-		return nil, fmt.Errorf("invalid callback JSON: %w", err)
-	}
-	if req == nil || strings.TrimSpace(req.Type) == "" || strings.TrimSpace(req.Method) == "" {
-		return nil, provider.ErrInvalidArgument
-	}
-	var trailing json.RawMessage
-	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
-		return nil, provider.ErrInvalidArgument
-	}
-	for _, field := range []json.RawMessage{req.Filter, req.Page} {
-		if len(field) > 0 && field[0] != '{' {
-			return nil, provider.ErrInvalidArgument
-		}
-	}
-	if len(req.Requires) > 0 {
-		if _, err := parseStringArray(req.Requires); err != nil {
-			return nil, err
-		}
-	}
-
-	return req, nil
-}
-
-func (h *handler) query(ctx contextx.IContext, req *callbackRequest) (interface{}, error) {
+func (h *handler) query(ctx contextx.IContext, req *protoBackend.IAMV4ResourceCallbackReq) (interface{}, error) {
 	if h.queries == nil {
 		return nil, fmt.Errorf("resource query handler is nil")
 	}
-	switch req.Method {
+	switch req.GetMethod() {
 	case "list_instance":
-		page, err := parseCallbackPage(req.Page)
+		page, err := req.GetPage().ConvertToTypes()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", provider.ErrInvalidArgument, err)
 		}
-		filter, err := parseListFilter(req.Filter)
-		if err != nil {
-			return nil, err
+		var filter provider.ListInstanceFilter
+		if err := conv.MapToStruct(req.GetFilter().AsMap(), &filter); err != nil {
+			return nil, fmt.Errorf("%w: %w", provider.ErrInvalidArgument, err)
 		}
 
-		return h.queries.ListInstance(ctx, req.Type, &provider.Request[provider.ListInstanceFilter]{Filter: filter, Page: page})
+		return h.queries.ListInstance(ctx, req.GetType(), &provider.Request[provider.ListInstanceFilter]{Filter: filter, Page: page})
 	case "fetch_instance_info":
-		var filter struct {
-			IDs json.RawMessage `json:"ids"`
-		}
-		if err := json.Unmarshal(req.Filter, &filter); err != nil {
-			return nil, provider.ErrInvalidArgument
-		}
-		ids, err := parseStringArray(filter.IDs)
-		if err != nil {
-			return nil, err
-		}
-		var requires []string
-		if len(req.Requires) > 0 {
-			requires, err = parseStringArray(req.Requires)
-			if err != nil {
-				return nil, err
-			}
+		var filter provider.FetchInstanceFilter
+		if err := conv.MapToStruct(req.GetFilter().AsMap(), &filter); err != nil {
+			return nil, fmt.Errorf("%w: %w", provider.ErrInvalidArgument, err)
 		}
 
-		return h.queries.FetchInstanceInfo(ctx, req.Type, &provider.Request[provider.FetchInstanceFilter]{
-			Filter: provider.FetchInstanceFilter{IDs: ids}, Requires: requires,
+		return h.queries.FetchInstanceInfo(ctx, req.GetType(), &provider.Request[provider.FetchInstanceFilter]{
+			Filter: filter, Requires: req.GetRequires(),
 		})
 	default:
 		return nil, provider.ErrNotFound
 	}
-}
-
-func parseStringArray(raw json.RawMessage) ([]string, error) {
-	if len(raw) == 0 || raw[0] != '[' {
-		return nil, provider.ErrInvalidArgument
-	}
-	var values []*string
-	if err := json.Unmarshal(raw, &values); err != nil {
-		return nil, provider.ErrInvalidArgument
-	}
-	result := make([]string, 0, len(values))
-	for _, value := range values {
-		if value == nil {
-			return nil, provider.ErrInvalidArgument
-		}
-		result = append(result, *value)
-	}
-
-	return result, nil
-}
-
-func parseCallbackPage(raw json.RawMessage) (types.Page, error) {
-	var page struct {
-		Page     int64 `json:"page"`
-		PageSize int64 `json:"page_size"`
-	}
-	if err := json.Unmarshal(raw, &page); err != nil {
-		return types.Page{}, provider.ErrInvalidArgument
-	}
-	if page.Page < 1 || page.PageSize < 1 || page.PageSize > provider.MaxListInstancePageSize {
-		return types.Page{}, provider.ErrInvalidArgument
-	}
-	if page.Page-1 > int64(math.MaxInt)/page.PageSize {
-		return types.Page{}, provider.ErrInvalidArgument
-	}
-
-	return types.Page{Offset: int((page.Page - 1) * page.PageSize), Limit: int(page.PageSize)}, nil
-}
-
-func parseListFilter(raw json.RawMessage) (provider.ListInstanceFilter, error) {
-	filter := provider.ListInstanceFilter{}
-	if len(raw) == 0 {
-		return filter, nil
-	}
-	var fields struct {
-		Parent  json.RawMessage `json:"parent"`
-		Keyword json.RawMessage `json:"keyword"`
-	}
-	if err := json.Unmarshal(raw, &fields); err != nil {
-		return filter, provider.ErrInvalidArgument
-	}
-	if len(fields.Keyword) > 0 {
-		if fields.Keyword[0] != '"' {
-			return filter, provider.ErrInvalidArgument
-		}
-		if err := json.Unmarshal(fields.Keyword, &filter.Keyword); err != nil {
-			return filter, provider.ErrInvalidArgument
-		}
-	}
-	if len(fields.Parent) > 0 {
-		if fields.Parent[0] != '{' {
-			return filter, provider.ErrInvalidArgument
-		}
-		if err := json.Unmarshal(fields.Parent, &filter.Parent); err != nil {
-			return filter, provider.ErrInvalidArgument
-		}
-		if filter.Parent.Type == "" || filter.Parent.ID == "" {
-			return filter, provider.ErrInvalidArgument
-		}
-	}
-
-	return filter, nil
 }
