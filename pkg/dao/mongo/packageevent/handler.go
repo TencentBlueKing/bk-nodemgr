@@ -25,7 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -228,16 +227,21 @@ func (h *Handler) DistinctOsType(nCtx contextx.IContext, opts ...OptFn) ([]crite
 		return nil, fmt.Errorf("failed to distinct os type: %w", err)
 	}
 
-	osList, err := conv.SliceToSliceWithError[string, criteria.OSType](result, func(s string) (criteria.OSType, error) {
-		osType := criteria.OSType(s)
-		if err := osType.Validate(); err != nil {
-			return "", err
+	osList := make([]criteria.OSType, 0, len(result))
+	seen := make(map[criteria.OSType]struct{}, len(result))
+	for _, value := range result {
+		osType := criteria.OSType(value)
+		if osType == "" {
+			osType = criteria.OSUnknown
 		}
-
-		return osType, nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get distinct os type: %w", err)
+		if err := osType.Validate(); err != nil {
+			return nil, fmt.Errorf("failed to get distinct os type: %w", err)
+		}
+		if _, ok := seen[osType]; ok {
+			continue
+		}
+		seen[osType] = struct{}{}
+		osList = append(osList, osType)
 	}
 
 	return osList, nil
@@ -250,16 +254,21 @@ func (h *Handler) DistinctCPUArch(nCtx contextx.IContext, opts ...OptFn) ([]crit
 		return nil, fmt.Errorf("failed to distinct cpu arch: %w", err)
 	}
 
-	archList, err := conv.SliceToSliceWithError[string, criteria.CPUArch](result, func(s string) (criteria.CPUArch, error) {
-		arch := criteria.CPUArch(s)
-		if err := arch.Validate(); err != nil {
-			return "", err
+	archList := make([]criteria.CPUArch, 0, len(result))
+	seen := make(map[criteria.CPUArch]struct{}, len(result))
+	for _, value := range result {
+		arch := criteria.CPUArch(value)
+		if arch == "" {
+			arch = criteria.CPUArchUnknown
 		}
-
-		return arch, nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get distinct cpu arch: %w", err)
+		if err := arch.Validate(); err != nil {
+			return nil, fmt.Errorf("failed to get distinct cpu arch: %w", err)
+		}
+		if _, ok := seen[arch]; ok {
+			continue
+		}
+		seen[arch] = struct{}{}
+		archList = append(archList, arch)
 	}
 
 	return archList, nil

@@ -1,0 +1,118 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+
+// PackageEventExactConditions describes exact package event filters.
+message PackageEventExactConditions {
+  repeated int64 generation = 1;
+  repeated string os_type = 2;
+  repeated string cpu_arch = 3;
+  repeated string release_type = 4;
+  repeated string operator = 5;
+  repeated string event_type = 6;
+  repeated string version = 7;
+}
+
+// PackageEventFuzzyConditions describes fuzzy package event filters.
+message PackageEventFuzzyConditions {}
+
+// PackageEventQueryConditions describes one package event condition.
+message PackageEventQueryConditions {
+  PackageEventExactConditions exact_include = 1;
+  PackageEventExactConditions exact_exclude = 2;
+  PackageEventFuzzyConditions fuzzy_include = 3;
+  PackageEventFuzzyConditions fuzzy_exclude = 4;
+  PackageEventQueryTimeRange operate_time_range = 5;
+}
+
+// PackageEventDistinctFields selects package event fields for distinct queries.
+message PackageEventDistinctFields {
+  bool release_type = 1;
+  bool event_type = 2;
+  bool os_type = 3;
+  bool cpu_arch = 4;
+  bool version = 5;
+  bool operator = 6;
+}
+
+// PackageEventQueryTimeRange describes an inclusive event time range.
+message PackageEventQueryTimeRange {
+  int64 start_timestamp_sec = 1;
+  int64 end_timestamp_sec = 2;
+}
+
+// PackageEventInfo describes a package event.
+message PackageEventInfo {
+  string tenant_id = 1;
+  string name = 2;
+  string event_type = 3;
+  string release_type = 4;
+  int64 generation = 5;
+  string os_type = 6;
+  string cpu_arch = 7;
+  string version = 8;
+  int64 operate_time = 9;
+  string operator = 10;
+}
+
+// PackageEventListReq describes a package event list request.
+message PackageEventListReq {
+  Page page = 1;
+  bool only_count = 2;
+  repeated PackageEventQueryConditions conditions = 3;
+}
+
+// PackageEventListResp describes a package event list response.
+message PackageEventListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the package event query result.
+  message Data {
+    int64 total = 1;
+    repeated PackageEventInfo items = 2;
+  }
+  Data data = 4;
+}
+
+// PackageEventDistinctReq describes a package event distinct request.
+message PackageEventDistinctReq {
+  PackageEventDistinctFields fields = 1;
+  repeated PackageEventQueryConditions conditions = 2;
+}
+
+// PackageEventDistinctResp describes a package event distinct response.
+message PackageEventDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the package event query result.
+  message Data {
+    repeated string release_type = 1;
+    repeated string event_type = 2;
+    repeated string os_type = 3;
+    repeated string cpu_arch = 4;
+    repeated string version = 5;
+    repeated string operator = 6;
+  }
+  Data data = 4;
+}
+
+// PackageEventQuery provides package event queries.
+service PackageEventQuery {
+  rpc List(PackageEventListReq) returns (PackageEventListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/event/list"
+      body : "*"
+    };
+  }
+  rpc Distinct(PackageEventDistinctReq) returns (PackageEventDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/event/distinct"
+      body : "*"
+    };
+  }
+}

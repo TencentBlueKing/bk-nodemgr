@@ -16,35 +16,42 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package packageevent provides the event storage.
-package packageevent
+package manager
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IStorage defines the interface of package storage.
-// nolint: interfacebloat
-type IStorage interface {
-	basestorage.Interface
-
-	IDaoEvent
-}
-
-// IDaoEvent defines the interface of package event dao.
-type IDaoEvent interface {
-	// CountPackageEvent counts package events by conditions.
+// IPackageEvent defines package event query operations.
+type IPackageEvent interface {
+	// CountPackageEvent counts package event records by conditions.
 	CountPackageEvent(nCtx contextx.IContext, conditions ...*types.PackageEventCondition) (int64, error)
 
-	// ListPackageEvent lists package events by page and conditions.
+	// ListPackageEvent lists package event records by page and conditions.
 	ListPackageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) ([]*types.PackageEvent, int64, error)
 
-	// CreateManyPackageEvent creates package events.
-	CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) (err error)
-
-	// DistinctPackageEvent distincts package event fields.
+	// DistinctPackageEvent gets distinct package event fields.
 	DistinctPackageEvent(nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition) (
 		*types.PackageEventDistinctResult, error)
+}
+
+// CountPackageEvent counts package event records by conditions.
+func (m *Manager) CountPackageEvent(nCtx contextx.IContext, conditions ...*types.PackageEventCondition) (int64, error) {
+	return m.storageEvent.CountPackageEvent(nCtx, conditions...)
+}
+
+// ListPackageEvent lists package events by page and conditions.
+func (m *Manager) ListPackageEvent(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.PackageEventCondition) ([]*types.PackageEvent, int64, error) {
+
+	return m.storageEvent.ListPackageEvent(nCtx, page, conditions...)
+}
+
+// DistinctPackageEvent gets distinct package event fields.
+func (m *Manager) DistinctPackageEvent(
+	nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition) (
+	*types.PackageEventDistinctResult, error) {
+
+	return m.storageEvent.DistinctPackageEvent(nCtx, request, conditions...)
 }

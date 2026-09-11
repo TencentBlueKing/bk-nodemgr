@@ -34,6 +34,8 @@ import (
 
 // IBinTool defines the interface for bin tool.
 type IBinTool interface {
+	IReleaseBinTool
+
 	// UploadOriginBinTool upload origin bintool package.
 	UploadOriginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (
 		*types.OriginBinToolPkgDetail, error)

@@ -82,6 +82,8 @@ type IPkgManager interface {
 	IPkgDownloadHandler
 	IPkgInfoHandler
 	IPkgExportHandler
+	IPkgReleaseHandler
+	IPackageEventHandler
 }
 
 // IPkgInfoHandler defines the interface of pkg info query.

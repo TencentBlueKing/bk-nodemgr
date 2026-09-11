@@ -41,6 +41,8 @@ import (
 
 // IPluginV2 defines the interface of plugin.
 type IPluginV2 interface {
+	IReleasePlugin
+
 	// UploadOriginPluginV2 uploads the origin plugin package v2.
 	UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginPluginV2PkgDetail, error)
 

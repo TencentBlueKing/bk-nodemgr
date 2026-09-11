@@ -22,19 +22,26 @@ package packageevent
 import (
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	daoPackageEvent "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// StorageName defines the storage name.
-const StorageName = "packageevent"
+const (
+	// StorageName defines the storage name.
+	StorageName = "packageevent"
 
-// NewStorage creates a new release storage.
+	metricOperationCountPackageEvent      = "count_package_event"
+	metricOperationListPackageEvent       = "list_package_event"
+	metricOperationCreateManyPackageEvent = "create_many_package_event"
+	metricOperationDistinctPackageEvent   = "distinct_package_event"
+)
+
+// NewStorage creates a new package event storage.
 func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
@@ -81,22 +88,65 @@ func (s *Storage) check() error {
 	return nil
 }
 
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
+// CountPackageEvent counts package events by conditions.
+func (s *Storage) CountPackageEvent(nCtx contextx.IContext, conditions ...*types.PackageEventCondition) (int64, error) {
+	if nCtx == nil {
+		return 0, base.ErrInvalidContext()
+	}
+
+	var count int64
+	err := s.WrapFn(nCtx, metricOperationCountPackageEvent, func(nCtx contextx.IContext) error {
+		var err error
+		count, err = s.countPackageEvent(nCtx, conditions...)
+
+		return err
+	})
+
+	return count, err
+}
+
+// ListPackageEvent lists package events by page and conditions.
+func (s *Storage) ListPackageEvent(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.PackageEventCondition) ([]*types.PackageEvent, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+
+	var events []*types.PackageEvent
+	var count int64
+	err := s.WrapFn(nCtx, metricOperationListPackageEvent, func(nCtx contextx.IContext) error {
+		var err error
+		events, count, err = s.listPackageEvent(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return events, count, err
 }
 
 // CreateManyPackageEvent creates package events.
-// nolint: nonamedreturns
 func (s *Storage) CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationCreateManyPackageEvent, func(nCtx contextx.IContext) error {
+		return s.createManyPackageEvent(nCtx, events...)
+	})
+}
 
-	// record metric.
-	metric := s.metric().Start("create_many_package_event")
-	defer metric.End(err)
+// DistinctPackageEvent distincts package event fields.
+func (s *Storage) DistinctPackageEvent(nCtx contextx.IContext, request types.PackageEventDistinctRequest,
+	conditions ...*types.PackageEventCondition) (*types.PackageEventDistinctResult, error) {
 
-	if err = s.daoPackageEvent.CreateMany(nCtx, events...); err != nil {
-		return err
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
 	}
 
-	return nil
+	var result *types.PackageEventDistinctResult
+	err := s.WrapFn(nCtx, metricOperationDistinctPackageEvent, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.distinctPackageEvent(nCtx, request, conditions...)
+
+		return err
+	})
+
+	return result, err
 }

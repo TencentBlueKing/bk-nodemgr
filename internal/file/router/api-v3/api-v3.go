@@ -22,9 +22,11 @@ package apiv3
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/download"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/event"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/export"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/info"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/publish"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/transfer"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/upload"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -60,9 +62,11 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 
 	download.Load(h.rg, capability)
 	download.LoadRemoteFile(h.rg, capability)
+	event.Load(h.rg, capability)
 	export.Load(h.rg, capability)
 	info.Load(h.rg, capability)
 	publish.Load(h.rg, capability)
+	release.Load(h.rg, capability)
 	transfer.Load(h.rg, capability)
 	upload.Load(h.rg, capability)
 }

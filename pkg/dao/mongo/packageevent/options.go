@@ -32,9 +32,19 @@ func WithGeneration(gen ...types.Generation) OptFn {
 	return base.WithValues(FieldKeyGeneration, types.GenerationListToInt64List(gen)...)
 }
 
+// WithoutGeneration provides filtering by generation.
+func WithoutGeneration(gen ...types.Generation) OptFn {
+	return base.WithoutValues(FieldKeyGeneration, types.GenerationListToInt64List(gen)...)
+}
+
 // WithReleaseType provides filtering by release type.
 func WithReleaseType(releaseType ...types.ReleaseType) OptFn {
 	return base.WithValues(FieldKeyReleaseType, types.ReleaseTypeListToStringList(releaseType)...)
+}
+
+// WithoutReleaseType provides filtering by release type.
+func WithoutReleaseType(releaseType ...types.ReleaseType) OptFn {
+	return base.WithoutValues(FieldKeyReleaseType, types.ReleaseTypeListToStringList(releaseType)...)
 }
 
 // WithEventType provides filtering by release type.
@@ -42,9 +52,19 @@ func WithEventType(eventType ...types.PackageEventType) OptFn {
 	return base.WithValues(FieldKeyEventType, types.PackageEventTypeListToStringList(eventType)...)
 }
 
+// WithoutEventType provides filtering by release type.
+func WithoutEventType(eventType ...types.PackageEventType) OptFn {
+	return base.WithoutValues(FieldKeyEventType, types.PackageEventTypeListToStringList(eventType)...)
+}
+
 // WithVersion provides filtering by version.
 func WithVersion(version ...string) OptFn {
 	return base.WithValues(FieldKeyVersion, version...)
+}
+
+// WithoutVersion provides filtering by version.
+func WithoutVersion(version ...string) OptFn {
+	return base.WithoutValues(FieldKeyVersion, version...)
 }
 
 // WithCPUArch provides filtering by cpu arch.
@@ -52,14 +72,29 @@ func WithCPUArch(cpuArch ...criteria.CPUArch) OptFn {
 	return base.WithValues(FieldKeyCPUArch, criteria.CPUArchListToStringList(cpuArch)...)
 }
 
+// WithoutCPUArch provides filtering by cpu arch.
+func WithoutCPUArch(cpuArch ...criteria.CPUArch) OptFn {
+	return base.WithoutValues(FieldKeyCPUArch, criteria.CPUArchListToStringList(cpuArch)...)
+}
+
 // WithOSType provides filtering by os type.
 func WithOSType(osType ...criteria.OSType) OptFn {
 	return base.WithValues(FieldKeyOSType, criteria.OSTypeListToStringList(osType)...)
 }
 
+// WithoutOSType provides filtering by os type.
+func WithoutOSType(osType ...criteria.OSType) OptFn {
+	return base.WithoutValues(FieldKeyOSType, criteria.OSTypeListToStringList(osType)...)
+}
+
 // WithOperator filters by operator.
 func WithOperator(operator ...string) OptFn {
 	return base.WithValues(FieldKeyOperator, operator...)
+}
+
+// WithoutOperator filters by operator.
+func WithoutOperator(operator ...string) OptFn {
+	return base.WithoutValues(FieldKeyOperator, operator...)
 }
 
 // WithOperateTimeRange filters by operate-time.

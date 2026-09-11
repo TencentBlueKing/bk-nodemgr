@@ -20,9 +20,50 @@
 package v3
 
 import (
+	"fmt"
+	"math"
+
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
+
+// Validate validates page settings.
+func (x *Page) Validate() error {
+	if x == nil {
+		return fmt.Errorf("page is required")
+	}
+	if x.GetOffset() < 0 {
+		return fmt.Errorf("offset must be non-negative")
+	}
+	if x.GetOffset() > math.MaxInt {
+		return fmt.Errorf("offset exceeds maximum value")
+	}
+	if x.GetLimit() <= 0 {
+		return fmt.Errorf("limit must be positive")
+	}
+	if x.GetLimit() > math.MaxInt {
+		return fmt.Errorf("limit exceeds maximum value")
+	}
+
+	return nil
+}
+
+// ConvertToTypes converts page settings to domain types.
+func (x *Page) ConvertToTypes() (types.Page, error) {
+	if err := x.Validate(); err != nil {
+		return types.Page{}, err
+	}
+
+	return types.Page{Offset: int(x.GetOffset()), Limit: int(x.GetLimit()), Sort: x.GetSort()}, nil
+}
+
+// ConvertFromTypes converts domain page settings to the protocol message.
+func (x *Page) ConvertFromTypes(page types.Page) {
+	x.Offset = int64(page.Offset)
+	x.Limit = int64(page.Limit)
+	x.Sort = page.Sort
+}
 
 // ConvertPlatformToTypes convert platform to types.
 func ConvertPlatformToTypes(plat *Platform) platfmt.Platform {

@@ -39,6 +39,8 @@ const (
 
 // ICert defines the interface for cert.
 type ICert interface {
+	IReleaseCert
+
 	// UploadOriginCert uploads the origin cert.
 	UploadOriginCert(nCtx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 

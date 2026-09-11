@@ -39,7 +39,37 @@ type IStorage interface {
 }
 
 // IDaoAgent defines the agent interface.
+// nolint: interfacebloat // Keep release queries and mutations together by package type.
 type IDaoAgent interface {
+	// ListReleaseAgent lists agent releases by page and conditions.
+	ListReleaseAgent(nCtx contextx.IContext, page types.Page,
+		conditions ...*types.ReleaseCondition) ([]*types.ReleaseAgent, int64, error)
+
+	// CountReleaseAgent counts agent releases by conditions.
+	CountReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
+
+	// DistinctReleaseAgent gets distinct agent release fields.
+	DistinctReleaseAgent(nCtx contextx.IContext, fields types.ReleaseDistinctField,
+		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
+
+	// SetReleaseAgentLabelsMany updates labels for matching releases.
+	SetReleaseAgentLabelsMany(nCtx contextx.IContext, labels []string, conditions ...*types.ReleaseCondition) error
+
+	// DeleteReleaseAgent deletes release metadata identified by its key.
+	DeleteReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
+	// EnableReleaseAgent enables an agent release.
+	EnableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
+	// DisableReleaseAgent disables an agent release.
+	DisableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
+	// SetAsDefaultReleaseAgent sets an agent release as default.
+	SetAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
+	// CancelAsDefaultReleaseAgent cancels an agent release default.
+	CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
 	// GetReleaseAgent gets release agent by generation, type, platform and version.
 	GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
 
@@ -51,7 +81,37 @@ type IDaoAgent interface {
 }
 
 // IDaoProxy defines the proxy interface.
+// nolint: interfacebloat // Keep release queries and mutations together by package type.
 type IDaoProxy interface {
+	// ListReleaseProxy lists proxy releases by page and conditions.
+	ListReleaseProxy(nCtx contextx.IContext, page types.Page,
+		conditions ...*types.ReleaseCondition) ([]*types.ReleaseProxy, int64, error)
+
+	// CountReleaseProxy counts proxy releases by conditions.
+	CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
+
+	// DistinctReleaseProxy gets distinct proxy release fields.
+	DistinctReleaseProxy(nCtx contextx.IContext, fields types.ReleaseDistinctField,
+		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
+
+	// SetReleaseProxyLabelsMany updates labels for matching releases.
+	SetReleaseProxyLabelsMany(nCtx contextx.IContext, labels []string, conditions ...*types.ReleaseCondition) error
+
+	// DeleteReleaseProxy deletes release metadata identified by its key.
+	DeleteReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// EnableReleaseProxy enables a proxy release.
+	EnableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// DisableReleaseProxy disables a proxy release.
+	DisableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// SetAsDefaultReleaseProxy sets a proxy release as default.
+	SetAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// CancelAsDefaultReleaseProxy cancels a proxy release default.
+	CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
 	// GetReleaseProxy gets release proxy by generation, type, platform and version.
 	GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
 
@@ -64,6 +124,13 @@ type IDaoProxy interface {
 
 // IDaoCert defines the cert interface.
 type IDaoCert interface {
+	// ListReleaseCert lists cert releases by page and conditions.
+	ListReleaseCert(nCtx contextx.IContext, page types.Page,
+		conditions ...*types.ReleaseCondition) ([]*types.ReleaseCert, int64, error)
+
+	// DeleteReleaseCert deletes release metadata identified by its key.
+	DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCertKey) error
+
 	// GetReleaseCert gets release cert.
 	GetReleaseCert(nCtx contextx.IContext) (*types.ReleaseCert, error)
 
@@ -72,13 +139,17 @@ type IDaoCert interface {
 
 	// UpsertReleaseCert upserts release cert.
 	UpsertReleaseCert(nCtx contextx.IContext, cert types.ReleaseCert) error
-
-	// DeleteReleaseCert deletes release cert.
-	DeleteReleaseCert(nCtx contextx.IContext, fileName string) error
 }
 
 // IDaoBinTool defines the bin tool interface.
 type IDaoBinTool interface {
+	// ListReleaseBinTool lists bintool releases by page and conditions.
+	ListReleaseBinTool(nCtx contextx.IContext, page types.Page,
+		conditions ...*types.ReleaseCondition) ([]*types.ReleaseBinTool, int64, error)
+
+	// DeleteReleaseBinTool deletes release metadata identified by its key.
+	DeleteReleaseBinTool(nCtx contextx.IContext, key types.ReleaseBinToolKey) error
+
 	// GetReleaseBinTool gets release bintool.
 	GetReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error)
 
@@ -87,13 +158,19 @@ type IDaoBinTool interface {
 
 	// UpsertReleaseBinTool upserts release bintool.
 	UpsertReleaseBinTool(nCtx contextx.IContext, bintool types.ReleaseBinTool) error
-
-	// DeleteReleaseBinTool deletes release bintool.
-	DeleteReleaseBinTool(nCtx contextx.IContext, gen types.Generation, fileName string) error
 }
 
 // IDaoPluginBinTool defines the plugin bin tool interface.
 type IDaoPluginBinTool interface {
+	// ListReleasePluginBinTool lists plugin bintool releases by page and conditions.
+	ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page,
+		conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, int64, error)
+
+	// DeleteReleasePluginBinTool deletes release metadata identified by its key.
+	DeleteReleasePluginBinTool(nCtx contextx.IContext, key types.ReleasePluginBinToolKey) error
+	// DistinctNameReleasePluginBinTool gets distinct plugin bintool release names.
+	DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
+
 	// GetReleasePluginBinTool gets release plugin bintool.
 	GetReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (*types.ReleasePluginBinTool, error)
 
@@ -102,15 +179,45 @@ type IDaoPluginBinTool interface {
 
 	// UpsertReleasePluginBinTool upserts release plugin bintool.
 	UpsertReleasePluginBinTool(nCtx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error
-
-	// DeleteReleasePluginBinTool deletes release plugin bintool.
-	DeleteReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, fileName string) error
 }
 
 // IDaoPlugin defines the interface of plugin.
+// nolint: interfacebloat // Keep release queries and mutations together by package type.
 type IDaoPlugin interface {
+	// EnableReleasePlugin enables a plugin release.
+	EnableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// DisableReleasePlugin disables a plugin release.
+	DisableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// SetAsDefaultReleasePlugin sets a plugin release as default.
+	SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// CancelAsDefaultReleasePlugin cancels a plugin release default.
+	CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// SetHiddenReleasePlugin hides a plugin release.
+	SetHiddenReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// CancelHiddenReleasePlugin unhides a plugin release.
+	CancelHiddenReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// DeleteReleasePlugin deletes release metadata identified by its key.
+	DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
 	// ListReleasePlugin lists plugin releases by page and conditions.
 	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)
+	// CountReleasePlugin counts plugin releases by conditions.
+	CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
+
+	// DistinctReleasePlugin gets distinct plugin release fields.
+	DistinctReleasePlugin(nCtx contextx.IContext, fields types.ReleaseDistinctField,
+		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
+
+	// GetReleasePluginDefaultVersion gets the default plugin version.
+	GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform) (string, error)
+	// DistinctNameReleasePlugin gets distinct plugin release names.
+	DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
 
 	// GetReleasePlugin gets release plugin.
 	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error)

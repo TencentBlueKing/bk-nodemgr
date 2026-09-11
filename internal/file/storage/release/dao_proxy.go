@@ -53,6 +53,29 @@ func (s *Storage) getReleaseProxy(nCtx contextx.IContext, gen types.Generation, 
 	}, nil
 }
 
+// listReleaseProxy lists proxy releases by page and conditions.
+func (s *Storage) listReleaseProxy(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseProxy, int64, error) {
+
+	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeProxy, page, conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release proxy: %w", err)
+	}
+	results := make([]*types.ReleaseProxy, len(rls))
+	for i, item := range rls {
+		additionInfo := new(types.ReleaseAdditionInfoProxy)
+		if err = conv.MapToStruct(item.AdditionInfo, additionInfo); err != nil {
+			return nil, 0, fmt.Errorf("failed to convert addition info to struct: %w", err)
+		}
+		results[i] = &types.ReleaseProxy{
+			Release:                  *item,
+			ReleaseAdditionInfoProxy: *additionInfo,
+		}
+	}
+
+	return results, total, nil
+}
+
 // upsertManyReleaseProxy upsert many release.
 func (s *Storage) upsertManyReleaseProxy(nCtx contextx.IContext, releaseProxys []*types.ReleaseProxy) error {
 	releases := make([]*types.Release, 0, len(releaseProxys))

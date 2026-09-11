@@ -94,3 +94,26 @@ func (s *Storage) getReleaseAgent(nCtx contextx.IContext, gen types.Generation, 
 		ReleaseAdditionInfoAgent: *additionInfo,
 	}, nil
 }
+
+// listReleaseAgent lists agent releases by page and conditions.
+func (s *Storage) listReleaseAgent(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseAgent, int64, error) {
+
+	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeAgent, page, conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release agent: %w", err)
+	}
+	results := make([]*types.ReleaseAgent, len(rls))
+	for i, item := range rls {
+		additionInfo := new(types.ReleaseAdditionInfoAgent)
+		if err = conv.MapToStruct(item.AdditionInfo, additionInfo); err != nil {
+			return nil, 0, fmt.Errorf("failed to convert addition info to struct: %w", err)
+		}
+		results[i] = &types.ReleaseAgent{
+			Release:                  *item,
+			ReleaseAdditionInfoAgent: *additionInfo,
+		}
+	}
+
+	return results, total, nil
+}

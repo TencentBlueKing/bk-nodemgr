@@ -44,6 +44,22 @@ func (s *Storage) getReleaseCert(nCtx contextx.IContext) (*types.ReleaseCert, er
 	}, nil
 }
 
+// listReleaseCert lists cert releases by page and conditions.
+func (s *Storage) listReleaseCert(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseCert, int64, error) {
+
+	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeCert, page, conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release cert: %w", err)
+	}
+	results := make([]*types.ReleaseCert, len(rls))
+	for i, item := range rls {
+		results[i] = &types.ReleaseCert{Release: *item}
+	}
+
+	return results, total, nil
+}
+
 // existReleaseCert checks if release cert exists.
 func (s *Storage) existReleaseCert(nCtx contextx.IContext) (bool, error) {
 	result, err := s.daoRelease.Exist(nCtx, types.ReleaseTypeCert,
@@ -67,15 +83,6 @@ func (s *Storage) upsertReleaseCert(nCtx contextx.IContext, cert types.ReleaseCe
 
 	if err := s.daoRelease.UpsertMany(nCtx, types.ReleaseTypeCert, rls); err != nil {
 		return fmt.Errorf("failed to upsert release cert: %w", err)
-	}
-
-	return nil
-}
-
-// deleteReleaseCert deletes release cert.
-func (s *Storage) deleteReleaseCert(nCtx contextx.IContext, fileName string) error {
-	if err := s.daoRelease.Delete(nCtx, types.ReleaseTypeCert, release.WithFileName(fileName)); err != nil {
-		return fmt.Errorf("failed to delete release cert: %w", err)
 	}
 
 	return nil

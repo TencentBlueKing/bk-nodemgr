@@ -39,6 +39,8 @@ import (
 
 // IAgent defines the interface for agent.
 type IAgent interface {
+	IReleaseAgent
+
 	// UploadOriginAgent uploads the origin agent.
 	UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 

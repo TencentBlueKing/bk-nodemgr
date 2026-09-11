@@ -1,0 +1,1160 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// ReleaseExactConditions describes exact filters for release operations.
+message ReleaseExactConditions {
+  repeated string name = 1;
+  repeated string file_name = 2;
+  repeated int64 generation = 3;
+  repeated Platform platform = 4;
+  repeated string version = 5;
+  repeated bool as_default = 6;
+  repeated bool enabled = 7;
+  repeated bool is_hidden = 8;
+  repeated bool is_shared = 9;
+  repeated bool is_synced = 10;
+}
+
+// ReleaseConditions describes one group of release operation conditions.
+message ReleaseConditions { ReleaseExactConditions exact_include = 1; }
+
+// ReleaseDistinctFields selects the release fields to query for distinct
+// values.
+message ReleaseDistinctFields {
+  bool os_type = 1;
+  bool cpu_arch = 2;
+  bool name = 3;
+  bool version = 4;
+}
+
+// ReleaseDistinctResult contains distinct values of the selected release
+// fields.
+message ReleaseDistinctResult {
+  repeated string os_type = 1;
+  repeated string cpu_arch = 2;
+  repeated string name = 3;
+  repeated string version = 4;
+}
+
+// ReleaseInfo contains common release metadata.
+message ReleaseInfo {
+  string name = 1;
+  int64 generation = 2;
+  string release_type = 3;
+  Platform platform = 4;
+  string version = 5;
+  repeated string labels = 6;
+  string file_name = 7;
+  string md5 = 8;
+  bool enabled = 9;
+  bool is_hidden = 10;
+  bool is_shared = 11;
+  bool is_synced = 12;
+  bool as_default = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  string operator = 15;
+  google.protobuf.Struct addition_info = 16;
+}
+
+// ReleaseAgent messages.
+
+// ReleaseAgentEnableReq describes the request to enable an agent release.
+message ReleaseAgentEnableReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseAgentEnableResp describes the response to enable an agent release.
+message ReleaseAgentEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseAgentEnableResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseAgentDisableReq describes the request to disable an agent release.
+message ReleaseAgentDisableReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseAgentDisableResp describes the response to disable an agent release.
+message ReleaseAgentDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseAgentDisableResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseAgentSetAsDefaultReq describes the request to set an agent release as
+// default.
+message ReleaseAgentSetAsDefaultReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseAgentSetAsDefaultResp describes the response to set an agent release
+// as default.
+message ReleaseAgentSetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseAgentSetAsDefaultResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseAgentCancelAsDefaultReq describes the request to cancel an agent
+// release default.
+message ReleaseAgentCancelAsDefaultReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseAgentCancelAsDefaultResp describes the response to cancel an agent
+// release default.
+message ReleaseAgentCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseAgentCancelAsDefaultResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseAgentDeleteReq describes the request to delete an agent release.
+message ReleaseAgentDeleteReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseAgentDeleteResp describes the response to delete an agent release.
+message ReleaseAgentDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseAgentDeleteResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseAgentSetLabelsManyReq describes the request to set labels on
+// matching agent releases.
+message ReleaseAgentSetLabelsManyReq {
+  repeated ReleaseConditions conditions = 1;
+  repeated string labels = 2;
+}
+
+// ReleaseAgentSetLabelsManyResp describes the response to set labels on
+// matching agent releases.
+message ReleaseAgentSetLabelsManyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseAgentSetLabelsManyResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseAgentListReq describes the request to list agent releases.
+message ReleaseAgentListReq {
+  Page page = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleaseAgentListResp describes the response to list agent releases.
+message ReleaseAgentListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseAgentListResp.
+  message Data {
+    int64 total = 1;
+    repeated ReleaseInfo items = 2;
+  }
+  Data data = 4;
+}
+
+// ReleaseAgentCountReq describes the request to count agent releases.
+message ReleaseAgentCountReq { repeated ReleaseConditions conditions = 1; }
+
+// ReleaseAgentCountResp describes the response to count agent releases.
+message ReleaseAgentCountResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseAgentCountResp.
+  message Data { int64 count = 1; }
+  Data data = 4;
+}
+
+// ReleaseAgentGetReq describes the request to retrieve an agent release.
+message ReleaseAgentGetReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseAgentGetResp describes the response to retrieve an agent release.
+message ReleaseAgentGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseAgentGetResp.
+  message Data { ReleaseInfo item = 1; }
+  Data data = 4;
+}
+
+// ReleaseAgentDistinctReq describes the request to query distinct agent
+// release field values.
+message ReleaseAgentDistinctReq {
+  ReleaseDistinctFields fields = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleaseAgentDistinctResp describes the response to query distinct agent
+// release field values.
+message ReleaseAgentDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseAgentDistinctResp.
+  message Data { ReleaseDistinctResult result = 1; }
+  Data data = 4;
+}
+
+// ReleaseProxy messages.
+
+// ReleaseProxyEnableReq describes the request to enable a proxy release.
+message ReleaseProxyEnableReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseProxyEnableResp describes the response to enable a proxy release.
+message ReleaseProxyEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseProxyEnableResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseProxyDisableReq describes the request to disable a proxy release.
+message ReleaseProxyDisableReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseProxyDisableResp describes the response to disable a proxy release.
+message ReleaseProxyDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseProxyDisableResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseProxySetAsDefaultReq describes the request to set a proxy release as
+// default.
+message ReleaseProxySetAsDefaultReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseProxySetAsDefaultResp describes the response to set a proxy release as
+// default.
+message ReleaseProxySetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseProxySetAsDefaultResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseProxyCancelAsDefaultReq describes the request to cancel a proxy
+// release default.
+message ReleaseProxyCancelAsDefaultReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseProxyCancelAsDefaultResp describes the response to cancel a proxy
+// release default.
+message ReleaseProxyCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseProxyCancelAsDefaultResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseProxyDeleteReq describes the request to delete a proxy release.
+message ReleaseProxyDeleteReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseProxyDeleteResp describes the response to delete a proxy release.
+message ReleaseProxyDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseProxyDeleteResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseProxySetLabelsManyReq describes the request to set labels on
+// matching proxy releases.
+message ReleaseProxySetLabelsManyReq {
+  repeated ReleaseConditions conditions = 1;
+  repeated string labels = 2;
+}
+
+// ReleaseProxySetLabelsManyResp describes the response to set labels on
+// matching proxy releases.
+message ReleaseProxySetLabelsManyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseProxySetLabelsManyResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseProxyListReq describes the request to list proxy releases.
+message ReleaseProxyListReq {
+  Page page = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleaseProxyListResp describes the response to list proxy releases.
+message ReleaseProxyListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseProxyListResp.
+  message Data {
+    int64 total = 1;
+    repeated ReleaseInfo items = 2;
+  }
+  Data data = 4;
+}
+
+// ReleaseProxyCountReq describes the request to count proxy releases.
+message ReleaseProxyCountReq { repeated ReleaseConditions conditions = 1; }
+
+// ReleaseProxyCountResp describes the response to count proxy releases.
+message ReleaseProxyCountResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseProxyCountResp.
+  message Data { int64 count = 1; }
+  Data data = 4;
+}
+
+// ReleaseProxyGetReq describes the request to retrieve a proxy release.
+message ReleaseProxyGetReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
+// ReleaseProxyGetResp describes the response to retrieve a proxy release.
+message ReleaseProxyGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseProxyGetResp.
+  message Data { ReleaseInfo item = 1; }
+  Data data = 4;
+}
+
+// ReleaseProxyDistinctReq describes the request to query distinct proxy
+// release field values.
+message ReleaseProxyDistinctReq {
+  ReleaseDistinctFields fields = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleaseProxyDistinctResp describes the response to query distinct proxy
+// release field values.
+message ReleaseProxyDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseProxyDistinctResp.
+  message Data { ReleaseDistinctResult result = 1; }
+  Data data = 4;
+}
+
+// ReleasePlugin messages.
+
+// ReleasePluginEnableReq describes the request to enable a plugin release.
+message ReleasePluginEnableReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginEnableResp describes the response to enable a plugin release.
+message ReleasePluginEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginEnableResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginDisableReq describes the request to disable a plugin release.
+message ReleasePluginDisableReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginDisableResp describes the response to disable a plugin release.
+message ReleasePluginDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginDisableResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginSetAsDefaultReq describes the request to set a plugin release as
+// default.
+message ReleasePluginSetAsDefaultReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginSetAsDefaultResp describes the response to set a plugin release
+// as default.
+message ReleasePluginSetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginSetAsDefaultResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginCancelAsDefaultReq describes the request to cancel a plugin
+// release default.
+message ReleasePluginCancelAsDefaultReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginCancelAsDefaultResp describes the response to cancel a plugin
+// release default.
+message ReleasePluginCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginCancelAsDefaultResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginDeleteReq describes the request to delete a plugin release.
+message ReleasePluginDeleteReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginDeleteResp describes the response to delete a plugin release.
+message ReleasePluginDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginDeleteResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginSetHiddenReq describes the request to set the hidden state of
+// a plugin release.
+message ReleasePluginSetHiddenReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginSetHiddenResp describes the response to set the hidden state
+// of a plugin release.
+message ReleasePluginSetHiddenResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginSetHiddenResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginCancelHiddenReq describes the request to cancel the hidden
+// state of a plugin release.
+message ReleasePluginCancelHiddenReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginCancelHiddenResp describes the response to cancel the hidden
+// state of a plugin release.
+message ReleasePluginCancelHiddenResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginCancelHiddenResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginListReq describes the request to list plugin releases.
+message ReleasePluginListReq {
+  Page page = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleasePluginListResp describes the response to list plugin releases.
+message ReleasePluginListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleasePluginListResp.
+  message Data {
+    int64 total = 1;
+    repeated ReleaseInfo items = 2;
+  }
+  Data data = 4;
+}
+
+// ReleasePluginCountReq describes the request to count plugin releases.
+message ReleasePluginCountReq { repeated ReleaseConditions conditions = 1; }
+
+// ReleasePluginCountResp describes the response to count plugin releases.
+message ReleasePluginCountResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleasePluginCountResp.
+  message Data { int64 count = 1; }
+  Data data = 4;
+}
+
+// ReleasePluginGetReq describes the request to retrieve a plugin release.
+message ReleasePluginGetReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginGetResp describes the response to retrieve a plugin release.
+message ReleasePluginGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleasePluginGetResp.
+  message Data { ReleaseInfo item = 1; }
+  Data data = 4;
+}
+
+// ReleasePluginDistinctReq describes the request to query distinct plugin
+// release field values.
+message ReleasePluginDistinctReq {
+  ReleaseDistinctFields fields = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleasePluginDistinctResp describes the response to query distinct plugin
+// release field values.
+message ReleasePluginDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleasePluginDistinctResp.
+  message Data { ReleaseDistinctResult result = 1; }
+  Data data = 4;
+}
+
+// ReleasePluginExistReq describes the request to check whether a plugin
+// release exists.
+message ReleasePluginExistReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// ReleasePluginExistResp describes the response to check whether a plugin
+// release exists.
+message ReleasePluginExistResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleasePluginExistResp.
+  message Data { bool exists = 1; }
+  Data data = 4;
+}
+
+// ReleasePluginGetDefaultVersionReq describes the request to retrieve the
+// default plugin release version.
+message ReleasePluginGetDefaultVersionReq {
+  string name = 1;
+  int64 generation = 2;
+  Platform platform = 3;
+}
+
+// ReleasePluginGetDefaultVersionResp describes the response to retrieve the
+// default plugin release version.
+message ReleasePluginGetDefaultVersionResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for
+  // ReleasePluginGetDefaultVersionResp.
+  message Data { string version = 1; }
+  Data data = 4;
+}
+
+// ReleasePluginDistinctNameReq describes the request to query distinct plugin
+// release names.
+message ReleasePluginDistinctNameReq {
+  repeated ReleaseConditions conditions = 1;
+}
+
+// ReleasePluginDistinctNameResp describes the response to query distinct
+// plugin release names.
+message ReleasePluginDistinctNameResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleasePluginDistinctNameResp.
+  message Data { repeated string names = 1; }
+  Data data = 4;
+}
+
+// ReleaseCert messages.
+
+// ReleaseCertDeleteReq describes the request to delete a certificate release.
+message ReleaseCertDeleteReq { int64 generation = 1; }
+
+// ReleaseCertDeleteResp describes the response to delete a certificate
+// release.
+message ReleaseCertDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseCertDeleteResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseCertListReq describes the request to list certificate releases.
+message ReleaseCertListReq {
+  Page page = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleaseCertListResp describes the response to list certificate releases.
+message ReleaseCertListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseCertListResp.
+  message Data {
+    int64 total = 1;
+    repeated ReleaseInfo items = 2;
+  }
+  Data data = 4;
+}
+
+// ReleaseBinTool messages.
+
+// ReleaseBinToolDeleteReq describes the request to delete a binary tool
+// release.
+message ReleaseBinToolDeleteReq { int64 generation = 1; }
+
+// ReleaseBinToolDeleteResp describes the response to delete a binary tool
+// release.
+message ReleaseBinToolDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleaseBinToolDeleteResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleaseBinToolListReq describes the request to list binary tool releases.
+message ReleaseBinToolListReq {
+  Page page = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleaseBinToolListResp describes the response to list binary tool releases.
+message ReleaseBinToolListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleaseBinToolListResp.
+  message Data {
+    int64 total = 1;
+    repeated ReleaseInfo items = 2;
+  }
+  Data data = 4;
+}
+
+// ReleasePluginBinTool messages.
+
+// ReleasePluginBinToolDeleteReq describes the request to delete a plugin
+// binary tool release.
+message ReleasePluginBinToolDeleteReq {
+  int64 generation = 1;
+  string name = 2;
+}
+
+// ReleasePluginBinToolDeleteResp describes the response to delete a plugin
+// binary tool release.
+message ReleasePluginBinToolDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for ReleasePluginBinToolDeleteResp.
+  message Data {}
+  Data data = 4;
+}
+
+// ReleasePluginBinToolListReq describes the request to list plugin binary
+// tool releases.
+message ReleasePluginBinToolListReq {
+  Page page = 1;
+  repeated ReleaseConditions conditions = 2;
+}
+
+// ReleasePluginBinToolListResp describes the response to list plugin binary
+// tool releases.
+message ReleasePluginBinToolListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for ReleasePluginBinToolListResp.
+  message Data {
+    int64 total = 1;
+    repeated ReleaseInfo items = 2;
+  }
+  Data data = 4;
+}
+
+// ReleasePluginBinToolDistinctNameReq describes the request to query distinct
+// plugin binary tool release names.
+message ReleasePluginBinToolDistinctNameReq {
+  repeated ReleaseConditions conditions = 1;
+}
+
+// ReleasePluginBinToolDistinctNameResp describes the response to query
+// distinct plugin binary tool release names.
+message ReleasePluginBinToolDistinctNameResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data contains the response payload for
+  // ReleasePluginBinToolDistinctNameResp.
+  message Data { repeated string names = 1; }
+  Data data = 4;
+}
+
+service Release {
+  // ReleaseAgent methods.
+
+  // EnableReleaseAgent enables an agent release.
+  rpc EnableReleaseAgent(ReleaseAgentEnableReq)
+      returns (ReleaseAgentEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/enable"
+      body : "*"
+    };
+  }
+
+  // DisableReleaseAgent disables an agent release.
+  rpc DisableReleaseAgent(ReleaseAgentDisableReq)
+      returns (ReleaseAgentDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/disable"
+      body : "*"
+    };
+  }
+
+  // SetAsDefaultReleaseAgent sets an agent release as default.
+  rpc SetAsDefaultReleaseAgent(ReleaseAgentSetAsDefaultReq)
+      returns (ReleaseAgentSetAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/set_as_default"
+      body : "*"
+    };
+  }
+
+  // CancelAsDefaultReleaseAgent cancels an agent release default.
+  rpc CancelAsDefaultReleaseAgent(ReleaseAgentCancelAsDefaultReq)
+      returns (ReleaseAgentCancelAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/cancel_as_default"
+      body : "*"
+    };
+  }
+
+  // DeleteReleaseAgent updates release metadata.
+  rpc DeleteReleaseAgent(ReleaseAgentDeleteReq)
+      returns (ReleaseAgentDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/delete"
+      body : "*"
+    };
+  }
+
+  // SetReleaseAgentLabelsMany updates release metadata.
+  rpc SetReleaseAgentLabelsMany(ReleaseAgentSetLabelsManyReq)
+      returns (ReleaseAgentSetLabelsManyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/set_labels_many"
+      body : "*"
+    };
+  }
+
+  rpc ListReleaseAgent(ReleaseAgentListReq) returns (ReleaseAgentListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/list"
+      body : "*"
+    };
+  }
+
+  rpc CountReleaseAgent(ReleaseAgentCountReq) returns (ReleaseAgentCountResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/count"
+      body : "*"
+    };
+  }
+
+  rpc GetReleaseAgent(ReleaseAgentGetReq) returns (ReleaseAgentGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/get"
+      body : "*"
+    };
+  }
+
+  rpc DistinctReleaseAgent(ReleaseAgentDistinctReq)
+      returns (ReleaseAgentDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/agent/distinct"
+      body : "*"
+    };
+  }
+
+  // ReleaseProxy methods.
+
+  // EnableReleaseProxy enables a proxy release.
+  rpc EnableReleaseProxy(ReleaseProxyEnableReq)
+      returns (ReleaseProxyEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/enable"
+      body : "*"
+    };
+  }
+
+  // DisableReleaseProxy disables a proxy release.
+  rpc DisableReleaseProxy(ReleaseProxyDisableReq)
+      returns (ReleaseProxyDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/disable"
+      body : "*"
+    };
+  }
+
+  // SetAsDefaultReleaseProxy sets a proxy release as default.
+  rpc SetAsDefaultReleaseProxy(ReleaseProxySetAsDefaultReq)
+      returns (ReleaseProxySetAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/set_as_default"
+      body : "*"
+    };
+  }
+
+  // CancelAsDefaultReleaseProxy cancels a proxy release default.
+  rpc CancelAsDefaultReleaseProxy(ReleaseProxyCancelAsDefaultReq)
+      returns (ReleaseProxyCancelAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/cancel_as_default"
+      body : "*"
+    };
+  }
+
+  // DeleteReleaseProxy updates release metadata.
+  rpc DeleteReleaseProxy(ReleaseProxyDeleteReq)
+      returns (ReleaseProxyDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/delete"
+      body : "*"
+    };
+  }
+
+  // SetReleaseProxyLabelsMany updates release metadata.
+  rpc SetReleaseProxyLabelsMany(ReleaseProxySetLabelsManyReq)
+      returns (ReleaseProxySetLabelsManyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/set_labels_many"
+      body : "*"
+    };
+  }
+
+  rpc ListReleaseProxy(ReleaseProxyListReq) returns (ReleaseProxyListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/list"
+      body : "*"
+    };
+  }
+
+  rpc CountReleaseProxy(ReleaseProxyCountReq) returns (ReleaseProxyCountResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/count"
+      body : "*"
+    };
+  }
+
+  rpc GetReleaseProxy(ReleaseProxyGetReq) returns (ReleaseProxyGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/get"
+      body : "*"
+    };
+  }
+
+  rpc DistinctReleaseProxy(ReleaseProxyDistinctReq)
+      returns (ReleaseProxyDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/proxy/distinct"
+      body : "*"
+    };
+  }
+
+  // ReleasePlugin methods.
+
+  // EnableReleasePlugin enables a plugin release.
+  rpc EnableReleasePlugin(ReleasePluginEnableReq)
+      returns (ReleasePluginEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/enable"
+      body : "*"
+    };
+  }
+
+  // DisableReleasePlugin disables a plugin release.
+  rpc DisableReleasePlugin(ReleasePluginDisableReq)
+      returns (ReleasePluginDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/disable"
+      body : "*"
+    };
+  }
+
+  // SetAsDefaultReleasePlugin sets a plugin release as default.
+  rpc SetAsDefaultReleasePlugin(ReleasePluginSetAsDefaultReq)
+      returns (ReleasePluginSetAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/set_as_default"
+      body : "*"
+    };
+  }
+
+  // CancelAsDefaultReleasePlugin cancels a plugin release default.
+  rpc CancelAsDefaultReleasePlugin(ReleasePluginCancelAsDefaultReq)
+      returns (ReleasePluginCancelAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/cancel_as_default"
+      body : "*"
+    };
+  }
+
+  // DeleteReleasePlugin updates release metadata.
+  rpc DeleteReleasePlugin(ReleasePluginDeleteReq)
+      returns (ReleasePluginDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/delete"
+      body : "*"
+    };
+  }
+
+  // SetHiddenReleasePlugin updates release metadata.
+  rpc SetHiddenReleasePlugin(ReleasePluginSetHiddenReq)
+      returns (ReleasePluginSetHiddenResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/set_hidden"
+      body : "*"
+    };
+  }
+
+  // CancelHiddenReleasePlugin cancels a plugin release hidden state.
+  rpc CancelHiddenReleasePlugin(ReleasePluginCancelHiddenReq)
+      returns (ReleasePluginCancelHiddenResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/cancel_hidden"
+      body : "*"
+    };
+  }
+
+  rpc ListReleasePlugin(ReleasePluginListReq) returns (ReleasePluginListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/list"
+      body : "*"
+    };
+  }
+
+  rpc CountReleasePlugin(ReleasePluginCountReq)
+      returns (ReleasePluginCountResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/count"
+      body : "*"
+    };
+  }
+
+  rpc GetReleasePlugin(ReleasePluginGetReq) returns (ReleasePluginGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/get"
+      body : "*"
+    };
+  }
+
+  rpc DistinctReleasePlugin(ReleasePluginDistinctReq)
+      returns (ReleasePluginDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/distinct"
+      body : "*"
+    };
+  }
+
+  rpc ExistReleasePlugin(ReleasePluginExistReq)
+      returns (ReleasePluginExistResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/exist"
+      body : "*"
+    };
+  }
+
+  rpc GetReleasePluginDefaultVersion(ReleasePluginGetDefaultVersionReq)
+      returns (ReleasePluginGetDefaultVersionResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/default_version"
+      body : "*"
+    };
+  }
+
+  rpc DistinctNameReleasePlugin(ReleasePluginDistinctNameReq)
+      returns (ReleasePluginDistinctNameResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin/distinct_name"
+      body : "*"
+    };
+  }
+
+  // ReleaseCert methods.
+
+  // DeleteReleaseCert updates release metadata.
+  rpc DeleteReleaseCert(ReleaseCertDeleteReq) returns (ReleaseCertDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/cert/delete"
+      body : "*"
+    };
+  }
+
+  rpc ListReleaseCert(ReleaseCertListReq) returns (ReleaseCertListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/cert/list"
+      body : "*"
+    };
+  }
+
+  // ReleaseBinTool methods.
+
+  // DeleteReleaseBinTool updates release metadata.
+  rpc DeleteReleaseBinTool(ReleaseBinToolDeleteReq)
+      returns (ReleaseBinToolDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/bintool/delete"
+      body : "*"
+    };
+  }
+
+  rpc ListReleaseBinTool(ReleaseBinToolListReq)
+      returns (ReleaseBinToolListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/bintool/list"
+      body : "*"
+    };
+  }
+
+  // ReleasePluginBinTool methods.
+
+  // DeleteReleasePluginBinTool updates release metadata.
+  rpc DeleteReleasePluginBinTool(ReleasePluginBinToolDeleteReq)
+      returns (ReleasePluginBinToolDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin_bintool/delete"
+      body : "*"
+    };
+  }
+
+  rpc ListReleasePluginBinTool(ReleasePluginBinToolListReq)
+      returns (ReleasePluginBinToolListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin_bintool/list"
+      body : "*"
+    };
+  }
+
+  rpc DistinctNameReleasePluginBinTool(ReleasePluginBinToolDistinctNameReq)
+      returns (ReleasePluginBinToolDistinctNameResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/plugin_bintool/distinct_name"
+      body : "*"
+    };
+  }
+}

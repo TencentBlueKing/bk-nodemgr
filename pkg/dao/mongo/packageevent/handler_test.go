@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
+	"github.com/stretchr/testify/require"
 )
 
 func testClient(t *testing.T) IHandler {
@@ -411,6 +412,36 @@ func Test_handler_DistinctOSType(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHandler_DistinctPlatformNormalizesHistoricalEmptyValues(t *testing.T) {
+	nCtx := contextx.New(t.Context(), contextx.WithTenantID("test"))
+	h := testClient(t)
+	require.NoError(t, h.CreateMany(nCtx,
+		&types.PackageEvent{EventType: types.PackageEventTypePublish, ReleaseType: types.ReleaseTypeCert,
+			OSType: "", CPUArch: "", OperateTime: time.Now()},
+		&types.PackageEvent{EventType: types.PackageEventTypePublish, ReleaseType: types.ReleaseTypeCert,
+			OSType: criteria.OSUnknown, CPUArch: criteria.CPUArchUnknown, OperateTime: time.Now()},
+		&types.PackageEvent{EventType: types.PackageEventTypePublish, ReleaseType: types.ReleaseTypeAgent,
+			OSType: criteria.OSLinux, CPUArch: criteria.CPUArchAmd64, OperateTime: time.Now()},
+	))
+
+	osTypes, err := h.DistinctOsType(nCtx)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []criteria.OSType{criteria.OSUnknown, criteria.OSLinux}, osTypes)
+
+	cpuArchs, err := h.DistinctCPUArch(nCtx)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []criteria.CPUArch{criteria.CPUArchUnknown, criteria.CPUArchAmd64}, cpuArchs)
+
+	require.NoError(t, h.CreateMany(nCtx, &types.PackageEvent{
+		EventType: types.PackageEventTypePublish, ReleaseType: types.ReleaseTypeAgent,
+		OSType: "invalid", CPUArch: "invalid", OperateTime: time.Now(),
+	}))
+	_, err = h.DistinctOsType(nCtx)
+	require.Error(t, err)
+	_, err = h.DistinctCPUArch(nCtx)
+	require.Error(t, err)
 }
 
 // Test_handler_DistinctOperator tests the distinct with operator field.

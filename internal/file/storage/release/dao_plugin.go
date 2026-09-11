@@ -21,7 +21,6 @@
 package release
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -138,39 +137,15 @@ func (s *Storage) getReleasePlugin(nCtx contextx.IContext, name string, gen type
 	}, nil
 }
 
-func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([]release.OptFn, error) {
-	opts := make([]release.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
-		}
-
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				release.WithName(condition.ExactInclude.Name...),
-				release.WithFileName(condition.ExactInclude.FileName...),
-				release.WithGeneration(condition.ExactInclude.Generation...),
-				release.WithVersion(condition.ExactInclude.Version...),
-				release.WithPlatform(condition.ExactInclude.Platform...),
-				release.WithEnabled(condition.ExactInclude.Enabled...),
-				release.WithIsHidden(condition.ExactInclude.IsHidden...),
-				release.WithIsShared(condition.ExactInclude.IsShared...),
-				release.WithIsSynced(condition.ExactInclude.IsSynced...),
-				release.WithAsDefault(condition.ExactInclude.AsDefault...))
-		}
-
-		if condition.FuzzyInclude != nil {
-			return nil, errors.New("fuzzy include is not supported")
-		}
-
-		if condition.ExactExclude != nil {
-			return nil, errors.New("exact exclude is not supported")
-		}
-
-		if condition.FuzzyExclude != nil {
-			return nil, errors.New("fuzzy exclude is not supported")
-		}
+func (s *Storage) setHiddenReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isHidden bool) error {
+	if err := s.daoRelease.SetHidden(nCtx, types.ReleaseTypePlugin, isHidden,
+		release.WithName(key.Name),
+		release.WithGeneration(key.Generation),
+		release.WithPlatform(key.Platform),
+		release.WithVersion(key.Version),
+	); err != nil {
+		return fmt.Errorf("failed to set release hidden: %w", err)
 	}
 
-	return opts, nil
+	return nil
 }

@@ -44,15 +44,6 @@ func (s *Storage) upsertReleaseBinTool(nCtx contextx.IContext, bintool types.Rel
 	return nil
 }
 
-// deleteReleaseBinTool deletes release bintool.
-func (s *Storage) deleteReleaseBinTool(nCtx contextx.IContext, gen types.Generation, fileName string) error {
-	if err := s.daoRelease.Delete(nCtx, types.ReleaseTypeBinTool, release.WithGeneration(gen), release.WithFileName(fileName)); err != nil {
-		return fmt.Errorf("failed to delete release bintool: %w", err)
-	}
-
-	return nil
-}
-
 // getReleaseBinTool gets release bintool.
 func (s *Storage) getReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error) {
 	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeBinTool, release.WithGeneration(gen))
@@ -63,6 +54,22 @@ func (s *Storage) getReleaseBinTool(nCtx contextx.IContext, gen types.Generation
 	return &types.ReleaseBinTool{
 		Release: *rls,
 	}, nil
+}
+
+// listReleaseBinTool lists bintool releases by page and conditions.
+func (s *Storage) listReleaseBinTool(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseBinTool, int64, error) {
+
+	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeBinTool, page, conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release bintool: %w", err)
+	}
+	results := make([]*types.ReleaseBinTool, len(rls))
+	for i, item := range rls {
+		results[i] = &types.ReleaseBinTool{Release: *item}
+	}
+
+	return results, total, nil
 }
 
 // existReleaseBinTool checks if release bintool exists.

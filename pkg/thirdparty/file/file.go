@@ -1348,3 +1348,1233 @@ func (c *cli) exportGetOriginPluginPackageDownloadAddress(
 
 	return resp.GetData(), nil
 }
+
+// ===============================================================================
+// ReleaseAgent Related Interface
+// ===============================================================================
+
+func (c *cli) listReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentListReq) (
+	*protoFile.ReleaseAgentListResp_Data, error) {
+
+	resp := new(protoFile.ReleaseAgentListResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/agent/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query agent release list. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query agent release list, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) countReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentCountReq) (
+	*protoFile.ReleaseAgentCountResp_Data, error) {
+
+	resp := new(protoFile.ReleaseAgentCountResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/agent/count").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query agent release count. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query agent release count, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) getReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentGetReq) (
+	*protoFile.ReleaseAgentGetResp_Data, error) {
+
+	resp := new(protoFile.ReleaseAgentGetResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/agent/get").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query agent release get. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query agent release get, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) distinctReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentDistinctReq) (
+	*protoFile.ReleaseAgentDistinctResp_Data, error) {
+
+	resp := new(protoFile.ReleaseAgentDistinctResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/agent/distinct").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query agent release distinct. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query agent release distinct, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) enableReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentEnableReq) error {
+	resp := new(protoFile.ReleaseAgentEnableResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/agent/enable").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to enable release agent. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) disableReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentDisableReq) error {
+	resp := new(protoFile.ReleaseAgentDisableResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/agent/disable").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to disable release agent. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setAsDefaultReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentSetAsDefaultReq) error {
+	resp := new(protoFile.ReleaseAgentSetAsDefaultResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/agent/set_as_default").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to set release agent as default. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) cancelAsDefaultReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentCancelAsDefaultReq) error {
+	resp := new(protoFile.ReleaseAgentCancelAsDefaultResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/agent/cancel_as_default").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to cancel release agent default setting. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) deleteReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentDeleteReq) error {
+	resp := new(protoFile.ReleaseAgentDeleteResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/agent/delete").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to delete release agent. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setReleaseAgentLabelsMany(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseAgentSetLabelsManyReq) error {
+	resp := new(protoFile.ReleaseAgentSetLabelsManyResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/agent/set_labels_many").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to set release agent labels. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// ReleaseProxy Related Interface
+// ===============================================================================
+
+func (c *cli) listReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyListReq) (
+	*protoFile.ReleaseProxyListResp_Data, error) {
+
+	resp := new(protoFile.ReleaseProxyListResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/proxy/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query proxy release list. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query proxy release list, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) countReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyCountReq) (
+	*protoFile.ReleaseProxyCountResp_Data, error) {
+
+	resp := new(protoFile.ReleaseProxyCountResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/proxy/count").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query proxy release count. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query proxy release count, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) getReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyGetReq) (
+	*protoFile.ReleaseProxyGetResp_Data, error) {
+
+	resp := new(protoFile.ReleaseProxyGetResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/proxy/get").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query proxy release get. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query proxy release get, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) distinctReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyDistinctReq) (
+	*protoFile.ReleaseProxyDistinctResp_Data, error) {
+
+	resp := new(protoFile.ReleaseProxyDistinctResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/proxy/distinct").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query proxy release distinct. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query proxy release distinct, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) enableReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyEnableReq) error {
+	resp := new(protoFile.ReleaseProxyEnableResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/proxy/enable").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to enable release proxy. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) disableReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyDisableReq) error {
+	resp := new(protoFile.ReleaseProxyDisableResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/proxy/disable").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to disable release proxy. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setAsDefaultReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxySetAsDefaultReq) error {
+	resp := new(protoFile.ReleaseProxySetAsDefaultResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/proxy/set_as_default").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to set release proxy as default. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) cancelAsDefaultReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyCancelAsDefaultReq) error {
+	resp := new(protoFile.ReleaseProxyCancelAsDefaultResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/proxy/cancel_as_default").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to cancel release proxy default setting. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) deleteReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxyDeleteReq) error {
+	resp := new(protoFile.ReleaseProxyDeleteResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/proxy/delete").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to delete release proxy. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setReleaseProxyLabelsMany(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseProxySetLabelsManyReq) error {
+	resp := new(protoFile.ReleaseProxySetLabelsManyResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/proxy/set_labels_many").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to set release proxy labels. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// ReleasePlugin Related Interface
+// ===============================================================================
+
+func (c *cli) listReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginListReq) (
+	*protoFile.ReleasePluginListResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginListResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin release list. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin release list, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) countReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginCountReq) (
+	*protoFile.ReleasePluginCountResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginCountResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin/count").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin release count. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin release count, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) getReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginGetReq) (
+	*protoFile.ReleasePluginGetResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginGetResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin/get").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin release get. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin release get, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) distinctReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginDistinctReq) (
+	*protoFile.ReleasePluginDistinctResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginDistinctResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin/distinct").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin release distinct. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin release distinct, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) existReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginExistReq) (
+	*protoFile.ReleasePluginExistResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginExistResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin/exist").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin release exist. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin release exist, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) getReleasePluginDefaultVersion(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginGetDefaultVersionReq) (
+	*protoFile.ReleasePluginGetDefaultVersionResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginGetDefaultVersionResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin/default_version").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin release default_version. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin release default_version, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) distinctNameReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginDistinctNameReq) (
+	*protoFile.ReleasePluginDistinctNameResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginDistinctNameResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin/distinct_name").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin release distinct_name. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin release distinct_name, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) enableReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginEnableReq) error {
+	resp := new(protoFile.ReleasePluginEnableResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin/enable").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to enable release plugin. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) disableReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginDisableReq) error {
+	resp := new(protoFile.ReleasePluginDisableResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin/disable").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to disable release plugin. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setAsDefaultReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginSetAsDefaultReq) error {
+	resp := new(protoFile.ReleasePluginSetAsDefaultResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin/set_as_default").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to set release plugin as default. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) cancelAsDefaultReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginCancelAsDefaultReq) error {
+	resp := new(protoFile.ReleasePluginCancelAsDefaultResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin/cancel_as_default").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to cancel release plugin default setting. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) deleteReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginDeleteReq) error {
+	resp := new(protoFile.ReleasePluginDeleteResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin/delete").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to delete release plugin. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setHiddenReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginSetHiddenReq) error {
+	resp := new(protoFile.ReleasePluginSetHiddenResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin/set_hidden").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to set release plugin hidden state. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) cancelHiddenReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginCancelHiddenReq) error {
+	resp := new(protoFile.ReleasePluginCancelHiddenResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin/cancel_hidden").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to cancel release plugin hidden state. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// ReleaseCert Related Interface
+// ===============================================================================
+
+func (c *cli) listReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseCertListReq) (
+	*protoFile.ReleaseCertListResp_Data, error) {
+
+	resp := new(protoFile.ReleaseCertListResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/cert/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query cert release list. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query cert release list, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) deleteReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseCertDeleteReq) error {
+	resp := new(protoFile.ReleaseCertDeleteResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/cert/delete").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to delete release cert. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// ReleaseBinTool Related Interface
+// ===============================================================================
+
+func (c *cli) listReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseBinToolListReq) (
+	*protoFile.ReleaseBinToolListResp_Data, error) {
+
+	resp := new(protoFile.ReleaseBinToolListResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/bintool/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query bintool release list. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query bintool release list, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) deleteReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.ReleaseBinToolDeleteReq) error {
+	resp := new(protoFile.ReleaseBinToolDeleteResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/bintool/delete").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to delete release bin tool. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// ReleasePluginBinTool Related Interface
+// ===============================================================================
+
+func (c *cli) listReleasePluginBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginBinToolListReq) (
+	*protoFile.ReleasePluginBinToolListResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginBinToolListResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin_bintool/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin_bintool release list. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin_bintool release list, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) distinctNameReleasePluginBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginBinToolDistinctNameReq) (
+	*protoFile.ReleasePluginBinToolDistinctNameResp_Data, error) {
+
+	resp := new(protoFile.ReleasePluginBinToolDistinctNameResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/release/plugin_bintool/distinct_name").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query plugin_bintool release distinct_name. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query plugin_bintool release distinct_name, get empty data")
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) deleteReleasePluginBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.ReleasePluginBinToolDeleteReq) error {
+	resp := new(protoFile.ReleasePluginBinToolDeleteResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/plugin_bintool/delete").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to delete release plugin bin tool. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// PackageEvent Related Interface
+// ===============================================================================
+
+func (c *cli) listPackageEvent(nCtx contextx.IContext, tenantID string, req *protoFile.PackageEventListReq) (
+	*protoFile.PackageEventListResp_Data, error) {
+
+	resp := new(protoFile.PackageEventListResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	err = c.client.Post().
+		SubResourcef("/event/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+	if resp.GetCode() != CodeOK {
+		return nil, fmt.Errorf("failed to list package event. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to list package event, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) distinctPackageEvent(nCtx contextx.IContext, tenantID string, req *protoFile.PackageEventDistinctReq) (
+	*protoFile.PackageEventDistinctResp_Data, error) {
+
+	resp := new(protoFile.PackageEventDistinctResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	err = c.client.Post().
+		SubResourcef("/event/distinct").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+	if resp.GetCode() != CodeOK {
+		return nil, fmt.Errorf("failed to distinct package event. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to distinct package event, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp.GetData(), nil
+}

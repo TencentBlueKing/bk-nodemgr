@@ -43,18 +43,6 @@ func (s *Storage) upsertReleasePluginBinTool(nCtx contextx.IContext, pluginBinTo
 	return nil
 }
 
-// deleteReleasePluginBinTool deletes release plugin bintool.
-func (s *Storage) deleteReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, fileName string) error {
-	if err := s.daoRelease.Delete(nCtx, types.ReleaseTypePluginBinTool,
-		release.WithGeneration(gen),
-		release.WithFileName(fileName),
-	); err != nil {
-		return fmt.Errorf("failed to delete release plugin bintool, file-name(%s): %w", fileName, err)
-	}
-
-	return nil
-}
-
 // getReleasePluginBinTool gets release plugin bintool.
 func (s *Storage) getReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (*types.ReleasePluginBinTool, error) {
 	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypePluginBinTool,
@@ -68,6 +56,22 @@ func (s *Storage) getReleasePluginBinTool(nCtx contextx.IContext, gen types.Gene
 	return &types.ReleasePluginBinTool{
 		Release: *rls,
 	}, nil
+}
+
+// listReleasePluginBinTool lists plugin bintool releases by page and conditions.
+func (s *Storage) listReleasePluginBinTool(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, int64, error) {
+
+	rls, total, err := s.listRelease(nCtx, types.ReleaseTypePluginBinTool, page, conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release plugin bintool: %w", err)
+	}
+	results := make([]*types.ReleasePluginBinTool, len(rls))
+	for i, item := range rls {
+		results[i] = &types.ReleasePluginBinTool{Release: *item}
+	}
+
+	return results, total, nil
 }
 
 // existReleasePluginBinTool checks if release plugin bintool exists.

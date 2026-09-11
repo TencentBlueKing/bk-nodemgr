@@ -39,6 +39,8 @@ import (
 
 // IProxy defines the interface for proxy.
 type IProxy interface {
+	IReleaseProxy
+
 	// UploadOriginProxy uploads the origin proxy.
 	UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 

@@ -73,6 +73,7 @@ type IManager interface {
 	IExternalPluginV2
 	IPluginV3
 	IExport
+	IPackageEvent
 
 	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.

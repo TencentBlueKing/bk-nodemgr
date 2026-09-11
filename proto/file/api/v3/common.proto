@@ -2,10 +2,11 @@ syntax = "proto3";
 package v3;
 option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
 
-// Page describes the generaic conditions when paging query.
+// Page describes paging query settings.
 message Page {
-  uint32 offset = 1;
-  uint32 limit = 2;
+  int64 offset = 1;
+  int64 limit = 2;
+  string sort = 3;
 }
 
 // Platform describes the platform informations.

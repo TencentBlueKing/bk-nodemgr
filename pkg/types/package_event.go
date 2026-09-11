@@ -47,6 +47,12 @@ const (
 	// PackageEventTypeCancelAsDefault represents the cancel as default event type.
 	PackageEventTypeCancelAsDefault PackageEventType = "cancel_as_default"
 
+	// PackageEventTypeSetHidden represents the event that sets the release hidden state.
+	PackageEventTypeSetHidden PackageEventType = "set_hidden"
+
+	// PackageEventTypeCancelHidden represents the event that clears the release hidden state.
+	PackageEventTypeCancelHidden PackageEventType = "cancel_hidden"
+
 	// PackageEventTypeUpload represents the upload event type.
 	PackageEventTypeUpload PackageEventType = "upload"
 )
@@ -56,7 +62,7 @@ func (eventType PackageEventType) Validate() error {
 	switch eventType {
 	case PackageEventTypePublish, PackageEventTypeDelete, PackageEventTypeEnable,
 		PackageEventTypeDisable, PackageEventTypeSetAsDefault, PackageEventTypeCancelAsDefault,
-		PackageEventTypeUpload:
+		PackageEventTypeUpload, PackageEventTypeSetHidden, PackageEventTypeCancelHidden:
 		return nil
 	default:
 		return fmt.Errorf("invalid eventType type, type(%s)", eventType)
