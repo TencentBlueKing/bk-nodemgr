@@ -44,7 +44,7 @@ func GetTmpDir() (string, error) {
 
 	dirInfo, err := os.Stat(tmpDirInstance.dir)
 	if err != nil && os.IsNotExist(err) {
-		if err := os.MkdirAll(tmpDirInstance.dir, 0700); err != nil { // nolint:mnd,gomnd
+		if err := os.MkdirAll(tmpDirInstance.dir, 0700); err != nil { // nolint:mnd
 			return "", fmt.Errorf("failed to create tmp dir: %w", err)
 		}
 
