@@ -54,6 +54,10 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 
 // Load registers the IAM v3 resource callback routes.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	if capability.IAMV3Handler == nil {
+		return
+	}
+
 	h := newHandler(rg, capability)
 
 	// Apply Basic Auth middleware to IAM routes
