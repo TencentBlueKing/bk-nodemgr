@@ -23,6 +23,17 @@ import (
 	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+// RequestMethod represents an IAM V4 callback method.
+type RequestMethod string
+
+// IAM V4 callback methods.
+const (
+	RequestMethodListInstance      RequestMethod = "list_instance"
+	RequestMethodFetchInstanceInfo RequestMethod = "fetch_instance_info"
 )
 
 // Handler validates typed queries and routes them to registered V4 providers.
@@ -42,6 +53,32 @@ func (h *Handler) RegisterProvider(resourceType string, provider IProvider) {
 func (h *Handler) GetProvider(resourceType string) (IProvider, bool) {
 	provider, ok := h.providers[resourceType]
 	return provider, ok
+}
+
+// DispatchMethod converts callback filters and delegates to typed resource queries.
+func (h *Handler) DispatchMethod(
+	ctx contextx.IContext, resourceType string, method RequestMethod,
+	filterMap map[string]interface{}, page types.Page, requires []string,
+) (interface{}, error) {
+
+	switch method {
+	case RequestMethodListInstance:
+		var filter ListInstanceFilter
+		if err := conv.MapToStruct(filterMap, &filter); err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidArgument, err)
+		}
+
+		return h.ListInstance(ctx, resourceType, &Request[ListInstanceFilter]{Filter: filter, Page: page})
+	case RequestMethodFetchInstanceInfo:
+		var filter FetchInstanceFilter
+		if err := conv.MapToStruct(filterMap, &filter); err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidArgument, err)
+		}
+
+		return h.FetchInstanceInfo(ctx, resourceType, &Request[FetchInstanceFilter]{Filter: filter, Requires: requires})
+	default:
+		return nil, ErrNotFound
+	}
 }
 
 // ListInstance validates pagination and lists candidates in the request tenant.

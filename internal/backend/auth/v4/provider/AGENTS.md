@@ -5,16 +5,16 @@
 |Scope:internal/backend/auth/v4/provider
 |Overview:V4 resource queries and runtime attribute enrichment|typed query validation and resource dispatch|storage queries and callback response shaping
 |Ownership:V3 and V4 providers are independently owned|no cross-version auth/provider imports|keep V4 behavior and changes local to this version
-|Protocol:V4-owned DTOs and two callback methods={list_instance,fetch_instance_info}|transport method dispatch stays in router; providers receive typed requests
-|Where to look:query implementation:handler.go:{NewHandler,RegisterProvider,ListInstance,FetchInstanceInfo,FetchResourceAttributes}
-|Where to look:contracts:{iface.go,provider.go}:IHandler/IQueryHandler/IInstanceLister/IAttributeEnricher|IProvider implements ListInstance and FetchInstanceInfo|Request carries typed Filter, Page and Requires
+|Protocol:V4-owned DTOs and two callback methods={list_instance,fetch_instance_info}|Handler.DispatchMethod owns method dispatch and typed filter conversion; resource providers receive typed requests
+|Where to look:query implementation:handler.go:{NewHandler,RegisterProvider,RequestMethod,DispatchMethod,ListInstance,FetchInstanceInfo,FetchResourceAttributes}
+|Where to look:contracts:{iface.go,provider.go}:IHandler/IDispatcher/IQueryHandler/IInstanceLister/IAttributeEnricher|router consumes IDispatcher; runtime keeps typed query/enrichment interfaces|IProvider implements ListInstance and FetchInstanceInfo|Request carries typed Filter, Page and Requires
 |Where to look:resource providers:{networkarea.go,networkunit.go,package.go,packagetype.go}:networkarea|networkunit|package|package_type
 |Where to look:paths and pagination:provider.go:{BuildIAMPath,ParseParentFromIAMPath,paginateInstances}|resource constants and display names:constants.go|callback errors:ERROR_CODES.md
 |Where to look:registration and authorized-scope expansion:internal/backend/auth/v4/auth_iamv4.go:{NewProviderHandler,listAllResourceIDs}|enumerate all pages; reject changing totals, short pages, empty/duplicate IDs
-|Where to look:transport boundary:internal/backend/router/api-v3/iam/v4/v4.go:{basicAuthMiddleware,handleResourceCallback,query,callbackError}|request validation and page conversion:pkg/proto/backend/api/v3/iam.go
+|Where to look:transport boundary:internal/backend/router/api-v3/iam/v4/v4.go:{basicAuthMiddleware,handleResourceCallback,callbackError}|request validation and page conversion:pkg/proto/backend/api/v3/iam.go
 |Where to look:router permission resources:internal/backend/auth/resource.go:root auth.BuildPackageResources constructs canonical types.AuthResource slices; routers must use this helper, not version-specific providers
 |Conventions:resource IDs returned by callbacks must match authorization resource IDs|generic permission resource construction belongs to root auth, not this provider package
-|Current Flow:resolve/validate tenant -> tenant-scoped BasicAuth token check -> V4 JSON validation -> typed query handler -> provider/storage -> HTTP 200 data envelope|echo X-Request-Id on success and failure
+|Current Flow:resolve/validate tenant -> tenant-scoped BasicAuth token check -> V4 JSON validation and page conversion -> DispatchMethod -> typed query handler -> provider/storage -> HTTP 200 data envelope|echo X-Request-Id on success and failure
 |Conventions:list page={page>=1,page_size=1..1000} -> types.Page offset/limit with overflow guard via V4 proto conversion; no V3 pagination defaults|transport uses standard Gin proto JSON binding|fetch filter.ids=non-null string array, <=1000 nonempty IDs; empty array returns [] without storage queries
 |Conventions:fetch requires is top-level; omitted/empty selects all supported attributes, unknown attributes ignored, id always returned|InstanceInfo.MarshalJSON flattens attributes and emits _bk_iam_path_ as one string; runtime BuildIAMPath/FetchResourceAttributes retain arrays|enrichment batches IDs by MaxFetchInstanceIDs
 |Conventions:list without parent enumerates current-tenant candidates, not authorization grants|parent and keyword filters intersect|deterministic pages and filtered Count|explicit empty lists, including missing instances and out-of-bounds pages

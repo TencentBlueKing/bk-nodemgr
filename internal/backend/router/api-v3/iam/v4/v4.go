@@ -32,10 +32,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv4"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,12 +43,12 @@ const requestIDHeader = "X-Request-Id"
 
 type handler struct {
 	rg           *gin.RouterGroup
-	queries      provider.IQueryHandler
+	dispatcher   provider.IDispatcher
 	iamV4Handler iamv4.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
-	return &handler{rg: rg.Group("/v4"), queries: capability.AuthProviderV4Handler, iamV4Handler: capability.IAMV4Handler}
+	return &handler{rg: rg.Group("/v4"), dispatcher: capability.AuthProviderV4Handler, iamV4Handler: capability.IAMV4Handler}
 }
 
 // Load registers the dedicated IAM V4 callback transport.
@@ -136,7 +136,20 @@ func (h *handler) handleResourceCallback(gCtx *gin.Context) {
 		callbackError(gCtx, rCtx, http.StatusBadRequest, err)
 		return
 	}
-	result, err := h.query(rCtx, req)
+	var page types.Page
+	method := provider.RequestMethod(req.GetMethod())
+	if method == provider.RequestMethodListInstance {
+		page, err = req.GetPage().ConvertToTypes()
+		if err != nil {
+			callbackError(gCtx, rCtx, http.StatusBadRequest, err)
+			return
+		}
+	}
+	if h.dispatcher == nil {
+		callbackError(gCtx, rCtx, http.StatusInternalServerError, fmt.Errorf("resource dispatcher is nil"))
+		return
+	}
+	result, err := h.dispatcher.DispatchMethod(rCtx, req.GetType(), method, req.GetFilter().AsMap(), page, req.GetRequires())
 	if err != nil {
 		status := http.StatusInternalServerError
 		switch {
@@ -157,34 +170,4 @@ func (h *handler) handleResourceCallback(gCtx *gin.Context) {
 	}
 	logger.G.Biz(rCtx).With("request-id", gCtx.GetHeader(requestIDHeader)).Debug("IAM V4 callback completed")
 	gCtx.Data(http.StatusOK, "application/json; charset=utf-8", body)
-}
-
-func (h *handler) query(ctx contextx.IContext, req *protoBackend.IAMV4ResourceCallbackReq) (interface{}, error) {
-	if h.queries == nil {
-		return nil, fmt.Errorf("resource query handler is nil")
-	}
-	switch req.GetMethod() {
-	case "list_instance":
-		page, err := req.GetPage().ConvertToTypes()
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", provider.ErrInvalidArgument, err)
-		}
-		var filter provider.ListInstanceFilter
-		if err := conv.MapToStruct(req.GetFilter().AsMap(), &filter); err != nil {
-			return nil, fmt.Errorf("%w: %w", provider.ErrInvalidArgument, err)
-		}
-
-		return h.queries.ListInstance(ctx, req.GetType(), &provider.Request[provider.ListInstanceFilter]{Filter: filter, Page: page})
-	case "fetch_instance_info":
-		var filter provider.FetchInstanceFilter
-		if err := conv.MapToStruct(req.GetFilter().AsMap(), &filter); err != nil {
-			return nil, fmt.Errorf("%w: %w", provider.ErrInvalidArgument, err)
-		}
-
-		return h.queries.FetchInstanceInfo(ctx, req.GetType(), &provider.Request[provider.FetchInstanceFilter]{
-			Filter: filter, Requires: req.GetRequires(),
-		})
-	default:
-		return nil, provider.ErrNotFound
-	}
 }

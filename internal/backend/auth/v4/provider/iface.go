@@ -18,14 +18,26 @@
 
 package provider
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 // IHandler composes registered resource queries and runtime enrichment.
 type IHandler interface {
+	IDispatcher
 	IQueryHandler
 	IAttributeEnricher
 	RegisterProvider(resourceType string, provider IProvider)
 	GetProvider(resourceType string) (IProvider, bool)
+}
+
+// IDispatcher dispatches callback methods without exposing transport types.
+type IDispatcher interface {
+	DispatchMethod(
+		ctx contextx.IContext, resourceType string, method RequestMethod,
+		filterMap map[string]interface{}, page types.Page, requires []string,
+	) (interface{}, error)
 }
 
 // IInstanceLister enumerates candidates for authorized parent-scope expansion.
