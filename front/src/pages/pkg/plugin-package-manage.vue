@@ -193,7 +193,7 @@
           <TableColumn
             field="enabled"
             :title="$t('pluginPackage.status')"
-            :min-width="120"
+            :min-width="80"
             :filter="filterOptionSource.enabled"
           >
             <template #default="{ row }">
@@ -204,12 +204,23 @@
           <TableColumn
             field="is_hidden"
             :title="$t('pluginPackage.hiddenStatus')"
-            :min-width="120"
+            :min-width="80"
             :filter="filterOptionSource.is_hidden"
           >
             <template #default="{ row }">
               <Tag v-if="row.is_hidden" theme="warning">{{ $t('pluginPackage.hidden') }}</Tag>
               <Tag v-else theme="success">{{ $t('pluginPackage.visible') }}</Tag>
+            </template>
+          </TableColumn>
+          <TableColumn
+            v-if="isMultipleTenant"
+            field="is_synced"
+            :title="$t('pluginPackage.source')"
+            :min-width="150"
+          >
+            <template #default="{ row }">
+              <Tag v-if="row.is_synced" theme="info">{{ $t('pluginPackage.syncedFromSystem') }}</Tag>
+              <span v-else>--</span>
             </template>
           </TableColumn>
           <TableColumn
@@ -267,7 +278,7 @@
                     class="mr-[8px]"
                     theme="primary"
                     text
-                    v-show="row.enabled"
+                    v-show="row.enabled && !row.is_synced"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.name)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
@@ -290,7 +301,7 @@
                   class="mr-[8px]"
                   theme="primary"
                   text
-                  v-if="!row.enabled"
+                  v-if="!row.enabled && !row.is_synced"
                   :class="{ 'unAuthorized': !hasManageAuth }"
                   @click="hasManageAuth ? handleEnable(row) : manageAuthClick($event, row.name)"
                   @mouseenter="manageMouseEnter($event, hasManageAuth)"
@@ -306,7 +317,7 @@
                   <Button
                     theme="primary"
                     text
-                    v-show="!row.enabled"
+                    v-show="!row.enabled && !row.is_synced"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.name)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
@@ -384,6 +395,9 @@ const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
 const authStore = useAuthStore();
+
+// 多租户模式（BK_TENANT_MODE === 'multiple'）才展示 来源（is_synced）字段
+const isMultipleTenant = window.PROJECT_CONFIG.BK_TENANT_MODE === 'multiple';
 
 // 侧边栏快捷筛选：插件名（来自 DistinctReleasePlugin）+ 当前 hover 名称
 const distinctPluginNames = ref<string[]>([]);
@@ -697,6 +711,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'updated_at',
     'enabled',
     'is_hidden',
+    // 来源字段仅多租户模式存在
+    ...(isMultipleTenant ? ['is_synced'] : []),
     'as_default',
     'action',
     'download',

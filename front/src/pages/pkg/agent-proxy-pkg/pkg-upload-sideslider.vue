@@ -39,9 +39,17 @@
               @loading="handleLoading"
               class="mb-[24px]">
             </pkg-upload>
+            <div
+              v-if="showSharedSwitch"
+              class="flex items-center my-[16px]">
+              <span class="text-[14px] text-[#313238] mr-[8px]">{{ t('pkgUpload.isShared') }}</span>
+              <Switcher v-model="isShared" theme="primary" />
+              <span class="text-[12px] text-[#979BA5] ml-[8px]">{{ t('pkgUpload.isSharedTip') }}</span>
+            </div>
             <upload-result-table
               :data="uploadData"
-              :loading="parseLoading">
+              :loading="parseLoading"
+              :plugin-upload-type="pluginUploadType">
             </upload-result-table>
           </div>
         </template>
@@ -55,9 +63,17 @@
             @loading="handleLoading"
             class="mb-[24px]">
           </pkg-upload>
+          <div
+            v-if="showSharedSwitch"
+            class="flex items-center my-[16px]">
+            <span class="text-[14px] text-[#313238] mr-[8px]">{{ t('pkgUpload.isShared') }}</span>
+            <Switcher v-model="isShared" theme="primary" />
+            <span class="text-[12px] text-[#979BA5] ml-[8px]">{{ t('pkgUpload.isSharedTip') }}</span>
+          </div>
           <upload-result-table
             :data="uploadData"
-            :loading="parseLoading">
+            :loading="parseLoading"
+            :plugin-upload-type="pluginUploadType">
           </upload-result-table>
         </template>
       </div>
@@ -85,6 +101,7 @@ import {
   InfoBox,
   Message,
   Sideslider,
+  Switcher,
 } from 'bkui-vue';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -107,6 +124,13 @@ const { t } = useI18n();
 const route = useRoute();
 const hasPkg = computed(() => !!uploadData.value);
 const uploadData = ref<PackageUploadOriginAgentRespData | null>(null);
+// 全租户共享开关：多租户模式（BK_TENANT_MODE === 'multiple'）下仅 system 租户提供
+// （cert 包除外，始终仅本租户），默认 true；单租户/非 system 租户不展示开关、请求不传 is_shared
+const isShared = ref(true);
+const isMultipleTenant = window.PROJECT_CONFIG.BK_TENANT_MODE === 'multiple';
+const isSystemTenant = computed(() => window.PROJECT_CONFIG.BK_TENANT === 'system');
+const isCertPackageRoute = computed(() => route.name === 'certPackageMng');
+const showSharedSwitch = computed(() => hasPkg.value && isMultipleTenant && isSystemTenant.value && !isCertPackageRoute.value);
 
 // 插件上传类型
 const pluginUploadType = ref('v3/plugin');
@@ -196,6 +220,11 @@ const handleUploadTypeChange = (id: string) => {
 };
 
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
+  // 未上传包：直接关闭，不弹确认（避免空操作骚扰）
+  if (!hasPkg.value) {
+    isShow.value = false;
+    return resolve(true);
+  }
   InfoBox({
     title: t('dialog.confirmClose'),
     infoType: 'warning',
@@ -240,10 +269,14 @@ const submit = async () => {
 
     // 如果有对应的服务方法，调用它
     if (serviceMethod && uploadData.value?.upload_id) {
-      const params: Record<string, string> = { upload_id: uploadData.value.upload_id };
+      const params: Record<string, any> = { upload_id: uploadData.value.upload_id };
       // Proxy发布需要额外传 upload_origin_pkg_type
       if (route.name === 'proxyPackageMng') {
         params.upload_origin_pkg_type = proxyUploadType.value;
+      }
+      // 仅多租户模式下 system 租户（且非 cert 包）传 is_shared；其余情况不传，后端按默认处理
+      if (isMultipleTenant && isSystemTenant.value && !isCertPackageRoute.value) {
+        params.is_shared = isShared.value;
       }
       await serviceMethod(params);
     }
@@ -265,6 +298,7 @@ watch(() => isShow.value, () => {
     uploadData.value = null;
     proxyUploadType.value = 'origin_proxy';
     pluginUploadType.value = 'v3/plugin';
+    isShared.value = true;
   }
 }, { immediate: true });
 </script>

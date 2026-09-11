@@ -234,6 +234,8 @@ interface Release {
   updated_at: number;
   operator: string;
   is_hidden: boolean;
+  is_shared: boolean;
+  is_synced: boolean;
 }
 
 interface ReleaseAgent {

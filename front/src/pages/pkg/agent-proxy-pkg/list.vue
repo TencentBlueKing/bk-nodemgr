@@ -235,7 +235,7 @@
           <TableColumn
             field="enabled"
             :title="t('agentProxyPkg.status')"
-            :min-width="120"
+            :min-width="80"
             :filter="filterOptionSource.enabled"
           >
             <template #default="{ row }">
@@ -246,12 +246,23 @@
           <TableColumn
             field="as_default"
             :title="t('agentProxyPkg.defaultVersion')"
-            :min-width="120"
+            :min-width="80"
             :filter="filterOptionSource.as_default"
           >
             <template #default="{ row }">
               <Tag v-if="row.as_default" theme="success">{{ t('agentProxyPkg.yes') }}</Tag>
               <Tag v-else>{{ t('agentProxyPkg.no') }}</Tag>
+            </template>
+          </TableColumn>
+          <TableColumn
+            v-if="isMultipleTenant"
+            field="is_synced"
+            :title="$t('pluginPackage.source')"
+            :min-width="150"
+          >
+            <template #default="{ row }">
+              <Tag v-if="row.is_synced" theme="info">{{ $t('pluginPackage.syncedFromSystem') }}</Tag>
+              <span v-else>--</span>
             </template>
           </TableColumn>
           <TableColumn
@@ -298,7 +309,7 @@
                     theme="primary"
                     class="mr-[8px]"
                     text
-                    v-show="row.enabled"
+                    v-show="row.enabled && !row.is_synced"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
@@ -323,7 +334,7 @@
                   theme="primary"
                   class="mr-[8px]"
                   text
-                  v-if="!row.enabled"
+                  v-if="!row.enabled && !row.is_synced"
                   :class="{ 'unAuthorized': !hasManageAuth }"
                   @click="hasManageAuth ? handleEnable(row) : manageAuthClick($event, row.release_type)"
                   @mouseenter="manageMouseEnter($event, hasManageAuth)"
@@ -339,7 +350,7 @@
                   <Button
                     theme="primary"
                     text
-                    v-show="!row.enabled"
+                    v-show="!row.enabled && !row.is_synced"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
@@ -418,6 +429,9 @@ type PkgOrderType = 'version' | '-version';
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+
+// 多租户模式（BK_TENANT_MODE === 'multiple'）才展示 来源（is_synced）字段
+const isMultipleTenant = window.PROJECT_CONFIG.BK_TENANT_MODE === 'multiple';
 
 // Package permissions
 const manageResourceId = ref<string>();
@@ -680,6 +694,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'host',
     'enabled',
     'as_default',
+    // 来源字段仅多租户模式存在
+    ...(isMultipleTenant ? ['is_synced'] : []),
     'action',
     'download',
   ],

@@ -86,8 +86,8 @@
               scenario: locale.startsWith('zh') ? data.scenario : data.scenario_en,
             }) }}
           </span>
-          <span>{{ t('pkgUpload.configFile', { file: data.config_file }) }}</span>
-          <span>{{ t('pkgUpload.configFormat', { format: data.config_format }) }}</span>
+          <span v-if="!isV3Plugin">{{ t('pkgUpload.configFile', { file: data.config_file }) }}</span>
+          <span v-if="!isV3Plugin">{{ t('pkgUpload.configFormat', { format: data.config_format }) }}</span>
           <span>{{ t('pkgUpload.launchNode', { node: data.launch_node }) }}</span>
         </div>
       </div>
@@ -114,7 +114,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // 插件包类型：v3 标准插件不展示「配置文件/配置格式」（v3 响应里就没有这俩字段）
+  pluginUploadType: {
+    type: String,
+    default: '',
+  },
 });
+const isV3Plugin = computed(() => props.pluginUploadType === 'v3/plugin');
 const route = useRoute();
 const packageStore = usePackageStore();
 const tagList = computed(() => packageStore.tagList.map((tag: string) => ({

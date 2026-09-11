@@ -996,6 +996,8 @@ pluginPackage:
   uploadTime: 上传时间
   status: 状态
   hiddenStatus: 可见状态
+  source: 是否同步自 system 租户
+  syncedFromSystem: 同步自 system
   defaultVersion: 默认版本
   action: 操作
   download: 下载
@@ -1028,6 +1030,8 @@ pkgUpload:
   cancel: 取消
   uploadTip: 请先上传包文件
   success: 发布成功
+  isShared: 全租户共享
+  isSharedTip: 开启后所有租户均可使用该包
   fileFormatTip: 支持 tgz、tar、gz 扩展名格式文件
   uploadSuccess: 上传成功
   uploadFailed: 上传失败

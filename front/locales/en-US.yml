@@ -993,6 +993,8 @@ pluginPackage:
   uploadTime: Uploaded At
   status: Status
   hiddenStatus: Visibility
+  source: Synced from system tenant
+  syncedFromSystem: Synced from system
   defaultVersion: Default
   action: Action
   download: Download
@@ -1025,6 +1027,8 @@ pkgUpload:
   cancel: Cancel
   uploadTip: Please upload a file first
   success: Published successfully
+  isShared: Shared across all tenants
+  isSharedTip: When enabled, the package is available to all tenants
   fileFormatTip: Supports .tgz, .tar, .gz
   uploadSuccess: Uploaded successfully
   uploadFailed: Upload failed

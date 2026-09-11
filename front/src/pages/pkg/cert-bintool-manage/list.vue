@@ -70,6 +70,17 @@
           </template>
         </TableColumn>
         <TableColumn
+          v-if="isMultipleTenant"
+          field="is_synced"
+          :title="$t('pluginPackage.source')"
+          :min-width="120"
+        >
+          <template #default="{ row }">
+            <Tag v-if="row.is_synced" theme="info">{{ $t('pluginPackage.syncedFromSystem') }}</Tag>
+            <span v-else>--</span>
+          </template>
+        </TableColumn>
+        <TableColumn
           field="action"
           :title="t('certBintool.action')"
           fixed="right"
@@ -160,6 +171,9 @@ interface IFilterOption {
 const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
+
+// 多租户模式（BK_TENANT_MODE === 'multiple'）才展示 来源（is_synced）字段
+const isMultipleTenant = window.PROJECT_CONFIG.BK_TENANT_MODE === 'multiple';
 
 // Package permissions
 const manageResourceId = ref<string>();
@@ -266,6 +280,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'file_name',
     'operator',
     'updated_at',
+    // 来源字段仅多租户模式存在
+    ...(isMultipleTenant ? ['is_synced'] : []),
     'action',
     'download',
   ],
