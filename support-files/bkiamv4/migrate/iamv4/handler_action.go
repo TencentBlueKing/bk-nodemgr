@@ -56,7 +56,12 @@ func (h *Handler) ListActions(ctx contextx.IContext, systemID string) ([]Action,
 		}
 		total = *resp.Count
 
-		return resp.Results, nil
+		items := make([]Action, 0, len(resp.Results))
+		for _, action := range resp.Results {
+			items = append(items, Action{ID: action.ID, Name: action.Name, ResourceTypeID: *action.ResourceTypeID})
+		}
+
+		return items, nil
 	}
 	actions, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
 	if err != nil {
@@ -83,7 +88,7 @@ func validateActionPage(
 		return fmt.Errorf("list actions page %d: inconsistent count", req.Page)
 	}
 	for _, action := range resp.Results {
-		if action.ID == "" || action.Name == "" {
+		if action.ID == "" || action.Name == "" || action.ResourceTypeID == nil {
 			return fmt.Errorf("list actions page %d: malformed action", req.Page)
 		}
 		if _, exists := seen[action.ID]; exists {
@@ -101,7 +106,7 @@ func (h *Handler) CreateAction(ctx contextx.IContext, systemID string, action Ac
 	if err != nil {
 		return err
 	}
-	if len(resp) != 1 || resp[0] != action.ID {
+	if len(*resp) != 1 || (*resp)[0] != action.ID {
 		return fmt.Errorf("create action: response ID does not match; check remote state before rerunning")
 	}
 
@@ -110,5 +115,7 @@ func (h *Handler) CreateAction(ctx contextx.IContext, systemID string, action Ac
 
 // UpdateAction updates only the action name, preserving its immutable binding.
 func (h *Handler) UpdateAction(ctx contextx.IContext, systemID, actionID, name string) error {
-	return h.cli.updateAction(ctx, &UpdateActionReq{SystemID: systemID, ActionID: actionID, Name: name})
+	_, err := h.cli.updateAction(ctx, &UpdateActionReq{SystemID: systemID, ActionID: actionID, Name: name})
+
+	return err
 }

@@ -57,7 +57,16 @@ func (h *Handler) ListRoles(ctx contextx.IContext, systemID string) ([]Role, err
 		}
 		total = *resp.Count
 
-		return resp.Results, nil
+		items := make([]Role, 0, len(resp.Results))
+		for _, role := range resp.Results {
+			members := make([]RoleAction, 0, len(role.Actions))
+			for _, action := range role.Actions {
+				members = append(members, RoleAction{ID: action.ID, ResourceTypeID: *action.ResourceTypeID})
+			}
+			items = append(items, Role{ID: role.ID, Name: role.Name, Description: role.Description, Actions: members})
+		}
+
+		return items, nil
 	}
 	roles, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
 	if err != nil {
@@ -99,10 +108,10 @@ func validateRolePage(
 	return nil
 }
 
-func validateRoleActions(actions []RoleAction) error {
+func validateRoleActions(actions []RoleActionResp) error {
 	seen := make(map[string]struct{}, len(actions))
 	for _, action := range actions {
-		if action.ID == "" {
+		if action.ID == "" || action.ResourceTypeID == nil {
 			return fmt.Errorf("malformed role action")
 		}
 		if _, exists := seen[action.ID]; exists {
@@ -124,7 +133,7 @@ func (h *Handler) CreateRole(ctx contextx.IContext, systemID string, role Role) 
 	if err != nil {
 		return err
 	}
-	if len(resp) != 1 || resp[0] != role.ID {
+	if len(*resp) != 1 || (*resp)[0] != role.ID {
 		return fmt.Errorf("create role: response ID does not match; check remote state before rerunning")
 	}
 
@@ -133,7 +142,9 @@ func (h *Handler) CreateRole(ctx contextx.IContext, systemID string, role Role) 
 
 // UpdateRole sends supplied fields; the caller owns member drift checks.
 func (h *Handler) UpdateRole(ctx contextx.IContext, systemID, roleID string, fields RoleFields) error {
-	return h.cli.updateRole(ctx, &UpdateRoleReq{SystemID: systemID, RoleID: roleID, RoleFields: fields})
+	_, err := h.cli.updateRole(ctx, &UpdateRoleReq{SystemID: systemID, RoleID: roleID, RoleFields: fields})
+
+	return err
 }
 
 // AddRoleActions adds member actions and verifies the returned IDs independently of order.
@@ -146,14 +157,14 @@ func (h *Handler) AddRoleActions(ctx contextx.IContext, systemID, roleID string,
 	if err != nil {
 		return err
 	}
-	if len(resp) != len(actions) {
+	if len(*resp) != len(actions) {
 		return fmt.Errorf("add role actions: response ID count does not match; check remote state before rerunning")
 	}
 	seen := make(map[string]bool, len(actions))
 	for _, action := range actions {
 		seen[action.ID] = false
 	}
-	for _, id := range resp {
+	for _, id := range *resp {
 		found, expected := seen[id]
 		if !expected {
 			return fmt.Errorf("add role actions: unexpected response ID %s; check remote state before rerunning", id)

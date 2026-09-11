@@ -55,7 +55,7 @@ func (c *cli) listActions(ctx contextx.IContext, req *ListActionsReq) (*ListActi
 	return resp.Data, nil
 }
 
-func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq) (BatchCreateActionResp, error) {
+func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq) (*BatchCreateActionResp, error) {
 	resp := new(BaseBroker[BatchCreateActionResp])
 	result := c.client.Post().
 		SubResourcef("/rbac/model/systems/%s/actions/", req.SystemID).
@@ -76,10 +76,10 @@ func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq
 		return nil, fmt.Errorf("create action failed: %w", err)
 	}
 
-	return resp.Data, nil
+	return &resp.Data, nil
 }
 
-func (c *cli) updateAction(ctx contextx.IContext, req *UpdateActionReq) error {
+func (c *cli) updateAction(ctx contextx.IContext, req *UpdateActionReq) (*UpdateActionResp, error) {
 	resp := new(BaseBroker[UpdateActionResp])
 	result := c.client.Put().
 		SubResourcef("/rbac/model/systems/%s/actions/%s/", req.SystemID, req.ActionID).
@@ -90,15 +90,15 @@ func (c *cli) updateAction(ctx contextx.IContext, req *UpdateActionReq) error {
 		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
-		return fmt.Errorf("update action: %w", err)
+		return nil, fmt.Errorf("update action: %w", err)
 	}
 	if result.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("update_action: unexpected HTTP %d (request-id: %s)",
+		return nil, fmt.Errorf("update_action: unexpected HTTP %d (request-id: %s)",
 			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
 	}
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("update action failed: %w", err)
+		return nil, fmt.Errorf("update action failed: %w", err)
 	}
 
-	return nil
+	return &resp.Data, nil
 }

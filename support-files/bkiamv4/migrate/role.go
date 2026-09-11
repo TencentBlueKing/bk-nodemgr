@@ -300,7 +300,7 @@ func validateRoleDimension(
 }
 
 func applyRole(
-	ctx contextx.IContext, handler iamv4.IHandler, systemID string,
+	ctx contextx.IContext, handler iamv4.IHandlerRole, systemID string,
 	role iamv4.Role, fields iamv4.RoleFields, exists bool, additions []iamv4.RoleAction,
 ) error {
 

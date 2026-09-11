@@ -87,9 +87,9 @@ func (c *cli) createSystem(ctx contextx.IContext, req *CreateSystemReq) (*Create
 	return &resp.Data, nil
 }
 
-func (c *cli) updateSystem(ctx contextx.IContext, req *UpdateSystemReq) error {
+func (c *cli) updateSystem(ctx contextx.IContext, req *UpdateSystemReq) (*UpdateSystemResp, error) {
 	// A successful update has no data payload (HTTP 204).
-	resp := new(BaseBroker[struct{}])
+	resp := new(BaseBroker[UpdateSystemResp])
 	header := c.getHeader(ctx)
 	result := c.client.Put().
 		SubResourcef("/rbac/model/systems/%s/", req.SystemID).
@@ -100,15 +100,15 @@ func (c *cli) updateSystem(ctx contextx.IContext, req *UpdateSystemReq) error {
 		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
-		return err
+		return nil, err
 	}
 	if result.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("update_system: unexpected HTTP %d (request-id: %s)",
+		return nil, fmt.Errorf("update_system: unexpected HTTP %d (request-id: %s)",
 			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
 	}
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("update system failed: %w", err)
+		return nil, fmt.Errorf("update system failed: %w", err)
 	}
 
-	return nil
+	return &resp.Data, nil
 }

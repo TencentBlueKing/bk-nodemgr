@@ -37,8 +37,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
-	client, err := apigwclient.NewClient(c, conf.BaseURL+"/api/v1/open", apigwclient.VirtualUserConfig{AppConfig: conf.AppConfig},
-		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, func(string) string { return "[REDACTED]" }))
+	client, err := apigwclient.NewClient(c, conf.BaseURL+"/api/v1/open", apigwclient.VirtualUserConfig{AppConfig: conf.AppConfig})
 	if err != nil {
 		return nil, fmt.Errorf("create APIGW client: %w", err)
 	}

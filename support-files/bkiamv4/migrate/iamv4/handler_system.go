@@ -57,5 +57,7 @@ func (h *Handler) CreateSystem(ctx contextx.IContext, systemID string, fields Sy
 
 // UpdateSystem sends only supplied mutable fields, never the immutable system ID.
 func (h *Handler) UpdateSystem(ctx contextx.IContext, systemID string, fields SystemFields) error {
-	return h.cli.updateSystem(ctx, &UpdateSystemReq{SystemID: systemID, SystemFields: fields})
+	_, err := h.cli.updateSystem(ctx, &UpdateSystemReq{SystemID: systemID, SystemFields: fields})
+
+	return err
 }

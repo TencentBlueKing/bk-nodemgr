@@ -81,6 +81,9 @@ type CreateSystemResp struct {
 	ID string `json:"id"`
 }
 
+// UpdateSystemResp represents the absence of data on a successful HTTP 204.
+type UpdateSystemResp struct{}
+
 // ResourceType describes an IAM resource type and its ordered ancestor chain.
 type ResourceType struct {
 	ID        string   `json:"id"`
@@ -135,6 +138,13 @@ type Action struct {
 	ResourceTypeID string `json:"resource_type_id"`
 }
 
+// ActionResp preserves a missing or null resource binding for response validation.
+type ActionResp struct {
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	ResourceTypeID *string `json:"resource_type_id"`
+}
+
 // ListActionsReq identifies one page of a system's actions.
 type ListActionsReq struct {
 	SystemID string `json:"-"`
@@ -145,8 +155,8 @@ type ListActionsReq struct {
 // ListActionsResp contains one page and the total action count.
 type ListActionsResp struct {
 	// A pointer distinguishes an omitted count from a valid empty collection.
-	Count   *int     `json:"count"`
-	Results []Action `json:"results"`
+	Count   *int         `json:"count"`
+	Results []ActionResp `json:"results"`
 }
 
 // BatchCreateActionReq identifies the system and the array sent as the body.
@@ -182,6 +192,20 @@ type RoleAction struct {
 	ResourceTypeID string `json:"resource_type_id"`
 }
 
+// RoleActionResp preserves a missing or null resource binding for response validation.
+type RoleActionResp struct {
+	ID             string  `json:"id"`
+	ResourceTypeID *string `json:"resource_type_id"`
+}
+
+// RoleResp contains the role and member actions returned by IAM.
+type RoleResp struct {
+	ID          string           `json:"id"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Actions     []RoleActionResp `json:"actions"`
+}
+
 // RoleFields preserves omitted fields separately from explicit empty updates.
 // Nil leaves a field unchanged; a pointer to an empty string clears it.
 type RoleFields struct {
@@ -199,8 +223,8 @@ type ListRolesReq struct {
 // ListRolesResp contains one page and the total role count.
 type ListRolesResp struct {
 	// A pointer distinguishes an omitted count from a valid empty collection.
-	Count   *int   `json:"count"`
-	Results []Role `json:"results"`
+	Count   *int       `json:"count"`
+	Results []RoleResp `json:"results"`
 }
 
 // BatchCreateRoleReq identifies the system and the array sent as the body.

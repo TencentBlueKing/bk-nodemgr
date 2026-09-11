@@ -60,7 +60,7 @@ func (c *cli) listResourceTypes(
 
 func (c *cli) batchCreateResourceType(
 	ctx contextx.IContext, req *BatchCreateResourceTypeReq,
-) (BatchCreateResourceTypeResp, error) {
+) (*BatchCreateResourceTypeResp, error) {
 
 	resp := new(BaseBroker[BatchCreateResourceTypeResp])
 	result := c.client.Post().
@@ -82,10 +82,10 @@ func (c *cli) batchCreateResourceType(
 		return nil, fmt.Errorf("create resource type failed: %w", err)
 	}
 
-	return resp.Data, nil
+	return &resp.Data, nil
 }
 
-func (c *cli) updateResourceType(ctx contextx.IContext, req *UpdateResourceTypeReq) error {
+func (c *cli) updateResourceType(ctx contextx.IContext, req *UpdateResourceTypeReq) (*UpdateResourceTypeResp, error) {
 	// A successful update has no data payload (HTTP 204).
 	resp := new(BaseBroker[UpdateResourceTypeResp])
 	result := c.client.Put().
@@ -97,15 +97,15 @@ func (c *cli) updateResourceType(ctx contextx.IContext, req *UpdateResourceTypeR
 		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
-		return fmt.Errorf("update resource type: %w", err)
+		return nil, fmt.Errorf("update resource type: %w", err)
 	}
 	if result.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("update_resource_type: unexpected HTTP %d (request-id: %s)",
+		return nil, fmt.Errorf("update_resource_type: unexpected HTTP %d (request-id: %s)",
 			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
 	}
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("update resource type failed: %w", err)
+		return nil, fmt.Errorf("update resource type failed: %w", err)
 	}
 
-	return nil
+	return &resp.Data, nil
 }

@@ -55,7 +55,7 @@ func (c *cli) listRoles(ctx contextx.IContext, req *ListRolesReq) (*ListRolesRes
 	return resp.Data, nil
 }
 
-func (c *cli) batchCreateRole(ctx contextx.IContext, req *BatchCreateRoleReq) (BatchCreateRoleResp, error) {
+func (c *cli) batchCreateRole(ctx contextx.IContext, req *BatchCreateRoleReq) (*BatchCreateRoleResp, error) {
 	resp := new(BaseBroker[BatchCreateRoleResp])
 	result := c.client.Post().
 		SubResourcef("/rbac/model/systems/%s/roles/", req.SystemID).
@@ -76,10 +76,10 @@ func (c *cli) batchCreateRole(ctx contextx.IContext, req *BatchCreateRoleReq) (B
 		return nil, fmt.Errorf("create role failed: %w", err)
 	}
 
-	return resp.Data, nil
+	return &resp.Data, nil
 }
 
-func (c *cli) updateRole(ctx contextx.IContext, req *UpdateRoleReq) error {
+func (c *cli) updateRole(ctx contextx.IContext, req *UpdateRoleReq) (*UpdateRoleResp, error) {
 	resp := new(BaseBroker[UpdateRoleResp])
 	result := c.client.Put().
 		SubResourcef("/rbac/model/systems/%s/roles/%s/", req.SystemID, req.RoleID).
@@ -90,22 +90,22 @@ func (c *cli) updateRole(ctx contextx.IContext, req *UpdateRoleReq) error {
 		EnableLogResponse().
 		Do()
 	if err := result.Into(resp); err != nil {
-		return fmt.Errorf("update role: %w", err)
+		return nil, fmt.Errorf("update role: %w", err)
 	}
 	if result.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("update_role: unexpected HTTP %d (request-id: %s)",
+		return nil, fmt.Errorf("update_role: unexpected HTTP %d (request-id: %s)",
 			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
 	}
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("update role failed: %w", err)
+		return nil, fmt.Errorf("update role failed: %w", err)
 	}
 
-	return nil
+	return &resp.Data, nil
 }
 
 func (c *cli) batchCreateRoleAction(
 	ctx contextx.IContext, req *BatchCreateRoleActionReq,
-) (BatchCreateRoleActionResp, error) {
+) (*BatchCreateRoleActionResp, error) {
 
 	resp := new(BaseBroker[BatchCreateRoleActionResp])
 	result := c.client.Post().
@@ -128,5 +128,5 @@ func (c *cli) batchCreateRoleAction(
 		return nil, fmt.Errorf("add role actions failed: %w; check remote state before rerunning", err)
 	}
 
-	return resp.Data, nil
+	return &resp.Data, nil
 }

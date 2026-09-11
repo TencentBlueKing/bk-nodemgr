@@ -113,7 +113,7 @@ func (h *Handler) CreateResourceType(ctx contextx.IContext, systemID string, res
 	if err != nil {
 		return err
 	}
-	if len(resp) != 1 || resp[0] != resource.ID {
+	if len(*resp) != 1 || (*resp)[0] != resource.ID {
 		return fmt.Errorf("create resource type: response ID does not match; check remote state before rerunning")
 	}
 
@@ -125,9 +125,11 @@ func (h *Handler) UpdateResourceType(
 	ctx contextx.IContext, systemID, resourceTypeID string, fields ResourceTypeFields,
 ) error {
 
-	return h.cli.updateResourceType(ctx, &UpdateResourceTypeReq{
+	_, err := h.cli.updateResourceType(ctx, &UpdateResourceTypeReq{
 		SystemID:           systemID,
 		ResourceTypeID:     resourceTypeID,
 		ResourceTypeFields: fields,
 	})
+
+	return err
 }
