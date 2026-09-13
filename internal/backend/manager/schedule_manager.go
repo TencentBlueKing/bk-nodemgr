@@ -48,6 +48,7 @@ const (
 	scheduledWorkflowSyncAlivePluginProcessInfo = "sync_alive_plugin_process_info"
 	scheduledWorkflowWatchAndApplyCMDBResource  = "watch_and_apply_cmdb_resource"
 	scheduledWorkflowExecuteDeployPolicy        = "execute_deploy_policy"
+	scheduledWorkflowEnsureDefaultPlugin        = "ensure_default_plugin"
 )
 
 const (
@@ -67,6 +68,7 @@ func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWork
 		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.initSWSyncAlivePluginProcessInfo,
 		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.initSWWatchAndApplyCMDBResource,
 		scheduledWorkflowExecuteDeployPolicy:        mgr.initSWExecuteDeployPolicy,
+		scheduledWorkflowEnsureDefaultPlugin:        mgr.initSWEnsureDefaultPlugin,
 	}
 }
 
@@ -80,6 +82,7 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.syncSWSyncAlivePluginProcessInfo,
 		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.syncSWWatchAndApplyCMDBResource,
 		scheduledWorkflowExecuteDeployPolicy:        mgr.syncSWExecuteDeployPolicy,
+		scheduledWorkflowEnsureDefaultPlugin:        mgr.syncSWEnsureDefaultPlugin,
 	}
 }
 
@@ -536,6 +539,21 @@ func (mgr *Manager) syncSWExecuteDeployPolicy(ctx contextx.IContext, sw *types.S
 	}
 
 	return mgr.syncScheduledWorkflow(ctx, sw, schedule.NewOperExecuteDeployPolicy(schedule.OperParamExecuteDeployPolicy{
+		ScheduleActionStandardParam: standardParam,
+	}))
+}
+
+func (mgr *Manager) initSWEnsureDefaultPlugin(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowEnsureDefaultPlugin, scheduler.Every1m)
+}
+
+func (mgr *Manager) syncSWEnsureDefaultPlugin(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow ensure default plugin: %w", err)
+	}
+
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperEnsureDefaultPlugin(schedule.OperParamEnsureDefaultPlugin{
 		ScheduleActionStandardParam: standardParam,
 	}))
 }
