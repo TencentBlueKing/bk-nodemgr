@@ -152,9 +152,9 @@
         ]
       }
     },
-    "/api/v3/publish/release/server": {
+    "/api/v3/publish/release/proxy": {
       "post": {
-        "summary": "PublishReleaseServer provides release server publish.",
+        "summary": "PublishReleaseProxy publishes a proxy release from a proxy or server\npackage.",
         "operationId": "Publish_PublishReleaseProxy",
         "responses": {
           "200": {

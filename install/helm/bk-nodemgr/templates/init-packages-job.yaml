@@ -216,6 +216,7 @@ spec:
                 --bk-username "{{ .Values.initPackages.bkUsername }}" \
                 --login-name "{{ .Values.initPackages.loginName }}" \
                 --auto-select \
+                --set-as-default \
                 --packages-dir "${PACKAGES_DIR}"
 
               echo "=========================================="

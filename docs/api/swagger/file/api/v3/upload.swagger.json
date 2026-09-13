@@ -668,6 +668,9 @@
             "type": "object",
             "$ref": "#/definitions/v3Platform"
           }
+        },
+        "plugin_pkg_name": {
+          "type": "string"
         }
       }
     },
@@ -809,6 +812,9 @@
             "type": "object",
             "$ref": "#/definitions/v3Platform"
           }
+        },
+        "plugin_pkg_name": {
+          "type": "string"
         }
       }
     },

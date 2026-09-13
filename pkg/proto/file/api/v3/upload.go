@@ -386,6 +386,7 @@ func (x *UploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail
 		ConfigFile:    new(string),
 		ConfigFormat:  new(string),
 		LaunchNode:    new(string),
+		PluginPkgName: new(string),
 	}
 
 	*data.UploadId = detail.UploadID
@@ -402,6 +403,7 @@ func (x *UploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
 	*data.LaunchNode = detail.LaunchNode
+	*data.PluginPkgName = detail.PluginPkgName
 
 	data.Platforms = plats
 
@@ -441,6 +443,7 @@ func (x *UploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generated bool
 	}
 
 	data := &UploadOriginExternalPluginV2Resp_Data{
+		PluginPkgName: new(string),
 		UploadId:      new(string),
 		Existed:       new(bool),
 		Generated:     new(bool),
@@ -471,6 +474,7 @@ func (x *UploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generated bool
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
 	*data.LaunchNode = detail.LaunchNode
+	*data.PluginPkgName = detail.PluginPkgName
 
 	data.Platforms = plats
 

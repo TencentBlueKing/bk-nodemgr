@@ -36,7 +36,7 @@ def load_file_config(config_file=None):
     try:
         import yaml
     except ImportError as error:
-        return {}, None, ["PyYAML is unavailable: {}".format(error)]
+        return {}, None, [f"PyYAML is unavailable: {error}"]
 
     config_files = (config_file,) if config_file else DEFAULT_CONFIG_FILES
     errors = []
@@ -52,7 +52,7 @@ def load_file_config(config_file=None):
                 raise ValueError("top-level YAML value must be a mapping")
             return config, path, errors
         except (OSError, ValueError, yaml.YAMLError) as error:
-            errors.append("{}: {}".format(path, error))
+            errors.append(f"{path}: {error}")
 
     return {}, None, errors
 
@@ -158,7 +158,7 @@ def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
     binary_path = os.path.join(script_dir, binary_name)
 
     if not os.path.exists(binary_path):
-        return False, "jwt-generator binary not found: {}".format(binary_path)
+        return False, f"jwt-generator binary not found: {binary_path}"
 
     try:
         result = subprocess.run(
@@ -180,7 +180,7 @@ def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
 
         if result.returncode != 0:
             error_msg = result.stderr.strip() if result.stderr else "unknown error"
-            return False, "jwt-generator failed: {}".format(error_msg)
+            return False, f"jwt-generator failed: {error_msg}"
 
         token = result.stdout.strip()
         if not token:
@@ -190,9 +190,7 @@ def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
         if token.count(".") != 2:
             return (
                 False,
-                "invalid JWT token format (expected 3 segments, got {}): {}".format(
-                    token.count(".") + 1, token[:100]
-                ),
+                f"invalid JWT token format (expected 3 segments, got {token.count('.') + 1}): {token[:100]}",
             )
 
         return True, token
@@ -200,7 +198,7 @@ def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
     except subprocess.TimeoutExpired:
         return False, "jwt-generator execution timeout"
     except Exception as e:
-        return False, "failed to execute jwt-generator: {}".format(str(e))
+        return False, f"failed to execute jwt-generator: {str(e)}"
 
 
 # =================== http request ===================
@@ -255,7 +253,7 @@ def http_request(
                 resp.content.decode("utf-8", errors="ignore") if resp.content else ""
             )
             return False, {
-                "error": "HTTP {}: {}".format(resp.status_code, content),
+                "error": f"HTTP {resp.status_code}: {content}",
                 "status_code": resp.status_code,
             }
 
@@ -271,7 +269,7 @@ def http_request(
         return False, {"error": str(e)}
 
     except Exception as e:
-        return False, {"error": "unexpected error: {}".format(str(e))}
+        return False, {"error": f"unexpected error: {str(e)}"}
 
 
 def http_get(url, params=None, headers=None, timeout=30):
@@ -293,7 +291,7 @@ def http_upload_file(url, file_path, form_data=None, headers=None, timeout=30):
     import os
 
     if not os.path.exists(file_path):
-        return False, {"error": "file not found: {}".format(file_path)}
+        return False, {"error": f"file not found: {file_path}"}
 
     filename = os.path.basename(file_path)
     data = {"filename": filename}
@@ -332,7 +330,7 @@ class FileClient(object):
         self.tenant_id = tenant_id
         self.bk_username = bk_username
         self.login_name = login_name
-        self.base_url = "http://{host}:{port}/api/v3".format(host=host, port=port)
+        self.base_url = f"http://{host}:{port}/api/v3"
 
     def _get_common_headers(self):
         headers = {
@@ -344,7 +342,7 @@ class FileClient(object):
                 self.jwt_key, self.expire_hours, self.bk_username, self.login_name
             )
             if not ok:
-                raise Exception("Failed to generate JWT token: {}".format(jwt_token))
+                raise Exception(f"Failed to generate JWT token: {jwt_token}")
 
             headers["X-Bknodemgr-Authorization"] = jwt_token
 
@@ -359,7 +357,7 @@ class FileClient(object):
 
         if file_path:
             if not os.path.exists(file_path):
-                return False, "file not found: {}".format(file_path), None
+                return False, f"file not found: {file_path}", None
 
             filename = os.path.basename(file_path)
             form_data = {"filename": filename}
@@ -390,7 +388,7 @@ class FileClient(object):
         code = resp.get("code")
         if code != 0:
             message = resp.get("message", "api failed")
-            return False, "code({}), message({})".format(code, message), None
+            return False, f"code({code}), message({message})", None
 
         data = resp.get("data")
         return True, "ok", data
@@ -492,7 +490,7 @@ class FileClient(object):
         """Publish Proxy/Server package (distinguished by upload_origin_pkg_type)"""
         return self._call_api(
             method="POST",
-            path="/publish/release/server",
+            path="/publish/release/proxy",
             json_data={
                 "upload_id": upload_id,
                 "upload_origin_pkg_type": upload_origin_pkg_type,
@@ -552,6 +550,84 @@ class FileClient(object):
             path="/publish/release/v3/plugin",
             json_data={"upload_id": upload_id},
         )
+
+    # ---------- release state
+
+    def enable_release_agent(self, identifier):
+        """Enable an Agent release."""
+        return self._call_api("POST", "/release/agent/enable", json_data=identifier)
+
+    def set_as_default_release_agent(self, identifier):
+        """Set an Agent release as default."""
+        return self._call_api(
+            "POST", "/release/agent/set_as_default", json_data=identifier
+        )
+
+    def enable_release_proxy(self, identifier):
+        """Enable a Proxy release."""
+        return self._call_api("POST", "/release/proxy/enable", json_data=identifier)
+
+    def set_as_default_release_proxy(self, identifier):
+        """Set a Proxy release as default."""
+        return self._call_api(
+            "POST", "/release/proxy/set_as_default", json_data=identifier
+        )
+
+    def enable_release_plugin(self, identifier):
+        """Enable a Plugin release."""
+        return self._call_api("POST", "/release/plugin/enable", json_data=identifier)
+
+    def set_as_default_release_plugin(self, identifier):
+        """Set a Plugin release as default."""
+        return self._call_api(
+            "POST", "/release/plugin/set_as_default", json_data=identifier
+        )
+
+
+def enable_default_package(client, task_name, upload_data):
+    """Enable and set default for every platform produced by the selected package."""
+    release_type = "plugin"
+    if task_name == "agent":
+        release_type = "agent"
+    elif task_name in ("proxy", "server"):
+        release_type = "proxy"
+
+    version = upload_data.get("version")
+    platforms = upload_data.get("platforms")
+    if not version or not platforms:
+        print("release state failed: missing version or platforms in upload response")
+        return False
+
+    # File publishes all supported origin package formats as Generation2 releases.
+    identifier = {"generation": 2, "version": version}
+    if release_type == "plugin":
+        identifier["name"] = upload_data.get("plugin_pkg_name")
+        if not identifier["name"]:
+            print("release state failed: missing plugin name in upload response")
+            return False
+
+    enable = getattr(client, "enable_release_" + release_type)
+    set_default = getattr(client, "set_as_default_release_" + release_type)
+    succeeded = True
+    for platform in platforms:
+        try:
+            key = dict(identifier, platform=platform)
+            print(f"setting release state: {release_type} {key}")
+            ok, msg, _ = enable(key)
+            if not ok:
+                print(f"enable failed: {msg}")
+                succeeded = False
+                continue
+            ok, msg, _ = set_default(key)
+            if not ok:
+                print(f"set as default failed: {msg}")
+                succeeded = False
+                continue
+            print("enable and set as default success")
+        except Exception as error:
+            print(f"release state failed: {error}")
+            succeeded = False
+    return succeeded
 
 
 if __name__ == "__main__":
@@ -623,7 +699,7 @@ if __name__ == "__main__":
     p.add_argument(
         "--packages-dir",
         default=DEFAULT_PACKAGES_DIR,
-        help="package discovery directory (default: {})".format(DEFAULT_PACKAGES_DIR),
+        help=f"package discovery directory (default: {DEFAULT_PACKAGES_DIR})",
     )
 
     p.add_argument(
@@ -696,19 +772,25 @@ if __name__ == "__main__":
         help="overwrite existing files",
     )
 
+    p.add_argument(
+        "--set-as-default",
+        action="store_true",
+        help="enable and set default for the last package in each group after publishing",
+    )
+
     args = p.parse_args()
 
     file_config, config_source, config_errors = load_file_config(args.config_file)
     if args.config_file and not config_source:
-        errors = config_errors or ["{}: file not found".format(args.config_file)]
+        errors = config_errors or [f"{args.config_file}: file not found"]
         for config_error in errors:
-            print("failed to load config: {}".format(config_error))
+            print(f"failed to load config: {config_error}")
         sys.exit(1)
 
     for config_error in config_errors:
-        print("warning: unable to load config: {}".format(config_error))
+        print(f"warning: unable to load config: {config_error}")
     if config_source:
-        print("config source: {}".format(config_source))
+        print(f"config source: {config_source}")
 
     runtime_config = resolve_runtime_config(args, file_config)
     print(
@@ -720,8 +802,7 @@ if __name__ == "__main__":
     )
 
     explicit_packages = {
-        task_name: getattr(args, "init_{}".format(task_name)) or []
-        for task_name in TASK_ORDER
+        task_name: getattr(args, f"init_{task_name}") or [] for task_name in TASK_ORDER
     }
     discovered_packages = (
         discover_packages(args.packages_dir) if args.auto_select else {}
@@ -746,7 +827,7 @@ if __name__ == "__main__":
             login_name=runtime_config["login_name"],
         )
     except Exception as e:
-        print("failed to create file client: {}".format(str(e)))
+        print(f"failed to create file client: {str(e)}")
         sys.exit(1)
 
     task_handlers = {
@@ -805,53 +886,79 @@ if __name__ == "__main__":
                 (task_name, file_path, upload_func, publish_func, upload_params)
             )
 
-    success_files = []
-    failed_files = []
+    results = []
+    default_targets = {}
 
     for task_name, file_path, upload_func, publish_func, upload_params in tasks:
         task_succeeded = False
+        result = {"task_name": task_name, "file_path": file_path, "succeeded": False}
+        results.append(result)
+        if args.set_as_default and task_name in ("agent", "proxy", "server"):
+            group = "agent" if task_name == "agent" else "proxy"
+            default_targets[group] = result
         try:
             print("\n" + "=" * 60)
-            print("processing {}: {}".format(task_name, file_path))
+            print(f"processing {task_name}: {file_path}")
             print("=" * 60)
 
-            print("[1/2] uploading {}...".format(task_name))
+            print(f"[1/2] uploading {task_name}...")
             ok, msg, data = upload_func(file_path, **upload_params)
             if not ok:
-                print("upload failed: {}".format(msg))
+                print(f"upload failed: {msg}")
             else:
                 upload_id = data.get("upload_id") if data else None
                 if not upload_id:
                     print("upload failed: no upload_id in response")
                 else:
+                    result["upload_data"] = data
+                    if args.set_as_default and task_name in (
+                        "plugin_v2",
+                        "external_plugin_v2",
+                        "plugin_v3",
+                    ):
+                        plugin_name = data.get("plugin_pkg_name")
+                        if not plugin_name:
+                            raise ValueError("missing plugin name in upload response")
+                        default_targets[(task_name, plugin_name)] = result
                     print("upload success")
-                    print("  upload_id: {}".format(upload_id))
-                    print("[2/2] publishing {}...".format(task_name))
+                    print(f"  upload_id: {upload_id}")
+                    print(f"[2/2] publishing {task_name}...")
                     ok, msg, data = publish_func(upload_id)
                     if not ok:
-                        print("publish failed: {}".format(msg))
+                        print(f"publish failed: {msg}")
                     else:
                         print("publish success")
                         task_succeeded = True
         except Exception as error:
-            print("task failed: {}".format(error))
+            print(f"task failed: {error}")
 
-        if task_succeeded:
-            success_files.append(file_path)
-        else:
-            failed_files.append(file_path)
+        result["succeeded"] = task_succeeded
+
+    if args.set_as_default:
+        for result in default_targets.values():
+            if not result["succeeded"]:
+                continue
+            print("\nactivating package: {}".format(result["file_path"]))
+            result["succeeded"] = enable_default_package(
+                client, result["task_name"], result["upload_data"]
+            )
+
+    success_files = [result["file_path"] for result in results if result["succeeded"]]
+    failed_files = [
+        result["file_path"] for result in results if not result["succeeded"]
+    ]
 
     success_count = len(success_files)
     fail_count = len(failed_files)
 
     print("\n" + "=" * 60)
-    print("summary: {} success, {} failed".format(success_count, fail_count))
+    print(f"summary: {success_count} success, {fail_count} failed")
     print("successful files:")
     for file_path in success_files:
-        print("  - {}".format(file_path))
+        print(f"  - {file_path}")
     print("failed files:")
     for file_path in failed_files:
-        print("  - {}".format(file_path))
+        print(f"  - {file_path}")
     print("=" * 60)
 
     sys.exit(0 if fail_count == 0 else 1)

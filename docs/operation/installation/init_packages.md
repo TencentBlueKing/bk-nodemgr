@@ -61,7 +61,11 @@ python3 /bk-nodemgr/support-files/initpackage/init_package.py --init-agent /tmp/
 
 ### 自动导入范围
 
-当前 Helm Job 调用 `init_package.py --auto-select` 扫描以下目录，并按脚本固定顺序导入其中的普通文件：
+`--set-as-default` 会在所有包逐个完成 upload → publish 后，统一启用目标包并设为默认。Agent 单独一组，Proxy/Server 共同一组，各取现有遍历顺序中最后一个输入包；三种 Plugin 入口分别按插件 name 分组，各取最后一个 upload 成功的包。显式参数在自动扫描文件之前，不另按 version 排序，也不限制同版本文件。目标 publish 失败不回退；其他文件失败不阻止目标操作。Plugin upload 失败只记失败，不参与分组。
+
+状态操作覆盖目标整包实际产出的全部 platform，不使用旧版本补齐平台。Cert、BinTool、Plugin BinTool 仅上传和发布。单个平台 enable 失败时跳过该平台的 set_as_default，继续其他平台；状态操作失败将目标文件记入 failed files，最终非零退出，已完成操作不回滚。手动初始化需要显式传入该 flag；不传时仅上传和发布。
+
+当前 Helm Job 调用 `init_package.py --auto-select --set-as-default` 扫描以下目录，并按脚本固定顺序导入其中的普通文件：
 
 | 镜像内目录                                      | 导入类型                                                         |
 | ----------------------------------------------- | ---------------------------------------------------------------- |

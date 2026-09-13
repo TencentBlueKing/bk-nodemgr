@@ -185,6 +185,7 @@ message UploadOriginPluginV2Resp {
     optional string config_format = 13;
     optional string launch_node = 14;
     repeated Platform platforms = 15;
+    optional string plugin_pkg_name = 16;
   }
   Data data = 4;
 }
@@ -216,6 +217,7 @@ message UploadOriginExternalPluginV2Resp {
     optional string config_format = 13;
     optional string launch_node = 14;
     repeated Platform platforms = 15;
+    optional string plugin_pkg_name = 16;
   }
   Data data = 4;
 }

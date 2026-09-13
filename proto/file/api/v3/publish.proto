@@ -134,11 +134,12 @@ service Publish {
     };
   }
 
-  // PublishReleaseServer provides release server publish.
+  // PublishReleaseProxy publishes a proxy release from a proxy or server
+  // package.
   rpc PublishReleaseProxy(PublishReleaseProxyReq)
       returns (PublishReleaseProxyResp) {
     option (google.api.http) = {
-      post : "/api/v3/publish/release/server"
+      post : "/api/v3/publish/release/proxy"
       body : "*"
     };
   }

@@ -35,6 +35,7 @@
 | `--init-plugin-v3`              | V3 插件初始化包文件路径                                                                                                                            |
 | `--generation`                  | 生成版本（默认：2）                                                                                                                                |
 | `--overwrite`                   | 是否覆盖已存在的文件                                                                                                                               |
+| `--set-as-default`              | 全部上传和发布结束后，启用各分组最后一个目标包的全部 platform 并设为默认；Helm Job 默认传入                                                        |
 
 单租户下可以只指定包路径；多租户未传 `--tenant-id` 时使用 `system`，其他租户须显式传入。多租户初始化要求 File 的 `config.basicServer.authIdentity` 为 `rest-server`，且 `config.basicServer.jwtServerConfig.symmetricKey` 非空并与生成 JWT 使用的密钥匹配。`authIdentity: none` 会使请求在 `default` tenant 处理，不能作为 `tenantMode: multiple` 的初始化配置。
 
@@ -61,6 +62,20 @@ kubectl exec -it <bk-nodemgr-file-pod> -- \
 
 1. **Upload 阶段 (上传)**: 脚本首先将指定的本地初始化包文件上传到文件服务的临时区域。上传成功后，文件服务会返回一个唯一的 `upload_id`。
 2. **Publish 阶段 (发布)**: 脚本使用上一步获得的 `upload_id` 调用发布接口，将文件正式移动到目标目录下并完成初始化。
+
+传入 `--set-as-default` 时，全部任务完成 upload → publish 后，再统一执行目标包的 enable → set_as_default。目标按现有遍历顺序选择，不比较版本号、不额外排序、不限制同类包数量：
+
+- Agent 单独一组，Proxy 与 Server 共同一组，选择最后一个输入包。Server 在 Proxy 后处理。
+- 三个 Plugin 入口分别按插件 name 分组，选择最后一个 upload 成功的包；upload 失败的插件不参与选择。
+- 目标 publish 失败不回退到前一个包；其他包失败不阻止目标的状态操作。
+- 只处理目标整包实际产出的 platform，不用旧版本补齐缺失平台。Cert、BinTool、Plugin BinTool 仅上传和发布。
+- enable 失败时跳过该平台的 set_as_default，继续其他平台；任何状态操作失败都将目标文件记为失败，退出码非零。已完成操作不回滚。
+
+```text
+逐包 upload → publish → 未传 flag：汇总
+                     → 传入 flag：各组最后目标 → 发布成功：逐平台 enable → set_as_default → 汇总
+                                             → 发布失败：跳过状态操作 → 汇总
+```
 
 **注意事项**:
 
