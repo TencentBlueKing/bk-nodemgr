@@ -17,7 +17,6 @@ import (
 
 	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
@@ -35,14 +34,12 @@ func NewActionPackagePublishExternalPluginV2Pkg(capability *Capability) action.D
 	return &actionPackagePublishExternalPluginV2Pkg{
 		fileHandler:    capability.FileHandler,
 		storagePackage: capability.StoragePackage,
-		storageRelease: capability.StorageRelease,
 	}
 }
 
 type actionPackagePublishExternalPluginV2Pkg struct {
 	fileHandler    file.IHandler
 	storagePackage pkgStg.IStorage
-	storageRelease release.IStorage
 }
 
 func (act *actionPackagePublishExternalPluginV2Pkg) Name() string {
@@ -126,7 +123,7 @@ func (act *actionPackagePublishExternalPluginV2Pkg) Do(ctx *action.InstanceConte
 			Version:    []string{uploadInfo.Version},
 		},
 	}
-	pkgReleases, _, err := act.storageRelease.ListReleasePlugin(nCtx, types.UnlimitedPage(), cond)
+	pkgReleases, _, err := act.fileHandler.ListReleasePlugin(nCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		return fmt.Errorf("failed to list release plugin: %w", err)
 	}

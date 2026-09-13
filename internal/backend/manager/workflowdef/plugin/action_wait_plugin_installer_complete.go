@@ -396,13 +396,13 @@ func (act *actionWaitPluginInstallerComplete) buildOfflineInstallerReadEndpoints
 	}
 
 	return &types.EndpointWithAuth{
-			Endpoint: types.Endpoint{AgentID: agentID},
-			User:     "root",
-		}, &types.EndpointWithRestrict{
-			Endpoint: types.Endpoint{AgentID: agentID},
-			Offset:   0,
-			Limit:    0,
-		}, nil
+		Endpoint: types.Endpoint{AgentID: agentID},
+		User:     "root",
+	}, &types.EndpointWithRestrict{
+		Endpoint: types.Endpoint{AgentID: agentID},
+		Offset:   0,
+		Limit:    0,
+	}, nil
 }
 
 func (act *actionWaitPluginInstallerComplete) waitInstallerField(std *pluginUtils.PluginActionStandarder, key string) (string, error) {

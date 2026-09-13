@@ -20,23 +20,13 @@ package pkg
 
 import (
 	"errors"
-	"fmt"
-	"strings"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-)
-
-const (
-	// maxMemoFields is the maximum number of memo fields (Description, Scenario, DescriptionEn, ScenarioEn).
-	maxMemoFields = 4
 )
 
 // ListReleasePlugin list plugin.
@@ -64,7 +54,7 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoReleasePlugin.CountReleasePlugin(rCtx, cond)
+		num, err := h.fileHandler.CountReleasePlugin(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin. failed to count host")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -82,7 +72,7 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, page, cond)
+	hosts, num, err := h.fileHandler.ListReleasePlugin(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -119,7 +109,7 @@ func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{},
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoReleasePlugin.CountReleasePlugin(rCtx, cond)
+		num, err := h.fileHandler.CountReleasePlugin(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief. failed to count host")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -137,7 +127,7 @@ func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, page, cond)
+	hosts, num, err := h.fileHandler.ListReleasePlugin(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -170,7 +160,7 @@ func (h *handler) DistinctReleasePlugin(rCtx restserver.IContext) (interface{}, 
 		Version: req.GetDistinctField().GetVersion(),
 	}
 
-	result, err := h.daoReleasePlugin.DistinctReleasePlugin(rCtx, distinctField, condition)
+	result, err := h.fileHandler.DistinctReleasePlugin(rCtx, distinctField, condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin release")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -206,7 +196,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		Version:    version,
 	}
 
-	exist, err := h.daoReleasePlugin.ExistReleasePlugin(rCtx, key)
+	exist, err := h.fileHandler.ExistReleasePlugin(rCtx, key)
 	if err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
@@ -224,7 +214,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, errors.New("plugin not exist"))
 	}
 
-	if err := h.daoReleasePlugin.EnableReleasePlugin(rCtx, key); err != nil {
+	if err := h.fileHandler.EnableReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -233,15 +223,22 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	if err := h.createDefaultPlugin(rCtx, key); err != nil {
+	release, err := h.fileHandler.GetReleasePlugin(rCtx, key)
+	if err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to enable plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	if err := h.domainPlugin.EnsureDefaultPlugin(rCtx, release); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "platform", plat, "version", version).
 			Error("failed to check and create default plugin for all tenants")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record release plugin event.
-	h.recordPluginEvent(rCtx, gen, pluginPkgName, version, plat, types.PackageEventTypeEnable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -250,66 +247,6 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	resp := new(protoBackend.PackageReleasePluginEnableResp)
 
 	return resp.GetData(), nil
-}
-
-// createDefaultPlugin creates default plugin.
-func (h *handler) createDefaultPlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
-	exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, key.Name)
-	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("plugin_pkg_name", key.Name).
-			Error("failed to check plugin exist for tenant")
-
-		return fmt.Errorf("failed to check plugin exist, plugin(%s): %w", key.Name, err)
-	}
-
-	if exist {
-		return nil
-	}
-
-	plugin, err := h.daoReleasePlugin.GetReleasePlugin(nCtx, key)
-	if err != nil {
-		logger.G.Biz(nCtx).
-			WithErr(err).
-			With("key", key).
-			Error("failed to get release plugin")
-
-		return fmt.Errorf("failed to get release plugin, key(%v): %w", key, err)
-	}
-
-	defaultPlugin := &types.Plugin{
-		Name:    key.Name,
-		PkgName: key.Name,
-		Group:   types.PluginGroupDefault,
-		Memo:    buildPluginMemo(plugin),
-	}
-
-	if err := h.daoPlugin.CreatePlugin(nCtx, defaultPlugin); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("key", key).
-			Error("failed to create default plugin for tenant")
-
-		return fmt.Errorf("failed to create default plugin by plugin-pkg-name(%s): %w", key.Name, err)
-	}
-
-	return nil
-}
-
-// buildPluginMemo builds memo string from plugin description and scenario fields, only including non-empty fields.
-func buildPluginMemo(plugin *types.ReleasePlugin) string {
-	memoParts := make([]string, 0, maxMemoFields)
-	if plugin.Description != "" {
-		memoParts = append(memoParts, fmt.Sprintf("描述: %s", plugin.Description))
-	}
-	if plugin.Scenario != "" {
-		memoParts = append(memoParts, fmt.Sprintf("场景: %s", plugin.Scenario))
-	}
-	if plugin.DescriptionEn != "" {
-		memoParts = append(memoParts, fmt.Sprintf("Description: %s", plugin.DescriptionEn))
-	}
-	if plugin.ScenarioEn != "" {
-		memoParts = append(memoParts, fmt.Sprintf("Scene: %s", plugin.ScenarioEn))
-	}
-
-	return strings.Join(memoParts, "\n")
 }
 
 // DisableReleasePlugin disable plugin.
@@ -335,7 +272,7 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 		Platform:   plat,
 		Version:    version,
 	}
-	if err := h.daoReleasePlugin.DisableReleasePlugin(rCtx, key); err != nil {
+	if err := h.fileHandler.DisableReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -343,9 +280,6 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record release plugin event.
-	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeDisable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -356,6 +290,7 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 	return resp.GetData(), nil
 }
 
+// SetHiddenReleasePlugin hides a plugin release.
 func (h *handler) SetHiddenReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleasePluginSetHiddenReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -378,7 +313,11 @@ func (h *handler) SetHiddenReleasePlugin(rCtx restserver.IContext) (interface{},
 		Platform:   plat,
 		Version:    version,
 	}
-	if err := h.daoReleasePlugin.SetHiddenReleasePlugin(rCtx, key, req.GetIsHidden()); err != nil {
+	setHidden := h.fileHandler.CancelHiddenReleasePlugin
+	if req.GetIsHidden() {
+		setHidden = h.fileHandler.SetHiddenReleasePlugin
+	}
+	if err := setHidden(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version, "is_hidden", req.GetIsHidden()).
@@ -418,7 +357,7 @@ func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface
 		Platform:   plat,
 		Version:    version,
 	}
-	if err := h.daoReleasePlugin.SetAsDefaultReleasePlugin(rCtx, key); err != nil {
+	if err := h.fileHandler.SetAsDefaultReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -426,9 +365,6 @@ func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record release plugin event.
-	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeSetAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -461,7 +397,7 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 		Platform:   plat,
 		Version:    version,
 	}
-	if err := h.daoReleasePlugin.CancelAsDefaultReleasePlugin(rCtx, key); err != nil {
+	if err := h.fileHandler.CancelAsDefaultReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -469,9 +405,6 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record release plugin event.
-	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeCancelAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -504,7 +437,7 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		Platform:   plat,
 		Version:    version,
 	}
-	if err := h.daoReleasePlugin.DeleteReleasePlugin(rCtx, key); err != nil {
+	if err := h.fileHandler.DeleteReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -513,9 +446,6 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	// record release plugin event.
-	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeDelete)
-
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
 		Info("deleted plugin")
@@ -523,22 +453,6 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	resp := new(protoBackend.PackageReleasePluginDeleteResp)
 
 	return resp.GetData(), nil
-}
-
-func (h *handler) recordPluginEvent(rCtx restserver.IContext, gen types.Generation, name, version string,
-	plat platfmt.Platform, eventType types.PackageEventType) {
-
-	h.recordPackageEvents(rCtx, &types.PackageEvent{
-		Name:        name,
-		EventType:   eventType,
-		ReleaseType: types.ReleaseTypePlugin,
-		Generation:  gen,
-		Version:     version,
-		OSType:      plat.OS,
-		CPUArch:     plat.Arch,
-		OperateTime: time.Now(),
-		Operator:    rCtx.Data().GetLoginName(),
-	})
 }
 
 // GetConfigVariablesReleasePlugin gets the config variables of a plugin release.
@@ -550,7 +464,7 @@ func (h *handler) GetConfigVariablesReleasePlugin(rCtx restserver.IContext) (int
 	}
 
 	cond := req.ConvertConditionsToTypes()
-	plugins, _, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, types.UnlimitedPage(), cond)
+	plugins, _, err := h.fileHandler.ListReleasePlugin(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).

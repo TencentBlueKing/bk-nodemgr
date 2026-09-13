@@ -19,10 +19,7 @@
 package pkg
 
 import (
-	"time"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -53,7 +50,7 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoReleaseProxy.CountReleaseProxy(rCtx, cond)
+		num, err := h.fileHandler.CountReleaseProxy(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy. failed to count release proxy")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -71,7 +68,7 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.daoReleaseProxy.ListReleaseProxy(rCtx, page, cond)
+	hosts, num, err := h.fileHandler.ListReleaseProxy(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -106,7 +103,7 @@ func (h *handler) ListReleaseProxyBrief(rCtx restserver.IContext) (interface{}, 
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoReleaseProxy.CountReleaseProxy(rCtx, cond)
+		num, err := h.fileHandler.CountReleaseProxy(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy brief. failed to count release proxy")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -124,7 +121,7 @@ func (h *handler) ListReleaseProxyBrief(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.daoReleaseProxy.ListReleaseProxy(rCtx, page, cond)
+	hosts, num, err := h.fileHandler.ListReleaseProxy(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy brief")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -158,7 +155,7 @@ func (h *handler) DistinctReleaseProxy(rCtx restserver.IContext) (interface{}, e
 		Version: req.GetDistinctField().GetVersion(),
 	}
 
-	result, err := h.daoReleaseProxy.DistinctReleaseProxy(rCtx, distinctField, cond)
+	result, err := h.fileHandler.DistinctReleaseProxy(rCtx, distinctField, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct proxy release. failed to distinct proxy release fields")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -192,7 +189,7 @@ func (h *handler) SetReleaseProxyLabelsMany(rCtx restserver.IContext) (interface
 		ExactInclude: exactIncludeCond,
 	}
 
-	if err := h.daoReleaseProxy.SetReleaseProxyLabelsMany(rCtx, req.GetLabels(), cond); err != nil {
+	if err := h.fileHandler.SetReleaseProxyLabelsMany(rCtx, req.GetLabels(), cond); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("labels", req.GetLabels(), "condition", *exactIncludeCond).
@@ -234,7 +231,7 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 		Version:    version,
 	}
 
-	if err := h.daoReleaseProxy.EnableReleaseProxy(rCtx, key); err != nil {
+	if err := h.fileHandler.EnableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -242,9 +239,6 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordProxyEvent(rCtx, gen, version, plat, types.PackageEventTypeEnable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -279,7 +273,7 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 		Version:    version,
 	}
 
-	if err := h.daoReleaseProxy.DisableReleaseProxy(rCtx, key); err != nil {
+	if err := h.fileHandler.DisableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -287,9 +281,6 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordProxyEvent(rCtx, gen, version, plat, types.PackageEventTypeDisable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -324,7 +315,7 @@ func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{
 		Version:    version,
 	}
 
-	if err := h.daoReleaseProxy.SetAsDefaultReleaseProxy(rCtx, key); err != nil {
+	if err := h.fileHandler.SetAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -332,9 +323,6 @@ func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordProxyEvent(rCtx, gen, version, plat, types.PackageEventTypeSetAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -369,7 +357,7 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 		Version:    version,
 	}
 
-	if err := h.daoReleaseProxy.CancelAsDefaultReleaseProxy(rCtx, key); err != nil {
+	if err := h.fileHandler.CancelAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -377,9 +365,6 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordProxyEvent(rCtx, gen, version, plat, types.PackageEventTypeCancelAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -414,7 +399,7 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 		Version:    version,
 	}
 
-	if err := h.daoReleaseProxy.DeleteReleaseProxy(rCtx, key); err != nil {
+	if err := h.fileHandler.DeleteReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -423,9 +408,6 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	// record package events.
-	h.recordProxyEvent(rCtx, gen, version, plat, types.PackageEventTypeDelete)
-
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
 		Info("deleted proxy release")
@@ -433,22 +415,4 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	resp := new(protoBackend.PackageReleaseProxyDeleteResp)
 
 	return resp.GetData(), nil
-}
-
-func (h *handler) recordProxyEvent(rCtx restserver.IContext, gen types.Generation, version string, plat platfmt.Platform,
-	eventType types.PackageEventType) {
-
-	event := &types.PackageEvent{
-		Name:        types.ReleaseNameProxy,
-		ReleaseType: types.ReleaseTypeProxy,
-		Generation:  gen,
-		OSType:      plat.OS,
-		CPUArch:     plat.Arch,
-		Version:     version,
-		EventType:   eventType,
-		Operator:    rCtx.Data().GetLoginName(),
-		OperateTime: time.Now(),
-	}
-
-	h.recordPackageEvents(rCtx, event)
 }

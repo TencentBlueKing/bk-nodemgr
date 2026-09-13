@@ -47,7 +47,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -352,8 +351,8 @@ func (svc *Service) initialCapability() error {
 	})
 
 	// initial IAM callback handler.
-	svc.Cap.AuthProviderV3Handler = v3.NewProviderHandler(svc.Cap.StorageTopo, svc.Cap.StorageRelease)
-	svc.Cap.AuthProviderV4Handler = v4.NewProviderHandler(svc.Cap.StorageTopo, svc.Cap.StorageRelease)
+	svc.Cap.AuthProviderV3Handler = v3.NewProviderHandler(svc.Cap.StorageTopo, svc.Cap.FileHandler)
+	svc.Cap.AuthProviderV4Handler = v4.NewProviderHandler(svc.Cap.StorageTopo, svc.Cap.FileHandler)
 
 	// initial authorizer.
 	svc.Cap.Authorizer = svc.newAuthorizer()
@@ -764,13 +763,6 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create pkg storage: %w", err)
 	}
 
-	svc.Cap.StorageRelease, err = release.NewStorage(
-		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database)
-	if err != nil {
-		return fmt.Errorf("failed to create release storage: %w", err)
-	}
-
 	svc.Cap.StorageCredit, err = credit.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,
@@ -916,7 +908,6 @@ func (svc *Service) initialManager() error {
 		FileCache:                 svc.Cap.FileCache,
 		LockerFactory:             svc.Cap.LockerFactory,
 		StorageTopo:               svc.Cap.StorageTopo,
-		StorageRelease:            svc.Cap.StorageRelease,
 		StorageNode:               svc.Cap.StorageNode,
 		StorageWorkflow:           svc.Cap.StorageWorkflow,
 		StoragePackage:            svc.Cap.StoragePackage,

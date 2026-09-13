@@ -25,11 +25,11 @@ import (
 
 	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -44,7 +44,7 @@ const (
 func NewActionFetchPluginProcessV2(capability *Capability) action.Definition {
 	return &actionFetchPluginProcessV2{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoReleasePlugin:    capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 		daoHost:             capability.StorageTopo,
 		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(gse.WithProcNameSpace(procNameSpaceNodeMan)),
 	}
@@ -57,7 +57,7 @@ type ActParamFetchPluginProcessV2 struct {
 
 type actionFetchPluginProcessV2 struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoReleasePlugin    releaseStg.IPlugin
+	fileHandler         file.IReleasePluginHandler
 	daoHost             topoStg.IStorageHost
 	gseHandlerProc      gse.IHandlerProc
 }
@@ -158,7 +158,7 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) (err erro
 
 	deployInfo.Process.Info = *processInfo
 	if conv.IsEmpty(deployInfo.Process.Info.Version) {
-		version, err := act.daoReleasePlugin.GetReleasePluginDefaultVersion(
+		version, err := act.fileHandler.GetReleasePluginDefaultVersion(
 			nCtx, deployInfo.Process.PluginName, deployInfo.Process.Generation, deployInfo.Process.Platform)
 		if err != nil {
 			std.InstanceData().Log().
@@ -173,7 +173,7 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) (err erro
 		deployInfo.Process.Info.Version = version
 	}
 
-	pkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+	pkg, err := act.fileHandler.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: deployInfo.Process.Generation,
 		Platform:   deployInfo.Process.Platform,
 		Version:    deployInfo.Process.Info.Version,

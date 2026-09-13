@@ -1,0 +1,3400 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "release.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Release"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/release/agent/cancel_as_default": {
+      "post": {
+        "summary": "CancelAsDefaultReleaseAgent cancels an agent release default.",
+        "operationId": "Release_CancelAsDefaultReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentCancelAsDefaultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentCancelAsDefaultReq describes the request to cancel an agent\nrelease default.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentCancelAsDefaultReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/count": {
+      "post": {
+        "operationId": "Release_CountReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentCountResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentCountReq describes the request to count agent releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentCountReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/delete": {
+      "post": {
+        "summary": "DeleteReleaseAgent updates release metadata.",
+        "operationId": "Release_DeleteReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentDeleteReq describes the request to delete an agent release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/disable": {
+      "post": {
+        "summary": "DisableReleaseAgent disables an agent release.",
+        "operationId": "Release_DisableReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentDisableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentDisableReq describes the request to disable an agent release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentDisableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/distinct": {
+      "post": {
+        "operationId": "Release_DistinctReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentDistinctReq describes the request to query distinct agent\nrelease field values.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/enable": {
+      "post": {
+        "summary": "EnableReleaseAgent enables an agent release.",
+        "operationId": "Release_EnableReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentEnableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentEnableReq describes the request to enable an agent release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentEnableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/get": {
+      "post": {
+        "operationId": "Release_GetReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentGetReq describes the request to retrieve an agent release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/list": {
+      "post": {
+        "operationId": "Release_ListReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentListReq describes the request to list agent releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/set_as_default": {
+      "post": {
+        "summary": "SetAsDefaultReleaseAgent sets an agent release as default.",
+        "operationId": "Release_SetAsDefaultReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentSetAsDefaultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentSetAsDefaultReq describes the request to set an agent release as\ndefault.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentSetAsDefaultReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/agent/set_labels_many": {
+      "post": {
+        "summary": "SetReleaseAgentLabelsMany updates release metadata.",
+        "operationId": "Release_SetReleaseAgentLabelsMany",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentSetLabelsManyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseAgentSetLabelsManyReq describes the request to set labels on\nmatching agent releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseAgentSetLabelsManyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/bintool/delete": {
+      "post": {
+        "summary": "DeleteReleaseBinTool updates release metadata.",
+        "operationId": "Release_DeleteReleaseBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseBinToolDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseBinToolDeleteReq describes the request to delete a binary tool\nrelease.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseBinToolDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/bintool/list": {
+      "post": {
+        "operationId": "Release_ListReleaseBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseBinToolListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseBinToolListReq describes the request to list binary tool releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseBinToolListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/cert/delete": {
+      "post": {
+        "summary": "DeleteReleaseCert updates release metadata.",
+        "operationId": "Release_DeleteReleaseCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseCertDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseCertDeleteReq describes the request to delete a certificate release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseCertDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/cert/list": {
+      "post": {
+        "operationId": "Release_ListReleaseCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseCertListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseCertListReq describes the request to list certificate releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseCertListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/cancel_as_default": {
+      "post": {
+        "summary": "CancelAsDefaultReleasePlugin cancels a plugin release default.",
+        "operationId": "Release_CancelAsDefaultReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginCancelAsDefaultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginCancelAsDefaultReq describes the request to cancel a plugin\nrelease default.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginCancelAsDefaultReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/cancel_hidden": {
+      "post": {
+        "summary": "CancelHiddenReleasePlugin cancels a plugin release hidden state.",
+        "operationId": "Release_CancelHiddenReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginCancelHiddenResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginCancelHiddenReq describes the request to cancel the hidden\nstate of a plugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginCancelHiddenReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/count": {
+      "post": {
+        "operationId": "Release_CountReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginCountResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginCountReq describes the request to count plugin releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginCountReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/default_version": {
+      "post": {
+        "operationId": "Release_GetReleasePluginDefaultVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginGetDefaultVersionResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginGetDefaultVersionReq describes the request to retrieve the\ndefault plugin release version.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginGetDefaultVersionReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/delete": {
+      "post": {
+        "summary": "DeleteReleasePlugin updates release metadata.",
+        "operationId": "Release_DeleteReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginDeleteReq describes the request to delete a plugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/disable": {
+      "post": {
+        "summary": "DisableReleasePlugin disables a plugin release.",
+        "operationId": "Release_DisableReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDisableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginDisableReq describes the request to disable a plugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDisableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/distinct": {
+      "post": {
+        "operationId": "Release_DistinctReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginDistinctReq describes the request to query distinct plugin\nrelease field values.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/distinct_name": {
+      "post": {
+        "operationId": "Release_DistinctNameReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDistinctNameResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginDistinctNameReq describes the request to query distinct plugin\nrelease names.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginDistinctNameReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/enable": {
+      "post": {
+        "summary": "EnableReleasePlugin enables a plugin release.",
+        "operationId": "Release_EnableReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginEnableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginEnableReq describes the request to enable a plugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginEnableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/exist": {
+      "post": {
+        "operationId": "Release_ExistReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginExistResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginExistReq describes the request to check whether a plugin\nrelease exists.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginExistReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/get": {
+      "post": {
+        "operationId": "Release_GetReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginGetReq describes the request to retrieve a plugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/list": {
+      "post": {
+        "operationId": "Release_ListReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginListReq describes the request to list plugin releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/set_as_default": {
+      "post": {
+        "summary": "SetAsDefaultReleasePlugin sets a plugin release as default.",
+        "operationId": "Release_SetAsDefaultReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginSetAsDefaultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginSetAsDefaultReq describes the request to set a plugin release as\ndefault.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginSetAsDefaultReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin/set_hidden": {
+      "post": {
+        "summary": "SetHiddenReleasePlugin updates release metadata.",
+        "operationId": "Release_SetHiddenReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginSetHiddenResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginSetHiddenReq describes the request to set the hidden state of\na plugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginSetHiddenReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin_bintool/delete": {
+      "post": {
+        "summary": "DeleteReleasePluginBinTool updates release metadata.",
+        "operationId": "Release_DeleteReleasePluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginBinToolDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginBinToolDeleteReq describes the request to delete a plugin\nbinary tool release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginBinToolDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin_bintool/distinct_name": {
+      "post": {
+        "operationId": "Release_DistinctNameReleasePluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginBinToolDistinctNameResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginBinToolDistinctNameReq describes the request to query distinct\nplugin binary tool release names.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginBinToolDistinctNameReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/plugin_bintool/list": {
+      "post": {
+        "operationId": "Release_ListReleasePluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginBinToolListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleasePluginBinToolListReq describes the request to list plugin binary\ntool releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleasePluginBinToolListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/cancel_as_default": {
+      "post": {
+        "summary": "CancelAsDefaultReleaseProxy cancels a proxy release default.",
+        "operationId": "Release_CancelAsDefaultReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyCancelAsDefaultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyCancelAsDefaultReq describes the request to cancel a proxy\nrelease default.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyCancelAsDefaultReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/count": {
+      "post": {
+        "operationId": "Release_CountReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyCountResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyCountReq describes the request to count proxy releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyCountReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/delete": {
+      "post": {
+        "summary": "DeleteReleaseProxy updates release metadata.",
+        "operationId": "Release_DeleteReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyDeleteReq describes the request to delete a proxy release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/disable": {
+      "post": {
+        "summary": "DisableReleaseProxy disables a proxy release.",
+        "operationId": "Release_DisableReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyDisableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyDisableReq describes the request to disable a proxy release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyDisableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/distinct": {
+      "post": {
+        "operationId": "Release_DistinctReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyDistinctReq describes the request to query distinct proxy\nrelease field values.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/enable": {
+      "post": {
+        "summary": "EnableReleaseProxy enables a proxy release.",
+        "operationId": "Release_EnableReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyEnableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyEnableReq describes the request to enable a proxy release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyEnableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/get": {
+      "post": {
+        "operationId": "Release_GetReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyGetReq describes the request to retrieve a proxy release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/list": {
+      "post": {
+        "operationId": "Release_ListReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxyListReq describes the request to list proxy releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxyListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/set_as_default": {
+      "post": {
+        "summary": "SetAsDefaultReleaseProxy sets a proxy release as default.",
+        "operationId": "Release_SetAsDefaultReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxySetAsDefaultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxySetAsDefaultReq describes the request to set a proxy release as\ndefault.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxySetAsDefaultReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    },
+    "/api/v3/release/proxy/set_labels_many": {
+      "post": {
+        "summary": "SetReleaseProxyLabelsMany updates release metadata.",
+        "operationId": "Release_SetReleaseProxyLabelsMany",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxySetLabelsManyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ReleaseProxySetLabelsManyReq describes the request to set labels on\nmatching proxy releases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ReleaseProxySetLabelsManyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sort": {
+          "type": "string"
+        }
+      },
+      "description": "Page describes paging query settings."
+    },
+    "v3Platform": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "Platform describes the platform informations."
+    },
+    "v3ReleaseAgentCancelAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseAgentCancelAsDefaultReq describes the request to cancel an agent\nrelease default."
+    },
+    "v3ReleaseAgentCancelAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentCancelAsDefaultRespData"
+        }
+      },
+      "description": "ReleaseAgentCancelAsDefaultResp describes the response to cancel an agent\nrelease default."
+    },
+    "v3ReleaseAgentCancelAsDefaultRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseAgentCancelAsDefaultResp."
+    },
+    "v3ReleaseAgentCountReq": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseAgentCountReq describes the request to count agent releases."
+    },
+    "v3ReleaseAgentCountResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentCountRespData"
+        }
+      },
+      "description": "ReleaseAgentCountResp describes the response to count agent releases."
+    },
+    "v3ReleaseAgentCountRespData": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "Data contains the response payload for ReleaseAgentCountResp."
+    },
+    "v3ReleaseAgentDeleteReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseAgentDeleteReq describes the request to delete an agent release."
+    },
+    "v3ReleaseAgentDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentDeleteRespData"
+        }
+      },
+      "description": "ReleaseAgentDeleteResp describes the response to delete an agent release."
+    },
+    "v3ReleaseAgentDeleteRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseAgentDeleteResp."
+    },
+    "v3ReleaseAgentDisableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseAgentDisableReq describes the request to disable an agent release."
+    },
+    "v3ReleaseAgentDisableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentDisableRespData"
+        }
+      },
+      "description": "ReleaseAgentDisableResp describes the response to disable an agent release."
+    },
+    "v3ReleaseAgentDisableRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseAgentDisableResp."
+    },
+    "v3ReleaseAgentDistinctReq": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "$ref": "#/definitions/v3ReleaseDistinctFields"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseAgentDistinctReq describes the request to query distinct agent\nrelease field values."
+    },
+    "v3ReleaseAgentDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentDistinctRespData"
+        }
+      },
+      "description": "ReleaseAgentDistinctResp describes the response to query distinct agent\nrelease field values."
+    },
+    "v3ReleaseAgentDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/v3ReleaseDistinctResult"
+        }
+      },
+      "description": "Data contains the response payload for ReleaseAgentDistinctResp."
+    },
+    "v3ReleaseAgentEnableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseAgentEnableReq describes the request to enable an agent release."
+    },
+    "v3ReleaseAgentEnableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentEnableRespData"
+        }
+      },
+      "description": "ReleaseAgentEnableResp describes the response to enable an agent release."
+    },
+    "v3ReleaseAgentEnableRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseAgentEnableResp."
+    },
+    "v3ReleaseAgentGetReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseAgentGetReq describes the request to retrieve an agent release."
+    },
+    "v3ReleaseAgentGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentGetRespData"
+        }
+      },
+      "description": "ReleaseAgentGetResp describes the response to retrieve an agent release."
+    },
+    "v3ReleaseAgentGetRespData": {
+      "type": "object",
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/v3ReleaseInfo"
+        }
+      },
+      "description": "Data contains the response payload for ReleaseAgentGetResp."
+    },
+    "v3ReleaseAgentListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseAgentListReq describes the request to list agent releases."
+    },
+    "v3ReleaseAgentListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentListRespData"
+        }
+      },
+      "description": "ReleaseAgentListResp describes the response to list agent releases."
+    },
+    "v3ReleaseAgentListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseInfo"
+          }
+        }
+      },
+      "description": "Data contains the response payload for ReleaseAgentListResp."
+    },
+    "v3ReleaseAgentSetAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseAgentSetAsDefaultReq describes the request to set an agent release as\ndefault."
+    },
+    "v3ReleaseAgentSetAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentSetAsDefaultRespData"
+        }
+      },
+      "description": "ReleaseAgentSetAsDefaultResp describes the response to set an agent release\nas default."
+    },
+    "v3ReleaseAgentSetAsDefaultRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseAgentSetAsDefaultResp."
+    },
+    "v3ReleaseAgentSetLabelsManyReq": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "ReleaseAgentSetLabelsManyReq describes the request to set labels on\nmatching agent releases."
+    },
+    "v3ReleaseAgentSetLabelsManyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseAgentSetLabelsManyRespData"
+        }
+      },
+      "description": "ReleaseAgentSetLabelsManyResp describes the response to set labels on\nmatching agent releases."
+    },
+    "v3ReleaseAgentSetLabelsManyRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseAgentSetLabelsManyResp."
+    },
+    "v3ReleaseBinToolDeleteReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "ReleaseBinToolDeleteReq describes the request to delete a binary tool\nrelease."
+    },
+    "v3ReleaseBinToolDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseBinToolDeleteRespData"
+        }
+      },
+      "description": "ReleaseBinToolDeleteResp describes the response to delete a binary tool\nrelease."
+    },
+    "v3ReleaseBinToolDeleteRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseBinToolDeleteResp."
+    },
+    "v3ReleaseBinToolListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseBinToolListReq describes the request to list binary tool releases."
+    },
+    "v3ReleaseBinToolListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseBinToolListRespData"
+        }
+      },
+      "description": "ReleaseBinToolListResp describes the response to list binary tool releases."
+    },
+    "v3ReleaseBinToolListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseInfo"
+          }
+        }
+      },
+      "description": "Data contains the response payload for ReleaseBinToolListResp."
+    },
+    "v3ReleaseCertDeleteReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "ReleaseCertDeleteReq describes the request to delete a certificate release."
+    },
+    "v3ReleaseCertDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseCertDeleteRespData"
+        }
+      },
+      "description": "ReleaseCertDeleteResp describes the response to delete a certificate\nrelease."
+    },
+    "v3ReleaseCertDeleteRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseCertDeleteResp."
+    },
+    "v3ReleaseCertListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseCertListReq describes the request to list certificate releases."
+    },
+    "v3ReleaseCertListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseCertListRespData"
+        }
+      },
+      "description": "ReleaseCertListResp describes the response to list certificate releases."
+    },
+    "v3ReleaseCertListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseInfo"
+          }
+        }
+      },
+      "description": "Data contains the response payload for ReleaseCertListResp."
+    },
+    "v3ReleaseConditions": {
+      "type": "object",
+      "properties": {
+        "exact_include": {
+          "$ref": "#/definitions/v3ReleaseExactConditions"
+        }
+      },
+      "description": "ReleaseConditions describes one group of release operation conditions."
+    },
+    "v3ReleaseDistinctFields": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "boolean"
+        },
+        "cpu_arch": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "boolean"
+        }
+      },
+      "description": "ReleaseDistinctFields selects the release fields to query for distinct\nvalues."
+    },
+    "v3ReleaseDistinctResult": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "ReleaseDistinctResult contains distinct values of the selected release\nfields."
+    },
+    "v3ReleaseExactConditions": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generation": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "platform": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "as_default": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "enabled": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "is_hidden": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "is_shared": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "is_synced": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "ReleaseExactConditions describes exact filters for release operations."
+    },
+    "v3ReleaseInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file_name": {
+          "type": "string"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "is_hidden": {
+          "type": "boolean"
+        },
+        "is_shared": {
+          "type": "boolean"
+        },
+        "is_synced": {
+          "type": "boolean"
+        },
+        "as_default": {
+          "type": "boolean"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "addition_info": {
+          "type": "object"
+        }
+      },
+      "description": "ReleaseInfo contains common release metadata."
+    },
+    "v3ReleasePluginBinToolDeleteReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginBinToolDeleteReq describes the request to delete a plugin\nbinary tool release."
+    },
+    "v3ReleasePluginBinToolDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginBinToolDeleteRespData"
+        }
+      },
+      "description": "ReleasePluginBinToolDeleteResp describes the response to delete a plugin\nbinary tool release."
+    },
+    "v3ReleasePluginBinToolDeleteRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginBinToolDeleteResp."
+    },
+    "v3ReleasePluginBinToolDistinctNameReq": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleasePluginBinToolDistinctNameReq describes the request to query distinct\nplugin binary tool release names."
+    },
+    "v3ReleasePluginBinToolDistinctNameResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginBinToolDistinctNameRespData"
+        }
+      },
+      "description": "ReleasePluginBinToolDistinctNameResp describes the response to query\ndistinct plugin binary tool release names."
+    },
+    "v3ReleasePluginBinToolDistinctNameRespData": {
+      "type": "object",
+      "properties": {
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Data contains the response payload for\nReleasePluginBinToolDistinctNameResp."
+    },
+    "v3ReleasePluginBinToolListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleasePluginBinToolListReq describes the request to list plugin binary\ntool releases."
+    },
+    "v3ReleasePluginBinToolListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginBinToolListRespData"
+        }
+      },
+      "description": "ReleasePluginBinToolListResp describes the response to list plugin binary\ntool releases."
+    },
+    "v3ReleasePluginBinToolListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseInfo"
+          }
+        }
+      },
+      "description": "Data contains the response payload for ReleasePluginBinToolListResp."
+    },
+    "v3ReleasePluginCancelAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginCancelAsDefaultReq describes the request to cancel a plugin\nrelease default."
+    },
+    "v3ReleasePluginCancelAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginCancelAsDefaultRespData"
+        }
+      },
+      "description": "ReleasePluginCancelAsDefaultResp describes the response to cancel a plugin\nrelease default."
+    },
+    "v3ReleasePluginCancelAsDefaultRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginCancelAsDefaultResp."
+    },
+    "v3ReleasePluginCancelHiddenReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginCancelHiddenReq describes the request to cancel the hidden\nstate of a plugin release."
+    },
+    "v3ReleasePluginCancelHiddenResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginCancelHiddenRespData"
+        }
+      },
+      "description": "ReleasePluginCancelHiddenResp describes the response to cancel the hidden\nstate of a plugin release."
+    },
+    "v3ReleasePluginCancelHiddenRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginCancelHiddenResp."
+    },
+    "v3ReleasePluginCountReq": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleasePluginCountReq describes the request to count plugin releases."
+    },
+    "v3ReleasePluginCountResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginCountRespData"
+        }
+      },
+      "description": "ReleasePluginCountResp describes the response to count plugin releases."
+    },
+    "v3ReleasePluginCountRespData": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "Data contains the response payload for ReleasePluginCountResp."
+    },
+    "v3ReleasePluginDeleteReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginDeleteReq describes the request to delete a plugin release."
+    },
+    "v3ReleasePluginDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginDeleteRespData"
+        }
+      },
+      "description": "ReleasePluginDeleteResp describes the response to delete a plugin release."
+    },
+    "v3ReleasePluginDeleteRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginDeleteResp."
+    },
+    "v3ReleasePluginDisableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginDisableReq describes the request to disable a plugin release."
+    },
+    "v3ReleasePluginDisableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginDisableRespData"
+        }
+      },
+      "description": "ReleasePluginDisableResp describes the response to disable a plugin release."
+    },
+    "v3ReleasePluginDisableRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginDisableResp."
+    },
+    "v3ReleasePluginDistinctNameReq": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleasePluginDistinctNameReq describes the request to query distinct plugin\nrelease names."
+    },
+    "v3ReleasePluginDistinctNameResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginDistinctNameRespData"
+        }
+      },
+      "description": "ReleasePluginDistinctNameResp describes the response to query distinct\nplugin release names."
+    },
+    "v3ReleasePluginDistinctNameRespData": {
+      "type": "object",
+      "properties": {
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Data contains the response payload for ReleasePluginDistinctNameResp."
+    },
+    "v3ReleasePluginDistinctReq": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "$ref": "#/definitions/v3ReleaseDistinctFields"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleasePluginDistinctReq describes the request to query distinct plugin\nrelease field values."
+    },
+    "v3ReleasePluginDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginDistinctRespData"
+        }
+      },
+      "description": "ReleasePluginDistinctResp describes the response to query distinct plugin\nrelease field values."
+    },
+    "v3ReleasePluginDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/v3ReleaseDistinctResult"
+        }
+      },
+      "description": "Data contains the response payload for ReleasePluginDistinctResp."
+    },
+    "v3ReleasePluginEnableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginEnableReq describes the request to enable a plugin release."
+    },
+    "v3ReleasePluginEnableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginEnableRespData"
+        }
+      },
+      "description": "ReleasePluginEnableResp describes the response to enable a plugin release."
+    },
+    "v3ReleasePluginEnableRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginEnableResp."
+    },
+    "v3ReleasePluginExistReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginExistReq describes the request to check whether a plugin\nrelease exists."
+    },
+    "v3ReleasePluginExistResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginExistRespData"
+        }
+      },
+      "description": "ReleasePluginExistResp describes the response to check whether a plugin\nrelease exists."
+    },
+    "v3ReleasePluginExistRespData": {
+      "type": "object",
+      "properties": {
+        "exists": {
+          "type": "boolean"
+        }
+      },
+      "description": "Data contains the response payload for ReleasePluginExistResp."
+    },
+    "v3ReleasePluginGetDefaultVersionReq": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        }
+      },
+      "description": "ReleasePluginGetDefaultVersionReq describes the request to retrieve the\ndefault plugin release version."
+    },
+    "v3ReleasePluginGetDefaultVersionResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginGetDefaultVersionRespData"
+        }
+      },
+      "description": "ReleasePluginGetDefaultVersionResp describes the response to retrieve the\ndefault plugin release version."
+    },
+    "v3ReleasePluginGetDefaultVersionRespData": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "Data contains the response payload for\nReleasePluginGetDefaultVersionResp."
+    },
+    "v3ReleasePluginGetReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginGetReq describes the request to retrieve a plugin release."
+    },
+    "v3ReleasePluginGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginGetRespData"
+        }
+      },
+      "description": "ReleasePluginGetResp describes the response to retrieve a plugin release."
+    },
+    "v3ReleasePluginGetRespData": {
+      "type": "object",
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/v3ReleaseInfo"
+        }
+      },
+      "description": "Data contains the response payload for ReleasePluginGetResp."
+    },
+    "v3ReleasePluginListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleasePluginListReq describes the request to list plugin releases."
+    },
+    "v3ReleasePluginListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginListRespData"
+        }
+      },
+      "description": "ReleasePluginListResp describes the response to list plugin releases."
+    },
+    "v3ReleasePluginListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseInfo"
+          }
+        }
+      },
+      "description": "Data contains the response payload for ReleasePluginListResp."
+    },
+    "v3ReleasePluginSetAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginSetAsDefaultReq describes the request to set a plugin release as\ndefault."
+    },
+    "v3ReleasePluginSetAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginSetAsDefaultRespData"
+        }
+      },
+      "description": "ReleasePluginSetAsDefaultResp describes the response to set a plugin release\nas default."
+    },
+    "v3ReleasePluginSetAsDefaultRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginSetAsDefaultResp."
+    },
+    "v3ReleasePluginSetHiddenReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleasePluginSetHiddenReq describes the request to set the hidden state of\na plugin release."
+    },
+    "v3ReleasePluginSetHiddenResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleasePluginSetHiddenRespData"
+        }
+      },
+      "description": "ReleasePluginSetHiddenResp describes the response to set the hidden state\nof a plugin release."
+    },
+    "v3ReleasePluginSetHiddenRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleasePluginSetHiddenResp."
+    },
+    "v3ReleaseProxyCancelAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseProxyCancelAsDefaultReq describes the request to cancel a proxy\nrelease default."
+    },
+    "v3ReleaseProxyCancelAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyCancelAsDefaultRespData"
+        }
+      },
+      "description": "ReleaseProxyCancelAsDefaultResp describes the response to cancel a proxy\nrelease default."
+    },
+    "v3ReleaseProxyCancelAsDefaultRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseProxyCancelAsDefaultResp."
+    },
+    "v3ReleaseProxyCountReq": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseProxyCountReq describes the request to count proxy releases."
+    },
+    "v3ReleaseProxyCountResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyCountRespData"
+        }
+      },
+      "description": "ReleaseProxyCountResp describes the response to count proxy releases."
+    },
+    "v3ReleaseProxyCountRespData": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "Data contains the response payload for ReleaseProxyCountResp."
+    },
+    "v3ReleaseProxyDeleteReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseProxyDeleteReq describes the request to delete a proxy release."
+    },
+    "v3ReleaseProxyDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyDeleteRespData"
+        }
+      },
+      "description": "ReleaseProxyDeleteResp describes the response to delete a proxy release."
+    },
+    "v3ReleaseProxyDeleteRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseProxyDeleteResp."
+    },
+    "v3ReleaseProxyDisableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseProxyDisableReq describes the request to disable a proxy release."
+    },
+    "v3ReleaseProxyDisableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyDisableRespData"
+        }
+      },
+      "description": "ReleaseProxyDisableResp describes the response to disable a proxy release."
+    },
+    "v3ReleaseProxyDisableRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseProxyDisableResp."
+    },
+    "v3ReleaseProxyDistinctReq": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "$ref": "#/definitions/v3ReleaseDistinctFields"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseProxyDistinctReq describes the request to query distinct proxy\nrelease field values."
+    },
+    "v3ReleaseProxyDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyDistinctRespData"
+        }
+      },
+      "description": "ReleaseProxyDistinctResp describes the response to query distinct proxy\nrelease field values."
+    },
+    "v3ReleaseProxyDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/v3ReleaseDistinctResult"
+        }
+      },
+      "description": "Data contains the response payload for ReleaseProxyDistinctResp."
+    },
+    "v3ReleaseProxyEnableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseProxyEnableReq describes the request to enable a proxy release."
+    },
+    "v3ReleaseProxyEnableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyEnableRespData"
+        }
+      },
+      "description": "ReleaseProxyEnableResp describes the response to enable a proxy release."
+    },
+    "v3ReleaseProxyEnableRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseProxyEnableResp."
+    },
+    "v3ReleaseProxyGetReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseProxyGetReq describes the request to retrieve a proxy release."
+    },
+    "v3ReleaseProxyGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyGetRespData"
+        }
+      },
+      "description": "ReleaseProxyGetResp describes the response to retrieve a proxy release."
+    },
+    "v3ReleaseProxyGetRespData": {
+      "type": "object",
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/v3ReleaseInfo"
+        }
+      },
+      "description": "Data contains the response payload for ReleaseProxyGetResp."
+    },
+    "v3ReleaseProxyListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        }
+      },
+      "description": "ReleaseProxyListReq describes the request to list proxy releases."
+    },
+    "v3ReleaseProxyListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxyListRespData"
+        }
+      },
+      "description": "ReleaseProxyListResp describes the response to list proxy releases."
+    },
+    "v3ReleaseProxyListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseInfo"
+          }
+        }
+      },
+      "description": "Data contains the response payload for ReleaseProxyListResp."
+    },
+    "v3ReleaseProxySetAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseProxySetAsDefaultReq describes the request to set a proxy release as\ndefault."
+    },
+    "v3ReleaseProxySetAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxySetAsDefaultRespData"
+        }
+      },
+      "description": "ReleaseProxySetAsDefaultResp describes the response to set a proxy release as\ndefault."
+    },
+    "v3ReleaseProxySetAsDefaultRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseProxySetAsDefaultResp."
+    },
+    "v3ReleaseProxySetLabelsManyReq": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseConditions"
+          }
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "ReleaseProxySetLabelsManyReq describes the request to set labels on\nmatching proxy releases."
+    },
+    "v3ReleaseProxySetLabelsManyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ReleaseProxySetLabelsManyRespData"
+        }
+      },
+      "description": "ReleaseProxySetLabelsManyResp describes the response to set labels on\nmatching proxy releases."
+    },
+    "v3ReleaseProxySetLabelsManyRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for ReleaseProxySetLabelsManyResp."
+    }
+  }
+}

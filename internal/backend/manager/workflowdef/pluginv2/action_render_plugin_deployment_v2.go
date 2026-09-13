@@ -26,11 +26,11 @@ import (
 	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -48,7 +48,7 @@ const (
 func NewActionRenderPluginDeploymentV2(capability *Capability) action.Definition {
 	return &actionRenderPluginDeploymentV2{
 		daoHost:             capability.StorageTopo,
-		daoPluginPkg:        capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 		daoPluginDeployment: capability.StoragePlugin,
 		storageConfigPolicy: capability.StorageConfigPolicy,
 	}
@@ -62,7 +62,7 @@ type ActParamRenderPluginDeploymentV2 struct {
 // actionRenderPluginDeploymentV2 ...
 type actionRenderPluginDeploymentV2 struct {
 	daoHost             topoStg.IStorageHost
-	daoPluginPkg        releaseStg.IPlugin
+	fileHandler         file.IReleasePluginHandler
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	storageConfigPolicy configpolicy.IDaoConfigPolicyNode
 }
@@ -143,7 +143,7 @@ func (act *actionRenderPluginDeploymentV2) Do(ctx *action.InstanceContext) (err 
 
 	// setting process by plugin pkg.
 
-	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+	pluginPkg, err := act.fileHandler.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: std.DeployInfo().Process.Generation,
 		Platform:   std.DeployInfo().Process.Platform,
 		Version:    version,

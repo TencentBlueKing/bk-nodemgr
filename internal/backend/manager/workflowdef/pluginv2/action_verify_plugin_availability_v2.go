@@ -25,10 +25,10 @@ import (
 
 	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -42,7 +42,7 @@ const (
 func NewActionVerifyPluginAvailabilityV2(capability *Capability) action.Definition {
 	return &actionVerifyPluginAvailabilityV2{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoReleasePlugin:    capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 		daoHost:             capability.StorageTopo,
 		daoPlugin:           capability.StoragePlugin,
 	}
@@ -55,7 +55,7 @@ type ActParamVerifyPluginAvailabilityV2 struct {
 
 type actionVerifyPluginAvailabilityV2 struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoReleasePlugin    releaseStg.IPlugin
+	fileHandler         file.IReleasePluginHandler
 	daoHost             topoStg.IStorageHost
 	daoPlugin           pluginStg.IDaoPlugin
 }
@@ -134,7 +134,7 @@ func (act *actionVerifyPluginAvailabilityV2) Do(ctx *action.InstanceContext) (er
 		version = deployInfo.Process.Info.Version
 	}
 
-	pluginPkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+	pluginPkg, err := act.fileHandler.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: host.Dynamic.NodeGeneration,
 		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
 		Version:    version,

@@ -28,13 +28,13 @@ import (
 
 	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -50,7 +50,7 @@ func NewActionEnsureAndUpdatePluginConfigDetailsV2(capability *Capability) actio
 		daoHost:             capability.StorageTopo,
 		daoNetworkArea:      capability.StorageTopo,
 		daoPluginDeployment: capability.StoragePlugin,
-		daoPluginRelease:    capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 	}
 }
 
@@ -64,7 +64,7 @@ type actionEnsureAndUpdatePluginConfigDetailsV2 struct {
 	daoHost             topoStg.IStorageHost
 	daoNetworkArea      topoStg.IStorageNetworkArea
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoPluginRelease    release.IPlugin
+	fileHandler         file.IReleasePluginHandler
 }
 
 // Name returns the name of the action.
@@ -130,7 +130,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) Do(ctx *action.InstanceCo
 		return err
 	}
 
-	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
+	pluginRelease, err := act.fileHandler.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
 		Generation: std.DeployInfo().Process.Generation,
 		Platform:   std.DeployInfo().Process.Platform,
 		Version:    std.DeployInfo().Process.Info.Version,

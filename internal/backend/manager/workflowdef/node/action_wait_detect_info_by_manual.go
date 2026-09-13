@@ -25,11 +25,11 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -48,7 +48,7 @@ func NewActionWaitDetectInfoByManual(capability *Capability) action.Definition {
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storageActionInstance: capability.StorageWorkflow,
-		storageRelease:        capability.StorageRelease,
+		fileHandler:           capability.FileHandler,
 	}
 }
 
@@ -61,7 +61,7 @@ type actionWaitDetectInfoByManual struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
-	storageRelease        release.IStorage
+	fileHandler           file.IPkgReleaseHandler
 }
 
 // Name returns the name of the action.
@@ -207,7 +207,7 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -224,7 +224,7 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 
 	err = checkVersionAvailability(
 		std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,

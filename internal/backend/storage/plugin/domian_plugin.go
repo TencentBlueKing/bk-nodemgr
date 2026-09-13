@@ -19,7 +19,9 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -51,4 +53,69 @@ func (s *Storage) listVisiblePluginByBizIDs(nCtx contextx.IContext, bizIDs []int
 	}
 
 	return plugin, nil
+}
+
+// maxMemoFields covers the description and scenario in both languages.
+const maxMemoFields = 4
+
+func (s *Storage) ensureDefaultPlugin(nCtx contextx.IContext, release *types.ReleasePlugin) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if release == nil {
+		return errors.New("release plugin is nil")
+	}
+
+	if release.Name == "" {
+		return errors.New("plugin package name is empty")
+	}
+
+	exist, err := s.existPluginByPluginPkgName(nCtx, release.Name)
+	if err != nil {
+		return err
+	}
+
+	if exist {
+		return nil
+	}
+
+	plugin := &types.Plugin{
+		Name:    release.Name,
+		PkgName: release.Name,
+		Group:   types.PluginGroupDefault,
+		Memo:    buildPluginMemo(release),
+	}
+	if err := s.createPlugin(nCtx, plugin); err != nil {
+		exist, existErr := s.existPluginByPluginPkgName(nCtx, release.Name)
+		if existErr != nil {
+			return errors.Join(err, fmt.Errorf("failed to recheck default plugin: %w", existErr))
+		}
+
+		if exist {
+			return nil
+		}
+
+		return fmt.Errorf("plugin name(%s) is already occupied without a matching default plugin: %w", release.Name, err)
+	}
+
+	return nil
+}
+
+func buildPluginMemo(plugin *types.ReleasePlugin) string {
+	memoParts := make([]string, 0, maxMemoFields)
+	if plugin.Description != "" {
+		memoParts = append(memoParts, fmt.Sprintf("描述: %s", plugin.Description))
+	}
+	if plugin.Scenario != "" {
+		memoParts = append(memoParts, fmt.Sprintf("场景: %s", plugin.Scenario))
+	}
+	if plugin.DescriptionEn != "" {
+		memoParts = append(memoParts, fmt.Sprintf("Description: %s", plugin.DescriptionEn))
+	}
+	if plugin.ScenarioEn != "" {
+		memoParts = append(memoParts, fmt.Sprintf("Scene: %s", plugin.ScenarioEn))
+	}
+
+	return strings.Join(memoParts, "\n")
 }

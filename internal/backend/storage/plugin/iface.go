@@ -192,4 +192,7 @@ type IDomainPlugin interface {
 
 	// ListVisiblePluginByBizIDs list visible plugin by biz ids.
 	ListVisiblePluginByBizIDs(nCtx contextx.IContext, bizIDs []int64) ([]*types.Plugin, error)
+
+	// EnsureDefaultPlugin creates a missing default plugin from the release without changing existing plugins.
+	EnsureDefaultPlugin(nCtx contextx.IContext, release *types.ReleasePlugin) error
 }

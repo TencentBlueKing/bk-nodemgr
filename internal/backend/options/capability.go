@@ -34,7 +34,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -83,9 +82,6 @@ type Capability struct {
 
 	// StoragePackage package storage.
 	StoragePackage pkgStg.IStorage
-
-	// StorageRelease release storage.
-	StorageRelease release.IStorage
 
 	// StorageGlobalSettings global settings storage.
 	StorageGlobalSettings globalsettingsStorage.IStorage
@@ -184,10 +180,6 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 	}
 
 	if err := capability.StoragePackage.Start(ctx); err != nil {
-		return err
-	}
-
-	if err := capability.StorageRelease.Start(ctx); err != nil {
 		return err
 	}
 

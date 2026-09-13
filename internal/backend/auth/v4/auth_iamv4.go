@@ -26,10 +26,10 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v4/provider"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv4"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -47,7 +47,7 @@ type iamv4Authorizer struct {
 }
 
 // NewProviderHandler registers the IAM V4 resource providers.
-func NewProviderHandler(topoStorage topo.IStorage, releaseStorage release.IStorage) provider.IHandler {
+func NewProviderHandler(topoStorage topo.IStorage, releaseStorage file.IPkgReleaseHandler) provider.IHandler {
 	handler := provider.NewHandler()
 	handler.RegisterProvider(provider.ResourceTypeBiz, provider.NewBizProvider(topoStorage))
 	handler.RegisterProvider(provider.ResourceTypeNetworkArea, provider.NewNetworkAreaProvider(topoStorage))

@@ -28,10 +28,10 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	providerV3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v3/provider"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -40,7 +40,7 @@ import (
 const iamCacheTTL = 5 * time.Minute
 
 // NewProviderHandler registers the IAM V3 resource providers.
-func NewProviderHandler(topoStorage topo.IStorage, releaseStorage release.IStorage) providerV3.IHandler {
+func NewProviderHandler(topoStorage topo.IStorage, releaseStorage file.IPkgReleaseHandler) providerV3.IHandler {
 	handler := providerV3.NewHandler()
 	handler.RegisterProvider(providerV3.ResourceTypeNetworkArea, providerV3.NewNetworkAreaProvider(topoStorage))
 	handler.RegisterProvider(providerV3.ResourceTypeNetworkUnit, providerV3.NewNetworkUnitProvider(topoStorage))

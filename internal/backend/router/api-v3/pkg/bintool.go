@@ -19,8 +19,6 @@
 package pkg
 
 import (
-	"time"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -50,7 +48,7 @@ func (h *handler) ListReleaseBinTool(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	items, num, err := h.daoReleaseBinTool.ListReleaseBinTool(rCtx, types.UnlimitedPage(), cond)
+	items, num, err := h.fileHandler.ListReleaseBinTool(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list bintool release")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -82,7 +80,7 @@ func (h *handler) DeleteReleaseBinTool(rCtx restserver.IContext) (interface{}, e
 		Generation: gen,
 	}
 
-	if err := h.daoReleaseBinTool.DeleteReleaseBinTool(rCtx, key); err != nil {
+	if err := h.fileHandler.DeleteReleaseBinTool(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen).
@@ -90,15 +88,6 @@ func (h *handler) DeleteReleaseBinTool(rCtx restserver.IContext) (interface{}, e
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	h.recordPackageEvents(rCtx, &types.PackageEvent{
-		Name:        types.ReleaseNameBinTool,
-		ReleaseType: types.ReleaseTypeBinTool,
-		Generation:  gen,
-		EventType:   types.PackageEventTypeDelete,
-		OperateTime: time.Now(),
-		Operator:    rCtx.Data().GetLoginName(),
-	})
 
 	logger.G.Biz(rCtx).
 		With("gen", gen).

@@ -28,11 +28,11 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 
@@ -51,7 +51,7 @@ func NewActionDetectInfoByWMI(capability *Capability) action.Definition {
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
-		storageRelease:        capability.StorageRelease,
+		fileHandler:           capability.FileHandler,
 		passwordVault:         capability.HostPasswordVault,
 	}
 }
@@ -65,7 +65,7 @@ type actionDetectInfoByWMI struct {
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
-	storageRelease        release.IStorage
+	fileHandler           file.IPkgReleaseHandler
 	passwordVault         creditvault.IHostPasswordVault
 }
 
@@ -200,7 +200,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -217,7 +217,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 
 	err = checkVersionAvailability(
 		std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,

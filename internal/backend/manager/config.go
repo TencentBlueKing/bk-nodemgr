@@ -30,7 +30,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -74,7 +73,6 @@ type Config struct {
 
 	// storages.
 	StorageTopo               topoStg.IStorage
-	StorageRelease            release.IStorage
 	StorageNode               nodeStg.IStorage
 	StorageWorkflow           workflow.IStorage
 	StoragePackage            pkgStg.IStorage
@@ -133,9 +131,6 @@ func (conf *Config) Validate() error {
 	}
 	if conf.StorageTopo == nil {
 		return errors.New("topo storage is nil")
-	}
-	if conf.StorageRelease == nil {
-		return errors.New("release storage is nil")
 	}
 	if conf.StorageNode == nil {
 		return errors.New("node storage is nil")

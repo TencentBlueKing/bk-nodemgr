@@ -21,16 +21,16 @@ package node
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // CheckAndSelectVersionParam defines the version param.
 type CheckAndSelectVersionParam struct {
-	daoRelease  release.IStorage
+	fileHandler file.IPkgReleaseHandler
 	ReleaseType types.ReleaseType
 	Generation  types.Generation
 	OSType      criteria.OSType
@@ -55,7 +55,7 @@ func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersio
 
 	switch versionParam.ReleaseType {
 	case types.ReleaseTypeAgent:
-		r, _, err := versionParam.daoRelease.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
+		r, _, err := versionParam.fileHandler.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return "", fmt.Errorf("failed to list default agent releases: %w", err)
 		}
@@ -72,7 +72,7 @@ func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersio
 		return r[0].Version, nil
 
 	case types.ReleaseTypeProxy:
-		r, _, err := versionParam.daoRelease.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
+		r, _, err := versionParam.fileHandler.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return "", fmt.Errorf("failed to list default proxy releases: %w", err)
 		}
@@ -110,7 +110,7 @@ func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelec
 
 	switch versionParam.ReleaseType {
 	case types.ReleaseTypeAgent:
-		r, _, err := versionParam.daoRelease.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
+		r, _, err := versionParam.fileHandler.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return fmt.Errorf("failed to list default agent releases: %w", err)
 		}
@@ -127,7 +127,7 @@ func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelec
 		return nil
 
 	case types.ReleaseTypeProxy:
-		r, _, err := versionParam.daoRelease.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
+		r, _, err := versionParam.fileHandler.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return fmt.Errorf("failed to list default proxy releases: %w", err)
 		}

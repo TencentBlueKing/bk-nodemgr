@@ -27,13 +27,13 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -49,7 +49,7 @@ const (
 // NewActionInstallPreOrderedPlugins get a new action.
 func NewActionInstallPreOrderedPlugins(capability *Capability) action.Definition {
 	return &actionInstallPreOrderedPlugins{
-		storagePkg:            capability.StorageRelease,
+		fileHandler:           capability.FileHandler,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storagePluginWorkflow: capability.StoragePlugin,
@@ -70,7 +70,7 @@ type InstallPreOrderedPluginsParams struct {
 }
 
 type actionInstallPreOrderedPlugins struct {
-	storagePkg            releaseStg.IPlugin
+	fileHandler           file.IReleasePluginHandler
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storagePluginWorkflow pluginStg.IDaoPluginWorkflow
@@ -244,7 +244,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 	for _, pluginName := range preOrderedPluginsName {
 		name := pluginName
 		gp.Go(func() error {
-			version, err := act.storagePkg.GetReleasePluginDefaultVersion(
+			version, err := act.fileHandler.GetReleasePluginDefaultVersion(
 				nCtx,
 				name,
 				deployInfo.Host.Dynamic.NodeGeneration,
@@ -358,7 +358,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 	for _, pluginName := range preOrderedPluginV2s {
 		name := pluginName
 		gp.Go(func() error {
-			version, err := act.storagePkg.GetReleasePluginDefaultVersion(
+			version, err := act.fileHandler.GetReleasePluginDefaultVersion(
 				nCtx,
 				name,
 				deployInfo.Host.Dynamic.NodeGeneration,

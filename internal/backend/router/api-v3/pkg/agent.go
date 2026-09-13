@@ -19,12 +19,7 @@
 package pkg
 
 import (
-	"time"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -55,7 +50,7 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoReleaseAgent.CountReleaseAgent(rCtx, cond)
+		num, err := h.fileHandler.CountReleaseAgent(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent. failed to count release agent")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -73,7 +68,7 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.daoReleaseAgent.ListReleaseAgent(rCtx, page, cond)
+	hosts, num, err := h.fileHandler.ListReleaseAgent(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -102,7 +97,7 @@ func (h *handler) ListReleaseAgentBrief(rCtx restserver.IContext) (interface{}, 
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoReleaseAgent.CountReleaseAgent(rCtx, cond)
+		num, err := h.fileHandler.CountReleaseAgent(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent brief. failed to count release agent")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -120,7 +115,7 @@ func (h *handler) ListReleaseAgentBrief(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.daoReleaseAgent.ListReleaseAgent(rCtx, page, cond)
+	hosts, num, err := h.fileHandler.ListReleaseAgent(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent brief")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -154,7 +149,7 @@ func (h *handler) DistinctReleaseAgent(rCtx restserver.IContext) (interface{}, e
 		Version: req.GetDistinctField().GetVersion(),
 	}
 
-	result, err := h.daoReleaseAgent.DistinctReleaseAgent(rCtx, distinctField, cond)
+	result, err := h.fileHandler.DistinctReleaseAgent(rCtx, distinctField, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct agent release. failed to distinct agent release fields")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -181,7 +176,7 @@ func (h *handler) SetReleaseAgentLabelsMany(rCtx restserver.IContext) (interface
 		ExactInclude: exactIncludeCond,
 	}
 
-	if err := h.daoReleaseAgent.SetReleaseAgentLabelsMany(rCtx, req.GetLabels(), cond); err != nil {
+	if err := h.fileHandler.SetReleaseAgentLabelsMany(rCtx, req.GetLabels(), cond); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("labels", req.GetLabels(), "condition", *exactIncludeCond).
@@ -222,7 +217,7 @@ func (h *handler) EnableReleaseAgent(rCtx restserver.IContext) (interface{}, err
 		Version:    version,
 	}
 
-	if err := h.daoReleaseAgent.EnableReleaseAgent(rCtx, key); err != nil {
+	if err := h.fileHandler.EnableReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -230,9 +225,6 @@ func (h *handler) EnableReleaseAgent(rCtx restserver.IContext) (interface{}, err
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordAgentEvent(rCtx, gen, version, plat, types.PackageEventTypeEnable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -267,7 +259,7 @@ func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, er
 		Version:    version,
 	}
 
-	if err := h.daoReleaseAgent.DisableReleaseAgent(rCtx, key); err != nil {
+	if err := h.fileHandler.DisableReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -275,9 +267,6 @@ func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, er
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordAgentEvent(rCtx, gen, version, plat, types.PackageEventTypeDisable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -311,7 +300,7 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 		Version:    version,
 	}
 
-	if err := h.daoReleaseAgent.SetAsDefaultReleaseAgent(rCtx, key); err != nil {
+	if err := h.fileHandler.SetAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -319,9 +308,6 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordAgentEvent(rCtx, gen, version, plat, types.PackageEventTypeSetAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -355,7 +341,7 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 		Version:    version,
 	}
 
-	if err := h.daoReleaseAgent.CancelAsDefaultReleaseAgent(rCtx, key); err != nil {
+	if err := h.fileHandler.CancelAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -363,9 +349,6 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
-
-	// record package events.
-	h.recordAgentEvent(rCtx, gen, version, plat, types.PackageEventTypeCancelAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -399,7 +382,7 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 		Version:    version,
 	}
 
-	if err := h.daoReleaseAgent.DeleteReleaseAgent(rCtx, key); err != nil {
+	if err := h.fileHandler.DeleteReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -408,9 +391,6 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	// record package events.
-	h.recordAgentEvent(rCtx, gen, version, plat, types.PackageEventTypeDelete)
-
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
 		Info("deleted agent release")
@@ -418,35 +398,4 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	resp := new(protoBackend.PackageReleaseAgentDeleteResp)
 
 	return resp.GetData(), nil
-}
-
-func (h *handler) recordAgentEvent(rCtx restserver.IContext, gen types.Generation, version string, plat platfmt.Platform,
-	eventType types.PackageEventType) {
-
-	event := &types.PackageEvent{
-		Name:        types.ReleaseNameAgent,
-		ReleaseType: types.ReleaseTypeAgent,
-		Generation:  gen,
-		OSType:      plat.OS,
-		CPUArch:     plat.Arch,
-		Version:     version,
-		EventType:   eventType,
-		Operator:    rCtx.Data().GetLoginName(),
-		OperateTime: time.Now(),
-	}
-
-	h.recordPackageEvents(rCtx, event)
-}
-
-func (h *handler) recordPackageEvents(rCtx restserver.IContext, events ...*types.PackageEvent) {
-	err := h.goAsyncPool.Run(
-		rCtx,
-		func(nCtx contextx.IContext) error {
-			return h.daoPackageEvent.CreateManyPackageEvent(nCtx, events...)
-		},
-		goasync.WithName("record_package_event"),
-	)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to submit package event recording task")
-	}
 }

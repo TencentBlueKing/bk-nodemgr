@@ -26,9 +26,9 @@ import (
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -45,7 +45,7 @@ const (
 func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
 	return &actionRenderPluginDeployment{
 		daoHost:             capability.StorageTopo,
-		daoPluginPkg:        capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 		daoPluginDeployment: capability.StoragePlugin,
 		storageConfigPolicy: capability.StorageConfigPolicy,
 	}
@@ -59,7 +59,7 @@ type ActParamRenderPluginDeployment struct {
 // actionRenderPluginDeployment ...
 type actionRenderPluginDeployment struct {
 	daoHost             topoStg.IStorageHost
-	daoPluginPkg        releaseStg.IPlugin
+	fileHandler         file.IReleasePluginHandler
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	storageConfigPolicy configpolicy.IDaoConfigPolicyNode
 }
@@ -139,7 +139,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err er
 	}
 
 	// setting process by plugin pkg.
-	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+	pluginPkg, err := act.fileHandler.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: std.DeployInfo().Process.Generation,
 		Platform:   std.DeployInfo().Process.Platform,
 		Version:    version,

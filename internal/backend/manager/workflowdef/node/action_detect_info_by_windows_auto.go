@@ -26,12 +26,12 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -48,7 +48,7 @@ func NewActionDetectInfoByWindowsAuto(capability *Capability) action.Definition 
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
-		storageRelease:        capability.StorageRelease,
+		fileHandler:           capability.FileHandler,
 		passwordVault:         capability.HostPasswordVault,
 	}
 }
@@ -62,7 +62,7 @@ type actionDetectInfoByWindowsAuto struct {
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
-	storageRelease        release.IStorage
+	fileHandler           file.IPkgReleaseHandler
 	passwordVault         creditvault.IHostPasswordVault
 }
 
@@ -255,7 +255,7 @@ func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -272,7 +272,7 @@ func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
 
 	if err = checkVersionAvailability(
 		std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -285,10 +285,7 @@ func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
 	return nil
 }
 
-func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(
-	std *nodeUtils.NodeActionStandarder,
-) (windowsAutoDetectResult, error) {
-
+func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(std *nodeUtils.NodeActionStandarder) (windowsAutoDetectResult, error) {
 	sshResult, sshErr := act.detectByWindowsSSH(std)
 	if sshErr == nil {
 		return windowsAutoDetectResult{
@@ -310,8 +307,5 @@ func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(
 	}
 	logWindowsWMIInfo(std.InstanceData(), wmiResult)
 
-	return windowsAutoDetectResult{
-		osType:  wmiResult.osType,
-		cpuArch: wmiResult.cpuArch,
-	}, nil
+	return windowsAutoDetectResult(wmiResult), nil
 }

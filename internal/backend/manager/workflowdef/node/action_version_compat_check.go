@@ -24,9 +24,9 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -44,7 +44,7 @@ func NewActionVersionCompatCheck(capability *Capability) action.Definition {
 	return &actionVersionCompatCheck{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
-		storageRelease:        capability.StorageRelease,
+		fileHandler:           capability.FileHandler,
 
 		operateAgentSupportedLowestVersionFmt: types.NewGSEVersionFormatter(agentOperateRestartLowestVersion),
 	}
@@ -58,7 +58,7 @@ type ActionParamVersionCompatCheck struct {
 type actionVersionCompatCheck struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
-	storageRelease        release.IStorage
+	fileHandler           file.IPkgReleaseHandler
 
 	operateAgentSupportedLowestVersionFmt types.GSEVersionFormatter
 }
@@ -145,7 +145,7 @@ func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) (err error)
 		}
 
 		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,

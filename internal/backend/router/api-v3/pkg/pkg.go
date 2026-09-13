@@ -25,67 +25,38 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	asyncPoolNum  = 10
-	asyncPoolSize = 100
-)
-
 type handler struct {
-	rg                      *gin.RouterGroup
-	goAsyncPool             goasync.IHandler
-	daoPackageEvent         release.IPackageEvent
-	daoReleasePlugin        release.IPlugin
-	daoReleaseAgent         release.IAgent
-	daoReleaseProxy         release.IProxy
-	daoReleaseCert          release.ICert
-	daoReleaseBinTool       release.IBinTool
-	daoReleasePluginBinTool release.IPluginBinTool
-	daoPlugin               plugin.IDaoPlugin
-	daoPackageWorkflow      pkgStg.IStoragePackageWorkflow
-	packageExportStorage    pkgStg.IStoragePackageExport
-	fileHandler             file.IHandler
-	daoWorkflow             workflow.IStorage
-	pkgMgrIface             managerIface.IPackageManager
+	rg                   *gin.RouterGroup
+	domainPlugin         plugin.IDomainPlugin
+	daoPackageWorkflow   pkgStg.IStoragePackageWorkflow
+	packageExportStorage pkgStg.IStoragePackageExport
+	fileHandler          file.IHandler
+	daoWorkflow          workflow.IStorage
+	pkgMgrIface          managerIface.IPackageManager
 
 	daoTenant  tenant.IStorage
 	authorizer auth.IAuthorizer
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
-	goAsyncPool, _ := goasync.NewHandler(goasync.HandlerOption{
-		PoolNum:               asyncPoolNum,
-		PerPoolSize:           asyncPoolSize,
-		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
-	})
-
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                      rg.Group("/package"),
-		goAsyncPool:             goAsyncPool,
-		daoPackageEvent:         capability.StorageRelease,
-		daoReleasePlugin:        capability.StorageRelease,
-		daoReleaseAgent:         capability.StorageRelease,
-		daoReleaseProxy:         capability.StorageRelease,
-		daoReleaseCert:          capability.StorageRelease,
-		daoReleaseBinTool:       capability.StorageRelease,
-		daoReleasePluginBinTool: capability.StorageRelease,
-		daoPlugin:               capability.StoragePlugin,
-		daoPackageWorkflow:      capability.StoragePackage,
-		packageExportStorage:    capability.StoragePackage,
-		fileHandler:             capability.FileHandler,
-		daoWorkflow:             capability.StorageWorkflow,
-		pkgMgrIface:             capability.Manager,
-		daoTenant:               capability.StorageTenant,
-		authorizer:              capability.Authorizer,
+		rg:                   rg.Group("/package"),
+		domainPlugin:         capability.StoragePlugin,
+		daoPackageWorkflow:   capability.StoragePackage,
+		packageExportStorage: capability.StoragePackage,
+		fileHandler:          capability.FileHandler,
+		daoWorkflow:          capability.StorageWorkflow,
+		pkgMgrIface:          capability.Manager,
+		daoTenant:            capability.StorageTenant,
+		authorizer:           capability.Authorizer,
 	}
 }
 

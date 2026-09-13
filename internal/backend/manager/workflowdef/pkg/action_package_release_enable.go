@@ -17,9 +17,9 @@ import (
 
 	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -32,13 +32,13 @@ const (
 // NewActionPackageReleasePluginEnable creates the enable action for release plugin package.
 func NewActionPackageReleasePluginEnable(capability *Capability) action.Definition {
 	return &actionPackageReleasePluginEnable{
-		storageRelease: capability.StorageRelease,
+		fileHandler:    capability.FileHandler,
 		storagePackage: capability.StoragePackage,
 	}
 }
 
 type actionPackageReleasePluginEnable struct {
-	storageRelease release.IPlugin
+	fileHandler    file.IHandler
 	storagePackage pkgStg.IStorage
 }
 
@@ -130,7 +130,7 @@ func (act *actionPackageReleasePluginEnable) Do(ctx *action.InstanceContext) (er
 			Version:    release.Version,
 			Name:       release.Name,
 		}
-		if err := act.storageRelease.EnableReleasePlugin(nCtx, key); err != nil {
+		if err := act.fileHandler.EnableReleasePlugin(nCtx, key); err != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(err).With("plugin-name", release.Name).Error("failed to enable release plugin package")
 
 			return fmt.Errorf("failed to enable release plugin package: %w", err)

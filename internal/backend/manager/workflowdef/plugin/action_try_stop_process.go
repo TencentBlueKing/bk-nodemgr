@@ -25,12 +25,12 @@ import (
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -46,7 +46,7 @@ func NewActionTryStopProcess(capability *Capability) action.Definition {
 	return &actTryStopProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		daoPlugin:           capability.StoragePlugin,
-		daoReleasePlugin:    capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 		daoHost:             capability.StorageTopo,
 		daoDomainGse:        capability.StorageTopo,
 		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
@@ -62,7 +62,7 @@ type ActionParamTryStopProcess struct {
 type actTryStopProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoPlugin           pluginStg.IDaoPlugin
-	daoReleasePlugin    releaseStg.IPlugin
+	fileHandler         file.IReleasePluginHandler
 	daoHost             topoStg.IStorageHost
 	daoDomainGse        topoStg.IStorageDomainGse
 	gseHandlerProc      gse.IHandlerProc
@@ -250,9 +250,9 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginActionStandarder,
-	host *types.Host, plugin *types.Plugin, version string,
-) (types.ProcessSpec, error) {
+func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginActionStandarder, host *types.Host, plugin *types.Plugin, version string) (
+	types.ProcessSpec, error) {
+
 	nCtx := std.Context()
 	releaseKey := types.ReleasePluginKey{
 		Generation: host.Dynamic.NodeGeneration,
@@ -260,7 +260,7 @@ func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginAction
 		Version:    version,
 		Name:       plugin.PkgName,
 	}
-	pluginPkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, releaseKey)
+	pluginPkg, err := act.fileHandler.GetReleasePlugin(nCtx, releaseKey)
 	if err != nil {
 		std.InstanceData().Log().
 			Zh("查询运行版本的插件包失败, 回退到用户指定版本, plugin-pkg-name(%s), version(%s), fallback-version(%s): %s",
@@ -274,7 +274,7 @@ func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginAction
 		// fall back to the user-specified release to build stop parameters, even though
 		// its version may not match the running plugin.
 		releaseKey.Version = std.DeployInfo().InstallOptions.Version
-		pluginPkg, err = act.daoReleasePlugin.GetReleasePlugin(nCtx, releaseKey)
+		pluginPkg, err = act.fileHandler.GetReleasePlugin(nCtx, releaseKey)
 	}
 	if err != nil {
 		return types.ProcessSpec{}, fmt.Errorf("failed to get plugin release, name(%s), version(%s): %w",
@@ -306,6 +306,7 @@ func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginAction
 		RunDir:        pluginConstant.GeneratePluginRunDir(plugin.Group, plugin.Name),
 		LogDir:        conv.NonEmptyOr(customDeployConfig.PluginRuntime.LogDir, pluginConstant.LogDir),
 	}
+
 	return buildPluginProcessSpec(process, host, pluginPkg, runtime), nil
 }
 

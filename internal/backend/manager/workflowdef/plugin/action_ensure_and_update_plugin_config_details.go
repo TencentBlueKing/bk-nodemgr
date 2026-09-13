@@ -28,13 +28,13 @@ import (
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -50,7 +50,7 @@ func NewActionEnsureAndUpdatePluginConfigDetails(capability *Capability) action.
 		daoHost:             capability.StorageTopo,
 		daoNetworkArea:      capability.StorageTopo,
 		daoPluginDeployment: capability.StoragePlugin,
-		daoPluginRelease:    capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 	}
 }
 
@@ -64,7 +64,7 @@ type actionEnsureAndUpdatePluginConfigDetails struct {
 	daoHost             topoStg.IStorageHost
 	daoNetworkArea      topoStg.IStorageNetworkArea
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoPluginRelease    release.IPlugin
+	fileHandler         file.IReleasePluginHandler
 }
 
 // Name returns the name of the action.
@@ -131,7 +131,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	}
 	configSourceHostInfo := getConfigSourceHostInfo(std.DeployInfo(), hostInfo)
 
-	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
+	pluginRelease, err := act.fileHandler.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
 		Generation: std.DeployInfo().Process.Generation,
 		Platform:   std.DeployInfo().Process.Platform,
 		Version:    std.DeployInfo().Process.Info.Version,
@@ -771,9 +771,7 @@ func generateConfigSourceServiceRenderContext(serviceInstance types.ServiceInsta
 	}
 }
 
-func generateConfigSourceServiceProcessRenderContext(
-	processes map[string]types.ServiceInstanceProcess,
-) map[string]any {
+func generateConfigSourceServiceProcessRenderContext(processes map[string]types.ServiceInstanceProcess) map[string]any {
 	renderProcesses := make(map[string]any, len(processes))
 	for name, process := range processes {
 		renderProcesses[name] = map[string]any{
@@ -809,9 +807,7 @@ func generateConfigSourceServiceProcessRenderContext(
 	return renderProcesses
 }
 
-func generateServiceInstanceProcessBindInfoRenderContext(
-	bindInfo []types.ServiceInstanceProcessBindInfo,
-) []map[string]any {
+func generateServiceInstanceProcessBindInfoRenderContext(bindInfo []types.ServiceInstanceProcessBindInfo) []map[string]any {
 	return conv.SliceToSlice(bindInfo, func(info types.ServiceInstanceProcessBindInfo) map[string]any {
 		return map[string]any{
 			keyEnable:        info.Enable,

@@ -27,7 +27,6 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -37,6 +36,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -64,7 +64,7 @@ func NewActionPagentDetectInfoByWMI(capability *Capability) action.Definition {
 		storageActionInstance: capability.StorageWorkflow,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
-		storageRelease:        capability.StorageRelease,
+		fileHandler:           capability.FileHandler,
 		passwordVault:         capability.HostPasswordVault,
 		proxyMessager:         capability.ProxyMessager,
 	}
@@ -79,7 +79,7 @@ type actionPagentDetectInfoByWMI struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
-	storageRelease        release.IStorage
+	fileHandler           file.IPkgReleaseHandler
 	storageHostCredit     credit.IStorageHostCredit
 
 	passwordVault creditvault.IHostPasswordVault
@@ -199,7 +199,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -216,7 +216,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 
 	err = checkVersionAvailability(
 		std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,

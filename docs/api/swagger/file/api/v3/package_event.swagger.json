@@ -1,0 +1,415 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "package_event.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "PackageEventQuery"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/event/distinct": {
+      "post": {
+        "operationId": "PackageEventQuery_Distinct",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageEventDistinctReq describes a package event distinct request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageEventQuery"
+        ]
+      }
+    },
+    "/api/v3/event/list": {
+      "post": {
+        "operationId": "PackageEventQuery_List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageEventListReq describes a package event list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventListReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageEventQuery"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3PackageEventDistinctFields": {
+      "type": "object",
+      "properties": {
+        "release_type": {
+          "type": "boolean"
+        },
+        "event_type": {
+          "type": "boolean"
+        },
+        "os_type": {
+          "type": "boolean"
+        },
+        "cpu_arch": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "boolean"
+        },
+        "operator": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageEventDistinctFields selects package event fields for distinct queries."
+    },
+    "v3PackageEventDistinctReq": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "$ref": "#/definitions/v3PackageEventDistinctFields"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageEventQueryConditions"
+          }
+        }
+      },
+      "description": "PackageEventDistinctReq describes a package event distinct request."
+    },
+    "v3PackageEventDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageEventDistinctRespData"
+        }
+      },
+      "description": "PackageEventDistinctResp describes a package event distinct response."
+    },
+    "v3PackageEventDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "release_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "event_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Data contains the package event query result."
+    },
+    "v3PackageEventExactConditions": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "release_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "event_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "PackageEventExactConditions describes exact package event filters."
+    },
+    "v3PackageEventFuzzyConditions": {
+      "type": "object",
+      "description": "PackageEventFuzzyConditions describes fuzzy package event filters."
+    },
+    "v3PackageEventInfo": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "event_type": {
+          "type": "string"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "description": "PackageEventInfo describes a package event."
+    },
+    "v3PackageEventListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageEventQueryConditions"
+          }
+        }
+      },
+      "description": "PackageEventListReq describes a package event list request."
+    },
+    "v3PackageEventListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageEventListRespData"
+        }
+      },
+      "description": "PackageEventListResp describes a package event list response."
+    },
+    "v3PackageEventListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageEventInfo"
+          }
+        }
+      },
+      "description": "Data contains the package event query result."
+    },
+    "v3PackageEventQueryConditions": {
+      "type": "object",
+      "properties": {
+        "exact_include": {
+          "$ref": "#/definitions/v3PackageEventExactConditions"
+        },
+        "exact_exclude": {
+          "$ref": "#/definitions/v3PackageEventExactConditions"
+        },
+        "fuzzy_include": {
+          "$ref": "#/definitions/v3PackageEventFuzzyConditions"
+        },
+        "fuzzy_exclude": {
+          "$ref": "#/definitions/v3PackageEventFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3PackageEventQueryTimeRange"
+        }
+      },
+      "description": "PackageEventQueryConditions describes one package event condition."
+    },
+    "v3PackageEventQueryTimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "PackageEventQueryTimeRange describes an inclusive event time range."
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sort": {
+          "type": "string"
+        }
+      },
+      "description": "Page describes paging query settings."
+    }
+  }
+}

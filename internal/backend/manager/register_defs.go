@@ -66,7 +66,6 @@ func (mgr *Manager) registerDefinitions() error {
 func (mgr *Manager) registerDefPackage() error {
 	capability := &pkg.Capability{
 		FileHandler:    mgr.conf.FileHandler,
-		StorageRelease: mgr.conf.StorageRelease,
 		StoragePackage: mgr.conf.StoragePackage,
 	}
 
@@ -92,7 +91,6 @@ func (mgr *Manager) registerDefNode() error {
 		FileHandler:               mgr.conf.FileHandler,
 		MonitorHandler:            mgr.conf.MonitorHandler,
 		StorageTopo:               mgr.conf.StorageTopo,
-		StorageRelease:            mgr.conf.StorageRelease,
 		StorageNode:               mgr.conf.StorageNode,
 		StoragePlugin:             mgr.conf.StoragePlugin,
 		StorageWorkflow:           mgr.conf.StorageWorkflow,
@@ -183,7 +181,6 @@ func (mgr *Manager) registerDefSyncData() error {
 		FileHandler:         mgr.conf.FileHandler,
 		UserManagerHandler:  mgr.conf.UserManagerHandler,
 		StorageTopo:         mgr.conf.StorageTopo,
-		StorageRelease:      mgr.conf.StorageRelease,
 		StorageNode:         mgr.conf.StorageNode,
 		StorageWorkflow:     mgr.conf.StorageWorkflow,
 		StoragePlugin:       mgr.conf.StoragePlugin,
@@ -258,7 +255,6 @@ func (mgr *Manager) registerDefPlugin() error {
 		GSEHandler:          mgr.conf.GSEHandler,
 		FileHandler:         mgr.conf.FileHandler,
 		StorageTopo:         mgr.conf.StorageTopo,
-		StorageRelease:      mgr.conf.StorageRelease,
 		StorageNode:         mgr.conf.StorageNode,
 		StorageWorkflow:     mgr.conf.StorageWorkflow,
 		StoragePlugin:       mgr.conf.StoragePlugin,
@@ -317,7 +313,6 @@ func (mgr *Manager) registerDefPluginV2() error {
 		GSEHandler:          mgr.conf.GSEHandler,
 		FileHandler:         mgr.conf.FileHandler,
 		StorageTopo:         mgr.conf.StorageTopo,
-		StorageRelease:      mgr.conf.StorageRelease,
 		StorageNode:         mgr.conf.StorageNode,
 		StorageWorkflow:     mgr.conf.StorageWorkflow,
 		StoragePlugin:       mgr.conf.StoragePlugin,

@@ -13,13 +13,11 @@ package pkg
 
 import (
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 )
 
 // Capability contains dependencies required by package actions.
 type Capability struct {
 	FileHandler    file.IHandler
-	StorageRelease release.IStorage
 	StoragePackage pkgStg.IStorage
 }

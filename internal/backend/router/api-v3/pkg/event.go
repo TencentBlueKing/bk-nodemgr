@@ -44,7 +44,7 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoPackageEvent.CountPackageEvent(
+		num, err := h.fileHandler.CountPackageEvent(
 			rCtx,
 		)
 		if err != nil {
@@ -66,7 +66,7 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	events, num, err := h.daoPackageEvent.ListPackageEvent(rCtx, page, conditions)
+	events, num, err := h.fileHandler.ListPackageEvent(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event")
 
@@ -96,7 +96,7 @@ func (h *handler) DistinctPackageEvent(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.daoPackageEvent.DistinctPackageEvent(
+	result, err := h.fileHandler.DistinctPackageEvent(
 		rCtx,
 		types.NewPackageEventDistinctRequestAllSet(),
 		conditions)

@@ -27,9 +27,9 @@ import (
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -47,7 +47,7 @@ const (
 func NewActionAllocatePluginBindAddress(capability *Capability) action.Definition {
 	return &actionAllocatePluginBindAddress{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoPluginRelease:    capability.StorageRelease,
+		fileHandler:         capability.FileHandler,
 		gseHandler:          capability.GSEHandler,
 	}
 }
@@ -59,7 +59,7 @@ type ActParamAllocatePluginBindAddress struct {
 
 type actionAllocatePluginBindAddress struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoPluginRelease    release.IPlugin
+	fileHandler         file.IReleasePluginHandler
 	gseHandler          gse.IHandler
 }
 
@@ -119,7 +119,7 @@ func (act *actionAllocatePluginBindAddress) Do(ctx *action.InstanceContext) (err
 	}()
 
 	process := &std.DeployInfo().Process
-	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
+	pluginRelease, err := act.fileHandler.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
 		Generation: process.Generation,
 		Platform:   process.Platform,
 		Version:    process.Info.Version,

@@ -30,7 +30,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
@@ -39,6 +38,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -55,7 +55,7 @@ func NewActionRenderNodeDeployment(capability *Capability) action.Definition {
 		storageNodeDeployment:      capability.StorageNode,
 		storageHost:                capability.StorageTopo,
 		storageDomainGse:           capability.StorageTopo,
-		storageRelease:             capability.StorageRelease,
+		fileHandler:                capability.FileHandler,
 		storageConfigPolicy:        capability.StorageConfigPolicy,
 		storageBizEventDataIDConf:  capability.StorageBizEventDataIDConf,
 		monitorHandler:             capability.MonitorHandler,
@@ -72,7 +72,7 @@ type actionRenderNodeDeployment struct {
 	storageNodeDeployment      nodeStg.IDaoNodeDeployment
 	storageHost                topoStg.IStorageHost
 	storageDomainGse           topoStg.IStorageDomainGse
-	storageRelease             release.IStorage
+	fileHandler                file.IPkgReleaseHandler
 	storageConfigPolicy        configpolicy.IStorage
 	storageBizEventDataIDConf  bizeventdataidconf.IStorage
 	monitorHandler             monitor.IHandler
@@ -234,7 +234,7 @@ func (act *actionRenderNodeDeployment) getReleaseAgentForRender(
 		},
 	}
 
-	releases, _, err := act.storageRelease.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
+	releases, _, err := act.fileHandler.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list release agent: %w", err)
 	}
@@ -266,7 +266,7 @@ func (act *actionRenderNodeDeployment) fallbackDefaultReleaseAgent(
 		},
 	}
 
-	defaults, _, err := act.storageRelease.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
+	defaults, _, err := act.fileHandler.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("release agent version(%s) not found, "+
 			"and failed to list default agent release for platform(%v): %w", originalVersion, plat, err)
@@ -305,7 +305,7 @@ func (act *actionRenderNodeDeployment) getReleaseProxyForRender(
 		},
 	}
 
-	releases, _, err := act.storageRelease.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
+	releases, _, err := act.fileHandler.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list release proxy: %w", err)
 	}
@@ -337,7 +337,7 @@ func (act *actionRenderNodeDeployment) fallbackDefaultReleaseProxy(
 		},
 	}
 
-	defaults, _, err := act.storageRelease.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
+	defaults, _, err := act.fileHandler.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("release proxy version(%s) not found, "+
 			"and failed to list default proxy release for platform(%v): %w", originalVersion, plat, err)

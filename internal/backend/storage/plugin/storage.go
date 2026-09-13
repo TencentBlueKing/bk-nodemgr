@@ -78,6 +78,7 @@ const (
 	metricOperationExistDefaultPluginByPluginPkgName = "exist_default_plugin_by_plugin_pkg_name"
 	metricOperationSetPluginMemo                     = "set_plugin_memo"
 	metricOperationCreatePlugin                      = "create_plugin"
+	metricOperationEnsureDefaultPlugin               = "ensure_default_plugin"
 	metricOperationUpsertManyPlugins                 = "upsert_many_plugins"
 	metricOperationGetPluginVisibleBizIDs            = "get_plugin_visible_biz_ids"
 	metricOperationListVisiblePluginByBizIDs         = "list_visible_plugin_by_biz_ids"
@@ -458,15 +459,8 @@ func (s *Storage) GetPluginDeploymentInfo(nCtx contextx.IContext, token string) 
 
 // CreatePluginDeployment plugin deployment.
 func (s *Storage) CreatePluginDeployment(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationCreatePluginDeployment, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.createPluginDeployment(nCtx, pluginDeployment)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationCreatePluginDeployment, func(nCtx contextx.IContext) error {
+		return s.createPluginDeployment(nCtx, pluginDeployment)
 	})
 
 	return err
@@ -494,15 +488,8 @@ func (s *Storage) ListPluginDeployment(nCtx contextx.IContext, page types.Page, 
 
 // UpdatePluginDeploymentInfo update a plugin deployment info.
 func (s *Storage) UpdatePluginDeploymentInfo(nCtx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpdatePluginDeploymentInfo, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.updatePluginDeploymentInfo(nCtx, token, pluginDeploymentInfo)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpdatePluginDeploymentInfo, func(nCtx contextx.IContext) error {
+		return s.updatePluginDeploymentInfo(nCtx, token, pluginDeploymentInfo)
 	})
 
 	return err
@@ -527,15 +514,8 @@ func (s *Storage) GetPluginDeploymentPluginConf(ctx contextx.IContext, token str
 
 // UpdatePluginDeploymentPluginConf set plugin deployment plugin conf.
 func (s *Storage) UpdatePluginDeploymentPluginConf(ctx contextx.IContext, token string, pluginConf *types.PluginDeploymentPluginConf) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(ctx, metricOperationUpdatePluginDeploymentPluginConf, func(ctx contextx.IContext) error {
-		var err error
-		err = s.updatePluginDeploymentPluginConf(ctx, token, pluginConf)
-
-		return err
+	err := s.WrapFn(ctx, metricOperationUpdatePluginDeploymentPluginConf, func(ctx contextx.IContext) error {
+		return s.updatePluginDeploymentPluginConf(ctx, token, pluginConf)
 	})
 
 	return err
@@ -562,15 +542,8 @@ func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 func (s *Storage) UpsertPluginDeploymentPluginConfConfigFilesDetail(
 	ctx contextx.IContext, token string, configDetails ...*types.PluginConfigDetail) error {
 
-	var (
-		err error
-	)
-
-	err = s.WrapFn(ctx, metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail, func(ctx contextx.IContext) error {
-		var err error
-		err = s.upsertPluginDeploymentPluginConfConfigFilesDetail(ctx, token, configDetails...)
-
-		return err
+	err := s.WrapFn(ctx, metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail, func(ctx contextx.IContext) error {
+		return s.upsertPluginDeploymentPluginConfConfigFilesDetail(ctx, token, configDetails...)
 	})
 
 	return err
@@ -616,15 +589,8 @@ func (s *Storage) GetPluginWorkflowStatus(nCtx contextx.IContext, workflowID str
 
 // CreatePluginWorkflow createPluginDeployment plugin workflow.
 func (s *Storage) CreatePluginWorkflow(nCtx contextx.IContext, workflow *types.PluginWorkflow) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationCreatePluginWorkflow, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.createPluginWorkflow(nCtx, workflow)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationCreatePluginWorkflow, func(nCtx contextx.IContext) error {
+		return s.createPluginWorkflow(nCtx, workflow)
 	})
 
 	return err
@@ -632,15 +598,8 @@ func (s *Storage) CreatePluginWorkflow(nCtx contextx.IContext, workflow *types.P
 
 // UpdatePluginWorkflowStatus update plugin workflow status.
 func (s *Storage) UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpdatePluginWorkflowStatus, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.updatePluginWorkflowStatus(nCtx, workflowID, status)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpdatePluginWorkflowStatus, func(nCtx contextx.IContext) error {
+		return s.updatePluginWorkflowStatus(nCtx, workflowID, status)
 	})
 
 	return err
@@ -795,15 +754,8 @@ func (s *Storage) ExistDefaultPluginByPluginPkgName(nCtx contextx.IContext, plug
 
 // SetPluginMemo set plugin memo by plugin name.
 func (s *Storage) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationSetPluginMemo, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.setPluginMemo(nCtx, pluginName, memo)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationSetPluginMemo, func(nCtx contextx.IContext) error {
+		return s.setPluginMemo(nCtx, pluginName, memo)
 	})
 
 	return err
@@ -811,15 +763,17 @@ func (s *Storage) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo 
 
 // CreatePlugin create plugin.
 func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) error {
-	var (
-		err error
-	)
+	err := s.WrapFn(nCtx, metricOperationCreatePlugin, func(nCtx contextx.IContext) error {
+		return s.createPlugin(nCtx, plugin)
+	})
 
-	err = s.WrapFn(nCtx, metricOperationCreatePlugin, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.createPlugin(nCtx, plugin)
+	return err
+}
 
-		return err
+// EnsureDefaultPlugin creates a missing default plugin from the release without changing existing plugins.
+func (s *Storage) EnsureDefaultPlugin(nCtx contextx.IContext, release *types.ReleasePlugin) error {
+	err := s.WrapFn(nCtx, metricOperationEnsureDefaultPlugin, func(nCtx contextx.IContext) error {
+		return s.ensureDefaultPlugin(nCtx, release)
 	})
 
 	return err
@@ -827,15 +781,8 @@ func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) err
 
 // UpsertManyPlugins upsert many plugins.
 func (s *Storage) UpsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Plugin) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpsertManyPlugins, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.upsertManyPlugins(nCtx, plugins...)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpsertManyPlugins, func(nCtx contextx.IContext) error {
+		return s.upsertManyPlugins(nCtx, plugins...)
 	})
 
 	return err
@@ -916,15 +863,8 @@ func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditi
 
 // CreateProcess create process.
 func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationCreateProcess, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.createProcess(nCtx, process)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationCreateProcess, func(nCtx contextx.IContext) error {
+		return s.createProcess(nCtx, process)
 	})
 
 	return err
@@ -932,15 +872,8 @@ func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) 
 
 // UpdateProcess create process.
 func (s *Storage) UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpdateProcess, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.updateProcess(nCtx, process, hostID, pluginName)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpdateProcess, func(nCtx contextx.IContext) error {
+		return s.updateProcess(nCtx, process, hostID, pluginName)
 	})
 
 	return err
@@ -948,15 +881,8 @@ func (s *Storage) UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName
 
 // UpdateProcessInfo update process info.
 func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpdateProcessInfo, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.updateProcessInfo(nCtx, hostID, pluginName, processInfo)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpdateProcessInfo, func(nCtx contextx.IContext) error {
+		return s.updateProcessInfo(nCtx, hostID, pluginName, processInfo)
 	})
 
 	return err
@@ -964,15 +890,8 @@ func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, hostID int64, plugin
 
 // UpdateManyProcessInfo batch update process info by process ID.
 func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpdateManyProcessInfo, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpdateManyProcessInfo, func(nCtx contextx.IContext) error {
+		return s.updateManyProcessInfo(nCtx, processInfoDeltas)
 	})
 
 	return err
@@ -980,15 +899,8 @@ func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDelta
 
 // UpdateProcessManyHostBizID update process biz id for many host.
 func (s *Storage) UpdateProcessManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpdateProcessBizID, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.updateProcessManyHostBizID(nCtx, bizID, hostID...)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpdateProcessBizID, func(nCtx contextx.IContext) error {
+		return s.updateProcessManyHostBizID(nCtx, bizID, hostID...)
 	})
 
 	return err
@@ -996,15 +908,8 @@ func (s *Storage) UpdateProcessManyHostBizID(nCtx contextx.IContext, bizID int64
 
 // DeleteProcess delete process.
 func (s *Storage) DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationDeleteProcess, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.deleteProcess(nCtx, hostID, pluginName)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationDeleteProcess, func(nCtx contextx.IContext) error {
+		return s.deleteProcess(nCtx, hostID, pluginName)
 	})
 
 	return err
@@ -1120,15 +1025,8 @@ func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *typ
 
 // CreateProcessConfig create process config.
 func (s *Storage) CreateProcessConfig(nCtx contextx.IContext, processConfig *types.ProcessConfig) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationCreateProcessConfig, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.createProcessConfig(nCtx, processConfig)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationCreateProcessConfig, func(nCtx contextx.IContext) error {
+		return s.createProcessConfig(nCtx, processConfig)
 	})
 
 	return err
@@ -1136,15 +1034,8 @@ func (s *Storage) CreateProcessConfig(nCtx contextx.IContext, processConfig *typ
 
 // UpsertProcessConfigs upsert many process configs.
 func (s *Storage) UpsertProcessConfigs(nCtx contextx.IContext, processConfigs ...*types.ProcessConfig) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpsertManyProcessConfigs, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.upsertProcessConfigs(nCtx, processConfigs...)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationUpsertManyProcessConfigs, func(nCtx contextx.IContext) error {
+		return s.upsertProcessConfigs(nCtx, processConfigs...)
 	})
 
 	return err
@@ -1152,15 +1043,8 @@ func (s *Storage) UpsertProcessConfigs(nCtx contextx.IContext, processConfigs ..
 
 // DeleteProcessConfigsByProcessUniqueKey delete process configs by process unique key.
 func (s *Storage) DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigsByProcessUniqueKey, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.deleteProcessConfigsByProcessUniqueKey(nCtx, processUniqueKeys...)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationDeleteProcessConfigsByProcessUniqueKey, func(nCtx contextx.IContext) error {
+		return s.deleteProcessConfigsByProcessUniqueKey(nCtx, processUniqueKeys...)
 	})
 
 	return err
@@ -1168,15 +1052,8 @@ func (s *Storage) DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 
 // DeleteProcessConfigs delete process configs.
 func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigs, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.deleteProcessConfigs(nCtx, processUniqueKey, names...)
-
-		return err
+	err := s.WrapFn(nCtx, metricOperationDeleteProcessConfigs, func(nCtx contextx.IContext) error {
+		return s.deleteProcessConfigs(nCtx, processUniqueKey, names...)
 	})
 
 	return err

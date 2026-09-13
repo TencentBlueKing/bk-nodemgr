@@ -25,10 +25,10 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -43,7 +43,7 @@ func NewActionResolveOfflineDetectInfo(capability *Capability) action.Definition
 	return &actionResolveOfflineDetectInfo{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
-		storageRelease:        capability.StorageRelease,
+		fileHandler:           capability.FileHandler,
 	}
 }
 
@@ -55,7 +55,7 @@ type ActParamResolveOfflineDetectInfo struct {
 type actionResolveOfflineDetectInfo struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
-	storageRelease        release.IStorage
+	fileHandler           file.IPkgReleaseHandler
 }
 
 // Name returns the name of the action.
@@ -162,7 +162,7 @@ func (act *actionResolveOfflineDetectInfo) Do(ctx *action.InstanceContext) (err 
 		}
 	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -179,7 +179,7 @@ func (act *actionResolveOfflineDetectInfo) Do(ctx *action.InstanceContext) (err 
 
 	err = checkVersionAvailability(
 		std.Context(), CheckAndSelectVersionParam{
-			daoRelease:  act.storageRelease,
+			fileHandler: act.fileHandler,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
 			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,

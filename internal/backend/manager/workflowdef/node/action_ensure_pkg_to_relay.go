@@ -26,7 +26,6 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 
@@ -59,7 +58,6 @@ func NewActionEnsurePkgToRelay(capability *Capability) action.Definition {
 	return &actionEnsurePkgToRelay{
 		installerFileGroup: capability.InstallerFileGroup,
 
-		storageRelease:        capability.StorageRelease,
 		storageActionInstance: capability.StorageWorkflow,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
@@ -80,7 +78,6 @@ type actionEnsurePkgToRelay struct {
 
 	installerFileGroup fileiface.FileGroup
 
-	storageRelease        release.IStorage
 	storageActionInstance workflow.IStorageActionInstance
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -350,7 +347,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(nCtx contextx.IContext,
 	var release *types.Release
 	switch std.DeployInfo().Host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
-		r, err := act.storageRelease.GetReleaseAgent(nCtx, types.ReleaseAgentKey{
+		r, err := act.fileHandler.GetReleaseAgent(nCtx, types.ReleaseAgentKey{
 			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
 			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
 			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,
@@ -362,7 +359,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(nCtx contextx.IContext,
 		release = &r.Release
 
 	case types.NodeRoleProxy:
-		r, err := act.storageRelease.GetReleaseProxy(nCtx, types.ReleaseProxyKey{
+		r, err := act.fileHandler.GetReleaseProxy(nCtx, types.ReleaseProxyKey{
 			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
 			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
 			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,

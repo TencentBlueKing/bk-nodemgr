@@ -26,7 +26,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	workflowStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -52,7 +51,6 @@ type Capability struct {
 
 	// stroage.
 	StorageTopo               topoStg.IStorage
-	StorageRelease            release.IStorage
 	StorageNode               nodeStg.IStorage
 	StoragePlugin             pluginStg.IStorage
 	StorageWorkflow           workflowStg.IStorage
