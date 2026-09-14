@@ -117,7 +117,7 @@ config:
 > - **启用前提**：需确认 `clusterEndpoints` / `fileEndpoints` / `dataEndpoints` 已填写环境中真实可用的 GSE 接入地址（对应 GSE 的 cluster / file / data 三类通道）。
 > - **为空风险**：若开启开关但 endpoints 为空，将创建出没有上游通道地址的直连单元，默认管控区域内的 Agent 安装与管控通道建立会失败。
 >
-> 网络单元概念详见 [Network Unit（管控单元）](../concepts/topo/networkunit.md)。
+> 网络单元概念详见 [Network Unit（管控单元）](../concepts/topo/networkunit.md)，新环境如何配置 `defaultDirectUnit` 详见 [默认直连网络单元配置](installation/default_direct_unit.md)。
 
 ### File配置
 
