@@ -204,6 +204,9 @@ def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
 # =================== http request ===================
 
 
+PACKAGE_REQUEST_TIMEOUT = 30 * 60
+
+
 def http_request(
     url,
     method="GET",
@@ -212,7 +215,7 @@ def http_request(
     json_data=None,
     form_data=None,
     files=None,
-    timeout=30,
+    timeout=PACKAGE_REQUEST_TIMEOUT,
 ):
     import requests
 
@@ -272,21 +275,27 @@ def http_request(
         return False, {"error": f"unexpected error: {str(e)}"}
 
 
-def http_get(url, params=None, headers=None, timeout=30):
+def http_get(url, params=None, headers=None, timeout=PACKAGE_REQUEST_TIMEOUT):
     """GET request"""
     return http_request(
         url, method="GET", params=params, headers=headers, timeout=timeout
     )
 
 
-def http_post_json(url, data, headers=None, timeout=30):
+def http_post_json(url, data, headers=None, timeout=PACKAGE_REQUEST_TIMEOUT):
     """POST JSON request"""
     return http_request(
         url, method="POST", json_data=data, headers=headers, timeout=timeout
     )
 
 
-def http_upload_file(url, file_path, form_data=None, headers=None, timeout=30):
+def http_upload_file(
+    url,
+    file_path,
+    form_data=None,
+    headers=None,
+    timeout=PACKAGE_REQUEST_TIMEOUT,
+):
     """Upload file (automatically handles bk-nodemgr protocol)"""
     import os
 
@@ -371,12 +380,16 @@ class FileClient(object):
                 headers=headers,
                 form_data=form_data,
                 files={"file": file_path},
-                timeout=300,
+                timeout=PACKAGE_REQUEST_TIMEOUT,
             )
 
         elif json_data is not None:
             ok, resp = http_request(
-                url=url, method=method, headers=headers, json_data=json_data, timeout=30
+                url=url,
+                method=method,
+                headers=headers,
+                json_data=json_data,
+                timeout=PACKAGE_REQUEST_TIMEOUT,
             )
         else:
             return False, "neither file_path nor json_data provided", None
