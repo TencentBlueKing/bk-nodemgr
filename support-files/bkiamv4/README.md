@@ -212,23 +212,23 @@ flowchart TD
 
 ### Role 更新规则
 
-`0004` 在 Action 之后注册以下十一个角色。Agent 和 Proxy 管理员各自管理对应节点，同时包含 Plugin 权限、NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理员包含 Config Policy 和 Deploy Policy 权限。不自动展开 `related_actions`。
+`0004` 在 Action 之后注册以下十一个角色。Agent 和 Proxy 管理人员各自管理对应节点，同时包含 Plugin 权限、NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理人员包含 Config Policy 和 Deploy Policy 权限。不自动展开 `related_actions`。
 
 | Role ID                 | 名称             | Action 数 |
 | ----------------------- | ---------------- | --------- |
-| `agent_manager`         | Agent 管理员     | 10        |
-| `proxy_manager`         | Proxy 管理员     | 10        |
+| `agent_manager`         | Agent 管理人员   | 10        |
+| `proxy_manager`         | Proxy 管理人员   | 10        |
 | `networkarea_creator`   | 管控区域创建者   | 1         |
-| `networkarea_manager`   | 管控区域管理员   | 5         |
-| `networkunit_manager`   | 管控单元管理员   | 6         |
-| `config_policy_manager` | 配置策略管理员   | 7         |
-| `package_manager`       | 资源包管理员     | 4         |
-| `agent_viewer`          | Agent 只读用户   | 9         |
-| `proxy_viewer`          | Proxy 只读用户   | 9         |
-| `topo_viewer`           | 网络拓扑只读用户 | 4         |
-| `package_viewer`        | 资源包只读用户   | 2         |
+| `networkarea_manager`   | 管控区域管理人员 | 5         |
+| `networkunit_manager`   | 管控单元管理人员 | 6         |
+| `config_policy_manager` | 配置策略管理人员 | 7         |
+| `package_manager`       | 资源包管理人员   | 4         |
+| `agent_viewer`          | Agent 只读人员   | 9         |
+| `proxy_viewer`          | Proxy 只读人员   | 9         |
+| `topo_viewer`           | 网络拓扑只读人员 | 4         |
+| `package_viewer`        | 资源包只读人员   | 2         |
 
-**只读角色：** Agent 和 Proxy 只读用户各自包含对应节点、插件、配置策略和部署策略的查看及历史查看权限，以及业务访问权限，不包含管控区域或管控单元权限；不单独注册 `config_policy_viewer`。网络拓扑只读用户包含管控区域和管控单元的查看及历史查看权限；资源包只读用户仅包含资源包查看及历史查看权限。只读角色不包含创建、编辑、删除、操作、管理、上传或使用管控单元部署的权限；Action 资源绑定保持不变，资源范围以授权为准。新增只读角色不改变已有角色，也不会自动向用户授予这些角色。
+**只读角色：** Agent 和 Proxy 只读人员各自包含对应节点、插件、配置策略和部署策略的查看及历史查看权限，以及业务访问权限，不包含管控区域或管控单元权限；不单独注册 `config_policy_viewer`。网络拓扑只读人员包含管控区域和管控单元的查看及历史查看权限；资源包只读人员仅包含资源包查看及历史查看权限。只读角色不包含创建、编辑、删除、操作、管理、上传或使用管控单元部署的权限；Action 资源绑定保持不变，资源范围以授权为准。新增只读角色不改变已有角色，也不会自动向用户授予这些角色。
 
 `data` 仅接受 `id`、`name`、`description`、`actions`。每次 upsert 都必须提供完整、非空的 `actions` 数组；每个成员必须显式提供 `id` 和 `resource_type_id`，不允许重复 Action ID、未知字段或 `null`。名称非空，描述允许空字符串。
 
