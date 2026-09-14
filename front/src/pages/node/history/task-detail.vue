@@ -454,11 +454,6 @@ const reTryType = computed(() => [
 ]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
-const nodeRoleCondition = computed(() => (
-  route.query.active === 'agent' || route.query.active === 'proxy'
-    ? { node_role: [route.query.active] }
-    : {}
-));
 const stateMinWidth = computed(() => (tableData.value.some(item =>
   (item.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script')
     || isOfflineGuideStep(item.latest_action_inst_brief_data?.tags ?? []))
@@ -1300,7 +1295,6 @@ const getStatistics = async () => {
   if (!route.params.taskId) return;
   const res = await serviceCaller.call('statistics', {
     workflow_id: [route.params.taskId],
-    ...nodeRoleCondition.value,
   }).catch((err) => {
     console.log(err);
     return {
@@ -1494,7 +1488,6 @@ const updataCurrentTaskInfo = async () => {
     },
     exact_include_conditions: {
       workflow_id: [route.params.taskId],
-      ...nodeRoleCondition.value,
     },
   }).catch((err) => {
     console.log(err);

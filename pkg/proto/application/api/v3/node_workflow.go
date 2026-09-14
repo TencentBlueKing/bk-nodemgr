@@ -137,7 +137,6 @@ func (x *NodeWorkflowStatisticsReq) ConvertConditionsToWorkflowConditionTypes() 
 	return convertNodeWorkflowConditionsToTypes(
 		&NodeWorkflowExactConditions{
 			WorkflowId: x.GetWorkflowId(),
-			NodeRole:   x.GetNodeRole(),
 		}, nil, nil)
 }
 

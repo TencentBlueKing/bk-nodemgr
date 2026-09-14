@@ -69,10 +69,7 @@ message NodeWorkflowListResp {
 }
 
 // NodeWorkflowStatisticReq describes the node workflow statistic request.
-message NodeWorkflowStatisticsReq {
-  repeated string workflow_id = 1;
-  repeated string node_role = 2;
-}
+message NodeWorkflowStatisticsReq { repeated string workflow_id = 1; }
 
 // NodeWorkflowStatisticResp describes the node workflow statistic response.
 message NodeWorkflowStatisticsResp {

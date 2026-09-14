@@ -219,7 +219,7 @@ const executeAssign = async (items: { bk_host_id: number[]; bk_networkunit_id: n
         router.push({
           name: 'taskDetail',
           params: { taskId: result.workflow_id, routerBackName: 'taskList' },
-          query: { active: 'proxy' },
+          query: { active: 'node' },
         });
       } else if (failedCount === 0) {
         Message({

@@ -540,7 +540,7 @@ const handleExecuteUpgrade = async () => {
     router.push({
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
-      query: { active: props.releaseType },
+      query: { active: 'node' },
     });
     isShow.value = false;
   }
