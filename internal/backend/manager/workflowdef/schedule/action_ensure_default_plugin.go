@@ -44,14 +44,14 @@ const (
 // NewActionEnsureDefaultPlugin creates the default plugin reconciliation action.
 func NewActionEnsureDefaultPlugin(capability *Capability) action.Definition {
 	return &actionEnsureDefaultPlugin{
-		storagePlugin: capability.StoragePlugin,
-		fileHandler:   capability.FileHandler,
+		domainPlugin: capability.StoragePlugin,
+		fileHandler:  capability.FileHandler,
 	}
 }
 
 type actionEnsureDefaultPlugin struct {
-	storagePlugin pluginStg.IDaoPlugin
-	fileHandler   file.IReleasePluginHandler
+	domainPlugin pluginStg.IDomainPlugin
+	fileHandler  file.IReleasePluginHandler
 }
 
 // ActionParamEnsureDefaultPlugin defines the default plugin reconciliation action parameters.
@@ -130,7 +130,7 @@ func (act *actionEnsureDefaultPlugin) Do(ctx *action.InstanceContext) error {
 		}
 		processedPackages[release.Name] = struct{}{}
 
-		if err := act.ensureDefaultPlugin(std.Context(), release); err != nil {
+		if err := act.domainPlugin.EnsureDefaultPlugin(std.Context(), release); err != nil {
 			failures = append(failures, fmt.Errorf(
 				"plugin package %q, generation %d, platform %s, version %q: %w",
 				release.Name, release.Generation, release.Platform.String(), release.Version, err,
@@ -167,25 +167,4 @@ func (act *actionEnsureDefaultPlugin) listEnabledPluginReleases(nCtx contextx.IC
 	}
 
 	return result.Items, nil
-}
-
-func (act *actionEnsureDefaultPlugin) ensureDefaultPlugin(nCtx contextx.IContext, release *types.ReleasePlugin) error {
-	exist, err := act.storagePlugin.ExistDefaultPluginByPluginPkgName(nCtx, release.Name)
-	if err != nil {
-		return fmt.Errorf("failed to check default plugin, plugin package %q: %w", release.Name, err)
-	}
-	if exist {
-		return nil
-	}
-
-	if err := act.storagePlugin.CreatePlugin(nCtx, &types.Plugin{
-		Name:    release.Name,
-		PkgName: release.Name,
-		Group:   types.PluginGroupDefault,
-		Memo:    types.BuildDefaultPluginMemo(release),
-	}); err != nil {
-		return fmt.Errorf("failed to create default plugin, plugin package %q: %w", release.Name, err)
-	}
-
-	return nil
 }

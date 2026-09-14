@@ -29,6 +29,6 @@ import (
 type Capability struct {
 	// stroage.
 	StorageWorkflow workflow.IStorage
-	StoragePlugin   pluginStg.IDaoPlugin
+	StoragePlugin   pluginStg.IStorage
 	FileHandler     file.IReleasePluginHandler
 }
