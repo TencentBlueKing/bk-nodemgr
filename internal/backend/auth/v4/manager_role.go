@@ -31,6 +31,11 @@ import (
 // Management grants expire after the IAM V4 maximum lifetime, without automatic renewal.
 const managerGrantLifetime = 365 * 24 * time.Hour
 
+const (
+	roleNetworkAreaManager = "networkarea_manager"
+	roleNetworkUnitManager = "networkunit_manager"
+)
+
 type managerRoleGranter struct {
 	handler iamv4.IHandlerRole
 }
@@ -47,9 +52,9 @@ func (granter *managerRoleGranter) GrantManagerRole(ctx contextx.IContext, usern
 	var roleID string
 	switch resource.Type {
 	case types.AuthResourceTypeNetworkArea:
-		roleID = "networkarea_manager"
+		roleID = roleNetworkAreaManager
 	case types.AuthResourceTypeNetworkUnit:
-		roleID = "networkunit_manager"
+		roleID = roleNetworkUnitManager
 	default:
 		return fmt.Errorf("unsupported management grant resource type %q", resource.Type)
 	}
