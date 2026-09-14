@@ -44,8 +44,8 @@ type IAgent interface {
 	// UploadOriginAgent uploads the origin agent.
 	UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
-	// PublishReleaseAgent generates release agent by upload-id.
-	PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error
+	// PublishReleaseAgent generates release agent by upload-id and is-shared.
+	PublishReleaseAgent(nCtx contextx.IContext, uploadID string, isShared bool) error
 }
 
 // UploadOriginAgent uploads the origin agent.
@@ -256,10 +256,10 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 	return detail, nil
 }
 
-// PublishReleaseAgent generates release agent packages by upload-id.
+// PublishReleaseAgent generates release agent packages by upload-id and is-shared.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetAgentUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release agent, failed to get upload(%s). err: %v", uploadID, err)
@@ -369,6 +369,10 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 					Platform:   pkg.platform,
 					FileName:   file.Info().Name,
 					MD5:        file.Info().MD5,
+					Enabled:    false,
+					AsDefault:  false,
+					IsShared:   isShared,
+					IsSynced:   false,
 					Operator:   nCtx.BKUsername(),
 					UpdatedAt:  time.Now(),
 				},

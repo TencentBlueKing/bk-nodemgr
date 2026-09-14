@@ -44,8 +44,8 @@ type IExternalPluginV2 interface {
 	// UploadOriginExternalPlugin uploads the origin external plugin.
 	UploadOriginExternalPlugin(nCtx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginExternalPluginV2PkgDetail, error)
 
-	// PublishReleaseExternalPlugin generates release external plugin by upload-id.
-	PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string) error
+	// PublishReleaseExternalPlugin generates release external plugin by upload-id and is-shared.
+	PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string, isShared bool) error
 }
 
 // UploadOriginExternalPlugin uploads origin external plugin.
@@ -338,9 +338,9 @@ func buildExternalPluginPkgController(pluginProject *ExternalPluginProject) type
 	}
 }
 
-// PublishReleaseExternalPlugin generates release external plugin by upload-id.
+// PublishReleaseExternalPlugin generates release external plugin by upload-id and is-shared.
 // nolint: funlen,gocognit
-func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetExternalPluginV2Upload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release external plugin, failed to get upload")
@@ -448,6 +448,8 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 					MD5:          file.Info().MD5,
 					Enabled:      false,
 					AsDefault:    false,
+					IsShared:     isShared,
+					IsSynced:     false,
 					UpdatedAt:    time.Now(),
 					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,

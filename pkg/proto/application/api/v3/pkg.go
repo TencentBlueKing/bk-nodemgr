@@ -760,6 +760,8 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsFromTypes(total int6
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
 		*item.Release.Operator = release.Operator
+		*item.Release.IsShared = release.IsShared
+		*item.Release.IsSynced = release.IsSynced
 
 		items[idx] = item
 	}
@@ -798,6 +800,8 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsToTypes() (int64, []
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
+				IsShared:  item.GetRelease().GetIsShared(),
+				IsSynced:  item.GetRelease().GetIsSynced(),
 			},
 		}
 		result[idx] = releasePlugin

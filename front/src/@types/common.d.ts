@@ -250,6 +250,8 @@ interface ReleaseAgentBrief {
   enabled: boolean;
   as_default: boolean;
   is_hidden: boolean;
+  change_log_en: string;
+  change_log_zh: string;
 }
 
 interface ReleaseProxy {
@@ -512,4 +514,3 @@ interface HostOpsInfo {
   ops_bmc_ip: string;
   ops_bmc_port: number;
 }
-

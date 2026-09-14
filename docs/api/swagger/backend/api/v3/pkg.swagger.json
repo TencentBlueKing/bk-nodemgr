@@ -2336,6 +2336,18 @@
           "items": {
             "type": "boolean"
           }
+        },
+        "is_shared": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "is_synced": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
         }
       },
       "description": "PackageReleaseExactConditions describes release exact conditions."
@@ -3499,6 +3511,12 @@
           "type": "string"
         },
         "is_hidden": {
+          "type": "boolean"
+        },
+        "is_shared": {
+          "type": "boolean"
+        },
+        "is_synced": {
           "type": "boolean"
         }
       },

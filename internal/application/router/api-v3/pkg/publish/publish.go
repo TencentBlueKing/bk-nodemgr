@@ -68,7 +68,8 @@ func (h *handler) PublishReleaseAgent(rCtx restserver.IContext) (interface{}, er
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseAgent(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleaseAgent(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release agent. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -91,7 +92,8 @@ func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, er
 
 	uploadID := req.GetUploadId()
 	uploadCategory := req.GetUploadOriginPkgType()
-	if err := h.fileHandler.PublishReleaseProxy(rCtx, uploadID, uploadCategory); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleaseProxy(rCtx, uploadID, uploadCategory, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy.")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -113,7 +115,8 @@ func (h *handler) PublishReleaseCert(rCtx restserver.IContext) (interface{}, err
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseCert(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleaseCert(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release cert. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -135,7 +138,8 @@ func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, 
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseBinTool(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleaseBinTool(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release bintool. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -157,7 +161,8 @@ func (h *handler) PublishReleasePluginV2(rCtx restserver.IContext) (interface{},
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleasePluginV2(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleasePluginV2(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v2. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -179,7 +184,8 @@ func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (inte
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseExternalPluginV2(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleaseExternalPluginV2(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release external plugin v2. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -201,7 +207,8 @@ func (h *handler) PublishReleasePluginV3(rCtx restserver.IContext) (interface{},
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleasePluginV3(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleasePluginV3(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v3. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -223,7 +230,8 @@ func (h *handler) PublishReleasePluginBinTool(rCtx restserver.IContext) (interfa
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleasePluginBinTool(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.fileHandler.PublishReleasePluginBinTool(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin bintool. upload-id(%s): %v", uploadID, err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}

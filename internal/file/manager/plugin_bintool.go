@@ -41,8 +41,8 @@ type IPluginBinTool interface {
 	UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (
 		*types.OriginPluginBinToolPkgDetail, error)
 
-	// PublishReleasePluginBinTool generate release plugin bintool package.
-	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
+	// PublishReleasePluginBinTool generate release plugin bintool package by upload-id and is-shared.
+	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// EnsurePluginBinToolToLocal ensure plugin bintool to local.
 	EnsurePluginBinToolToLocal(nCtx contextx.IContext, gen types.Generation, name string) (fileiface.File, string, error)
@@ -186,9 +186,9 @@ func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinTool
 	return detail, nil
 }
 
-// PublishReleasePluginBinTool generates release plugin bintool by upload-id.
+// PublishReleasePluginBinTool generates release plugin bintool by upload-id and is-shared.
 // nolint: funlen
-func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetPluginBinToolUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool, failed to get upload")
@@ -209,11 +209,11 @@ func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID s
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		return m.handlerPluginBinToolV2Pkg(nCtx, file)
+		return m.handlerPluginBinToolV2Pkg(nCtx, file, isShared)
 	})
 
 	gp.Go(func() error {
-		return m.handlerPluginBinToolV3Pkg(nCtx, file)
+		return m.handlerPluginBinToolV3Pkg(nCtx, file, isShared)
 	})
 
 	if err = gp.Wait(); err != nil {
@@ -224,7 +224,7 @@ func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID s
 	return nil
 }
 
-func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
+func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile fileiface.File, isShared bool) error {
 	// get origin content.
 	content, err := sourceFile.Content(nCtx)
 	if err != nil {
@@ -271,6 +271,8 @@ func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile f
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
+			IsShared:     isShared,
+			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,
@@ -290,7 +292,7 @@ func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile f
 	return nil
 }
 
-func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
+func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile fileiface.File, isShared bool) error {
 	// get origin content.
 	content, err := sourceFile.Content(nCtx)
 	if err != nil {
@@ -337,6 +339,8 @@ func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile f
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
+			IsShared:     isShared,
+			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,

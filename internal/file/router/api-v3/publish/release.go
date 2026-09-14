@@ -37,7 +37,8 @@ func (h *handler) PublishReleaseAgent(rCtx restserver.IContext) (interface{}, er
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleaseAgent(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.manager.PublishReleaseAgent(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release agent")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -59,16 +60,17 @@ func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, er
 	}
 
 	uploadID := req.GetUploadId()
+	shared := req.GetIsShared()
 	uploadCategory := types.UploadCategory(req.GetUploadOriginPkgType())
 	switch uploadCategory {
 	case types.UploadCategoryOriginProxy:
-		if err := h.manager.PublishReleaseProxyFromProxyPkg(rCtx, uploadID); err != nil {
+		if err := h.manager.PublishReleaseProxyFromProxyPkg(rCtx, uploadID, shared); err != nil {
 			logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy from origin proxy pkg")
 
 			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 		}
 	case types.UploadCategoryOriginServer:
-		if err := h.manager.PublishReleaseProxyFromServerPkg(rCtx, uploadID); err != nil {
+		if err := h.manager.PublishReleaseProxyFromServerPkg(rCtx, uploadID, shared); err != nil {
 			logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy from origin server pkg")
 
 			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -97,7 +99,8 @@ func (h *handler) PublishReleaseCert(rCtx restserver.IContext) (interface{}, err
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleaseCert(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.manager.PublishReleaseCert(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release cert")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -119,7 +122,8 @@ func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, 
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleaseBinTool(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.manager.PublishReleaseBinTool(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release bintool")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -141,7 +145,8 @@ func (h *handler) PublishReleasePluginBinTool(rCtx restserver.IContext) (interfa
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleasePluginBinTool(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.manager.PublishReleasePluginBinTool(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -163,7 +168,8 @@ func (h *handler) PublishReleasePluginV2(rCtx restserver.IContext) (interface{},
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleasePluginV2(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.manager.PublishReleasePluginV2(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin v2")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -185,7 +191,8 @@ func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (inte
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleaseExternalPlugin(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.manager.PublishReleaseExternalPlugin(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release external plugin v2")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -207,7 +214,8 @@ func (h *handler) PublishReleasePluginV3(rCtx restserver.IContext) (interface{},
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleasePluginV3(rCtx, uploadID); err != nil {
+	shared := req.GetIsShared()
+	if err := h.manager.PublishReleasePluginV3(rCtx, uploadID, shared); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin v3")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)

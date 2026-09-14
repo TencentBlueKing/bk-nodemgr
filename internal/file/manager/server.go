@@ -40,8 +40,8 @@ type IServer interface {
 	// UploadOriginServer uploads the origin server.
 	UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
-	// PublishReleaseProxyFromServerPkg generates release proxy packages from server packages by upload-id.
-	PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string) error
+	// PublishReleaseProxyFromServerPkg generates release proxy packages from server packages by upload-id and is-shared.
+	PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string, isShared bool) error
 }
 
 // UploadOriginServer uploads the origin server.
@@ -295,10 +295,10 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 	return detail, nil
 }
 
-// PublishReleaseProxyFromServerPkg generates release proxy from server packages by upload-id.
+// PublishReleaseProxyFromServerPkg generates release proxy from server packages by upload-id and is-shared.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetServerUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release server, failed to get upload")
@@ -416,6 +416,8 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 					MD5:          file.Info().MD5,
 					Enabled:      false,
 					AsDefault:    false,
+					IsShared:     isShared,
+					IsSynced:     false,
 					UpdatedAt:    time.Now(),
 					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,

@@ -6,7 +6,10 @@ import "common.proto";
 import "google/api/annotations.proto";
 
 // PublishReleaseAgentReq is the request for upload release agent pkg.
-message PublishReleaseAgentReq { string upload_id = 1; }
+message PublishReleaseAgentReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleaseAgentResp is the response for upload release agent pkg.
 message PublishReleaseAgentResp {
@@ -25,6 +28,7 @@ message PublishReleaseProxyReq {
   // upload_origin_pkg_type indicates the origin category of the uploaded
   // package. only accepts "origin_server" and "origin_proxy", no default value.
   string upload_origin_pkg_type = 2;
+  bool is_shared = 3;
 }
 
 // PublishReleaseProxyResp is the response for upload release proxy pkg.
@@ -38,7 +42,10 @@ message PublishReleaseProxyResp {
 }
 
 // PublishReleaseCertReq is the request for upload release cert pkg.
-message PublishReleaseCertReq { string upload_id = 1; }
+message PublishReleaseCertReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleaseCertResp is the response for upload release cert pkg.
 message PublishReleaseCertResp {
@@ -51,7 +58,10 @@ message PublishReleaseCertResp {
 }
 
 // PublishReleaseBinToolReq is the request for upload release bintool pkg.
-message PublishReleaseBinToolReq { string upload_id = 1; }
+message PublishReleaseBinToolReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleaseBinToolResp is the response for upload release bintool pkg.
 message PublishReleaseBinToolResp {
@@ -65,7 +75,10 @@ message PublishReleaseBinToolResp {
 
 // PublishReleasePluginBinToolReq is the request for upload release plugin
 // bintool pkg.
-message PublishReleasePluginBinToolReq { string upload_id = 1; }
+message PublishReleasePluginBinToolReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleasePluginBinToolResp is the response for upload release plugin
 // bintool pkg.
@@ -80,7 +93,10 @@ message PublishReleasePluginBinToolResp {
 
 // PublishReleasePluginV2Req is the request for upload release
 // plugin pkg.
-message PublishReleasePluginV2Req { string upload_id = 1; }
+message PublishReleasePluginV2Req {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleasePluginV2Resp is the response for upload release
 // plugin pkg.
@@ -95,7 +111,10 @@ message PublishReleasePluginV2Resp {
 
 // PublishReleaseExternalPluginV2Req is the request for upload release external
 // plugin v2 pkg.
-message PublishReleaseExternalPluginV2Req { string upload_id = 1; }
+message PublishReleaseExternalPluginV2Req {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleaseExternalPluginV2Resp is the response for upload release
 // external plugin v2 pkg.
@@ -110,7 +129,10 @@ message PublishReleaseExternalPluginV2Resp {
 
 // PublishReleasePluginV3Req is the request for upload release
 // plugin pkg.
-message PublishReleasePluginV3Req { string upload_id = 1; }
+message PublishReleasePluginV3Req {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleasePluginV3Resp is the response for upload release
 // plugin pkg.

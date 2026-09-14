@@ -323,6 +323,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleaseAgentReq is the request for upload release agent pkg."
@@ -354,6 +357,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleaseBinToolReq is the request for upload release bintool pkg."
@@ -385,6 +391,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleaseCertReq is the request for upload release cert pkg."
@@ -416,6 +425,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleaseExternalPluginV2Req is the request for upload release external\nplugin v2 pkg."
@@ -447,6 +459,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg."
@@ -478,6 +493,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleasePluginV2Req is the request for upload release\nplugin pkg."
@@ -509,6 +527,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleasePluginV3Req is the request for upload release\nplugin pkg."
@@ -544,6 +565,9 @@
         "upload_origin_pkg_type": {
           "type": "string",
           "description": "upload_origin_pkg_type indicates the origin category of the uploaded\npackage. only accepts \"origin_server\" and \"origin_proxy\", no default value."
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleaseProxyReq is the request for upload release proxy pkg."

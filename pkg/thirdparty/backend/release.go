@@ -914,6 +914,8 @@ func convertReleaseCertFromProto(item *protoBackend.ReleaseCert) *types.ReleaseC
 			AsDefault: release.GetAsDefault(),
 			UpdatedAt: time.UnixMilli(int64(release.GetUpdatedAt())).Local(),
 			Operator:  release.GetOperator(),
+			IsShared:  release.GetIsShared(),
+			IsSynced:  release.GetIsSynced(),
 		},
 	}
 }
@@ -1015,6 +1017,8 @@ func convertReleaseBinToolFromProto(item *protoBackend.ReleaseBinTool) *types.Re
 			AsDefault: release.GetAsDefault(),
 			UpdatedAt: time.UnixMilli(int64(release.GetUpdatedAt())).Local(),
 			Operator:  release.GetOperator(),
+			IsShared:  release.GetIsShared(),
+			IsSynced:  release.GetIsSynced(),
 		},
 	}
 }
@@ -1039,6 +1043,8 @@ func convertReleasePluginBinToolFromProto(item *protoBackend.ReleasePluginBinToo
 			AsDefault: release.GetAsDefault(),
 			UpdatedAt: time.UnixMilli(int64(release.GetUpdatedAt())).Local(),
 			Operator:  release.GetOperator(),
+			IsShared:  release.GetIsShared(),
+			IsSynced:  release.GetIsSynced(),
 		},
 	}
 }

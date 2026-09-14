@@ -40,8 +40,8 @@ type IBinTool interface {
 	UploadOriginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (
 		*types.OriginBinToolPkgDetail, error)
 
-	// PublishReleaseBinTool generate release bintool package.
-	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
+	// PublishReleaseBinTool generate release bintool package by upload-id and is-shared.
+	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// EnsureBinToolToLocal ensure bintool to local.
 	EnsureBinToolToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error)
@@ -176,9 +176,9 @@ func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, e
 	return detail, nil
 }
 
-// PublishReleaseBinTool generates release bintool by upload-id.
+// PublishReleaseBinTool generates release bintool by upload-id and is-shared.
 // nolint:funlen
-func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetBinToolUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release bintool, failed to get upload(%s). err: %v", uploadID, err)
@@ -251,6 +251,8 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
+			IsShared:     isShared,
+			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,

@@ -2477,6 +2477,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PackagePublishReleaseAgentReq is the request for upload release agent pkg."
@@ -2514,6 +2517,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PackagePublishReleaseBinToolReq is the request for upload release bintool\npkg."
@@ -2551,6 +2557,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PackagePublishReleaseCertReq is the request for upload release cert pkg."
@@ -2588,6 +2597,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PackagePublishReleaseExternalPluginV2Req is the request for publish release\nexternal plugin v2 pkg."
@@ -2625,6 +2637,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg."
@@ -2656,6 +2671,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PackagePublishReleasePluginV2Req is the request for publish release plugin v2\npkg."
@@ -2693,6 +2711,9 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PackagePublishReleasePluginV3Req is the request for publish release plugin v3\npkg."
@@ -2734,6 +2755,9 @@
         "upload_origin_pkg_type": {
           "type": "string",
           "description": "upload_origin_pkg_type indicates the origin category of the uploaded\npackage. only accepts \"origin_server\" and \"origin_proxy\", no default value."
+        },
+        "is_shared": {
+          "type": "boolean"
         }
       },
       "description": "PackagePublishReleaseProxyReq is the request for upload release proxy pkg."
@@ -3577,6 +3601,18 @@
           }
         },
         "is_hidden": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "is_shared": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "is_synced": {
           "type": "array",
           "items": {
             "type": "boolean"
@@ -5500,6 +5536,12 @@
         },
         "is_hidden": {
           "type": "boolean"
+        },
+        "is_shared": {
+          "type": "boolean"
+        },
+        "is_synced": {
+          "type": "boolean"
         }
       },
       "description": "Release describes the release."
@@ -5542,6 +5584,12 @@
         },
         "is_hidden": {
           "type": "boolean"
+        },
+        "change_log_en": {
+          "type": "string"
+        },
+        "change_log_zh": {
+          "type": "string"
         }
       }
     },

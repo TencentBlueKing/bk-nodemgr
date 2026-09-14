@@ -44,8 +44,8 @@ type IProxy interface {
 	// UploadOriginProxy uploads the origin proxy.
 	UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
-	// PublishReleaseProxyFromProxyPkg generates release proxy from origin proxy package by upload-id.
-	PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string) error
+	// PublishReleaseProxyFromProxyPkg generates release proxy from origin proxy package by upload-id and is-shared.
+	PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string, isShared bool) error
 }
 
 // UploadOriginProxy uploads the origin proxy.
@@ -392,10 +392,10 @@ func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 	return detail, nil
 }
 
-// PublishReleaseProxyFromProxyPkg generates release proxy packages from origin proxy package by upload-id.
+// PublishReleaseProxyFromProxyPkg generates release proxy packages from origin proxy package by upload-id and is-shared.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetProxyUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy, failed to get upload")
@@ -506,6 +506,8 @@ func (m *Manager) PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, upload
 					MD5:          file.Info().MD5,
 					Enabled:      false,
 					AsDefault:    false,
+					IsShared:     isShared,
+					IsSynced:     false,
 					UpdatedAt:    time.Now(),
 					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,

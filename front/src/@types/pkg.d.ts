@@ -277,6 +277,7 @@ export interface DataV3Info {
 // pkg.
 export interface PackagePublishReleasePluginV2Req {
   upload_id: string;
+  is_shared: boolean;
 }
 
 // PackagePublishReleasePluginV2Resp is the response for publish release plugin
@@ -297,6 +298,7 @@ export interface PackagePublishReleasePluginV2RespData {
 // external plugin v2 pkg.
 export interface PackagePublishReleaseExternalPluginV2Req {
   upload_id: string;
+  is_shared: boolean;
 }
 
 // PackagePublishReleaseExternalPluginV2Resp is the response for publish release
@@ -317,6 +319,7 @@ export interface PackagePublishReleaseExternalPluginV2RespData {
 // pkg.
 export interface PackagePublishReleasePluginV3Req {
   upload_id: string;
+  is_shared: boolean;
 }
 
 // PackagePublishReleasePluginV3Resp is the response for publish release plugin
@@ -336,6 +339,7 @@ export interface PackagePublishReleasePluginV3RespData {
 // PackagePublishReleaseAgentReq is the request for upload release agent pkg.
 export interface PackagePublishReleaseAgentReq {
   upload_id: string;
+  is_shared: boolean;
 }
 
 // PackagePublishReleaseAgentResp is the response for upload release agent pkg.
@@ -357,6 +361,7 @@ export interface PackagePublishReleaseProxyReq {
   // upload_origin_pkg_type indicates the origin category of the uploaded
   // package. only accepts "origin_server" and "origin_proxy", no default value.
   upload_origin_pkg_type: string;
+  is_shared: boolean;
 }
 
 // PackagePublishReleaseProxyResp is the response for upload release proxy pkg.
@@ -375,6 +380,7 @@ export interface PackagePublishReleaseProxyRespData {
 // PackagePublishReleaseCertReq is the request for upload release cert pkg.
 export interface PackagePublishReleaseCertReq {
   upload_id: string;
+  is_shared: boolean;
 }
 
 // PackagePublishReleaseCertResp is the response for upload release cert pkg.
@@ -394,6 +400,7 @@ export interface PackagePublishReleaseCertRespData {
 // pkg.
 export interface PackagePublishReleaseBinToolReq {
   upload_id: string;
+  is_shared: boolean;
 }
 
 // PackagePublishReleaseBinToolResp is the response for upload release bintool
@@ -414,6 +421,7 @@ export interface PackagePublishReleaseBinToolRespData {
 // bintool pkg.
 export interface PackagePublishReleasePluginBinToolReq {
   upload_id: string;
+  is_shared: boolean;
 }
 
 // PublishReleasePluginBinToolResp is the response for upload release plugin
@@ -437,6 +445,8 @@ export interface PackageReleaseExactConditions {
   name: string[];
   file_name: string[];
   is_hidden: boolean[];
+  is_shared: boolean[];
+  is_synced: boolean[];
 }
 
 // PackageReleaseDistinctField describes the release distinct field.

@@ -44,8 +44,8 @@ type IPluginV3 interface {
 	// UploadOriginPluginV3 uploads origin plugin package v3.
 	UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginPluginV3PkgDetail, error)
 
-	// PublishReleasePluginV3 generates release plugin package v3 by upload-id.
-	PublishReleasePluginV3(nCtx contextx.IContext, uploadID string) error
+	// PublishReleasePluginV3 generates release plugin package v3 by upload-id and is-shared.
+	PublishReleasePluginV3(nCtx contextx.IContext, uploadID string, isShared bool) error
 }
 
 // UploadOriginPluginV3 uploads origin plugin package v3.
@@ -395,9 +395,9 @@ func convPluginV3PropertyToTypes(properties ...*PluginV3Property) map[string]*ty
 
 const releasePluginV3Label = "v3"
 
-// PublishReleasePluginV3 generates release plugin by upload-id.
+// PublishReleasePluginV3 generates release plugin by upload-id and is-shared.
 // nolint: funlen,gocognit
-func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetPluginV3Upload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin package v3, failed to get upload")
@@ -508,6 +508,8 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					MD5:       file.Info().MD5,
 					Enabled:   false,
 					AsDefault: false,
+					IsShared:  isShared,
+					IsSynced:  false,
 					UpdatedAt: time.Now(),
 					Operator:  nCtx.BKUsername(),
 				},

@@ -48,6 +48,8 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 			AsDefault: exactCond.GetAsDefault(),
 			Enabled:   exactCond.GetEnabled(),
 			IsHidden:  exactCond.GetIsHidden(),
+			IsShared:  exactCond.GetIsShared(),
+			IsSynced:  exactCond.GetIsSynced(),
 			Name:      exactCond.GetName(),
 			FileName:  exactCond.GetFileName(),
 		}
@@ -72,6 +74,10 @@ func convertReleaseExactConditionsToTypes(exactCond *PackageReleaseExactConditio
 		AsDefault: exactCond.GetAsDefault(),
 		Enabled:   exactCond.GetEnabled(),
 		IsHidden:  exactCond.GetIsHidden(),
+		IsShared:  exactCond.GetIsShared(),
+		IsSynced:  exactCond.GetIsSynced(),
+		Name:      exactCond.GetName(),
+		FileName:  exactCond.GetFileName(),
 	}
 }
 
@@ -92,6 +98,8 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 		exactCond.AsDefault = conditions.ExactInclude.AsDefault
 		exactCond.Enabled = conditions.ExactInclude.Enabled
 		exactCond.IsHidden = conditions.ExactInclude.IsHidden
+		exactCond.IsShared = conditions.ExactInclude.IsShared
+		exactCond.IsSynced = conditions.ExactInclude.IsSynced
 		exactCond.Name = conditions.ExactInclude.Name
 		exactCond.FileName = conditions.ExactInclude.FileName
 	}
@@ -115,6 +123,8 @@ func newEmptyRelease() *Release {
 		Labels:      make([]string, 0),
 		Enabled:     new(bool),
 		IsHidden:    new(bool),
+		IsShared:    new(bool),
+		IsSynced:    new(bool),
 		AsDefault:   new(bool),
 		Md5:         new(string),
 		UpdatedAt:   new(uint64),
@@ -208,6 +218,8 @@ func (x *PackageReleaseAgentListResp) ConvertReleasesFromTypes(total int64, rele
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
 		*item.Release.Operator = release.Operator
+		*item.Release.IsShared = release.IsShared
+		*item.Release.IsSynced = release.IsSynced
 
 		*item.ChangeLogEn = release.ChangeLogEN
 		*item.ChangeLogZh = release.ChangeLogZH
@@ -248,6 +260,8 @@ func (x *PackageReleaseAgentListResp) ConvertReleasesToTypes() (int64, []*types.
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
+				IsShared:  item.GetRelease().GetIsShared(),
+				IsSynced:  item.GetRelease().GetIsSynced(),
 			},
 			ReleaseAdditionInfoAgent: types.ReleaseAdditionInfoAgent{
 				ChangeLogEN: item.GetChangeLogEn(),
@@ -295,7 +309,7 @@ func (x *PackageReleaseAgentListBriefReq) ConvertConditionsFromTypes(condition *
 func (x *PackageReleaseAgentListBriefResp) ConvertReleasesFromTypes(total int64, releases []*types.ReleaseAgent) {
 	items := make([]*ReleaseAgentBrief, len(releases))
 	for idx, release := range releases {
-		items[idx] = convertReleaseAgentBriefFromTypes(&release.Release)
+		items[idx] = convertReleaseAgentBriefFromTypes(&release.Release, release.ChangeLogEN, release.ChangeLogZH)
 	}
 
 	x.Data = &PackageReleaseAgentListBriefResp_Data{
@@ -314,13 +328,29 @@ func (x *PackageReleaseAgentListBriefResp) ConvertReleasesToTypes() (int64, []*t
 	items := data.GetItems()
 	result := make([]*types.ReleaseAgent, len(items))
 	for idx, item := range items {
-		result[idx] = &types.ReleaseAgent{Release: *convertReleaseAgentBriefToTypes(item)}
+		result[idx] = &types.ReleaseAgent{
+			Release: types.Release{
+				Generation: types.Generation(item.GetGeneration()),
+				Platform: platfmt.Platform{
+					OS:   criteria.OSType(item.GetOsType()),
+					Arch: criteria.CPUArch(item.GetCpuArch()),
+				},
+				Version:   item.GetVersion(),
+				Enabled:   item.GetEnabled(),
+				IsHidden:  item.GetIsHidden(),
+				AsDefault: item.GetAsDefault(),
+			},
+			ReleaseAdditionInfoAgent: types.ReleaseAdditionInfoAgent{
+				ChangeLogEN: item.GetChangeLogEn(),
+				ChangeLogZH: item.GetChangeLogZh(),
+			},
+		}
 	}
 
 	return data.GetTotal(), result
 }
 
-func convertReleaseAgentBriefFromTypes(release *types.Release) *ReleaseAgentBrief {
+func convertReleaseAgentBriefFromTypes(release *types.Release, changeLogEN, changeLogZH string) *ReleaseAgentBrief {
 	data := &ReleaseAgentBrief{}
 	data.Generation = new(int64)
 	data.OsType = new(string)
@@ -329,6 +359,8 @@ func convertReleaseAgentBriefFromTypes(release *types.Release) *ReleaseAgentBrie
 	data.Enabled = new(bool)
 	data.IsHidden = new(bool)
 	data.AsDefault = new(bool)
+	data.ChangeLogEn = new(string)
+	data.ChangeLogZh = new(string)
 
 	*data.Generation = int64(release.Generation)
 	*data.OsType = string(release.Platform.OS)
@@ -337,22 +369,10 @@ func convertReleaseAgentBriefFromTypes(release *types.Release) *ReleaseAgentBrie
 	*data.Enabled = release.Enabled
 	*data.IsHidden = release.IsHidden
 	*data.AsDefault = release.AsDefault
+	*data.ChangeLogEn = changeLogEN
+	*data.ChangeLogZh = changeLogZH
 
 	return data
-}
-
-func convertReleaseAgentBriefToTypes(brief *ReleaseAgentBrief) *types.Release {
-	return &types.Release{
-		Generation: types.Generation(brief.GetGeneration()),
-		Platform: platfmt.Platform{
-			OS:   criteria.OSType(brief.GetOsType()),
-			Arch: criteria.CPUArch(brief.GetCpuArch()),
-		},
-		Version:   brief.GetVersion(),
-		Enabled:   brief.GetEnabled(),
-		IsHidden:  brief.GetIsHidden(),
-		AsDefault: brief.GetAsDefault(),
-	}
 }
 
 func convertReleaseProxyBriefFromTypes(release *types.Release, changeLogEN, changeLogZH string) *ReleaseProxyBrief {
@@ -706,6 +726,8 @@ func (x *PackageReleaseProxyListResp) ConvertReleasesFromTypes(total int64, rele
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
 		*item.Release.Operator = release.Operator
+		*item.Release.IsShared = release.IsShared
+		*item.Release.IsSynced = release.IsSynced
 
 		*item.ChangeLogEn = release.ChangeLogEN
 		*item.ChangeLogZh = release.ChangeLogZH
@@ -746,6 +768,8 @@ func (x *PackageReleaseProxyListResp) ConvertReleasesToTypes() (int64, []*types.
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
+				IsShared:  item.GetRelease().GetIsShared(),
+				IsSynced:  item.GetRelease().GetIsSynced(),
 			},
 			ReleaseAdditionInfoProxy: types.ReleaseAdditionInfoProxy{
 				ChangeLogEN: item.GetChangeLogEn(),
@@ -1214,6 +1238,8 @@ func (x *PackageReleaseCertListResp) ConvertReleasesFromTypes(total int64, relea
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
 		*item.Release.Operator = release.Operator
+		*item.Release.IsShared = release.IsShared
+		*item.Release.IsSynced = release.IsSynced
 		items[idx] = item
 	}
 
@@ -1270,6 +1296,8 @@ func (x *PackageReleaseBinToolListResp) ConvertReleasesFromTypes(total int64, re
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
 		*item.Release.Operator = release.Operator
+		*item.Release.IsShared = release.IsShared
+		*item.Release.IsSynced = release.IsSynced
 		items[idx] = item
 	}
 
@@ -1326,6 +1354,8 @@ func (x *PackageReleasePluginBinToolListResp) ConvertReleasesFromTypes(total int
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
 		*item.Release.Operator = release.Operator
+		*item.Release.IsShared = release.IsShared
+		*item.Release.IsSynced = release.IsSynced
 		items[idx] = item
 	}
 

@@ -44,8 +44,8 @@ type ICert interface {
 	// UploadOriginCert uploads the origin cert.
 	UploadOriginCert(nCtx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 
-	// PublishReleaseCert generates release cert by upload-id.
-	PublishReleaseCert(nCtx contextx.IContext, uploadID string) error
+	// PublishReleaseCert generates release cert by upload-id and is-shared.
+	PublishReleaseCert(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// EnsureCertToLocal ensure cert to local.
 	EnsureCertToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error)
@@ -216,9 +216,9 @@ func originCertFileNames() []string {
 	}
 }
 
-// PublishReleaseCert generates release cert by upload-id.
+// PublishReleaseCert generates release cert by upload-id and is-shared.
 // nolint: funlen
-func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	up, err := m.storageUpload.GetCertUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release cert, failed to get upload")
@@ -290,6 +290,8 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
+			IsShared:     isShared,
+			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,

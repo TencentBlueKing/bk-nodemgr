@@ -16,6 +16,8 @@ message PackageReleaseExactConditions {
   repeated string name = 5;
   repeated string file_name = 6;
   repeated bool is_hidden = 7;
+  repeated bool is_shared = 8;
+  repeated bool is_synced = 9;
 }
 
 // PackageReleaseDistinctField describes the release distinct field.

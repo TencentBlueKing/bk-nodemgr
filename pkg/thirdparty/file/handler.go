@@ -146,28 +146,28 @@ type IPkgUploadHandler interface {
 // IPkgPublishHandler defines the interface of pkg publish.
 type IPkgPublishHandler interface {
 	// PublishReleaseAgent publish release agent.
-	PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error
+	PublishReleaseAgent(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// PublishReleaseProxy publish release server.
-	PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCategory string) error
+	PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCategory string, isShared bool) error
 
 	// PublishReleaseCert publish release cert.
-	PublishReleaseCert(nCtx contextx.IContext, uploadID string) error
+	PublishReleaseCert(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// PublishReleaseBinTool publish release bintool.
-	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
+	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// PublishReleasePluginV2 publish release plugin v2.
-	PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error
+	PublishReleasePluginV2(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// PublishReleaseExternalPluginV2 publish release external plugin v2.
-	PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string) error
+	PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// PublishReleasePluginV3 publish release plugin v3.
-	PublishReleasePluginV3(nCtx contextx.IContext, uploadID string) error
+	PublishReleasePluginV3(nCtx contextx.IContext, uploadID string, isShared bool) error
 
 	// PublishReleasePluginBinTool publish release plugin bin tool.
-	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
+	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error
 }
 
 // IPkgDownloadHandler define the interface of pkg download.
@@ -392,13 +392,16 @@ func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, f
 }
 
 // PublishReleaseAgent publish release agent.
-func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleaseAgentReq{UploadId: uploadID}
+	params := &protoFile.PublishReleaseAgentReq{
+		UploadId: uploadID,
+		IsShared: isShared,
+	}
 	if _, err := h.cli.publishReleaseAgent(nCtx, tenantID, params); err != nil {
 		return err
 	}
@@ -567,7 +570,7 @@ func (h *handler) DownloadRemoteFile(nCtx contextx.IContext, filename, downloadU
 }
 
 // PublishReleaseProxy publish release proxy.
-func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCategory string) error {
+func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCategory string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
@@ -576,6 +579,7 @@ func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCa
 	params := &protoFile.PublishReleaseProxyReq{
 		UploadId:            uploadID,
 		UploadOriginPkgType: uploadCategory,
+		IsShared:            isShared,
 	}
 	if _, err := h.cli.publishReleaseProxy(nCtx, tenantID, params); err != nil {
 		return err
@@ -585,13 +589,16 @@ func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCa
 }
 
 // PublishReleaseCert publish release cert.
-func (h *handler) PublishReleaseCert(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleaseCert(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleaseCertReq{UploadId: uploadID}
+	params := &protoFile.PublishReleaseCertReq{
+		UploadId: uploadID,
+		IsShared: isShared,
+	}
 	if _, err := h.cli.publishReleaseCert(nCtx, tenantID, params); err != nil {
 		return err
 	}
@@ -600,13 +607,16 @@ func (h *handler) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 }
 
 // PublishReleaseBinTool publish release bintool.
-func (h *handler) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleaseBinToolReq{UploadId: uploadID}
+	params := &protoFile.PublishReleaseBinToolReq{
+		UploadId: uploadID,
+		IsShared: isShared,
+	}
 	if _, err := h.cli.publishReleaseBinTool(nCtx, tenantID, params); err != nil {
 		return err
 	}
@@ -914,13 +924,16 @@ func (h *handler) UploadOriginPluginV3(nCtx contextx.IContext, fileName string, 
 }
 
 // PublishReleasePluginV2 publish release plugin v2.
-func (h *handler) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleasePluginV2Req{UploadId: uploadID}
+	params := &protoFile.PublishReleasePluginV2Req{
+		UploadId: uploadID,
+		IsShared: isShared,
+	}
 	if _, err := h.cli.publishReleasePluginV2(nCtx, tenantID, params); err != nil {
 		return err
 	}
@@ -929,13 +942,16 @@ func (h *handler) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 }
 
 // PublishReleaseExternalPluginV2 publish release external plugin v2.
-func (h *handler) PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleaseExternalPluginV2Req{UploadId: uploadID}
+	params := &protoFile.PublishReleaseExternalPluginV2Req{
+		UploadId: uploadID,
+		IsShared: isShared,
+	}
 	if _, err := h.cli.publishReleaseExternalPluginV2(nCtx, tenantID, params); err != nil {
 		return err
 	}
@@ -944,13 +960,16 @@ func (h *handler) PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadI
 }
 
 // PublishReleasePluginV3 publish release plugin v3.
-func (h *handler) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleasePluginV3Req{UploadId: uploadID}
+	params := &protoFile.PublishReleasePluginV3Req{
+		UploadId: uploadID,
+		IsShared: isShared,
+	}
 	if _, err := h.cli.publishReleasePluginV3(nCtx, tenantID, params); err != nil {
 		return err
 	}
@@ -1009,13 +1028,16 @@ func (h *handler) UploadOriginPluginBinTool(nCtx contextx.IContext, fileName str
 }
 
 // PublishReleasePluginBinTool publish release plugin bin tool.
-func (h *handler) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleasePluginBinToolReq{UploadId: uploadID}
+	params := &protoFile.PublishReleasePluginBinToolReq{
+		UploadId: uploadID,
+		IsShared: isShared,
+	}
 	if _, err := h.cli.publishReleasePluginBinTool(nCtx, tenantID, params); err != nil {
 		return err
 	}

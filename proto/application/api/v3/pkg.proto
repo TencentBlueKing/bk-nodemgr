@@ -269,7 +269,10 @@ message PackageUploadOriginPluginBinToolResp {
 
 // PackagePublishReleasePluginV2Req is the request for publish release plugin v2
 // pkg.
-message PackagePublishReleasePluginV2Req { string upload_id = 1; }
+message PackagePublishReleasePluginV2Req {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PackagePublishReleasePluginV2Resp is the response for publish release plugin
 // v2 pkg.
@@ -286,7 +289,10 @@ message PackagePublishReleasePluginV2Resp {
 
 // PackagePublishReleaseExternalPluginV2Req is the request for publish release
 // external plugin v2 pkg.
-message PackagePublishReleaseExternalPluginV2Req { string upload_id = 1; }
+message PackagePublishReleaseExternalPluginV2Req {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PackagePublishReleaseExternalPluginV2Resp is the response for publish release
 // external plugin v2 pkg.
@@ -303,7 +309,10 @@ message PackagePublishReleaseExternalPluginV2Resp {
 
 // PackagePublishReleasePluginV3Req is the request for publish release plugin v3
 // pkg.
-message PackagePublishReleasePluginV3Req { string upload_id = 1; }
+message PackagePublishReleasePluginV3Req {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PackagePublishReleasePluginV3Resp is the response for publish release plugin
 // v3 pkg.
@@ -319,7 +328,10 @@ message PackagePublishReleasePluginV3Resp {
 }
 
 // PackagePublishReleaseAgentReq is the request for upload release agent pkg.
-message PackagePublishReleaseAgentReq { string upload_id = 1; }
+message PackagePublishReleaseAgentReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PackagePublishReleaseAgentResp is the response for upload release agent pkg.
 message PackagePublishReleaseAgentResp {
@@ -340,6 +352,7 @@ message PackagePublishReleaseProxyReq {
   // upload_origin_pkg_type indicates the origin category of the uploaded
   // package. only accepts "origin_server" and "origin_proxy", no default value.
   string upload_origin_pkg_type = 2;
+  bool is_shared = 3;
 }
 
 // PackagePublishReleaseProxyResp is the response for upload release proxy pkg.
@@ -355,7 +368,10 @@ message PackagePublishReleaseProxyResp {
 }
 
 // PackagePublishReleaseCertReq is the request for upload release cert pkg.
-message PackagePublishReleaseCertReq { string upload_id = 1; }
+message PackagePublishReleaseCertReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PackagePublishReleaseCertResp is the response for upload release cert pkg.
 message PackagePublishReleaseCertResp {
@@ -371,7 +387,10 @@ message PackagePublishReleaseCertResp {
 
 // PackagePublishReleaseBinToolReq is the request for upload release bintool
 // pkg.
-message PackagePublishReleaseBinToolReq { string upload_id = 1; }
+message PackagePublishReleaseBinToolReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PackagePublishReleaseBinToolResp is the response for upload release bintool
 // pkg.
@@ -388,7 +407,10 @@ message PackagePublishReleaseBinToolResp {
 
 // PublishReleasePluginBinToolReq is the request for upload release plugin
 // bintool pkg.
-message PackagePublishReleasePluginBinToolReq { string upload_id = 1; }
+message PackagePublishReleasePluginBinToolReq {
+  string upload_id = 1;
+  bool is_shared = 2;
+}
 
 // PublishReleasePluginBinToolResp is the response for upload release plugin
 // bintool pkg.
@@ -410,6 +432,8 @@ message PackageReleaseExactConditions {
   repeated string name = 5;
   repeated string file_name = 6;
   repeated bool is_hidden = 7;
+  repeated bool is_shared = 8;
+  repeated bool is_synced = 9;
 }
 
 // PackageReleaseDistinctField describes the release distinct field.

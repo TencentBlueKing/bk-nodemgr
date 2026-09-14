@@ -236,6 +236,8 @@ message Release {
   optional uint64 updated_at = 12;
   optional string operator = 13;
   optional bool is_hidden = 14;
+  optional bool is_shared = 15;
+  optional bool is_synced = 16;
 }
 
 message ReleaseAgent {
@@ -252,6 +254,8 @@ message ReleaseAgentBrief {
   optional bool enabled = 5;
   optional bool as_default = 6;
   optional bool is_hidden = 7;
+  optional string change_log_en = 8;
+  optional string change_log_zh = 9;
 }
 
 message ReleaseProxy {
