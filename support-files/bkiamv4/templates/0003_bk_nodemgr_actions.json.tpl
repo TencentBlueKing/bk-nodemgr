@@ -108,30 +108,6 @@
     {
       "operation": "upsert_action",
       "data": {
-        "id": "deploy_policy_view",
-        "name": "查看部署策略",
-        "resource_type_id": "biz"
-      }
-    },
-    {
-      "operation": "upsert_action",
-      "data": {
-        "id": "deploy_policy_manage",
-        "name": "管理部署策略",
-        "resource_type_id": "biz"
-      }
-    },
-    {
-      "operation": "upsert_action",
-      "data": {
-        "id": "deploy_policy_history_view",
-        "name": "查看部署策略历史",
-        "resource_type_id": "biz"
-      }
-    },
-    {
-      "operation": "upsert_action",
-      "data": {
         "id": "networkarea_view",
         "name": "查看管控区域",
         "resource_type_id": "networkarea"

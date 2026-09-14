@@ -8,7 +8,7 @@
 
 | 文件                | 说明                                                              |
 | ------------------- | ----------------------------------------------------------------- |
-| `templates/`        | V4 System、五类本地 ResourceType、32 个 Action 与十一个 Role 模板 |
+| `templates/`        | V4 System、五类本地 ResourceType、29 个 Action 与十四个 Role 模板 |
 | `vars.yaml.example` | 变量配置示例                                                      |
 | `render/`           | 渲染工具源码，构建后生成 `render/iam-render`                      |
 | `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`                    |
@@ -190,7 +190,7 @@ flowchart TD
 
 ### Action 更新规则
 
-`0003` 模板保留 V3 的全部 32 个操作 ID 和名称：16 个业务操作绑定本系统的 `biz`，15 个操作保持其他本地资源绑定，`networkarea_create` 的 `resource_type_id` 为 `""`，表示无资源绑定。`networkunit_create` 仍绑定父资源 `networkarea`，`package_type_upload` 仍绑定 `package_type`。
+`0003` 模板保留 V3 中除 `deploy_policy_*` 外的 29 个操作 ID 和名称：13 个业务操作绑定本系统的 `biz`，15 个操作保持其他本地资源绑定，`networkarea_create` 的 `resource_type_id` 为 `""`，表示无资源绑定。`networkunit_create` 仍绑定父资源 `networkarea`，`package_type_upload` 仍绑定 `package_type`。移除模板中的 Action 不会自动删除 IAM 中已注册的 Action。
 
 `data` 仅接受 `id`、`name`、`resource_type_id`；ID 格式与 ResourceType 一致，显式提供的 `name` 不得为空或仅含空白，所有字段都不接受 `null`。
 
@@ -206,29 +206,34 @@ flowchart TD
 
 每个系统的 Action 按 `page_size=100` 读取全部分页，完整性检查通过后再决定写入。创建响应必须是 HTTP 201 且只返回对应 ID，更新必须是 HTTP 204。dry-run 复用前序 System、ResourceType 和 Action 的虚拟状态；实际成功写入也对后续操作可见。单独执行 `0003` 时，System 和所需 ResourceType 必须已存在。
 
-绑定本系统 `biz` 的 16 个操作为：`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、`plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`、`deploy_policy_view`、`deploy_policy_manage`、`deploy_policy_history_view`。先执行 `0002` 注册 `biz`，再执行 `0003`；已有 Action 的绑定冲突仍按上表报错，不自动改绑。
+绑定本系统 `biz` 的 13 个操作为：`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、`plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`。先执行 `0002` 注册 `biz`，再执行 `0003`；已有 Action 的绑定冲突仍按上表报错，不自动改绑。
 
 本工具仅补齐模型初始化，Provider、资源查询与运行时鉴权链路需另行建设和验证。**模型注册成功不代表业务权限链路已就绪。** V3 模型及已有授权数据不变，不自动迁移 V3 的操作依赖、分组和创建者授权配置。
 
 ### Role 更新规则
 
-`0004` 在 Action 之后注册以下十一个角色。Agent 和 Proxy 管理人员各自管理对应节点，同时包含 Plugin 权限、NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理人员包含 Config Policy 和 Deploy Policy 权限。不自动展开 `related_actions`。
+`0004` 在 Action 之后注册以下十四个角色。Agent 和 Proxy 管理人员各自管理对应节点，包含 NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限，不再包含 Plugin 权限；插件权限由独立的插件管理员和插件只读人员提供。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理人员和只读人员分别包含 Config Policy 的管理或只读权限。不自动展开 `related_actions`。
 
 | Role ID                 | 名称             | Action 数 |
 | ----------------------- | ---------------- | --------- |
-| `agent_manager`         | Agent 管理人员   | 10        |
-| `proxy_manager`         | Proxy 管理人员   | 10        |
+| `plugin_manager`        | 插件管理员       | 4         |
+| `plugin_viewer`         | 插件只读人员     | 3         |
+| `config_policy_viewer`  | 配置策略只读人员 | 3         |
+| `agent_manager`         | Agent 管理人员   | 7         |
+| `proxy_manager`         | Proxy 管理人员   | 7         |
 | `networkarea_creator`   | 管控区域创建者   | 1         |
 | `networkarea_manager`   | 管控区域管理人员 | 5         |
 | `networkunit_manager`   | 管控单元管理人员 | 6         |
-| `config_policy_manager` | 配置策略管理人员 | 7         |
+| `config_policy_manager` | 配置策略管理人员 | 4         |
 | `package_manager`       | 资源包管理人员   | 4         |
-| `agent_viewer`          | Agent 只读人员   | 9         |
-| `proxy_viewer`          | Proxy 只读人员   | 9         |
+| `agent_viewer`          | Agent 只读人员   | 3         |
+| `proxy_viewer`          | Proxy 只读人员   | 3         |
 | `topo_viewer`           | 网络拓扑只读人员 | 4         |
 | `package_viewer`        | 资源包只读人员   | 2         |
 
-**只读角色：** Agent 和 Proxy 只读人员各自包含对应节点、插件、配置策略和部署策略的查看及历史查看权限，以及业务访问权限，不包含管控区域或管控单元权限；不单独注册 `config_policy_viewer`。网络拓扑只读人员包含管控区域和管控单元的查看及历史查看权限；资源包只读人员仅包含资源包查看及历史查看权限。只读角色不包含创建、编辑、删除、操作、管理、上传或使用管控单元部署的权限；Action 资源绑定保持不变，资源范围以授权为准。新增只读角色不改变已有角色，也不会自动向用户授予这些角色。
+**只读角色：** Agent 和 Proxy 只读人员各自仅包含对应节点的查看、历史查看及业务访问权限。`plugin_viewer` 包含插件查看、历史查看及业务访问权限；`config_policy_viewer` 包含配置策略的查看、历史查看及业务访问权限。网络拓扑只读人员包含管控区域和管控单元的查看及历史查看权限；资源包只读人员仅包含资源包查看及历史查看权限。只读角色不包含创建、编辑、删除、操作、管理、上传或使用管控单元部署的权限；Action 资源绑定保持不变，资源范围以授权为准。
+
+**插件与策略角色拆分：** 模板先注册 `plugin_manager`、`plugin_viewer` 和 `config_policy_viewer`，再从 Agent/Proxy 管理角色移除插件权限，从 Agent/Proxy 只读角色移除插件、配置策略和部署策略权限。已有授权不会自动迁移到新角色；仍需这些权限的用户需要另行获得新角色及对应资源范围的授权。成员移除失败时迁移立即停止，已创建的新角色不会回滚。
 
 `data` 仅接受 `id`、`name`、`description`、`actions`。每次 upsert 都必须提供完整、非空的 `actions` 数组；每个成员必须显式提供 `id` 和 `resource_type_id`，不允许重复 Action ID、未知字段或 `null`。名称非空，描述允许空字符串。
 
