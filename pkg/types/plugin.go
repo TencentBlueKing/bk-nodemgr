@@ -18,11 +18,6 @@
 
 package types
 
-import (
-	"fmt"
-	"strings"
-)
-
 const (
 	// PluginGroupDefault default plugin group name.
 	PluginGroupDefault = "default"
@@ -90,28 +85,4 @@ func PolicyGroupPermittedOperations() []PermittedOperation {
 	return []PermittedOperation{
 		PermittedOperationRestart,
 	}
-}
-
-const (
-	// maxMemoFields is the maximum number of memo fields (Description, Scenario, DescriptionEn, ScenarioEn).
-	maxMemoFields = 4
-)
-
-// BuildDefaultPluginMemo builds the default plugin memo from the release plugin information.
-func BuildDefaultPluginMemo(release *ReleasePlugin) string {
-	memoParts := make([]string, 0, maxMemoFields)
-	if release.Description != "" {
-		memoParts = append(memoParts, fmt.Sprintf("描述: %s", release.Description))
-	}
-	if release.Scenario != "" {
-		memoParts = append(memoParts, fmt.Sprintf("场景: %s", release.Scenario))
-	}
-	if release.DescriptionEn != "" {
-		memoParts = append(memoParts, fmt.Sprintf("Description: %s", release.DescriptionEn))
-	}
-	if release.ScenarioEn != "" {
-		memoParts = append(memoParts, fmt.Sprintf("Scene: %s", release.ScenarioEn))
-	}
-
-	return strings.Join(memoParts, "\n")
 }
