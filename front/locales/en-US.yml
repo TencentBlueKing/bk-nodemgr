@@ -767,6 +767,10 @@ message:
     delete: Deleted successfully
   warn:
     keepAtLeast: Keep at least {x} row(s)
+  credentialEncrypt:
+    initFailed: Failed to fetch the credential encryption public key, please retry later
+    unsupportedSuite: The server-side crypto suite is not supported by this page, please contact the administrator
+    encryptFailed: Credential encryption failed, submission aborted, please retry
 validate:
   required: Required
   ipv4: Invalid Private IPv4
