@@ -113,6 +113,70 @@
           {"id": "package_history_view", "resource_type_id": "package"}
         ]
       }
+    },
+    {
+      "operation": "upsert_role",
+      "data": {
+        "id": "agent_viewer",
+        "name": "Agent 只读用户",
+        "description": "支持业务访问，查看 Agent、插件、配置策略、部署策略及其历史；资源范围以授权为准。",
+        "actions": [
+          {"id": "biz_access", "resource_type_id": "biz"},
+          {"id": "agent_view", "resource_type_id": "biz"},
+          {"id": "agent_history_view", "resource_type_id": "biz"},
+          {"id": "plugin_view", "resource_type_id": "biz"},
+          {"id": "plugin_history_view", "resource_type_id": "biz"},
+          {"id": "config_policy_view", "resource_type_id": "biz"},
+          {"id": "config_policy_history_view", "resource_type_id": "biz"},
+          {"id": "deploy_policy_view", "resource_type_id": "biz"},
+          {"id": "deploy_policy_history_view", "resource_type_id": "biz"}
+        ]
+      }
+    },
+    {
+      "operation": "upsert_role",
+      "data": {
+        "id": "proxy_viewer",
+        "name": "Proxy 只读用户",
+        "description": "支持业务访问，查看 Proxy、插件、配置策略、部署策略及其历史；资源范围以授权为准。",
+        "actions": [
+          {"id": "biz_access", "resource_type_id": "biz"},
+          {"id": "proxy_view", "resource_type_id": "biz"},
+          {"id": "proxy_history_view", "resource_type_id": "biz"},
+          {"id": "plugin_view", "resource_type_id": "biz"},
+          {"id": "plugin_history_view", "resource_type_id": "biz"},
+          {"id": "config_policy_view", "resource_type_id": "biz"},
+          {"id": "config_policy_history_view", "resource_type_id": "biz"},
+          {"id": "deploy_policy_view", "resource_type_id": "biz"},
+          {"id": "deploy_policy_history_view", "resource_type_id": "biz"}
+        ]
+      }
+    },
+    {
+      "operation": "upsert_role",
+      "data": {
+        "id": "topo_viewer",
+        "name": "网络拓扑只读用户",
+        "description": "支持查看管控区域、管控单元及其历史；资源范围以授权为准。",
+        "actions": [
+          {"id": "networkarea_view", "resource_type_id": "networkarea"},
+          {"id": "networkarea_history_view", "resource_type_id": "networkarea"},
+          {"id": "networkunit_view", "resource_type_id": "networkunit"},
+          {"id": "networkunit_history_view", "resource_type_id": "networkunit"}
+        ]
+      }
+    },
+    {
+      "operation": "upsert_role",
+      "data": {
+        "id": "package_viewer",
+        "name": "资源包只读用户",
+        "description": "支持查看资源包及其历史；资源范围以授权为准。",
+        "actions": [
+          {"id": "package_view", "resource_type_id": "package"},
+          {"id": "package_history_view", "resource_type_id": "package"}
+        ]
+      }
     }
   ]
 }
