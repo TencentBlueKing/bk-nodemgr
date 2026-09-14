@@ -805,6 +805,33 @@ certData:
     ##
     key: ""
 
+  ## GSE server-api TLCP (GM TLS, GB/T 38636) client double certificate pair,
+  ## materialized as gse_sign.crt/key and gse_enc.crt/key under common.certPath.
+  ## When set, reference them from backend.config.gse.tls as
+  ## certFile: /bk-nodemgr/cert/gse_sign.crt, keyFile: /bk-nodemgr/cert/gse_sign.key,
+  ## encCertFile: /bk-nodemgr/cert/gse_enc.crt, encKeyFile: /bk-nodemgr/cert/gse_enc.key.
+  ##
+  gseTLCP:
+    ## @param certData.gseTLCP.cert the content of the gse_sign.crt (signing pair)
+    ## certificate package and encoded in base64
+    ##
+    cert: ""
+
+    ## @param certData.gseTLCP.key the content of the gse_sign.key (signing pair)
+    ## certificate package and encoded in base64
+    ##
+    key: ""
+
+    ## @param certData.gseTLCP.encCert the content of the gse_enc.crt (encryption pair)
+    ## certificate package and encoded in base64
+    ##
+    encCert: ""
+
+    ## @param certData.gseTLCP.encKey the content of the gse_enc.key (encryption pair)
+    ## certificate package and encoded in base64
+    ##
+    encKey: ""
+
 ## bk-apigateway public key.
 ##
 bkApigatewayPublicKey: ""
@@ -1313,6 +1340,12 @@ backend:
       # the in-memory index at startup. Defaults to false (cache starts empty).
       restoreOnStart: false
 
+    ## cryptoType: symmetric crypto suite for sensitive data, CLASSIC(AES-CBC) or SHANGMI(SM4-GCM, GM).
+    ## Only one suite is enabled globally; after switching, previously stored temporary
+    ## credentials become invalid and must be re-entered at install time (no migration):
+    ## see docs/developer/credential-encryption-contract.md
+    cryptoType: "CLASSIC"
+
     ## encryptKey: define the key used to encrypt the sensitive data.
     encryptKey: "1234567890abcdef"
 
@@ -1461,13 +1494,22 @@ backend:
         # server should be accessed without verifying the TLS certificate.
         insecureSkipVerify: false
         # server requires TLS client certificate authentication.
+        # when using certData.gseTLCP, set it to /bk-nodemgr/cert/gse_sign.crt.
         certFile: ""
         # server requires TLS client certificate authentication.
+        # when using certData.gseTLCP, set it to /bk-nodemgr/cert/gse_sign.key.
         keyFile: ""
         # trusted root certificates for server.
         caFile: ""
         # the password to decrypt the certificate.
         password: ""
+        # TLCP (GM TLS, GB/T 38636) encryption certificate pair; when set
+        # together with certFile/keyFile (the signing pair), the GSE
+        # server-api client dials with TLCP.
+        # when using certData.gseTLCP, set them to /bk-nodemgr/cert/gse_enc.crt
+        # and /bk-nodemgr/cert/gse_enc.key.
+        encCertFile: ""
+        encKeyFile: ""
 
     userManager:
       # endpoints is a seed list of host:port addresses of esb nodes.

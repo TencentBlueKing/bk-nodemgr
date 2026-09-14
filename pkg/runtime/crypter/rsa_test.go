@@ -120,8 +120,8 @@ func TestRSA_Crypter(t *testing.T) {
 	}
 }
 
-// TestDecryptRSABase64Ciphertext tests DecryptRSABase64Ciphertext with various scenarios.
-func TestDecryptRSABase64Ciphertext(t *testing.T) {
+// TestDecryptBase64Ciphertext tests DecryptBase64Ciphertext with various scenarios.
+func TestDecryptBase64Ciphertext(t *testing.T) {
 	cry := testRSACrypter(t)
 
 	// Prepare valid base64 ciphertext for normal path
@@ -171,13 +171,13 @@ func TestDecryptRSABase64Ciphertext(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := DecryptRSABase64Ciphertext(tt.cry, tt.input)
+			got, err := DecryptBase64Ciphertext(tt.cry, tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DecryptRSABase64Ciphertext() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DecryptBase64Ciphertext() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("DecryptRSABase64Ciphertext() got = %q, want %q", got, tt.want)
+				t.Errorf("DecryptBase64Ciphertext() got = %q, want %q", got, tt.want)
 			}
 		})
 	}

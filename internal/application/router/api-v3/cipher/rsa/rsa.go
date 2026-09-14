@@ -61,7 +61,7 @@ func (h *handler) GetRSAPublicKey(rCtx restserver.IContext) (interface{}, error)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get rsa public key, failed to get public key from backend")
 
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := &protoApplication.GetRSAPublicKeyResp_Data{

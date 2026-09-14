@@ -30,6 +30,12 @@ data:
   etcd.crt: {{ .Values.externalEtcd.tls.cert | b64dec | quote }}
   etcd.key: {{ .Values.externalEtcd.tls.key | b64dec | quote }}
   {{- end }}
+  {{- if len .Values.certData.gseTLCP.cert }}
+  gse_sign.crt: {{ .Values.certData.gseTLCP.cert | b64dec | quote }}
+  gse_sign.key: {{ .Values.certData.gseTLCP.key | b64dec | quote }}
+  gse_enc.crt: {{ .Values.certData.gseTLCP.encCert | b64dec | quote }}
+  gse_enc.key: {{ .Values.certData.gseTLCP.encKey | b64dec | quote }}
+  {{- end }}
   {{- if .Values.bkApigatewayPublicKey }}
   apigw_jwt.crt: {{ .Values.bkApigatewayPublicKey | b64dec | quote }}
   {{- end }}

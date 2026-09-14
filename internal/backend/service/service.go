@@ -230,6 +230,21 @@ func (svc *Service) initialStaticsConfigs() error {
 	return nil
 }
 
+// newSymmetricCrypter builds the storage crypter of the globally configured
+// suite: CLASSIC(AES-CBC) or SHANGMI(SM4-GCM). Only the configured suite is
+// accepted for both encryption and decryption; ciphertexts of the other
+// suite are explicitly rejected by their version byte.
+func newSymmetricCrypter(conf *config.BackendService) (crypter.Crypter, error) {
+	switch conf.CryptoType {
+	case config.EncryptCryptoTypeShangmi:
+		return crypter.NewSM4Crypter([]byte(conf.EncryptKey))
+	case config.EncryptCryptoTypeClassic:
+		return crypter.NewAESCrypter([]byte(conf.EncryptKey))
+	default:
+		return nil, fmt.Errorf("unsupported crypto type: %s", conf.CryptoType)
+	}
+}
+
 // nolint: funlen
 func (svc *Service) initialCapability() error {
 	var err error
@@ -272,11 +287,13 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create file cache: %w", err)
 	}
 
-	// initial AES crypter with given key.
-	svc.Cap.Crypter, err = crypter.NewAESCrypter([]byte(svc.conf.EncryptKey))
+	// initial the symmetric crypter by the configured crypto suite.
+	svc.Cap.Crypter, err = newSymmetricCrypter(svc.conf)
 	if err != nil {
-		return fmt.Errorf("failed to create AES crypter: %w", err)
+		return fmt.Errorf("failed to create symmetric crypter: %w", err)
 	}
+
+	svc.Cap.CryptoType = svc.conf.CryptoType
 
 	// initial gse handler.
 	svc.Cap.GSEHandler, err = svc.newGSEHandler()
@@ -899,7 +916,17 @@ func (svc *Service) initialManager() error {
 		AppSecret:     svc.conf.GSE.AppSecret,
 		GSEBaseURL:    svc.conf.GSE.Endpoints[0],
 		SkipTLSVerify: svc.conf.GSE.TLS.InsecureSkipVerify,
-		RedisClient:   svc.Cap.RedisClient,
+		TLSConfig: &ssl.TLSConfig{
+			InsecureSkipVerify: svc.conf.GSE.TLS.InsecureSkipVerify,
+			VerifyClient:       svc.conf.GSE.TLS.VerifyClient,
+			CAFile:             svc.conf.GSE.TLS.CAFile,
+			CertFile:           svc.conf.GSE.TLS.CertFile,
+			KeyFile:            svc.conf.GSE.TLS.KeyFile,
+			Password:           svc.conf.GSE.TLS.Password,
+			EncCertFile:        svc.conf.GSE.TLS.EncCertFile,
+			EncKeyFile:         svc.conf.GSE.TLS.EncKeyFile,
+		},
+		RedisClient: svc.Cap.RedisClient,
 	})
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
@@ -1248,10 +1275,13 @@ func newIEGTJJHandler(conf config.IEGTJJ) (iegtjj.IHandler, error) {
 func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
+		VerifyClient:       conf.TLS.VerifyClient,
 		CertFile:           conf.TLS.CertFile,
 		KeyFile:            conf.TLS.KeyFile,
 		CAFile:             conf.TLS.CAFile,
 		Password:           conf.TLS.Password,
+		EncCertFile:        conf.TLS.EncCertFile,
+		EncKeyFile:         conf.TLS.EncKeyFile,
 	})
 	if err != nil {
 		return nil, err
@@ -1443,10 +1473,12 @@ func (svc *Service) initialCipher() error {
 		return fmt.Errorf("unsupported tenant mode: %s", tenant.GetMode())
 	}
 
+	keyType := svc.conf.CryptoType.CredentialKeyType()
+
 	for _, tenantID := range tenantIDs {
 		nCtx := contextx.From(svc.ctx, contextx.WithTenantID(tenantID))
-		if err := svc.Cap.StorageCipher.EnsureDefaultCipher(nCtx); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to ensure rsa cipher")
+		if err := svc.Cap.StorageCipher.EnsureDefaultCipher(nCtx, keyType); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to ensure default cipher")
 			return err
 		}
 	}

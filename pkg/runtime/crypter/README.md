@@ -28,6 +28,40 @@
 - `AESVersion` 当前为 `1`。
 - 因为 IV 是确定性的，所以同一把 key 加密相同 plaintext 会得到相同 ciphertext。
 
+### SM4
+
+- 算法：SM4-GCM（认证加密），基于 [emmansun/gmsm](https://github.com/emmansun/gmsm)（**纯 Go**，无 CGO/铜锁依赖）
+- 密钥派生：`SHA-256(key || salt)` 前 16 字节（派生出固定 16 字节 key）
+- Nonce：**随机 12 字节**（每次加密随机生成，同一明文两次加密密文不同；无消费方依赖确定性密文）
+- Salt：可通过 `WithSM4Salt` 配置，默认 `SM4DefaultSalt`
+
+**密文布局**
+
+`SM4Version(1 byte) || nonce(12 bytes) || GCM ciphertext + tag(16 bytes)`
+
+说明：
+
+- `SM4Version` 当前为 `2`（与 `AESVersion = 1` 在同一对称密文空间内互不冲突）。
+- **带认证性**：错误密钥或被篡改的密文解密直接报错（区别于无认证的流模式设计）。
+- 运行时算法选择由 backend 配置 `cryptoType: CLASSIC | SHANGMI` 控制（默认 CLASSIC）；**全局只启用一种套件**，非当前套件的密文按版本字节显式拒绝，不做跨套件解密分发。
+- 选型背景：蓝鲸 crypto SDK 家族的后端本就按语言生态各选（Java 用 TencentKonaSMSuite、Python 用 tongsuopy），统一的是接口与配置约定；Go 侧选用纯 Go 的 gmsm，接口与 `cryptoType` 约定保持家族一致。
+
+### SM2（非对称，前端凭据传输）
+
+- 算法：SM2 公钥加密（GB/T 32918.4），基于 emmansun/gmsm（纯 Go）
+- 密钥格式：PKCS#8 PEM 私钥（`NewSM2CrypterFromPrivateKey`）/ PKIX PEM 公钥
+- 密钥对管理：cipher 存储 "DEFAULT" 名下按 `key_type` 保存（RSA4096 与 SM2 记录均存在，运行时只使用当前套件对应的密钥对）
+- 公钥分发：统一接口 `POST /api/v3/cipher/get_public_key`（application/backend 双侧路由，返回 `key_type` + 当前套件公钥），前端契约见 `docs/developer/credential-encryption-contract.md`
+
+**密文布局**
+
+`SM2Version(1 byte) ‖ SM2密文（ASN.1 DER，C1C3C2）`
+
+- `SM2Version = 3`；install 链路按全局 `cryptoType` 只解密当前套件（CLASSIC→RSA v1/v2，SHANGMI→SM2 v3），非当前套件密文显式拒绝
+- 解密**自动识别** ASN.1 DER 与裸 C1C3C2（04 前缀）两种编码（前端库两种风格均兼容）
+- SM2 加密无明文长度限制（无需 RSA 的混合回退）；SM3 摘要提供完整性校验，错误密钥/篡改直接报错
+- 已与 BabaSSL/Tongsuo openssl CLI 完成双向交叉验证
+
 ### RSA
 
 #### v1：RSA-OAEP（默认）

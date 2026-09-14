@@ -68,6 +68,10 @@ config:
   # 服务实例配置
   workflow:
     workerNum: 4096 # 单台Pod的工作流上限, 直接影响Pod的服务效率
+  cryptoType: "CLASSIC" # 对称加密套件: CLASSIC(AES-CBC) 或 SHANGMI(SM4-GCM 国密)。
+  # 注意: 全局只启用一种加密套件, 加解密均受当前配置约束; 切换套件后, 切换前落库的
+  # 临时凭据(登录密码/密钥文件, 均带过期时间)将全部失效, 需在安装时重新输入凭据,
+  # 不提供跨套件数据迁移。详见 docs/developer/credential-encryption-contract.md
   encryptKey: "1234567890abcdef" # 内部信息对称加密密钥
 
   # 第三方依赖配置

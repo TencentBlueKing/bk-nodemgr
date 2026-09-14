@@ -20724,6 +20724,9 @@ paths:
                   data:
                     type: object
                     properties:
+                      key_type:
+                        type: string
+                        description: The asymmetric algorithm of public_key, RSA4096 (CLASSIC suite) or SM2 (SHANGMI suite).
                       public_key:
                         type: string
                   error:
@@ -20822,6 +20825,123 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get the default RSA4096 public key used to encrypt sensitive data.
+  /api/v3/cipher/get_public_key:
+    post:
+      operationId: Cipher_GetCurrentPublicKey
+      description: 获取当前全局启用的凭据加密套件对应的默认公钥（CLASSIC 为 RSA4096，SHANGMI 为 SM2）。
+      tags:
+        - Cipher
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      public_key:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: GetCurrentPublicKeyResp get current public key response message.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: GetCurrentPublicKeyReq get current public key request message.
+        required: true
+        description: GetCurrentPublicKeyReq get current public key request message.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/cipher/get_public_key
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get the default public key of the globally enabled credential encryption suite (RSA4096 for CLASSIC, SM2 for SHANGMI).
   /api/v3/node/workflow/operation/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationDistinct

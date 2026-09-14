@@ -50,22 +50,27 @@ type TLSConfig struct {
 	// CAFile authentication root certificate file.
 	CAFile string
 
+	// EncCertFile TLCP (GM TLS) encryption certificate file, paired with
+	// EncKeyFile. When set together with CertFile/KeyFile (the signing pair),
+	// the endpoint serves pure TLCP instead of standard TLS.
+	EncCertFile string
+
+	// EncKeyFile TLCP (GM TLS) encryption key file.
+	EncKeyFile string
+
 	// Password authentication key file password.
 	Password string
 }
 
 // Validate validates the config.
 func (c TLSConfig) Validate() error {
-	if len(c.CertFile) == 0 &&
-		len(c.KeyFile) == 0 &&
-		len(c.CAFile) == 0 {
+	if len(c.CertFile) == 0 && len(c.KeyFile) == 0 && len(c.CAFile) == 0 {
 		return nil
 	}
 
 	// TODO: add tls config validate.
 
 	return nil
-
 }
 
 // NewClientTLSConf load and verify CA/CERT/KEY files of ssl as client side.
@@ -115,13 +120,14 @@ func (c TLSConfig) NewServerTLSConf() (*tls.Config, error) {
 }
 
 func loadCa(caFile string) (*x509.CertPool, error) {
+	// nolint: gosec // the path comes from trusted service config, not user input.
 	ca, err := os.ReadFile(caFile)
 	if err != nil {
 		return nil, err
 	}
 
 	caPool := x509.NewCertPool()
-	if ok := caPool.AppendCertsFromPEM(ca); ok != true {
+	if ok := caPool.AppendCertsFromPEM(ca); !ok {
 		return nil, fmt.Errorf("append ca cert failed")
 	}
 
@@ -129,6 +135,7 @@ func loadCa(caFile string) (*x509.CertPool, error) {
 }
 
 func loadCertificates(certFile, keyFile, passwd string) (*tls.Certificate, error) {
+	// nolint: gosec // the path comes from trusted service config, not user input.
 	priKey, err := os.ReadFile(keyFile)
 	if err != nil {
 		return nil, err
@@ -140,6 +147,9 @@ func loadCertificates(certFile, keyFile, passwd string) (*tls.Certificate, error
 			return nil, fmt.Errorf("decode private key failed")
 		}
 
+		// legacy PEM encryption (RFC 1423), kept for backward compatibility
+		// with operator-provided encrypted key files.
+		// nolint: staticcheck // SA1019: see the comment above.
 		priDecrPem, decErr := x509.DecryptPEMBlock(priPem, []byte(passwd))
 		if decErr != nil {
 			return nil, decErr
@@ -151,6 +161,7 @@ func loadCertificates(certFile, keyFile, passwd string) (*tls.Certificate, error
 		})
 	}
 
+	// nolint: gosec // the path comes from trusted service config, not user input.
 	certData, err := os.ReadFile(certFile)
 	if err != nil {
 		return nil, err

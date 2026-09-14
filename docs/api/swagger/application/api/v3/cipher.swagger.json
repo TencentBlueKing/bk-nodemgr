@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/cipher/get_public_key": {
+      "post": {
+        "summary": "GetCurrentPublicKey get the public key of the globally enabled\ncredential encryption suite.",
+        "operationId": "Cipher_GetCurrentPublicKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3GetCurrentPublicKeyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "GetCurrentPublicKeyReq get current public key request message.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3GetCurrentPublicKeyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Cipher"
+        ]
+      }
+    },
     "/api/v3/cipher/rsa/get_public_key": {
       "post": {
         "summary": "GetRSAPublicKey get rsa public key.",
@@ -59,14 +93,6 @@
           "type": "string"
         },
         "message": {
-          "type": "string"
-        }
-      }
-    },
-    "GetRSAPublicKeyRespData": {
-      "type": "object",
-      "properties": {
-        "public_key": {
           "type": "string"
         }
       }
@@ -135,6 +161,47 @@
         }
       }
     },
+    "v3GetCurrentPublicKeyReq": {
+      "type": "object",
+      "description": "GetCurrentPublicKeyReq get current public key request message."
+    },
+    "v3GetCurrentPublicKeyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3GetCurrentPublicKeyRespData"
+        }
+      },
+      "description": "GetCurrentPublicKeyResp get current public key response message, the\npublic key of the globally enabled credential encryption suite."
+    },
+    "v3GetCurrentPublicKeyRespData": {
+      "type": "object",
+      "properties": {
+        "key_type": {
+          "type": "string",
+          "description": "key_type is the asymmetric algorithm of public_key: RSA4096 (CLASSIC\nsuite) or SM2 (SHANGMI suite)."
+        },
+        "public_key": {
+          "type": "string"
+        }
+      }
+    },
     "v3GetRSAPublicKeyReq": {
       "type": "object",
       "description": "GetRSAPublicKeyReq get rsa public key request message."
@@ -159,10 +226,18 @@
           "$ref": "#/definitions/v3Permission"
         },
         "data": {
-          "$ref": "#/definitions/GetRSAPublicKeyRespData"
+          "$ref": "#/definitions/v3GetRSAPublicKeyRespData"
         }
       },
       "description": "GetRSAPublicKeyResp get rsa public key response message."
+    },
+    "v3GetRSAPublicKeyRespData": {
+      "type": "object",
+      "properties": {
+        "public_key": {
+          "type": "string"
+        }
+      }
     },
     "v3Permission": {
       "type": "object",

@@ -21,12 +21,43 @@ message GetRSAPublicKeyResp {
   Data data = 5;
 }
 
+// GetCurrentPublicKeyReq get current public key request message.
+message GetCurrentPublicKeyReq {}
+
+// GetCurrentPublicKeyResp get current public key response message, the
+// public key of the globally enabled credential encryption suite.
+message GetCurrentPublicKeyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // key_type is the asymmetric algorithm of public_key: RSA4096 (CLASSIC
+    // suite) or SM2 (SHANGMI suite).
+    string key_type = 1;
+    string public_key = 2;
+  }
+  Data data = 5;
+}
+
 // Cipher service definition.
 service Cipher {
   // GetRSAPublicKey get rsa public key.
   rpc GetRSAPublicKey(GetRSAPublicKeyReq) returns (GetRSAPublicKeyResp) {
     option (google.api.http) = {
       post : "/api/v3/cipher/rsa/get_public_key"
+      body : "*"
+    };
+  }
+
+  // GetCurrentPublicKey get the public key of the globally enabled
+  // credential encryption suite.
+  rpc GetCurrentPublicKey(GetCurrentPublicKeyReq)
+      returns (GetCurrentPublicKeyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/cipher/get_public_key"
       body : "*"
     };
   }
