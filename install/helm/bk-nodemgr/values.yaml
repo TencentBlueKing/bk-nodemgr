@@ -41,7 +41,7 @@ extraDeploy: []
 image:
   registry: "hub.bktencent.com"
   repository: blueking/bk-nodemgr-server
-  tag: v3.0.1-alpha.82
+  tag: v3.0.1-alpha.83
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -59,7 +59,7 @@ image:
 apiManagerImage:
   registry: "hub.bktencent.com"
   repository: "blueking/bk-nodemgr-apigw-sync"
-  tag: v3.0.1-alpha.82
+  tag: v3.0.1-alpha.83
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -1821,9 +1821,9 @@ apigwSync:
   config:
     spec_version: 1
     release:
-      version: "3.0.1-alpha.82"
+      version: "3.0.1-alpha.83"
       title: "bk-nodemgr"
-      comment: "3.0.1-alpha.82"
+      comment: "3.0.1-alpha.83"
     apigateway:
       description: "蓝鲸节点管理"
       description_en: "bk-nodemgr"

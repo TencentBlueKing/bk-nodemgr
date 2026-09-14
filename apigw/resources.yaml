@@ -18493,6 +18493,9 @@ paths:
                                 description: Scope describes the scope of deploy policy.
                             enabled:
                               type: boolean
+                            ensure_absent:
+                              type: boolean
+                              description: "Whether all specs should ensure absence. Defaults to false (forward).\nCurrently stored only; execution does not interpret this field yet."
                             operator:
                               type: string
                             deploy_policy_id:
@@ -18807,6 +18810,9 @@ paths:
                       type: boolean
                     enabled:
                       type: boolean
+                    ensure_absent:
+                      type: boolean
+                      description: Update ensure_absent, including an explicit false value.
                   description: DeployPolicyFields describes the fields of deploy policy.
                 deploy_policies:
                   type: array
@@ -18848,6 +18854,9 @@ paths:
                           description: Scope describes the scope of deploy policy.
                       enabled:
                         type: boolean
+                      ensure_absent:
+                        type: boolean
+                        description: "Whether all specs should ensure absence. Defaults to false (forward).\nCurrently stored only; execution does not interpret this field yet."
                       operator:
                         type: string
                       deploy_policy_id:
