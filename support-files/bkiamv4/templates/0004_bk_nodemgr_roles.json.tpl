@@ -44,12 +44,22 @@
     {
       "operation": "upsert_role",
       "data": {
+        "id": "networkarea_creator",
+        "name": "管控区域创建者",
+        "description": "支持创建管控区域；创建后由系统自动授予创建者对新建管控区域的管理权限。",
+        "actions": [
+          {"id": "networkarea_create", "resource_type_id": ""}
+        ]
+      }
+    },
+    {
+      "operation": "upsert_role",
+      "data": {
         "id": "networkarea_manager",
         "name": "管控区域管理员",
-        "description": "支持创建、查看、编辑和删除管控区域、查看其历史，以及在管控区域下创建管控单元；资源范围以授权为准。",
+        "description": "支持查看、编辑和删除管控区域、查看其历史，以及在管控区域下创建管控单元；资源范围以授权为准。",
         "actions": [
           {"id": "networkarea_view", "resource_type_id": "networkarea"},
-          {"id": "networkarea_create", "resource_type_id": ""},
           {"id": "networkarea_edit", "resource_type_id": "networkarea"},
           {"id": "networkarea_delete", "resource_type_id": "networkarea"},
           {"id": "networkarea_history_view", "resource_type_id": "networkarea"},

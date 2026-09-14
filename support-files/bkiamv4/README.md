@@ -8,7 +8,7 @@
 
 | 文件                | 说明                                                            |
 | ------------------- | --------------------------------------------------------------- |
-| `templates/`        | V4 System、五类本地 ResourceType、32 个 Action 与六个 Role 模板 |
+| `templates/`        | V4 System、五类本地 ResourceType、32 个 Action 与七个 Role 模板 |
 | `vars.yaml.example` | 变量配置示例                                                    |
 | `render/`           | 渲染工具源码，构建后生成 `render/iam-render`                    |
 | `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`                  |
@@ -212,13 +212,14 @@ flowchart TD
 
 ### Role 更新规则
 
-`0004` 在 Action 之后注册以下六个角色。Agent 和 Proxy 管理员各自管理对应节点，同时包含 Plugin 权限、NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限。管控区域和管控单元分为两个管理角色；配置策略管理员包含 Config Policy 和 Deploy Policy 权限。不自动展开 `related_actions`。
+`0004` 在 Action 之后注册以下七个角色。Agent 和 Proxy 管理员各自管理对应节点，同时包含 Plugin 权限、NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理员包含 Config Policy 和 Deploy Policy 权限。不自动展开 `related_actions`。
 
 | Role ID                 | 名称           | Action 数 |
 | ----------------------- | -------------- | --------- |
 | `agent_manager`         | Agent 管理员   | 10        |
 | `proxy_manager`         | Proxy 管理员   | 10        |
-| `networkarea_manager`   | 管控区域管理员 | 6         |
+| `networkarea_creator`   | 管控区域创建者 | 1         |
+| `networkarea_manager`   | 管控区域管理员 | 5         |
 | `networkunit_manager`   | 管控单元管理员 | 6         |
 | `config_policy_manager` | 配置策略管理员 | 7         |
 | `package_manager`       | 资源包管理员   | 4         |
@@ -240,7 +241,9 @@ flowchart TD
 
 Role 列表读取全部分页后再决策，异常或不完整响应不会被当作空列表。dry-run 复用前序 System、ResourceType、Action 和 Role 的虚拟状态，不写入远端；成功写入也对后续操作可见。单独执行 `0004` 时，其前置模型必须已存在。Role 注册不包含用户组授权或资源范围分配。
 
-**已有角色调整：** `agent_manager` 保留 ID，更新名称并增加 `networkunit_view`；新增 `proxy_manager` 和 `networkunit_manager`。`networkarea_manager` 保留 Role 本身，成员收敛为五项 `networkarea_*` 和 `networkunit_create`。`config_policy_manager` 使用新 ID 注册，工具不会自动删除模板中已移除的 `policy_manager`，也不会迁移其已有授权。新模型一致后重跑会跳过；成员调整不等于将已有授权迁移至新 Role。
+**已有角色调整：** `agent_manager` 保留 ID，更新名称并增加 `networkunit_view`；新增 `proxy_manager` 和 `networkunit_manager`。`networkarea_create` 单独归入 `networkarea_creator`；`networkarea_manager` 保留 Role 本身及区域查看、编辑、删除、历史查看和 `networkunit_create`，不再包含创建管控区域的权限。`config_policy_manager` 使用新 ID 注册，工具不会自动删除模板中已移除的 `policy_manager`，也不会迁移其已有授权。新模型一致后重跑会跳过；成员调整不等于将已有授权迁移至新 Role。
+
+**创建与管理分离：** `networkarea_creator` 仅包含无资源绑定的创建操作。创建管控区域后，运行时创建者授权机制自动授予创建者针对新建资源的 `networkarea_manager` 权限，不授予其他管控区域的管理权限；此授权不由模型迁移工具执行。模板先注册创建角色，再从原管理角色移除创建操作；原角色上的创建权限不会自动转移到新角色，需要另行授权。若成员移除被 IAM 拒绝，迁移立即停止，已注册的新角色不会回滚。
 
 更新前会检查名称冲突、Action 和资源维度；省略的名称、描述沿用远端值。dry-run 按执行顺序输出 `delete_role_actions`、`add_role_actions`、`update_role` 的组合并更新虚拟状态，不写入远端，也不保证 IAM 会允许删除。**删除某个授权维度下的全部操作时，该维度下不应存在授权**；工具不会自动撤销或迁移授权，也不会回退到删除整个 Role。IAM 拒绝时立即停止。
 
