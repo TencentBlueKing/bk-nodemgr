@@ -253,7 +253,7 @@ const isCurrentPageIndeterminate = computed(() => (
 
 function isRowSelectable(row: INetWorkArea): boolean {
   if (row.bk_networkarea_id === 0) return false;
-  if (!authStore.hasAuthorizedResource('networkunit_create')) return false;
+  if (!authStore.hasAuthorizedResource('networkunit_create', row.bk_networkarea_id)) return false;
   return true;
 }
 

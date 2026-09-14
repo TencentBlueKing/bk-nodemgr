@@ -11,6 +11,7 @@ export type Config = {
   originalResponse?: boolean // 返回原始res对象
   validateCode?: boolean // 校验code是否正确，默认true
   interceptorErr?: boolean // 是否自动拦截http异常弹出message
+  showPermissionDialog?: boolean // Defaults to true; disable for background permission checks.
 } & RequestInit;
 
 export type ResCallback= (res: Response, config: Partial<Config>) => any;

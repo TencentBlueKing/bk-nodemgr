@@ -164,7 +164,9 @@ const handleBatchCreateSubmitted = async (result: TopoNetworkUnitCreateDefaultMu
 };
 
 // networkarea_create permission
-const { hasAuth: hasCreateAuth, handleMouseEnter: createMouseEnter, handleMouseMove: createMouseMove, handleMouseLeave: createMouseLeave, handleAuthClick: createAuthClick } = useAuthLock('networkarea_create', () => undefined, { resourceType: 'networkarea' });
+const { handleMouseEnter: createMouseEnter, handleMouseMove: createMouseMove, handleMouseLeave: createMouseLeave, handleAuthClick: createAuthClick } = useAuthLock('networkarea_create', () => undefined, { resourceType: '' });
+const hasCreateAuth = computed(() => authStore.hasPermissionCache('networkarea_create')
+  && authStore.hasPermission('networkarea_create'));
 
 // 新增/修改 workarea dialog
 const showUpsertWorkarea = ref(false);
@@ -310,7 +312,15 @@ watch(() => workareaStore.workareaList, () =>  {
 onMounted(async () => {
   // 确保 topoManager 模块权限数据已加载（statistics 接口依赖 authorized 判断有权限的区域）
   const topoItems = getModuleAuthorizedItems('topoManager');
-  await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
+  await Promise.all([
+    authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {}),
+    authStore.batchVerify(
+      [{ id: 'networkarea_create', action: 'networkarea_create', resourceType: '', routes: [] }],
+      undefined,
+      undefined,
+      { showPermissionDialog: false },
+    ),
+  ]);
   await getTableData();
 });
 

@@ -215,13 +215,12 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
   ],
   // ===== topoManager =====
   workarea: [
-    { action: 'networkarea_create', resource_type: 'networkarea' },
     { action: 'networkarea_edit', resource_type: 'networkarea' },
     { action: 'networkarea_delete', resource_type: 'networkarea' },
-    { action: 'networkunit_create', resource_type: 'networkunit' },
+    { action: 'networkunit_create', resource_type: 'networkarea' },
   ],
   workareaDetail: [
-    { action: 'networkunit_create', resource_type: 'networkunit' },
+    { action: 'networkunit_create', resource_type: 'networkarea' },
     { action: 'networkunit_edit', resource_type: 'networkunit' },
     { action: 'networkunit_delete', resource_type: 'networkunit' },
     { action: 'networkarea_history_view', resource_type: 'networkarea' },

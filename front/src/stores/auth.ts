@@ -45,6 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
     authItems: PageAuthItem[],
     bkBizScope?: string | number | Array<string | number>,
     resourceId?: string | number,
+    options: { showPermissionDialog?: boolean } = {},
   ): Promise<boolean> {
     const bizScope = normalizeBizScope(bkBizScope);
     const bizResources = bizScope
@@ -59,6 +60,9 @@ export const useAuthStore = defineStore('auth', () => {
       const verifyItem: AuthVerifyItem = {
         action: item.action,
       };
+      if (!item.resourceType) {
+        verifyItem.resources = [];
+      }
 
       // For biz-scoped actions, include the biz resource
       if (item.resourceType === 'biz' && bizResources.length > 0) {
@@ -85,7 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const resp = await fetch.post<{ items: AuthVerifyItem[] }, AuthVerifyResp>('/api/v3/auth/verify')(
         { items },
-        { interceptorErr: false, validateCode: false, needRes: true },
+        { interceptorErr: false, validateCode: false, needRes: true, ...options },
       ) as unknown as AuthVerifyResp;
 
       const data = (resp as any)?.data ?? resp;

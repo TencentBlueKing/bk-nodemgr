@@ -38,7 +38,9 @@ interceptors.response.use(async (response: Response, config: Config) => {
 
   // 权限不足 (HTTP 403)
   if (response.status === 403 && res.permission) {
-    usePermissionStore().showDialog(res.permission);
+    if (config.showPermissionDialog !== false) {
+      usePermissionStore().showDialog(res.permission);
+    }
     return Promise.reject(resData);
   }
 

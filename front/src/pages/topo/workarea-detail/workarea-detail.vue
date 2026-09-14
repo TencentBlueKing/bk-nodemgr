@@ -173,7 +173,7 @@ const workAreaId = Number(route.params.workarea);
 
 // networkunit permissions (hover lock + click apply)
 const { hasAuth: hasUnitCreateAuth, handleMouseEnter: createMouseEnter, handleMouseMove: createMouseMove, handleMouseLeave: createMouseLeave, handleAuthClick: createAuthClick } = useAuthLock(
-  'networkunit_create', () => undefined, { resourceType: 'networkunit' },
+  'networkunit_create', () => workAreaId, { resourceType: 'networkarea' },
 );
 const { hasAuth: hasUnitEditAuth, handleMouseEnter: editMouseEnter, handleMouseMove: editMouseMove, handleMouseLeave: editMouseLeave, handleAuthClick: editAuthClick } = useAuthLock(
   'networkunit_edit', () => active.value, { resourceType: 'networkunit' },
