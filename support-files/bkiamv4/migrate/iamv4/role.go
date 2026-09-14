@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
@@ -126,6 +127,53 @@ func (c *cli) batchCreateRoleAction(
 	}
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("add role actions failed: %w; check remote state before rerunning", err)
+	}
+
+	return &resp.Data, nil
+}
+
+func (c *cli) batchDeleteRoleAction(
+	ctx contextx.IContext, req *BatchDeleteRoleActionReq,
+) (*BatchDeleteRoleActionResp, error) {
+
+	resp := new(BaseBroker[BatchDeleteRoleActionResp])
+	result := c.client.Delete().
+		SubResourcef("/rbac/model/systems/%s/roles/%s/actions/", req.SystemID, req.RoleID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		WithParam("ids", strings.Join(req.IDs, ",")).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return nil, fmt.Errorf("delete role actions: %w; check remote state before rerunning (request-id: %s)",
+			err, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if result.StatusCode != http.StatusNoContent {
+		return nil, fmt.Errorf("delete_role_actions: unexpected HTTP %d; check remote state before rerunning (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("delete role actions failed: %w; check remote state before rerunning", err)
+	}
+
+	return &resp.Data, nil
+}
+
+func (c *cli) deleteRole(ctx contextx.IContext, req *DeleteRoleReq) (*DeleteRoleResp, error) {
+	resp := new(BaseBroker[DeleteRoleResp])
+	result := c.client.Delete().
+		SubResourcef("/rbac/model/systems/%s/roles/%s/", req.SystemID, req.RoleID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return nil, fmt.Errorf("delete role: %w", err)
+	}
+	if result.StatusCode != http.StatusNoContent {
+		return nil, fmt.Errorf("delete_role: unexpected HTTP %d (request-id: %s); roles with existing authorizations cannot be deleted",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("delete role failed: %w", err)
 	}
 
 	return &resp.Data, nil

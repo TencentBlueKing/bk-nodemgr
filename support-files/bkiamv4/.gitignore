@@ -1,2 +1,4 @@
 vars.yaml
 output/
+/migrate/iam-migrate
+/render/iam-render

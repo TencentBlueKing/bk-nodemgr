@@ -8,7 +8,7 @@
 
 | 文件                | 说明                                                            |
 | ------------------- | --------------------------------------------------------------- |
-| `templates/`        | V4 System、五类本地 ResourceType、32 个 Action 与四个 Role 模板 |
+| `templates/`        | V4 System、五类本地 ResourceType、32 个 Action 与六个 Role 模板 |
 | `vars.yaml.example` | 变量配置示例                                                    |
 | `render/`           | 渲染工具源码，构建后生成 `render/iam-render`                    |
 | `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`                  |
@@ -212,35 +212,41 @@ flowchart TD
 
 ### Role 更新规则
 
-`0004` 在 Action 之后注册以下四个角色。成员以 V3 CommonActions 为起点；业务节点管理员显式补入 `networkarea_view`，不自动展开 `related_actions`。
+`0004` 在 Action 之后注册以下六个角色。Agent 和 Proxy 管理员各自管理对应节点，同时包含 Plugin 权限、NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限。管控区域和管控单元分为两个管理角色；配置策略管理员包含 Config Policy 和 Deploy Policy 权限。不自动展开 `related_actions`。
 
-| Role ID               | 名称           | Action 数 |
-| --------------------- | -------------- | --------- |
-| `agent_manager`       | 业务节点管理员 | 9         |
-| `networkarea_manager` | 管控区域管理员 | 15        |
-| `policy_manager`      | 策略管理员     | 7         |
-| `package_manager`     | 资源包管理员   | 4         |
+| Role ID                 | 名称           | Action 数 |
+| ----------------------- | -------------- | --------- |
+| `agent_manager`         | Agent 管理员   | 10        |
+| `proxy_manager`         | Proxy 管理员   | 10        |
+| `networkarea_manager`   | 管控区域管理员 | 6         |
+| `networkunit_manager`   | 管控单元管理员 | 6         |
+| `config_policy_manager` | 配置策略管理员 | 7         |
+| `package_manager`       | 资源包管理员   | 4         |
 
 `data` 仅接受 `id`、`name`、`description`、`actions`。每次 upsert 都必须提供完整、非空的 `actions` 数组；每个成员必须显式提供 `id` 和 `resource_type_id`，不允许重复 Action ID、未知字段或 `null`。名称非空，描述允许空字符串。
 
 模板成员保持 Action 当前直接资源绑定，包括 `networkunit_create → networkarea` 和无资源的 `networkarea_create → ""`。工具也支持 IAM 允许的祖先维度；非空维度必须是 Action 绑定或其祖先，所引用的 Action 和 ResourceType 必须在远端或前序计划中存在。
 
-| 场景                                  | 处理方式                                                                             |
-| ------------------------------------- | ------------------------------------------------------------------------------------ |
-| Role 不存在                           | 要求名称，提交包含成员的单元素数组创建                                               |
-| Role 已存在                           | 按 `(Action ID, resource_type_id)` 集合比较，忽略成员顺序                            |
-| 保留全部已有成员及其维度，新增 Action | 仅通过追加接口提交缺少的成员，不重复提交已有成员                                     |
-| 删除已有成员或改变其维度              | 报错停止，不自动删除、改维度或删除重建                                               |
-| 显式名称或描述改变                    | 仅发送发生变化的元数据字段；空描述用于清除描述。若同时新增成员，先追加，再更新元数据 |
-| 名称或描述省略                        | 保留远端对应值                                                                       |
-| 成员一致且元数据无变化                | 跳过写入                                                                             |
-| 名称冲突、Action 缺失或维度不合法     | 报错停止                                                                             |
+| 场景                                  | 处理方式                                                                               |
+| ------------------------------------- | -------------------------------------------------------------------------------------- |
+| Role 不存在                           | 要求名称，提交包含成员的单元素数组创建                                                 |
+| Role 已存在                           | 按 `(Action ID, resource_type_id)` 集合比较，忽略成员顺序                              |
+| 保留全部已有成员及其维度，新增 Action | 仅通过追加接口提交缺少的成员，不重复提交已有成员                                       |
+| 删除已有成员或改变其维度              | 保留 Role，按 Action ID 删除旧成员；维度变化时先删除旧绑定，再追加新绑定；失败立即停止 |
+| 显式名称或描述改变                    | 仅发送发生变化的元数据字段；空描述用于清除描述。若同时新增成员，先追加，再更新元数据   |
+| 名称或描述省略                        | 保留远端对应值                                                                         |
+| 成员一致且元数据无变化                | 跳过写入                                                                               |
+| 名称冲突、Action 缺失或维度不合法     | 报错停止                                                                               |
 
 Role 列表读取全部分页后再决策，异常或不完整响应不会被当作空列表。dry-run 复用前序 System、ResourceType、Action 和 Role 的虚拟状态，不写入远端；成功写入也对后续操作可见。单独执行 `0004` 时，其前置模型必须已存在。Role 注册不包含用户组授权或资源范围分配。
 
+**已有角色调整：** `agent_manager` 保留 ID，更新名称并增加 `networkunit_view`；新增 `proxy_manager` 和 `networkunit_manager`。`networkarea_manager` 保留 Role 本身，成员收敛为五项 `networkarea_*` 和 `networkunit_create`。`config_policy_manager` 使用新 ID 注册，工具不会自动删除模板中已移除的 `policy_manager`，也不会迁移其已有授权。新模型一致后重跑会跳过；成员调整不等于将已有授权迁移至新 Role。
+
+更新前会检查名称冲突、Action 和资源维度；省略的名称、描述沿用远端值。dry-run 按执行顺序输出 `delete_role_actions`、`add_role_actions`、`update_role` 的组合并更新虚拟状态，不写入远端，也不保证 IAM 会允许删除。**删除某个授权维度下的全部操作时，该维度下不应存在授权**；工具不会自动撤销或迁移授权，也不会回退到删除整个 Role。IAM 拒绝时立即停止。
+
 新增 Action 关联的资源类型已在 Role 中时，IAM 会使已有用户在原授权资源范围内获得该 Action 权限；关联新资源类型时，同样追加模型成员，但用户需要另行申请该资源类型的权限。工具不替用户授权或扩大资源范围。
 
-追加成员与更新元数据是两次独立请求。如果追加成功、元数据更新失败，已追加成员不会回滚；检查远端后重跑，只补充仍缺少的成员并更新尚未生效的元数据。dry-run 输出 `add_role_actions` 或 `add_role_actions+update_role`，后续操作可见计划中的新成员。
+删除成员、追加成员、更新元数据依次执行，均为独立请求。如果删除成功、追加失败，Role 仍存在，但已删除的成员不会回滚；后续元数据更新不会执行。检查远端后重跑，工具重新计算差异，只提交剩余变化。后续操作可见成功写入或 dry-run 计划中的成员。
 
 ## 失败处理
 

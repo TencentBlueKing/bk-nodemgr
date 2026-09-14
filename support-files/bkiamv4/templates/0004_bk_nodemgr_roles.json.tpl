@@ -5,14 +5,34 @@
       "operation": "upsert_role",
       "data": {
         "id": "agent_manager",
-        "name": "业务节点管理员",
+        "name": "Agent 管理员",
         "actions": [
           {"id": "biz_access", "resource_type_id": "biz"},
           {"id": "agent_view", "resource_type_id": "biz"},
           {"id": "agent_operate", "resource_type_id": "biz"},
           {"id": "agent_history_view", "resource_type_id": "biz"},
           {"id": "networkarea_view", "resource_type_id": "networkarea"},
+          {"id": "networkunit_view", "resource_type_id": "networkunit"},
           {"id": "networkunit_use_for_agent", "resource_type_id": "networkunit"},
+          {"id": "plugin_view", "resource_type_id": "biz"},
+          {"id": "plugin_operate", "resource_type_id": "biz"},
+          {"id": "plugin_history_view", "resource_type_id": "biz"}
+        ]
+      }
+    },
+    {
+      "operation": "upsert_role",
+      "data": {
+        "id": "proxy_manager",
+        "name": "Proxy 管理员",
+        "actions": [
+          {"id": "biz_access", "resource_type_id": "biz"},
+          {"id": "proxy_view", "resource_type_id": "biz"},
+          {"id": "proxy_operate", "resource_type_id": "biz"},
+          {"id": "proxy_history_view", "resource_type_id": "biz"},
+          {"id": "networkarea_view", "resource_type_id": "networkarea"},
+          {"id": "networkunit_view", "resource_type_id": "networkunit"},
+          {"id": "networkunit_use_for_proxy", "resource_type_id": "networkunit"},
           {"id": "plugin_view", "resource_type_id": "biz"},
           {"id": "plugin_operate", "resource_type_id": "biz"},
           {"id": "plugin_history_view", "resource_type_id": "biz"}
@@ -25,29 +45,35 @@
         "id": "networkarea_manager",
         "name": "管控区域管理员",
         "actions": [
-          {"id": "biz_access", "resource_type_id": "biz"},
           {"id": "networkarea_view", "resource_type_id": "networkarea"},
           {"id": "networkarea_create", "resource_type_id": ""},
           {"id": "networkarea_edit", "resource_type_id": "networkarea"},
           {"id": "networkarea_delete", "resource_type_id": "networkarea"},
           {"id": "networkarea_history_view", "resource_type_id": "networkarea"},
-          {"id": "networkunit_view", "resource_type_id": "networkunit"},
-          {"id": "networkunit_create", "resource_type_id": "networkarea"},
-          {"id": "networkunit_edit", "resource_type_id": "networkunit"},
-          {"id": "networkunit_delete", "resource_type_id": "networkunit"},
-          {"id": "networkunit_history_view", "resource_type_id": "networkunit"},
-          {"id": "proxy_view", "resource_type_id": "biz"},
-          {"id": "proxy_operate", "resource_type_id": "biz"},
-          {"id": "proxy_history_view", "resource_type_id": "biz"},
-          {"id": "networkunit_use_for_proxy", "resource_type_id": "networkunit"}
+          {"id": "networkunit_create", "resource_type_id": "networkarea"}
         ]
       }
     },
+        {
+          "operation": "upsert_role",
+          "data": {
+            "id": "networkunit_manager",
+            "name": "管控单元管理员",
+            "actions": [
+              {"id": "networkunit_view", "resource_type_id": "networkunit"},
+              {"id": "networkunit_edit", "resource_type_id": "networkunit"},
+              {"id": "networkunit_delete", "resource_type_id": "networkunit"},
+              {"id": "networkunit_history_view", "resource_type_id": "networkunit"},
+              {"id": "networkunit_use_for_agent", "resource_type_id": "networkunit"},
+              {"id": "networkunit_use_for_proxy", "resource_type_id": "networkunit"}
+            ]
+          }
+        },
     {
       "operation": "upsert_role",
       "data": {
-        "id": "policy_manager",
-        "name": "策略管理员",
+        "id": "config_policy_manager",
+        "name": "配置策略管理员",
         "actions": [
           {"id": "biz_access", "resource_type_id": "biz"},
           {"id": "config_policy_view", "resource_type_id": "biz"},

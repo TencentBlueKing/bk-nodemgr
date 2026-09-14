@@ -32,7 +32,9 @@ type IHandlerRole interface {
 	ListRoles(ctx contextx.IContext, systemID string) ([]Role, error)
 	CreateRole(ctx contextx.IContext, systemID string, role Role) error
 	UpdateRole(ctx contextx.IContext, systemID, roleID string, fields RoleFields) error
+	DeleteRole(ctx contextx.IContext, systemID, roleID string) error
 	AddRoleActions(ctx contextx.IContext, systemID, roleID string, actions []RoleAction) error
+	DeleteRoleActions(ctx contextx.IContext, systemID, roleID string, actionIDs []string) error
 }
 
 // ListRoles retrieves the complete role model or returns an error.
@@ -143,6 +145,24 @@ func (h *Handler) CreateRole(ctx contextx.IContext, systemID string, role Role) 
 // UpdateRole sends supplied fields; the caller owns member drift checks.
 func (h *Handler) UpdateRole(ctx contextx.IContext, systemID, roleID string, fields RoleFields) error {
 	_, err := h.cli.updateRole(ctx, &UpdateRoleReq{SystemID: systemID, RoleID: roleID, RoleFields: fields})
+
+	return err
+}
+
+// DeleteRole deletes a role; IAM rejects roles with existing authorizations.
+func (h *Handler) DeleteRole(ctx contextx.IContext, systemID, roleID string) error {
+	_, err := h.cli.deleteRole(ctx, &DeleteRoleReq{SystemID: systemID, RoleID: roleID})
+
+	return err
+}
+
+// DeleteRoleActions removes members by action ID without deleting the role itself.
+func (h *Handler) DeleteRoleActions(ctx contextx.IContext, systemID, roleID string, actionIDs []string) error {
+	_, err := h.cli.batchDeleteRoleAction(ctx, &BatchDeleteRoleActionReq{
+		SystemID: systemID,
+		RoleID:   roleID,
+		IDs:      actionIDs,
+	})
 
 	return err
 }

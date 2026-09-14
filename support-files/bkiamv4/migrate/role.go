@@ -136,26 +136,19 @@ func (item migration) executeRole(
 	}
 	current, exists := roles[role.ID]
 	var additions []iamv4.RoleAction
+	var removals []string
 	if exists {
 		additions = missingRoleActions(role.Actions, current.Actions)
+		for _, member := range missingRoleActions(current.Actions, role.Actions) {
+			removals = append(removals, member.ID)
+		}
 	}
-	plan := "skip_role"
-	metadataChanged := fields.Name != nil || fields.Description != nil
-	switch {
-	case !exists:
-		plan = "create_role"
-	case len(additions) > 0 && metadataChanged:
-		plan = "add_role_actions+update_role"
-	case len(additions) > 0:
-		plan = "add_role_actions"
-	case metadataChanged:
-		plan = "update_role"
-	}
+	plan := rolePlan(exists, removals, additions, fields)
 	if _, err := fmt.Fprintf(out, "%s: %s %s/%s (dry-run=%t)\n", item.filename, plan, item.SystemID, role.ID, dryRun); err != nil {
 		return fmt.Errorf("write role plan: %w", err)
 	}
 	if !dryRun && plan != "skip_role" {
-		if err := applyRole(ctx, handler, item.SystemID, role, fields, exists, additions); err != nil {
+		if err := applyRole(ctx, handler, item.SystemID, role, fields, exists, removals, additions); err != nil {
 			return err
 		}
 	}
@@ -169,9 +162,6 @@ func prepareRole(op operation, roles map[string]iamv4.Role) (iamv4.Role, iamv4.R
 	role := op.role
 	fields := iamv4.RoleFields{}
 	current, exists := roles[role.ID]
-	if exists && !containsRoleActions(role.Actions, current.Actions) {
-		return role, fields, fmt.Errorf("role %s removes members or changes their dimensions; automatic removal or rebinding is not supported", role.ID)
-	}
 	if exists {
 		if _, supplied := op.Data[fieldName]; !supplied {
 			role.Name = current.Name
@@ -209,19 +199,25 @@ func missingRoleActions(desired, current []iamv4.RoleAction) []iamv4.RoleAction 
 	return additions
 }
 
-func containsRoleActions(desired, current []iamv4.RoleAction) bool {
-	members := make(map[iamv4.RoleAction]struct{}, len(desired))
-	for _, member := range desired {
-		members[member] = struct{}{}
+func rolePlan(exists bool, removals []string, additions []iamv4.RoleAction, fields iamv4.RoleFields) string {
+	if !exists {
+		return "create_role"
 	}
-	for _, member := range current {
-		if _, exists := members[member]; !exists {
-			return false
-		}
-		delete(members, member)
+	steps := make([]string, 0)
+	if len(removals) > 0 {
+		steps = append(steps, "delete_role_actions")
+	}
+	if len(additions) > 0 {
+		steps = append(steps, "add_role_actions")
+	}
+	if fields.Name != nil || fields.Description != nil {
+		steps = append(steps, "update_role")
+	}
+	if len(steps) == 0 {
+		return "skip_role"
 	}
 
-	return true
+	return strings.Join(steps, "+")
 }
 
 func loadActions(
@@ -301,7 +297,7 @@ func validateRoleDimension(
 
 func applyRole(
 	ctx contextx.IContext, handler iamv4.IHandlerRole, systemID string,
-	role iamv4.Role, fields iamv4.RoleFields, exists bool, additions []iamv4.RoleAction,
+	role iamv4.Role, fields iamv4.RoleFields, exists bool, removals []string, additions []iamv4.RoleAction,
 ) error {
 
 	if !exists {
@@ -310,6 +306,12 @@ func applyRole(
 		}
 
 		return nil
+	}
+	// Remove old bindings before adding replacements for the same action IDs.
+	if len(removals) > 0 {
+		if err := handler.DeleteRoleActions(ctx, systemID, role.ID, removals); err != nil {
+			return fmt.Errorf("delete actions from role %s: %w", role.ID, err)
+		}
 	}
 	if len(additions) > 0 {
 		if err := handler.AddRoleActions(ctx, systemID, role.ID, additions); err != nil {

@@ -246,6 +246,16 @@ type BatchCreateRoleActionReq struct {
 // BatchCreateRoleActionResp contains the added member action IDs.
 type BatchCreateRoleActionResp []string
 
+// BatchDeleteRoleActionReq identifies the role and action IDs to remove.
+type BatchDeleteRoleActionReq struct {
+	SystemID string   `json:"-"`
+	RoleID   string   `json:"-"`
+	IDs      []string `json:"-"`
+}
+
+// BatchDeleteRoleActionResp represents the absence of data on a successful HTTP 204.
+type BatchDeleteRoleActionResp struct{}
+
 // UpdateRoleReq identifies a role and its supplied mutable fields, excluding actions.
 type UpdateRoleReq struct {
 	SystemID string `json:"-"`
@@ -255,6 +265,15 @@ type UpdateRoleReq struct {
 
 // UpdateRoleResp represents the absence of data on a successful HTTP 204.
 type UpdateRoleResp struct{}
+
+// DeleteRoleReq identifies the role to delete.
+type DeleteRoleReq struct {
+	SystemID string `json:"-"`
+	RoleID   string `json:"-"`
+}
+
+// DeleteRoleResp represents the absence of data on a successful HTTP 204.
+type DeleteRoleResp struct{}
 
 // RespError describes an IAM API error.
 type RespError struct {
