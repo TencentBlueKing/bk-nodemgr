@@ -64,6 +64,31 @@ func BuildBizResources(bizIDs ...int64) []types.AuthResource {
 	return resources
 }
 
+// BuildNodeWorkflowHistoryResources maps stored workflow roles to history permissions.
+func BuildNodeWorkflowHistoryResources(workflow *types.NodeWorkflow) map[auth.Action][]types.AuthResource {
+	resources := BuildBizResources(workflow.BizIDs...)
+	actionResources := make(map[auth.Action][]types.AuthResource)
+	for _, nodeRole := range workflow.NodeRoles {
+		switch nodeRole {
+		case types.NodeRoleBlank, types.NodeRoleAgent:
+			actionResources[auth.ActionAgentHistoryView] = resources
+		case types.NodeRoleProxy:
+			actionResources[auth.ActionProxyHistoryView] = resources
+		default:
+			// Unknown roles require both history view permissions.
+			actionResources[auth.ActionAgentHistoryView] = resources
+			actionResources[auth.ActionProxyHistoryView] = resources
+		}
+	}
+	if len(actionResources) == 0 {
+		// Missing roles require both history view permissions.
+		actionResources[auth.ActionAgentHistoryView] = resources
+		actionResources[auth.ActionProxyHistoryView] = resources
+	}
+
+	return actionResources
+}
+
 // BuildNetworkUnitResources constructs types.AuthResource slice for network unit IDs.
 func BuildNetworkUnitResources(networkUnitIDs ...int64) []types.AuthResource {
 	resources := make([]types.AuthResource, 0, len(networkUnitIDs))

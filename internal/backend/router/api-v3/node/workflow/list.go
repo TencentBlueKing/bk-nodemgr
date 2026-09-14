@@ -19,6 +19,9 @@
 package workflow
 
 import (
+	"fmt"
+
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -39,6 +42,29 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	page := types.UnlimitedPage()
+	if !req.GetOnlyCount() {
+		page, err = req.ConvertPageToTypes()
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, invalid page info")
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
+	}
+
+	if cond.ExactInclude != nil && len(cond.ExactInclude.WorkflowID) > 0 {
+		workflows, num, err := h.listNodeWorkflowsByIDs(rCtx, page, cond)
+		if err != nil {
+			return nil, err
+		}
+		if req.GetOnlyCount() {
+			workflows = nil
+		}
+		resp := new(protoBackend.NodeWorkflowListResp)
+		resp.ConvertNodeWorkflowsFromTypes(num, workflows)
+
+		return resp.GetData(), nil
 	}
 
 	// Extract requested BizIDs
@@ -71,12 +97,6 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes()
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, invalid page info")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	workflows, num, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow")
@@ -88,6 +108,36 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 	resp.ConvertNodeWorkflowsFromTypes(num, workflows)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) listNodeWorkflowsByIDs(
+	rCtx restserver.IContext, page types.Page, cond *types.NodeWorkflowCondition,
+) ([]*types.NodeWorkflow, int64, error) {
+	// Authorize the complete matching ID set before exposing a page or its total.
+	workflows, num, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx, types.UnlimitedPage(), cond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow")
+		return nil, 0, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+	if num != int64(len(workflows)) {
+		err := fmt.Errorf("incomplete node workflow read: expected %d, got %d", num, len(workflows))
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow")
+
+		return nil, 0, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	for _, workflow := range workflows {
+		// Keep each workflow's roles paired with its own businesses, including empty resources.
+		if err := h.authorizer.CheckMany(rCtx, authRouter.BuildNodeWorkflowHistoryResources(workflow)); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, permission denied")
+			return nil, 0, resterrf.ErrWrap(resterrf.PermissionDenied, err)
+		}
+	}
+
+	start := min(page.Offset, len(workflows))
+	end := start + min(page.Limit, len(workflows)-start)
+
+	return workflows[start:end], num, nil
 }
 
 // DistinctNodeWorkflow returns distinct workflow field values.

@@ -34,25 +34,7 @@ func (h *handler) checkWorkflowHistoryViewPermission(rCtx restserver.IContext, w
 		return resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	resources := authRouter.BuildBizResources(nodeWorkflow.BizIDs...)
-	actionResources := make(map[auth.Action][]types.AuthResource)
-	for _, nodeRole := range nodeWorkflow.NodeRoles {
-		switch nodeRole {
-		case types.NodeRoleBlank, types.NodeRoleAgent:
-			actionResources[auth.ActionAgentHistoryView] = resources
-		case types.NodeRoleProxy:
-			actionResources[auth.ActionProxyHistoryView] = resources
-		default:
-			// Unknown roles require both history view permissions.
-			actionResources[auth.ActionAgentHistoryView] = resources
-			actionResources[auth.ActionProxyHistoryView] = resources
-		}
-	}
-	if len(actionResources) == 0 {
-		// Missing roles require both history view permissions.
-		actionResources[auth.ActionAgentHistoryView] = resources
-		actionResources[auth.ActionProxyHistoryView] = resources
-	}
+	actionResources := authRouter.BuildNodeWorkflowHistoryResources(nodeWorkflow)
 
 	if authErr := h.authorizer.CheckMany(rCtx, actionResources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check workflow history view permission, permission denied")
