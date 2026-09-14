@@ -20,7 +20,11 @@ package auth
 
 import (
 	"fmt"
+	"slices"
+	"sort"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
@@ -63,6 +67,61 @@ type RelatedResourceType struct {
 	Type       string
 	TypeName   string
 	Instances  []ResourceNode
+}
+
+// FillResourceNames enriches denied instances without changing the permission decision.
+// Missing instances keep their existing names so clients can fall back to their IDs.
+func (permErr PermissionDeniedError) FillResourceNames(
+	ctx contextx.IContext,
+	fetch func(contextx.IContext, string, string, []string) (map[string]string, error),
+) {
+	// IAM V4 fetch_instance_info accepts at most 1000 IDs per request.
+	const batchSize = 1000
+	for key, nodesByID := range permErr.unnamedResourceNodes() {
+		ids := make([]string, 0, len(nodesByID))
+		for id := range nodesByID {
+			ids = append(ids, id)
+		}
+		sort.Strings(ids)
+		for batch := range slices.Chunk(ids, batchSize) {
+			names, err := fetch(ctx, key.systemID, key.resourceType, batch)
+			if err != nil {
+				logger.G.Biz(ctx).WithErr(err).With("resource-type", key.resourceType).
+					Error("failed to fetch denied resource names")
+
+				continue
+			}
+			for id, name := range names {
+				for _, node := range nodesByID[id] {
+					node.Name = name
+				}
+			}
+		}
+	}
+}
+
+type resourceTypeKey struct{ systemID, resourceType string }
+
+func (permErr PermissionDeniedError) unnamedResourceNodes() map[resourceTypeKey]map[string][]*ResourceNode {
+	grouped := make(map[resourceTypeKey]map[string][]*ResourceNode)
+	for _, action := range permErr.Actions {
+		for _, rt := range action.RelatedResourceTypes {
+			for index := range rt.Instances {
+				node := &rt.Instances[index]
+				if node.ID == "" || node.Name != "" {
+					continue
+				}
+				// Parent nodes belong to their own resource type, not the leaf type.
+				key := resourceTypeKey{rt.SystemID, node.Type}
+				if grouped[key] == nil {
+					grouped[key] = make(map[string][]*ResourceNode)
+				}
+				grouped[key][node.ID] = append(grouped[key][node.ID], node)
+			}
+		}
+	}
+
+	return grouped
 }
 
 // PermissionData converts PermissionDeniedError into a restserver.Permission payload.

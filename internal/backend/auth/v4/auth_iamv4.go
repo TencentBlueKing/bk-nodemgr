@@ -44,6 +44,7 @@ type iamv4Authorizer struct {
 	handler           iamv4.IHandler
 	attributeEnricher provider.IAttributeEnricher
 	instanceLister    provider.IInstanceLister
+	resourceProvider  provider.IQueryHandler
 }
 
 // NewProviderHandler registers the IAM V4 resource providers.
@@ -64,6 +65,7 @@ func NewIAMV4Authorizer(
 	handler iamv4.IHandler,
 	attributeEnricher provider.IAttributeEnricher,
 	instanceLister provider.IInstanceLister,
+	resourceProvider provider.IQueryHandler,
 ) auth.IAuthorizer {
 
 	return &iamv4Authorizer{
@@ -71,6 +73,7 @@ func NewIAMV4Authorizer(
 		handler:           handler,
 		attributeEnricher: attributeEnricher,
 		instanceLister:    instanceLister,
+		resourceProvider:  resourceProvider,
 	}
 }
 
@@ -220,12 +223,45 @@ func (authorizer *iamv4Authorizer) newPermissionDeniedError(
 		applyURL = ""
 	}
 
-	return auth.PermissionDeniedError{
+	permErr := auth.PermissionDeniedError{
 		ApplyURL:   applyURL,
 		SystemID:   authorizer.systemID,
 		SystemName: types.SystemDisplayName(authorizer.systemID),
 		Actions:    deniedActions,
 	}
+	permErr.FillResourceNames(ctx, authorizer.fetchResourceNames)
+
+	return permErr
+}
+
+func (authorizer *iamv4Authorizer) fetchResourceNames(
+	ctx contextx.IContext, systemID, resourceType string, ids []string,
+) (map[string]string, error) {
+
+	names := make(map[string]string)
+	if authorizer.resourceProvider == nil {
+		return names, nil
+	}
+	if systemID != types.SystemIDNodeMgr &&
+		(systemID != types.SystemIDCMDB || resourceType != string(types.AuthResourceTypeBiz)) {
+
+		return names, nil
+	}
+	instances, err := authorizer.resourceProvider.FetchInstanceInfo(ctx, resourceType, &provider.Request[provider.FetchInstanceFilter]{
+		Filter:   provider.FetchInstanceFilter{IDs: ids},
+		Requires: []string{"display_name"},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch resource names: %w", err)
+	}
+	if instances == nil {
+		return nil, errors.New("provider returned nil instance info")
+	}
+	for _, instance := range *instances {
+		names[instance.ID] = instance.DisplayName
+	}
+
+	return names, nil
 }
 
 func (authorizer *iamv4Authorizer) collectDeniedActionResourcesByActions(
