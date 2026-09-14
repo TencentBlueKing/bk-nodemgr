@@ -978,7 +978,7 @@ const (
 // IAMV3 the config of IAM v3 gateway config.
 type IAMV3 struct {
 	// Enable indicates whether IAM v3 is enabled.
-	// When disabled, a no-op handler will be used and all permission checks will be skipped.
+	// Disabled IAM handlers return errors; the backend bypasses authorization only when both versions are disabled.
 	Enable           bool `yaml:"enable" usage:"enable IAM v3 permission management"`
 	APIGatewayClient `yaml:",inline" usage:"api-gateway config of IAM v3"`
 	// SystemID is the system identifier registered in IAM.

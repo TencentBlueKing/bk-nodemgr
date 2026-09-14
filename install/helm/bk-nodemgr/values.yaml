@@ -1467,7 +1467,8 @@ backend:
     ## defines the IAM v3 related settings.
     iamV3:
       # enable indicates whether IAM v3 is enabled.
-      # When set to false, a no-op handler will be used and all permission checks will be skipped.
+      # Disabled IAM handlers return errors; backend authorization is skipped only when both versions are disabled.
+      # IAM v3 and v4 runtime authorization cannot both be enabled.
       enable: false
       # endpoints is a seed list of host:port addresses of IAM API gateway nodes.
       endpoints:
@@ -1513,6 +1514,7 @@ backend:
     iamV4:
       # Runtime authorization is independent of the iamV4.enabled initialization Job.
       # IAM v3 and v4 runtime authorization cannot both be enabled.
+      # Disabled IAM handlers return errors; backend authorization is skipped only when both versions are disabled.
       enable: false
       # Full gateway URLs; the initialization Job uses the first endpoint.
       endpoints:

@@ -290,18 +290,6 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create file handler: %w", err)
 	}
 
-	// initial IAM v3 handler.
-	svc.Cap.IAMV3Handler, err = svc.newIAMV3Handler()
-	if err != nil {
-		return fmt.Errorf("failed to create IAM v3 handler: %w", err)
-	}
-
-	// initial IAM v4 handler.
-	svc.Cap.IAMV4Handler, err = svc.newIAMV4Handler()
-	if err != nil {
-		return fmt.Errorf("failed to create IAM v4 handler: %w", err)
-	}
-
 	// initial monitor handler.
 	svc.Cap.MonitorHandler, err = svc.newMonitorHandler()
 	if err != nil {
@@ -355,7 +343,10 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.AuthProviderV4Handler = v4.NewProviderHandler(svc.Cap.StorageTopo, svc.Cap.FileHandler)
 
 	// initial authorizer.
-	svc.Cap.Authorizer = svc.newAuthorizer()
+	svc.Cap.Authorizer, err = svc.newAuthorizer()
+	if err != nil {
+		return fmt.Errorf("failed to create authorizer: %w", err)
+	}
 
 	return nil
 }
@@ -479,33 +470,47 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 	return usermgrHandler, nil
 }
 
-func (svc *Service) newAuthorizer() auth.IAuthorizer {
-	if svc.conf.IAMV4.Enable {
-		return v4.NewIAMV4Authorizer(
-			svc.conf.IAMV4.SystemID,
-			svc.Cap.IAMV4Handler,
-			svc.Cap.AuthProviderV4Handler,
-			svc.Cap.AuthProviderV4Handler,
-		)
-	}
+func (svc *Service) newAuthorizer() (auth.IAuthorizer, error) {
+	// Disabled handlers reject direct IAM calls; only the authorizer may bypass checks.
+	svc.Cap.IAMV3Handler = iamv3.NewDisabledHandler()
+	svc.Cap.IAMV4Handler = iamv4.NewDisabledHandler()
 
-	if svc.conf.IAMV3.Enable {
+	switch {
+	case svc.conf.IAMV3.Enable && svc.conf.IAMV4.Enable:
+		return nil, fmt.Errorf("iamV3 and iamV4 cannot be enabled at the same time")
+	case svc.conf.IAMV3.Enable:
+		iamHandler, err := svc.newIAMV3Handler()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create IAM v3 handler: %w", err)
+		}
+		svc.Cap.IAMV3Handler = iamHandler
 		return v3.NewIAMV3Authorizer(
 			svc.conf.IAMV3.SystemID,
 			svc.Cap.IAMV3Handler,
 			svc.Cap.AuthProviderV3Handler, // IAttributeEnricher
 			svc.Cap.AuthProviderV3Handler, // IResolver
-		)
+		), nil
+	case svc.conf.IAMV4.Enable:
+		iamHandler, err := svc.newIAMV4Handler()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create IAM v4 handler: %w", err)
+		}
+		svc.Cap.IAMV4Handler = iamHandler
+		return v4.NewIAMV4Authorizer(
+			svc.conf.IAMV4.SystemID,
+			svc.Cap.IAMV4Handler,
+			svc.Cap.AuthProviderV4Handler,
+			svc.Cap.AuthProviderV4Handler,
+		), nil
+	default:
+		return auth.NewNoOpAuthorizer(), nil
 	}
-
-	return auth.NewNoOpAuthorizer()
 }
 
 // newIAMV3Handler creates a new IAM v3 handler.
 func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
-	// Return no-op handler if IAM v3 is disabled
 	if !svc.conf.IAMV3.Enable {
-		return iamv3.NewNoOpHandler(), nil
+		return nil, iamv3.ErrDisabled
 	}
 
 	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.IAMV3.APIGatewayClient)
@@ -539,7 +544,7 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 // newIAMV4Handler creates a new IAM v4 handler.
 func (svc *Service) newIAMV4Handler() (iamv4.IHandler, error) {
 	if !svc.conf.IAMV4.Enable {
-		return nil, nil
+		return nil, iamv4.ErrDisabled
 	}
 
 	virtualUserConfig := newVirtualUserConfig(&svc.conf.IAMV4.APIGatewayClient)
