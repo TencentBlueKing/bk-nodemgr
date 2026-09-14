@@ -645,7 +645,7 @@ const handleSetup = async () => {
       name: 'taskDetail',
       params: { taskId: res.workflow_id },
       query: {
-        active: 'node',
+        active: 'agent',
       },
     });
     isShow.value = false;

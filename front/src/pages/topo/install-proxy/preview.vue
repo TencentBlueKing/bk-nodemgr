@@ -508,7 +508,7 @@ const handleSetup = async () => {
       name: 'taskDetail',
       params: { taskId: res.workflow_id },
       query: {
-        active: 'node',
+        active: 'proxy',
       },
     });
     isShow.value = false;

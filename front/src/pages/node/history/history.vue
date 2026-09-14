@@ -915,10 +915,11 @@ const getWorkflowDistinct = async () => {
 
 const getTaskList = async () => {
   loading.value = true;
+  const params = getParams();
   let res;
   let statistics: any;
   if (isNode.value) {
-    res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
+    res = await NodeWorkflowService.NodeWorkflowList(params).catch((err) => {
       console.log(err);
       return {
         total: 0,
@@ -929,6 +930,7 @@ const getTaskList = async () => {
     if (workflowIds.length > 0) {
       statistics = await NodeWorkflowService.NodeWorkflowStatistics({
         workflow_id: workflowIds,
+        node_role: params.exact_include_conditions.node_role,
       }).catch((err) => {
         console.log(err);
         return {
@@ -939,7 +941,7 @@ const getTaskList = async () => {
       statistics = { items: [] };
     }
   } else {
-    res = await PluginWorkflowService.PluginWorkflowList(getParams()).catch((err) => {
+    res = await PluginWorkflowService.PluginWorkflowList(params).catch((err) => {
       console.log(err);
       return {
         total: 0,

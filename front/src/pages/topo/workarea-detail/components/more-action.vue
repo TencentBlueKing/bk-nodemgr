@@ -361,7 +361,7 @@ const handleUninstall = async () => {
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
       query: {
-        active: 'node',
+        active: 'proxy',
       },
     });
   }
@@ -395,7 +395,7 @@ const operateJob = async (extraData: any = {}) => {
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
       query: {
-        active: 'node',
+        active: 'proxy',
       },
     });
   }
@@ -431,7 +431,7 @@ const handleUpgrade = async (versionList: any[]) => {
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
       query: {
-        active: 'node',
+        active: 'proxy',
       },
     });
   }

@@ -235,7 +235,7 @@ const handleRestartConfirm = async (extraData: any = {}) => {
     router.push({
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
-      query: { active: 'node' },
+      query: { active: 'agent' },
     });
   } else {
     router.push({ name: 'agent' });

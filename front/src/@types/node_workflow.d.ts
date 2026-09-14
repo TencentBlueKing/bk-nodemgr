@@ -62,6 +62,7 @@ export interface NodeWorkflowListRespData {
 // NodeWorkflowStatisticReq describes the node workflow statistic request.
 export interface NodeWorkflowStatisticsReq {
   workflow_id: string[];
+  node_role: string[];
 }
 
 // NodeWorkflowStatisticResp describes the node workflow statistic response.

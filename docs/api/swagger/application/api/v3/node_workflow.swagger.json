@@ -1343,6 +1343,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "node_role": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "NodeWorkflowStatisticReq describes the node workflow statistic request."
