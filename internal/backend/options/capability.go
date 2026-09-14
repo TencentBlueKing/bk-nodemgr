@@ -126,6 +126,8 @@ type Capability struct {
 
 	// Authorizer is the IAM authorization handler for permission checks.
 	Authorizer auth.IAuthorizer
+	// ManagerRoleGranter grants resource management permissions to a specified user.
+	ManagerRoleGranter auth.IManagerRoleGranter
 
 	// AuthProviderV3Handler owns IAM V3 resource queries and callbacks.
 	AuthProviderV3Handler providerV3.IHandler

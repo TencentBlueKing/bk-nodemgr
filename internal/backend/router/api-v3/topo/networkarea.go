@@ -66,6 +66,12 @@ func (h *handler) CreateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 
 	logger.G.Biz(rCtx).With("networkarea-id", networkArea.ID).Info("created networkarea")
 
+	resource := buildNetworkAreaResources(networkArea.ID)[0]
+	if err := h.managerRoleGranter.GrantManagerRole(rCtx, rCtx.BKUsername(), resource); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("resource-type", resource.Type, "resource-id", resource.ID,
+			"creator", rCtx.BKUsername(), "tenant-id", rCtx.TenantID()).Error("failed to grant resource creator permissions")
+	}
+
 	resp := new(protoBackend.TopoNetworkAreaCreateResp)
 	resp.ConvertNetworkAreaFromTypes(networkArea.ID)
 

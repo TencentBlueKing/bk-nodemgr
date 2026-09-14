@@ -471,6 +471,8 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 }
 
 func (svc *Service) newAuthorizer() (auth.IAuthorizer, error) {
+	svc.Cap.ManagerRoleGranter = auth.NewNoOpManagerRoleGranter()
+
 	switch {
 	case svc.conf.IAMV3.Enable && svc.conf.IAMV4.Enable:
 		return nil, fmt.Errorf("iamV3 and iamV4 cannot be enabled at the same time")
@@ -481,6 +483,8 @@ func (svc *Service) newAuthorizer() (auth.IAuthorizer, error) {
 		}
 		svc.Cap.IAMV3Handler = iamHandler
 		svc.Cap.IAMV4Handler = iamv4.NewDisabledHandler()
+		svc.Cap.ManagerRoleGranter = v3.NewManagerRoleGranter()
+
 		return v3.NewIAMV3Authorizer(
 			svc.conf.IAMV3.SystemID,
 			svc.Cap.IAMV3Handler,
@@ -494,6 +498,8 @@ func (svc *Service) newAuthorizer() (auth.IAuthorizer, error) {
 		}
 		svc.Cap.IAMV3Handler = iamv3.NewDisabledHandler()
 		svc.Cap.IAMV4Handler = iamHandler
+		svc.Cap.ManagerRoleGranter = v4.NewManagerRoleGranter(iamHandler)
+
 		return v4.NewIAMV4Authorizer(
 			svc.conf.IAMV4.SystemID,
 			svc.Cap.IAMV4Handler,

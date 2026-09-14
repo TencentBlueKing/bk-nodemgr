@@ -38,14 +38,15 @@ const (
 )
 
 type handler struct {
-	rg                *gin.RouterGroup
-	authorizer        auth.IAuthorizer
-	manager           manager.IManager
-	storage           topoStg.IStorage
-	storageHostCredit credit.IStorageHostCredit
-	cmdbHandler       cmdb.IHandler
-	gseHandler        gse.IHandler
-	goAsyncPool       goasync.IHandler
+	rg                 *gin.RouterGroup
+	authorizer         auth.IAuthorizer
+	managerRoleGranter auth.IManagerRoleGranter
+	manager            manager.IManager
+	storage            topoStg.IStorage
+	storageHostCredit  credit.IStorageHostCredit
+	cmdbHandler        cmdb.IHandler
+	gseHandler         gse.IHandler
+	goAsyncPool        goasync.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -57,14 +58,15 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                rg.Group("/topo"),
-		authorizer:        capability.Authorizer,
-		manager:           capability.Manager,
-		storage:           capability.StorageTopo,
-		storageHostCredit: capability.StorageCredit,
-		cmdbHandler:       capability.CmdbHandler,
-		gseHandler:        capability.GSEHandler,
-		goAsyncPool:       goAsyncPool,
+		rg:                 rg.Group("/topo"),
+		authorizer:         capability.Authorizer,
+		managerRoleGranter: capability.ManagerRoleGranter,
+		manager:            capability.Manager,
+		storage:            capability.StorageTopo,
+		storageHostCredit:  capability.StorageCredit,
+		cmdbHandler:        capability.CmdbHandler,
+		gseHandler:         capability.GSEHandler,
+		goAsyncPool:        goAsyncPool,
 	}
 }
 

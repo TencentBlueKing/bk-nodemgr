@@ -74,3 +74,8 @@ func (h *DisabledHandler) IsBasicAuthAllowed(_ contextx.IContext, _, _ string) e
 func (h *DisabledHandler) GetApplyURL(_ contextx.IContext, _ types.IAMApplyRequest) (string, error) {
 	return "", ErrDisabled
 }
+
+// GrantRole returns ErrDisabled without granting permissions.
+func (h *DisabledHandler) GrantRole(_ contextx.IContext, _ types.IAMRoleGrantRequest) error {
+	return ErrDisabled
+}

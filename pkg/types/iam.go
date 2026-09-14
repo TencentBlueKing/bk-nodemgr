@@ -18,6 +18,16 @@
 
 package types
 
+import "time"
+
+// IAMRoleGrantRequest grants a role on one concrete resource to the specified user.
+type IAMRoleGrantRequest struct {
+	Username  string
+	RoleID    string
+	Resource  AuthResource
+	ExpiresAt time.Time
+}
+
 // IAMResource represents a single resource for IAM permission checks. It maps
 // to the IAM v3 wire type ResourceNode as follows:
 //

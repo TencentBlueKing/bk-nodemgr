@@ -21,6 +21,7 @@ package iamv4
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -58,6 +59,44 @@ func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(ctx))
 
 	return header
+}
+
+func (c *cli) addAuthorization(ctx contextx.IContext, systemID string, req AuthorizationRequest) error {
+	if err := ctx.CheckTenantID(); err != nil {
+		return fmt.Errorf("add authorization: %w", err)
+	}
+	if err := ctx.CheckBKUsername(); err != nil {
+		return fmt.Errorf("add authorization: %w", err)
+	}
+	if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,31}$`).MatchString(systemID) {
+		return fmt.Errorf("add authorization: invalid system ID")
+	}
+	if err := req.Validate(); err != nil {
+		return fmt.Errorf("add authorization: invalid request: %w", err)
+	}
+
+	resp := new(BaseBroker[struct{}])
+	header := c.getHeader(ctx)
+	header.Set("X-Bkiam-Operator", ctx.BKUsername())
+	// IAM requires application and resource permission; send one grant as an array (maximum 20).
+	result := c.client.Post().
+		SubResourcef("/v1/open/rbac/mgmt/systems/%s/authorizations/", systemID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body([]AuthorizationRequest{req}).
+		Do()
+	if err := result.Into(resp); err != nil {
+		return fmt.Errorf("add authorization failed: %w", err)
+	}
+	if result.StatusCode != http.StatusCreated {
+		return fmt.Errorf("add authorization: unexpected HTTP %d (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("add authorization failed: %w", err)
+	}
+
+	return nil
 }
 
 func (c *cli) directAuth(ctx contextx.IContext, systemID string, req DirectAuthRequest) (bool, error) {

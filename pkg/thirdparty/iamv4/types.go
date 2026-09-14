@@ -21,6 +21,8 @@ package iamv4
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 )
@@ -93,6 +95,53 @@ type Subject struct {
 // Resource is the resource instance used by IAM v4 authorization APIs.
 type Resource struct {
 	ID string `json:"id"`
+}
+
+// AuthorizationResource identifies a concrete resource for a role grant.
+type AuthorizationResource struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
+}
+
+// AuthorizationRequest is one IAM v4 role authorization grant.
+type AuthorizationRequest struct {
+	Subject               Subject                 `json:"subject"`
+	RoleID                string                  `json:"role_id"`
+	RelatedResourceTypeID string                  `json:"related_resource_type_id"`
+	Resources             []AuthorizationResource `json:"resources"`
+	ExpiredAt             int64                   `json:"expired_at"`
+}
+
+// Validate checks the single-user, single-resource role grant contract.
+func (req AuthorizationRequest) Validate() error {
+	if req.Subject.Type != "user" || strings.TrimSpace(req.Subject.ID) == "" || strings.Contains(req.Subject.ID, "*") {
+		return fmt.Errorf("a concrete user subject is required")
+	}
+	if strings.TrimSpace(req.RoleID) == "" || strings.Contains(req.RoleID, "*") {
+		return fmt.Errorf("a concrete role ID is required")
+	}
+	if strings.TrimSpace(req.RelatedResourceTypeID) == "" || strings.Contains(req.RelatedResourceTypeID, "*") {
+		return fmt.Errorf("a concrete related resource type ID is required")
+	}
+	// IAM permits up to 20 resources per grant; this adapter intentionally grants only one.
+	if len(req.Resources) != 1 {
+		return fmt.Errorf("exactly one resource is required")
+	}
+	resource := req.Resources[0]
+	if resource.Type != req.RelatedResourceTypeID {
+		return fmt.Errorf("resource type must match related resource type ID")
+	}
+	if strings.TrimSpace(resource.ID) == "" || strings.Contains(resource.ID, "*") {
+		return fmt.Errorf("a concrete resource ID is required")
+	}
+	now := time.Now()
+	expiresAt := time.Unix(req.ExpiredAt, 0)
+	// IAM role authorizations have a maximum validity of 365 days.
+	if !expiresAt.After(now) || expiresAt.After(now.Add(365*24*time.Hour)) {
+		return fmt.Errorf("expiration must be in the future and within 365 days")
+	}
+
+	return nil
 }
 
 // DirectAuthRequest is the request for single action authorization.

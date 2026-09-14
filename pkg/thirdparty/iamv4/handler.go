@@ -37,8 +37,15 @@ const systemTokenCacheExpiration = time.Minute
 // ErrInvalidCredentials identifies callback credential mismatches, not token-service failures.
 var ErrInvalidCredentials = errors.New("invalid IAM v4 callback credentials")
 
-// IHandler is the handler interface for IAM v4 permission checks and token management.
+// IHandler combines all IAM v4 runtime operations without HTTP details.
 type IHandler interface {
+	IHandlerAuth
+	IHandlerToken
+	IHandlerRole
+}
+
+// IHandlerAuth checks permissions, queries authorized scopes, and generates apply URLs.
+type IHandlerAuth interface {
 	// IsAllowed checks if a user is allowed to perform an action on an optional resource.
 	IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (bool, error)
 	// ResourcesAllowed checks if a user is allowed to perform one action on multiple resources.
@@ -50,12 +57,21 @@ type IHandler interface {
 		ctx contextx.IContext,
 		req types.IAMAuthorizedInstancesRequest,
 	) ([]AuthorizedResourceResponse, error)
+	// GetApplyURL generates a permission apply URL for the given request.
+	GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) (string, error)
+}
+
+// IHandlerToken retrieves system tokens and validates callback credentials.
+type IHandlerToken interface {
 	// GetToken retrieves the IAM v4 callback token for the current context.
 	GetToken(ctx contextx.IContext) (string, error)
 	// IsBasicAuthAllowed checks if basic authentication credentials are valid.
 	IsBasicAuthAllowed(ctx contextx.IContext, username, password string) error
-	// GetApplyURL generates a permission apply URL for the given request.
-	GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) (string, error)
+}
+
+// IHandlerRole grants IAM v4 roles independently of read-only permission checks.
+type IHandlerRole interface {
+	GrantRole(ctx contextx.IContext, req types.IAMRoleGrantRequest) error
 }
 
 // Handler is the Handler of IAM v4.
@@ -101,6 +117,20 @@ func (h *Handler) IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (b
 		Subject:  toSubject(req),
 		ActionID: req.ActionID,
 		Resource: firstResource(req.Resources),
+	})
+}
+
+// GrantRole grants a role to req.Username, using the context's operator and tenant.
+func (h *Handler) GrantRole(ctx contextx.IContext, req types.IAMRoleGrantRequest) error {
+	return h.cli.addAuthorization(ctx, h.cli.config.SystemID, AuthorizationRequest{
+		Subject:               Subject{Type: "user", ID: req.Username},
+		RoleID:                req.RoleID,
+		RelatedResourceTypeID: string(req.Resource.Type),
+		Resources: []AuthorizationResource{{
+			Type: string(req.Resource.Type),
+			ID:   req.Resource.ID,
+		}},
+		ExpiredAt: req.ExpiresAt.Unix(),
 	})
 }
 
