@@ -72,7 +72,7 @@ func (h *handler) DeleteReleaseCert(rCtx restserver.IContext) (interface{}, erro
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeCert))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete cert release, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	gen := types.Generation(req.GetGeneration())

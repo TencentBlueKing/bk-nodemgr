@@ -84,7 +84,7 @@ func (h *handler) DeleteReleasePluginBinTool(rCtx restserver.IContext) (interfac
 	resources := auth.BuildPackageResources(name)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete plugin-bintool release, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	key := types.ReleasePluginBinToolKey{
