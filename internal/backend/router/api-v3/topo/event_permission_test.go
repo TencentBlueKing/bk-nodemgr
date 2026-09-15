@@ -30,7 +30,7 @@ func TestNarrowTopoEventCondition_NarrowsAuthorizedNetworkUnits(t *testing.T) {
 
 	calledNetworkAreaNarrower := false
 	calledAccessPointNarrower := false
-	condition, err := narrowTopoEventCondition(
+	condition, _, err := narrowTopoEventCondition(
 		nil,
 		func(requestedIDs []int64) ([]int64, bool, error) {
 			calledNetworkAreaNarrower = true
@@ -73,7 +73,7 @@ func TestNarrowTopoEventCondition_NarrowsAccessPointsAlongsideNetworkUnits(t *te
 	t.Helper()
 
 	calledNetworkUnitNarrower := false
-	condition, err := narrowTopoEventCondition(
+	condition, _, err := narrowTopoEventCondition(
 		&types.TopoEventCondition{
 			ExactInclude: &types.TopoEventExactFields{
 				NetworkAreaID: []int64{3, 4},
@@ -127,7 +127,7 @@ func TestNarrowTopoEventCondition_PropagatesNetworkUnitError(t *testing.T) {
 	t.Helper()
 
 	expectedErr := errors.New("permission denied")
-	_, err := narrowTopoEventCondition(
+	_, _, err := narrowTopoEventCondition(
 		&types.TopoEventCondition{},
 		func(requestedIDs []int64) ([]int64, bool, error) {
 			return nil, true, nil
@@ -149,7 +149,7 @@ func TestNarrowTopoEventCondition_PropagatesNetworkAreaError(t *testing.T) {
 	t.Helper()
 
 	expectedErr := errors.New("network area permission denied")
-	_, err := narrowTopoEventCondition(
+	_, _, err := narrowTopoEventCondition(
 		&types.TopoEventCondition{},
 		func(requestedIDs []int64) ([]int64, bool, error) {
 			return nil, false, expectedErr

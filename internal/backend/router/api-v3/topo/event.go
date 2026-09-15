@@ -51,7 +51,7 @@ func narrowAuthorizedHistoryResourceIDs(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(scope, requestedIDs, resourceType)
+	authorizedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(scope, nil, resourceType)
 	if err != nil {
 		return nil, false, err
 	}
@@ -60,13 +60,17 @@ func narrowAuthorizedHistoryResourceIDs(
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if len(authorizedIDs) == 0 {
 		if checkErr := authorizer.Check(rCtx, action, buildResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
 	}
 
-	return narrowedIDs, false, nil
+	if len(requestedIDs) == 0 {
+		return authorizedIDs, false, nil
+	}
+
+	return conv.SliceIntersect(requestedIDs, authorizedIDs), false, nil
 }
 
 func narrowTopoEventCondition(
@@ -74,7 +78,7 @@ func narrowTopoEventCondition(
 	narrowNetworkAreaIDs topoEventIDNarrower,
 	narrowNetworkUnitIDs topoEventIDNarrower,
 	narrowAccessPointIDs topoEventIDNarrower,
-) (*types.TopoEventCondition, error) {
+) (*types.TopoEventCondition, bool, error) {
 
 	if condition == nil {
 		condition = &types.TopoEventCondition{}
@@ -83,35 +87,45 @@ func narrowTopoEventCondition(
 		condition.ExactInclude = &types.TopoEventExactFields{}
 	}
 
+	areaOnly := len(condition.ExactInclude.NetworkAreaID) > 0 &&
+		len(condition.ExactInclude.NetworkUnitID) == 0 && len(condition.ExactInclude.AccessPointID) == 0
+
 	networkAreaIDs, networkAreaScopeIsAny, err := narrowNetworkAreaIDs(condition.ExactInclude.NetworkAreaID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
+	emptyResult := !networkAreaScopeIsAny && len(networkAreaIDs) == 0
 	if !networkAreaScopeIsAny {
 		condition.ExactInclude.NetworkAreaID = conv.SliceUnique(networkAreaIDs)
+	}
+	// Area-scoped history includes child events under the area's history permission.
+	if areaOnly {
+		return condition, emptyResult, nil
 	}
 
 	networkUnitIDs, scopeIsAny, err := narrowNetworkUnitIDs(condition.ExactInclude.NetworkUnitID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
+	emptyResult = emptyResult || (!scopeIsAny && len(networkUnitIDs) == 0)
 	if !scopeIsAny {
 		condition.ExactInclude.NetworkUnitID = conv.SliceUnique(networkUnitIDs)
 	}
 
 	if len(condition.ExactInclude.AccessPointID) == 0 {
-		return condition, nil
+		return condition, emptyResult, nil
 	}
 
 	accessPointIDs, accessPointScopeIsAny, err := narrowAccessPointIDs(condition.ExactInclude.AccessPointID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
+	emptyResult = emptyResult || (!accessPointScopeIsAny && len(accessPointIDs) == 0)
 	if !accessPointScopeIsAny {
 		condition.ExactInclude.AccessPointID = conv.SliceUnique(accessPointIDs)
 	}
 
-	return condition, nil
+	return condition, emptyResult, nil
 }
 
 func (h *handler) narrowAuthorizedNetworkUnitHistoryIDs(
@@ -208,7 +222,7 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, failed to convert conditions to types")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	cond, err = narrowTopoEventCondition(cond,
+	cond, emptyResult, err := narrowTopoEventCondition(cond,
 		func(requestedIDs []int64) ([]int64, bool, error) {
 			return h.narrowAuthorizedNetworkAreaHistoryIDs(rCtx, requestedIDs)
 		},
@@ -226,6 +240,13 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 
 	// only count.
 	if req.GetOnlyCount() {
+		if emptyResult {
+			resp := new(protoBackend.TopoEventListResp)
+			resp.ConvertTopoEventsFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.storage.CountTopoEvent(
 			rCtx,
 			cond)
@@ -246,6 +267,13 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, invalid page info")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if emptyResult {
+		resp := new(protoBackend.TopoEventListResp)
+		resp.ConvertTopoEventsFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	events, num, err := h.storage.ListTopoEvent(rCtx, page, cond)
