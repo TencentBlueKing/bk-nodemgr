@@ -54,7 +54,7 @@ func (h *handler) narrowAuthorizedBizIDsForProcessView(rCtx restserver.IContext,
 	return narrowedIDs, false, nil
 }
 
-func narrowProcessCondition(condition *types.ProcessCondition, narrowedIDs []int64, scopeIsAny bool) *types.ProcessCondition {
+func applyAuthorizedProcessCondition(condition *types.ProcessCondition, narrowedIDs []int64, scopeIsAny bool) *types.ProcessCondition {
 	if condition == nil {
 		condition = &types.ProcessCondition{}
 	}

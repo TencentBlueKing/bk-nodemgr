@@ -44,7 +44,7 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list processes, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
-	condition = narrowProcessCondition(condition, narrowedBizIDs, scopeIsAny)
+	condition = applyAuthorizedProcessCondition(condition, narrowedBizIDs, scopeIsAny)
 
 	if req.GetOnlyCount() {
 		if !scopeIsAny && len(narrowedBizIDs) == 0 {
