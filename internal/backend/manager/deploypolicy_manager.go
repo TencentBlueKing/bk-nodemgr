@@ -43,12 +43,9 @@ func (mgr *Manager) LaunchExecuteDeployPolicy(nCtx contextx.IContext, param type
 	if err != nil {
 		return "", err
 	}
-	execution := types.DeployPolicyExecutionParam{
-		OperationID: operCtl.GetOperationID(),
-		TriggerID:   triggerCtl.GetTriggerID(),
-	}
 	for _, policyID := range param.DeployPolicyIDs {
-		if _, err := mgr.conf.StorageDeployPolicy.EnsureDeployPolicyWorkflow(nCtx, execution, policyID, param.Operator); err != nil {
+		if _, err := mgr.conf.StorageDeployPolicy.EnsureDeployPolicyWorkflow(nCtx,
+			operCtl.GetOperationID(), triggerCtl.GetTriggerID(), policyID, param.Operator); err != nil {
 			return "", fmt.Errorf("failed to ensure policy %d workflow: %w", policyID, err)
 		}
 	}

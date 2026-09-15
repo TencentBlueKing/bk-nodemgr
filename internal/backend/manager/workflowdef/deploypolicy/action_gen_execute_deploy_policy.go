@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
 	deployPolicyUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -204,7 +205,7 @@ func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.
 		return err
 	}
 
-	execution := types.DeployPolicyExecutionParam{
+	execution := dpmgr.ExecutionParam{
 		OperationID: operCtl.GetOperationID(),
 		TriggerID:   trigCtl.GetTriggerID(),
 		WorkflowIDs: make(map[int64]string, len(policyIDs)),

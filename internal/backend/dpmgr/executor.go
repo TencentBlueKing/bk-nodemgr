@@ -40,9 +40,11 @@ type IExecutor interface {
 	ExecuteWithExecution(nCtx contextx.IContext, execution ExecutionParam, changeTasks ...*ChangeTask) error
 }
 
-// ExecutionParam retains discovery group membership without persisting derived associations.
+// ExecutionParam carries operation identity and runtime policy workflow associations.
 type ExecutionParam struct {
-	types.DeployPolicyExecutionParam
+	OperationID  string
+	TriggerID    string
+	WorkflowIDs  map[int64]string
 	PolicyGroups map[int64]int64
 }
 

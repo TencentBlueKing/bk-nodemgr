@@ -117,11 +117,10 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	}
 
 	nCtx := std.Context()
-	execution := types.DeployPolicyExecutionParam{
-		OperationID:         ctx.Data.OperationID,
-		TriggerID:           ctx.Data.TriggerID,
-		OperationInstanceID: ctx.Data.OperationInstanceID,
-		WorkflowIDs:         make(map[int64]string),
+	execution := dpmgr.ExecutionParam{
+		OperationID: ctx.Data.OperationID,
+		TriggerID:   ctx.Data.TriggerID,
+		WorkflowIDs: make(map[int64]string),
 	}
 	if err := ensurePolicyWorkflows(nCtx, act.daoDeployPolicyWorkflow, execution, std.Operator(), param.DeployPolicyIDs); err != nil {
 		return err
@@ -161,11 +160,11 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 }
 
 func ensurePolicyWorkflows(nCtx contextx.IContext, storage deploypolicy.IDaoDeployPolicyWorkflow,
-	execution types.DeployPolicyExecutionParam, operator string, policyIDs []int64) error {
+	execution dpmgr.ExecutionParam, operator string, policyIDs []int64) error {
 
 	var recordErr error
 	for _, policyID := range policyIDs {
-		parent, err := storage.EnsureDeployPolicyWorkflow(nCtx, execution, policyID, operator)
+		parent, err := storage.EnsureDeployPolicyWorkflow(nCtx, execution.OperationID, execution.TriggerID, policyID, operator)
 		if err != nil {
 			recordErr = errors.Join(recordErr, fmt.Errorf("failed to ensure policy %d workflow: %w", policyID, err))
 

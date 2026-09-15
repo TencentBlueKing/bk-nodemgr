@@ -33,7 +33,7 @@ import (
 type IHandler interface {
 	Do(nCtx contextx.IContext, deployPolicies ...*types.DeployPolicy) error
 	// DoWithExecution records participating parents without changing engine retry ownership.
-	DoWithExecution(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam, deployPolicies ...*types.DeployPolicy) error
+	DoWithExecution(nCtx contextx.IContext, execution ExecutionParam, deployPolicies ...*types.DeployPolicy) error
 }
 
 var _ IHandler = &Handler{}
@@ -95,11 +95,11 @@ func NewHandler(conf *Config) *Handler {
 
 // Do does the handler.
 func (h *Handler) Do(nCtx contextx.IContext, originDeployPolicies ...*types.DeployPolicy) error {
-	return h.do(nCtx, types.DeployPolicyExecutionParam{}, originDeployPolicies...)
+	return h.do(nCtx, ExecutionParam{}, originDeployPolicies...)
 }
 
 // DoWithExecution executes policies with parent workflow recording enabled.
-func (h *Handler) DoWithExecution(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+func (h *Handler) DoWithExecution(nCtx contextx.IContext, execution ExecutionParam,
 	originDeployPolicies ...*types.DeployPolicy) error {
 
 	if execution.OperationID == "" || execution.WorkflowIDs == nil {
@@ -112,7 +112,7 @@ func (h *Handler) DoWithExecution(nCtx contextx.IContext, execution types.Deploy
 	return h.do(nCtx, execution, originDeployPolicies...)
 }
 
-func (h *Handler) do(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+func (h *Handler) do(nCtx contextx.IContext, execution ExecutionParam,
 	originDeployPolicies ...*types.DeployPolicy) error {
 
 	// 1. discover these deploy policies's related deploy policies.
@@ -121,12 +121,9 @@ func (h *Handler) do(nCtx contextx.IContext, execution types.DeployPolicyExecuti
 		return fmt.Errorf("failed to discover related deploy policies: %w", err)
 	}
 
-	executorExecution := ExecutionParam{
-		DeployPolicyExecutionParam: execution,
-		PolicyGroups:               make(map[int64]int64, len(relatedDeployPolicies)),
-	}
+	execution.PolicyGroups = make(map[int64]int64, len(relatedDeployPolicies))
 	for _, policy := range relatedDeployPolicies {
-		executorExecution.PolicyGroups[policy.DeployPolicyID] = policy.DsuID
+		execution.PolicyGroups[policy.DeployPolicyID] = policy.DsuID
 	}
 	if execution.OperationID != "" {
 		if err := h.ensureDiscoveredWorkflows(nCtx, execution, relatedDeployPolicies); err != nil {
@@ -164,7 +161,7 @@ func (h *Handler) do(nCtx contextx.IContext, execution types.DeployPolicyExecuti
 	}
 
 	// 5. executor and execute the change tasks.
-	if err := h.executor.ExecuteWithExecution(nCtx, executorExecution, changeTasks...); err != nil {
+	if err := h.executor.ExecuteWithExecution(nCtx, execution, changeTasks...); err != nil {
 		return fmt.Errorf("failed to execute change tasks: %w", err)
 	}
 
@@ -181,12 +178,13 @@ func (h *Handler) do(nCtx contextx.IContext, execution types.DeployPolicyExecuti
 	return nil
 }
 
-func (h *Handler) ensureDiscoveredWorkflows(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+func (h *Handler) ensureDiscoveredWorkflows(nCtx contextx.IContext, execution ExecutionParam,
 	policies []*types.DeployPolicy) error {
 
 	var recordErr error
 	for _, policy := range policies {
-		parent, err := h.daoDeployPolicyWorkflow.EnsureDeployPolicyWorkflow(nCtx, execution, policy.DeployPolicyID, nCtx.BKUsername())
+		parent, err := h.daoDeployPolicyWorkflow.EnsureDeployPolicyWorkflow(nCtx,
+			execution.OperationID, execution.TriggerID, policy.DeployPolicyID, nCtx.BKUsername())
 		if err != nil {
 			recordErr = errors.Join(recordErr, fmt.Errorf("failed to ensure policy %d workflow: %w", policy.DeployPolicyID, err))
 
