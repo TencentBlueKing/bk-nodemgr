@@ -45,16 +45,6 @@ func (s *Storage) getDeployPolicyWorkflow(nCtx contextx.IContext, workflowID str
 	return workflow, nil
 }
 
-func (s *Storage) updateDeployPolicyWorkflowAttempt(nCtx contextx.IContext, workflowIDs []string, operationInstanceID string,
-	status types.DeployPolicyWorkflowAttemptStatus, attemptError string) error {
-
-	if err := s.daoDeployPolicyWorkflow.UpdateAttempt(nCtx, workflowIDs, operationInstanceID, status, attemptError); err != nil {
-		return fmt.Errorf("failed to update deploy policy workflow attempt: %w", err)
-	}
-
-	return nil
-}
-
 func (s *Storage) recordDeployPolicyWorkflowChild(nCtx contextx.IContext, workflowIDs []string,
 	child types.DeployPolicyWorkflowChild) error {
 

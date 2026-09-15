@@ -20,12 +20,8 @@ package deploypolicyworkflow
 
 // Field keys address fields inside the common document envelope.
 const (
-	FieldKeyWorkflowID          = "data.workflow_id"
-	FieldKeyOperationID         = "data.operation_id"
-	FieldKeyDeployPolicyID      = "data.deploy_policy_id"
-	FieldKeyOperationInstanceID = "data.operation_instance_id"
-	FieldKeyAttemptCount        = "data.attempt_count"
-	FieldKeyAttemptStatus       = "data.attempt_status"
-	FieldKeyAttemptError        = "data.attempt_error"
-	FieldKeyChildren            = "data.children"
+	FieldKeyWorkflowID     = "data.workflow_id"
+	FieldKeyOperationID    = "data.operation_id"
+	FieldKeyDeployPolicyID = "data.deploy_policy_id"
+	FieldKeyChildren       = "data.children"
 )

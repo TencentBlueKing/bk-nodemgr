@@ -18,10 +18,7 @@
 
 package types
 
-import (
-	"fmt"
-	"time"
-)
+import "time"
 
 // DeployPolicyExecutionParam carries the engine operation identity and execution context across retries.
 type DeployPolicyExecutionParam struct {
@@ -41,33 +38,7 @@ type DeployPolicyWorkflow struct {
 	Operator            string
 	OperateTime         time.Time
 	OperationInstanceID string
-	AttemptCount        int64
-	// AttemptStatus is empty until the first attempt starts; it is not a final dispatch status.
-	AttemptStatus DeployPolicyWorkflowAttemptStatus
-	AttemptError  string
-	Children      []DeployPolicyWorkflowChild
-}
-
-// DeployPolicyWorkflowAttemptStatus describes an attempt, not the final execution outcome.
-type DeployPolicyWorkflowAttemptStatus string
-
-const (
-	// DeployPolicyWorkflowAttemptRunning indicates an attempt has started.
-	DeployPolicyWorkflowAttemptRunning DeployPolicyWorkflowAttemptStatus = "running"
-	// DeployPolicyWorkflowAttemptSuccess indicates the current attempt returned successfully.
-	DeployPolicyWorkflowAttemptSuccess DeployPolicyWorkflowAttemptStatus = "success"
-	// DeployPolicyWorkflowAttemptFailed indicates the current attempt failed and may be retried.
-	DeployPolicyWorkflowAttemptFailed DeployPolicyWorkflowAttemptStatus = "failed"
-)
-
-// Validate checks whether the attempt status is supported.
-func (status DeployPolicyWorkflowAttemptStatus) Validate() error {
-	switch status {
-	case DeployPolicyWorkflowAttemptRunning, DeployPolicyWorkflowAttemptSuccess, DeployPolicyWorkflowAttemptFailed:
-		return nil
-	default:
-		return fmt.Errorf("invalid deploy policy workflow attempt status: %s", status)
-	}
+	Children            []DeployPolicyWorkflowChild
 }
 
 // DeployPolicyWorkflowChild records a child creation intent and its acknowledgement.

@@ -39,9 +39,6 @@ type Data struct {
 	Operator            string    `json:"operator" bson:"operator"`
 	OperateTime         time.Time `json:"operate_time" bson:"operate_time"`
 	OperationInstanceID string    `json:"operation_instance_id" bson:"operation_instance_id"`
-	AttemptCount        int64     `json:"attempt_count" bson:"attempt_count"`
-	AttemptStatus       string    `json:"attempt_status" bson:"attempt_status"`
-	AttemptError        string    `json:"attempt_error" bson:"attempt_error"`
 	Children            []Child   `json:"children" bson:"children"`
 }
 

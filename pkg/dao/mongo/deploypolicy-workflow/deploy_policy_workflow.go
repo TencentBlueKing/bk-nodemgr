@@ -25,7 +25,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -59,34 +58,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		},
 		Options: mongoOptions.Index().SetUnique(true),
 	}}
-}
-
-func (d *dao) updateAttempt(nCtx contextx.IContext, workflowID, operationInstanceID string,
-	status types.DeployPolicyWorkflowAttemptStatus, attemptError string) error {
-
-	filter := append(base.AliveFilter(), bson.E{Key: FieldKeyWorkflowID, Value: workflowID})
-	fields := bson.M{
-		FieldKeyAttemptStatus:  string(status),
-		FieldKeyAttemptError:   attemptError,
-		base.FieldKeyUpdatedAt: time.Now(),
-	}
-	update := bson.M{"$set": fields}
-	if status == types.DeployPolicyWorkflowAttemptRunning {
-		fields[FieldKeyOperationInstanceID] = operationInstanceID
-		update["$inc"] = bson.M{FieldKeyAttemptCount: int64(1)}
-	} else {
-		filter = append(filter, bson.E{Key: FieldKeyOperationInstanceID, Value: operationInstanceID})
-	}
-	result, err := d.client.UpdateOne(nCtx, filter, update)
-	if err != nil {
-		return fmt.Errorf("failed to update workflow %s attempt: %w", workflowID, err)
-	}
-	if result.MatchedCount != 1 {
-		return fmt.Errorf("workflow %s or operation instance %s not found: %w",
-			workflowID, operationInstanceID, base.ErrRecordNoFound())
-	}
-
-	return nil
 }
 
 func (d *dao) recordChild(nCtx contextx.IContext, workflowID string, child Child) error {

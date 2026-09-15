@@ -101,7 +101,6 @@ const (
 	metricRefreshExecuteInfo                     = "refresh_execute_info"
 	metricEnsureDeployPolicyWorkflow             = "ensure_deploy_policy_workflow"
 	metricGetDeployPolicyWorkflow                = "get_deploy_policy_workflow"
-	metricUpdateDeployPolicyWorkflowAttempt      = "update_deploy_policy_workflow_attempt"
 	metricRecordDeployPolicyWorkflowChild        = "record_deploy_policy_workflow_child"
 )
 
@@ -260,19 +259,6 @@ func (s *Storage) GetDeployPolicyWorkflow(nCtx contextx.IContext, workflowID str
 	})
 
 	return workflow, err
-}
-
-// UpdateDeployPolicyWorkflowAttempt records an attempt, not a final dispatch status.
-func (s *Storage) UpdateDeployPolicyWorkflowAttempt(nCtx contextx.IContext, workflowIDs []string, operationInstanceID string,
-	status types.DeployPolicyWorkflowAttemptStatus, attemptError string) error {
-
-	if nCtx == nil {
-		return base.ErrInvalidContext()
-	}
-
-	return s.WrapFn(nCtx, metricUpdateDeployPolicyWorkflowAttempt, func(ctx contextx.IContext) error {
-		return s.updateDeployPolicyWorkflowAttempt(ctx, workflowIDs, operationInstanceID, status, attemptError)
-	})
 }
 
 // RecordDeployPolicyWorkflowChild records child creation intent or acknowledgement monotonically.

@@ -37,8 +37,6 @@ type IHandler interface {
 	Ensure(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
 		policyID int64, operator string) (*types.DeployPolicyWorkflow, error)
 	Get(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error)
-	UpdateAttempt(nCtx contextx.IContext, workflowIDs []string, operationInstanceID string,
-		status types.DeployPolicyWorkflowAttemptStatus, attemptError string) error
 	RecordChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error
 }
 
@@ -113,8 +111,6 @@ func (d *dao) createExecution(nCtx contextx.IContext, execution types.DeployPoli
 		OperationID: execution.OperationID, TriggerID: execution.TriggerID, DeployPolicyID: policyID,
 		Operator: operator, OperateTime: time.Now(), OperationInstanceID: execution.OperationInstanceID,
 		Children: make([]Child, 0),
-		// Zero attempts and empty status mean no attempt has started yet.
-		AttemptCount: 0, AttemptStatus: "", AttemptError: "",
 	}
 	if err := d.Create(nCtx, data); err != nil {
 		if !mongo.IsDuplicateKeyError(err) {
@@ -147,40 +143,6 @@ func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.DeployP
 	}
 
 	return convertWorkflowToTypes(data), nil
-}
-
-// UpdateAttempt records the current attempt, incrementing the count only when it starts.
-func (h *Handler) UpdateAttempt(nCtx contextx.IContext, workflowIDs []string, operationInstanceID string,
-	status types.DeployPolicyWorkflowAttemptStatus, attemptError string) error {
-
-	if len(workflowIDs) == 0 {
-		return nil
-	}
-	if operationInstanceID == "" {
-		return base.ErrInvalidParam(errors.New("operation instance id is empty"))
-	}
-	if err := status.Validate(); err != nil {
-		return base.ErrInvalidParam(err)
-	}
-	if err := validateWorkflowIDs(workflowIDs); err != nil {
-		return fmt.Errorf("invalid attempt workflow ids: %w", err)
-	}
-	d, err := h.tenantDao(nCtx)
-	if err != nil {
-		return fmt.Errorf("failed to resolve workflow tenant: %w", err)
-	}
-	seen := make(map[string]struct{}, len(workflowIDs))
-	for _, workflowID := range workflowIDs {
-		if _, ok := seen[workflowID]; ok {
-			continue
-		}
-		seen[workflowID] = struct{}{}
-		if err := d.updateAttempt(nCtx, workflowID, operationInstanceID, status, attemptError); err != nil {
-			return fmt.Errorf("failed to update deploy policy workflow attempt: %w", err)
-		}
-	}
-
-	return nil
 }
 
 // RecordChild atomically adds or confirms a child without downgrading acknowledgement.
@@ -238,7 +200,6 @@ func convertWorkflowToTypes(data *Data) *types.DeployPolicyWorkflow {
 		TenantID: data.TenantID, WorkflowID: data.WorkflowID, OperationID: data.OperationID,
 		TriggerID: data.TriggerID, DeployPolicyID: data.DeployPolicyID, Operator: data.Operator,
 		OperateTime: data.OperateTime, OperationInstanceID: data.OperationInstanceID,
-		AttemptCount: data.AttemptCount, AttemptStatus: types.DeployPolicyWorkflowAttemptStatus(data.AttemptStatus),
-		AttemptError: data.AttemptError, Children: children,
+		Children: children,
 	}
 }

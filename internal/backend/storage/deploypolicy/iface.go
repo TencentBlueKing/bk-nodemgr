@@ -40,9 +40,6 @@ type IDaoDeployPolicyWorkflow interface {
 		policyID int64, operator string) (*types.DeployPolicyWorkflow, error)
 	// GetDeployPolicyWorkflow gets one tenant-scoped workflow by its stable ID.
 	GetDeployPolicyWorkflow(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error)
-	// UpdateDeployPolicyWorkflowAttempt records an attempt, not a final dispatch status.
-	UpdateDeployPolicyWorkflowAttempt(nCtx contextx.IContext, workflowIDs []string, operationInstanceID string,
-		status types.DeployPolicyWorkflowAttemptStatus, attemptError string) error
 	// RecordDeployPolicyWorkflowChild records child creation intent or acknowledgement monotonically.
 	RecordDeployPolicyWorkflowChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error
 }
