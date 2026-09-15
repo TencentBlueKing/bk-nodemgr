@@ -146,7 +146,7 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("no deploy policy found")
 	}
 
-	if err := act.dpMgr.DoWithExecution(nCtx, execution, deployPolicies...); err != nil {
+	if err := act.dpMgr.Do(nCtx, execution, deployPolicies...); err != nil {
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("tenant-id", std.TenantID()).
 			Error("failed to execute deploy policy")
 

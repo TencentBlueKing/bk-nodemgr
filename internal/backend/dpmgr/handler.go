@@ -31,9 +31,8 @@ import (
 
 // IHandler defines the handler interface.
 type IHandler interface {
-	Do(nCtx contextx.IContext, deployPolicies ...*types.DeployPolicy) error
-	// DoWithExecution records participating parents without changing engine retry ownership.
-	DoWithExecution(nCtx contextx.IContext, execution ExecutionParam, deployPolicies ...*types.DeployPolicy) error
+	// Do executes policies and records their participating workflows.
+	Do(nCtx contextx.IContext, execution ExecutionParam, deployPolicies ...*types.DeployPolicy) error
 }
 
 var _ IHandler = &Handler{}
@@ -93,13 +92,8 @@ func NewHandler(conf *Config) *Handler {
 	}
 }
 
-// Do does the handler.
-func (h *Handler) Do(nCtx contextx.IContext, originDeployPolicies ...*types.DeployPolicy) error {
-	return h.do(nCtx, ExecutionParam{}, originDeployPolicies...)
-}
-
-// DoWithExecution executes policies with parent workflow recording enabled.
-func (h *Handler) DoWithExecution(nCtx contextx.IContext, execution ExecutionParam,
+// Do executes policies and records their participating workflows.
+func (h *Handler) Do(nCtx contextx.IContext, execution ExecutionParam,
 	originDeployPolicies ...*types.DeployPolicy) error {
 
 	if execution.OperationID == "" || execution.WorkflowIDs == nil {
@@ -108,12 +102,6 @@ func (h *Handler) DoWithExecution(nCtx contextx.IContext, execution ExecutionPar
 	if h.daoDeployPolicyWorkflow == nil {
 		return errors.New("deploy policy workflow storage is required")
 	}
-
-	return h.do(nCtx, execution, originDeployPolicies...)
-}
-
-func (h *Handler) do(nCtx contextx.IContext, execution ExecutionParam,
-	originDeployPolicies ...*types.DeployPolicy) error {
 
 	// 1. discover these deploy policies's related deploy policies.
 	relatedDeployPolicies, err := h.policyDiscovery.Discover(nCtx, originDeployPolicies...)
@@ -125,10 +113,8 @@ func (h *Handler) do(nCtx contextx.IContext, execution ExecutionParam,
 	for _, policy := range relatedDeployPolicies {
 		execution.PolicyGroups[policy.DeployPolicyID] = policy.DsuID
 	}
-	if execution.OperationID != "" {
-		if err := h.ensureDiscoveredWorkflows(nCtx, execution, relatedDeployPolicies); err != nil {
-			return err
-		}
+	if err := h.ensureDiscoveredWorkflows(nCtx, execution, relatedDeployPolicies); err != nil {
+		return err
 	}
 
 	originDeployWorkUnits := make([]*DeployUnit, len(relatedDeployPolicies))
