@@ -10397,6 +10397,14 @@ paths:
                       type: array
                       items:
                         type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
+                      type: array
+                      items:
+                        type: boolean
                   description: PackageReleaseExactConditions describes release exact conditions.
               description: |-
                 PackageReleaseAgentDistinctReq describes the HTTP request body when distinct
@@ -10630,6 +10638,10 @@ paths:
                                   format: uint64
                                 release_type:
                                   type: string
+                                is_shared:
+                                  type: boolean
+                                is_synced:
+                                  type: boolean
                               description: Release describes the release.
                             change_log_en:
                               type: string
@@ -10778,6 +10790,14 @@ paths:
                       items:
                         type: string
                     as_default:
+                      type: array
+                      items:
+                        type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
                       type: array
                       items:
                         type: boolean
@@ -11109,6 +11129,14 @@ paths:
                       type: array
                       items:
                         type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
+                      type: array
+                      items:
+                        type: boolean
                   description: PackageReleaseExactConditions describes release exact conditions.
               description: |-
                 PackageReleaseAgentSetLabelsManyReq describes the HTTP request body when set
@@ -11330,6 +11358,10 @@ paths:
                                   format: uint64
                                 release_type:
                                   type: string
+                                is_shared:
+                                  type: boolean
+                                is_synced:
+                                  type: boolean
                               description: Release describes the release.
                           description: ReleaseBinTool describes the release bin tool.
                       total:
@@ -11652,6 +11684,10 @@ paths:
                                   format: uint64
                                 release_type:
                                   type: string
+                                is_shared:
+                                  type: boolean
+                                is_synced:
+                                  type: boolean
                               description: Release describes the release.
                           description: ReleaseCert describes the release cert.
                       total:
@@ -12439,6 +12475,10 @@ paths:
                                   format: uint64
                                 release_type:
                                   type: string
+                                is_shared:
+                                  type: boolean
+                                is_synced:
+                                  type: boolean
                               description: Release describes the release.
                           description: ReleasePlugin describes the release plugin.
                       total:
@@ -12583,6 +12623,14 @@ paths:
                       items:
                         type: string
                     as_default:
+                      type: array
+                      items:
+                        type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
                       type: array
                       items:
                         type: boolean
@@ -12960,6 +13008,10 @@ paths:
                                   format: uint64
                                 release_type:
                                   type: string
+                                is_shared:
+                                  type: boolean
+                                is_synced:
+                                  type: boolean
                               description: Release describes the release.
                           description: ReleasePluginBinTool describes the release plugin bin tool.
                       total:
@@ -13717,6 +13769,14 @@ paths:
                       type: array
                       items:
                         type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
+                      type: array
+                      items:
+                        type: boolean
                   description: PackageReleaseExactConditions describes release exact conditions.
               description: |-
                 PackageReleaseProxyDistinctReq describes the HTTP request body when distinct
@@ -13950,6 +14010,10 @@ paths:
                                   format: uint64
                                 release_type:
                                   type: string
+                                is_shared:
+                                  type: boolean
+                                is_synced:
+                                  type: boolean
                               description: Release describes the release.
                             change_log_en:
                               type: string
@@ -14098,6 +14162,14 @@ paths:
                       items:
                         type: string
                     as_default:
+                      type: array
+                      items:
+                        type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
                       type: array
                       items:
                         type: boolean
@@ -14426,6 +14498,14 @@ paths:
                       items:
                         type: string
                     as_default:
+                      type: array
+                      items:
+                        type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
                       type: array
                       items:
                         type: boolean
@@ -24693,6 +24773,14 @@ paths:
                       type: array
                       items:
                         type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
+                      type: array
+                      items:
+                        type: boolean
                   description: PackageReleaseExactConditions describes release exact conditions.
               description: |-
                 PackageReleaseAgentListBriefReq describes the HTTP request body when list
@@ -24906,6 +24994,14 @@ paths:
                       items:
                         type: boolean
                     is_visible:
+                      type: array
+                      items:
+                        type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
                       type: array
                       items:
                         type: boolean
@@ -25126,6 +25222,14 @@ paths:
                       items:
                         type: boolean
                     is_visible:
+                      type: array
+                      items:
+                        type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
                       type: array
                       items:
                         type: boolean
@@ -28121,6 +28225,14 @@ paths:
                       items:
                         type: boolean
                     is_visible:
+                      type: array
+                      items:
+                        type: boolean
+                    is_shared:
+                      type: array
+                      items:
+                        type: boolean
+                    is_synced:
                       type: array
                       items:
                         type: boolean
