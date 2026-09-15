@@ -175,7 +175,7 @@ type IDaoPluginBinTool interface {
 	GetReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (*types.ReleasePluginBinTool, error)
 
 	// ExistReleasePluginBinTool checks if release plugin bintool exists.
-	ExistReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation) (bool, error)
+	ExistReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (bool, error)
 
 	// UpsertReleasePluginBinTool upserts release plugin bintool.
 	UpsertReleasePluginBinTool(nCtx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error

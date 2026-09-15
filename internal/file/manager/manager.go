@@ -116,6 +116,9 @@ type IManager interface {
 
 	// DownloadRemoteFile downloads, verifies, and caches a remote file.
 	DownloadRemoteFile(nCtx contextx.IContext, filename, downloadURL, expectedMD5 string) (fileiface.File, error)
+
+	// SyncSharedReleases copies shared system releases to the target tenant.
+	SyncSharedReleases(nCtx contextx.IContext) error
 }
 
 // New returns a new file manager.

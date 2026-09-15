@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"gopkg.in/yaml.v2"
 )
@@ -508,7 +509,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					MD5:       file.Info().MD5,
 					Enabled:   false,
 					AsDefault: false,
-					IsShared:  isShared,
+					IsShared:  isShared && nCtx.TenantID() == tenant.SystemTenantID,
 					IsSynced:  false,
 					UpdatedAt: time.Now(),
 					Operator:  nCtx.BKUsername(),

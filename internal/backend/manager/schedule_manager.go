@@ -49,6 +49,7 @@ const (
 	scheduledWorkflowWatchAndApplyCMDBResource  = "watch_and_apply_cmdb_resource"
 	scheduledWorkflowExecuteDeployPolicy        = "execute_deploy_policy"
 	scheduledWorkflowEnsureDefaultPlugin        = "ensure_default_plugin"
+	scheduledWorkflowSyncSharedReleases         = "sync_shared_releases"
 )
 
 const (
@@ -69,6 +70,7 @@ func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWork
 		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.initSWWatchAndApplyCMDBResource,
 		scheduledWorkflowExecuteDeployPolicy:        mgr.initSWExecuteDeployPolicy,
 		scheduledWorkflowEnsureDefaultPlugin:        mgr.initSWEnsureDefaultPlugin,
+		scheduledWorkflowSyncSharedReleases:         mgr.initSWSyncSharedReleases,
 	}
 }
 
@@ -83,6 +85,7 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.syncSWWatchAndApplyCMDBResource,
 		scheduledWorkflowExecuteDeployPolicy:        mgr.syncSWExecuteDeployPolicy,
 		scheduledWorkflowEnsureDefaultPlugin:        mgr.syncSWEnsureDefaultPlugin,
+		scheduledWorkflowSyncSharedReleases:         mgr.syncSWSyncSharedReleases,
 	}
 }
 
@@ -554,6 +557,25 @@ func (mgr *Manager) syncSWEnsureDefaultPlugin(nCtx contextx.IContext, sw *types.
 	}
 
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperEnsureDefaultPlugin(schedule.OperParamEnsureDefaultPlugin{
+		ScheduleActionStandardParam: standardParam,
+	}))
+}
+
+func (mgr *Manager) initSWSyncSharedReleases(nCtx contextx.IContext) error {
+	if nCtx.TenantID() == tenant.SystemTenantID {
+		return nil
+	}
+
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncSharedReleases, scheduler.Every10m)
+}
+
+func (mgr *Manager) syncSWSyncSharedReleases(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow shared releases: %w", err)
+	}
+
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncSharedReleases(schedule.OperParamSyncSharedReleases{
 		ScheduleActionStandardParam: standardParam,
 	}))
 }

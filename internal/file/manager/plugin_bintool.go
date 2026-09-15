@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -108,11 +109,17 @@ func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile 
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	detail.Existed, err = m.storageRelease.ExistReleasePluginBinTool(nCtx, types.Generation2)
+	v2Exist, err := m.storageRelease.ExistReleasePluginBinTool(nCtx, types.Generation2, types.ReleaseNamePluginBinToolV2)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to check if release existed")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to check if release plugin bintool v2 existed")
 		return nil, err
 	}
+	v3Exist, err := m.storageRelease.ExistReleasePluginBinTool(nCtx, types.Generation2, types.ReleaseNamePluginBinToolV3)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to check if release plugin bintool v3 existed")
+		return nil, err
+	}
+	detail.Existed = v2Exist || v3Exist
 
 	uploadID, err := m.storageUpload.CreatePluginBinToolUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginPluginBinTool,
@@ -271,7 +278,7 @@ func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile f
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
-			IsShared:     isShared,
+			IsShared:     isShared && nCtx.TenantID() == tenant.SystemTenantID,
 			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),
@@ -339,7 +346,7 @@ func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile f
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
-			IsShared:     isShared,
+			IsShared:     isShared && nCtx.TenantID() == tenant.SystemTenantID,
 			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),
