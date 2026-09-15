@@ -82,7 +82,10 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
 ];
 
 export function normalizeHistoryActive(active: unknown): HistoryActiveScope {
-  if (active === 'proxy' || active === 'plugin') return active;
+  // query.active 可能是数组（URL 重复参数），取第一个元素
+  const value = Array.isArray(active) ? active[0] : active;
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (normalized === 'proxy' || normalized === 'plugin') return normalized;
 
   return 'agent';
 }

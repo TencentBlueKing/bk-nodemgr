@@ -79,6 +79,8 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import useAuthLock from '@/composables/use-auth-lock';
+import { normalizeHistoryActive } from '@/constants/auth';
+import type { HistoryActiveScope } from '@/constants/auth';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { usePermissionStore } from '@/stores/permission';
@@ -126,14 +128,21 @@ const MENU_ROUTE_ACTION_MAP: Record<string, string> = {
   agentEdit: 'agent_operate',
   assignUnit: 'agent_operate',
   plugin: 'plugin_view',
-  history: 'agent_history_view',
-  taskDetail: 'agent_history_view',
-  log: 'agent_history_view',
+  // 注：history / taskDetail / log 三路由被 agent/proxy/plugin 共用，
+  // 需按 query.active 区分历史权限，见 HISTORY_ROUTE_ACTION_MAP
   // ruleManager
   agentStrategy: 'config_policy_view',
   proxyStrategy: 'config_policy_view',
   pluginStrategy: 'config_policy_view',
   strategyTaskHistory: 'config_policy_history_view',
+};
+
+// 任务历史相关路由（共用同一路由名，按 active tab 区分对应历史权限）
+const HISTORY_ROUTE_NAMES = ['history', 'taskDetail', 'log'];
+const HISTORY_ROUTE_ACTION_MAP: Record<HistoryActiveScope, string> = {
+  agent: 'agent_history_view',
+  proxy: 'proxy_history_view',
+  plugin: 'plugin_history_view',
 };
 
 // 顶层导航模块 → 默认 view action（用于 403 页面时通过 mainMenu 反推）
@@ -148,12 +157,21 @@ let cachedAction: string | undefined;
 // 根据当前路由名获取对应的菜单 view action（仅用于申请权限）
 function getActionForRoute(): string | undefined {
   const name = route.name;
-  if (typeof name === 'string' && MENU_ROUTE_ACTION_MAP[name]) {
-    cachedAction = MENU_ROUTE_ACTION_MAP[name];
-    return cachedAction;
+  if (typeof name === 'string') {
+    // 任务历史（列表/详情/日志）：按 active tab 区分 agent/proxy/plugin 历史权限
+    if (HISTORY_ROUTE_NAMES.includes(name)) {
+      cachedAction = HISTORY_ROUTE_ACTION_MAP[normalizeHistoryActive(route.query.active)];
+      return cachedAction;
+    }
+    if (MENU_ROUTE_ACTION_MAP[name]) {
+      cachedAction = MENU_ROUTE_ACTION_MAP[name];
+      return cachedAction;
+    }
   }
-  // 403/404 页面：通过 query.mainMenu 反推
+  // 403/404 页面：优先使用缓存的 action（历史页跳 403 时缓存的是对应历史权限），
+  // 否则通过 query.mainMenu 反推
   if (name === '403' || name === '404') {
+    if (cachedAction) return cachedAction;
     const mainMenu = route.query.mainMenu as string;
     if (mainMenu && MAIN_MENU_DEFAULT_ACTION[mainMenu]) {
       return MAIN_MENU_DEFAULT_ACTION[mainMenu];

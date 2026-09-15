@@ -29,6 +29,9 @@ export const useAuthStore = defineStore('auth', () => {
   const needRefresh = ref(true);
   const loading = ref(false);
   const lastVerifiedBizScope = ref<string>('');
+  // 并发 verify 请求序号：只让最新一次请求的响应生效，避免旧 tab（如 agent 历史）的
+  // 鉴权结果覆盖新 tab（如 proxy 历史）的鉴权结果
+  let verifySeq = 0;
 
   function normalizeBizScope(bizScope?: string | number | Array<string | number>): string {
     if (Array.isArray(bizScope)) {
@@ -44,9 +47,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function batchVerify(
     authItems: PageAuthItem[],
     bkBizScope?: string | number | Array<string | number>,
-    resourceId?: string | number,
+    resourceId?: string | number | Array<string | number>,
     options: { showPermissionDialog?: boolean } = {},
   ): Promise<boolean> {
+    const seq = ++verifySeq;
     const bizScope = normalizeBizScope(bkBizScope);
     const bizResources = bizScope
       ? bizScope.split(',').map(id => ({
@@ -69,16 +73,16 @@ export const useAuthStore = defineStore('auth', () => {
         verifyItem.resources = bizResources;
       } else if (item.resourceType && item.resourceType !== 'biz') {
         // For non-biz resource types (networkarea, networkunit, etc.)
-        const resources = [];
-        if (resourceId !== undefined && resourceId !== null) {
-          resources.push({
+        // 支持单个或多个资源实例（如操作记录页申请全部管控区域的查看权限）
+        const resourceIds = Array.isArray(resourceId)
+          ? resourceId
+          : (resourceId !== undefined && resourceId !== null ? [resourceId] : []);
+        if (resourceIds.length > 0) {
+          verifyItem.resources = resourceIds.map(id => ({
             system_id: getSystemIdForResourceType(item.resourceType),
             type: item.resourceType,
-            id: String(resourceId),
-          });
-        }
-        if (resources.length > 0) {
-          verifyItem.resources = resources;
+            id: String(id),
+          }));
         }
       }
 
@@ -91,6 +95,9 @@ export const useAuthStore = defineStore('auth', () => {
         { items },
         { interceptorErr: false, validateCode: false, needRes: true, ...options },
       ) as unknown as AuthVerifyResp;
+
+      // 过期响应：期间已发起更新的 verify（如任务历史切 tab），本次结果直接丢弃
+      if (seq !== verifySeq) return true;
 
       const data = (resp as any)?.data ?? resp;
       const now = Date.now();
@@ -109,6 +116,8 @@ export const useAuthStore = defineStore('auth', () => {
       needRefresh.value = false;
       return true;
     } catch (error) {
+      // 过期响应：期间已发起更新的 verify，本次结果直接丢弃
+      if (seq !== verifySeq) return true;
       if (isPermissionDeniedResponse(error)) {
         const denied = authItems.map(item => item.action);
         const now = Date.now();

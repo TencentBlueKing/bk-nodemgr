@@ -476,8 +476,15 @@ export const install: UserModule = ({ app }) => {
 
     authStore.setDeniedActionIds([matched.id]);
     const permissionDetail = authStore.getPermissionDetail();
+    // 先关闭上一次导航遗留的权限弹窗，避免展示上一个 tab（如 agent 历史）的权限信息
+    permissionStore.hideDialog();
     if (permissionDetail?.actions?.length) {
-      permissionStore.showDialog(permissionDetail);
+      // 只展示与当前请求 action 相关的权限明细：并发/竞态下 permissionDetail
+      // 可能是旧 tab（如 agent 历史）的 verify 结果，直接展示会误导用户
+      const relatedActions = permissionDetail.actions.filter(action => action.id === matched.action);
+      if (relatedActions.length > 0) {
+        permissionStore.showDialog({ ...permissionDetail, actions: relatedActions });
+      }
     }
     return { name: '403', query: { mainMenu: fallbackMainMenu, from: to.fullPath } };
   });

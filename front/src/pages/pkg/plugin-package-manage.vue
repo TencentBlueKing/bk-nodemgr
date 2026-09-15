@@ -360,7 +360,7 @@
 <script lang="ts" setup>
 import { Alert, Button, Loading, PopConfirm, SearchSelect, Tag } from 'bkui-vue';
 import { AngleDown, AngleRight, TextAll } from 'bkui-vue/lib/icon';
-import { isArray } from 'lodash';
+import { debounce, isArray } from 'lodash';
 import type { ComputedRef } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -860,6 +860,9 @@ const getDistinctPluginNames = async () => {
 };
 
 const getPackages = async () => {
+  // 等待 package_manage 授权加载完成再请求：未加载时拿不到有权限的插件名，
+  // 查询条件为空既无意义、也会把无权限插件的短暂全量数据拉回前端
+  if (!authStore.authorizedMap['package_manage']) return;
   loading.value = true;
   // 仅查询有权限的插件包名对应的数据
   const authorizedNames = getAuthorizedPluginNames();
@@ -939,17 +942,21 @@ watch(
     filterOptionSource.operator.checked = [];
     filterOptionSource.enabled.checked = [];
     await getDistinctPluginNames();
-    await getPackages();
+    debounceGetPackages();
   },
   { immediate: true },
 );
 
+// 进入页面/权限就绪两个触发点走防抖：竞态时（authorized 恰好在前一次请求期间完成）
+// 合并为一次请求，避免重复的列表请求
+const debounceGetPackages = debounce(getPackages, 200);
+
 // 权限加载完成 / 授权项变化时重新拉取数据，确保只查有权限的插件名
 watch(
   () => authStore.authorizedMap['package_manage']?.resourceIds,
-  async () => {
+  () => {
     if (distinctPluginNames.value.length > 0) {
-      await getPackages();
+      debounceGetPackages();
     }
   },
 );

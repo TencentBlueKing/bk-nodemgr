@@ -1155,6 +1155,7 @@ agentProxyPkg:
 components:
   permission:
     noPermission: No permission to access or operate this resource
+    applyUrlEmptyTip: Failed to get the permission apply URL, please contact the system administrator
     noBizPermission: No business access permission
     noBizPermissionTip: Please select a business from the top-left business list and click to apply
     noPluginPermission: No plugin package access permission

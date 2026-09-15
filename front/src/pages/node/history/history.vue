@@ -205,6 +205,7 @@ import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import { formatTimeByTimezone } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 import { useRouteSubTitle } from '@/stores/route-sub-title';
@@ -245,6 +246,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
+const authStore = useAuthStore();
 const nodeManageStore = useNodeManageStore();
 const routeSubTitle = useRouteSubTitle();
 const tableData = ref<NodeWorkflowInfo[]>([]);
@@ -1083,6 +1085,9 @@ watch(
         searchSelectValue.value.splice(idx, 1);
         filterOptionSource.type.checked = [];
       }
+      // 切换历史类型（agent/proxy/plugin）：清空鉴权状态，
+      // 强制路由守卫按新 tab 重新 verify（agent_history_view / proxy_history_view / plugin_history_view）
+      authStore.refreshPermissions();
       router.replace({
         query: {
           ...route.query,

@@ -1158,6 +1158,7 @@ agentProxyPkg:
 components:
   permission:
     noPermission: 没有权限访问或操作此资源
+    applyUrlEmptyTip: 权限申请地址获取失败，请联系系统管理员
     noBizPermission: 暂无任何业务访问权限
     noBizPermissionTip: 请在左上角业务列表中选择对应业务点击申请
     noPluginPermission: 暂无任何插件包访问权限

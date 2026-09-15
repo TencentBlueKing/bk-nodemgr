@@ -22,6 +22,7 @@
         <bk-button
           theme="primary"
           :disabled="!applyUrl"
+          v-bk-tooltips="{ content: t('components.permission.applyUrlEmptyTip'), disabled: !!applyUrl }"
           @click="handleApply"
         >
           {{ t('components.permission.apply') }}

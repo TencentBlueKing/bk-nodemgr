@@ -1,5 +1,9 @@
 <template>
-  <NoPermission v-if="!hasViewAuth" :auth-items="viewAuthItems" />
+  <NoPermission
+    v-if="!hasViewAuth"
+    :auth-items="viewAuthItems"
+    :resource-id="networkareaHistoryResourceIds"
+  />
   <div v-else class="p-[24px]">
     <div class="flex items-center">
       <DatePicker
@@ -119,6 +123,12 @@ const hasViewAuth = computed(() => {
   if (!authStore.authorizedMap['networkarea_history_view']) return true;
   return authStore.hasAuthorizedResource('networkarea_history_view');
 });
+
+// 申请查看权限时携带的资源实例：全部管控区域 ID（verify 逐区域鉴权，
+// 无权限的区域进入申请信息，用户可在权限中心选择具体区域申请）。
+// 过滤负数 ID（异常数据）；0 为直连区域，保留
+const networkareaHistoryResourceIds = computed<number[]>(() => Array.from(workareaStore.allWorkareaList.keys())
+  .filter(id => id >= 0));
 
 // 操作类型映射
 const typeMap = ref({
@@ -313,8 +323,9 @@ onMounted(async () => {
   // 确保 topoManager 模块权限数据已加载（刷新直接访问时可能未加载）
   const topoItems = getModuleAuthorizedItems('topoManager');
   await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
+  // 拉取全部管控区域：搜索下拉数据源 + 无权限时申请查看权限所需的资源实例列表
+  await handleFetchAllWorkarea().catch(() => {});
   if (hasViewAuth.value) fetchRecordList();
-  // initSearchList();
 });
 
 </script>

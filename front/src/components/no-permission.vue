@@ -34,8 +34,8 @@ const props = withDefaults(defineProps<{
   authItems?: PageAuthItem[];
   /** biz 资源的业务范围（biz 级权限时使用） */
   bizScope?: string | number | Array<string | number>;
-  /** 非 biz 资源的具体资源 ID（如 package 的 release_type、networkarea 的 areaId） */
-  resourceId?: string | number;
+  /** 非 biz 资源的具体资源 ID（如 package 的 release_type、networkarea 的 areaId），支持多资源实例 */
+  resourceId?: string | number | Array<string | number>;
 }>(), {
   type: 'action',
   authItems: () => [],
