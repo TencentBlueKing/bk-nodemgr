@@ -25,11 +25,9 @@ import (
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -81,8 +79,6 @@ type Executor struct {
 	daoPlugin               plugin.IDaoPlugin
 	daoProcessConfig        plugin.IDaoProcessConfig
 	daoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
-	daoNodeWorkflow         node.IDaoNodeWorkflow
-	daoPluginWorkflow       plugin.IDaoPluginWorkflow
 }
 
 // ExecutorConfig defines the config of executor.
@@ -92,8 +88,6 @@ type ExecutorConfig struct {
 	DaoPlugin               plugin.IDaoPlugin
 	DaoProcessConfig        plugin.IDaoProcessConfig
 	DaoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
-	DaoNodeWorkflow         node.IDaoNodeWorkflow
-	DaoPluginWorkflow       plugin.IDaoPluginWorkflow
 }
 
 type pluginPkgTaskParam struct {
@@ -111,8 +105,6 @@ func NewExecutor(conf *ExecutorConfig) *Executor {
 		daoPlugin:               conf.DaoPlugin,
 		daoProcessConfig:        conf.DaoProcessConfig,
 		daoDeployPolicyWorkflow: conf.DaoDeployPolicyWorkflow,
-		daoNodeWorkflow:         conf.DaoNodeWorkflow,
-		daoPluginWorkflow:       conf.DaoPluginWorkflow,
 	}
 }
 
@@ -237,74 +229,28 @@ func (executor *Executor) ExecuteWithExecution(nCtx contextx.IContext, execution
 	return nil
 }
 
-func (executor *Executor) prepareWorkflowChild(nCtx contextx.IContext, execution ExecutionParam,
-	tasks []*ChangeTask, domain types.WorkflowDomain) ([]string, types.DeployPolicyWorkflowChild, error) {
+func (executor *Executor) recordWorkflowChild(nCtx contextx.IContext, execution ExecutionParam,
+	tasks []*ChangeTask, domain types.WorkflowDomain, workflowID string) error {
 
 	workflowIDs := execution.workflowIDs(tasks)
-	child := types.DeployPolicyWorkflowChild{
-		WorkflowID:     identifier.GenWorkflowID(),
-		WorkflowDomain: domain,
-		Confirmed:      false,
-	}
 	// Execute without execution metadata launches children without recording policy associations.
 	if len(workflowIDs) == 0 {
-		return workflowIDs, child, nil
+		return nil
 	}
 	if executor.daoDeployPolicyWorkflow == nil {
-		return nil, child, errors.New("deploy policy workflow storage is required")
+		return errors.New("deploy policy workflow storage is required")
+	}
+	if workflowID == "" {
+		return errors.New("launched workflow id is empty")
+	}
+
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID:     workflowID,
+		WorkflowDomain: domain,
+		Confirmed:      true,
 	}
 	if err := executor.daoDeployPolicyWorkflow.RecordDeployPolicyWorkflowChild(nCtx, workflowIDs, child); err != nil {
-		return nil, child, fmt.Errorf("failed to record deploy policy workflow child intent: %w", err)
-	}
-
-	return workflowIDs, child, nil
-}
-
-func (executor *Executor) finishWorkflowChild(nCtx contextx.IContext, workflowIDs []string,
-	child types.DeployPolicyWorkflowChild, workflowID string, launchErr error) error {
-
-	if launchErr != nil {
-		if len(workflowIDs) == 0 {
-			return launchErr
-		}
-		// Failed launches provide no usable result; inspect the preallocated ID instead.
-		if err := executor.checkWorkflowChildCreated(nCtx, child); err != nil {
-			return errors.Join(launchErr, fmt.Errorf("failed to confirm child workflow creation: %w", err))
-		}
-	} else if workflowID != child.WorkflowID {
-		return errors.Join(launchErr, fmt.Errorf("launched workflow id %q does not match prepared child %q",
-			workflowID, child.WorkflowID))
-	}
-	if len(workflowIDs) == 0 {
-		return launchErr
-	}
-
-	child.Confirmed = true
-	if err := executor.daoDeployPolicyWorkflow.RecordDeployPolicyWorkflowChild(nCtx, workflowIDs, child); err != nil {
-		return errors.Join(launchErr, fmt.Errorf("failed to confirm deploy policy workflow child: %w", err))
-	}
-
-	return launchErr
-}
-
-func (executor *Executor) checkWorkflowChildCreated(nCtx contextx.IContext, child types.DeployPolicyWorkflowChild) error {
-	switch child.WorkflowDomain {
-	case types.WorkflowDomainNode:
-		if executor.daoNodeWorkflow == nil {
-			return errors.New("node workflow storage is required")
-		}
-		if _, err := executor.daoNodeWorkflow.GetNodeWorkflow(nCtx, child.WorkflowID); err != nil {
-			return fmt.Errorf("failed to get node workflow: %w", err)
-		}
-	case types.WorkflowDomainPlugin:
-		if executor.daoPluginWorkflow == nil {
-			return errors.New("plugin workflow storage is required")
-		}
-		if _, err := executor.daoPluginWorkflow.GetPluginWorkflow(nCtx, child.WorkflowID); err != nil {
-			return fmt.Errorf("failed to get plugin workflow: %w", err)
-		}
-	default:
-		return fmt.Errorf("unsupported child workflow domain %q", child.WorkflowDomain)
+		return fmt.Errorf("failed to record deploy policy workflow child: %w", err)
 	}
 
 	return nil
@@ -382,20 +328,17 @@ func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext
 	}
 
 	bizIDs := conv.MapKeyToSlice(bizMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action agent install: %w", err)
-	}
 	workflowID, err := executor.nodeManager.LaunchInstallNode(nCtx, types.InstallNodeParam{
-		WorkflowID:      child.WorkflowID,
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          bizIDs,
 		Operator:        operator,
 		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action agent install: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action agent install: %w", err)
 	}
 
@@ -451,20 +394,17 @@ func (executor *Executor) executeChangeActionAgentUninstall(nCtx contextx.IConte
 	}
 
 	bizIDs := conv.MapKeyToSlice(bizMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action agent uninstall: %w", err)
-	}
 	workflowID, err := executor.nodeManager.LaunchUninstallNode(nCtx, types.UninstallNodeParam{
-		WorkflowID:      child.WorkflowID,
 		Type:            types.NodeWorkflowTypeUninstallAgent,
 		BizIDs:          bizIDs,
 		Operator:        operator,
 		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action agent uninstall: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action agent uninstall: %w", err)
 	}
 
@@ -518,20 +458,17 @@ func (executor *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext
 	}
 
 	bizIDs := conv.MapKeyToSlice(bizMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action agent upgrade: %w", err)
-	}
 	workflowID, err := executor.nodeManager.LaunchUpgradeNode(nCtx, types.UpgradeNodeParam{
-		WorkflowID:      child.WorkflowID,
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          bizIDs,
 		Operator:        operator,
 		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action agent upgrade: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action agent upgrade: %w", err)
 	}
 
@@ -577,12 +514,7 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 	}
 
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin install: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -590,8 +522,10 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin install: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin install: %w", err)
 	}
 
@@ -630,12 +564,7 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 	}
 
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin uninstall: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -643,8 +572,10 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin uninstall: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin uninstall: %w", err)
 	}
 
@@ -685,12 +616,7 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 	}
 
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin upgrade: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -698,8 +624,10 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin upgrade: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin upgrade: %w", err)
 	}
 
@@ -745,12 +673,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 	}
 
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin apply sub config: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchApplyPluginSubConfig(nCtx, types.ApplyPluginSubConfigParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -758,8 +681,10 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin apply sub config: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin apply sub config: %w", err)
 	}
 
@@ -803,12 +728,7 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfig(nCtx contextx
 	}
 
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin delete sub config: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchRemovePluginSubConfig(nCtx, types.RemovePluginSubConfigParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeRemovePluginSubConfig,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -816,8 +736,10 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfig(nCtx contextx
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin delete sub config: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin delete sub config: %w", err)
 	}
 
@@ -906,12 +828,7 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 
 	// 3. build plugin deployments.
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin pkg install: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -919,8 +836,10 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg install: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin pkg install: %w", err)
 	}
 
@@ -966,12 +885,7 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 
 	// 2. build plugin deployments.
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin pkg upgrade: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -979,8 +893,10 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg upgrade: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin pkg upgrade: %w", err)
 	}
 
@@ -1020,12 +936,7 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 
 	// 2. build plugin deployments.
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	parentWorkflowIDs, child, err := executor.prepareWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin)
-	if err != nil {
-		return fmt.Errorf("failed to execute change action plugin pkg uninstall: %w", err)
-	}
 	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
-		WorkflowID:        child.WorkflowID,
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
 		BizIDs:            collectTargetBizIDs(tasks),
@@ -1033,8 +944,10 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
-	err = executor.finishWorkflowChild(nCtx, parentWorkflowIDs, child, workflowID, err)
 	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg uninstall: %w", err)
+	}
+	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
 		return fmt.Errorf("failed to execute change action plugin pkg uninstall: %w", err)
 	}
 

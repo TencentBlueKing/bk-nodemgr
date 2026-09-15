@@ -46,11 +46,7 @@ func (mgr *Manager) LaunchInstallPlugin(
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -146,11 +142,7 @@ func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.Upgr
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -239,11 +231,7 @@ func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.Un
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -332,11 +320,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -415,11 +399,7 @@ func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param ty
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,

@@ -226,8 +226,6 @@ func (mgr *Manager) registerDefDeployPolicy() error {
 		DaoHost:                 mgr.conf.StorageTopo,
 		DomainDeployPolicyMgr:   mgr.conf.StorageDeployPolicy,
 		DaoDeployPolicyWorkflow: mgr.conf.StorageDeployPolicy,
-		DaoNodeWorkflow:         mgr.conf.StorageNode,
-		DaoPluginWorkflow:       mgr.conf.StoragePlugin,
 		CmdbHandler:             mgr.conf.CmdbHandler,
 		NodeManager:             mgr,
 		PluginManager:           mgr,

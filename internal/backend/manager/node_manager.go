@@ -42,11 +42,7 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:        nCtx.TenantID(),
@@ -436,11 +432,7 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:        nCtx.TenantID(),
@@ -713,11 +705,7 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 		return "", err
 	}
 
-	workflowID := param.WorkflowID
-	if workflowID == "" {
-		workflowID = identifier.GenWorkflowID()
-	}
-
+	workflowID := identifier.GenWorkflowID()
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:        nCtx.TenantID(),
