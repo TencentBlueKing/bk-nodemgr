@@ -66,6 +66,11 @@ async function handleApply() {
     const detail = authStore.getPermissionDetail();
     if (detail?.actions?.length) {
       permissionStore.showDialog(detail);
+    } else {
+      // verify 通过但无权限明细 = 用户实际已有权限，本地 authorized 缓存过期
+      // （如管理员刚完成授权）。强制刷新授权数据，占位页判定随 authorizedMap 更新自动消失
+      const items = props.authItems.map(item => ({ action: item.action, resource_type: item.resourceType }));
+      await authStore.fetchAuthorized(items, undefined, { force: true });
     }
   } finally {
     loading.value = false;

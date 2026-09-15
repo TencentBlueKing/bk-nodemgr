@@ -208,10 +208,15 @@ export const useAuthStore = defineStore('auth', () => {
    * 调用 /api/v3/auth/authorized 获取当前用户对各 action 有权限的资源范围
    * @param items 要查询的 action-resource_type 对
    * @param moduleName 模块名（可选），用于标记已加载模块，避免重复请求
+   * @param options.force 强制刷新：忽略模块级缓存（如权限申请通过后本地缓存已过期）
    */
-  async function fetchAuthorized(items?: AuthorizedItem[], moduleName?: string) {
+  async function fetchAuthorized(
+    items?: AuthorizedItem[],
+    moduleName?: string,
+    options: { force?: boolean } = {},
+  ) {
     // 如果指定了模块且已加载过（成功或失败都算），跳过
-    if (moduleName && (loadedModules.has(moduleName) || failedModules.has(moduleName))) return;
+    if (!options.force && moduleName && (loadedModules.has(moduleName) || failedModules.has(moduleName))) return;
 
     // 用 moduleName 或 items 的 action 列表作为 key，相同 key 的请求共享 Promise
     const requestKey = moduleName || (items || []).map(i => i.action).sort().join(',') || '_default';

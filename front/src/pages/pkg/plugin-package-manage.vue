@@ -376,6 +376,7 @@ import type { Release } from '@/@types/common.d';
 import useAuthLock from '@/composables/use-auth-lock';
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
+import { getPageAuthorizedItems } from '@/constants/auth';
 import { compareVersions, formatTimestamp } from '@/common/util';
 import { translateOperatorItems } from '@/common/user-display';
 import usePage from '@/composables/use-page';
@@ -403,8 +404,9 @@ const isMultipleTenant = window.PROJECT_CONFIG.BK_TENANT_MODE === 'multiple';
 const distinctPluginNames = ref<string[]>([]);
 const hoveredPluginName = ref<string>();
 
-// 判断当前用户对某个插件包名是否有 package_manage 权限
-const isNameAuthorized = (name: string) => authStore.hasAuthorizedResource('package_manage', name);
+// 判断当前用户对某个插件包名是否有 package_view 查看权限（决定侧边栏可选/置灰）；
+// 管理能力（启用/禁用/删除/设默认）由行内按钮的 package_manage 单独控制
+const isNameAuthorized = (name: string) => authStore.hasAuthorizedResource('package_view', name);
 // 获取当前用户有权限的插件包名（在 distinctPluginNames 中过滤）
 const getAuthorizedPluginNames = () => distinctPluginNames.value.filter(name => isNameAuthorized(name));
 // 是否全部插件都无权限（用于切换 NoPermission 占位页）
@@ -860,9 +862,9 @@ const getDistinctPluginNames = async () => {
 };
 
 const getPackages = async () => {
-  // 等待 package_manage 授权加载完成再请求：未加载时拿不到有权限的插件名，
+  // 等待 package_view 授权加载完成再请求：未加载时拿不到有权限的插件名，
   // 查询条件为空既无意义、也会把无权限插件的短暂全量数据拉回前端
-  if (!authStore.authorizedMap['package_manage']) return;
+  if (!authStore.authorizedMap['package_view']) return;
   loading.value = true;
   // 仅查询有权限的插件包名对应的数据
   const authorizedNames = getAuthorizedPluginNames();
@@ -953,7 +955,7 @@ const debounceGetPackages = debounce(getPackages, 200);
 
 // 权限加载完成 / 授权项变化时重新拉取数据，确保只查有权限的插件名
 watch(
-  () => authStore.authorizedMap['package_manage']?.resourceIds,
+  () => authStore.authorizedMap['package_view']?.resourceIds,
   () => {
     if (distinctPluginNames.value.length > 0) {
       debounceGetPackages();
@@ -984,5 +986,9 @@ watch(() => searchSelectValue.value, (data) => {
   });
 }, { immediate: true, deep: true });
 onMounted(async () => {
+  // 加载行内管理按钮 / 上传按钮所需的授权数据（package_manage / package_type_upload）；
+  // package_view / package_history_view 已由路由守卫的 pkgManager 模块加载
+  const items = getPageAuthorizedItems('pluginPackageMng');
+  await authStore.fetchAuthorized(items, 'pluginPackageMng').catch(() => {});
 });
 </script>
