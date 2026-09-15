@@ -20,8 +20,8 @@
 package crypter
 
 import (
-	"encoding/base64"
 	"bytes"
+	"encoding/base64"
 	"reflect"
 	"testing"
 )

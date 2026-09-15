@@ -529,6 +529,7 @@ func (svc *Service) newAuthorizer() (auth.IAuthorizer, error) {
 		// Disabled handlers reject direct IAM calls; only the authorizer may bypass checks.
 		svc.Cap.IAMV3Handler = iamv3.NewDisabledHandler()
 		svc.Cap.IAMV4Handler = iamv4.NewDisabledHandler()
+
 		return auth.NewNoOpAuthorizer(), nil
 	}
 }

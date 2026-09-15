@@ -666,10 +666,13 @@ func (svc *Service) registerExportServer() error {
 func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
+		VerifyClient:       conf.TLS.VerifyClient,
 		CertFile:           conf.TLS.CertFile,
 		KeyFile:            conf.TLS.KeyFile,
 		CAFile:             conf.TLS.CAFile,
 		Password:           conf.TLS.Password,
+		EncCertFile:        conf.TLS.EncCertFile,
+		EncKeyFile:         conf.TLS.EncKeyFile,
 	})
 	if err != nil {
 		return nil, err
