@@ -50,8 +50,7 @@ func NewActionExecuteDeployPolicy(capability *Capability) action.Definition {
 // ActionParamExecuteDeployPolicy the action's param.
 type ActionParamExecuteDeployPolicy struct {
 	deployPolicyUtils.DeployPolicyActionStandardParam
-	DeployPolicyIDs       []int64                          `json:"deploy_policy_ids"`
-	DeployPolicyExecution types.DeployPolicyExecutionParam `json:"deploy_policy_execution"`
+	DeployPolicyIDs []int64 `json:"deploy_policy_ids"`
 }
 
 type actionExecuteDeployPolicy struct {
@@ -118,15 +117,11 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) (attemptEr
 	}
 
 	nCtx := std.Context()
-	execution := param.DeployPolicyExecution
-	if execution.ExecutionID == "" {
-		// Persisted actions predating execution records use the operation instance as a stable retry anchor.
-		execution.ExecutionID = ctx.Data.OperationInstanceID
-	}
-	execution.TriggerID = ctx.Data.TriggerID
-	execution.OperationInstanceID = ctx.Data.OperationInstanceID
-	if execution.WorkflowIDs == nil {
-		execution.WorkflowIDs = make(map[int64]string)
+	execution := types.DeployPolicyExecutionParam{
+		OperationID:         ctx.Data.OperationID,
+		TriggerID:           ctx.Data.TriggerID,
+		OperationInstanceID: ctx.Data.OperationInstanceID,
+		WorkflowIDs:         make(map[int64]string),
 	}
 	completed := false
 	defer func() {

@@ -24,7 +24,6 @@ import (
 
 	deployPolicyUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -186,20 +185,10 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.DeployPolicyActionStandarder, trigCtl workflow.ITriggerCtl,
 	policyIDs ...int64) error {
 
-	execution := types.DeployPolicyExecutionParam{
-		ExecutionID: identifier.GenWorkflowID(),
-		TriggerID:   trigCtl.GetTriggerID(),
-		WorkflowIDs: make(map[int64]string, len(policyIDs)),
-	}
-	if err := ensurePolicyWorkflows(std.Context(), act.daoDeployPolicyWorkflow, execution, std.Operator(), policyIDs); err != nil {
-		return err
-	}
-
 	operationDef := NewOperExecuteDeployPolicy(OperParamExecuteDeployPolicy{
-		TenantID:              std.TenantID(),
-		Operator:              std.Operator(),
-		DeployPolicyIDs:       policyIDs,
-		DeployPolicyExecution: execution,
+		TenantID:        std.TenantID(),
+		Operator:        std.Operator(),
+		DeployPolicyIDs: policyIDs,
 	})
 	operationParam := operationDef.DefaultParameters()
 	operationParam.ParentOperationID = std.InstanceData().OperationID
@@ -212,6 +201,15 @@ func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.
 			With("action", act.Name(), "tenant-id", std.TenantID()).
 			Error("failed to create execute deploy policy operation")
 
+		return err
+	}
+
+	execution := types.DeployPolicyExecutionParam{
+		OperationID: operCtl.GetOperationID(),
+		TriggerID:   trigCtl.GetTriggerID(),
+		WorkflowIDs: make(map[int64]string, len(policyIDs)),
+	}
+	if err := ensurePolicyWorkflows(std.Context(), act.daoDeployPolicyWorkflow, execution, std.Operator(), policyIDs); err != nil {
 		return err
 	}
 

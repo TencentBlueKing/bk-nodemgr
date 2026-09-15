@@ -23,7 +23,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
@@ -31,32 +30,27 @@ import (
 
 // LaunchExecuteDeployPolicy launch execute deploy policy trigger.
 func (mgr *Manager) LaunchExecuteDeployPolicy(nCtx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error) {
-	execution := types.DeployPolicyExecutionParam{
-		ExecutionID: identifier.GenWorkflowID(),
-		WorkflowIDs: make(map[int64]string, len(param.DeployPolicyIDs)),
-	}
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
-	execution.TriggerID = triggerCtl.GetTriggerID()
-	for _, policyID := range param.DeployPolicyIDs {
-		parent, err := mgr.conf.StorageDeployPolicy.EnsureDeployPolicyWorkflow(nCtx, execution, policyID, param.Operator)
-		if err != nil {
-			return "", fmt.Errorf("failed to ensure policy %d workflow: %w", policyID, err)
-		}
-		execution.WorkflowIDs[policyID] = parent.WorkflowID
-	}
-
 	operationDef := deploypolicy.NewOperExecuteDeployPolicy(deploypolicy.OperParamExecuteDeployPolicy{
-		TenantID:              nCtx.TenantID(),
-		Operator:              param.Operator,
-		DeployPolicyIDs:       param.DeployPolicyIDs,
-		DeployPolicyExecution: execution,
+		TenantID:        nCtx.TenantID(),
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
 	})
 	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
+	}
+	execution := types.DeployPolicyExecutionParam{
+		OperationID: operCtl.GetOperationID(),
+		TriggerID:   triggerCtl.GetTriggerID(),
+	}
+	for _, policyID := range param.DeployPolicyIDs {
+		if _, err := mgr.conf.StorageDeployPolicy.EnsureDeployPolicyWorkflow(nCtx, execution, policyID, param.Operator); err != nil {
+			return "", fmt.Errorf("failed to ensure policy %d workflow: %w", policyID, err)
+		}
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {

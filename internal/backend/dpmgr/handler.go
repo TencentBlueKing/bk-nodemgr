@@ -102,8 +102,8 @@ func (h *Handler) Do(nCtx contextx.IContext, originDeployPolicies ...*types.Depl
 func (h *Handler) DoWithExecution(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
 	originDeployPolicies ...*types.DeployPolicy) error {
 
-	if execution.ExecutionID == "" || execution.WorkflowIDs == nil {
-		return errors.New("deploy policy execution identity and workflow map are required")
+	if execution.OperationID == "" || execution.WorkflowIDs == nil {
+		return errors.New("deploy policy operation identity and workflow map are required")
 	}
 	if h.daoDeployPolicyWorkflow == nil {
 		return errors.New("deploy policy workflow storage is required")
@@ -128,7 +128,7 @@ func (h *Handler) do(nCtx contextx.IContext, execution types.DeployPolicyExecuti
 	for _, policy := range relatedDeployPolicies {
 		executorExecution.PolicyGroups[policy.DeployPolicyID] = policy.DsuID
 	}
-	if execution.ExecutionID != "" {
+	if execution.OperationID != "" {
 		if err := h.ensureDiscoveredWorkflows(nCtx, execution, relatedDeployPolicies); err != nil {
 			return err
 		}

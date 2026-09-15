@@ -112,7 +112,7 @@ func (executor *Executor) Execute(nCtx contextx.IContext, changeTasks ...*Change
 func (executor *Executor) ExecuteWithExecution(nCtx contextx.IContext, execution ExecutionParam, changeTasks ...*ChangeTask) error {
 	tasksByAction := make(map[ChangeAction][]*ChangeTask)
 	for _, changeTask := range changeTasks {
-		if execution.ExecutionID != "" {
+		if execution.OperationID != "" {
 			if _, ok := execution.PolicyGroups[changeTask.DeployPolicyID]; !ok {
 				return fmt.Errorf("missing execution group for policy %d", changeTask.DeployPolicyID)
 			}

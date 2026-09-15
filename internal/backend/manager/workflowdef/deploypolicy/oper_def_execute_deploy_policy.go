@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -42,10 +41,9 @@ type operExecuteDeployPolicy struct {
 
 // OperParamExecuteDeployPolicy defines the parameters for operExecuteDeployPolicy.
 type OperParamExecuteDeployPolicy struct {
-	TenantID              string                           `json:"tenant_id"`
-	Operator              string                           `json:"operator"`
-	DeployPolicyIDs       []int64                          `json:"deploy_policy_ids"`
-	DeployPolicyExecution types.DeployPolicyExecutionParam `json:"deploy_policy_execution"`
+	TenantID        string  `json:"tenant_id"`
+	Operator        string  `json:"operator"`
+	DeployPolicyIDs []int64 `json:"deploy_policy_ids"`
 }
 
 // Name returns the name.
