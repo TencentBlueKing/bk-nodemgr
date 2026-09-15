@@ -1390,6 +1390,40 @@
           "Release"
         ]
       }
+    },
+    "/api/v3/release/sync_shared": {
+      "post": {
+        "summary": "SyncSharedReleases copies system shared releases to the authenticated\ntenant.",
+        "operationId": "Release_SyncSharedReleases",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncSharedReleasesResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncSharedReleasesReq requests synchronization for the authenticated tenant.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncSharedReleasesReq"
+            }
+          }
+        ],
+        "tags": [
+          "Release"
+        ]
+      }
     }
   },
   "definitions": {
@@ -3395,6 +3429,33 @@
     "v3ReleaseProxySetLabelsManyRespData": {
       "type": "object",
       "description": "Data is the empty response payload for ReleaseProxySetLabelsManyResp."
+    },
+    "v3SyncSharedReleasesReq": {
+      "type": "object",
+      "description": "SyncSharedReleasesReq requests synchronization for the authenticated tenant."
+    },
+    "v3SyncSharedReleasesResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncSharedReleasesRespData"
+        }
+      },
+      "description": "SyncSharedReleasesResp returns an empty payload after shared releases sync."
+    },
+    "v3SyncSharedReleasesRespData": {
+      "type": "object",
+      "description": "Data is the empty response payload for SyncSharedReleasesResp."
     }
   }
 }

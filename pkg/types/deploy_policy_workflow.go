@@ -16,19 +16,26 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package schedule provides the operation definition for scheduling host synchronization.
-package schedule
+package types
 
-import (
-	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-)
+import "time"
 
-// Capability encapsulates the various capabilities the service supports.
-type Capability struct {
-	// stroage.
-	StorageWorkflow workflow.IStorage
-	StoragePlugin   pluginStg.IStorage
-	FileHandler     file.IHandler
+// DeployPolicyWorkflow records one policy's operation and acknowledged child creation.
+type DeployPolicyWorkflow struct {
+	TenantID       string
+	WorkflowID     string
+	OperationID    string
+	TriggerID      string
+	DeployPolicyID int64
+	Operator       string
+	OperateTime    time.Time
+	Children       []DeployPolicyWorkflowChild
+}
+
+// DeployPolicyWorkflowChild records a child creation intent and its acknowledgement.
+type DeployPolicyWorkflowChild struct {
+	WorkflowID     string
+	WorkflowDomain WorkflowDomain
+	// Confirmed is false while creation is unknown, and never regresses after acknowledgement.
+	Confirmed bool
 }

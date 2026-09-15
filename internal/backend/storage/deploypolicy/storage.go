@@ -25,7 +25,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	daoDeployPolicy "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploypolicy-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -65,11 +67,13 @@ type Storage struct {
 	basestorage.Storage
 
 	// dao
-	daoDeployPolicy daoDeployPolicy.IHandler
+	daoDeployPolicy         daoDeployPolicy.IHandler
+	daoDeployPolicyWorkflow deploypolicyworkflow.IHandler
 }
 
 func (s *Storage) initDao() error {
 	s.daoDeployPolicy = daoDeployPolicy.New(s.Database)
+	s.daoDeployPolicyWorkflow = deploypolicyworkflow.New(s.Database)
 
 	return nil
 }
@@ -77,6 +81,9 @@ func (s *Storage) initDao() error {
 func (s *Storage) check() error {
 	if s.daoDeployPolicy == nil {
 		return errors.New("dao deploy policy is nil")
+	}
+	if s.daoDeployPolicyWorkflow == nil {
+		return errors.New("dao deploy policy workflow is nil")
 	}
 
 	return nil
@@ -92,6 +99,9 @@ const (
 	metricExistDeployPolicy                      = "exist_deploy_policy"
 	metricDiscoverEnabledPoliciesBySpecifyPlugin = "discover_enabled_policies_by_specify_plugin"
 	metricRefreshExecuteInfo                     = "refresh_execute_info"
+	metricEnsureDeployPolicyWorkflow             = "ensure_deploy_policy_workflow"
+	metricGetDeployPolicyWorkflow                = "get_deploy_policy_workflow"
+	metricRecordDeployPolicyWorkflowChild        = "record_deploy_policy_workflow_child"
 )
 
 // CreateDeployPolicy create deploy policy.
@@ -214,5 +224,52 @@ func (s *Storage) RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*ty
 		err = s.refreshExecuteInfo(nCtx, deployPolicy...)
 
 		return err
+	})
+}
+
+// EnsureDeployPolicyWorkflow preserves the first record for an operation and policy.
+func (s *Storage) EnsureDeployPolicyWorkflow(nCtx contextx.IContext, operationID, triggerID string,
+	policyID int64, operator string) (*types.DeployPolicyWorkflow, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+	var workflow *types.DeployPolicyWorkflow
+	err := s.WrapFn(nCtx, metricEnsureDeployPolicyWorkflow, func(ctx contextx.IContext) error {
+		var err error
+		workflow, err = s.ensureDeployPolicyWorkflow(ctx, operationID, triggerID, policyID, operator)
+
+		return err
+	})
+
+	return workflow, err
+}
+
+// GetDeployPolicyWorkflow gets one tenant-scoped workflow by its stable ID.
+func (s *Storage) GetDeployPolicyWorkflow(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+	var workflow *types.DeployPolicyWorkflow
+	err := s.WrapFn(nCtx, metricGetDeployPolicyWorkflow, func(ctx contextx.IContext) error {
+		var err error
+		workflow, err = s.getDeployPolicyWorkflow(ctx, workflowID)
+
+		return err
+	})
+
+	return workflow, err
+}
+
+// RecordDeployPolicyWorkflowChild records child creation intent or acknowledgement monotonically.
+func (s *Storage) RecordDeployPolicyWorkflowChild(nCtx contextx.IContext, workflowIDs []string,
+	child types.DeployPolicyWorkflowChild) error {
+
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	return s.WrapFn(nCtx, metricRecordDeployPolicyWorkflowChild, func(ctx contextx.IContext) error {
+		return s.recordDeployPolicyWorkflowChild(ctx, workflowIDs, child)
 	})
 }

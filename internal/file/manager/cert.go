@@ -29,6 +29,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -290,7 +291,7 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string, is
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
-			IsShared:     isShared,
+			IsShared:     isShared && nCtx.TenantID() == tenant.SystemTenantID,
 			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),

@@ -21,11 +21,11 @@ POST /api/v3/node/agent/install
 | Parameter Name              | Parameter Type | Required | Description                                                                                                   |
 |-----------------------------|----------------|----------|---------------------------------------------------------------------------------------------------------------|
 | bk_addressing               | string         | Yes      | Addressing mode (enum values: dynamic, static)                                                                |
-| bk_biz_id                   | int64          | Yes      | Business ID, 0 means the idle pool (no business assigned)                                                     |
+| bk_biz_id                   | int64          | Yes      | Business ID, must be greater than or equal to 0                                                               |
 | bk_host_innerip             | array[string]  | Yes      | Host inner network IPv4 address list, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
 | bk_host_innerip_v6          | array[string]  | No       | Host inner network IPv6 address list, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
 | login_ip                    | string         | Yes      | Login IP address                                                                                              |
-| login_port                  | int64          | Yes      | Login port, must be greater than 0                                                                            |
+| login_port                  | int64          | Yes      | Login port, must be greater than or equal to 0                                                                |
 | login_user                  | string         | Yes      | Login username                                                                                                |
 | login_mode                  | string         | Yes      | Login method (enum values: password_vault, password, keyfile)                                                 |
 | login_password              | string         | No       | Login password, required when login_mode is password                                                          |

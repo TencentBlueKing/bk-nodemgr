@@ -36,6 +36,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -128,14 +129,19 @@ type exportOriginPackage struct {
 	file     fileiface.File
 }
 
+type exportOriginPackageSource struct {
+	uploadID string
+	tenantID string
+}
+
 // ExportPrepareOriginPluginPackage prepares an exportable origin plugin package.
 func (m *Manager) ExportPrepareOriginPluginPackage(nCtx contextx.IContext, name, version string) (string, error) {
-	uploadType, uploadIDs, err := m.resolveOriginPluginPackageSource(nCtx, name, version)
+	uploadType, sources, err := m.resolveOriginPluginPackageSource(nCtx, name, version)
 	if err != nil {
 		return "", err
 	}
 
-	originPackages, err := m.collectOriginPackages(nCtx, uploadType, uploadIDs)
+	originPackages, err := m.collectOriginPackages(nCtx, uploadType, sources)
 	if err != nil {
 		return "", err
 	}
@@ -167,7 +173,12 @@ func (m *Manager) ExportPrepareOriginPluginPackage(nCtx contextx.IContext, name,
 	return exportID, nil
 }
 
-func (m *Manager) resolveOriginPluginPackageSource(nCtx contextx.IContext, name string, version string) (types.UploadCategory, []string, error) {
+func (m *Manager) resolveOriginPluginPackageSource(
+	nCtx contextx.IContext,
+	name string,
+	version string,
+) (types.UploadCategory, []exportOriginPackageSource, error) {
+
 	releases, _, err := m.storageRelease.ListReleasePlugin(nCtx, types.UnlimitedPage(), &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
 			Name:       []string{name},
@@ -189,8 +200,16 @@ func (m *Manager) resolveOriginPluginPackageSource(nCtx contextx.IContext, name 
 		return "", nil, fmt.Errorf("plugin release origin upload type is not unique name(%s), version(%s)", name, version)
 	}
 
-	uploadIDs := conv.SliceUnique(conv.SliceToSlice(releases, func(item *types.ReleasePlugin) string {
-		return item.OriginUploadID
+	sources := conv.SliceUnique(conv.SliceToSlice(releases, func(release *types.ReleasePlugin) exportOriginPackageSource {
+		sourceTenantID := nCtx.TenantID()
+		if release.IsSynced {
+			sourceTenantID = tenant.SystemTenantID
+		}
+
+		return exportOriginPackageSource{
+			uploadID: release.OriginUploadID,
+			tenantID: sourceTenantID,
+		}
 	}))
 
 	switch uploadTypeList[0] {
@@ -199,13 +218,17 @@ func (m *Manager) resolveOriginPluginPackageSource(nCtx contextx.IContext, name 
 		return "", nil, fmt.Errorf("unsupported upload origin pkg type: %s", uploadTypeList[0])
 	}
 
-	return uploadTypeList[0], uploadIDs, nil
+	return uploadTypeList[0], sources, nil
 }
 
-func (m *Manager) collectOriginPackages(nCtx contextx.IContext, uploadType types.UploadCategory, uploadIDs []string) ([]exportOriginPackage, error) {
-	uploadIDs = conv.SliceUnique(uploadIDs)
-	originPackages := make([]exportOriginPackage, 0, len(uploadIDs))
-	for _, uploadID := range uploadIDs {
+func (m *Manager) collectOriginPackages(
+	nCtx contextx.IContext,
+	uploadType types.UploadCategory,
+	sources []exportOriginPackageSource,
+) ([]exportOriginPackage, error) {
+
+	originPackages := make([]exportOriginPackage, 0, len(sources))
+	for _, source := range sources {
 		var (
 			up   *types.Upload
 			file fileiface.File
@@ -214,37 +237,42 @@ func (m *Manager) collectOriginPackages(nCtx contextx.IContext, uploadType types
 
 		switch uploadType {
 		case types.UploadCategoryOriginPluginV2:
-			up, err = m.storageUpload.GetPluginV2Upload(nCtx, uploadID)
+			up, err = m.storageUpload.GetPluginV2Upload(nCtx, source.uploadID)
 		case types.UploadCategoryOriginExternalPluginV2:
-			up, err = m.storageUpload.GetExternalPluginV2Upload(nCtx, uploadID)
+			up, err = m.storageUpload.GetExternalPluginV2Upload(nCtx, source.uploadID)
 		case types.UploadCategoryOriginPluginV3:
-			up, err = m.storageUpload.GetPluginV3Upload(nCtx, uploadID)
+			up, err = m.storageUpload.GetPluginV3Upload(nCtx, source.uploadID)
 		default:
 			return nil, fmt.Errorf("unsupported upload origin pkg type: %s", uploadType)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("failed to get origin plugin upload, upload-id(%s), type(%s): %w", uploadID, uploadType, err)
+			return nil, fmt.Errorf("failed to get origin plugin upload, upload-id(%s), type(%s): %w", source.uploadID, uploadType, err)
 		}
 
 		if up.Category != uploadType {
-			return nil, fmt.Errorf("upload category mismatch, upload-id(%s), expected(%s), actual(%s)", uploadID, uploadType, up.Category)
+			return nil, fmt.Errorf("upload category mismatch, upload-id(%s), expected(%s), actual(%s)", source.uploadID, uploadType, up.Category)
 		}
+
+		sourceCtx := contextx.From(nCtx, contextx.WithTenantID(source.tenantID))
 
 		switch uploadType {
 		case types.UploadCategoryOriginPluginV2:
-			file, err = m.upstreamOriginPluginV2.GetFile(nCtx, up.SavedName)
+			file, err = m.upstreamOriginPluginV2.GetFile(sourceCtx, up.SavedName)
 		case types.UploadCategoryOriginExternalPluginV2:
-			file, err = m.upstreamOriginExternalPluginV2.GetFile(nCtx, up.SavedName)
+			file, err = m.upstreamOriginExternalPluginV2.GetFile(sourceCtx, up.SavedName)
 		case types.UploadCategoryOriginPluginV3:
-			file, err = m.upstreamOriginPluginV3.GetFile(nCtx, up.SavedName)
+			file, err = m.upstreamOriginPluginV3.GetFile(sourceCtx, up.SavedName)
 		default:
 			return nil, fmt.Errorf("unsupported upload origin pkg type: %s", uploadType)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("failed to get origin plugin file, upload-id(%s): %w", uploadID, err)
+			return nil, fmt.Errorf("failed to get origin plugin file, upload-id(%s): %w", source.uploadID, err)
 		}
 
-		originPackages = append(originPackages, exportOriginPackage{uploadID: uploadID, file: file})
+		originPackages = append(originPackages, exportOriginPackage{
+			uploadID: source.uploadID,
+			file:     file,
+		})
 	}
 
 	return originPackages, nil

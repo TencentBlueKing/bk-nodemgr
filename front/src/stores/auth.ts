@@ -107,11 +107,9 @@ export const useAuthStore = defineStore('auth', () => {
         permissionTimestampMap[cacheKey] = now;
       }
       deniedActionIds.value = [];
-      if (data?.permission) {
-        permissionDetail.value = data.permission as PermissionData;
-      } else {
-        permissionDetail.value = null;
-      }
+      // 只有带明细（actions）的 permission 才有效，避免各调用方弹出空白申请弹窗
+      const successPermission = data?.permission as PermissionData | undefined;
+      permissionDetail.value = successPermission?.actions?.length ? successPermission : null;
       lastVerifiedBizScope.value = bizScope;
       needRefresh.value = false;
       return true;
@@ -128,7 +126,9 @@ export const useAuthStore = defineStore('auth', () => {
           permissionTimestampMap[cacheKey] = now;
         }
 
-        permissionDetail.value = error.permission;
+        // 后端的 permission 明细可能为空（无 actions），此时不算有效明细，
+        // 否则调用方会弹出无内容的空白申请弹窗
+        permissionDetail.value = error.permission?.actions?.length ? error.permission : null;
         deniedActionIds.value = denied;
         lastVerifiedBizScope.value = bizScope;
         needRefresh.value = false;

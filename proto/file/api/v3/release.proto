@@ -805,6 +805,19 @@ message ReleasePluginBinToolDistinctNameResp {
   Data data = 4;
 }
 
+// SyncSharedReleasesReq requests synchronization for the authenticated tenant.
+message SyncSharedReleasesReq {}
+
+// SyncSharedReleasesResp returns an empty payload after shared releases sync.
+message SyncSharedReleasesResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // Data is the empty response payload for SyncSharedReleasesResp.
+  message Data {}
+  Data data = 4;
+}
+
 service Release {
   // ReleaseAgent methods.
 
@@ -1154,6 +1167,16 @@ service Release {
       returns (ReleasePluginBinToolDistinctNameResp) {
     option (google.api.http) = {
       post : "/api/v3/release/plugin_bintool/distinct_name"
+      body : "*"
+    };
+  }
+
+  // SyncSharedReleases copies system shared releases to the authenticated
+  // tenant.
+  rpc SyncSharedReleases(SyncSharedReleasesReq)
+      returns (SyncSharedReleasesResp) {
+    option (google.api.http) = {
+      post : "/api/v3/release/sync_shared"
       body : "*"
     };
   }

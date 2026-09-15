@@ -16,19 +16,24 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package schedule provides the operation definition for scheduling host synchronization.
-package schedule
+package deploypolicyworkflow
 
-import (
-	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-)
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 
-// Capability encapsulates the various capabilities the service supports.
-type Capability struct {
-	// stroage.
-	StorageWorkflow workflow.IStorage
-	StoragePlugin   pluginStg.IStorage
-	FileHandler     file.IHandler
+// OptFn provides filtering options.
+type OptFn = base.OptFn
+
+// WithWorkflowID filters by workflow ID.
+func WithWorkflowID(workflowIDs ...string) OptFn {
+	return base.WithValues(FieldKeyWorkflowID, workflowIDs...)
+}
+
+// WithOperationID filters by operation ID.
+func WithOperationID(operationIDs ...string) OptFn {
+	return base.WithValues(FieldKeyOperationID, operationIDs...)
+}
+
+// WithDeployPolicyID filters by deploy policy ID.
+func WithDeployPolicyID(deployPolicyIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyDeployPolicyID, deployPolicyIDs...)
 }

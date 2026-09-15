@@ -34,6 +34,8 @@ export const usePermissionStore = defineStore('permission', {
   }),
   actions: {
     showDialog(data: PermissionData) {
+      // 兜底：无权限明细（actions 为空）时不展示，避免出现无内容的空白申请弹窗
+      if (!data?.actions?.length) return;
       this.data = data;
       this.visible = true;
     },

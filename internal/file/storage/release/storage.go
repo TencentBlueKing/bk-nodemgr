@@ -733,14 +733,14 @@ func (s *Storage) GetReleasePluginBinTool(nCtx contextx.IContext, gen types.Gene
 }
 
 // ExistReleasePluginBinTool checks if release plugin bintool exists.
-func (s *Storage) ExistReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation) (bool, error) {
+func (s *Storage) ExistReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (bool, error) {
 	var (
 		result bool
 		err    error
 	)
 
 	err = s.WrapFn(nCtx, metricOperationExistReleasePluginBinTool, func(nCtx contextx.IContext) error {
-		result, err = s.existReleasePluginBinTool(nCtx, gen)
+		result, err = s.existReleasePluginBinTool(nCtx, gen, name)
 		if err != nil {
 			return err
 		}

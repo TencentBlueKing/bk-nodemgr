@@ -29,7 +29,19 @@ type IStorage interface {
 	basestorage.Interface
 
 	IDaoDeployPolicy
+	IDaoDeployPolicyWorkflow
 	IDomainDeployPolicyMgr
+}
+
+// IDaoDeployPolicyWorkflow defines deploy policy operation recording operations.
+type IDaoDeployPolicyWorkflow interface {
+	// EnsureDeployPolicyWorkflow preserves the first record for an operation and policy.
+	EnsureDeployPolicyWorkflow(nCtx contextx.IContext, operationID, triggerID string,
+		policyID int64, operator string) (*types.DeployPolicyWorkflow, error)
+	// GetDeployPolicyWorkflow gets one tenant-scoped workflow by its stable ID.
+	GetDeployPolicyWorkflow(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error)
+	// RecordDeployPolicyWorkflowChild records child creation intent or acknowledgement monotonically.
+	RecordDeployPolicyWorkflowChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error
 }
 
 // IDaoDeployPolicy defines the deploy policy dao interface.
