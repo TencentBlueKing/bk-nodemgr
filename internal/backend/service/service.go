@@ -491,7 +491,6 @@ func (svc *Service) newAuthorizer() (auth.IAuthorizer, error) {
 			svc.Cap.AuthProviderV3Handler, // IAttributeEnricher
 			svc.Cap.AuthProviderV3Handler, // IResolver
 			svc.Cap.AuthProviderV3Handler, // IDispatcher
-			svc.Cap.StorageTopo,
 		), nil
 	case svc.conf.IAMV4.Enable:
 		iamHandler, err := svc.newIAMV4Handler()

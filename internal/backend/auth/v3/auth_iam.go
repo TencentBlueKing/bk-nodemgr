@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -43,6 +42,7 @@ const iamCacheTTL = 5 * time.Minute
 // NewProviderHandler registers the IAM V3 resource providers.
 func NewProviderHandler(topoStorage topo.IStorage, releaseStorage file.IPkgReleaseHandler) providerV3.IHandler {
 	handler := providerV3.NewHandler()
+	handler.RegisterProvider(providerV3.ResourceTypeBiz, providerV3.NewBizProvider(topoStorage))
 	handler.RegisterProvider(providerV3.ResourceTypeNetworkArea, providerV3.NewNetworkAreaProvider(topoStorage))
 	handler.RegisterProvider(providerV3.ResourceTypeNetworkUnit, providerV3.NewNetworkUnitProvider(topoStorage))
 	handler.RegisterProvider(providerV3.ResourceTypePackageType, providerV3.NewPackageTypeProvider())
@@ -93,7 +93,6 @@ type iamv3Authorizer struct {
 	attributeEnricher providerV3.IAttributeEnricher
 	resolver          providerV3.IResolver
 	resourceProvider  providerV3.IDispatcher
-	businessStorage   topo.IStorageBusiness
 }
 
 // NewIAMV3Authorizer creates an IAuthorizer backed by the IAM v3 handler.
@@ -105,7 +104,6 @@ func NewIAMV3Authorizer(
 	attributeEnricher providerV3.IAttributeEnricher,
 	resolver providerV3.IResolver,
 	resourceProvider providerV3.IDispatcher,
-	businessStorage topo.IStorageBusiness,
 ) auth.IAuthorizer {
 
 	return &iamv3Authorizer{
@@ -114,7 +112,6 @@ func NewIAMV3Authorizer(
 		attributeEnricher: attributeEnricher,
 		resolver:          resolver,
 		resourceProvider:  resourceProvider,
-		businessStorage:   businessStorage,
 	}
 }
 
@@ -467,10 +464,14 @@ func (authorizer *iamv3Authorizer) fetchResourceNames(
 ) (map[string]string, error) {
 
 	names := make(map[string]string)
-	if systemID == types.SystemIDCMDB && resourceType == string(types.AuthResourceTypeBiz) {
-		return authorizer.fetchBusinessNames(ctx, ids)
+	if authorizer.resourceProvider == nil {
+		return names, nil
 	}
-	if systemID != types.SystemIDNodeMgr || authorizer.resourceProvider == nil {
+	resourceSystemID := types.SystemIDNodeMgr
+	if resourceType == string(types.AuthResourceTypeBiz) {
+		resourceSystemID = types.SystemIDCMDB
+	}
+	if systemID != resourceSystemID {
 		return names, nil
 	}
 	resourceProvider, ok := authorizer.resourceProvider.GetProvider(resourceType)
@@ -488,34 +489,6 @@ func (authorizer *iamv3Authorizer) fetchResourceNames(
 	}
 	for _, instance := range *instances {
 		names[instance.ID] = instance.DisplayName
-	}
-
-	return names, nil
-}
-
-func (authorizer *iamv3Authorizer) fetchBusinessNames(ctx contextx.IContext, ids []string) (map[string]string, error) {
-	names := make(map[string]string)
-	if authorizer.businessStorage == nil {
-		return names, nil
-	}
-	bizIDs := make([]int64, 0, len(ids))
-	for _, raw := range ids {
-		id, err := strconv.ParseInt(raw, 10, 64)
-		if err != nil {
-			continue
-		}
-		bizIDs = append(bizIDs, id)
-	}
-	if len(bizIDs) == 0 {
-		return names, nil
-	}
-	condition := &types.BusinessCondition{ExactInclude: &types.BusinessExactFields{BizID: bizIDs}}
-	businesses, _, err := authorizer.businessStorage.ListBusinesses(ctx, types.Page{Limit: len(bizIDs)}, condition)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch business names: %w", err)
-	}
-	for _, business := range businesses {
-		names[strconv.FormatInt(business.BizID, 10)] = business.BizName
 	}
 
 	return names, nil
