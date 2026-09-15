@@ -31,15 +31,14 @@ func TableName(tenantID string) string {
 
 // Data is the persisted deploy policy workflow record.
 type Data struct {
-	TenantID            string    `json:"tenant_id" bson:"tenant_id"`
-	WorkflowID          string    `json:"workflow_id" bson:"workflow_id"`
-	OperationID         string    `json:"operation_id" bson:"operation_id"`
-	TriggerID           string    `json:"trigger_id" bson:"trigger_id"`
-	DeployPolicyID      int64     `json:"deploy_policy_id" bson:"deploy_policy_id"`
-	Operator            string    `json:"operator" bson:"operator"`
-	OperateTime         time.Time `json:"operate_time" bson:"operate_time"`
-	OperationInstanceID string    `json:"operation_instance_id" bson:"operation_instance_id"`
-	Children            []Child   `json:"children" bson:"children"`
+	TenantID       string    `json:"tenant_id" bson:"tenant_id"`
+	WorkflowID     string    `json:"workflow_id" bson:"workflow_id"`
+	OperationID    string    `json:"operation_id" bson:"operation_id"`
+	TriggerID      string    `json:"trigger_id" bson:"trigger_id"`
+	DeployPolicyID int64     `json:"deploy_policy_id" bson:"deploy_policy_id"`
+	Operator       string    `json:"operator" bson:"operator"`
+	OperateTime    time.Time `json:"operate_time" bson:"operate_time"`
+	Children       []Child   `json:"children" bson:"children"`
 }
 
 // Child is an embedded child workflow creation acknowledgement.

@@ -34,7 +34,7 @@ import (
 
 // IHandler provides tenant-scoped deploy policy workflow persistence.
 type IHandler interface {
-	Ensure(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+	Ensure(nCtx contextx.IContext, operationID, triggerID string,
 		policyID int64, operator string) (*types.DeployPolicyWorkflow, error)
 	Get(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error)
 	RecordChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error
@@ -73,10 +73,10 @@ func (h *Handler) tenantDao(nCtx contextx.IContext) (*dao, error) {
 }
 
 // Ensure returns the first persisted record for the operation and policy, without resetting it.
-func (h *Handler) Ensure(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+func (h *Handler) Ensure(nCtx contextx.IContext, operationID, triggerID string,
 	policyID int64, operator string) (*types.DeployPolicyWorkflow, error) {
 
-	if execution.OperationID == "" || execution.TriggerID == "" || policyID <= 0 {
+	if operationID == "" || triggerID == "" || policyID <= 0 {
 		return nil, base.ErrInvalidParam(errors.New("operation id, trigger id and positive policy id are required"))
 	}
 	d, err := h.tenantDao(nCtx)
@@ -84,32 +84,32 @@ func (h *Handler) Ensure(nCtx contextx.IContext, execution types.DeployPolicyExe
 		return nil, fmt.Errorf("failed to resolve workflow tenant: %w", err)
 	}
 	filter := append(base.AliveFilter(),
-		bson.E{Key: FieldKeyOperationID, Value: execution.OperationID},
+		bson.E{Key: FieldKeyOperationID, Value: operationID},
 		bson.E{Key: FieldKeyDeployPolicyID, Value: policyID})
 	data, err := d.Get(nCtx, filter)
 	if err != nil {
 		if !errors.Is(err, base.ErrRecordNoFound()) {
 			return nil, fmt.Errorf("failed to get operation workflow: %w", err)
 		}
-		data, err = d.createExecution(nCtx, execution, policyID, operator, filter)
+		data, err = d.createExecution(nCtx, operationID, triggerID, policyID, operator, filter)
 		if err != nil {
 			return nil, fmt.Errorf("failed to ensure operation workflow: %w", err)
 		}
 	}
-	if data.TriggerID != execution.TriggerID {
+	if data.TriggerID != triggerID {
 		return nil, base.ErrInvalidParam(errors.New("operation trigger id does not match the persisted workflow"))
 	}
 
 	return convertWorkflowToTypes(data), nil
 }
 
-func (d *dao) createExecution(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+func (d *dao) createExecution(nCtx contextx.IContext, operationID, triggerID string,
 	policyID int64, operator string, filter bson.D) (*Data, error) {
 
 	data := &Data{
 		TenantID: nCtx.TenantID(), WorkflowID: identifier.GenWorkflowID(),
-		OperationID: execution.OperationID, TriggerID: execution.TriggerID, DeployPolicyID: policyID,
-		Operator: operator, OperateTime: time.Now(), OperationInstanceID: execution.OperationInstanceID,
+		OperationID: operationID, TriggerID: triggerID, DeployPolicyID: policyID,
+		Operator: operator, OperateTime: time.Now(),
 		Children: make([]Child, 0),
 	}
 	if err := d.Create(nCtx, data); err != nil {
@@ -199,7 +199,7 @@ func convertWorkflowToTypes(data *Data) *types.DeployPolicyWorkflow {
 	return &types.DeployPolicyWorkflow{
 		TenantID: data.TenantID, WorkflowID: data.WorkflowID, OperationID: data.OperationID,
 		TriggerID: data.TriggerID, DeployPolicyID: data.DeployPolicyID, Operator: data.Operator,
-		OperateTime: data.OperateTime, OperationInstanceID: data.OperationInstanceID,
-		Children: children,
+		OperateTime: data.OperateTime,
+		Children:    children,
 	}
 }

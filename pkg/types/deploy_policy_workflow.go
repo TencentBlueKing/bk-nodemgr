@@ -20,25 +20,16 @@ package types
 
 import "time"
 
-// DeployPolicyExecutionParam carries the engine operation identity and execution context across retries.
-type DeployPolicyExecutionParam struct {
-	OperationID         string           `json:"operation_id"`
-	TriggerID           string           `json:"trigger_id"`
-	OperationInstanceID string           `json:"operation_instance_id"`
-	WorkflowIDs         map[int64]string `json:"workflow_ids"`
-}
-
-// DeployPolicyWorkflow records one policy's execution and acknowledged child creation.
+// DeployPolicyWorkflow records one policy's operation and acknowledged child creation.
 type DeployPolicyWorkflow struct {
-	TenantID            string
-	WorkflowID          string
-	OperationID         string
-	TriggerID           string
-	DeployPolicyID      int64
-	Operator            string
-	OperateTime         time.Time
-	OperationInstanceID string
-	Children            []DeployPolicyWorkflowChild
+	TenantID       string
+	WorkflowID     string
+	OperationID    string
+	TriggerID      string
+	DeployPolicyID int64
+	Operator       string
+	OperateTime    time.Time
+	Children       []DeployPolicyWorkflowChild
 }
 
 // DeployPolicyWorkflowChild records a child creation intent and its acknowledgement.

@@ -25,10 +25,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) ensureDeployPolicyWorkflow(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+func (s *Storage) ensureDeployPolicyWorkflow(nCtx contextx.IContext, operationID, triggerID string,
 	policyID int64, operator string) (*types.DeployPolicyWorkflow, error) {
 
-	workflow, err := s.daoDeployPolicyWorkflow.Ensure(nCtx, execution, policyID, operator)
+	workflow, err := s.daoDeployPolicyWorkflow.Ensure(nCtx, operationID, triggerID, policyID, operator)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure deploy policy workflow: %w", err)
 	}

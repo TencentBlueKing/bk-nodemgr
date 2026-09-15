@@ -33,10 +33,10 @@ type IStorage interface {
 	IDomainDeployPolicyMgr
 }
 
-// IDaoDeployPolicyWorkflow defines deploy policy execution recording operations.
+// IDaoDeployPolicyWorkflow defines deploy policy operation recording operations.
 type IDaoDeployPolicyWorkflow interface {
-	// EnsureDeployPolicyWorkflow preserves the first record for an execution and policy.
-	EnsureDeployPolicyWorkflow(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+	// EnsureDeployPolicyWorkflow preserves the first record for an operation and policy.
+	EnsureDeployPolicyWorkflow(nCtx contextx.IContext, operationID, triggerID string,
 		policyID int64, operator string) (*types.DeployPolicyWorkflow, error)
 	// GetDeployPolicyWorkflow gets one tenant-scoped workflow by its stable ID.
 	GetDeployPolicyWorkflow(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error)

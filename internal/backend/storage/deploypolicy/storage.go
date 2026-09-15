@@ -227,8 +227,8 @@ func (s *Storage) RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*ty
 	})
 }
 
-// EnsureDeployPolicyWorkflow preserves the first record for an execution and policy.
-func (s *Storage) EnsureDeployPolicyWorkflow(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+// EnsureDeployPolicyWorkflow preserves the first record for an operation and policy.
+func (s *Storage) EnsureDeployPolicyWorkflow(nCtx contextx.IContext, operationID, triggerID string,
 	policyID int64, operator string) (*types.DeployPolicyWorkflow, error) {
 
 	if nCtx == nil {
@@ -237,7 +237,7 @@ func (s *Storage) EnsureDeployPolicyWorkflow(nCtx contextx.IContext, execution t
 	var workflow *types.DeployPolicyWorkflow
 	err := s.WrapFn(nCtx, metricEnsureDeployPolicyWorkflow, func(ctx contextx.IContext) error {
 		var err error
-		workflow, err = s.ensureDeployPolicyWorkflow(ctx, execution, policyID, operator)
+		workflow, err = s.ensureDeployPolicyWorkflow(ctx, operationID, triggerID, policyID, operator)
 
 		return err
 	})
