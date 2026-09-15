@@ -12,7 +12,7 @@ POST /api/v3/sync/gse/agent/info
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| host_ids | int64 array | No | Host ID list |
+| host_ids | int64 array | Yes | Host ID list |
 
 ### Request Example
 

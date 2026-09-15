@@ -14,7 +14,7 @@ POST /api/v3/node/workflow/operation/terminate
 | 参数名称      | 参数类型     | 必选 | 描述                 |
 | ------------- | ------------ | ---- | -------------------- |
 | workflow_id   | string       | 是   | 任务流 ID            |
-| operation_ids | string array | 否   | 待终止的操作 ID 列表 |
+| operation_ids | string array | 是   | 待终止的操作 ID 列表 |
 
 ### 调用示例
 

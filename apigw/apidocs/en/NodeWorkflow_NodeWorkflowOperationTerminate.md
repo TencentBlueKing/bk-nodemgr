@@ -14,7 +14,7 @@ POST /api/v3/node/workflow/operation/terminate
 | Parameter     | Type         | Required | Description                        |
 | ------------- | ------------ | -------- | ---------------------------------- |
 | workflow_id   | string       | Yes      | Workflow ID                        |
-| operation_ids | string array | No       | Operation ID list to be terminated |
+| operation_ids | string array | Yes      | Operation ID list to be terminated |
 
 ### Request Example
 

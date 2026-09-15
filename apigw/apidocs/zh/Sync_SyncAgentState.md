@@ -12,7 +12,7 @@ POST /api/v3/sync/gse/agent/state
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| host_ids | int64 array | 否 | 主机 ID 列表 |
+| host_ids | int64 array | 是 | 主机 ID 列表 |
 
 ### 调用示例
 

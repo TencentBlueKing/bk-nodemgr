@@ -40,7 +40,7 @@ POST /api/v3/node/proxy/install
 | advertise_ip                 | string        | No       | Advertise IPv4 address                                                                            |
 | advertise_ip_v6              | string        | No       | Advertise IPv6 address                                                                            |
 | re_register                  | bool          | No       | Re-register host, default false                                                                   |
-| install_pre_ordered_plugins  | bool          | No       | Whether to install pre-ordered plugins, default true                                              |
+| install_pre_ordered_plugins  | bool          | No       | Whether to install pre-ordered plugins, default false                                             |
 | renew_gse_task               | bool          | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file |
 | renew_gse_proc               | bool          | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file |
 | install_method               | string        | No       | Proxy install method. Supported values: empty string, ssh. Empty string means Proxy-scenario auto selection |

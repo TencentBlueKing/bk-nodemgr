@@ -40,7 +40,7 @@ POST /api/v3/node/proxy/install
 | advertise_ip                 | string        | 否  | 广播IPv4地址                                                                     |
 | advertise_ip_v6              | string        | 否  | 广播IPv6地址                                                                     |
 | re_register                  | bool          | 否  | 是否重新注册，默认 false                                                              |
-| install_pre_ordered_plugins  | bool          | 否  | 是否安装预设插件，默认 true                                                             |
+| install_pre_ordered_plugins  | bool          | 否  | 是否安装预设插件，默认 false                                                            |
 | renew_gse_task               | bool          | 否  | 是否重新生成 GSE .task runtime 文件，默认 false 表示保留已有 .task 文件                         |
 | renew_gse_proc               | bool          | 否  | 是否重新生成 GSE .proc runtime 文件，默认 false 表示保留已有 .proc 文件                         |
 | install_method               | string        | 否  | Proxy 安装方式，支持值：空字符串、ssh；空字符串表示按 Proxy 场景自动选择安装逻辑                       |
