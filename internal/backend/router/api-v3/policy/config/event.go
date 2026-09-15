@@ -56,6 +56,13 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 
 	// only count.
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedIDs) == 0 {
+			resp := new(protoBackend.ConfigPolicyEventListResp)
+			resp.ConvertConfigPolicyEventsFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.storageConfigPolicy.CountConfigPolicyEvent(
 			rCtx,
 			conditions,
@@ -77,6 +84,13 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, invalid page info")
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedIDs) == 0 {
+		resp := new(protoBackend.ConfigPolicyEventListResp)
+		resp.ConvertConfigPolicyEventsFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	events, num, err := h.storageConfigPolicy.ListConfigPolicyEvent(rCtx, page, conditions)

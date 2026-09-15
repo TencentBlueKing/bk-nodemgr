@@ -26,26 +26,28 @@ import (
 )
 
 // nolint: nonamedreturns
-func resolveAuthorizedIDsResult[T comparable](isAny bool, requestedIDs []T, authorizedIDs []T) (narrowedIDs []T) {
+func resolveAuthorizedIDsResult[T comparable](isAny bool, requestedIDs []T, authorizedIDs []T) (narrowedIDs []T, scopeIsEmpty bool) {
 	if isAny {
-		return requestedIDs
+		return requestedIDs, false
 	}
 
 	if len(authorizedIDs) == 0 {
-		return nil
+		return nil, true
 	}
 
 	if len(requestedIDs) == 0 {
-		return authorizedIDs
+		return authorizedIDs, false
 	}
 
-	return conv.SliceIntersect(requestedIDs, authorizedIDs)
+	return conv.SliceIntersect(requestedIDs, authorizedIDs), false
 }
 
 // ResolveAuthorizedResourceIDsInt64 narrows requested IDs by authorized scope for a specific resource type.
+// scopeIsEmpty reports an empty authorized set before intersection, never an unrestricted scope.
+// Empty narrowedIDs with neither scopeIsAny nor scopeIsEmpty means the request has no authorized matches.
 // nolint: nonamedreturns
 func ResolveAuthorizedResourceIDsInt64(scope AuthorizedScope, requestedIDs []int64, resourceType types.AuthResourceType) (
-	narrowedIDs []int64, scopeIsAny bool, err error) {
+	narrowedIDs []int64, scopeIsAny bool, scopeIsEmpty bool, err error) {
 
 	authorizedIDs := make([]int64, 0, len(scope.Resources))
 
@@ -56,21 +58,23 @@ func ResolveAuthorizedResourceIDsInt64(scope AuthorizedScope, requestedIDs []int
 
 		id, convErr := conv.ToInt64(resource.ID)
 		if convErr != nil {
-			return nil, false, fmt.Errorf("auth: convert authorized resource id %q: %w", resource.ID, convErr)
+			return nil, false, false, fmt.Errorf("auth: convert authorized resource id %q: %w", resource.ID, convErr)
 		}
 		authorizedIDs = append(authorizedIDs, id)
 	}
 	authorizedIDs = conv.SliceUnique(authorizedIDs)
 
-	narrowedIDs = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
+	narrowedIDs, scopeIsEmpty = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
 
-	return narrowedIDs, scope.IsAny, nil
+	return narrowedIDs, scope.IsAny, scopeIsEmpty, nil
 }
 
 // ResolveAuthorizedResourceIDsString narrows requested IDs by authorized scope for a specific resource type.
+// scopeIsEmpty reports an empty authorized set before intersection, never an unrestricted scope.
+// Empty narrowedIDs with neither scopeIsAny nor scopeIsEmpty means the request has no authorized matches.
 // nolint: nonamedreturns
 func ResolveAuthorizedResourceIDsString(scope AuthorizedScope, requestedIDs []string, resourceType types.AuthResourceType) (
-	narrowedIDs []string, scopeIsAny bool, err error) {
+	narrowedIDs []string, scopeIsAny bool, scopeIsEmpty bool, err error) {
 
 	authorizedIDs := make([]string, 0, len(scope.Resources))
 
@@ -83,7 +87,7 @@ func ResolveAuthorizedResourceIDsString(scope AuthorizedScope, requestedIDs []st
 	}
 	authorizedIDs = conv.SliceUnique(authorizedIDs)
 
-	narrowedIDs = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
+	narrowedIDs, scopeIsEmpty = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
 
-	return narrowedIDs, scope.IsAny, nil
+	return narrowedIDs, scope.IsAny, scopeIsEmpty, nil
 }

@@ -49,6 +49,12 @@ func (h *handler) ListReleasePluginBinTool(rCtx restserver.IContext) (interface{
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list plugin-bintool release, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
+	if !scopeIsAny && len(narrowedNames) == 0 {
+		resp := new(protoBackend.PackageReleasePluginBinToolListResp)
+		resp.ConvertReleasesFromTypes(0, nil)
+
+		return resp.GetData(), nil
+	}
 	cond = narrowReleaseCondition(cond, narrowedNames, scopeIsAny, types.ReleaseTypePluginBinTool)
 
 	items, num, err := h.fileHandler.ListReleasePluginBinTool(rCtx, types.UnlimitedPage(), cond)

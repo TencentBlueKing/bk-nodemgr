@@ -23,7 +23,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -35,7 +34,7 @@ func (h *handler) narrowAuthorizedBizIDsForProcessView(rCtx restserver.IContext,
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 	if err != nil {
@@ -46,7 +45,7 @@ func (h *handler) narrowAuthorizedBizIDsForProcessView(rCtx restserver.IContext,
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
@@ -55,7 +54,7 @@ func (h *handler) narrowAuthorizedBizIDsForProcessView(rCtx restserver.IContext,
 	return narrowedIDs, false, nil
 }
 
-func narrowProcessCondition(condition *types.ProcessCondition, requestedIDs []int64, scopeIsAny bool) *types.ProcessCondition {
+func narrowProcessCondition(condition *types.ProcessCondition, narrowedIDs []int64, scopeIsAny bool) *types.ProcessCondition {
 	if condition == nil {
 		condition = &types.ProcessCondition{}
 	}
@@ -65,12 +64,10 @@ func narrowProcessCondition(condition *types.ProcessCondition, requestedIDs []in
 	}
 
 	if condition.ExactInclude == nil {
-		condition.ExactInclude = &types.ProcessExactFields{
-			BizID: requestedIDs,
-		}
+		condition.ExactInclude = &types.ProcessExactFields{}
 	}
 
-	condition.ExactInclude.BizID = conv.SliceIntersect(condition.ExactInclude.BizID, requestedIDs)
+	condition.ExactInclude.BizID = narrowedIDs
 
 	return condition
 }

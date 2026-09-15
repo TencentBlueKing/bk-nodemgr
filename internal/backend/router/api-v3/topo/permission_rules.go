@@ -57,7 +57,7 @@ func (h *handler) narrowAuthorizedNetworkUnitIDs(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeNetworkUnit,
 	)
 
@@ -69,7 +69,7 @@ func (h *handler) narrowAuthorizedNetworkUnitIDs(
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitView, buildNetworkUnitResources(requestedIDs)); checkErr != nil {
 			return nil, false, checkErr
 		}
@@ -88,7 +88,7 @@ func (h *handler) narrowAuthorizedNetworkAreaIDs(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeNetworkArea,
 	)
 
@@ -100,7 +100,7 @@ func (h *handler) narrowAuthorizedNetworkAreaIDs(
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
@@ -137,7 +137,7 @@ func (h *handler) narrowAuthorizedBizIDsByAction(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 
@@ -149,7 +149,7 @@ func (h *handler) narrowAuthorizedBizIDsByAction(
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := h.authorizer.Check(rCtx, action, buildBizResources(requestedIDs)); checkErr != nil {
 			return nil, false, checkErr
 		}
@@ -250,18 +250,6 @@ func (h *handler) narrowAuthorizedBizIDsForHostList(
 		)
 	}
 
-	if len(requestedIDs) > 0 && !mergedScopeIsAny && len(mergedIDs) == 0 {
-		actionResources := make(map[auth.Action][]types.AuthResource, len(actions))
-		resources := buildBizResources(requestedIDs)
-		for _, action := range actions {
-			actionResources[action] = resources
-		}
-
-		if checkErr := h.authorizer.CheckMany(rCtx, actionResources); checkErr != nil {
-			return nil, false, checkErr
-		}
-	}
-
 	return mergedIDs, mergedScopeIsAny, nil
 }
 
@@ -315,7 +303,7 @@ func (h *handler) narrowAuthorizedAccessPointIDs(
 
 	// Step 4: Query authorized NetworkUnits to get their AccessPoints.
 	if len(authorizedNetworkUnitIDs) == 0 {
-		return nil, false, errAccessPointViewDeniedByEmptyScope
+		return nil, false, nil
 	}
 
 	networkUnits, err := h.storage.GetNetworkUnitByIDs(rCtx, authorizedNetworkUnitIDs)
@@ -338,17 +326,6 @@ func (h *handler) narrowAuthorizedAccessPointIDs(
 
 	// Step 7: Intersect requested IDs with authorized IDs.
 	narrowedIDs := conv.SliceIntersect(requestedIDs, authorizedAccessPointIDs)
-
-	// Step 8: If requested specific IDs but none are authorized, build resources and check.
-	if len(narrowedIDs) == 0 {
-		// Build NetworkUnit resources for permission denied error.
-		if len(targetNetworkUnitIDs) > 0 {
-			resources := buildNetworkUnitResources(targetNetworkUnitIDs)
-			if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitView, resources); checkErr != nil {
-				return nil, false, checkErr
-			}
-		}
-	}
 
 	return conv.SliceUnique(narrowedIDs), false, nil
 }

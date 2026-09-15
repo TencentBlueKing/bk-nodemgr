@@ -49,6 +49,13 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 
 	// only count.
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedBizIDs) == 0 {
+			resp := new(protoBackend.TopoHostListResp)
+			resp.ConvertHostsFromTypes(0, nil, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.storage.CountHost(
 			rCtx,
 			condition)
@@ -67,6 +74,13 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedBizIDs) == 0 {
+		resp := new(protoBackend.TopoHostListResp)
+		resp.ConvertHostsFromTypes(0, nil, nil)
+
+		return resp.GetData(), nil
 	}
 
 	hosts, num, err := h.storage.ListHostOrderByUpdateTime(rCtx, page, condition)

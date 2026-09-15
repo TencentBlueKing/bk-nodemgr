@@ -467,6 +467,12 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 	condition = narrowNetworkUnitCondition(condition, narrowedIDs, scopeIsAny)
+	if !scopeIsAny && len(narrowedIDs) == 0 {
+		resp := new(protoBackend.TopoNetworkUnitListResp)
+		resp.ConvertNetworkUnitsFromTypes(0, nil)
+
+		return resp.GetData(), nil
+	}
 
 	networkUnits, num, err := h.storage.ListNetworkUnit(rCtx, page, condition)
 	if err != nil {

@@ -33,7 +33,7 @@ func (h *handler) narrowAuthorizedBizIDsForPluginHistoryView(rCtx restserver.ICo
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 	if err != nil {
@@ -44,7 +44,7 @@ func (h *handler) narrowAuthorizedBizIDsForPluginHistoryView(rCtx restserver.ICo
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginHistoryView, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}

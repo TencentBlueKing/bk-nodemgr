@@ -49,6 +49,13 @@ func (h *handler) ListPluginWorkflow(rCtx restserver.IContext) (interface{}, err
 
 	// only count.
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedBizIDs) == 0 {
+			resp := new(protoBackend.PluginWorkflowListResp)
+			resp.ConvertPluginWorkflowsFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.daoPluginWorkflow.CountPluginWorkflow(rCtx, condition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to count workflow")
@@ -65,6 +72,13 @@ func (h *handler) ListPluginWorkflow(rCtx restserver.IContext) (interface{}, err
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedBizIDs) == 0 {
+		resp := new(protoBackend.PluginWorkflowListResp)
+		resp.ConvertPluginWorkflowsFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	workflows, total, err := h.daoPluginWorkflow.ListPluginWorkflow(rCtx, page, condition)

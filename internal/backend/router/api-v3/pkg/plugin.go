@@ -54,6 +54,13 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 
 	// only count.
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedNames) == 0 {
+			resp := new(protoBackend.PackageReleasePluginListResp)
+			resp.ConvertReleasePluginsFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.fileHandler.CountReleasePlugin(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin. failed to count host")
@@ -70,6 +77,13 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedNames) == 0 {
+		resp := new(protoBackend.PackageReleasePluginListResp)
+		resp.ConvertReleasePluginsFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	hosts, num, err := h.fileHandler.ListReleasePlugin(rCtx, page, cond)
@@ -109,6 +123,13 @@ func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{},
 
 	// only count.
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedNames) == 0 {
+			resp := new(protoBackend.PackageReleasePluginListBriefResp)
+			resp.ConvertReleasePluginsFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.fileHandler.CountReleasePlugin(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief. failed to count host")
@@ -125,6 +146,13 @@ func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{},
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedNames) == 0 {
+		resp := new(protoBackend.PackageReleasePluginListBriefResp)
+		resp.ConvertReleasePluginsFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	hosts, num, err := h.fileHandler.ListReleasePlugin(rCtx, page, cond)

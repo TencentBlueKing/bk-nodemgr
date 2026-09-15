@@ -50,6 +50,13 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 
 	// only count.
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedIDs) == 0 {
+			resp := new(protoBackend.TopoAccessPointListResp)
+			resp.ConvertAccessPointsFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.storage.CountAccessPoint(rCtx, condition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint. failed to count accesspoint")
@@ -66,6 +73,13 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedIDs) == 0 {
+		resp := new(protoBackend.TopoAccessPointListResp)
+		resp.ConvertAccessPointsFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	accesspoints, num, err := h.storage.ListAccessPoint(rCtx, page, condition)

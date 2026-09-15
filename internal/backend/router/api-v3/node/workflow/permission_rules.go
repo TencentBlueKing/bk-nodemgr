@@ -79,7 +79,7 @@ func (h *handler) narrowAuthorizedBizIDsByAction(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 
@@ -91,7 +91,7 @@ func (h *handler) narrowAuthorizedBizIDsByAction(
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := h.authorizer.Check(rCtx, action, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
@@ -101,7 +101,7 @@ func (h *handler) narrowAuthorizedBizIDsByAction(
 }
 
 // mergeNarrowedBizIDs merges two narrowed business ID sets according to their scope flags.
-// When both scopes are partial, it returns the intersection (union semantically - user needs either permission).
+// When both scopes are partial, it returns the intersection.
 func mergeNarrowedBizIDs(
 	leftIDs []int64, leftScopeIsAny bool,
 	rightIDs []int64, rightScopeIsAny bool,
@@ -157,18 +157,6 @@ func (h *handler) narrowAuthorizedBizIDsForWorkflowList(
 			narrowedIDs, scopeIsAny,
 			requestedIDs,
 		)
-	}
-
-	if len(requestedIDs) > 0 && !mergedScopeIsAny && len(mergedIDs) == 0 {
-		actionResources := make(map[auth.Action][]types.AuthResource, len(actions))
-		resources := authRouter.BuildBizResources(requestedIDs...)
-		for _, action := range actions {
-			actionResources[action] = resources
-		}
-
-		if checkErr := h.authorizer.CheckMany(rCtx, actionResources); checkErr != nil {
-			return nil, false, checkErr
-		}
 	}
 
 	return mergedIDs, mergedScopeIsAny, nil

@@ -58,7 +58,7 @@ func (h *handler) narrowAuthorizedBizIDs(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 	if err != nil {
@@ -69,7 +69,7 @@ func (h *handler) narrowAuthorizedBizIDs(
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		resources := authRouter.BuildBizResources(requestedIDs...)
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyView, resources); checkErr != nil {
 			return nil, false, checkErr
@@ -90,7 +90,7 @@ func (h *handler) narrowAuthorizedBizIDsForHistory(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 	if err != nil {
@@ -101,7 +101,7 @@ func (h *handler) narrowAuthorizedBizIDsForHistory(
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		resources := authRouter.BuildBizResources(requestedIDs...)
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, resources); checkErr != nil {
 			return nil, false, checkErr

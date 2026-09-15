@@ -42,7 +42,7 @@ func (h *handler) narrowAuthorizedPackageNames(
 		return nil, false, err
 	}
 
-	narrowedNames, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsString(
+	narrowedNames, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsString(
 		scope, requestedNames, types.AuthResourceTypePackage,
 	)
 	if err != nil {
@@ -76,8 +76,7 @@ func (h *handler) narrowAuthorizedPackageNames(
 		return requestedNames, true, nil
 	}
 
-	if len(narrowedNames) == 0 {
-		// User requested specific plugins but has no permission for any of them.
+	if scopeIsEmpty {
 		resources := auth.BuildPackageResources(requestedNames...)
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPackageView, resources); checkErr != nil {
 			return nil, false, checkErr

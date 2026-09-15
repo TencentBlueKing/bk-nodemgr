@@ -39,7 +39,7 @@ func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext, 
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 	if err != nil {
@@ -50,7 +50,7 @@ func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext, 
 		return requestedIDs, true, nil
 	}
 
-	if len(narrowedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
@@ -65,7 +65,7 @@ func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, pluginName .
 		return err
 	}
 
-	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, _, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, nil, types.AuthResourceTypeBiz,
 	)
 	if err != nil {

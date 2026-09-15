@@ -22,6 +22,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -79,6 +80,13 @@ func (h *handler) GetBusinessHostCount(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
+	if !scopeIsAny && len(narrowedBizIDs) == 0 {
+		resp := new(protoBackend.TopoBusinessHostCountGetResp)
+		resp.ConvertHostCountFromTypes(nil)
+
+		return resp.GetData(), nil
+	}
+
 	condition := narrowHostConditionByBiz(&types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			BizID: bizIDs,
@@ -110,6 +118,23 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get business inst topo, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	// A single business topology requires permission on that specific business.
+	if !scopeIsAny && len(narrowedBizIDs) == 0 {
+		resources := buildBizResources([]int64{bizID})
+		if authErr := h.authorizer.CheckMany(rCtx, map[auth.Action][]types.AuthResource{
+			auth.ActionAgentView: resources,
+			auth.ActionProxyView: resources,
+		}); authErr != nil {
+			logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get business inst topo, permission denied")
+			return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+		}
+
+		resp := new(protoBackend.TopoBusinessInstTopoGetResp)
+		resp.ConvertBusinessInstTopoFromTypes(nil)
+
+		return resp.GetData(), nil
 	}
 
 	topoNodes, err := h.cmdbHandler.GetBizBriefCacheTopo(rCtx, bizID)

@@ -46,6 +46,13 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	condition = narrowPluginConditionByBiz(condition, narrowedBizIDs, scopeIsAny)
 
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedBizIDs) == 0 {
+			resp := new(protoBackend.PluginListResp)
+			resp.ConvertPluginFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		cnt, err := h.daoPlugin.CountPlugins(rCtx, condition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins, failed to count plugins.")
@@ -62,6 +69,13 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins, invalid page info.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedBizIDs) == 0 {
+		resp := new(protoBackend.PluginListResp)
+		resp.ConvertPluginFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	plugins, cnt, err := h.daoPlugin.ListPlugins(rCtx, page, condition)

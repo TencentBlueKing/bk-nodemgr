@@ -54,6 +54,13 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 
 	// only count.
 	if req.GetOnlyCount() {
+		if !scopeIsAny && len(narrowedIDs) == 0 {
+			resp := new(protoBackend.ConfigPolicyListResp)
+			resp.ConvertConfigPoliciesFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
 		num, err := h.storageConfigPolicy.CountConfigPolicy(
 			rCtx,
 			conditions)
@@ -74,6 +81,13 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy, invalid page info")
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	if !scopeIsAny && len(narrowedIDs) == 0 {
+		resp := new(protoBackend.ConfigPolicyListResp)
+		resp.ConvertConfigPoliciesFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	hosts, num, err := h.storageConfigPolicy.ListConfigPolicy(rCtx, page, conditions)

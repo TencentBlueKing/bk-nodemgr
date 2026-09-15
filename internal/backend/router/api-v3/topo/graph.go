@@ -49,6 +49,12 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	condition := narrowNetworkUnitCondition(nil, narrowedIDs, scopeIsAny)
+	if !scopeIsAny && len(narrowedIDs) == 0 {
+		resp := new(protoBackend.TopoGraphNodeGetResp)
+		resp.ConvertGrapthNodeInfoFromTypes(nil)
+
+		return resp.GetData(), nil
+	}
 
 	networkUnits, _, err := h.storage.ListNetworkUnit(rCtx, types.UnlimitedPage(), condition)
 	if err != nil {

@@ -80,6 +80,13 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
+	if !scopeIsAny && len(narrowedBizIDs) == 0 {
+		resp := new(protoBackend.NodeWorkflowListResp)
+		resp.ConvertNodeWorkflowsFromTypes(0, nil)
+
+		return resp.GetData(), nil
+	}
+
 	// Update condition with narrowed BizIDs
 	cond = narrowWorkflowConditionByBiz(cond, narrowedBizIDs, scopeIsAny)
 

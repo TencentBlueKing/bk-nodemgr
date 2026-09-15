@@ -51,7 +51,7 @@ func narrowAuthorizedHistoryResourceIDs(
 		return nil, false, err
 	}
 
-	authorizedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(scope, nil, resourceType)
+	narrowedIDs, scopeIsAny, scopeIsEmpty, err := auth.ResolveAuthorizedResourceIDsInt64(scope, requestedIDs, resourceType)
 	if err != nil {
 		return nil, false, err
 	}
@@ -60,17 +60,13 @@ func narrowAuthorizedHistoryResourceIDs(
 		return requestedIDs, true, nil
 	}
 
-	if len(authorizedIDs) == 0 {
+	if scopeIsEmpty {
 		if checkErr := authorizer.Check(rCtx, action, buildResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
 	}
 
-	if len(requestedIDs) == 0 {
-		return authorizedIDs, false, nil
-	}
-
-	return conv.SliceIntersect(requestedIDs, authorizedIDs), false, nil
+	return narrowedIDs, false, nil
 }
 
 func narrowTopoEventCondition(
@@ -178,7 +174,7 @@ func (h *handler) narrowAuthorizedAccessPointHistoryIDs(
 		return requestedIDs, true, nil
 	}
 	if len(authorizedNetworkUnitIDs) == 0 {
-		return nil, false, errNetworkUnitHistoryViewDeniedByEmptyScope
+		return nil, false, nil
 	}
 
 	networkUnits, err := h.storage.GetNetworkUnitByIDs(rCtx, authorizedNetworkUnitIDs)
@@ -198,12 +194,6 @@ func (h *handler) narrowAuthorizedAccessPointHistoryIDs(
 	}
 
 	narrowedIDs := conv.SliceIntersect(requestedIDs, authorizedAccessPointIDs)
-	if len(narrowedIDs) == 0 && len(targetNetworkUnitIDs) > 0 {
-		resources := authRouter.BuildNetworkUnitResources(targetNetworkUnitIDs...)
-		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitHistoryView, resources); checkErr != nil {
-			return nil, false, checkErr
-		}
-	}
 
 	return conv.SliceUnique(narrowedIDs), false, nil
 }
