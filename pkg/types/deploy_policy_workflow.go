@@ -20,7 +20,7 @@ package types
 
 import "time"
 
-// DeployPolicyWorkflow records one policy's operation and acknowledged child creation.
+// DeployPolicyWorkflow records one policy's operation and associated child workflows.
 type DeployPolicyWorkflow struct {
 	TenantID       string
 	WorkflowID     string
@@ -32,10 +32,8 @@ type DeployPolicyWorkflow struct {
 	Children       []DeployPolicyWorkflowChild
 }
 
-// DeployPolicyWorkflowChild records a child creation intent and its acknowledgement.
+// DeployPolicyWorkflowChild identifies an associated child workflow.
 type DeployPolicyWorkflowChild struct {
 	WorkflowID     string
 	WorkflowDomain WorkflowDomain
-	// Confirmed is false while creation is unknown, and never regresses after acknowledgement.
-	Confirmed bool
 }

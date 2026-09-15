@@ -78,19 +78,16 @@ func (d *dao) recordChild(nCtx contextx.IContext, workflowID string, child Child
 		return nil
 	}
 
-	// Another writer may have appended the same child. Only promote confirmation, never replace it.
+	// Another writer may have appended the same child. Touch the existing association without duplicating it.
 	present := bson.D{
 		{Key: base.FieldKeyIsDeleted, Value: false},
 		{Key: FieldKeyWorkflowID, Value: workflowID},
 		{Key: FieldKeyChildren, Value: bson.M{"$elemMatch": identity}},
 	}
 	fields := bson.M{base.FieldKeyUpdatedAt: time.Now()}
-	if child.Confirmed {
-		fields[FieldKeyChildren+".$.confirmed"] = true
-	}
 	result, err = d.client.UpdateOne(nCtx, present, bson.M{"$set": fields})
 	if err != nil {
-		return fmt.Errorf("failed to acknowledge child for workflow %s: %w", workflowID, err)
+		return fmt.Errorf("failed to touch child association for workflow %s: %w", workflowID, err)
 	}
 	if result.MatchedCount != 1 {
 		return fmt.Errorf("workflow %s not found: %w", workflowID, base.ErrRecordNoFound())

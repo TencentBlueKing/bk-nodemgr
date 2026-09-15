@@ -261,7 +261,7 @@ func (s *Storage) GetDeployPolicyWorkflow(nCtx contextx.IContext, workflowID str
 	return workflow, err
 }
 
-// RecordDeployPolicyWorkflowChild records child creation intent or acknowledgement monotonically.
+// RecordDeployPolicyWorkflowChild records child workflow associations without duplicates.
 func (s *Storage) RecordDeployPolicyWorkflowChild(nCtx contextx.IContext, workflowIDs []string,
 	child types.DeployPolicyWorkflowChild) error {
 

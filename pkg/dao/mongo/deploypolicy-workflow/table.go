@@ -41,11 +41,10 @@ type Data struct {
 	Children       []Child   `json:"children" bson:"children"`
 }
 
-// Child is an embedded child workflow creation acknowledgement.
+// Child is an embedded child workflow reference.
 type Child struct {
 	WorkflowID     string `json:"workflow_id" bson:"workflow_id"`
 	WorkflowDomain string `json:"workflow_domain" bson:"workflow_domain"`
-	Confirmed      bool   `json:"confirmed" bson:"confirmed"`
 }
 
 // UniqueFields returns the stable workflow identity fields.

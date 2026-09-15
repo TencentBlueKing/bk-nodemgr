@@ -104,7 +104,7 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolic
 	return convertWorkflowToTypes(data), nil
 }
 
-// RecordChild atomically adds or confirms a child without downgrading acknowledgement.
+// RecordChild adds a child to each parent without duplicating its workflow ID and domain.
 func (h *Handler) RecordChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error {
 	if len(workflowIDs) == 0 {
 		return nil
@@ -122,7 +122,7 @@ func (h *Handler) RecordChild(nCtx contextx.IContext, workflowIDs []string, chil
 	if err != nil {
 		return fmt.Errorf("failed to resolve workflow tenant: %w", err)
 	}
-	storedChild := Child{WorkflowID: child.WorkflowID, WorkflowDomain: string(child.WorkflowDomain), Confirmed: child.Confirmed}
+	storedChild := Child{WorkflowID: child.WorkflowID, WorkflowDomain: string(child.WorkflowDomain)}
 	seen := make(map[string]struct{}, len(workflowIDs))
 	for _, workflowID := range workflowIDs {
 		if _, ok := seen[workflowID]; ok {
@@ -151,7 +151,7 @@ func convertWorkflowToTypes(data *Data) *types.DeployPolicyWorkflow {
 	children := make([]types.DeployPolicyWorkflowChild, len(data.Children))
 	for i, child := range data.Children {
 		children[i] = types.DeployPolicyWorkflowChild{
-			WorkflowID: child.WorkflowID, WorkflowDomain: types.WorkflowDomain(child.WorkflowDomain), Confirmed: child.Confirmed,
+			WorkflowID: child.WorkflowID, WorkflowDomain: types.WorkflowDomain(child.WorkflowDomain),
 		}
 	}
 
@@ -167,7 +167,7 @@ func convertWorkflowFromTypes(workflow *types.DeployPolicyWorkflow) *Data {
 	children := make([]Child, len(workflow.Children))
 	for i, child := range workflow.Children {
 		children[i] = Child{
-			WorkflowID: child.WorkflowID, WorkflowDomain: string(child.WorkflowDomain), Confirmed: child.Confirmed,
+			WorkflowID: child.WorkflowID, WorkflowDomain: string(child.WorkflowDomain),
 		}
 	}
 

@@ -237,7 +237,6 @@ func (executor *Executor) recordWorkflowChild(nCtx contextx.IContext, execution 
 	child := types.DeployPolicyWorkflowChild{
 		WorkflowID:     workflowID,
 		WorkflowDomain: domain,
-		Confirmed:      true,
 	}
 	if err := executor.daoDeployPolicyWorkflow.RecordDeployPolicyWorkflowChild(nCtx, workflowIDs, child); err != nil {
 		return fmt.Errorf("failed to record deploy policy workflow child: %w", err)
