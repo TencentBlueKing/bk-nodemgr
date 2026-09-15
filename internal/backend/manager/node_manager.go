@@ -43,6 +43,13 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainNode, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:        nCtx.TenantID(),
@@ -58,6 +65,10 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 		OperateTime:     time.Now(),
 		Status:          types.NodeWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 
@@ -433,6 +444,13 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainNode, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:        nCtx.TenantID(),
@@ -448,6 +466,10 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 		OperateTime:     time.Now(),
 		Status:          types.NodeWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 
@@ -706,6 +728,13 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainNode, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:        nCtx.TenantID(),
@@ -721,6 +750,10 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 		OperateTime:     time.Now(),
 		Status:          types.NodeWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 

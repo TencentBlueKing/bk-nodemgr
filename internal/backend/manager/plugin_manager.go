@@ -47,6 +47,13 @@ func (mgr *Manager) LaunchInstallPlugin(
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainPlugin, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -59,6 +66,10 @@ func (mgr *Manager) LaunchInstallPlugin(
 		OperateTime:     time.Now(),
 		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 
@@ -143,6 +154,13 @@ func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.Upgr
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainPlugin, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -155,6 +173,10 @@ func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.Upgr
 		OperateTime:     time.Now(),
 		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 
@@ -232,6 +254,13 @@ func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.Un
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainPlugin, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -244,6 +273,10 @@ func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.Un
 		OperateTime:     time.Now(),
 		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 
@@ -321,6 +354,13 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainPlugin, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -333,6 +373,10 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 		OperateTime:     time.Now(),
 		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 
@@ -400,6 +444,13 @@ func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param ty
 	}
 
 	workflowID := identifier.GenWorkflowID()
+	child := types.DeployPolicyWorkflowChild{
+		WorkflowID: workflowID, WorkflowDomain: types.WorkflowDomainPlugin, Confirmed: false,
+	}
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
+		return "", err
+	}
+
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
 		TenantID:        nCtx.TenantID(),
 		WorkflowID:      workflowID,
@@ -412,6 +463,10 @@ func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param ty
 		OperateTime:     time.Now(),
 		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
+		return "", err
+	}
+	child.Confirmed = true
+	if err := mgr.recordDeployPolicyWorkflowChild(nCtx, param.DeployPolicyWorkflowIDs, child); err != nil {
 		return "", err
 	}
 

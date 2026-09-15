@@ -220,14 +220,15 @@ func (mgr *Manager) registerDefSyncData() error {
 // registerDefDeployPolicy registers the definitions for deploy policy.
 func (mgr *Manager) registerDefDeployPolicy() error {
 	dpMgr := dpmgr.NewHandler(&dpmgr.Config{
-		DaoProcess:            mgr.conf.StoragePlugin,
-		DaoProcessConfig:      mgr.conf.StoragePlugin,
-		DaoPlugin:             mgr.conf.StoragePlugin,
-		DaoHost:               mgr.conf.StorageTopo,
-		DomainDeployPolicyMgr: mgr.conf.StorageDeployPolicy,
-		CmdbHandler:           mgr.conf.CmdbHandler,
-		NodeManager:           mgr,
-		PluginManager:         mgr,
+		DaoProcess:              mgr.conf.StoragePlugin,
+		DaoProcessConfig:        mgr.conf.StoragePlugin,
+		DaoPlugin:               mgr.conf.StoragePlugin,
+		DaoHost:                 mgr.conf.StorageTopo,
+		DomainDeployPolicyMgr:   mgr.conf.StorageDeployPolicy,
+		DaoDeployPolicyWorkflow: mgr.conf.StorageDeployPolicy,
+		CmdbHandler:             mgr.conf.CmdbHandler,
+		NodeManager:             mgr,
+		PluginManager:           mgr,
 	})
 
 	deployPolicyCap := &deploypolicy.Capability{

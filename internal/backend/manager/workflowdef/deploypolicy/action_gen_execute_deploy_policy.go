@@ -24,6 +24,7 @@ import (
 
 	deployPolicyUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -42,8 +43,9 @@ const (
 // NewActionGenOperExecuteDeployPolicy creates a new actionGenOperExecuteDeployPolicy.
 func NewActionGenOperExecuteDeployPolicy(capability *Capability) action.Definition {
 	return &actionGenOperExecuteDeployPolicy{
-		daoDeployPolicy: capability.StorageDeployPolicy,
-		workflowCtl:     capability.WorkflowCtl,
+		daoDeployPolicy:         capability.StorageDeployPolicy,
+		daoDeployPolicyWorkflow: capability.StorageDeployPolicy,
+		workflowCtl:             capability.WorkflowCtl,
 	}
 }
 
@@ -53,8 +55,9 @@ type ActionParamGenOperExecuteDeployPolicy struct {
 }
 
 type actionGenOperExecuteDeployPolicy struct {
-	daoDeployPolicy deploypolicy.IDaoDeployPolicy
-	workflowCtl     workflow.IController
+	daoDeployPolicy         deploypolicy.IDaoDeployPolicy
+	daoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
+	workflowCtl             workflow.IController
 }
 
 // Name returns the name of the action.
@@ -183,10 +186,20 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.DeployPolicyActionStandarder, trigCtl workflow.ITriggerCtl,
 	policyIDs ...int64) error {
 
+	execution := types.DeployPolicyExecutionParam{
+		ExecutionID: identifier.GenWorkflowID(),
+		TriggerID:   trigCtl.GetTriggerID(),
+		WorkflowIDs: make(map[int64]string, len(policyIDs)),
+	}
+	if err := ensurePolicyWorkflows(std.Context(), act.daoDeployPolicyWorkflow, execution, std.Operator(), policyIDs); err != nil {
+		return err
+	}
+
 	operationDef := NewOperExecuteDeployPolicy(OperParamExecuteDeployPolicy{
-		TenantID:        std.TenantID(),
-		Operator:        std.Operator(),
-		DeployPolicyIDs: policyIDs,
+		TenantID:              std.TenantID(),
+		Operator:              std.Operator(),
+		DeployPolicyIDs:       policyIDs,
+		DeployPolicyExecution: execution,
 	})
 	operationParam := operationDef.DefaultParameters()
 	operationParam.ParentOperationID = std.InstanceData().OperationID

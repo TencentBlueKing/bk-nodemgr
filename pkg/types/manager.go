@@ -28,20 +28,24 @@ import (
 
 // InstallNodeParam install node param.
 type InstallNodeParam struct {
-	Type            NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	DeployPolicyIDs []int64
-	NodeDeployments []*NodeDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    NodeWorkflowType
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	NodeDeployments         []*NodeDeployment
 }
 
 // UpgradeNodeParam upgrade node param.
 type UpgradeNodeParam struct {
-	Type            NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	DeployPolicyIDs []int64
-	NodeDeployments []*NodeDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    NodeWorkflowType
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	NodeDeployments         []*NodeDeployment
 }
 
 // ReconfigNodeParam reconfig node param.
@@ -62,11 +66,13 @@ type RestartNodeParam struct {
 
 // UninstallNodeParam uninstall node param.
 type UninstallNodeParam struct {
-	Type            NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	DeployPolicyIDs []int64
-	NodeDeployments []*NodeDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    NodeWorkflowType
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	NodeDeployments         []*NodeDeployment
 }
 
 // AssignProxyUnitParam assign proxy unit param.
@@ -102,32 +108,38 @@ type GetNodeWorklfowOperationManualInfoParam struct {
 
 // InstallPluginParam define the param of LaunchInstallPlugin.
 type InstallPluginParam struct {
-	Type              PluginWorkflowType
-	HostIDs           []int64
-	BizIDs            []int64
-	Operator          string
-	DeployPolicyIDs   []int64
-	PluginDeployments []*PluginDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    PluginWorkflowType
+	HostIDs                 []int64
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	PluginDeployments       []*PluginDeployment
 }
 
 // UpgradePluginParam define the param of LaunchUpgradePlugin.
 type UpgradePluginParam struct {
-	Type              PluginWorkflowType
-	HostIDs           []int64
-	BizIDs            []int64
-	Operator          string
-	DeployPolicyIDs   []int64
-	PluginDeployments []*PluginDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    PluginWorkflowType
+	HostIDs                 []int64
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	PluginDeployments       []*PluginDeployment
 }
 
 // UninstallPluginParam define the param of LaunchUninstallPlugin.
 type UninstallPluginParam struct {
-	Type              PluginWorkflowType
-	HostIDs           []int64
-	BizIDs            []int64
-	Operator          string
-	DeployPolicyIDs   []int64
-	PluginDeployments []*PluginDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    PluginWorkflowType
+	HostIDs                 []int64
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	PluginDeployments       []*PluginDeployment
 }
 
 // StartProcessParam define the param of LaunchStartProcess.
@@ -182,22 +194,26 @@ type StopDebugPluginParam struct {
 
 // ApplyPluginSubConfigParam define the param of LaunchApplyPluginSubConfig.
 type ApplyPluginSubConfigParam struct {
-	Type              PluginWorkflowType
-	HostIDs           []int64
-	BizIDs            []int64
-	Operator          string
-	DeployPolicyIDs   []int64
-	PluginDeployments []*PluginDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    PluginWorkflowType
+	HostIDs                 []int64
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	PluginDeployments       []*PluginDeployment
 }
 
 // RemovePluginSubConfigParam define the param of LaunchRemovePluginSubConfig.
 type RemovePluginSubConfigParam struct {
-	Type              PluginWorkflowType
-	HostIDs           []int64
-	BizIDs            []int64
-	Operator          string
-	DeployPolicyIDs   []int64
-	PluginDeployments []*PluginDeployment
+	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
+	DeployPolicyWorkflowIDs []string
+	Type                    PluginWorkflowType
+	HostIDs                 []int64
+	BizIDs                  []int64
+	Operator                string
+	DeployPolicyIDs         []int64
+	PluginDeployments       []*PluginDeployment
 }
 
 // RetryPluginWorkflowOperationParam retry node workflow operation param.

@@ -19,12 +19,14 @@
 package deploypolicy
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
 	deployPolicyUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -39,20 +41,23 @@ const (
 // NewActionExecuteDeployPolicy creates a new actionExecuteDeployPolicy.
 func NewActionExecuteDeployPolicy(capability *Capability) action.Definition {
 	return &actionExecuteDeployPolicy{
-		dpMgr:           capability.DPMgr,
-		daoDeployPolicy: capability.StorageDeployPolicy,
+		dpMgr:                   capability.DPMgr,
+		daoDeployPolicy:         capability.StorageDeployPolicy,
+		daoDeployPolicyWorkflow: capability.StorageDeployPolicy,
 	}
 }
 
 // ActionParamExecuteDeployPolicy the action's param.
 type ActionParamExecuteDeployPolicy struct {
 	deployPolicyUtils.DeployPolicyActionStandardParam
-	DeployPolicyIDs []int64 `json:"deploy_policy_ids"`
+	DeployPolicyIDs       []int64                          `json:"deploy_policy_ids"`
+	DeployPolicyExecution types.DeployPolicyExecutionParam `json:"deploy_policy_execution"`
 }
 
 type actionExecuteDeployPolicy struct {
-	dpMgr           dpmgr.IHandler
-	daoDeployPolicy deploypolicy.IDaoDeployPolicy
+	dpMgr                   dpmgr.IHandler
+	daoDeployPolicy         deploypolicy.IDaoDeployPolicy
+	daoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
 }
 
 // Name returns the name of the action.
@@ -99,7 +104,7 @@ func (act *actionExecuteDeployPolicy) Tags() []action.Tag {
 }
 
 // Do the action.
-func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
+func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) (attemptErr error) {
 	param := new(ActionParamExecuteDeployPolicy)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -113,6 +118,41 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	}
 
 	nCtx := std.Context()
+	execution := param.DeployPolicyExecution
+	if execution.ExecutionID == "" {
+		// Persisted actions predating execution records use the operation instance as a stable retry anchor.
+		execution.ExecutionID = ctx.Data.OperationInstanceID
+	}
+	execution.TriggerID = ctx.Data.TriggerID
+	execution.OperationInstanceID = ctx.Data.OperationInstanceID
+	if execution.WorkflowIDs == nil {
+		execution.WorkflowIDs = make(map[int64]string)
+	}
+	completed := false
+	defer func() {
+		// A panic unwinds this defer before the engine recovers it.
+		status := types.DeployPolicyWorkflowAttemptFailed
+		message := "deploy policy attempt did not return normally"
+		if completed {
+			status = types.DeployPolicyWorkflowAttemptSuccess
+			message = ""
+		}
+		if attemptErr != nil {
+			status = types.DeployPolicyWorkflowAttemptFailed
+			message = attemptErr.Error()
+		}
+		// The shared map includes policies discovered during this synchronous attempt, even on failure.
+		// Finish recording even when the action timed out, with a bounded tenant-preserving context.
+		recordCtx, cancel := contextx.WithTimeout(contextx.WithoutCancel(nCtx), act.Timeout())
+		defer cancel()
+		attemptErr = errors.Join(attemptErr, act.updateAttempt(recordCtx, execution, status, message))
+	}()
+	if err := ensurePolicyWorkflows(nCtx, act.daoDeployPolicyWorkflow, execution, std.Operator(), param.DeployPolicyIDs); err != nil {
+		return err
+	}
+	if err := act.updateAttempt(nCtx, execution, types.DeployPolicyWorkflowAttemptRunning, ""); err != nil {
+		return err
+	}
 	cond := &types.DeployPolicyCondition{
 		ExactInclude: &types.DeployPolicyExactFields{
 			DeployPolicyID: param.DeployPolicyIDs,
@@ -123,6 +163,7 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("tenant-id", std.TenantID()).
 			Error("failed to list deploy policies")
+
 		return fmt.Errorf("failed to list deploy policies: %w", err)
 	}
 
@@ -133,7 +174,7 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("no deploy policy found")
 	}
 
-	if err := act.dpMgr.Do(nCtx, deployPolicies...); err != nil {
+	if err := act.dpMgr.DoWithExecution(nCtx, execution, deployPolicies...); err != nil {
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("tenant-id", std.TenantID()).
 			Error("failed to execute deploy policy")
 
@@ -143,5 +184,38 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	logger.G.Sys().Ctx(nCtx).With("tenant-id", std.TenantID()).
 		Info("executed deploy policy")
 
+	completed = true
+
 	return nil
+}
+
+func ensurePolicyWorkflows(nCtx contextx.IContext, storage deploypolicy.IDaoDeployPolicyWorkflow,
+	execution types.DeployPolicyExecutionParam, operator string, policyIDs []int64) error {
+
+	var recordErr error
+	for _, policyID := range policyIDs {
+		parent, err := storage.EnsureDeployPolicyWorkflow(nCtx, execution, policyID, operator)
+		if err != nil {
+			recordErr = errors.Join(recordErr, fmt.Errorf("failed to ensure policy %d workflow: %w", policyID, err))
+
+			continue
+		}
+		execution.WorkflowIDs[policyID] = parent.WorkflowID
+	}
+
+	return recordErr
+}
+
+func (act *actionExecuteDeployPolicy) updateAttempt(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
+	status types.DeployPolicyWorkflowAttemptStatus, message string) error {
+
+	var recordErr error
+	for _, workflowID := range conv.MapValueToSlice(execution.WorkflowIDs) {
+		if err := act.daoDeployPolicyWorkflow.UpdateDeployPolicyWorkflowAttempt(nCtx, []string{workflowID},
+			execution.OperationInstanceID, status, message); err != nil {
+			recordErr = errors.Join(recordErr, fmt.Errorf("failed to record workflow %s attempt: %w", workflowID, err))
+		}
+	}
+
+	return recordErr
 }
