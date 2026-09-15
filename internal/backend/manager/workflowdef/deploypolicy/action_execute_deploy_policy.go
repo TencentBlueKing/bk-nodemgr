@@ -103,7 +103,7 @@ func (act *actionExecuteDeployPolicy) Tags() []action.Tag {
 }
 
 // Do the action.
-func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) (attemptErr error) {
+func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamExecuteDeployPolicy)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -123,29 +123,7 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) (attemptEr
 		OperationInstanceID: ctx.Data.OperationInstanceID,
 		WorkflowIDs:         make(map[int64]string),
 	}
-	completed := false
-	defer func() {
-		// A panic unwinds this defer before the engine recovers it.
-		status := types.DeployPolicyWorkflowAttemptFailed
-		message := "deploy policy attempt did not return normally"
-		if completed {
-			status = types.DeployPolicyWorkflowAttemptSuccess
-			message = ""
-		}
-		if attemptErr != nil {
-			status = types.DeployPolicyWorkflowAttemptFailed
-			message = attemptErr.Error()
-		}
-		// The shared map includes policies discovered during this synchronous attempt, even on failure.
-		// Finish recording even when the action timed out, with a bounded tenant-preserving context.
-		recordCtx, cancel := contextx.WithTimeout(contextx.WithoutCancel(nCtx), act.Timeout())
-		defer cancel()
-		attemptErr = errors.Join(attemptErr, act.updateAttempt(recordCtx, execution, status, message))
-	}()
 	if err := ensurePolicyWorkflows(nCtx, act.daoDeployPolicyWorkflow, execution, std.Operator(), param.DeployPolicyIDs); err != nil {
-		return err
-	}
-	if err := act.updateAttempt(nCtx, execution, types.DeployPolicyWorkflowAttemptRunning, ""); err != nil {
 		return err
 	}
 	cond := &types.DeployPolicyCondition{
@@ -179,8 +157,6 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) (attemptEr
 	logger.G.Sys().Ctx(nCtx).With("tenant-id", std.TenantID()).
 		Info("executed deploy policy")
 
-	completed = true
-
 	return nil
 }
 
@@ -196,20 +172,6 @@ func ensurePolicyWorkflows(nCtx contextx.IContext, storage deploypolicy.IDaoDepl
 			continue
 		}
 		execution.WorkflowIDs[policyID] = parent.WorkflowID
-	}
-
-	return recordErr
-}
-
-func (act *actionExecuteDeployPolicy) updateAttempt(nCtx contextx.IContext, execution types.DeployPolicyExecutionParam,
-	status types.DeployPolicyWorkflowAttemptStatus, message string) error {
-
-	var recordErr error
-	for _, workflowID := range conv.MapValueToSlice(execution.WorkflowIDs) {
-		if err := act.daoDeployPolicyWorkflow.UpdateDeployPolicyWorkflowAttempt(nCtx, []string{workflowID},
-			execution.OperationInstanceID, status, message); err != nil {
-			recordErr = errors.Join(recordErr, fmt.Errorf("failed to record workflow %s attempt: %w", workflowID, err))
-		}
 	}
 
 	return recordErr

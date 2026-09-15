@@ -186,7 +186,6 @@ func (h *Handler) ensureDiscoveredWorkflows(nCtx contextx.IContext, execution ty
 
 	var recordErr error
 	for _, policy := range policies {
-		_, participating := execution.WorkflowIDs[policy.DeployPolicyID]
 		parent, err := h.daoDeployPolicyWorkflow.EnsureDeployPolicyWorkflow(nCtx, execution, policy.DeployPolicyID, nCtx.BKUsername())
 		if err != nil {
 			recordErr = errors.Join(recordErr, fmt.Errorf("failed to ensure policy %d workflow: %w", policy.DeployPolicyID, err))
@@ -194,13 +193,6 @@ func (h *Handler) ensureDiscoveredWorkflows(nCtx contextx.IContext, execution ty
 			continue
 		}
 		execution.WorkflowIDs[policy.DeployPolicyID] = parent.WorkflowID
-		if participating {
-			continue
-		}
-		if err := h.daoDeployPolicyWorkflow.UpdateDeployPolicyWorkflowAttempt(nCtx, []string{parent.WorkflowID},
-			execution.OperationInstanceID, types.DeployPolicyWorkflowAttemptRunning, ""); err != nil {
-			recordErr = errors.Join(recordErr, fmt.Errorf("failed to start policy %d workflow attempt: %w", policy.DeployPolicyID, err))
-		}
 	}
 
 	return recordErr
