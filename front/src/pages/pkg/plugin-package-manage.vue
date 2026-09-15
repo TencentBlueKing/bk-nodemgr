@@ -865,9 +865,17 @@ const getPackages = async () => {
   // 等待 package_view 授权加载完成再请求：未加载时拿不到有权限的插件名，
   // 查询条件为空既无意义、也会把无权限插件的短暂全量数据拉回前端
   if (!authStore.authorizedMap['package_view']) return;
-  loading.value = true;
   // 仅查询有权限的插件包名对应的数据
   const authorizedNames = getAuthorizedPluginNames();
+  // 没有可查看的插件包名（name 为空）时不发请求：
+  // 空条件在后端等同于无过滤，会把无权限插件的全量数据拉回前端
+  if (authorizedNames.length === 0) {
+    originPackageList.value = [];
+    packageList.value = [];
+    loading.value = false;
+    return;
+  }
+  loading.value = true;
   const res = await PackageService.ListReleasePlugin({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
