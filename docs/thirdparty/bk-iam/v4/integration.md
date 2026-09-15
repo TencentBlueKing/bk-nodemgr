@@ -29,7 +29,7 @@ bk-nodemgr 的 IAM V4 配置、模型对应关系与运行时行为。IAM 接入
 | Action                       | 运行时使用 `biz_access`、Agent/Proxy/Plugin、策略、网络、资源包等操作常量                        | 有常量不代表目标 IAM 已有相同 Action                          |
 | Role                         | 需明确角色包含的 Action 与允许授权的资源层级                                                     | 不能用 v3 `action_groups`、`common_actions` 替代 V4 Role 设计 |
 
-依据：[Provider 注册](../../../../internal/backend/service/service.go)、[Provider 实现](../../../../internal/backend/auth/provider/)、[Action 常量](../../../../internal/backend/auth/action.go)、[业务资源构造](../../../../internal/backend/router/api-v3/auth/auth.go)。
+依据：[Provider 注册](../../../../internal/backend/service/service.go)、[Provider 实现](../../../../internal/backend/auth/v3/provider/)、[Action 常量](../../../../internal/backend/auth/action.go)、[业务资源构造](../../../../internal/backend/router/api-v3/auth/auth.go)。
 
 [资源类型应按所需权限粒度选择](model.md#按权限粒度选择资源)，不能因项目有主机、脚本等数据就自动注册对应资源类型。业务维度鉴权与具体实例鉴权应分别确定；[创建类操作](model.md#创建类操作)也应明确是否绑定父资源。现有 `biz_access` 等 Action ID 需与已注册模型保持一致。
 
@@ -49,7 +49,7 @@ bk-nodemgr 的 IAM V4 配置、模型对应关系与运行时行为。IAM 接入
 | 多操作、单资源 | `/auth-by-actions/`；`subject`、`action_ids`、可选 `resource` | 逐项读取 `action_id`、`allowed`                        |
 | 授权范围       | `/relation/authorized-resources/`；`subject`、`action_id`     | 响应项为 `type`、`ids`，由 authorizer 解释为项目 Scope |
 
-[V4 authorizer](../../../../internal/backend/auth/auth_iamv4.go)按 20 分批；这是项目分批值，IAM API 的批量上限需另行确认。批量鉴权结果缺项时不会按允许处理。
+[V4 authorizer](../../../../internal/backend/auth/v4/auth_iamv4.go)按 20 分批；这是项目分批值，IAM API 的批量上限需另行确认。批量鉴权结果缺项时不会按允许处理。
 
 权限拒绝时，authorizer 通过 [Handler.GetApplyURL](../../../../pkg/thirdparty/iamv4/handler.go)提交缺失 Action 与资源拓扑。获取 URL 失败仍返回权限拒绝，只是 `ApplyURL` 为空。申请 URL 的生成不证明授权成功。
 

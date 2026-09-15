@@ -50,7 +50,7 @@ Read the relevant anchor before changing or judging a matching surface:
 | Similar router boundary  | `internal/backend/router/api-v3/node/proxy/install.go`                     | Confirms agent/proxy handler consistency                                                              |
 | Service/system boundary  | `internal/backend/service/service.go`                                      | Startup/system operations wrap with `%w` and log with `Sys().WithErr` at responsibility boundaries    |
 | Retry/poll migration     | `pkg/runtime/retrier/polling.go`, `pkg/runtime/retrier/expo_backoff.go`    | Historical success-on-nil patterns require semantic migration, not mechanical replacement             |
-| Probe/fallback migration | `pkg/runtime/crypter/rsa.go`, `internal/backend/auth/provider/provider.go` | Try-parse fallback needs `(value, ok)` or domain helpers, not hidden `err == nil`                     |
+| Probe/fallback migration | `pkg/runtime/crypter/rsa.go`, `internal/backend/auth/v3/provider/provider.go` | Try-parse fallback needs `(value, ok)` or domain helpers, not hidden `err == nil`                     |
 | Error chain tests        | `pkg/rest/server/request_test.go`                                          | Permission and wrapped-error behavior must stay stable                                                |
 
 ## Quick Reference
