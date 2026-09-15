@@ -22,21 +22,17 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // IHandler provides tenant-scoped deploy policy workflow persistence.
 type IHandler interface {
-	Ensure(nCtx contextx.IContext, operationID, triggerID string,
-		policyID int64, operator string) (*types.DeployPolicyWorkflow, error)
-	Get(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error)
+	Create(nCtx contextx.IContext, workflow *types.DeployPolicyWorkflow) error
+	Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolicyWorkflow, error)
 	RecordChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error
 }
 
@@ -72,72 +68,35 @@ func (h *Handler) tenantDao(nCtx contextx.IContext) (*dao, error) {
 	return cached.(*dao), nil //nolint:forcetypeassert // Only tenantDao writes this map.
 }
 
-// Ensure returns the first persisted record for the operation and policy, without resetting it.
-func (h *Handler) Ensure(nCtx contextx.IContext, operationID, triggerID string,
-	policyID int64, operator string) (*types.DeployPolicyWorkflow, error) {
-
-	if operationID == "" || triggerID == "" || policyID <= 0 {
-		return nil, base.ErrInvalidParam(errors.New("operation id, trigger id and positive policy id are required"))
+// Create persists a tenant-scoped deploy policy workflow.
+func (h *Handler) Create(nCtx contextx.IContext, workflow *types.DeployPolicyWorkflow) error {
+	if workflow == nil {
+		return base.ErrEmptyParamData()
 	}
 	d, err := h.tenantDao(nCtx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve workflow tenant: %w", err)
+		return fmt.Errorf("failed to resolve workflow tenant: %w", err)
 	}
-	filter := append(base.AliveFilter(),
-		bson.E{Key: FieldKeyOperationID, Value: operationID},
-		bson.E{Key: FieldKeyDeployPolicyID, Value: policyID})
-	data, err := d.Get(nCtx, filter)
-	if err != nil {
-		if !errors.Is(err, base.ErrRecordNoFound()) {
-			return nil, fmt.Errorf("failed to get operation workflow: %w", err)
-		}
-		data, err = d.createExecution(nCtx, operationID, triggerID, policyID, operator, filter)
-		if err != nil {
-			return nil, fmt.Errorf("failed to ensure operation workflow: %w", err)
-		}
-	}
-	if data.TriggerID != triggerID {
-		return nil, base.ErrInvalidParam(errors.New("operation trigger id does not match the persisted workflow"))
-	}
-
-	return convertWorkflowToTypes(data), nil
-}
-
-func (d *dao) createExecution(nCtx contextx.IContext, operationID, triggerID string,
-	policyID int64, operator string, filter bson.D) (*Data, error) {
-
-	data := &Data{
-		TenantID: nCtx.TenantID(), WorkflowID: identifier.GenWorkflowID(),
-		OperationID: operationID, TriggerID: triggerID, DeployPolicyID: policyID,
-		Operator: operator, OperateTime: time.Now(),
-		Children: make([]Child, 0),
-	}
+	data := convertWorkflowFromTypes(workflow)
+	data.TenantID = nCtx.TenantID()
 	if err := d.Create(nCtx, data); err != nil {
-		if !mongo.IsDuplicateKeyError(err) {
-			return nil, fmt.Errorf("failed to create operation workflow: %w", err)
-		}
-		// Concurrent creators must reuse the winner's generated workflow ID.
-		existing, getErr := d.Get(nCtx, filter)
-		if getErr != nil {
-			return nil, fmt.Errorf("failed to recover concurrent workflow creation: %w", errors.Join(err, getErr))
-		}
-
-		return existing, nil
+		return fmt.Errorf("failed to create deploy policy workflow: %w", err)
 	}
 
-	return data, nil
+	return nil
 }
 
-// Get fetches one tenant-scoped workflow by its stable ID.
-func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.DeployPolicyWorkflow, error) {
-	if workflowID == "" {
-		return nil, base.ErrInvalidParam(errors.New("workflow id is empty"))
-	}
+// Get fetches one tenant-scoped workflow matching the options.
+func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolicyWorkflow, error) {
 	d, err := h.tenantDao(nCtx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve workflow tenant: %w", err)
 	}
-	data, err := d.Get(nCtx, append(base.AliveFilter(), bson.E{Key: FieldKeyWorkflowID, Value: workflowID}))
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	data, err := d.Get(nCtx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get deploy policy workflow: %w", err)
 	}
@@ -200,6 +159,22 @@ func convertWorkflowToTypes(data *Data) *types.DeployPolicyWorkflow {
 		TenantID: data.TenantID, WorkflowID: data.WorkflowID, OperationID: data.OperationID,
 		TriggerID: data.TriggerID, DeployPolicyID: data.DeployPolicyID, Operator: data.Operator,
 		OperateTime: data.OperateTime,
+		Children:    children,
+	}
+}
+
+func convertWorkflowFromTypes(workflow *types.DeployPolicyWorkflow) *Data {
+	children := make([]Child, len(workflow.Children))
+	for i, child := range workflow.Children {
+		children[i] = Child{
+			WorkflowID: child.WorkflowID, WorkflowDomain: string(child.WorkflowDomain), Confirmed: child.Confirmed,
+		}
+	}
+
+	return &Data{
+		TenantID: workflow.TenantID, WorkflowID: workflow.WorkflowID, OperationID: workflow.OperationID,
+		TriggerID: workflow.TriggerID, DeployPolicyID: workflow.DeployPolicyID, Operator: workflow.Operator,
+		OperateTime: workflow.OperateTime,
 		Children:    children,
 	}
 }
