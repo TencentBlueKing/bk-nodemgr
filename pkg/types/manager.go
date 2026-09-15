@@ -28,24 +28,26 @@ import (
 
 // InstallNodeParam install node param.
 type InstallNodeParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    NodeWorkflowType
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	NodeDeployments         []*NodeDeployment
+	// WorkflowID is an optional new ID for LaunchInstallNode; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	WorkflowID      string
+	Type            NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	DeployPolicyIDs []int64
+	NodeDeployments []*NodeDeployment
 }
 
 // UpgradeNodeParam upgrade node param.
 type UpgradeNodeParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    NodeWorkflowType
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	NodeDeployments         []*NodeDeployment
+	// WorkflowID is an optional new ID for LaunchUpgradeNode; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	WorkflowID      string
+	Type            NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	DeployPolicyIDs []int64
+	NodeDeployments []*NodeDeployment
 }
 
 // ReconfigNodeParam reconfig node param.
@@ -66,13 +68,14 @@ type RestartNodeParam struct {
 
 // UninstallNodeParam uninstall node param.
 type UninstallNodeParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    NodeWorkflowType
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	NodeDeployments         []*NodeDeployment
+	// WorkflowID is an optional new ID for LaunchUninstallNode; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	WorkflowID      string
+	Type            NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	DeployPolicyIDs []int64
+	NodeDeployments []*NodeDeployment
 }
 
 // AssignProxyUnitParam assign proxy unit param.
@@ -108,38 +111,43 @@ type GetNodeWorklfowOperationManualInfoParam struct {
 
 // InstallPluginParam define the param of LaunchInstallPlugin.
 type InstallPluginParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    PluginWorkflowType
-	HostIDs                 []int64
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	PluginDeployments       []*PluginDeployment
+	// WorkflowID is an optional new ID for LaunchInstallPlugin only; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	// LaunchPluginEnsurePluginV2 ignores this field.
+	WorkflowID        string
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
 }
 
 // UpgradePluginParam define the param of LaunchUpgradePlugin.
 type UpgradePluginParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    PluginWorkflowType
-	HostIDs                 []int64
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	PluginDeployments       []*PluginDeployment
+	// WorkflowID is an optional new ID for LaunchUpgradePlugin; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	WorkflowID        string
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
 }
 
 // UninstallPluginParam define the param of LaunchUninstallPlugin.
 type UninstallPluginParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    PluginWorkflowType
-	HostIDs                 []int64
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	PluginDeployments       []*PluginDeployment
+	// WorkflowID is an optional new ID for LaunchUninstallPlugin only; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	// LaunchUninstallPluginV2 ignores this field.
+	WorkflowID        string
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
 }
 
 // StartProcessParam define the param of LaunchStartProcess.
@@ -194,26 +202,28 @@ type StopDebugPluginParam struct {
 
 // ApplyPluginSubConfigParam define the param of LaunchApplyPluginSubConfig.
 type ApplyPluginSubConfigParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    PluginWorkflowType
-	HostIDs                 []int64
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	PluginDeployments       []*PluginDeployment
+	// WorkflowID is an optional new ID for LaunchApplyPluginSubConfig; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	WorkflowID        string
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
 }
 
 // RemovePluginSubConfigParam define the param of LaunchRemovePluginSubConfig.
 type RemovePluginSubConfigParam struct {
-	// DeployPolicyWorkflowIDs is empty for launches outside deploy policy execution.
-	DeployPolicyWorkflowIDs []string
-	Type                    PluginWorkflowType
-	HostIDs                 []int64
-	BizIDs                  []int64
-	Operator                string
-	DeployPolicyIDs         []int64
-	PluginDeployments       []*PluginDeployment
+	// WorkflowID is an optional new ID for LaunchRemovePluginSubConfig; empty generates an ID.
+	// It must not identify an existing workflow; launch is not idempotent reuse.
+	WorkflowID        string
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
 }
 
 // RetryPluginWorkflowOperationParam retry node workflow operation param.

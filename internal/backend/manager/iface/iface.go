@@ -27,9 +27,15 @@ import (
 // INodeManager defines the NodeManager interface.
 type INodeManager interface {
 	// LaunchInstallNode launch a task to install node. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchInstallNode(ctx contextx.IContext, param types.InstallNodeParam) (string, error)
 
 	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchUpgradeNode(ctx contextx.IContext, param types.UpgradeNodeParam) (string, error)
 
 	// LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
@@ -39,6 +45,9 @@ type INodeManager interface {
 	LaunchRestartNode(ctx contextx.IContext, param types.RestartNodeParam) (string, error)
 
 	// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchUninstallNode(ctx contextx.IContext, param types.UninstallNodeParam) (string, error)
 
 	// LaunchAssignProxyUnit launch a task to assign proxy unit. returns the workflow-id.
@@ -74,18 +83,33 @@ type IPluginManager interface {
 // nolint: interfacebloat
 type iPluginManagerPlugin interface {
 	// LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchInstallPlugin(ctx contextx.IContext, param types.InstallPluginParam) (string, error)
 
 	// LaunchUpgradePlugin launch a task to upgrade plugin. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchUpgradePlugin(nCtx contextx.IContext, param types.UpgradePluginParam) (string, error)
 
 	// LaunchUninstallPlugin launch a task to uninstall plugin. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchUninstallPlugin(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error)
 
 	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error)
 
 	// LaunchRemovePluginSubConfig launch a task to remove plugin subconfig. returns the workflow-id.
+	// WorkflowID must be new or empty for generation; launch is not idempotent reuse.
+	// A nonempty return confirms persistence even on error, not successful launch.
+	// Failures before or during workflow creation return an empty ID.
 	LaunchRemovePluginSubConfig(nCtx contextx.IContext, param types.RemovePluginSubConfigParam) (string, error)
 
 	// LaunchStartProcess launch a task to start process. returns the workflow-id.

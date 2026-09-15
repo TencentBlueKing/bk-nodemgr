@@ -75,10 +75,11 @@ func NewHandler(conf *Config) *Handler {
 		DaoHost:          conf.DaoHost,
 	})
 	executor := NewExecutor(&ExecutorConfig{
-		NodeManager:      conf.NodeManager,
-		PluginManager:    conf.PluginManager,
-		DaoPlugin:        conf.DaoPlugin,
-		DaoProcessConfig: conf.DaoProcessConfig,
+		NodeManager:             conf.NodeManager,
+		PluginManager:           conf.PluginManager,
+		DaoPlugin:               conf.DaoPlugin,
+		DaoProcessConfig:        conf.DaoProcessConfig,
+		DaoDeployPolicyWorkflow: conf.DaoDeployPolicyWorkflow,
 	})
 
 	return &Handler{
