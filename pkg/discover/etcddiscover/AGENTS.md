@@ -23,7 +23,9 @@
 |Conventions:use `config.Etcd` + `initTLS()` for endpoints/auth/TLS; keep defaults local (`defaultEtcdPrefix`,`defaultEtcdDialTimeout`,`defaultEtcdLeaseTTLSec`,`defaultListTickTime`,`defaultRetryInterval`,`defaultRevokeTimeout`)
 |Conventions:watch/list cache is the read model; query methods should not perform ad-hoc etcd reads outside the provider sync path
 |Conventions:use `pkg/logger` for project logs; etcd internal zap logs must route through `newEtcdClientConfig()`/`etcdLoggerCore`
-|Conventions:shutdown order matters: `GracefulShutdown` stops registrations (revoking leases) before `cancel`, because revoking needs a live `provider.ctx`
+|Conventions:shutdown order matters: `GracefulShutdown` cancels `provider.ctx` before stopping registrations, so in-flight registration requests abort and cannot hold `registration.mutex` on an unreachable etcd
+|Conventions:lease revoke (`revokeSession`) must run on its own bounded context, never on `provider.ctx`; it has to reach etcd after shutdown cancelled that context
+|Conventions:replacing a registration of an already registered instance id must stop the previous `registration` before publishing the new lease, otherwise its pending `Put` can rebind the key to the lease about to be revoked
 |Anti-patterns:do not add service-specific routing, weighting, health, or metadata policy here; callers own payload semantics beyond `discover.Instance`
 |Anti-patterns:do not hardcode endpoints/credentials/TLS paths outside `config.Etcd`; do not bypass `initTLS()` for TLS setup
 |Anti-patterns:do not write to etcd without going through `registration` (it owns the instance payload the keeper re-registers with)

@@ -260,8 +260,15 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 
 // GracefulShutdown gracefully shuts down the provider, stop all activities.
 func (provider *ProviderEtcd) GracefulShutdown() error {
-	// revoke the leases of the locally registered instances before cancelling
-	// the context: revoking needs a live context, and it drops the instances
+	// cancel before stopping the registrations: cancelling aborts the etcd
+	// requests a registration may have in flight, and that is what bounds the
+	// wait for its lock below. Stopping first lets an unreachable etcd hold
+	// the shutdown for as long as it stays unreachable.
+	if provider.cancel != nil {
+		provider.cancel()
+	}
+
+	// revoke the leases of the locally registered instances, dropping them
 	// from discovery at once instead of after a lease TTL.
 	for _, reg := range provider.takeAllRegistrations() {
 		if err := reg.stop(); err != nil {
@@ -269,10 +276,6 @@ func (provider *ProviderEtcd) GracefulShutdown() error {
 				With("service", reg.serviceName, "id", reg.instanceID).
 				Warn("failed to deregister instance on shutdown")
 		}
-	}
-
-	if provider.cancel != nil {
-		provider.cancel()
 	}
 
 	logger.G.Sys().Info("stopped etcd discover provider")
@@ -364,12 +367,21 @@ func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instanc
 		return discover.ErrInvalidInstanceName()
 	}
 
+	key := provider.instanceKey(serviceName, instance.ID)
+
+	// re-registering the same instance replaces the previous registration:
+	// stop it before publishing the new lease, so that a write still pending
+	// on it cannot rebind the key to the lease that is about to be revoked,
+	// which would leave the key deleted with nothing to bring it back.
+	if previous := provider.takeRegistration(serviceName, instance.ID); previous != nil {
+		provider.stopReplacedRegistration(previous)
+	}
+
 	session, err := provider.newSession()
 	if err != nil {
 		return err
 	}
 
-	key := provider.instanceKey(serviceName, instance.ID)
 	if err = provider.putInstance(key, instance, session.Lease()); err != nil {
 		provider.closeSession(key, session)
 
@@ -385,12 +397,11 @@ func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instanc
 		session:     session,
 	}
 
-	// re-registering the same instance replaces the previous registration:
-	// stop its keeper and lease so neither is left behind.
+	// a concurrent Register of the same instance may have installed a
+	// registration in the meantime: stop it so its keeper and lease are not
+	// left behind.
 	if previous := provider.putRegistration(reg); previous != nil {
-		if err = previous.stop(); err != nil {
-			logger.G.Sys().WithErr(err).With("key", key).Warn("failed to stop the replaced registration")
-		}
+		provider.stopReplacedRegistration(previous)
 	}
 
 	go reg.keep()
@@ -398,6 +409,14 @@ func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instanc
 	logger.G.Sys().With("service", serviceName, "id", instance.ID, "data", instance).Info("registered service")
 
 	return nil
+}
+
+// stopReplacedRegistration stops a registration that a newer one for the same
+// instance has replaced.
+func (provider *ProviderEtcd) stopReplacedRegistration(reg *registration) {
+	if err := reg.stop(); err != nil {
+		logger.G.Sys().WithErr(err).With("key", reg.key).Warn("failed to stop the replaced registration")
+	}
 }
 
 // Update updates a service instance.
@@ -461,13 +480,15 @@ func (provider *ProviderEtcd) newSession() (*concurrency.Session, error) {
 }
 
 // revokeSession ends a session and revokes its lease.
-// Orphaning already stops the keepalives, so the lease expires on its own
-// within a TTL; the revoke only drops the instance key now instead of then,
-// and is therefore bounded and best effort.
+// The revoke runs on its own bounded context instead of provider.ctx: it must
+// still reach etcd while shutting down, once that context is already
+// cancelled, and it must never wait on an unreachable etcd. Orphaning already
+// stops the keepalives, so a failed revoke only means the lease expires within
+// a TTL rather than being dropped right now.
 func (provider *ProviderEtcd) revokeSession(session *concurrency.Session) error {
 	session.Orphan()
 
-	ctx, cancel := context.WithTimeout(provider.ctx, defaultRevokeTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRevokeTimeout)
 	defer cancel()
 
 	_, err := provider.etcdClient.Revoke(ctx, session.Lease())
