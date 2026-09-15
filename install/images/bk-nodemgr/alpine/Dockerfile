@@ -9,7 +9,7 @@ RUN pnpm i && pnpm build
 FROM alpine:3.21
 
 # install dependencies.
-RUN apk add jq vim busybox-extras redis etcd-ctl tzdata
+RUN apk add bash jq vim busybox-extras redis etcd-ctl tzdata
 
 # set timezone.
 ENV TZ Asia/Shanghai
