@@ -35,10 +35,8 @@ import (
 
 // IExecutor define the logic of executor.
 type IExecutor interface {
-	// Execute execute the change tasks.
-	Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) error
-	// ExecuteWithExecution associates launched children with the execution's policy groups.
-	ExecuteWithExecution(nCtx contextx.IContext, execution ExecutionParam, changeTasks ...*ChangeTask) error
+	// Execute executes change tasks and records policy workflow associations.
+	Execute(nCtx contextx.IContext, execution ExecutionParam, changeTasks ...*ChangeTask) error
 }
 
 // ExecutionParam carries operation identity and runtime policy workflow associations.
@@ -108,23 +106,16 @@ func NewExecutor(conf *ExecutorConfig) *Executor {
 	}
 }
 
-// Execute execute the change tasks.
-func (executor *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) error {
-	return executor.ExecuteWithExecution(nCtx, ExecutionParam{}, changeTasks...)
-}
-
-// ExecuteWithExecution preserves batching while associating children with participating policy groups.
+// Execute preserves batching while associating children with participating policy groups.
 // nolint: gocognit,gocyclo,cyclop
-func (executor *Executor) ExecuteWithExecution(nCtx contextx.IContext, execution ExecutionParam, changeTasks ...*ChangeTask) error {
+func (executor *Executor) Execute(nCtx contextx.IContext, execution ExecutionParam, changeTasks ...*ChangeTask) error {
 	tasksByAction := make(map[ChangeAction][]*ChangeTask)
 	for _, changeTask := range changeTasks {
-		if execution.OperationID != "" {
-			if _, ok := execution.PolicyGroups[changeTask.DeployPolicyID]; !ok {
-				return fmt.Errorf("missing execution group for policy %d", changeTask.DeployPolicyID)
-			}
-			if execution.WorkflowIDs[changeTask.DeployPolicyID] == "" {
-				return fmt.Errorf("missing execution workflow for policy %d", changeTask.DeployPolicyID)
-			}
+		if _, ok := execution.PolicyGroups[changeTask.DeployPolicyID]; !ok {
+			return fmt.Errorf("missing execution group for policy %d", changeTask.DeployPolicyID)
+		}
+		if execution.WorkflowIDs[changeTask.DeployPolicyID] == "" {
+			return fmt.Errorf("missing execution workflow for policy %d", changeTask.DeployPolicyID)
 		}
 		tasksByAction[changeTask.Action] = append(tasksByAction[changeTask.Action], changeTask)
 	}
@@ -233,9 +224,8 @@ func (executor *Executor) recordWorkflowChild(nCtx contextx.IContext, execution 
 	tasks []*ChangeTask, domain types.WorkflowDomain, workflowID string) error {
 
 	workflowIDs := execution.workflowIDs(tasks)
-	// Execute without execution metadata launches children without recording policy associations.
 	if len(workflowIDs) == 0 {
-		return nil
+		return errors.New("deploy policy workflow associations are required")
 	}
 	if executor.daoDeployPolicyWorkflow == nil {
 		return errors.New("deploy policy workflow storage is required")

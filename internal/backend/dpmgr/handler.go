@@ -148,7 +148,7 @@ func (h *Handler) Do(nCtx contextx.IContext, execution ExecutionParam,
 	}
 
 	// 5. executor and execute the change tasks.
-	if err := h.executor.ExecuteWithExecution(nCtx, execution, changeTasks...); err != nil {
+	if err := h.executor.Execute(nCtx, execution, changeTasks...); err != nil {
 		return fmt.Errorf("failed to execute change tasks: %w", err)
 	}
 
