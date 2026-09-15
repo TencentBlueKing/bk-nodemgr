@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -416,7 +417,7 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 					MD5:          file.Info().MD5,
 					Enabled:      false,
 					AsDefault:    false,
-					IsShared:     isShared,
+					IsShared:     isShared && nCtx.TenantID() == tenant.SystemTenantID,
 					IsSynced:     false,
 					UpdatedAt:    time.Now(),
 					Operator:     nCtx.BKUsername(),

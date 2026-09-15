@@ -94,4 +94,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/plugin_bintool/list", restserver.Handler(h.ListReleasePluginBinTool))
 	h.rg.POST("/plugin_bintool/distinct_name", restserver.Handler(h.DistinctNameReleasePluginBinTool))
 	h.rg.POST("/plugin_bintool/delete", restserver.Handler(h.DeleteReleasePluginBinTool))
+
+	// sync shared releases.
+	h.rg.POST("/sync_shared", restserver.Handler(h.SyncSharedReleases))
 }

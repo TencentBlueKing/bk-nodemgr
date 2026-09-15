@@ -5,25 +5,31 @@
 |Scope:pkg/discover/etcddiscover
 |Overview:etcd-backed `discover.IProvider` for registration, discovery, lease keepalive, watch/list cache sync, TLS, and etcd-log bridging
 |Boundary:owns all etcd-specific client/TLS/lease/watch/cache/log adaptation|callers own service-specific `discover.Instance` payload production and consumption
-|Structure:pkg/discover/etcddiscover:{README.md,etcd.go,etcd_test.go,etcd_logger_test.go,AGENTS.md}
+|Structure:pkg/discover/etcddiscover:{README.md,etcd.go,etcd_test.go,etcd_logger_test.go,register_test.go,registration_lifecycle_test.go,AGENTS.md}
 |Where to look:package intent/boundary:README.md:etcd discovery purpose and “all etcd logic stays here” rule
 |Where to look:provider implementation:etcd.go:`ProviderEtcd`,`NewProviderEtcd`,`WithWatch`,`WithDiscoverPathPrefix`,`Start`,`GracefulShutdown`
-|Where to look:registration lifecycle:etcd.go:`Register`→`register`→lease `Grant`→`Put` with lease→`KeepAlive`→local cache|`Update`/`Deregister` require `metaKeyLeaseID`
-|Where to look:read sync path:etcd.go:`startWatching`/`watch` event sync + `keepListing`/`list` periodic full sync→`cacheInstances`→query APIs
+|Where to look:registration lifecycle:etcd.go:`Register`→`register`→`newSession`(lease+keepalive)→`putInstance`→`registration`|`registration.keep` re-registers on `session.Done()`|`Update`/`Deregister` operate on the stored `registration`
+|Where to look:read sync path:etcd.go:`startWatching`/`watch`(self-restarting)/`watchOnce` event sync + `keepListing`/`list` periodic full sync→`cacheInstances`→query APIs
 |Where to look:query APIs:etcd.go:`GetAllService`,`GetAllEndpoint`,`GetEndpoint`,`SelectEndpoints`:read provider-managed cache and delegate endpoint selection to `discover.SelectEndpoints`
 |Where to look:etcd client config/logging:etcd.go:`initTLS`,`newEtcdClientConfig`,`etcdLoggerCore`,`mapEtcdLogLevel`,`etcdEntryKeyValues`
 |Where to look:behavior tests:etcd_test.go:integration-style provider CRUD/query/select/shutdown tests require `.env` with `ETCD_ENDPOINT`
+|Where to look:registration validation tests:register_test.go:`Register` pre-validates every instance before touching etcd; no etcd needed
+|Where to look:registration lifecycle tests:registration_lifecycle_test.go:steady-state zero-write, heal after lease loss, deregister finality, shutdown removal|skip without `ETCD_ENDPOINT`
 |Where to look:logger tests:etcd_logger_test.go:etcd zap core mapping, deterministic key-value extraction, config logger injection
 |Conventions:implement parent `pkg/discover` contracts exactly; public surface remains `discover.Instance`/`discover.Endpoint`/`discover.ServiceName`/`discover.EndpointName`
-|Conventions:keep etcd raw types private to this package except internal `clientv3` use; never leak `clientv3` responses through `IProvider`
-|Conventions:preserve `metaKeyLeaseID` whenever replacing registered instances; lease id is required for update put-with-lease and revoke flows
-|Conventions:use `config.Etcd` + `initTLS()` for endpoints/auth/TLS; keep defaults local (`defaultEtcdPrefix`,`defaultEtcdDialTimeout`,`defaultEtcdLeaseTTLSec`,`defaultListTickTime`)
+|Conventions:keep etcd raw types private to this package except internal `clientv3`/`concurrency` use; never leak `clientv3` responses through `IProvider`
+|Conventions:lease lifecycle is owned by `registration` via `concurrency.Session`; never grant/revoke/keepalive leases outside it, and never persist lease ids into `discover.Instance.Meta`
+|Conventions:steady-state registration must cost zero etcd writes; only register/update/re-register after session loss may `Put`|never add periodic re-put loops
+|Conventions:use `config.Etcd` + `initTLS()` for endpoints/auth/TLS; keep defaults local (`defaultEtcdPrefix`,`defaultEtcdDialTimeout`,`defaultEtcdLeaseTTLSec`,`defaultListTickTime`,`defaultRetryInterval`,`defaultRevokeTimeout`)
 |Conventions:watch/list cache is the read model; query methods should not perform ad-hoc etcd reads outside the provider sync path
 |Conventions:use `pkg/logger` for project logs; etcd internal zap logs must route through `newEtcdClientConfig()`/`etcdLoggerCore`
-|Conventions:shutdown order matters: deregister local instances before cancel because `Deregister` uses `provider.ctx` to revoke leases
+|Conventions:shutdown order matters: `GracefulShutdown` cancels `provider.ctx` before stopping registrations, so in-flight registration requests abort and cannot hold `registration.mutex` on an unreachable etcd
+|Conventions:lease revoke (`revokeSession`) must run on its own bounded context, never on `provider.ctx`; it has to reach etcd after shutdown cancelled that context
+|Conventions:replacing a registration of an already registered instance id must stop the previous `registration` before publishing the new lease, otherwise its pending `Put` can rebind the key to the lease about to be revoked
 |Anti-patterns:do not add service-specific routing, weighting, health, or metadata policy here; callers own payload semantics beyond `discover.Instance`
 |Anti-patterns:do not hardcode endpoints/credentials/TLS paths outside `config.Etcd`; do not bypass `initTLS()` for TLS setup
-|Anti-patterns:do not write directly to etcd without updating in-memory `localInstances` and preserving lease metadata
+|Anti-patterns:do not write to etcd without going through `registration` (it owns the instance payload the keeper re-registers with)
 |Anti-patterns:do not duplicate root `pkg/discover` selector/error/model logic; extend root contracts first when behavior is generic
-|Dependencies:internal project:{pkg/config,pkg/discover,pkg/logger,pkg/runtime/conv,pkg/runtime/ssl}|external:{go.etcd.io/etcd/client/v3,go.uber.org/zap}
+|Dependencies:internal project:{pkg/config,pkg/discover,pkg/logger,pkg/runtime/ssl}|external:{go.etcd.io/etcd/client/v3,go.etcd.io/etcd/client/v3/concurrency,go.uber.org/zap}
+|Ops:etcd server should enable auto-compaction; the provider keeps steady-state writes at zero but cannot compact history it did not create
 |Commands:targeted tests need reachable etcd + `.env`:`go test ./pkg/discover/etcddiscover`|logger-only tests can be filtered with `-run 'Test.*Logger|TestEtcdEntry|TestMapEtcd'`

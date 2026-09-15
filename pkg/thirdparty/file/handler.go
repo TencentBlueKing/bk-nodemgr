@@ -38,6 +38,7 @@ import (
 type IHandler interface {
 	IPkgManager
 	ITransfer
+	ISharedReleaseSyncHandler
 }
 
 // ITransfer is interface for file transfer handler.
@@ -204,6 +205,12 @@ type IPkgExportHandler interface {
 
 	// ExportGetOriginPluginPackageDownloadAddress gets the download address of the origin plugin package.
 	ExportGetOriginPluginPackageDownloadAddress(nCtx contextx.IContext, exportID string) (string, int64, error)
+}
+
+// ISharedReleaseSyncHandler synchronizes system shared releases for a tenant.
+type ISharedReleaseSyncHandler interface {
+	// SyncSharedReleases synchronizes system shared releases to the current tenant.
+	SyncSharedReleases(nCtx contextx.IContext) error
 }
 
 const (

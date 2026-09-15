@@ -214,7 +214,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	resources := auth.BuildPackageResources(pluginPkgName)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable plugin, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	key := types.ReleasePluginKey{
@@ -291,7 +291,7 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 	resources := auth.BuildPackageResources(name)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable plugin, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	key := types.ReleasePluginKey{
@@ -332,7 +332,7 @@ func (h *handler) SetHiddenReleasePlugin(rCtx restserver.IContext) (interface{},
 	resources := auth.BuildPackageResources(name)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set hidden plugin, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	key := types.ReleasePluginKey{
@@ -376,7 +376,7 @@ func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface
 	resources := auth.BuildPackageResources(name)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default plugin, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	key := types.ReleasePluginKey{
@@ -416,7 +416,7 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 	resources := auth.BuildPackageResources(name)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default plugin, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	key := types.ReleasePluginKey{
@@ -456,7 +456,7 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	resources := auth.BuildPackageResources(name)
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete plugin, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	key := types.ReleasePluginKey{

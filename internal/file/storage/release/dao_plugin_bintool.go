@@ -75,8 +75,8 @@ func (s *Storage) listReleasePluginBinTool(nCtx contextx.IContext, page types.Pa
 }
 
 // existReleasePluginBinTool checks if release plugin bintool exists.
-func (s *Storage) existReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation) (bool, error) {
-	result, err := s.daoRelease.Exist(nCtx, types.ReleaseTypePluginBinTool, release.WithGeneration(gen))
+func (s *Storage) existReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (bool, error) {
+	result, err := s.daoRelease.Exist(nCtx, types.ReleaseTypePluginBinTool, release.WithGeneration(gen), release.WithName(name))
 	if err != nil {
 		return false, fmt.Errorf("failed to check exist release plugin bintool: %w", err)
 	}

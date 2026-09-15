@@ -16,19 +16,28 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package schedule provides the operation definition for scheduling host synchronization.
-package schedule
+package release
 
 import (
-	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"fmt"
+
+	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
 
-// Capability encapsulates the various capabilities the service supports.
-type Capability struct {
-	// stroage.
-	StorageWorkflow workflow.IStorage
-	StoragePlugin   pluginStg.IStorage
-	FileHandler     file.IHandler
+// SyncSharedReleases synchronizes system shared releases to the authenticated tenant.
+func (h *handler) SyncSharedReleases(rCtx restserver.IContext) (interface{}, error) {
+	if rCtx.TenantID() == tenant.SystemTenantID {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("system tenant cannot sync shared releases"))
+	}
+
+	if err := h.manager.SyncSharedReleases(rCtx); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.Aborted, fmt.Errorf("failed to sync shared releases: %w", err))
+	}
+
+	resp := new(protoFile.SyncSharedReleasesResp)
+
+	return resp.GetData(), nil
 }

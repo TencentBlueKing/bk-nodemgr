@@ -34,6 +34,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -371,7 +372,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 					MD5:        file.Info().MD5,
 					Enabled:    false,
 					AsDefault:  false,
-					IsShared:   isShared,
+					IsShared:   isShared && nCtx.TenantID() == tenant.SystemTenantID,
 					IsSynced:   false,
 					Operator:   nCtx.BKUsername(),
 					UpdatedAt:  time.Now(),

@@ -360,8 +360,10 @@ func (mgr *Manager) registerDefSchedule() error {
 		StoragePlugin:   mgr.conf.StoragePlugin,
 		FileHandler:     mgr.conf.FileHandler,
 	}
+
 	if err := mgr.workflowMgr.RegisterActions(
 		schedule.NewActionEnsureDefaultPlugin(scheduleCap),
+		schedule.NewActionSyncSharedReleases(scheduleCap),
 	); err != nil {
 		return err
 	}

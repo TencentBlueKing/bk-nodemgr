@@ -29,6 +29,7 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -251,7 +252,7 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string,
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
-			IsShared:     isShared,
+			IsShared:     isShared && nCtx.TenantID() == tenant.SystemTenantID,
 			IsSynced:     false,
 			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),

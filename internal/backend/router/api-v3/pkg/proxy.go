@@ -179,7 +179,7 @@ func (h *handler) SetReleaseProxyLabelsMany(rCtx restserver.IContext) (interface
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeProxy))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many proxy release labels, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -219,7 +219,7 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeProxy))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable proxy release, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -261,7 +261,7 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeProxy))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable proxy release, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -303,7 +303,7 @@ func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeProxy))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default proxy release, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -345,7 +345,7 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeProxy))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default proxy release, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -387,7 +387,7 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeProxy))
 	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete proxy release, permission denied")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	gen := types.Generation(req.GetGeneration())

@@ -205,7 +205,7 @@ func (h *handler) EnableReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	// Permission check: ActionPackageManage
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
-		return nil, authErr
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -246,7 +246,7 @@ func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, er
 	// Permission check: ActionPackageManage
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
-		return nil, authErr
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -288,7 +288,7 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 	// Permission check: ActionPackageManage
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
-		return nil, authErr
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -329,7 +329,7 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 	// Permission check: ActionPackageManage
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
-		return nil, authErr
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -370,7 +370,7 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	// Permission check: ActionPackageManage
 	resources := auth.BuildPackageResources(string(types.ReleaseTypeAgent))
 	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
-		return nil, authErr
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	gen := types.Generation(req.GetGeneration())

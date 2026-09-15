@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -45,7 +46,14 @@ const (
 	defaultEtcdLeaseTTLSec = 10
 	defaultListTickTime    = 10 * time.Second
 
-	metaKeyLeaseID = "etcd-lease-id"
+	// defaultRetryInterval is the backoff before retrying a lost registration
+	// or a broken watch.
+	defaultRetryInterval = time.Second
+
+	// defaultRevokeTimeout bounds revoking the lease of a stopped
+	// registration. Revoking is an optimization over letting the orphaned
+	// lease expire, so it must not block a shutdown on an unreachable etcd.
+	defaultRevokeTimeout = 3 * time.Second
 
 	etcdEntryBaseKeyValueCapacity = 8
 )
@@ -64,9 +72,9 @@ type ProviderEtcd struct {
 
 	serviceWatchList []discover.ServiceName
 
-	// local instances registered by current runtime.
-	localInstancesMutex sync.RWMutex
-	localInstances      map[discover.ServiceName]*instanceHolder
+	// registrations of the instances registered by current runtime.
+	registrationMutex sync.Mutex
+	registrations     map[discover.ServiceName]map[string]*registration
 
 	// cache instances synced from etcd.
 	cacheInstanceMutex sync.RWMutex
@@ -79,7 +87,7 @@ func NewProviderEtcd(config *config.Etcd, opts ...OptionFn) *ProviderEtcd {
 		config:           config,
 		discoverPrefix:   defaultEtcdPrefix,
 		serviceWatchList: make([]discover.ServiceName, 0),
-		localInstances:   make(map[discover.ServiceName]*instanceHolder),
+		registrations:    make(map[discover.ServiceName]map[string]*registration),
 		cacheInstances:   make(map[discover.ServiceName]*instanceHolder),
 	}
 
@@ -252,8 +260,22 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 
 // GracefulShutdown gracefully shuts down the provider, stop all activities.
 func (provider *ProviderEtcd) GracefulShutdown() error {
+	// cancel before stopping the registrations: cancelling aborts the etcd
+	// requests a registration may have in flight, and that is what bounds the
+	// wait for its lock below. Stopping first lets an unreachable etcd hold
+	// the shutdown for as long as it stays unreachable.
 	if provider.cancel != nil {
 		provider.cancel()
+	}
+
+	// revoke the leases of the locally registered instances, dropping them
+	// from discovery at once instead of after a lease TTL.
+	for _, reg := range provider.takeAllRegistrations() {
+		if err := reg.stop(); err != nil {
+			logger.G.Sys().WithErr(err).
+				With("service", reg.serviceName, "id", reg.instanceID).
+				Warn("failed to deregister instance on shutdown")
+		}
 	}
 
 	logger.G.Sys().Info("stopped etcd discover provider")
@@ -299,6 +321,8 @@ func (provider *ProviderEtcd) SelectEndpoints(
 
 // Register registers service instances.
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instances ...discover.Instance) error {
+	// validate every instance before registering any of them, so that an
+	// invalid input is reported without leaving a partial registration.
 	for _, instance := range instances {
 		if serviceName == "" {
 			return fmt.Errorf(
@@ -313,6 +337,10 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 		}
 	}
 
+	if provider.etcdClient == nil {
+		return discover.ErrDiscoverNotStarted()
+	}
+
 	for _, instance := range instances {
 		if err := provider.register(serviceName, instance); err != nil {
 			return fmt.Errorf("failed to register instance, instance(%v): %w", instance, err)
@@ -322,8 +350,8 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 	return nil
 }
 
-// register registers a service instance.
-// nolint: gocognit
+// register registers a service instance and keeps it registered until it is
+// deregistered or the provider is shut down.
 func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instance discover.Instance) error {
 	logger.G.Sys().With("service", serviceName, "id", instance.ID).Info("registering service")
 
@@ -339,148 +367,76 @@ func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instanc
 		return discover.ErrInvalidInstanceName()
 	}
 
-	resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
+	key := provider.instanceKey(serviceName, instance.ID)
+
+	// re-registering the same instance replaces the previous registration:
+	// stop it before publishing the new lease, so that a write still pending
+	// on it cannot rebind the key to the lease that is about to be revoked,
+	// which would leave the key deleted with nothing to bring it back.
+	if previous := provider.takeRegistration(serviceName, instance.ID); previous != nil {
+		provider.stopReplacedRegistration(previous)
+	}
+
+	session, err := provider.newSession()
 	if err != nil {
 		return err
 	}
 
-	leaseID := int64(resp.ID)
-	instance.SetMeta(metaKeyLeaseID, leaseID)
-	content, err := json.Marshal(instance)
-	if err != nil {
+	if err = provider.putInstance(key, instance, session.Lease()); err != nil {
+		provider.closeSession(key, session)
+
 		return err
 	}
 
-	_, err = provider.etcdClient.Put(
-		provider.ctx,
-		filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID),
-		string(content),
-		clientv3.WithLease(clientv3.LeaseID(leaseID)),
-	)
-	if err != nil {
-		return err
+	reg := &registration{
+		provider:    provider,
+		serviceName: serviceName,
+		instanceID:  instance.ID,
+		key:         key,
+		instance:    instance,
+		session:     session,
 	}
 
-	ch, err := provider.etcdClient.KeepAlive(provider.ctx, clientv3.LeaseID(leaseID))
-	if err != nil {
-		return err
+	// a concurrent Register of the same instance may have installed a
+	// registration in the meantime: stop it so its keeper and lease are not
+	// left behind.
+	if previous := provider.putRegistration(reg); previous != nil {
+		provider.stopReplacedRegistration(previous)
 	}
 
-	go func() {
-		for resp := range ch {
-			logger.G.Sys().With("lease-id", resp.ID).Debug("recved grant keepalive response")
-		}
-		logger.G.Sys().With("lease-id", leaseID).Info("grant keepalive channel closed, goroutine exit")
-	}()
+	go reg.keep()
 
-	provider.getLocalInstanceHolder(serviceName).upsert(instance)
-	logger.G.Sys().With("service", serviceName, "id", instance.ID, "data", string(content)).Info("registered service")
-
-	// register keeper.
-	go func() {
-		for {
-			select {
-			case <-provider.ctx.Done():
-				return
-			default:
-				cachedInstance, err := provider.getLocalInstanceHolder(serviceName).get(instance.ID)
-				if err != nil {
-					logger.G.Sys().WithErr(err).With("service", serviceName, "id", instance.ID).Warn("local instance not found, quit the register keeper")
-
-					return
-				}
-
-				if err = provider.putService(serviceName, cachedInstance); err != nil {
-					logger.G.Sys().WithErr(err).Warn("failed to put service in register keeper")
-				}
-			}
-
-			time.Sleep(time.Second)
-		}
-	}()
+	logger.G.Sys().With("service", serviceName, "id", instance.ID, "data", instance).Info("registered service")
 
 	return nil
 }
 
+// stopReplacedRegistration stops a registration that a newer one for the same
+// instance has replaced.
+func (provider *ProviderEtcd) stopReplacedRegistration(reg *registration) {
+	if err := reg.stop(); err != nil {
+		logger.G.Sys().WithErr(err).With("key", reg.key).Warn("failed to stop the replaced registration")
+	}
+}
+
 // Update updates a service instance.
 func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance discover.Instance) error {
-	if err := provider.putService(serviceName, instance); err != nil {
+	if provider.etcdClient == nil {
+		return discover.ErrDiscoverNotStarted()
+	}
+
+	reg := provider.getRegistration(serviceName, instance.ID)
+	if reg == nil {
+		return discover.ErrNotRegistered()
+	}
+
+	if err := reg.update(instance); err != nil {
 		logger.G.Sys().WithErr(err).With("service", serviceName, "id", instance.ID).Error("failed to update instance")
 
 		return err
 	}
 
 	logger.G.Sys().With("service", serviceName, "id", instance.ID, "data", instance).Info("successfully updated")
-
-	return nil
-}
-
-func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, instance discover.Instance) error {
-	if provider.etcdClient == nil {
-		return discover.ErrDiscoverNotStarted()
-	}
-
-	if serviceName == "" {
-		return discover.ErrInvalidServiceName()
-	}
-
-	if instance.ID == "" {
-		return discover.ErrInvalidInstanceID()
-	}
-
-	if instance.Name == "" {
-		return discover.ErrInvalidInstanceName()
-	}
-
-	holder := provider.getLocalInstanceHolder(serviceName)
-	instanceOld, err := holder.get(instance.ID)
-	if err != nil {
-		return err
-	}
-
-	leaseID, err := instanceOld.GetMetaInt64(metaKeyLeaseID)
-	if err != nil {
-		return errors.Join(discover.ErrDiscoverInternalError(), fmt.Errorf("lease id not found: %w", err))
-	}
-
-	instance.SetMeta(metaKeyLeaseID, leaseID)
-	content, err := json.Marshal(instance)
-	if err != nil {
-		return err
-	}
-
-	key := filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID)
-	if _, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Warn("failed to put service to etcd, need to grant new lease")
-
-		resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
-		if err != nil {
-			return err
-		}
-
-		leaseID := int64(resp.ID)
-		instance.SetMeta(metaKeyLeaseID, leaseID)
-
-		if _, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
-			return err
-		}
-
-		ch, err := provider.etcdClient.KeepAlive(provider.ctx, clientv3.LeaseID(leaseID))
-		if err != nil {
-			return err
-		}
-
-		go func() {
-			for resp := range ch {
-				logger.G.Sys().With("lease-id", resp.ID).Debug("recved grant keepalive response")
-			}
-			logger.G.Sys().With("lease-id", leaseID).Info("grant keepalive channel closed, goroutine exit")
-		}()
-
-		logger.G.Sys().With("key", key).Info("successfully grant new lease and update resource")
-	}
-
-	holder.upsert(instance)
 
 	return nil
 }
@@ -499,26 +455,275 @@ func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, insta
 		return discover.ErrInvalidInstanceID()
 	}
 
-	holder := provider.getLocalInstanceHolder(serviceName)
-	instance, err := holder.get(instanceID)
-	if err != nil {
+	reg := provider.takeRegistration(serviceName, instanceID)
+	if reg == nil {
+		return discover.ErrNotRegistered()
+	}
+
+	if err := reg.stop(); err != nil {
 		return err
 	}
 
-	leaseID, err := instance.GetMetaInt64(metaKeyLeaseID)
-	if err != nil {
-		return err
-	}
-
-	_, err = provider.etcdClient.Revoke(provider.ctx, clientv3.LeaseID(leaseID))
-	if err != nil {
-		return err
-	}
-
-	holder.delete(instanceID)
-	logger.G.Sys().With("service", serviceName, "id", instance.ID).Info("successfully deregistered")
+	logger.G.Sys().With("service", serviceName, "id", instanceID).Info("successfully deregistered")
 
 	return nil
+}
+
+// newSession creates an etcd session: a lease kept alive in the background,
+// whose Done channel closes once the lease is no longer being refreshed.
+func (provider *ProviderEtcd) newSession() (*concurrency.Session, error) {
+	return concurrency.NewSession(
+		provider.etcdClient,
+		concurrency.WithContext(provider.ctx),
+		concurrency.WithTTL(defaultEtcdLeaseTTLSec),
+	)
+}
+
+// revokeSession ends a session and revokes its lease.
+// The revoke runs on its own bounded context instead of provider.ctx: it must
+// still reach etcd while shutting down, once that context is already
+// cancelled, and it must never wait on an unreachable etcd. Orphaning already
+// stops the keepalives, so a failed revoke only means the lease expires within
+// a TTL rather than being dropped right now.
+func (provider *ProviderEtcd) revokeSession(session *concurrency.Session) error {
+	session.Orphan()
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRevokeTimeout)
+	defer cancel()
+
+	_, err := provider.etcdClient.Revoke(ctx, session.Lease())
+
+	return err
+}
+
+// closeSession revokes the lease of a session that is no longer needed.
+func (provider *ProviderEtcd) closeSession(key string, session *concurrency.Session) {
+	if err := provider.revokeSession(session); err != nil {
+		logger.G.Sys().WithErr(err).With("key", key).Warn("failed to close the unused session")
+	}
+}
+
+// putInstance writes the instance to etcd, bound to the given lease.
+func (provider *ProviderEtcd) putInstance(
+	key string, instance discover.Instance, leaseID clientv3.LeaseID,
+) error {
+
+	content, err := json.Marshal(instance)
+	if err != nil {
+		return err
+	}
+
+	_, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(leaseID))
+
+	return err
+}
+
+func (provider *ProviderEtcd) instanceKey(serviceName discover.ServiceName, instanceID string) string {
+	return filepath.Join(provider.discoverPrefix, string(serviceName), instanceID)
+}
+
+// putRegistration stores the registration, returning the one it replaced.
+func (provider *ProviderEtcd) putRegistration(reg *registration) *registration {
+	provider.registrationMutex.Lock()
+	defer provider.registrationMutex.Unlock()
+
+	service, ok := provider.registrations[reg.serviceName]
+	if !ok {
+		service = make(map[string]*registration)
+		provider.registrations[reg.serviceName] = service
+	}
+
+	previous := service[reg.instanceID]
+	service[reg.instanceID] = reg
+
+	return previous
+}
+
+// getRegistration returns the registration of an instance, nil when it is not
+// registered by the current runtime.
+func (provider *ProviderEtcd) getRegistration(
+	serviceName discover.ServiceName, instanceID string,
+) *registration {
+
+	provider.registrationMutex.Lock()
+	defer provider.registrationMutex.Unlock()
+
+	return provider.registrations[serviceName][instanceID]
+}
+
+// takeRegistration removes and returns the registration of an instance, nil
+// when it is not registered by the current runtime.
+func (provider *ProviderEtcd) takeRegistration(
+	serviceName discover.ServiceName, instanceID string,
+) *registration {
+
+	provider.registrationMutex.Lock()
+	defer provider.registrationMutex.Unlock()
+
+	reg, ok := provider.registrations[serviceName][instanceID]
+	if !ok {
+		return nil
+	}
+
+	delete(provider.registrations[serviceName], instanceID)
+
+	return reg
+}
+
+// takeAllRegistrations removes and returns all the registrations.
+func (provider *ProviderEtcd) takeAllRegistrations() []*registration {
+	provider.registrationMutex.Lock()
+	defer provider.registrationMutex.Unlock()
+
+	regs := make([]*registration, 0)
+	for serviceName, service := range provider.registrations {
+		for _, reg := range service {
+			regs = append(regs, reg)
+		}
+
+		delete(provider.registrations, serviceName)
+	}
+
+	return regs
+}
+
+// errRegistrationStopped is returned when the registration has been ended by
+// Deregister or by a provider shutdown.
+var errRegistrationStopped = errors.New("registration stopped")
+
+// registration is a service instance registered by the current runtime.
+// It owns the etcd session backing the instance key, and re-registers the
+// instance whenever that session is lost.
+type registration struct {
+	provider    *ProviderEtcd
+	serviceName discover.ServiceName
+	instanceID  string
+	key         string
+
+	// mutex guards the registration state against concurrent Update,
+	// Deregister and keeper goroutine access.
+	mutex    sync.Mutex
+	instance discover.Instance
+	session  *concurrency.Session
+	stopped  bool
+}
+
+// keep re-registers the instance whenever its etcd session is lost, until the
+// instance is deregistered or the provider is shut down.
+// Keeping a session alive does not write to etcd, so a healthy registration
+// costs no etcd revision no matter how long it lives.
+func (reg *registration) keep() {
+	log := logger.G.Sys().With("service", reg.serviceName, "id", reg.instanceID)
+
+	for {
+		session := reg.currentSession()
+		if session == nil {
+			return
+		}
+
+		select {
+		case <-reg.provider.ctx.Done():
+			return
+
+		case <-session.Done():
+		}
+
+		// the session is gone: its lease expired or the keepalive stream
+		// died. Re-register to restore the instance key in etcd.
+		err := reg.renew()
+		if err == nil {
+			log.Info("re-registered instance after session loss")
+
+			continue
+		}
+
+		if errors.Is(err, errRegistrationStopped) {
+			return
+		}
+
+		log.WithErr(err).Warn("failed to re-register instance, will retry")
+
+		// the lost session is still the current one and its Done channel is
+		// already closed, so back off before the next attempt.
+		select {
+		case <-reg.provider.ctx.Done():
+			return
+
+		case <-time.After(defaultRetryInterval):
+		}
+	}
+}
+
+// renew replaces the lost session with a fresh one and re-puts the instance.
+func (reg *registration) renew() error {
+	reg.mutex.Lock()
+	defer reg.mutex.Unlock()
+
+	if reg.stopped {
+		return errRegistrationStopped
+	}
+
+	session, err := reg.provider.newSession()
+	if err != nil {
+		return err
+	}
+
+	if err = reg.provider.putInstance(reg.key, reg.instance, session.Lease()); err != nil {
+		reg.provider.closeSession(reg.key, session)
+
+		return err
+	}
+
+	// release the lost session: its lease has either expired already or no
+	// longer holds the instance key, which is now bound to the new lease.
+	reg.session.Orphan()
+	reg.session = session
+
+	return nil
+}
+
+// update replaces the registered instance and pushes it to etcd.
+func (reg *registration) update(instance discover.Instance) error {
+	reg.mutex.Lock()
+	defer reg.mutex.Unlock()
+
+	if reg.stopped {
+		return discover.ErrNotRegistered()
+	}
+
+	// the stored instance is what the keeper re-registers with: store it
+	// first, so that a put failing on a dying lease is still healed with the
+	// new instance instead of the previous one.
+	reg.instance = instance
+
+	return reg.provider.putInstance(reg.key, instance, reg.session.Lease())
+}
+
+// stop ends the registration: it stops the keeper and revokes the session
+// lease, which removes the instance key from etcd at once.
+func (reg *registration) stop() error {
+	reg.mutex.Lock()
+	defer reg.mutex.Unlock()
+
+	if reg.stopped {
+		return nil
+	}
+	reg.stopped = true
+
+	return reg.provider.revokeSession(reg.session)
+}
+
+// currentSession returns the session currently backing the instance key, nil
+// when the registration has been stopped.
+func (reg *registration) currentSession() *concurrency.Session {
+	reg.mutex.Lock()
+	defer reg.mutex.Unlock()
+
+	if reg.stopped {
+		return nil
+	}
+
+	return reg.session
 }
 
 var errNotTLS = errors.New("not tls")
@@ -548,9 +753,29 @@ func (provider *ProviderEtcd) startWatching() {
 	}
 }
 
+// watch keeps a watch on a service running until the provider is shut down.
+// A watch is cancelled by etcd on its own (a compaction outrunning the
+// watcher, a stream error), so it is restarted instead of leaving the cache
+// to the periodic list alone.
 func (provider *ProviderEtcd) watch(serviceName discover.ServiceName) {
 	logger.G.Sys().With("service", serviceName).Info("started watch for service")
 
+	for {
+		provider.watchOnce(serviceName)
+
+		select {
+		case <-provider.ctx.Done():
+			logger.G.Sys().With("service", serviceName).Info("stopped watch for service")
+
+			return
+
+		case <-time.After(defaultRetryInterval):
+		}
+	}
+}
+
+// watchOnce consumes a single watch stream, returning when etcd closes it.
+func (provider *ProviderEtcd) watchOnce(serviceName discover.ServiceName) {
 	instanceHolder := provider.getCacheInstanceHolder(serviceName)
 
 	rch := provider.etcdClient.Watch(
@@ -559,6 +784,12 @@ func (provider *ProviderEtcd) watch(serviceName discover.ServiceName) {
 		clientv3.WithPrefix())
 
 	for wresp := range rch {
+		if err := wresp.Err(); err != nil {
+			logger.G.Sys().WithErr(err).With("service", serviceName).Warn("watch cancelled, will restart")
+
+			return
+		}
+
 		for _, ev := range wresp.Events {
 			id := filepath.Base(string(ev.Kv.Key))
 
@@ -589,15 +820,12 @@ func (provider *ProviderEtcd) watch(serviceName discover.ServiceName) {
 					Debug("observed instance put")
 
 			case clientv3.EventTypeDelete:
-				instanceHolder := provider.getCacheInstanceHolder(serviceName)
 				instanceHolder.delete(id)
 
 				logger.G.Sys().With("service", serviceName, "id", id).Info("observed instance delete")
 			}
 		}
 	}
-
-	logger.G.Sys().With("service", serviceName).Info("stopped watch for service")
 }
 
 func (provider *ProviderEtcd) keepListing() {
@@ -682,22 +910,8 @@ func (provider *ProviderEtcd) getCacheInstanceHolder(serviceName discover.Servic
 	return holder
 }
 
-func (provider *ProviderEtcd) getLocalInstanceHolder(serviceName discover.ServiceName) *instanceHolder {
-	provider.localInstancesMutex.Lock()
-	defer provider.localInstancesMutex.Unlock()
-
-	if holder, ok := provider.localInstances[serviceName]; ok {
-		return holder
-	}
-
-	holder := &instanceHolder{
-		instances: make(map[string]discover.Instance),
-	}
-	provider.localInstances[serviceName] = holder
-
-	return holder
-}
-
+// instanceHolder is the read model of a service: the instances synced from
+// etcd by the watch and list loops.
 type instanceHolder struct {
 	mutex     sync.RWMutex
 	instances map[string]discover.Instance
@@ -754,18 +968,6 @@ func (holder *instanceHolder) all() []discover.Instance {
 	}
 
 	return instances
-}
-
-func (holder *instanceHolder) get(id string) (discover.Instance, error) {
-	holder.mutex.RLock()
-	defer holder.mutex.RUnlock()
-
-	instance, ok := holder.instances[id]
-	if !ok {
-		return discover.Instance{}, discover.ErrNotRegistered()
-	}
-
-	return instance, nil
 }
 
 func (holder *instanceHolder) getEndpoints(endpointName discover.EndpointName) []discover.Endpoint {
