@@ -21,6 +21,7 @@ package dpmgr
 import (
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -34,6 +35,8 @@ type Config struct {
 	DaoHost                 topo.IStorageHost
 	DomainDeployPolicyMgr   deploypolicy.IDomainDeployPolicyMgr
 	DaoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
+	DaoNodeWorkflow         node.IDaoNodeWorkflow
+	DaoPluginWorkflow       plugin.IDaoPluginWorkflow
 	CmdbHandler             cmdb.IHandler
 	NodeManager             managerIface.INodeManager
 	PluginManager           managerIface.IPluginManager

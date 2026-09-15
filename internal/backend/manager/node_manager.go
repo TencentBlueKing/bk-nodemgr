@@ -36,7 +36,6 @@ import (
 )
 
 // LaunchInstallNode launch a task to install node.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.InstallNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
@@ -76,11 +75,11 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch install node task. err: %w", err)
+		return "", fmt.Errorf("failed to launch install node task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil
@@ -431,7 +430,6 @@ func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.UpgradeNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
@@ -504,11 +502,11 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch upgrade node task. err: %w", err)
+		return "", fmt.Errorf("failed to launch upgrade node task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil
@@ -709,7 +707,6 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.Restar
 }
 
 // LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.UninstallNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
@@ -781,11 +778,11 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch uninstall node task: %w", err)
+		return "", fmt.Errorf("failed to launch uninstall node task: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil

@@ -36,7 +36,6 @@ import (
 )
 
 // LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchInstallPlugin(
 	nCtx contextx.IContext,
 	param types.InstallPluginParam,
@@ -77,11 +76,11 @@ func (mgr *Manager) LaunchInstallPlugin(
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch install plugin task. err: %w", err)
+		return "", fmt.Errorf("failed to launch install plugin task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil
@@ -141,7 +140,6 @@ func (mgr *Manager) getPluginInstallOperationDef(
 }
 
 // LaunchUpgradePlugin launch a task to upgrade plugin. returns the workflow-id.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.UpgradePluginParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
@@ -178,11 +176,11 @@ func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.Upgr
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch upgrade plugin task. err: %w", err)
+		return "", fmt.Errorf("failed to launch upgrade plugin task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil
@@ -235,7 +233,6 @@ func (mgr *Manager) getPluginUpgradeOperationDef(deploy *types.PluginDeployment,
 }
 
 // LaunchUninstallPlugin launch a task to uninstall plugin. returns the workflow-id.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
@@ -272,11 +269,11 @@ func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.Un
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch uninstall plugin task. err: %w", err)
+		return "", fmt.Errorf("failed to launch uninstall plugin task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil
@@ -329,7 +326,6 @@ func (mgr *Manager) getPluginUninstallOperationDef(deploy *types.PluginDeploymen
 }
 
 // LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
@@ -402,18 +398,17 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch apply plugin subconfig task. err: %w", err)
+		return "", fmt.Errorf("failed to launch apply plugin subconfig task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil
 }
 
 // LaunchRemovePluginSubConfig launch a task to remove plugin subconfig. returns the workflow-id.
-// A nonempty ID confirms workflow persistence even on error, not successful launch.
 func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param types.RemovePluginSubConfigParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
@@ -485,11 +480,11 @@ func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param ty
 	}
 
 	if err := gp.Wait(); err != nil {
-		return workflowID, fmt.Errorf("failed to launch remove plugin subconfig task. err: %w", err)
+		return "", fmt.Errorf("failed to launch remove plugin subconfig task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return workflowID, err
+		return "", err
 	}
 
 	return workflowID, nil

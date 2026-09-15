@@ -80,6 +80,8 @@ func NewHandler(conf *Config) *Handler {
 		DaoPlugin:               conf.DaoPlugin,
 		DaoProcessConfig:        conf.DaoProcessConfig,
 		DaoDeployPolicyWorkflow: conf.DaoDeployPolicyWorkflow,
+		DaoNodeWorkflow:         conf.DaoNodeWorkflow,
+		DaoPluginWorkflow:       conf.DaoPluginWorkflow,
 	})
 
 	return &Handler{

@@ -25,6 +25,7 @@ import (
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -80,6 +81,8 @@ type Executor struct {
 	daoPlugin               plugin.IDaoPlugin
 	daoProcessConfig        plugin.IDaoProcessConfig
 	daoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
+	daoNodeWorkflow         node.IDaoNodeWorkflow
+	daoPluginWorkflow       plugin.IDaoPluginWorkflow
 }
 
 // ExecutorConfig defines the config of executor.
@@ -89,6 +92,8 @@ type ExecutorConfig struct {
 	DaoPlugin               plugin.IDaoPlugin
 	DaoProcessConfig        plugin.IDaoProcessConfig
 	DaoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
+	DaoNodeWorkflow         node.IDaoNodeWorkflow
+	DaoPluginWorkflow       plugin.IDaoPluginWorkflow
 }
 
 type pluginPkgTaskParam struct {
@@ -106,6 +111,8 @@ func NewExecutor(conf *ExecutorConfig) *Executor {
 		daoPlugin:               conf.DaoPlugin,
 		daoProcessConfig:        conf.DaoProcessConfig,
 		daoDeployPolicyWorkflow: conf.DaoDeployPolicyWorkflow,
+		daoNodeWorkflow:         conf.DaoNodeWorkflow,
+		daoPluginWorkflow:       conf.DaoPluginWorkflow,
 	}
 }
 
@@ -256,14 +263,15 @@ func (executor *Executor) prepareWorkflowChild(nCtx contextx.IContext, execution
 func (executor *Executor) finishWorkflowChild(nCtx contextx.IContext, workflowIDs []string,
 	child types.DeployPolicyWorkflowChild, workflowID string, launchErr error) error {
 
-	if workflowID == "" {
-		if launchErr != nil {
+	if launchErr != nil {
+		if len(workflowIDs) == 0 {
 			return launchErr
 		}
-
-		return errors.New("workflow creation was not confirmed")
-	}
-	if workflowID != child.WorkflowID {
+		// Failed launches provide no usable result; inspect the preallocated ID instead.
+		if err := executor.checkWorkflowChildCreated(nCtx, child); err != nil {
+			return errors.Join(launchErr, fmt.Errorf("failed to confirm child workflow creation: %w", err))
+		}
+	} else if workflowID != child.WorkflowID {
 		return errors.Join(launchErr, fmt.Errorf("launched workflow id %q does not match prepared child %q",
 			workflowID, child.WorkflowID))
 	}
@@ -271,13 +279,35 @@ func (executor *Executor) finishWorkflowChild(nCtx contextx.IContext, workflowID
 		return launchErr
 	}
 
-	// A nonempty matching ID confirms creation even when a later launch step failed.
 	child.Confirmed = true
 	if err := executor.daoDeployPolicyWorkflow.RecordDeployPolicyWorkflowChild(nCtx, workflowIDs, child); err != nil {
 		return errors.Join(launchErr, fmt.Errorf("failed to confirm deploy policy workflow child: %w", err))
 	}
 
 	return launchErr
+}
+
+func (executor *Executor) checkWorkflowChildCreated(nCtx contextx.IContext, child types.DeployPolicyWorkflowChild) error {
+	switch child.WorkflowDomain {
+	case types.WorkflowDomainNode:
+		if executor.daoNodeWorkflow == nil {
+			return errors.New("node workflow storage is required")
+		}
+		if _, err := executor.daoNodeWorkflow.GetNodeWorkflow(nCtx, child.WorkflowID); err != nil {
+			return fmt.Errorf("failed to get node workflow: %w", err)
+		}
+	case types.WorkflowDomainPlugin:
+		if executor.daoPluginWorkflow == nil {
+			return errors.New("plugin workflow storage is required")
+		}
+		if _, err := executor.daoPluginWorkflow.GetPluginWorkflow(nCtx, child.WorkflowID); err != nil {
+			return fmt.Errorf("failed to get plugin workflow: %w", err)
+		}
+	default:
+		return fmt.Errorf("unsupported child workflow domain %q", child.WorkflowDomain)
+	}
+
+	return nil
 }
 
 func collectDeployPolicyIDs(tasks []*ChangeTask) []int64 {
