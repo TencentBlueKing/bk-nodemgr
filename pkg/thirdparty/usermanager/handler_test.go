@@ -20,9 +20,12 @@ package usermanager
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,6 +37,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
@@ -112,6 +116,59 @@ func TestHandlerMultiTenantGetBKUsernameByLoginName(t *testing.T) {
 	assert.Equal(t, "bk-nodemgr@tenant-a", bkUsername)
 }
 
+func TestHandlerMultiTenantVirtualUserCache(t *testing.T) {
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		calls.Add(1)
+		loginName := req.URL.Query().Get("lookups")
+		username := loginName + "@" + req.Header.Get(restheader.BKTenantIDKey)
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = fmt.Fprintf(rw, `{"data":[{"bk_username":%q,"login_name":%q}]}`, username, loginName)
+	}))
+	defer server.Close()
+
+	h := newHTTPTestHandler(t, server.URL)
+	for _, tenantID := range []string{"system", "tenant-a", "tenant-b"} {
+		for _, loginName := range []string{"bk-nodemgr", "other"} {
+			nCtx := contextx.New(context.Background(), contextx.WithTenantID(tenantID))
+			for range 2 {
+				username, err := h.GetBKUsernameByLoginName(nCtx, loginName)
+				require.NoError(t, err)
+				assert.Equal(t, loginName+"@"+tenantID, username)
+			}
+		}
+	}
+	assert.Equal(t, int32(6), calls.Load())
+
+	otherHandler := newHTTPTestHandler(t, server.URL)
+	_, err := otherHandler.GetBKUsernameByLoginName(
+		contextx.New(context.Background(), contextx.WithTenantID("system")), "bk-nodemgr")
+	require.NoError(t, err)
+	assert.Equal(t, int32(7), calls.Load())
+}
+
+func TestHandlerMultiTenantVirtualUserCacheExpires(t *testing.T) {
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = fmt.Fprintf(rw, `{"data":[{"bk_username":"user-%d","login_name":"bk-nodemgr"}]}`, calls.Add(1))
+	}))
+	defer server.Close()
+
+	h := newHTTPTestHandler(t, server.URL)
+	h.virtualUserCache = cache.NewMemoryCache(20 * time.Millisecond)
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("tenant-a"))
+	username, err := h.GetBKUsernameByLoginName(nCtx, "bk-nodemgr")
+	require.NoError(t, err)
+	assert.Equal(t, "user-1", username)
+
+	time.Sleep(30 * time.Millisecond)
+	username, err = h.GetBKUsernameByLoginName(nCtx, "bk-nodemgr")
+	require.NoError(t, err)
+	assert.Equal(t, "user-2", username)
+	assert.Equal(t, int32(2), calls.Load())
+}
+
 func TestHandlerMultiTenantGetBKUsernameByLoginNameValidation(t *testing.T) {
 	h := &HandlerMultiTenant{}
 
@@ -159,6 +216,11 @@ func TestHandlerMultiTenantGetBKUsernameByLoginNameResponseHandling(t *testing.T
 			wantErr: "virtual user not found",
 		},
 		{
+			name:    "remote error",
+			body:    `{"result":false,"code":1640301,"message":"permission denied","data":null}`,
+			wantErr: "permission denied",
+		},
+		{
 			name:    "empty bk username",
 			body:    `{"data":[{"login_name":"bk-nodemgr"}]}`,
 			wantErr: "virtual user bk username is empty",
@@ -173,7 +235,9 @@ func TestHandlerMultiTenantGetBKUsernameByLoginNameResponseHandling(t *testing.T
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var calls atomic.Int32
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				calls.Add(1)
 				rw.Header().Set("Content-Type", "application/json")
 				_, _ = rw.Write([]byte(tt.body))
 			}))
@@ -185,6 +249,11 @@ func TestHandlerMultiTenantGetBKUsernameByLoginNameResponseHandling(t *testing.T
 			if tt.wantErr != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tt.wantErr)
+				_, err = h.GetBKUsernameByLoginName(
+					contextx.New(context.Background(), contextx.WithTenantID("tenant-a")), "bk-nodemgr")
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				assert.Equal(t, int32(2), calls.Load())
 				return
 			}
 

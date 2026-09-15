@@ -21,10 +21,12 @@ package usermanager
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -51,7 +53,8 @@ func (conf *Config) Validate() error {
 
 // HandlerMultiTenant handler of user manager.
 type HandlerMultiTenant struct {
-	cli *cli
+	cli              *cli
+	virtualUserCache cache.ICache
 }
 
 // OptionFnMultiTenant ...
@@ -65,7 +68,8 @@ func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...Optio
 	}
 
 	handler := &HandlerMultiTenant{
-		cli: cli,
+		cli:              cli,
+		virtualUserCache: cache.NewMemoryCache(time.Minute),
 	}
 
 	for _, opt := range opts {
@@ -101,7 +105,7 @@ func (h HandlerMultiTenant) ListALLTenants(nCtx contextx.IContext) ([]*types.Ten
 	return tenants, nil
 }
 
-// GetBKUsernameByLoginName gets the tenant-scoped bk_username by login_name.
+// GetBKUsernameByLoginName gets the tenant-scoped bk_username by login_name, cached locally for one minute.
 //
 //nolint:varnamelen // h is the conventional handler receiver name.
 func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, loginName string) (string, error) {
@@ -115,6 +119,17 @@ func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, log
 		return "", errors.New("login name is empty")
 	}
 
+	cacheKey := fmt.Sprintf("%q:%q", nCtx.TenantID(), loginName)
+	data, err := h.virtualUserCache.Get(nCtx, cacheKey)
+	if err != nil {
+		return h.refreshVirtualUser(nCtx, loginName, cacheKey)
+	}
+
+	return string(data), nil
+}
+
+//nolint:varnamelen // h is the conventional handler receiver name.
+func (h HandlerMultiTenant) refreshVirtualUser(nCtx contextx.IContext, loginName, cacheKey string) (string, error) {
 	virtualUsers, err := h.cli.batchLookupVirtualUser(nCtx, loginName)
 	if err != nil {
 		return "", fmt.Errorf("failed to get bk username by login name: %w", err)
@@ -143,6 +158,10 @@ func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, log
 
 	if bkUsername == "" {
 		return "", fmt.Errorf("virtual user bk username is empty, login-name(%s)", loginName)
+	}
+
+	if err := h.virtualUserCache.Set(nCtx, cacheKey, []byte(bkUsername)); err != nil {
+		return "", fmt.Errorf("failed to cache virtual user bk username: %w", err)
 	}
 
 	return bkUsername, nil
