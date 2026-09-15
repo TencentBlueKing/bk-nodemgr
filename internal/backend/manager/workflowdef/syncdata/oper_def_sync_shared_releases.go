@@ -16,46 +16,49 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package schedule
+package syncdata
 
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/utils"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameScheduledSyncSharedReleases schedules shared release synchronization.
-const OperDefNameScheduledSyncSharedReleases = "scheduled_sync_shared_releases"
+// OperDefNameSyncSharedReleases defines the operation def name.
+const OperDefNameSyncSharedReleases = "sync_shared_releases"
 
-// NewOperSyncSharedReleases creates a shared release synchronization operation.
+// NewOperSyncSharedReleases creates a one-time shared release synchronization operation.
 func NewOperSyncSharedReleases(param OperParamSyncSharedReleases) operation.Definition {
-	return &operScheduledSyncSharedReleases{param: param}
+	return &operSyncSharedReleases{
+		param: param,
+	}
 }
 
-type operScheduledSyncSharedReleases struct {
+type operSyncSharedReleases struct {
 	param OperParamSyncSharedReleases
 }
 
-// OperParamSyncSharedReleases defines the parameters for operScheduledSyncSharedReleases.
+// OperParamSyncSharedReleases defines the parameters for operSyncSharedReleases.
 type OperParamSyncSharedReleases struct {
-	utils.ScheduleActionStandardParam
+	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operScheduledSyncSharedReleases) Name() string {
-	return OperDefNameScheduledSyncSharedReleases
+func (oper *operSyncSharedReleases) Name() string {
+	return OperDefNameSyncSharedReleases
 }
 
-// ActionDefNames returns the action definition names.
-func (oper *operScheduledSyncSharedReleases) ActionDefNames() []string {
-	return []string{syncdata.ActionNameSyncSharedReleases}
+// ActionDefNames returns the action def names.
+func (oper *operSyncSharedReleases) ActionDefNames() []string {
+	return []string{
+		ActionNameSyncSharedReleases,
+	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operScheduledSyncSharedReleases) DefaultParameters() operation.Param {
+func (oper *operSyncSharedReleases) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -63,6 +66,6 @@ func (oper *operScheduledSyncSharedReleases) DefaultParameters() operation.Param
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operScheduledSyncSharedReleases) ExtraExecutionName() string {
-	return OperExtraExecutionName
+func (oper *operSyncSharedReleases) ExtraExecutionName() string {
+	return ""
 }

@@ -168,6 +168,40 @@ message SyncAllAlivePluginProcessInfoResp {
   Data data = 5;
 }
 
+// EnsureDefaultPluginReq describes the HTTP request body when ensuring default
+// plugins.
+message EnsureDefaultPluginReq {}
+
+// EnsureDefaultPluginResp describes the HTTP response body when ensuring
+// default plugins.
+message EnsureDefaultPluginResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// SyncSharedReleasesReq describes the HTTP request body when syncing shared
+// releases.
+message SyncSharedReleasesReq {}
+
+// SyncSharedReleasesResp describes the HTTP response body when syncing shared
+// releases.
+message SyncSharedReleasesResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // sync service.
 service Sync {
   // SyncCmdbHost provides syncing cmdb host.
@@ -244,6 +278,24 @@ service Sync {
       returns (SyncAllAlivePluginProcessInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/plugin/process/info/all"
+      body : "*"
+    };
+  }
+
+  // EnsureDefaultPlugin ensures default plugins.
+  rpc EnsureDefaultPlugin(EnsureDefaultPluginReq)
+      returns (EnsureDefaultPluginResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/plugin/ensure_default"
+      body : "*"
+    };
+  }
+
+  // SyncSharedReleases syncs shared releases.
+  rpc SyncSharedReleases(SyncSharedReleasesReq)
+      returns (SyncSharedReleasesResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/release/shared"
       body : "*"
     };
   }

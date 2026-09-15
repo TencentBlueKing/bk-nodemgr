@@ -16,13 +16,13 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package schedule
+package syncdata
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -44,7 +44,7 @@ type actionSyncSharedReleases struct {
 
 // ActionParamSyncSharedReleases defines the shared release synchronization action parameters.
 type ActionParamSyncSharedReleases struct {
-	utils.ScheduleActionStandardParam
+	utils.SyncDataActionStandardParam
 }
 
 // Name returns the name.
@@ -92,15 +92,15 @@ func (act *actionSyncSharedReleases) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
-// Do synchronizes shared releases for the scheduled workflow tenant.
+// Do synchronizes shared releases for the workflow tenant.
 func (act *actionSyncSharedReleases) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamSyncSharedReleases)
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
 		return err
 	}
 
-	std := utils.NewScheduleActionStandarder()
-	if err := std.Initialize(ctx, param.ScheduleActionStandardParam); err != nil {
+	std := utils.NewSyncDataActionStandarder()
+	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
 

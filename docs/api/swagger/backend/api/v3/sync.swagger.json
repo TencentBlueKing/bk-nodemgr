@@ -346,6 +346,74 @@
           "Sync"
         ]
       }
+    },
+    "/api/v3/sync/plugin/ensure_default": {
+      "post": {
+        "summary": "EnsureDefaultPlugin ensures default plugins.",
+        "operationId": "Sync_EnsureDefaultPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3EnsureDefaultPluginResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "EnsureDefaultPluginReq describes the HTTP request body when ensuring default\nplugins.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3EnsureDefaultPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/release/shared": {
+      "post": {
+        "summary": "SyncSharedReleases syncs shared releases.",
+        "operationId": "Sync_SyncSharedReleases",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncSharedReleasesResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncSharedReleasesReq describes the HTTP request body when syncing shared\nreleases.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncSharedReleasesReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
     }
   },
   "definitions": {
@@ -403,6 +471,43 @@
             "type": "object",
             "$ref": "#/definitions/v3RelatedResourceType"
           }
+        }
+      }
+    },
+    "v3EnsureDefaultPluginReq": {
+      "type": "object",
+      "description": "EnsureDefaultPluginReq describes the HTTP request body when ensuring default\nplugins."
+    },
+    "v3EnsureDefaultPluginResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3EnsureDefaultPluginRespData"
+        }
+      },
+      "description": "EnsureDefaultPluginResp describes the HTTP response body when ensuring\ndefault plugins."
+    },
+    "v3EnsureDefaultPluginRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
         }
       }
     },
@@ -888,6 +993,43 @@
       "type": "object",
       "properties": {
         "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncSharedReleasesReq": {
+      "type": "object",
+      "description": "SyncSharedReleasesReq describes the HTTP request body when syncing shared\nreleases."
+    },
+    "v3SyncSharedReleasesResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncSharedReleasesRespData"
+        }
+      },
+      "description": "SyncSharedReleasesResp describes the HTTP response body when syncing shared\nreleases."
+    },
+    "v3SyncSharedReleasesRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
           "type": "string"
         }
       }

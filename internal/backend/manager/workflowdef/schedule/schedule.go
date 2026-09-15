@@ -19,16 +19,10 @@
 // Package schedule provides the operation definition for scheduling host synchronization.
 package schedule
 
-import (
-	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-)
+import "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// stroage.
 	StorageWorkflow workflow.IStorage
-	StoragePlugin   pluginStg.IStorage
-	FileHandler     file.IHandler
 }

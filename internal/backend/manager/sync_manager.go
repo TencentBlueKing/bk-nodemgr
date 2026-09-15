@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
@@ -380,6 +381,75 @@ func (mgr *Manager) LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (
 	logger.G.Sys().
 		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
 		Info("launched sync all alive plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchEnsureDefaultPlugin launches a one-time workflow to ensure default plugins and returns its trigger ID.
+func (mgr *Manager) LaunchEnsureDefaultPlugin(ctx contextx.IContext) (string, error) {
+	if err := ctx.CheckTenantID(); err != nil {
+		return "", err
+	}
+	if err := ctx.CheckBKUsername(); err != nil {
+		return "", err
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperEnsureDefaultPlugin(syncdata.OperParamEnsureDefaultPlugin{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	_, err = triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncSharedReleases launches a one-time workflow to sync shared releases and returns its trigger ID.
+func (mgr *Manager) LaunchSyncSharedReleases(ctx contextx.IContext) (string, error) {
+	if err := ctx.CheckTenantID(); err != nil {
+		return "", err
+	}
+	if err := ctx.CheckBKUsername(); err != nil {
+		return "", err
+	}
+
+	tenantID := ctx.TenantID()
+	if tenantID == tenant.SystemTenantID {
+		return "", errors.New("system tenant cannot sync shared releases")
+	}
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncSharedReleases(syncdata.OperParamSyncSharedReleases{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	_, err = triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
 
 	return triggerCtl.GetTriggerID(), nil
 }

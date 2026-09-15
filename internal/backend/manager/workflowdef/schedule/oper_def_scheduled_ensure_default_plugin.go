@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -50,7 +51,7 @@ func (oper *operScheduledEnsureDefaultPlugin) Name() string {
 
 // ActionDefNames returns the action definition names.
 func (oper *operScheduledEnsureDefaultPlugin) ActionDefNames() []string {
-	return []string{ActionNameEnsureDefaultPlugin}
+	return []string{syncdata.ActionNameEnsureDefaultPlugin}
 }
 
 // DefaultParameters returns the default parameters.

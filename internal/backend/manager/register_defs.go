@@ -199,6 +199,8 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionSyncBusiness(syncdataCap),
 		syncdata.NewActionSyncHost(syncdataCap),
 		syncdata.NewActionSyncTenant(syncdataCap),
+		syncdata.NewActionEnsureDefaultPlugin(syncdataCap),
+		syncdata.NewActionSyncSharedReleases(syncdataCap),
 		syncdata.NewActionSyncNetworkArea(syncdataCap),
 		syncdata.NewActionEnsureDirectNetworkUnit(syncdataCap),
 		syncdata.NewActionGenOperSyncHost(syncdataCap),
@@ -357,15 +359,6 @@ func (mgr *Manager) registerDefPluginV2() error {
 func (mgr *Manager) registerDefSchedule() error {
 	scheduleCap := &schedule.Capability{
 		StorageWorkflow: mgr.conf.StorageWorkflow,
-		StoragePlugin:   mgr.conf.StoragePlugin,
-		FileHandler:     mgr.conf.FileHandler,
-	}
-
-	if err := mgr.workflowMgr.RegisterActions(
-		schedule.NewActionEnsureDefaultPlugin(scheduleCap),
-		schedule.NewActionSyncSharedReleases(scheduleCap),
-	); err != nil {
-		return err
 	}
 
 	// register operation extra executions.

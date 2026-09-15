@@ -16,14 +16,14 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package schedule
+package syncdata
 
 import (
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
@@ -56,7 +56,7 @@ type actionEnsureDefaultPlugin struct {
 
 // ActionParamEnsureDefaultPlugin defines the default plugin reconciliation action parameters.
 type ActionParamEnsureDefaultPlugin struct {
-	utils.ScheduleActionStandardParam
+	utils.SyncDataActionStandardParam
 }
 
 // Name returns the name.
@@ -112,8 +112,8 @@ func (act *actionEnsureDefaultPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std := utils.NewScheduleActionStandarder()
-	if err := std.Initialize(ctx, param.ScheduleActionStandardParam); err != nil {
+	std := utils.NewSyncDataActionStandarder()
+	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
 

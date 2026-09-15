@@ -109,3 +109,23 @@ func (x *SyncAllAlivePluginProcessInfoReq) AutoConvert() {
 func (x *SyncAllAlivePluginProcessInfoReq) Validate() error {
 	return nil
 }
+
+// Validate check body.
+func (x *EnsureDefaultPluginReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *EnsureDefaultPluginReq) AutoConvert() {
+	// Intentionally empty: this request has no fields to convert.
+}
+
+// Validate check body.
+func (x *SyncSharedReleasesReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncSharedReleasesReq) AutoConvert() {
+	// Intentionally empty: this request has no fields to convert.
+}

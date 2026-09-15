@@ -54,4 +54,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/gse/agent/info/alive", restserver.Handler(h.SyncAliveHostAgentInfo))
 	h.rg.POST("/gse/plugin/process/info", restserver.Handler(h.SyncAlivePluginProcessInfo))
 	h.rg.POST("/gse/plugin/process/info/all", restserver.Handler(h.SyncAllAlivePluginProcessInfo))
+	h.rg.POST("/plugin/ensure_default", restserver.Handler(h.EnsureDefaultPlugin))
+	h.rg.POST("/release/shared", restserver.Handler(h.SyncSharedReleases))
 }
