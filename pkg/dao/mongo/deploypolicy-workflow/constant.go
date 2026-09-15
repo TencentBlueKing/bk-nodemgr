@@ -24,4 +24,8 @@ const (
 	FieldKeyOperationID    = "data.operation_id"
 	FieldKeyDeployPolicyID = "data.deploy_policy_id"
 	FieldKeyChildren       = "data.children"
+	FieldKeyOperator       = "data.operator"
+	FieldKeyOperateTime    = "data.operate_time"
+	FieldKeyFinishTime     = "data.finish_time"
+	FieldKeyStatus         = "data.status"
 )

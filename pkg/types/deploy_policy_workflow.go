@@ -18,7 +18,10 @@
 
 package types
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // DeployPolicyWorkflow records one policy's operation and associated child workflows.
 type DeployPolicyWorkflow struct {
@@ -29,7 +32,58 @@ type DeployPolicyWorkflow struct {
 	DeployPolicyID int64
 	Operator       string
 	OperateTime    time.Time
+	FinishTime     time.Time
+	Status         DeployPolicyWorkflowStatus
 	Children       []DeployPolicyWorkflowChild
+}
+
+// DeployPolicyWorkflowStatus represents the status of a deploy policy workflow.
+type DeployPolicyWorkflowStatus string
+
+const (
+	// DeployPolicyWorkflowStatusRunning is the status while the operation is unfinished.
+	DeployPolicyWorkflowStatusRunning DeployPolicyWorkflowStatus = "running"
+	// DeployPolicyWorkflowStatusSuccess is the status when the operation succeeds.
+	DeployPolicyWorkflowStatusSuccess DeployPolicyWorkflowStatus = "success"
+	// DeployPolicyWorkflowStatusFailed is the status when the operation fails or times out.
+	DeployPolicyWorkflowStatusFailed DeployPolicyWorkflowStatus = "failed"
+	// DeployPolicyWorkflowStatusPartialFailed is the status when the operation is terminated.
+	DeployPolicyWorkflowStatusPartialFailed DeployPolicyWorkflowStatus = "partial_failed"
+)
+
+// Validate checks if the deploy policy workflow status is valid.
+func (status DeployPolicyWorkflowStatus) Validate() error {
+	switch status {
+	case DeployPolicyWorkflowStatusRunning, DeployPolicyWorkflowStatusSuccess,
+		DeployPolicyWorkflowStatusFailed, DeployPolicyWorkflowStatusPartialFailed:
+		return nil
+	}
+
+	return fmt.Errorf("invalid deploy policy workflow status, status(%s)", status)
+}
+
+// GetFinishedDeployPolicyWorkflowStatus returns the finished workflow statuses.
+func GetFinishedDeployPolicyWorkflowStatus() []DeployPolicyWorkflowStatus {
+	return []DeployPolicyWorkflowStatus{
+		DeployPolicyWorkflowStatusSuccess,
+		DeployPolicyWorkflowStatusFailed,
+		DeployPolicyWorkflowStatusPartialFailed,
+	}
+}
+
+// DeployPolicyWorkflowExactConditions defines exact workflow filters.
+type DeployPolicyWorkflowExactConditions struct {
+	WorkflowID     []string
+	DeployPolicyID []int64
+	Status         []DeployPolicyWorkflowStatus
+	Operator       []string
+}
+
+// DeployPolicyWorkflowCondition defines deploy policy workflow query conditions.
+type DeployPolicyWorkflowCondition struct {
+	OperateTimeRange *TimeRange
+	ExactInclude     *DeployPolicyWorkflowExactConditions
+	ExactExclude     *DeployPolicyWorkflowExactConditions
 }
 
 // DeployPolicyWorkflowChild identifies an associated child workflow.

@@ -425,7 +425,7 @@ func (x *DeployPolicyExecuteReq) AutoConvert() {
 	}
 }
 
-// ConvertTriggerID convert trigger id.
-func (x *DeployPolicyExecuteResp) ConvertTriggerID(triggerID string) {
-	x.Data = &DeployPolicyExecuteResp_Data{TriggerId: triggerID}
+// ConvertWorkflowID converts the requested policy workflow ID.
+func (x *DeployPolicyExecuteResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &DeployPolicyExecuteResp_Data{WorkflowId: workflowID}
 }

@@ -22,12 +22,15 @@ package deploypolicy
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	daoDeployPolicy "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploypolicy-workflow"
+	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -47,6 +50,7 @@ func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 			Name:     StorageName,
 			Database: client.Database(database),
 		},
+		monitoredWorkflows: make(map[string]*types.DeployPolicyWorkflow),
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
@@ -55,6 +59,10 @@ func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 		logger.G.Sys().WithErr(err).Error("failed to new storage")
 
 		return nil, err
+	}
+
+	if err := s.registerScheduler(); err != nil {
+		return nil, fmt.Errorf("failed to register deploy policy workflow scheduler: %w", err)
 	}
 
 	return s, nil
@@ -69,11 +77,17 @@ type Storage struct {
 	// dao
 	daoDeployPolicy         daoDeployPolicy.IHandler
 	daoDeployPolicyWorkflow deploypolicyworkflow.IHandler
+	daoOperation            daoOperation.IHandler
+
+	// Key by workflow ID because multiple policy workflows can share one operation.
+	monitoredWorkflows      map[string]*types.DeployPolicyWorkflow
+	monitoredWorkflowsMutex sync.RWMutex
 }
 
 func (s *Storage) initDao() error {
 	s.daoDeployPolicy = daoDeployPolicy.New(s.Database)
 	s.daoDeployPolicyWorkflow = deploypolicyworkflow.New(s.Database)
+	s.daoOperation = daoOperation.New(s.Database)
 
 	return nil
 }
@@ -84,6 +98,9 @@ func (s *Storage) check() error {
 	}
 	if s.daoDeployPolicyWorkflow == nil {
 		return errors.New("dao deploy policy workflow is nil")
+	}
+	if s.daoOperation == nil {
+		return errors.New("dao operation is nil")
 	}
 
 	return nil
@@ -102,6 +119,8 @@ const (
 	metricEnsureDeployPolicyWorkflow             = "ensure_deploy_policy_workflow"
 	metricGetDeployPolicyWorkflow                = "get_deploy_policy_workflow"
 	metricRecordDeployPolicyWorkflowChild        = "record_deploy_policy_workflow_child"
+	metricListDeployPolicyWorkflows              = "list_deploy_policy_workflows"
+	metricCountDeployPolicyWorkflows             = "count_deploy_policy_workflows"
 )
 
 // CreateDeployPolicy create deploy policy.
@@ -272,4 +291,39 @@ func (s *Storage) RecordDeployPolicyWorkflowChild(nCtx contextx.IContext, workfl
 	return s.WrapFn(nCtx, metricRecordDeployPolicyWorkflowChild, func(ctx contextx.IContext) error {
 		return s.recordDeployPolicyWorkflowChild(ctx, workflowIDs, child)
 	})
+}
+
+// ListDeployPolicyWorkflows lists tenant-scoped workflows with their total count.
+func (s *Storage) ListDeployPolicyWorkflows(nCtx contextx.IContext, page types.Page,
+	condition *types.DeployPolicyWorkflowCondition) ([]*types.DeployPolicyWorkflow, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+	var workflows []*types.DeployPolicyWorkflow
+	var total int64
+	err := s.WrapFn(nCtx, metricListDeployPolicyWorkflows, func(ctx contextx.IContext) error {
+		var err error
+		workflows, total, err = s.listDeployPolicyWorkflows(ctx, page, condition)
+
+		return err
+	})
+
+	return workflows, total, err
+}
+
+// CountDeployPolicyWorkflows counts tenant-scoped workflows matching the condition.
+func (s *Storage) CountDeployPolicyWorkflows(nCtx contextx.IContext, condition *types.DeployPolicyWorkflowCondition) (int64, error) {
+	if nCtx == nil {
+		return 0, base.ErrInvalidContext()
+	}
+	var total int64
+	err := s.WrapFn(nCtx, metricCountDeployPolicyWorkflows, func(ctx contextx.IContext) error {
+		var err error
+		total, err = s.countDeployPolicyWorkflows(ctx, condition)
+
+		return err
+	})
+
+	return total, err
 }

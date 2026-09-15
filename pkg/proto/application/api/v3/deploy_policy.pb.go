@@ -1650,6 +1650,386 @@ func (x *DeployPolicyExecuteResp) GetData() *DeployPolicyExecuteResp_Data {
 	return nil
 }
 
+// DeployPolicyChildWorkflow describes one associated node or plugin workflow.
+type DeployPolicyChildWorkflow struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// node or plugin. The pair (type, workflow_id) identifies a child workflow.
+	Type          string `protobuf:"bytes,1,opt,name=type,proto3" json:"type"`
+	WorkflowId    string `protobuf:"bytes,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeployPolicyChildWorkflow) Reset() {
+	*x = DeployPolicyChildWorkflow{}
+	mi := &file_deploy_policy_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployPolicyChildWorkflow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployPolicyChildWorkflow) ProtoMessage() {}
+
+func (x *DeployPolicyChildWorkflow) ProtoReflect() protoreflect.Message {
+	mi := &file_deploy_policy_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployPolicyChildWorkflow.ProtoReflect.Descriptor instead.
+func (*DeployPolicyChildWorkflow) Descriptor() ([]byte, []int) {
+	return file_deploy_policy_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *DeployPolicyChildWorkflow) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *DeployPolicyChildWorkflow) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+// DeployPolicyWorkflowInfo describes one tenant-scoped policy execution.
+type DeployPolicyWorkflowInfo struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowId     string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	TriggerId      string                 `protobuf:"bytes,2,opt,name=trigger_id,json=triggerId,proto3" json:"trigger_id"`
+	DeployPolicyId int64                  `protobuf:"varint,3,opt,name=deploy_policy_id,json=deployPolicyId,proto3" json:"deploy_policy_id"`
+	Operator       string                 `protobuf:"bytes,4,opt,name=operator,proto3" json:"operator"`
+	// Unix timestamp in milliseconds.
+	OperateTime int64 `protobuf:"varint,5,opt,name=operate_time,json=operateTime,proto3" json:"operate_time"`
+	// Unix timestamp in milliseconds, or zero when unfinished.
+	FinishTime    int64                        `protobuf:"varint,6,opt,name=finish_time,json=finishTime,proto3" json:"finish_time"`
+	Status        string                       `protobuf:"bytes,7,opt,name=status,proto3" json:"status"`
+	Children      []*DeployPolicyChildWorkflow `protobuf:"bytes,8,rep,name=children,proto3" json:"children"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeployPolicyWorkflowInfo) Reset() {
+	*x = DeployPolicyWorkflowInfo{}
+	mi := &file_deploy_policy_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployPolicyWorkflowInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployPolicyWorkflowInfo) ProtoMessage() {}
+
+func (x *DeployPolicyWorkflowInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_deploy_policy_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployPolicyWorkflowInfo.ProtoReflect.Descriptor instead.
+func (*DeployPolicyWorkflowInfo) Descriptor() ([]byte, []int) {
+	return file_deploy_policy_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *DeployPolicyWorkflowInfo) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+func (x *DeployPolicyWorkflowInfo) GetTriggerId() string {
+	if x != nil {
+		return x.TriggerId
+	}
+	return ""
+}
+
+func (x *DeployPolicyWorkflowInfo) GetDeployPolicyId() int64 {
+	if x != nil {
+		return x.DeployPolicyId
+	}
+	return 0
+}
+
+func (x *DeployPolicyWorkflowInfo) GetOperator() string {
+	if x != nil {
+		return x.Operator
+	}
+	return ""
+}
+
+func (x *DeployPolicyWorkflowInfo) GetOperateTime() int64 {
+	if x != nil {
+		return x.OperateTime
+	}
+	return 0
+}
+
+func (x *DeployPolicyWorkflowInfo) GetFinishTime() int64 {
+	if x != nil {
+		return x.FinishTime
+	}
+	return 0
+}
+
+func (x *DeployPolicyWorkflowInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *DeployPolicyWorkflowInfo) GetChildren() []*DeployPolicyChildWorkflow {
+	if x != nil {
+		return x.Children
+	}
+	return nil
+}
+
+// DeployPolicyWorkflowExactConditions describes exact workflow filters.
+type DeployPolicyWorkflowExactConditions struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowId     []string               `protobuf:"bytes,1,rep,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	DeployPolicyId []int64                `protobuf:"varint,2,rep,packed,name=deploy_policy_id,json=deployPolicyId,proto3" json:"deploy_policy_id"`
+	Status         []string               `protobuf:"bytes,3,rep,name=status,proto3" json:"status"`
+	Operator       []string               `protobuf:"bytes,4,rep,name=operator,proto3" json:"operator"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DeployPolicyWorkflowExactConditions) Reset() {
+	*x = DeployPolicyWorkflowExactConditions{}
+	mi := &file_deploy_policy_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployPolicyWorkflowExactConditions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployPolicyWorkflowExactConditions) ProtoMessage() {}
+
+func (x *DeployPolicyWorkflowExactConditions) ProtoReflect() protoreflect.Message {
+	mi := &file_deploy_policy_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployPolicyWorkflowExactConditions.ProtoReflect.Descriptor instead.
+func (*DeployPolicyWorkflowExactConditions) Descriptor() ([]byte, []int) {
+	return file_deploy_policy_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *DeployPolicyWorkflowExactConditions) GetWorkflowId() []string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return nil
+}
+
+func (x *DeployPolicyWorkflowExactConditions) GetDeployPolicyId() []int64 {
+	if x != nil {
+		return x.DeployPolicyId
+	}
+	return nil
+}
+
+func (x *DeployPolicyWorkflowExactConditions) GetStatus() []string {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
+func (x *DeployPolicyWorkflowExactConditions) GetOperator() []string {
+	if x != nil {
+		return x.Operator
+	}
+	return nil
+}
+
+// DeployPolicyWorkflowListReq lists policy executions in the current tenant.
+type DeployPolicyWorkflowListReq struct {
+	state                  protoimpl.MessageState               `protogen:"open.v1"`
+	Page                   *Page                                `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	OnlyCount              bool                                 `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count"`
+	ExactIncludeConditions *DeployPolicyWorkflowExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions"`
+	OperateTimeRange       *TimeRange                           `protobuf:"bytes,4,opt,name=operate_time_range,json=operateTimeRange,proto3" json:"operate_time_range"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *DeployPolicyWorkflowListReq) Reset() {
+	*x = DeployPolicyWorkflowListReq{}
+	mi := &file_deploy_policy_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployPolicyWorkflowListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployPolicyWorkflowListReq) ProtoMessage() {}
+
+func (x *DeployPolicyWorkflowListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_deploy_policy_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployPolicyWorkflowListReq.ProtoReflect.Descriptor instead.
+func (*DeployPolicyWorkflowListReq) Descriptor() ([]byte, []int) {
+	return file_deploy_policy_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *DeployPolicyWorkflowListReq) GetPage() *Page {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *DeployPolicyWorkflowListReq) GetOnlyCount() bool {
+	if x != nil {
+		return x.OnlyCount
+	}
+	return false
+}
+
+func (x *DeployPolicyWorkflowListReq) GetExactIncludeConditions() *DeployPolicyWorkflowExactConditions {
+	if x != nil {
+		return x.ExactIncludeConditions
+	}
+	return nil
+}
+
+func (x *DeployPolicyWorkflowListReq) GetOperateTimeRange() *TimeRange {
+	if x != nil {
+		return x.OperateTimeRange
+	}
+	return nil
+}
+
+// DeployPolicyWorkflowListResp describes the policy execution list.
+type DeployPolicyWorkflowListResp struct {
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	Code          int32                              `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                             `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                             `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                             `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Permission    *Permission                        `protobuf:"bytes,6,opt,name=permission,proto3" json:"permission"`
+	Data          *DeployPolicyWorkflowListResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeployPolicyWorkflowListResp) Reset() {
+	*x = DeployPolicyWorkflowListResp{}
+	mi := &file_deploy_policy_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployPolicyWorkflowListResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployPolicyWorkflowListResp) ProtoMessage() {}
+
+func (x *DeployPolicyWorkflowListResp) ProtoReflect() protoreflect.Message {
+	mi := &file_deploy_policy_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployPolicyWorkflowListResp.ProtoReflect.Descriptor instead.
+func (*DeployPolicyWorkflowListResp) Descriptor() ([]byte, []int) {
+	return file_deploy_policy_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *DeployPolicyWorkflowListResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *DeployPolicyWorkflowListResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *DeployPolicyWorkflowListResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *DeployPolicyWorkflowListResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *DeployPolicyWorkflowListResp) GetPermission() *Permission {
+	if x != nil {
+		return x.Permission
+	}
+	return nil
+}
+
+func (x *DeployPolicyWorkflowListResp) GetData() *DeployPolicyWorkflowListResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type ScopeTopo_ScopeTopoNode struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TopoObjId     string                 `protobuf:"bytes,1,opt,name=topo_obj_id,json=topoObjId,proto3" json:"topo_obj_id"`
@@ -1660,7 +2040,7 @@ type ScopeTopo_ScopeTopoNode struct {
 
 func (x *ScopeTopo_ScopeTopoNode) Reset() {
 	*x = ScopeTopo_ScopeTopoNode{}
-	mi := &file_deploy_policy_proto_msgTypes[25]
+	mi := &file_deploy_policy_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1672,7 +2052,7 @@ func (x *ScopeTopo_ScopeTopoNode) String() string {
 func (*ScopeTopo_ScopeTopoNode) ProtoMessage() {}
 
 func (x *ScopeTopo_ScopeTopoNode) ProtoReflect() protoreflect.Message {
-	mi := &file_deploy_policy_proto_msgTypes[25]
+	mi := &file_deploy_policy_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1712,7 +2092,7 @@ type DeployPolicyListResp_Data struct {
 
 func (x *DeployPolicyListResp_Data) Reset() {
 	*x = DeployPolicyListResp_Data{}
-	mi := &file_deploy_policy_proto_msgTypes[26]
+	mi := &file_deploy_policy_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1724,7 +2104,7 @@ func (x *DeployPolicyListResp_Data) String() string {
 func (*DeployPolicyListResp_Data) ProtoMessage() {}
 
 func (x *DeployPolicyListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_deploy_policy_proto_msgTypes[26]
+	mi := &file_deploy_policy_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1755,15 +2135,16 @@ func (x *DeployPolicyListResp_Data) GetItems() []*DeployPolicy {
 }
 
 type DeployPolicyExecuteResp_Data struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TriggerId     string                 `protobuf:"bytes,1,opt,name=trigger_id,json=triggerId,proto3" json:"trigger_id"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Identifies the requested policy's execution, not a child workflow.
+	WorkflowId    string `protobuf:"bytes,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeployPolicyExecuteResp_Data) Reset() {
 	*x = DeployPolicyExecuteResp_Data{}
-	mi := &file_deploy_policy_proto_msgTypes[27]
+	mi := &file_deploy_policy_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1775,7 +2156,7 @@ func (x *DeployPolicyExecuteResp_Data) String() string {
 func (*DeployPolicyExecuteResp_Data) ProtoMessage() {}
 
 func (x *DeployPolicyExecuteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_deploy_policy_proto_msgTypes[27]
+	mi := &file_deploy_policy_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1791,11 +2172,63 @@ func (*DeployPolicyExecuteResp_Data) Descriptor() ([]byte, []int) {
 	return file_deploy_policy_proto_rawDescGZIP(), []int{24, 0}
 }
 
-func (x *DeployPolicyExecuteResp_Data) GetTriggerId() string {
+func (x *DeployPolicyExecuteResp_Data) GetWorkflowId() string {
 	if x != nil {
-		return x.TriggerId
+		return x.WorkflowId
 	}
 	return ""
+}
+
+type DeployPolicyWorkflowListResp_Data struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Total         int64                       `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	Items         []*DeployPolicyWorkflowInfo `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeployPolicyWorkflowListResp_Data) Reset() {
+	*x = DeployPolicyWorkflowListResp_Data{}
+	mi := &file_deploy_policy_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployPolicyWorkflowListResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployPolicyWorkflowListResp_Data) ProtoMessage() {}
+
+func (x *DeployPolicyWorkflowListResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_deploy_policy_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployPolicyWorkflowListResp_Data.ProtoReflect.Descriptor instead.
+func (*DeployPolicyWorkflowListResp_Data) Descriptor() ([]byte, []int) {
+	return file_deploy_policy_proto_rawDescGZIP(), []int{29, 0}
+}
+
+func (x *DeployPolicyWorkflowListResp_Data) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *DeployPolicyWorkflowListResp_Data) GetItems() []*DeployPolicyWorkflowInfo {
+	if x != nil {
+		return x.Items
+	}
+	return nil
 }
 
 var File_deploy_policy_proto protoreflect.FileDescriptor
@@ -2067,7 +2500,7 @@ var file_deploy_policy_proto_rawDesc = string([]byte{
 	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x48, 0x00, 0x52, 0x0e, 0x64, 0x65, 0x70, 0x6c,
 	0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x49, 0x64, 0x88, 0x01, 0x01, 0x42, 0x13, 0x0a,
 	0x11, 0x5f, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x5f,
-	0x69, 0x64, 0x22, 0x94, 0x02, 0x0a, 0x17, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c,
+	0x69, 0x64, 0x22, 0xa8, 0x02, 0x0a, 0x17, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c,
 	0x69, 0x63, 0x79, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12,
 	0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f,
 	0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20,
@@ -2082,9 +2515,82 @@ var file_deploy_policy_proto_rawDesc = string([]byte{
 	0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x76, 0x33, 0x2e,
 	0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x45, 0x78, 0x65, 0x63,
 	0x75, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61,
-	0x74, 0x61, 0x1a, 0x25, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1d, 0x0a, 0x0a, 0x74, 0x72,
-	0x69, 0x67, 0x67, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09,
-	0x74, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x49, 0x64, 0x32, 0xf9, 0x01, 0x0a, 0x0f, 0x44, 0x65,
+	0x74, 0x61, 0x1a, 0x39, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1f, 0x0a, 0x0b, 0x77, 0x6f,
+	0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x4a, 0x04, 0x08, 0x01, 0x10,
+	0x02, 0x52, 0x0a, 0x74, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x22, 0x50, 0x0a,
+	0x19, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x68, 0x69,
+	0x6c, 0x64, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79,
+	0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x1f,
+	0x0a, 0x0b, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x22,
+	0xb7, 0x02, 0x0a, 0x18, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79,
+	0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x1f, 0x0a, 0x0b,
+	0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x12, 0x1d, 0x0a,
+	0x0a, 0x74, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x09, 0x74, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x49, 0x64, 0x12, 0x28, 0x0a, 0x10,
+	0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x5f, 0x69, 0x64,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0e, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f,
+	0x6c, 0x69, 0x63, 0x79, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74,
+	0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74,
+	0x6f, 0x72, 0x12, 0x21, 0x0a, 0x0c, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x65, 0x5f, 0x74, 0x69,
+	0x6d, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0b, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74,
+	0x65, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x66, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x5f,
+	0x74, 0x69, 0x6d, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x66, 0x69, 0x6e, 0x69,
+	0x73, 0x68, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x39,
+	0x0a, 0x08, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x72, 0x65, 0x6e, 0x18, 0x08, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x1d, 0x2e, 0x76, 0x33, 0x2e, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69,
+	0x63, 0x79, 0x43, 0x68, 0x69, 0x6c, 0x64, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x52,
+	0x08, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x72, 0x65, 0x6e, 0x22, 0xa4, 0x01, 0x0a, 0x23, 0x44, 0x65,
+	0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c,
+	0x6f, 0x77, 0x45, 0x78, 0x61, 0x63, 0x74, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x12, 0x1f, 0x0a, 0x0b, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77,
+	0x49, 0x64, 0x12, 0x28, 0x0a, 0x10, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x5f, 0x70, 0x6f, 0x6c,
+	0x69, 0x63, 0x79, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x03, 0x28, 0x03, 0x52, 0x0e, 0x64, 0x65,
+	0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x49, 0x64, 0x12, 0x16, 0x0a, 0x06,
+	0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x12, 0x1a, 0x0a, 0x08, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72,
+	0x18, 0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72,
+	0x22, 0xfa, 0x01, 0x0a, 0x1b, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63,
+	0x79, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71,
+	0x12, 0x1c, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x08,
+	0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x1d,
+	0x0a, 0x0a, 0x6f, 0x6e, 0x6c, 0x79, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x09, 0x6f, 0x6e, 0x6c, 0x79, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x61, 0x0a,
+	0x18, 0x65, 0x78, 0x61, 0x63, 0x74, 0x5f, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x63,
+	0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x27, 0x2e, 0x76, 0x33, 0x2e, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63,
+	0x79, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x45, 0x78, 0x61, 0x63, 0x74, 0x43, 0x6f,
+	0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x16, 0x65, 0x78, 0x61, 0x63, 0x74, 0x49,
+	0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x12, 0x3b, 0x0a, 0x12, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65,
+	0x5f, 0x72, 0x61, 0x6e, 0x67, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x76,
+	0x33, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65, 0x52, 0x10, 0x6f, 0x70, 0x65,
+	0x72, 0x61, 0x74, 0x65, 0x54, 0x69, 0x6d, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65, 0x22, 0xc9, 0x02,
+	0x0a, 0x1c, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x57, 0x6f,
+	0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12,
+	0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f,
+	0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a,
+	0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65,
+	0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e,
+	0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x2e, 0x0a, 0x0a,
+	0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
+	0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x39, 0x0a, 0x04,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x25, 0x2e, 0x76, 0x33, 0x2e,
+	0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x57, 0x6f, 0x72, 0x6b,
+	0x66, 0x6c, 0x6f, 0x77, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74,
+	0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x50, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12,
+	0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05,
+	0x74, 0x6f, 0x74, 0x61, 0x6c, 0x12, 0x32, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x02,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79,
+	0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x6e,
+	0x66, 0x6f, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x32, 0xfd, 0x02, 0x0a, 0x0f, 0x44, 0x65,
 	0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x41, 0x50, 0x49, 0x12, 0x6c, 0x0a,
 	0x10, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63,
 	0x79, 0x12, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c,
@@ -2100,12 +2606,20 @@ var file_deploy_policy_proto_rawDesc = string([]byte{
 	0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x22, 0x28, 0x82, 0xd3, 0xe4,
 	0x93, 0x02, 0x22, 0x3a, 0x01, 0x2a, 0x22, 0x1d, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
 	0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x2f, 0x65, 0x78,
-	0x65, 0x63, 0x75, 0x74, 0x65, 0x42, 0x47, 0x5a, 0x45, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b,
-	0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70,
-	0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x61, 0x70, 0x70, 0x6c,
-	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x63, 0x75, 0x74, 0x65, 0x12, 0x81, 0x01, 0x0a, 0x0c, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c,
+	0x6f, 0x77, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x1f, 0x2e, 0x76, 0x33, 0x2e, 0x44, 0x65, 0x70, 0x6c,
+	0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x20, 0x2e, 0x76, 0x33, 0x2e, 0x44, 0x65, 0x70,
+	0x6c, 0x6f, 0x79, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f,
+	0x77, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x2e, 0x82, 0xd3, 0xe4, 0x93, 0x02,
+	0x28, 0x3a, 0x01, 0x2a, 0x22, 0x23, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x64, 0x65,
+	0x70, 0x6c, 0x6f, 0x79, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x2f, 0x77, 0x6f, 0x72, 0x6b,
+	0x66, 0x6c, 0x6f, 0x77, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x42, 0x47, 0x5a, 0x45, 0x67, 0x69, 0x74,
+	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42,
+	0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d,
+	0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f,
+	0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -2120,7 +2634,7 @@ func file_deploy_policy_proto_rawDescGZIP() []byte {
 	return file_deploy_policy_proto_rawDescData
 }
 
-var file_deploy_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_deploy_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_deploy_policy_proto_goTypes = []any{
 	(*DeployPolicyMeta)(nil),                        // 0: v3.DeployPolicyMeta
 	(*PluginConfigDetail)(nil),                      // 1: v3.PluginConfigDetail
@@ -2147,58 +2661,74 @@ var file_deploy_policy_proto_goTypes = []any{
 	(*DeployPolicyListResp)(nil),                    // 22: v3.DeployPolicyListResp
 	(*DeployPolicyExecuteReq)(nil),                  // 23: v3.DeployPolicyExecuteReq
 	(*DeployPolicyExecuteResp)(nil),                 // 24: v3.DeployPolicyExecuteResp
-	(*ScopeTopo_ScopeTopoNode)(nil),                 // 25: v3.ScopeTopo.ScopeTopoNode
-	(*DeployPolicyListResp_Data)(nil),               // 26: v3.DeployPolicyListResp.Data
-	(*DeployPolicyExecuteResp_Data)(nil),            // 27: v3.DeployPolicyExecuteResp.Data
-	(*structpb.Struct)(nil),                         // 28: google.protobuf.Struct
-	(*Page)(nil),                                    // 29: v3.Page
-	(*TimeRange)(nil),                               // 30: v3.TimeRange
-	(*Error)(nil),                                   // 31: v3.Error
-	(*Permission)(nil),                              // 32: v3.Permission
+	(*DeployPolicyChildWorkflow)(nil),               // 25: v3.DeployPolicyChildWorkflow
+	(*DeployPolicyWorkflowInfo)(nil),                // 26: v3.DeployPolicyWorkflowInfo
+	(*DeployPolicyWorkflowExactConditions)(nil),     // 27: v3.DeployPolicyWorkflowExactConditions
+	(*DeployPolicyWorkflowListReq)(nil),             // 28: v3.DeployPolicyWorkflowListReq
+	(*DeployPolicyWorkflowListResp)(nil),            // 29: v3.DeployPolicyWorkflowListResp
+	(*ScopeTopo_ScopeTopoNode)(nil),                 // 30: v3.ScopeTopo.ScopeTopoNode
+	(*DeployPolicyListResp_Data)(nil),               // 31: v3.DeployPolicyListResp.Data
+	(*DeployPolicyExecuteResp_Data)(nil),            // 32: v3.DeployPolicyExecuteResp.Data
+	(*DeployPolicyWorkflowListResp_Data)(nil),       // 33: v3.DeployPolicyWorkflowListResp.Data
+	(*structpb.Struct)(nil),                         // 34: google.protobuf.Struct
+	(*Page)(nil),                                    // 35: v3.Page
+	(*TimeRange)(nil),                               // 36: v3.TimeRange
+	(*Error)(nil),                                   // 37: v3.Error
+	(*Permission)(nil),                              // 38: v3.Permission
 }
 var file_deploy_policy_proto_depIdxs = []int32{
-	28, // 0: v3.SpecifyPluginParam.custom_config_context:type_name -> google.protobuf.Struct
-	28, // 1: v3.SpecifyPluginPkgParam.custom_config_context:type_name -> google.protobuf.Struct
-	28, // 2: v3.ProjectPluginPkgToHostsParam.custom_config_context:type_name -> google.protobuf.Struct
+	34, // 0: v3.SpecifyPluginParam.custom_config_context:type_name -> google.protobuf.Struct
+	34, // 1: v3.SpecifyPluginPkgParam.custom_config_context:type_name -> google.protobuf.Struct
+	34, // 2: v3.ProjectPluginPkgToHostsParam.custom_config_context:type_name -> google.protobuf.Struct
 	1,  // 3: v3.ProjectPluginConfigTemplateToHostsParam.config_files_detail:type_name -> v3.PluginConfigDetail
-	28, // 4: v3.ProjectPluginConfigTemplateToHostsParam.custom_config_context:type_name -> google.protobuf.Struct
+	34, // 4: v3.ProjectPluginConfigTemplateToHostsParam.custom_config_context:type_name -> google.protobuf.Struct
 	1,  // 5: v3.SpecifyPluginSubConfigParam.config_files_detail:type_name -> v3.PluginConfigDetail
-	28, // 6: v3.SpecifyPluginSubConfigParam.custom_config_context:type_name -> google.protobuf.Struct
+	34, // 6: v3.SpecifyPluginSubConfigParam.custom_config_context:type_name -> google.protobuf.Struct
 	1,  // 7: v3.SpecifyPluginSubConfigTemplateParam.config_files_detail:type_name -> v3.PluginConfigDetail
-	28, // 8: v3.SpecifyPluginSubConfigTemplateParam.custom_config_context:type_name -> google.protobuf.Struct
-	28, // 9: v3.DeploySpec.param:type_name -> google.protobuf.Struct
+	34, // 8: v3.SpecifyPluginSubConfigTemplateParam.custom_config_context:type_name -> google.protobuf.Struct
+	34, // 9: v3.DeploySpec.param:type_name -> google.protobuf.Struct
 	11, // 10: v3.ScopeServiceTemplate.filter:type_name -> v3.TargetFilter
 	11, // 11: v3.ScopeSetTemplate.filter:type_name -> v3.TargetFilter
 	11, // 12: v3.ScopeInstance.filter:type_name -> v3.TargetFilter
 	11, // 13: v3.ScopeTopo.filter:type_name -> v3.TargetFilter
-	25, // 14: v3.ScopeTopo.paths:type_name -> v3.ScopeTopo.ScopeTopoNode
+	30, // 14: v3.ScopeTopo.paths:type_name -> v3.ScopeTopo.ScopeTopoNode
 	11, // 15: v3.ScopeDynamicGroup.filter:type_name -> v3.TargetFilter
-	28, // 16: v3.Scope.scope:type_name -> google.protobuf.Struct
+	34, // 16: v3.Scope.scope:type_name -> google.protobuf.Struct
 	0,  // 17: v3.DeployPolicy.meta:type_name -> v3.DeployPolicyMeta
 	10, // 18: v3.DeployPolicy.specs:type_name -> v3.DeploySpec
 	17, // 19: v3.DeployPolicy.scopes:type_name -> v3.Scope
-	29, // 20: v3.DeployPolicyListReq.page:type_name -> v3.Page
+	35, // 20: v3.DeployPolicyListReq.page:type_name -> v3.Page
 	19, // 21: v3.DeployPolicyListReq.exact_include_conditions:type_name -> v3.DeployPolicyExactConditions
 	20, // 22: v3.DeployPolicyListReq.fuzzy_include_conditions:type_name -> v3.DeployPolicyFuzzyConditions
 	19, // 23: v3.DeployPolicyListReq.exact_exclude_conditions:type_name -> v3.DeployPolicyExactConditions
 	20, // 24: v3.DeployPolicyListReq.fuzzy_exclude_conditions:type_name -> v3.DeployPolicyFuzzyConditions
-	30, // 25: v3.DeployPolicyListReq.executed_time_range:type_name -> v3.TimeRange
-	31, // 26: v3.DeployPolicyListResp.error:type_name -> v3.Error
-	32, // 27: v3.DeployPolicyListResp.permission:type_name -> v3.Permission
-	26, // 28: v3.DeployPolicyListResp.data:type_name -> v3.DeployPolicyListResp.Data
-	31, // 29: v3.DeployPolicyExecuteResp.error:type_name -> v3.Error
-	32, // 30: v3.DeployPolicyExecuteResp.permission:type_name -> v3.Permission
-	27, // 31: v3.DeployPolicyExecuteResp.data:type_name -> v3.DeployPolicyExecuteResp.Data
-	18, // 32: v3.DeployPolicyListResp.Data.items:type_name -> v3.DeployPolicy
-	21, // 33: v3.DeployPolicyAPI.ListDeployPolicy:input_type -> v3.DeployPolicyListReq
-	23, // 34: v3.DeployPolicyAPI.ExecuteDeployPolicy:input_type -> v3.DeployPolicyExecuteReq
-	22, // 35: v3.DeployPolicyAPI.ListDeployPolicy:output_type -> v3.DeployPolicyListResp
-	24, // 36: v3.DeployPolicyAPI.ExecuteDeployPolicy:output_type -> v3.DeployPolicyExecuteResp
-	35, // [35:37] is the sub-list for method output_type
-	33, // [33:35] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	36, // 25: v3.DeployPolicyListReq.executed_time_range:type_name -> v3.TimeRange
+	37, // 26: v3.DeployPolicyListResp.error:type_name -> v3.Error
+	38, // 27: v3.DeployPolicyListResp.permission:type_name -> v3.Permission
+	31, // 28: v3.DeployPolicyListResp.data:type_name -> v3.DeployPolicyListResp.Data
+	37, // 29: v3.DeployPolicyExecuteResp.error:type_name -> v3.Error
+	38, // 30: v3.DeployPolicyExecuteResp.permission:type_name -> v3.Permission
+	32, // 31: v3.DeployPolicyExecuteResp.data:type_name -> v3.DeployPolicyExecuteResp.Data
+	25, // 32: v3.DeployPolicyWorkflowInfo.children:type_name -> v3.DeployPolicyChildWorkflow
+	35, // 33: v3.DeployPolicyWorkflowListReq.page:type_name -> v3.Page
+	27, // 34: v3.DeployPolicyWorkflowListReq.exact_include_conditions:type_name -> v3.DeployPolicyWorkflowExactConditions
+	36, // 35: v3.DeployPolicyWorkflowListReq.operate_time_range:type_name -> v3.TimeRange
+	37, // 36: v3.DeployPolicyWorkflowListResp.error:type_name -> v3.Error
+	38, // 37: v3.DeployPolicyWorkflowListResp.permission:type_name -> v3.Permission
+	33, // 38: v3.DeployPolicyWorkflowListResp.data:type_name -> v3.DeployPolicyWorkflowListResp.Data
+	18, // 39: v3.DeployPolicyListResp.Data.items:type_name -> v3.DeployPolicy
+	26, // 40: v3.DeployPolicyWorkflowListResp.Data.items:type_name -> v3.DeployPolicyWorkflowInfo
+	21, // 41: v3.DeployPolicyAPI.ListDeployPolicy:input_type -> v3.DeployPolicyListReq
+	23, // 42: v3.DeployPolicyAPI.ExecuteDeployPolicy:input_type -> v3.DeployPolicyExecuteReq
+	28, // 43: v3.DeployPolicyAPI.WorkflowList:input_type -> v3.DeployPolicyWorkflowListReq
+	22, // 44: v3.DeployPolicyAPI.ListDeployPolicy:output_type -> v3.DeployPolicyListResp
+	24, // 45: v3.DeployPolicyAPI.ExecuteDeployPolicy:output_type -> v3.DeployPolicyExecuteResp
+	29, // 46: v3.DeployPolicyAPI.WorkflowList:output_type -> v3.DeployPolicyWorkflowListResp
+	44, // [44:47] is the sub-list for method output_type
+	41, // [41:44] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_deploy_policy_proto_init() }
@@ -2214,7 +2744,7 @@ func file_deploy_policy_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_deploy_policy_proto_rawDesc), len(file_deploy_policy_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   28,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

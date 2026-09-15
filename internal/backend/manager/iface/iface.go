@@ -156,6 +156,9 @@ type ISyncManager interface {
 type IDeployPolicyManager interface {
 	// LaunchExecuteDeployPolicy launch a task to execute deploy policy. returns the trigger-id.
 	LaunchExecuteDeployPolicy(ctx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error)
+
+	// LaunchExecuteDeployPolicyWorkflow launches one deploy policy and returns its workflow ID.
+	LaunchExecuteDeployPolicyWorkflow(ctx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error)
 }
 
 // IPackageManager defines package workflow manager methods.

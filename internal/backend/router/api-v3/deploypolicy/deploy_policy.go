@@ -34,10 +34,11 @@ const (
 )
 
 type handler struct {
-	rg              *gin.RouterGroup
-	daoDeployPolicy deploypolicy.IDaoDeployPolicy
-	goAsyncPool     goasync.IHandler
-	deployPolicyMgr managerIface.IDeployPolicyManager
+	rg                      *gin.RouterGroup
+	daoDeployPolicy         deploypolicy.IDaoDeployPolicy
+	daoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
+	goAsyncPool             goasync.IHandler
+	deployPolicyMgr         managerIface.IDeployPolicyManager
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -49,10 +50,11 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:              rg.Group("/deploy_policy"),
-		daoDeployPolicy: capability.StorageDeployPolicy,
-		goAsyncPool:     goAsyncPool,
-		deployPolicyMgr: capability.Manager,
+		rg:                      rg.Group("/deploy_policy"),
+		daoDeployPolicy:         capability.StorageDeployPolicy,
+		daoDeployPolicyWorkflow: capability.StorageDeployPolicy,
+		goAsyncPool:             goAsyncPool,
+		deployPolicyMgr:         capability.Manager,
 	}
 }
 
@@ -64,4 +66,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/update", restserver.Handler(h.Update))
 	h.rg.POST("/execute", restserver.Handler(h.Execute))
+	h.rg.POST("/workflow/list", restserver.Handler(h.WorkflowList))
 }

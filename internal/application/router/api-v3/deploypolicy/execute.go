@@ -33,14 +33,14 @@ func (h *handler) Execute(rCtx restserver.IContext) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.backendHandler.ExecuteDeployPolicy(rCtx, req.GetDeployPolicyId())
+	workflowID, err := h.backendHandler.ExecuteDeployPolicy(rCtx, req.GetDeployPolicyId())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to execute deploy policy")
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := new(protoApplication.DeployPolicyExecuteResp)
-	resp.ConvertTriggerID(triggerID)
+	resp.ConvertWorkflowID(workflowID)
 
 	return resp.GetData(), nil
 }

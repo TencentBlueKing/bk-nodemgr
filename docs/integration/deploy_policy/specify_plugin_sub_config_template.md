@@ -1,6 +1,6 @@
 # specify_plugin_sub_config_template
 
-See [Workflow usage](workflow.md) for execution result polling.
+See [Workflow usage](workflow.md) for parent dispatch status and child workflow inspection.
 
 ## 目的与适用场景
 

@@ -35,7 +35,7 @@ curl template 按 mode 拆分：
 4. 从 create 响应保存 `data.deploy_policy_id`。
 5. 用该 `deploy_policy_id` 调用 `POST /api/v3/deploy_policy/execute`，让目标收敛到声明的插件或配置状态。
 6. Save execute `data.workflow_id` for this policy execution.
-7. Follow [Workflow usage](workflow.md) to poll the result and decide when to execute the next policy.
+7. Follow [Workflow usage](workflow.md) to observe parent dispatch and inspect children when deployment completion is required.
 
 ## 接入流程
 
@@ -47,7 +47,7 @@ curl template 按 mode 拆分：
 | --------------- | -------------------------------------------- | --------------------------------------- |
 | 创建策略        | `POST /api/v3/deploy_policy/create`          | `data.deploy_policy_id`                 |
 | 执行策略        | `POST /api/v3/deploy_policy/execute`         | `data.workflow_id`                      |
-| Workflow result | `POST /api/v3/deploy_policy/workflow/result` | `data.status`, child counts and details |
+| Workflow list | `POST /api/v3/deploy_policy/workflow/list` | `data.total`, `data.items` with parent status and child links |
 | 查询策略        | `POST /api/v3/deploy_policy/list`            | `data.total`, `data.items`              |
 | 更新策略        | `POST /api/v3/deploy_policy/update`          | 响应结构见 Swagger                      |
 
@@ -141,7 +141,7 @@ create 响应包含 `data.deploy_policy_id`。把它保存为策略 identity，�
 
 `POST /api/v3/deploy_policy/execute` accepts `deploy_policy_id` and returns `data.workflow_id` for the requested policy's execution.
 
-The ID confirms launch, not completion or machine health. Query `POST /api/v3/deploy_policy/workflow/result` with this ID. `success`, `failed`, and `partial_failed` mean currently finished; `running` means unfinished; `unknown` cannot prove completion. See [Workflow usage](workflow.md) for polling examples, dispatch rules, shared children, and retry limits.
+The ID confirms launch, not completion or machine health. Query `POST /api/v3/deploy_policy/workflow/list` using `exact_include_conditions.workflow_id`. Parent `status` describes only one dispatch operation: `running` is unfinished; `success`, `failed`, and `partial_failed` are terminal dispatch states, not aggregated child results. Child links contain only `type` and `workflow_id`; use their existing APIs and permissions to inspect deployment completion. See [Workflow usage](workflow.md) for pagination, polling, synchronization, and retry limits.
 
 ### 6. 观察最终产物
 
@@ -194,7 +194,7 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 
 - [Workflow usage](workflow.md)
 - [Execute API reference](../../../apigw/apidocs/en/DeployPolicySvc_Execute.md)
-- [Workflow result API reference](../../../apigw/apidocs/en/DeployPolicySvc_WorkflowResult.md)
+- [Workflow list API reference](../../../apigw/apidocs/en/DeployPolicySvc_WorkflowList.md)
 - [Scope 概念](../../concepts/deploy_policy/scope.md)
 - [Spec 概念](../../concepts/deploy_policy/spec.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)

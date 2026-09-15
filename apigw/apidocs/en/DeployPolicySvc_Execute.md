@@ -1,6 +1,7 @@
 ### Description
 
 - API Version: v3.0.1+
+- Version Changes: `v3.0.1-alpha.84+` returns the parent `workflow_id` instead of a trigger ID.
 - Required Permission: No additional IAM permission; existing authentication and tenant isolation remain.
 - Function: Execute a deploy policy asynchronously and return the requested policy's workflow ID for this execution.
 
@@ -50,13 +51,14 @@ POST /api/v3/deploy_policy/execute
 
 | Parameter   | Type   | Description                                                                                                               |
 | ----------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
-| workflow_id | string | Business workflow ID for this execution of the requested policy; use it with `POST /api/v3/deploy_policy/workflow/result` |
+| workflow_id | string | Parent workflow ID for this execution of the requested policy; use it in `exact_include_conditions.workflow_id` with `POST /api/v3/deploy_policy/workflow/list` |
 
 ### Execution Semantics and Limits
 
 - Each execute call creates a new execution identity. Repeated or concurrent calls for the same policy do not share a workflow ID.
 - Discovery may execute related policies. Each participating policy has its own execution record; this endpoint returns only the requested policy's workflow ID.
 - Policies in the same execution may share node/plugin child workflows. Strict sequencing between related policies is not guaranteed.
-- Automatic retries retain this execution identity and include every newly created child workflow. There is no idempotency key or comprehensive duplicate-launch prevention guarantee.
+- The dispatch action does not retry automatically. A repeated execute request creates a new execution; there is no idempotency key or comprehensive duplicate-launch prevention guarantee.
 - Invalid parameters, missing or disabled policies, and launch failures remain API errors. A successful response confirms launch, not child completion or machine convergence.
-- Poll the [workflow result endpoint](DeployPolicySvc_WorkflowResult.md) and decide when to execute the next policy. Node Manager does not trigger the next policy automatically.
+- Poll the [workflow list endpoint](DeployPolicySvc_WorkflowList.md) by parent workflow ID. Parent status describes only dispatch and never aggregates child results. Query linked children through their existing APIs before making a decision that requires deployment completion.
+- Execute returns only `workflow_id`, not a `trigger_id` alias. No deploy-policy workflow retry or terminate API is exposed. Node Manager does not trigger the next policy automatically.

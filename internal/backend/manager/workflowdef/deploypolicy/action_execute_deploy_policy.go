@@ -87,7 +87,7 @@ func (act *actionExecuteDeployPolicy) Timeout() time.Duration {
 
 // MaxRetryCount returns the max retry count of this action.
 func (act *actionExecuteDeployPolicy) MaxRetryCount() uint {
-	return 2 // nolint: mnd
+	return 0
 }
 
 // DelayFn returns the delay of this action.

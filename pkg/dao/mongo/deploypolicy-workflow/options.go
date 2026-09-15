@@ -18,7 +18,11 @@
 
 package deploypolicyworkflow
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 // OptFn provides filtering options.
 type OptFn = base.OptFn
@@ -36,4 +40,50 @@ func WithOperationID(operationIDs ...string) OptFn {
 // WithDeployPolicyID filters by deploy policy ID.
 func WithDeployPolicyID(deployPolicyIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyDeployPolicyID, deployPolicyIDs...)
+}
+
+// WithoutWorkflowID excludes workflow IDs.
+func WithoutWorkflowID(workflowIDs ...string) OptFn {
+	return base.WithoutValues(FieldKeyWorkflowID, workflowIDs...)
+}
+
+// WithoutDeployPolicyID excludes deploy policy IDs.
+func WithoutDeployPolicyID(deployPolicyIDs ...int64) OptFn {
+	return base.WithoutValues(FieldKeyDeployPolicyID, deployPolicyIDs...)
+}
+
+// WithStatus filters by workflow status.
+func WithStatus(statuses ...types.DeployPolicyWorkflowStatus) OptFn {
+	return base.WithValues(FieldKeyStatus, statuses...)
+}
+
+// WithoutStatus excludes workflow statuses.
+func WithoutStatus(statuses ...types.DeployPolicyWorkflowStatus) OptFn {
+	return base.WithoutValues(FieldKeyStatus, statuses...)
+}
+
+// WithOperator filters by operator.
+func WithOperator(operators ...string) OptFn {
+	return base.WithValues(FieldKeyOperator, operators...)
+}
+
+// WithoutOperator excludes operators.
+func WithoutOperator(operators ...string) OptFn {
+	return base.WithoutValues(FieldKeyOperator, operators...)
+}
+
+// WithOperateTimeRange filters by the inclusive operation time range.
+func WithOperateTimeRange(timeRange types.TimeRange) OptFn {
+	return base.WithTimeRange(FieldKeyOperateTime, timeRange.StartTime, timeRange.EndTime)
+}
+
+// WithRunningOrMissingStatus includes legacy records for status backfill by the monitor.
+func WithRunningOrMissingStatus() OptFn {
+	return func(filter bson.D) bson.D {
+		return append(filter, bson.E{Key: "$or", Value: bson.A{
+			bson.M{FieldKeyStatus: types.DeployPolicyWorkflowStatusRunning},
+			bson.M{FieldKeyStatus: ""},
+			bson.M{FieldKeyStatus: bson.M{"$exists": false}},
+		}})
+	}
 }

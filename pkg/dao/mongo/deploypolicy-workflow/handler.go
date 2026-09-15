@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -33,6 +34,10 @@ import (
 type IHandler interface {
 	Create(nCtx contextx.IContext, workflow *types.DeployPolicyWorkflow) error
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolicyWorkflow, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.DeployPolicyWorkflow, int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
+	UpdateStatus(nCtx contextx.IContext, workflowID string, status types.DeployPolicyWorkflowStatus) error
+	UpdateFinishTime(nCtx contextx.IContext, workflowID string, finishTime time.Time) error
 	RecordChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error
 }
 
@@ -104,6 +109,87 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolic
 	return convertWorkflowToTypes(data), nil
 }
 
+// List lists tenant-scoped workflows and their total count.
+func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.DeployPolicyWorkflow, int64, error) {
+	d, err := h.tenantDao(nCtx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to resolve workflow tenant: %w", err)
+	}
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	total, err := d.Count(nCtx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count deploy policy workflows: %w", err)
+	}
+	datas, err := d.List(nCtx, filter, base.ParsePage(page))
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list deploy policy workflows: %w", err)
+	}
+	workflows := make([]*types.DeployPolicyWorkflow, len(datas))
+	for i, data := range datas {
+		workflows[i] = convertWorkflowToTypes(data)
+	}
+
+	return workflows, total, nil
+}
+
+// Count counts tenant-scoped workflows matching the options.
+func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	d, err := h.tenantDao(nCtx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to resolve workflow tenant: %w", err)
+	}
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	total, err := d.Count(nCtx, filter)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count deploy policy workflows: %w", err)
+	}
+
+	return total, nil
+}
+
+// UpdateStatus updates the status of one tenant-scoped workflow.
+func (h *Handler) UpdateStatus(nCtx contextx.IContext, workflowID string, status types.DeployPolicyWorkflowStatus) error {
+	if workflowID == "" {
+		return base.ErrInvalidParam(errors.New("workflow id is empty"))
+	}
+	if err := status.Validate(); err != nil {
+		return base.ErrInvalidParam(err)
+	}
+	d, err := h.tenantDao(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to resolve workflow tenant: %w", err)
+	}
+	filter := WithWorkflowID(workflowID)(base.AliveFilter())
+	if err := d.UpdateField(nCtx, filter, FieldKeyStatus, string(status)); err != nil {
+		return fmt.Errorf("failed to update deploy policy workflow status: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateFinishTime updates the finish time; zero clears it for a running operation.
+func (h *Handler) UpdateFinishTime(nCtx contextx.IContext, workflowID string, finishTime time.Time) error {
+	if workflowID == "" {
+		return base.ErrInvalidParam(errors.New("workflow id is empty"))
+	}
+	d, err := h.tenantDao(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to resolve workflow tenant: %w", err)
+	}
+	filter := WithWorkflowID(workflowID)(base.AliveFilter())
+	if err := d.UpdateField(nCtx, filter, FieldKeyFinishTime, finishTime); err != nil {
+		return fmt.Errorf("failed to update deploy policy workflow finish time: %w", err)
+	}
+
+	return nil
+}
+
 // RecordChild adds a child to each parent without duplicating its workflow ID and domain.
 func (h *Handler) RecordChild(nCtx contextx.IContext, workflowIDs []string, child types.DeployPolicyWorkflowChild) error {
 	if len(workflowIDs) == 0 {
@@ -158,8 +244,8 @@ func convertWorkflowToTypes(data *Data) *types.DeployPolicyWorkflow {
 	return &types.DeployPolicyWorkflow{
 		TenantID: data.TenantID, WorkflowID: data.WorkflowID, OperationID: data.OperationID,
 		TriggerID: data.TriggerID, DeployPolicyID: data.DeployPolicyID, Operator: data.Operator,
-		OperateTime: data.OperateTime,
-		Children:    children,
+		OperateTime: data.OperateTime, FinishTime: data.FinishTime, Status: types.DeployPolicyWorkflowStatus(data.Status),
+		Children: children,
 	}
 }
 
@@ -174,7 +260,7 @@ func convertWorkflowFromTypes(workflow *types.DeployPolicyWorkflow) *Data {
 	return &Data{
 		TenantID: workflow.TenantID, WorkflowID: workflow.WorkflowID, OperationID: workflow.OperationID,
 		TriggerID: workflow.TriggerID, DeployPolicyID: workflow.DeployPolicyID, Operator: workflow.Operator,
-		OperateTime: workflow.OperateTime,
-		Children:    children,
+		OperateTime: workflow.OperateTime, FinishTime: workflow.FinishTime, Status: string(workflow.Status),
+		Children: children,
 	}
 }

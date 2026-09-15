@@ -38,6 +38,8 @@ type Data struct {
 	DeployPolicyID int64     `json:"deploy_policy_id" bson:"deploy_policy_id"`
 	Operator       string    `json:"operator" bson:"operator"`
 	OperateTime    time.Time `json:"operate_time" bson:"operate_time"`
+	FinishTime     time.Time `json:"finish_time" bson:"finish_time"`
+	Status         string    `json:"status" bson:"status"`
 	Children       []Child   `json:"children" bson:"children"`
 }
 

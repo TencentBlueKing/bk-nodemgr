@@ -19,7 +19,10 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -43,8 +46,15 @@ type IHandlerDeployPolicy interface {
 	// ExecuteDeployPolicy executes deploy policy by deploy policy id.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param deployPolicyID the deploy policy id.
-	// @return the trigger id and error.
+	// @return the requested policy workflow id and error.
 	ExecuteDeployPolicy(nCtx contextx.IContext, deployPolicyID int64) (string, error)
+
+	// ListDeployPolicyWorkflows lists parent workflow records in the context tenant.
+	ListDeployPolicyWorkflows(nCtx contextx.IContext, page types.Page, condition *types.DeployPolicyWorkflowCondition) (
+		[]*types.DeployPolicyWorkflow, int64, error)
+
+	// CountDeployPolicyWorkflows counts parent workflow records in the context tenant.
+	CountDeployPolicyWorkflows(nCtx contextx.IContext, condition *types.DeployPolicyWorkflowCondition) (int64, error)
 }
 
 // ListDeployPolicy lists deploy policy.
@@ -95,5 +105,47 @@ func (h *Handler) ExecuteDeployPolicy(nCtx contextx.IContext, deployPolicyID int
 		return "", err
 	}
 
-	return resp.GetData().GetTriggerId(), nil
+	return resp.GetData().GetWorkflowId(), nil
+}
+
+// ListDeployPolicyWorkflows lists the requested page, splitting backend-sized pages when needed.
+func (h *Handler) ListDeployPolicyWorkflows(nCtx contextx.IContext, page types.Page,
+	condition *types.DeployPolicyWorkflowCondition) ([]*types.DeployPolicyWorkflow, int64, error) {
+
+	req := new(protoBackend.DeployPolicyWorkflowListReq)
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, fmt.Errorf("failed to convert deploy policy workflow conditions: %w", err)
+	}
+	var total int64
+	executor := pageexecutor.NewPageExecutor[*types.DeployPolicyWorkflow](req.PageLimit(), req.PageTimeout())
+	result, err := executor.Execute(nCtx, page, func(nCtx contextx.IContext, page types.Page) ([]*types.DeployPolicyWorkflow, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listDeployPolicyWorkflows(nCtx, req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list deploy policy workflows: %w", err)
+		}
+		workflows, count := resp.ConvertDeployPolicyWorkflowsToTypes()
+		total = count
+
+		return workflows, nil
+	})
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to execute deploy policy workflow pages: %w", err)
+	}
+
+	return result.Items, total, nil
+}
+
+// CountDeployPolicyWorkflows counts workflows without fetching records.
+func (h *Handler) CountDeployPolicyWorkflows(nCtx contextx.IContext, condition *types.DeployPolicyWorkflowCondition) (int64, error) {
+	req := &protoBackend.DeployPolicyWorkflowListReq{OnlyCount: true}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, fmt.Errorf("failed to convert deploy policy workflow conditions: %w", err)
+	}
+	resp, err := h.cli.listDeployPolicyWorkflows(nCtx, req)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count deploy policy workflows: %w", err)
+	}
+
+	return resp.GetData().GetTotal(), nil
 }

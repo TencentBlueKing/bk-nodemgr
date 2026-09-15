@@ -18332,8 +18332,9 @@ paths:
                   data:
                     type: object
                     properties:
-                      trigger_id:
+                      workflow_id:
                         type: string
+                        description: Identifies the requested policy's execution, not a child workflow.
                   error:
                     type: object
                     properties:
@@ -18375,15 +18376,30 @@ paths:
                                     type: string
                                   system_id:
                                     type: string
+                                  system_name:
+                                    type: string
                                   type_name:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
                       apply_url:
                         type: string
                       system_name:
                         type: string
                   request_id:
                     type: string
-                description: DeployPolicyExecuteResp describes HTTP response body when execute deploy\npolicy.
+                description: "DeployPolicyExecuteResp describes HTTP response body when execute deploy\npolicy."
           description: A successful response.
         default:
           content:
@@ -18414,9 +18430,9 @@ paths:
                 deploy_policy_id:
                   type: integer
                   format: int64
-              description: DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy.
+              description: "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy."
         required: true
-        description: DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy.
+        description: "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy."
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -18883,6 +18899,219 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Update a deploy policy.
+  /api/v3/deploy_policy/workflow/list:
+    post:
+      operationId: DeployPolicySvc_WorkflowList
+      description: 查询部署策略执行记录，支持分页、精确条件和操作时间范围过滤。
+      tags:
+        - DeployPolicySvc
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            workflow_id:
+                              type: string
+                            trigger_id:
+                              type: string
+                            deploy_policy_id:
+                              type: integer
+                              format: int64
+                            operator:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                              description: Unix timestamp in milliseconds.
+                            finish_time:
+                              type: integer
+                              format: int64
+                              description: Unix timestamp in milliseconds, or zero when unfinished.
+                            status:
+                              type: string
+                            children:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                    description: node or plugin. The pair (type, workflow_id) identifies a child workflow.
+                                  workflow_id:
+                                    type: string
+                                description: DeployPolicyChildWorkflow describes one associated node or plugin workflow.
+                          description: DeployPolicyWorkflowInfo describes one tenant-scoped policy execution.
+                description: DeployPolicyWorkflowListResp describes the policy execution list.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                    deploy_policy_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                  description: DeployPolicyWorkflowExactConditions describes exact workflow filters.
+                operate_time_range:
+                  type: object
+                  properties:
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+              description: DeployPolicyWorkflowListReq lists policy executions in the current tenant.
+        required: true
+        description: DeployPolicyWorkflowListReq lists policy executions in the current tenant.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/deploy_policy/workflow/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: List deploy policy executions with pagination, exact filters, and an operation time range.
   /api/v3/policy/config/create:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyCreate

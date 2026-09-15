@@ -30,9 +30,34 @@ import (
 
 // LaunchExecuteDeployPolicy launch execute deploy policy trigger.
 func (mgr *Manager) LaunchExecuteDeployPolicy(nCtx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerID, _, err := mgr.launchExecuteDeployPolicy(nCtx, param)
+	return triggerID, err
+}
+
+// LaunchExecuteDeployPolicyWorkflow launches one deploy policy and returns its workflow ID.
+func (mgr *Manager) LaunchExecuteDeployPolicyWorkflow(
+	nCtx contextx.IContext, param types.ExecuteDeployPolicyParam,
+) (string, error) {
+
+	if len(param.DeployPolicyIDs) != 1 {
+		return "", fmt.Errorf("exactly one deploy policy ID is required")
+	}
+
+	_, workflowIDs, err := mgr.launchExecuteDeployPolicy(nCtx, param)
 	if err != nil {
 		return "", err
+	}
+
+	return workflowIDs[param.DeployPolicyIDs[0]], nil
+}
+
+func (mgr *Manager) launchExecuteDeployPolicy(
+	nCtx contextx.IContext, param types.ExecuteDeployPolicyParam,
+) (string, map[int64]string, error) {
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", nil, err
 	}
 	operationDef := deploypolicy.NewOperExecuteDeployPolicy(deploypolicy.OperParamExecuteDeployPolicy{
 		TenantID:        nCtx.TenantID(),
@@ -41,22 +66,25 @@ func (mgr *Manager) LaunchExecuteDeployPolicy(nCtx contextx.IContext, param type
 	})
 	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
+	workflowIDs := make(map[int64]string, len(param.DeployPolicyIDs))
 	for _, policyID := range param.DeployPolicyIDs {
-		if _, err := mgr.conf.StorageDeployPolicy.EnsureDeployPolicyWorkflow(nCtx,
-			operCtl.GetOperationID(), triggerCtl.GetTriggerID(), policyID, param.Operator); err != nil {
-			return "", fmt.Errorf("failed to ensure policy %d workflow: %w", policyID, err)
+		workflow, err := mgr.conf.StorageDeployPolicy.EnsureDeployPolicyWorkflow(nCtx,
+			operCtl.GetOperationID(), triggerCtl.GetTriggerID(), policyID, param.Operator)
+		if err != nil {
+			return "", nil, fmt.Errorf("failed to ensure policy %d workflow: %w", policyID, err)
 		}
+		workflowIDs[policyID] = workflow.WorkflowID
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	logger.G.Biz(nCtx).
 		With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
 		Info("launched execute deploy policy")
 
-	return triggerCtl.GetTriggerID(), nil
+	return triggerCtl.GetTriggerID(), workflowIDs, nil
 }

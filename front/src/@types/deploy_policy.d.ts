@@ -203,6 +203,5 @@ export interface DeployPolicyExecuteResp {
 }
 
 export interface DeployPolicyExecuteRespData {
-  trigger_id: string;
+  workflow_id: string;
 }
-

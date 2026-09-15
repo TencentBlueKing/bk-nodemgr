@@ -65,6 +65,7 @@ func (s *Storage) createDeployPolicyWorkflow(nCtx contextx.IContext, operationID
 		TenantID: nCtx.TenantID(), WorkflowID: identifier.GenWorkflowID(),
 		OperationID: operationID, TriggerID: triggerID, DeployPolicyID: policyID,
 		Operator: operator, OperateTime: time.Now(),
+		Status:   types.DeployPolicyWorkflowStatusRunning,
 		Children: make([]types.DeployPolicyWorkflowChild, 0),
 	}
 	if err := s.daoDeployPolicyWorkflow.Create(nCtx, workflow); err != nil {
@@ -104,4 +105,51 @@ func (s *Storage) recordDeployPolicyWorkflowChild(nCtx contextx.IContext, workfl
 	}
 
 	return nil
+}
+
+func (s *Storage) listDeployPolicyWorkflows(nCtx contextx.IContext, page types.Page,
+	condition *types.DeployPolicyWorkflowCondition) ([]*types.DeployPolicyWorkflow, int64, error) {
+
+	page.Sort = types.WithSortFields(page.Sort, types.WithFieldDesc(deploypolicyworkflow.FieldKeyOperateTime))
+	workflows, total, err := s.daoDeployPolicyWorkflow.List(nCtx, page, convertDeployPolicyWorkflowConditionToOptions(condition)...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list deploy policy workflows: %w", err)
+	}
+
+	return workflows, total, nil
+}
+
+func (s *Storage) countDeployPolicyWorkflows(nCtx contextx.IContext, condition *types.DeployPolicyWorkflowCondition) (int64, error) {
+	total, err := s.daoDeployPolicyWorkflow.Count(nCtx, convertDeployPolicyWorkflowConditionToOptions(condition)...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count deploy policy workflows: %w", err)
+	}
+
+	return total, nil
+}
+
+func convertDeployPolicyWorkflowConditionToOptions(condition *types.DeployPolicyWorkflowCondition) []deploypolicyworkflow.OptFn {
+	opts := make([]deploypolicyworkflow.OptFn, 0)
+	if condition == nil {
+		return opts
+	}
+	if condition.OperateTimeRange != nil {
+		opts = append(opts, deploypolicyworkflow.WithOperateTimeRange(*condition.OperateTimeRange))
+	}
+	if exact := condition.ExactInclude; exact != nil {
+		opts = append(opts,
+			deploypolicyworkflow.WithWorkflowID(exact.WorkflowID...),
+			deploypolicyworkflow.WithDeployPolicyID(exact.DeployPolicyID...),
+			deploypolicyworkflow.WithStatus(exact.Status...),
+			deploypolicyworkflow.WithOperator(exact.Operator...))
+	}
+	if exact := condition.ExactExclude; exact != nil {
+		opts = append(opts,
+			deploypolicyworkflow.WithoutWorkflowID(exact.WorkflowID...),
+			deploypolicyworkflow.WithoutDeployPolicyID(exact.DeployPolicyID...),
+			deploypolicyworkflow.WithoutStatus(exact.Status...),
+			deploypolicyworkflow.WithoutOperator(exact.Operator...))
+	}
+
+	return opts
 }

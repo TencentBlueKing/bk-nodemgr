@@ -902,6 +902,11 @@ func (x *DeployPolicyExecuteReq) Validate() error {
 	return nil
 }
 
+// ConvertWorkflowID converts the requested policy workflow ID.
+func (x *DeployPolicyExecuteResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &DeployPolicyExecuteResp_Data{WorkflowId: workflowID}
+}
+
 // AutoConvert auto convert.
 func (x *DeployPolicyExecuteReq) AutoConvert() {
 	if x.DeployPolicyId == nil {

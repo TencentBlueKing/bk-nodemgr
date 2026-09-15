@@ -3048,6 +3048,33 @@ func (c *cli) listDeployPolicy(ctx contextx.IContext, req *protoBackend.DeployPo
 	return resp, nil
 }
 
+func (c *cli) listDeployPolicyWorkflows(ctx contextx.IContext, req *protoBackend.DeployPolicyWorkflowListReq) (
+	*protoBackend.DeployPolicyWorkflowListResp, error) {
+
+	resp := new(protoBackend.DeployPolicyWorkflowListResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/deploy_policy/workflow/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request deploy policy workflows: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list deploy policy workflows", resp, resp.GetError())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list deploy policy workflows failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) executeDeployPolicy(ctx contextx.IContext, req *protoBackend.DeployPolicyExecuteReq) (
 	*protoBackend.DeployPolicyExecuteResp, error) {
 

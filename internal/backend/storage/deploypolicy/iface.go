@@ -35,6 +35,11 @@ type IStorage interface {
 
 // IDaoDeployPolicyWorkflow defines deploy policy operation recording operations.
 type IDaoDeployPolicyWorkflow interface {
+	// ListDeployPolicyWorkflows lists tenant-scoped workflows with a total count.
+	ListDeployPolicyWorkflows(nCtx contextx.IContext, page types.Page,
+		condition *types.DeployPolicyWorkflowCondition) ([]*types.DeployPolicyWorkflow, int64, error)
+	// CountDeployPolicyWorkflows counts tenant-scoped workflows.
+	CountDeployPolicyWorkflows(nCtx contextx.IContext, condition *types.DeployPolicyWorkflowCondition) (int64, error)
 	// EnsureDeployPolicyWorkflow preserves the first record for an operation and policy.
 	EnsureDeployPolicyWorkflow(nCtx contextx.IContext, operationID, triggerID string,
 		policyID int64, operator string) (*types.DeployPolicyWorkflow, error)
