@@ -16,93 +16,90 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package plugin
+package pluginv2
 
 import (
 	"errors"
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 const (
-	// ActionNameDeleteProcessConfigRecord the name of action delete process config record.
-	ActionNameDeleteProcessConfigRecord = "delete_process_config_record"
+	// ActionNameDeleteProcessConfigRecordV2 the name of action delete process config record.
+	ActionNameDeleteProcessConfigRecordV2 = "delete_process_config_record_v2"
 )
 
-// NewActionDeleteProcessConfigRecord new an action to delete process config record.
-func NewActionDeleteProcessConfigRecord(capability *Capability) action.Definition {
-	return &actionDeleteProcessConfigRecord{
-		daoPluginDeployment:   capability.StoragePlugin,
-		daoProcessConfig:      capability.StoragePlugin,
-		storageActionInstance: capability.StorageWorkflow,
+// NewActionDeleteProcessConfigRecordV2 new an action to delete process config record.
+func NewActionDeleteProcessConfigRecordV2(capability *Capability) action.Definition {
+	return &actionDeleteProcessConfigRecordV2{
+		daoPluginDeployment: capability.StoragePlugin,
+		daoProcessConfig:    capability.StoragePlugin,
 	}
 }
 
-// ActParamDeleteProcessConfigRecord defines the parameters for actionDeleteProcessConfigRecord.
-type ActParamDeleteProcessConfigRecord struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+// ActParamDeleteProcessConfigRecordV2 defines the parameters for actionDeleteProcessConfigRecordV2.
+type ActParamDeleteProcessConfigRecordV2 struct {
+	pluginV2Utils.PluginActionStandardParam `json:",inline"`
 }
 
-type actionDeleteProcessConfigRecord struct {
-	daoPluginDeployment   pluginStg.IDaoPluginDeployment
-	daoProcessConfig      pluginStg.IDaoProcessConfig
-	storageActionInstance workflow.IStorageActionInstance
+type actionDeleteProcessConfigRecordV2 struct {
+	daoPluginDeployment pluginStg.IDaoPluginDeployment
+	daoProcessConfig    pluginStg.IDaoProcessConfig
 }
 
 // Name returns the name of the action.
-func (act *actionDeleteProcessConfigRecord) Name() string {
-	return ActionNameDeleteProcessConfigRecord
+func (act *actionDeleteProcessConfigRecordV2) Name() string {
+	return ActionNameDeleteProcessConfigRecordV2
 }
 
 // Version returns the version of the action.
-func (act *actionDeleteProcessConfigRecord) Version() string {
+func (act *actionDeleteProcessConfigRecordV2) Version() string {
 	return "1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionDeleteProcessConfigRecord) Description() string {
-	return "delete process config record"
+func (act *actionDeleteProcessConfigRecordV2) Description() string {
+	return "delete process config record v2"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionDeleteProcessConfigRecord) Timeout() time.Duration {
+func (act *actionDeleteProcessConfigRecordV2) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionDeleteProcessConfigRecord) Tags() []action.Tag {
+func (act *actionDeleteProcessConfigRecordV2) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionDeleteProcessConfigRecord) MaxRetryCount() uint {
+func (act *actionDeleteProcessConfigRecordV2) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionDeleteProcessConfigRecord) DelayFn(_ int) func() {
+func (act *actionDeleteProcessConfigRecordV2) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *actionDeleteProcessConfigRecord) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamDeleteProcessConfigRecord)
+func (act *actionDeleteProcessConfigRecordV2) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamDeleteProcessConfigRecordV2)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -161,11 +158,11 @@ func (act *actionDeleteProcessConfigRecord) Do(ctx *action.InstanceContext) (err
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionDeleteProcessConfigRecord) DisplayNameZh() string {
-	return "删除配置存储记录"
+func (act *actionDeleteProcessConfigRecordV2) DisplayNameZh() string {
+	return "删除 V2 配置存储记录"
 }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionDeleteProcessConfigRecord) DisplayNameEn() string {
-	return "Delete Process Config Record"
+func (act *actionDeleteProcessConfigRecordV2) DisplayNameEn() string {
+	return "Delete V2 Process Config Record"
 }

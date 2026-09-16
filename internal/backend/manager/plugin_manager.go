@@ -270,6 +270,11 @@ func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.Un
 func (mgr *Manager) createUninstallPluginOper(
 	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
 
+	if deploy.PluginConf == nil {
+		deploy.PluginConf = &types.PluginDeploymentPluginConf{}
+	}
+	deploy.PluginConf.RemoveAllConfigs = true
+
 	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
 		logger.G.Biz(nCtx).
 			WithErr(err).

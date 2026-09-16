@@ -34,6 +34,9 @@ const (
 	// FieldKeyPluginConfConfigFilesDetail the plugin_config.config_files_detail field key.
 	FieldKeyPluginConfConfigFilesDetail = "data.plugin_config.config_files_detail"
 
+	// FieldKeyPluginConfRemoveAllConfigs the plugin_config.remove_all_configs field key.
+	FieldKeyPluginConfRemoveAllConfigs = "data.plugin_config.remove_all_configs"
+
 	// FieldKeyExpireAt the expire_at field key.
 	FieldKeyExpireAt = "data.expire_at"
 

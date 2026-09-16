@@ -285,6 +285,7 @@ type PluginConf struct {
 	SystemConfigContext  map[string]any `json:"system_config_context" bson:"system_config_context"`
 	CustomConfigContext  map[string]any `json:"custom_config_context" bson:"custom_config_context"`
 	RemoveConfigFileName []string       `json:"remove_config_file_name" bson:"remove_config_file_name"`
+	RemoveAllConfigs     bool           `json:"remove_all_configs" bson:"remove_all_configs"`
 }
 
 // configDetail defines the plugin config detail.

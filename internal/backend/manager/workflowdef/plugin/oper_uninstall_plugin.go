@@ -61,6 +61,7 @@ func (oper *operUninstallPlugin) ActionDefNames() []string {
 		ActionNameUninstallPlugin,
 		ActionNameWaitPluginInstallerComplete,
 		ActionNameDeleteProcess,
+		ActionNameDeleteProcessConfigRecord,
 	}
 }
 
@@ -78,6 +79,7 @@ func (oper *operUninstallPlugin) DefaultParameters() operation.Param {
 			ActionNameUninstallPlugin:                true,
 			ActionNameWaitPluginInstallerComplete:    false,
 			ActionNameDeleteProcess:                  true,
+			ActionNameDeleteProcessConfigRecord:      true,
 		},
 	}
 }

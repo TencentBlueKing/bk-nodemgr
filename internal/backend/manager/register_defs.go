@@ -331,6 +331,8 @@ func (mgr *Manager) registerDefPluginV2() error {
 		pluginv2.NewActionInstallPluginV2(pluginCap),
 		pluginv2.NewActionUpgradePluginV2(pluginCap),
 		pluginv2.NewActionUninstallPluginV2(pluginCap),
+		pluginv2.NewActionDeleteProcessV2(pluginCap),
+		pluginv2.NewActionDeleteProcessConfigRecordV2(pluginCap),
 		pluginv2.NewActionPushPluginConfigV2(pluginCap),
 		pluginv2.NewActionFetchPluginProcessV2(pluginCap),
 		pluginv2.NewActionCheckPluginProcessAliveV2(pluginCap),

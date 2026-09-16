@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -311,6 +312,98 @@ func TestConvertPluginConfigDetailsTemplateName(t *testing.T) {
 	}
 	if got[0].TemplateName != "test-template-name" {
 		t.Fatalf("convertPluginConfigDetailsToTypes() TemplateName = %q, want %q", got[0].TemplateName, "test-template-name")
+	}
+}
+
+func TestConvertPluginDeploymentPluginConfRemoveAllConfigs(t *testing.T) {
+	tests := []struct {
+		name             string
+		conf             *types.PluginDeploymentPluginConf
+		wantRemoveAll    bool
+		wantRemoveByName []string
+	}{
+		{
+			name: "remove all configs",
+			conf: &types.PluginDeploymentPluginConf{
+				RemoveAllConfigs: true,
+			},
+			wantRemoveAll: true,
+		},
+		{
+			name: "remove named configs",
+			conf: &types.PluginDeploymentPluginConf{
+				RemoveConfigFileName: []string{"config.yaml"},
+			},
+			wantRemoveByName: []string{"config.yaml"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := convertPluginDeploymentPluginConfFromTypes(tt.conf)
+			if data.RemoveAllConfigs != tt.wantRemoveAll {
+				t.Fatalf(
+					"convertPluginDeploymentPluginConfFromTypes() RemoveAllConfigs = %t, want %t",
+					data.RemoveAllConfigs,
+					tt.wantRemoveAll,
+				)
+			}
+
+			raw, err := bson.Marshal(data)
+			if err != nil {
+				t.Fatalf("bson.Marshal() error = %v", err)
+			}
+			value := bson.Raw(raw).Lookup("remove_all_configs")
+			if value.Type != bson.TypeBoolean || value.Boolean() != tt.wantRemoveAll {
+				t.Fatalf("BSON remove_all_configs = %v, want %t", value, tt.wantRemoveAll)
+			}
+
+			var persisted PluginConf
+			if err := bson.Unmarshal(raw, &persisted); err != nil {
+				t.Fatalf("bson.Unmarshal() error = %v", err)
+			}
+
+			got := convertPluginDeploymentPluginConfToTypes(&persisted)
+			if got.RemoveAllConfigs != tt.wantRemoveAll {
+				t.Fatalf(
+					"convertPluginDeploymentPluginConfToTypes() RemoveAllConfigs = %t, want %t",
+					got.RemoveAllConfigs,
+					tt.wantRemoveAll,
+				)
+			}
+			if !reflect.DeepEqual(got.RemoveConfigFileName, tt.wantRemoveByName) {
+				t.Fatalf(
+					"convertPluginDeploymentPluginConfToTypes() RemoveConfigFileName = %v, want %v",
+					got.RemoveConfigFileName,
+					tt.wantRemoveByName,
+				)
+			}
+		})
+	}
+}
+
+func TestConvertPluginDeploymentPluginConfLegacyBSONDefaultsRemoveAllConfigs(t *testing.T) {
+	raw, err := bson.Marshal(bson.M{
+		"remove_config_file_name": []string{"config.yaml"},
+	})
+	if err != nil {
+		t.Fatalf("bson.Marshal() error = %v", err)
+	}
+
+	var persisted PluginConf
+	if err := bson.Unmarshal(raw, &persisted); err != nil {
+		t.Fatalf("bson.Unmarshal() error = %v", err)
+	}
+
+	got := convertPluginDeploymentPluginConfToTypes(&persisted)
+	if got.RemoveAllConfigs {
+		t.Fatal("convertPluginDeploymentPluginConfToTypes() RemoveAllConfigs = true, want false")
+	}
+	if !reflect.DeepEqual(got.RemoveConfigFileName, []string{"config.yaml"}) {
+		t.Fatalf(
+			"convertPluginDeploymentPluginConfToTypes() RemoveConfigFileName = %v, want [config.yaml]",
+			got.RemoveConfigFileName,
+		)
 	}
 }
 

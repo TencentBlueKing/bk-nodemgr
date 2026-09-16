@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package types
+package types // nolint: revive
 
 import (
 	"fmt"
@@ -61,6 +61,10 @@ type PluginDeploymentPluginConf struct {
 
 	// RemoveConfigFileName is the list of config files to be removed.
 	RemoveConfigFileName []string
+
+	// RemoveAllConfigs indicates whether all persisted process config records should be removed.
+	// When false, only the records named by RemoveConfigFileName are removed.
+	RemoveAllConfigs bool
 }
 
 // PluginConfigDetail defines the plugin config detail.

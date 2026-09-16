@@ -59,6 +59,8 @@ func (oper *operUninstallPluginV2) ActionDefNames() []string {
 		ActionNameTransferPluginPkgToNodeV2,
 		ActionNameUninstallPluginV2,
 		ActionNameWaitPluginInstallerCompleteV2,
+		ActionNameDeleteProcessV2,
+		ActionNameDeleteProcessConfigRecordV2,
 	}
 }
 
@@ -74,6 +76,8 @@ func (oper *operUninstallPluginV2) DefaultParameters() operation.Param {
 			ActionNameTransferPluginPkgToNodeV2:     true,
 			ActionNameUninstallPluginV2:             true,
 			ActionNameWaitPluginInstallerCompleteV2: false,
+			ActionNameDeleteProcessV2:               true,
+			ActionNameDeleteProcessConfigRecordV2:   true,
 		},
 	}
 }

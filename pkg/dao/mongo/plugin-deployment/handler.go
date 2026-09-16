@@ -561,9 +561,7 @@ func convertConfigSourceFromTypes(configSource types.Target) *target {
 	}
 }
 
-func convertTargetMatchedTopoRelationsToTypes(
-	relations []targetMatchedTopoRelation,
-) []types.TargetMatchedTopoRelation {
+func convertTargetMatchedTopoRelationsToTypes(relations []targetMatchedTopoRelation) []types.TargetMatchedTopoRelation {
 	return conv.SliceToSlice(relations, func(relation targetMatchedTopoRelation) types.TargetMatchedTopoRelation {
 		return types.TargetMatchedTopoRelation{
 			TopoObjID:  relation.TopoObjID,
@@ -572,9 +570,7 @@ func convertTargetMatchedTopoRelationsToTypes(
 	})
 }
 
-func convertTargetMatchedTopoRelationsFromTypes(
-	relations []types.TargetMatchedTopoRelation,
-) []targetMatchedTopoRelation {
+func convertTargetMatchedTopoRelationsFromTypes(relations []types.TargetMatchedTopoRelation) []targetMatchedTopoRelation {
 	return conv.SliceToSlice(relations, func(relation types.TargetMatchedTopoRelation) targetMatchedTopoRelation {
 		return targetMatchedTopoRelation{
 			TopoObjID:  relation.TopoObjID,
@@ -611,9 +607,7 @@ func convertServiceInstanceFromTypes(instance types.ServiceInstance) serviceInst
 	}
 }
 
-func convertServiceInstanceProcessesToTypes(
-	processes map[string]serviceInstanceProcess,
-) map[string]types.ServiceInstanceProcess {
+func convertServiceInstanceProcessesToTypes(processes map[string]serviceInstanceProcess) map[string]types.ServiceInstanceProcess {
 	typeProcesses := make(map[string]types.ServiceInstanceProcess, len(processes))
 	for name, process := range processes {
 		typeProcesses[name] = types.ServiceInstanceProcess{
@@ -649,9 +643,7 @@ func convertServiceInstanceProcessesToTypes(
 	return typeProcesses
 }
 
-func convertServiceInstanceProcessesFromTypes(
-	processes map[string]types.ServiceInstanceProcess,
-) map[string]serviceInstanceProcess {
+func convertServiceInstanceProcessesFromTypes(processes map[string]types.ServiceInstanceProcess) map[string]serviceInstanceProcess {
 	daoProcesses := make(map[string]serviceInstanceProcess, len(processes))
 	for name, process := range processes {
 		daoProcesses[name] = serviceInstanceProcess{
@@ -687,9 +679,7 @@ func convertServiceInstanceProcessesFromTypes(
 	return daoProcesses
 }
 
-func convertServiceInstanceProcessBindInfoToTypes(
-	bindInfo []serviceInstanceProcessBindInfo,
-) []types.ServiceInstanceProcessBindInfo {
+func convertServiceInstanceProcessBindInfoToTypes(bindInfo []serviceInstanceProcessBindInfo) []types.ServiceInstanceProcessBindInfo {
 	return conv.SliceToSlice(bindInfo, func(info serviceInstanceProcessBindInfo) types.ServiceInstanceProcessBindInfo {
 		return types.ServiceInstanceProcessBindInfo{
 			Enable:        info.Enable,
@@ -701,9 +691,7 @@ func convertServiceInstanceProcessBindInfoToTypes(
 	})
 }
 
-func convertServiceInstanceProcessBindInfoFromTypes(
-	bindInfo []types.ServiceInstanceProcessBindInfo,
-) []serviceInstanceProcessBindInfo {
+func convertServiceInstanceProcessBindInfoFromTypes(bindInfo []types.ServiceInstanceProcessBindInfo) []serviceInstanceProcessBindInfo {
 	return conv.SliceToSlice(bindInfo, func(info types.ServiceInstanceProcessBindInfo) serviceInstanceProcessBindInfo {
 		return serviceInstanceProcessBindInfo{
 			Enable:        info.Enable,
@@ -897,6 +885,7 @@ func convertPluginDeploymentPluginConfToTypes(conf *PluginConf) *types.PluginDep
 		SystemConfigContext:  conf.SystemConfigContext,
 		CustomConfigContext:  conf.CustomConfigContext,
 		RemoveConfigFileName: conf.RemoveConfigFileName,
+		RemoveAllConfigs:     conf.RemoveAllConfigs,
 	}
 
 	return pluginConf
@@ -914,6 +903,7 @@ func convertPluginDeploymentPluginConfFromTypes(conf *types.PluginDeploymentPlug
 		SystemConfigContext:  conf.SystemConfigContext,
 		CustomConfigContext:  conf.CustomConfigContext,
 		RemoveConfigFileName: conf.RemoveConfigFileName,
+		RemoveAllConfigs:     conf.RemoveAllConfigs,
 	}
 
 	return pluginConf
