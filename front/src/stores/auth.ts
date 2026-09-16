@@ -1,3 +1,4 @@
+import { Message } from 'bkui-vue';
 import { defineStore } from 'pinia';
 import { reactive, ref } from 'vue';
 
@@ -135,6 +136,29 @@ export const useAuthStore = defineStore('auth', () => {
 
         return true;
       }
+
+      // 非权限拒绝的真实异常（如 500 / 网络错误）：本请求关闭了全局错误拦截，这里按拦截器同款格式手动提示
+      const errObj = (error ?? {}) as {
+        code?: number | string;
+        message?: string;
+        data?: { code?: number | string };
+        datas?: { message?: string };
+        error?: { message?: string; details?: Array<{ message?: string }> };
+      };
+      const showMessage = errObj.message || errObj.datas?.message || errObj.error?.message || '';
+      Message({
+        theme: 'error',
+        message: {
+          code: errObj.data?.code ?? errObj.code ?? 500,
+          overview: showMessage || '鉴权请求失败',
+          suggestion: '',
+          type: 'key-value',
+          details: {
+            code: errObj.data?.code ?? errObj.code,
+            message: errObj.error?.details?.[0]?.message ?? showMessage,
+          },
+        },
+      });
 
       permissionDetail.value = null;
       deniedActionIds.value = [];
