@@ -1016,11 +1016,12 @@ const getProcessList = async () => {
     const hostIds = res.items.map(item => item.bk_host_id);
     let hostList: { items: any[] } = { items: [] };
     if (hostIds.length > 0) {
-      // host 查询用 bk_host_id 精确过滤已限定范围，limit 0 表示不分页，
-      // 不能再叠加进程列表的 offset，否则第 2 页起会把过滤结果全部跳过
+      // host 查询用 bk_host_id 精确过滤已限定范围（单页 hostIds 不超过分页 limit）。
+      // limit 必须大于 0（后端对 0 会直接报错），这里取 500 足够覆盖；同时不叠加进程
+      // 列表的 offset，否则第 2 页起会把过滤结果全部跳过
       hostList = await TopoService.HostList({
         page: {
-          limit: 0,
+          limit: 500,
         },
         exact_include_conditions: {
           bk_host_id: hostIds,

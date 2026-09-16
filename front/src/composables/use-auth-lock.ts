@@ -80,7 +80,9 @@ export default function useAuthLock(
     const resourceId = getResourceId();
     if (entry.isAny) return true;
     if (Array.isArray(resourceId)) {
-      if (resourceId.length === 0) return true;
+      // 空数组 = 未选择业务（全部业务）：仅全量授权（is_any）时才视为有操作权限。
+      // 保守处理：列表此时展示全部业务的机器，部分授权用户不应出现可点击的操作按钮
+      if (resourceId.length === 0) return entry.isAny;
       return resourceId.every(id => entry.resourceIds.has(String(id)));
     }
     if (resourceId === undefined || resourceId === null) return entry.resourceIds.size > 0;
