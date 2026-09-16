@@ -247,10 +247,10 @@
                   theme="primary"
                   text
                   v-if="row.enabled && !row.as_default"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleSetDefaultVersion(row) : manageAuthClick($event, row.name)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  :class="{ 'unAuthorized': !hasRowManageAuth(row) }"
+                  @click="hasRowManageAuth(row) ? handleSetDefaultVersion(row) : manageAuthClick($event, row.name)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
                   @mouseleave="manageMouseLeave()"
                 >
                   {{ $t('pluginPackage.setDefault') }}
@@ -260,15 +260,17 @@
                   class="mr-[8px]"
                   text
                   v-if="row.enabled && row.as_default"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleCancelAsDefaultVersion(row) : manageAuthClick($event, row.name)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  :class="{ 'unAuthorized': !hasRowManageAuth(row) }"
+                  @click="hasRowManageAuth(row) ? handleCancelAsDefaultVersion(row) : manageAuthClick($event, row.name)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
                   @mouseleave="manageMouseLeave()"
                 >
                   {{ $t('pluginPackage.cancelDefault') }}
                 </Button>
+                <!-- 无权限时不渲染 PopConfirm，避免点击同时弹出确认气泡与权限申请弹窗 -->
                 <PopConfirm
+                  v-if="hasRowManageAuth(row)"
                   theme="light"
                   trigger="click"
                   :confirm-text="$t('pluginPackage.disable')"
@@ -279,11 +281,6 @@
                     theme="primary"
                     text
                     v-show="row.enabled && !row.is_synced"
-                    :class="{ 'unAuthorized': !hasManageAuth }"
-                    @click="!hasManageAuth && manageAuthClick($event, row.name)"
-                    @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                    @mousemove="manageMouseMove($event, hasManageAuth)"
-                    @mouseleave="manageMouseLeave()"
                   >{{ $t('pluginPackage.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -298,17 +295,30 @@
                   </template>
                 </PopConfirm>
                 <Button
+                  v-else
+                  class="mr-[8px] unAuthorized"
+                  theme="primary"
+                  text
+                  v-show="row.enabled && !row.is_synced"
+                  @click="manageAuthClick($event, row.name)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
+                  @mouseleave="manageMouseLeave()"
+                >{{ $t('pluginPackage.disable') }}</Button>
+                <Button
                   class="mr-[8px]"
                   theme="primary"
                   text
                   v-if="!row.enabled && !row.is_synced"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleEnable(row) : manageAuthClick($event, row.name)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  :class="{ 'unAuthorized': !hasRowManageAuth(row) }"
+                  @click="hasRowManageAuth(row) ? handleEnable(row) : manageAuthClick($event, row.name)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
                   @mouseleave="manageMouseLeave()"
                 >{{ $t('pluginPackage.enable') }}</Button>
+                <!-- 无权限时不渲染 PopConfirm，避免点击同时弹出确认气泡与权限申请弹窗 -->
                 <PopConfirm
+                  v-if="hasRowManageAuth(row)"
                   theme="light"
                   trigger="click"
                   :confirm-text="$t('pluginPackage.delete')"
@@ -318,11 +328,6 @@
                     theme="primary"
                     text
                     v-show="!row.enabled && !row.is_synced"
-                    :class="{ 'unAuthorized': !hasManageAuth }"
-                    @click="!hasManageAuth && manageAuthClick($event, row.name)"
-                    @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                    @mousemove="manageMouseMove($event, hasManageAuth)"
-                    @mouseleave="manageMouseLeave()"
                   >{{ $t('pluginPackage.delete') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -336,6 +341,17 @@
                     </div>
                   </template>
                 </PopConfirm>
+                <Button
+                  v-else
+                  class="unAuthorized"
+                  theme="primary"
+                  text
+                  v-show="!row.enabled && !row.is_synced"
+                  @click="manageAuthClick($event, row.name)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
+                  @mouseleave="manageMouseLeave()"
+                >{{ $t('pluginPackage.delete') }}</Button>
               </div>
             </template>
           </TableColumn>
@@ -418,13 +434,15 @@ const manageResourceId = ref<string>();
 const { hasAuth: hasUploadAuth, handleMouseEnter: uploadMouseEnter, handleMouseMove: uploadMouseMove, handleMouseLeave: uploadMouseLeave, handleAuthClick: uploadAuthClick } = useAuthLock(
   'package_type_upload', () => 'plugin', { resourceType: 'package_type' },
 );
-const { hasAuth: hasManageAuth, handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
+const { handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
   'package_manage', () => manageResourceId.value, { resourceType: 'package' },
 );
 const manageAuthClick = (e: MouseEvent, releaseName?: string) => {
   manageResourceId.value = releaseName;
   _manageAuthClick(e);
 };
+/** 行内操作权限：按当前行的 name 判断 package_manage 是否命中，避免用户有任意实例权限就误显示全部行可操作 */
+const hasRowManageAuth = (row: Release) => authStore.hasAuthorizedResource('package_manage', row.name);
 
 // 侧边栏用独立的 useAuthLock 实例（package_view），与表格行内 package_manage 区分开
 // 理由：侧边栏点击是为"查看"该插件包列表申请权限，行内按钮才是"管理"操作

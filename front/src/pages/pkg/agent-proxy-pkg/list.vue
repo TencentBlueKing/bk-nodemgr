@@ -278,10 +278,10 @@
                   class="mr-[8px]"
                   text
                   v-if="row.enabled && !row.as_default"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleSetDefaultVersion(row) : manageAuthClick($event, row.release_type)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  :class="{ 'unAuthorized': !hasRowManageAuth(row) }"
+                  @click="hasRowManageAuth(row) ? handleSetDefaultVersion(row) : manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
                   @mouseleave="manageMouseLeave()"
                 >
                   {{ t('agentProxyPkg.setDefault') }}
@@ -291,10 +291,10 @@
                   class="mr-[8px]"
                   text
                   v-if="row.enabled && row.as_default"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleCancelAsDefaultVersion(row) : manageAuthClick($event, row.release_type)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  :class="{ 'unAuthorized': !hasRowManageAuth(row) }"
+                  @click="hasRowManageAuth(row) ? handleCancelAsDefaultVersion(row) : manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
                   @mouseleave="manageMouseLeave()"
                 >
                   {{ t('agentProxyPkg.cancelDefault') }}
@@ -304,17 +304,13 @@
                   trigger="click"
                   :confirm-text="t('agentProxyPkg.disable')"
                   @confirm="handleDisabled(row)"
+                  v-if="hasRowManageAuth(row)"
                 >
                   <Button
                     theme="primary"
                     class="mr-[8px]"
                     text
                     v-show="row.enabled && !row.is_synced"
-                    :class="{ 'unAuthorized': !hasManageAuth }"
-                    @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
-                    @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                    @mousemove="manageMouseMove($event, hasManageAuth)"
-                    @mouseleave="manageMouseLeave()"
                   >{{ t('agentProxyPkg.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -331,17 +327,30 @@
                   </template>
                 </PopConfirm>
                 <Button
+                  v-else
+                  theme="primary"
+                  class="mr-[8px] unAuthorized"
+                  text
+                  v-show="row.enabled && !row.is_synced"
+                  @click="manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
+                  @mouseleave="manageMouseLeave()"
+                >{{ t('agentProxyPkg.disable') }}</Button>
+                <Button
                   theme="primary"
                   class="mr-[8px]"
                   text
                   v-if="!row.enabled && !row.is_synced"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleEnable(row) : manageAuthClick($event, row.release_type)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  :class="{ 'unAuthorized': !hasRowManageAuth(row) }"
+                  @click="hasRowManageAuth(row) ? handleEnable(row) : manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
                   @mouseleave="manageMouseLeave()"
                 >{{ t('agentProxyPkg.enable') }}</Button>
+                <!-- 无权限时不渲染 PopConfirm，避免点击同时弹出确认气泡与权限申请弹窗 -->
                 <PopConfirm
+                  v-if="hasRowManageAuth(row)"
                   theme="light"
                   trigger="click"
                   :confirm-text="t('agentProxyPkg.delete')"
@@ -351,11 +360,6 @@
                     theme="primary"
                     text
                     v-show="!row.enabled && !row.is_synced"
-                    :class="{ 'unAuthorized': !hasManageAuth }"
-                    @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
-                    @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                    @mousemove="manageMouseMove($event, hasManageAuth)"
-                    @mouseleave="manageMouseLeave()"
                   >{{ t('agentProxyPkg.delete') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -369,6 +373,17 @@
                     </div>
                   </template>
                 </PopConfirm>
+                <Button
+                  v-else
+                  theme="primary"
+                  text
+                  class="unAuthorized"
+                  v-show="!row.enabled && !row.is_synced"
+                  @click="manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                  @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
+                  @mouseleave="manageMouseLeave()"
+                >{{ t('agentProxyPkg.delete') }}</Button>
               </div>
             </template>
           </TableColumn>
@@ -411,6 +426,7 @@ import { compareVersions, formatTimestamp  } from '@/common/util';
 import { translateOperatorItems } from '@/common/user-display';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { usePackageStore } from '@/stores/package';
 
@@ -438,7 +454,7 @@ const manageResourceId = ref<string>();
 const { hasAuth: hasUploadAuth, handleMouseEnter: uploadMouseEnter, handleMouseMove: uploadMouseMove, handleMouseLeave: uploadMouseLeave, handleAuthClick: uploadAuthClick } = useAuthLock(
   'package_type_upload', () => currentType.value, { resourceType: 'package_type' },
 );
-const { hasAuth: hasManageAuth, handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
+const { handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
   'package_manage', () => manageResourceId.value, { resourceType: 'package' },
 );
 /** 行内操作按钮点击申请权限时，先设置 resourceId 为当前行的 release_type */
@@ -446,6 +462,9 @@ const manageAuthClick = (e: MouseEvent, releaseType?: string) => {
   manageResourceId.value = releaseType;
   _manageAuthClick(e);
 };
+/** 行内操作权限：按当前行的 release_type 判断 package_manage 是否命中，避免用户有任意实例权限就误显示全部行可操作 */
+const authStore = useAuthStore();
+const hasRowManageAuth = (row: Release) => authStore.hasAuthorizedResource('package_manage', row.release_type);
 const mainStore = useMainStore();
 const packageStore = usePackageStore();
 const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
