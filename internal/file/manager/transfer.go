@@ -314,7 +314,8 @@ func (m *Manager) transferPkg(nCtx contextx.IContext, srcFilePath, dstDir string
 func (m *Manager) getCurrentGSEEndpoint(nCtx contextx.IContext) (string, error) {
 	host, err := m.storageTopo.GetDirectNetworkAreaHostByAnyInnerIP(nCtx, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
 	if err != nil {
-		return "", fmt.Errorf("failed to get host from storage: %w", err)
+		return "", fmt.Errorf("failed to get local file server host by advertise ip, ipv4(%s), ipv6(%s): %w",
+			m.hostAdvertiseIPV4, m.hostAdvertiseIPV6, err)
 	}
 
 	agentID := host.Dynamic.AgentID
@@ -323,18 +324,19 @@ func (m *Manager) getCurrentGSEEndpoint(nCtx contextx.IContext) (string, error) 
 	}
 
 	if agentID == "" {
-		return "", errors.New("agent-id is empty")
+		return "", fmt.Errorf("local file server host's agent-id is empty, host-id(%d), ipv4(%s), ipv6(%s)",
+			host.HostID, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
 	}
 
 	if host.Dynamic.NodeStatus != types.NodeStatusRunning {
-		return "", fmt.Errorf("target host's agent is not running, host-id(%d), agent-id(%s), node-status(%s)",
+		return "", fmt.Errorf("local file server host's agent is not running, host-id(%d), agent-id(%s), node-status(%s)",
 			host.HostID, agentID, host.Dynamic.NodeStatus)
 	}
 
 	logger.G.Biz(nCtx).
 		With("ipv4", m.hostAdvertiseIPV4, "ipv6", m.hostAdvertiseIPV6, "agent-id", agentID,
 			"host-id", host.HostID, "node-status", host.Dynamic.NodeStatus).
-		Info("got current service agent-id")
+		Info("local file server host's agent is running")
 
 	return agentID, nil
 }
