@@ -128,6 +128,30 @@ func TestTriggerHandler_DoOnceTrigger_PartialCreateFailureContinues(t *testing.T
 	}
 }
 
+func TestCachedTriggers_Delete(t *testing.T) {
+	cache := newCachedTriggers()
+	cache.set([]*trigger.Trigger{
+		{TriggerID: "trigger-a"},
+		{TriggerID: "trigger-b"},
+		{TriggerID: "trigger-c"},
+	})
+
+	cache.delete("trigger-b")
+
+	triggers := cache.get()
+	if len(triggers) != 2 {
+		t.Fatalf("cached trigger count = %d, want 2", len(triggers))
+	}
+
+	got := []string{triggers[0].TriggerID, triggers[1].TriggerID}
+	want := []string{"trigger-a", "trigger-c"}
+	for idx := range want {
+		if got[idx] != want[idx] {
+			t.Fatalf("cached trigger ids = %v, want %v", got, want)
+		}
+	}
+}
+
 type triggerHandlerTestTriggerCtl struct {
 	triggerID string
 	metadata  trigger.Metadata

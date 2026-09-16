@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
@@ -69,6 +70,21 @@ func (ct *cachedTriggers) get() []*trigger.Trigger {
 	copy(result, ct.triggers)
 
 	return result
+}
+
+func (ct *cachedTriggers) delete(triggerID string) {
+	ct.mutex.Lock()
+	defer ct.mutex.Unlock()
+
+	triggers := ct.triggers[:0]
+	for _, trig := range ct.triggers {
+		if trig.TriggerID == triggerID {
+			continue
+		}
+
+		triggers = append(triggers, trig)
+	}
+	ct.triggers = triggers
 }
 
 const (
@@ -304,10 +320,6 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 	for idx := range list {
 		trig := list[idx]
 		fn := func(nCtx contextx.IContext) error {
-			handler.triggerExecutionSemaphore <- struct{}{}
-			defer func() {
-				<-handler.triggerExecutionSemaphore
-			}()
 			mutex := handler.globalLocker.NewMutex(trig.TriggerID)
 			if err := mutex.TryLock(); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Debug("failed to lock trigger")
@@ -325,10 +337,29 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 			// make sure the trigger data is fresh.
 			trigCtl, err := handler.mgr.GetTrigger(nCtx, trig.TriggerID)
 			if err != nil {
+				if errors.Is(err, base.ErrRecordNoFound()) {
+					handler.removeCachedTrigger(trig.Category, trig.TriggerID)
+					logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).
+						Warn("skip stale trigger cache")
+
+					return nil
+				}
+
 				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to get trigger")
 
 				return nil
 			}
+			if !trigCtl.IsActive() {
+				handler.removeCachedTrigger(trigCtl.GetTriggerCategory(), trigCtl.GetTriggerID())
+				logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).Debug("skip inactive trigger cache")
+
+				return nil
+			}
+
+			handler.triggerExecutionSemaphore <- struct{}{}
+			defer func() {
+				<-handler.triggerExecutionSemaphore
+			}()
 
 			if err := handler.doTrigger(nCtx, trigCtl); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to do trigger")
@@ -347,6 +378,17 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 	}
 
 	return nil
+}
+
+func (handler *triggerHandler) removeCachedTrigger(category trigger.Category, triggerID string) {
+	switch category {
+	case trigger.CategoryOnce:
+		handler.onceTriggers.delete(triggerID)
+	case trigger.CategoryOrdered:
+		handler.orderedTriggers.delete(triggerID)
+	case trigger.CategoryPeriodic:
+		handler.periodicTriggers.delete(triggerID)
+	}
 }
 
 // nolint: nonamedreturns
