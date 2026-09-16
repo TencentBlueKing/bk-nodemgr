@@ -120,6 +120,7 @@ type iPluginManagerPluginV2 interface {
 }
 
 // ISyncManager defines the SyncManager interface.
+// nolint: interfacebloat
 type ISyncManager interface {
 	// LaunchSyncBizAndHost launch a task to sync biz and host. returns the trigger-id.
 	LaunchSyncBizAndHost(ctx contextx.IContext) (string, error)
