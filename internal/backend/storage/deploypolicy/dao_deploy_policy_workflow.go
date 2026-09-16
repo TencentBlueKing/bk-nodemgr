@@ -34,8 +34,8 @@ import (
 func (s *Storage) ensureDeployPolicyWorkflow(nCtx contextx.IContext, operationID, triggerID string,
 	policyID int64, operator string) (*types.DeployPolicyWorkflow, error) {
 
-	if operationID == "" || triggerID == "" || policyID <= 0 {
-		return nil, base.ErrInvalidParam(errors.New("operation id, trigger id and positive policy id are required"))
+	if operationID == "" || triggerID == "" {
+		return nil, base.ErrInvalidParam(errors.New("operation id and trigger id are required"))
 	}
 	opts := []deploypolicyworkflow.OptFn{
 		deploypolicyworkflow.WithOperationID(operationID),

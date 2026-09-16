@@ -35,6 +35,10 @@ func (h *handler) Execute(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to execute deploy policy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	if err := req.Validate(); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to execute deploy policy, failed to validate request")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 
 	deployPolicyID := req.GetDeployPolicyId()
 
