@@ -56,9 +56,11 @@ const hasCurrentAuth = computed(() => {
   // authorized 尚未加载 → 先放行，避免闪烁
   if (!authStore.authorizedMap[action]) return true;
 
-  // 插件包管理路由级不限制（资源 id 实际是插件名，不是固定 "plugin"）
-  // 由子页 plugin-package-manage.vue 基于 package_manage 资源（插件名）判断全无权限占位
-  if (currentRouteName.value === 'pluginPackageMng') return true;
+  // 插件包管理 / 插件工具管理路由级不限制
+  // （后端对 plugin / plugin_bintool 类型按包名鉴权，资源 id 是包名而非固定 release type，
+  //   authorized 返回的实例形如 plugin_bintool_v3，无法用固定 id "plugin_bintool" 比对）
+  // 由子页基于后端按授权过滤后的数据判断占位
+  if (currentRouteName.value === 'pluginPackageMng' || currentRouteName.value === 'plugin_bintoolPackageMng') return true;
 
   // 操作记录：拥有任意包类型的历史查看权限即放行（资源为数组，不能直接按单资源比对）
   if (currentRouteName.value === 'operationRecords') {

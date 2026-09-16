@@ -988,6 +988,23 @@ const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) =>
 };
 
 /**
+ * 区域/单元名称映射加载完成后，回填搜索栏中以 ID 兜底的管控区域/管控单元显示名
+ */
+const syncSearchSelectNames = () => {
+  searchSelectValue.value = searchSelectValue.value.map((item) => {
+    if (item.id !== 'bk_networkarea_id' && item.id !== 'bk_networkunit_id') return item;
+    const nameMap = item.id === 'bk_networkarea_id' ? networkAreaListMap.value : networkUnitListMap.value;
+    return {
+      ...item,
+      values: item.values.map(v => ({
+        ...v,
+        name: nameMap.get(Number(v.id)) ?? v.name,
+      })),
+    };
+  });
+};
+
+/**
  * 获取主机筛选条件的唯一值
  */
 const getHostDistinct = async () => {
@@ -1002,6 +1019,8 @@ const getHostDistinct = async () => {
     getNetworkAreaList(res),
     getNetworkUnitList(res),
   ]);
+  // 名称映射加载完成后，回填搜索栏中此前以 ID 兜底显示的管控区域/单元名称
+  syncSearchSelectNames();
   if (res) {
     hostDistinct.value = res;
     Object.keys(res).forEach((key: any) => {
@@ -1654,12 +1673,13 @@ watch(() => route.query, async (newQuery, oldQuery) => {
         {
           id: 'bk_networkarea_id',
           name: t('platform.nodeMan.bk_cloud_name'),
-          values: [{ id: areaId, name: networkAreaListMap.value.get(areaId) || areaId }],
+          // 兜底必须转字符串：areaId 可能为 0（Default Area），数字 0 是 falsy 会被渲染成空白
+          values: [{ id: areaId, name: networkAreaListMap.value.get(areaId) || String(areaId) }],
         },
         {
           id: 'bk_networkunit_id',
           name: t('platform.nodeMan.bk_cloud_unit'),
-          values: [{ id: unitId, name: bk_networkunit_name || networkUnitListMap.value.get(unitId) }],
+          values: [{ id: unitId, name: bk_networkunit_name || networkUnitListMap.value.get(unitId) || String(unitId) }],
         },
       ];
     };
@@ -1678,7 +1698,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
   } else if (bk_networkarea_id !== undefined) {
     // 仅传入管控区域ID（从管控区域列表跳转，无单元信息）
     const areaId = Number(bk_networkarea_id);
-    const areaName = (bk_networkarea_name as string) || networkAreaListMap.value.get(areaId) || areaId;
+    const areaName = (bk_networkarea_name as string) || networkAreaListMap.value.get(areaId) || String(areaId);
 
     const setSearchValue = () => {
       searchSelectValue.value = [
