@@ -13,7 +13,8 @@
     :disabled="disabled"
     @change="handleSelectChange"
   >
-    <Select.Option v-if="noLimit" id="-1" name="不限" value="-1"></Select.Option>
+    <!-- 「不限」使用独立 value，避免与区域列表中 CC 同步的 Unassigned Area（不同环境 ID 可能同为 -1）回显冲突 -->
+    <Select.Option v-if="noLimit" id="unlimited" name="不限" value="unlimited"></Select.Option>
     <Select.Group :label="$t('topoManager.topo.select.default')">
       <Select.Option
         v-if="defaultArea"
@@ -164,6 +165,10 @@ const handleApplyPermission = async (areaId: number) => {
 const localLoading = ref(false);
 // 内部统一用字符串管理 ID，解决数字 0 的显示 Bug
 const internalValue = ref<any>(props.multiple ? [] : '');
+// 「不限」选项的内部 value：不复用 '-1'，避免与区域列表中 CC 同步的 Unassigned Area（不同环境 ID 可能同为 -1）
+// 匹配冲突导致回显成无权限区域；对外（emit / prop）语义仍为 '-1'
+const NO_LIMIT_VALUE = 'unlimited';
+const toInternalValue = (val: number | string) => (props.noLimit && String(val) === '-1' ? NO_LIMIT_VALUE : String(val));
 const textOverflowMap = reactive<Record<number, boolean>>({});
 
 onMounted(async () => {
@@ -181,9 +186,9 @@ onMounted(async () => {
 
     // 优先使用 bk_networkarea_id prop 初始化（注意：0 = Default Area 也要识别）
     if (props.bk_networkarea_id !== undefined && props.bk_networkarea_id !== null) {
-      internalValue.value = String(props.bk_networkarea_id);
+      internalValue.value = toInternalValue(props.bk_networkarea_id);
     } else if (props.noLimit) {
-      internalValue.value = '-1';
+      internalValue.value = NO_LIMIT_VALUE;
     }
   } finally {
     localLoading.value = false;
@@ -193,7 +198,7 @@ onMounted(async () => {
 // 外部 prop 变化时同步到 internalValue（支持 view 模式初始值回填）
 watch(() => props.bk_networkarea_id, (val) => {
   if (val !== undefined && val !== null) {
-    internalValue.value = String(val);
+    internalValue.value = toInternalValue(val);
   }
 });
 
@@ -244,12 +249,12 @@ const handleSelectChange = (val: any) => {
   let rawIds: any;
 
   if (props.multiple) {
-    // 处理多选：'all' 保持字符串，数字 ID 转回 Number
-    rawIds = val.map((v: string) => (v === 'all' ? 'all' : Number(v)));
+    // 处理多选：'all' 保持字符串，不限映射回 -1，数字 ID 转回 Number
+    rawIds = val.map((v: string) => (v === 'all' ? 'all' : v === NO_LIMIT_VALUE ? -1 : Number(v)));
     selectedRows = topoStore.allWorkareaList.filter(item => rawIds.includes('all') || rawIds.includes(item.bk_networkarea_id));
   } else {
-    // 处理单选：转回 Number
-    rawIds = val;
+    // 处理单选：不限映射回 '-1'（对外语义）
+    rawIds = val === NO_LIMIT_VALUE ? '-1' : val;
     const target = topoStore.allWorkareaList.find(item => String(item.bk_networkarea_id) === rawIds);
     selectedRows = target ? [target] : [];
   }
