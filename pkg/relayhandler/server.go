@@ -110,10 +110,14 @@ func (m *serverMessager) Start(_ contextx.IContext) error {
 
 	// GSE does not partition cluster message slots by tenant, but multi-tenant apigw
 	// rejects requests without X-Bk-Tenant-Id, so dispatching declares the system tenant.
-	baseHeader := http.Header{}
+	// Single mode declares the default tenant, matching what pkg/thirdparty/gse sends.
+	tenantID := tenant.SingleModeTenantID
 	if tenant.GetMode() == tenant.ModeMultiple {
-		baseHeader.Set(apigwheader.BKGWTenantIDKey, tenant.SystemTenantID)
+		tenantID = tenant.SystemTenantID
 	}
+
+	baseHeader := http.Header{}
+	baseHeader.Set(apigwheader.BKGWTenantIDKey, tenantID)
 
 	client, err := serverapi.New(
 		serverapi.WithBaseURL(m.config.GSEBaseURL),
