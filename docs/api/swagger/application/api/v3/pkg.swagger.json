@@ -5653,6 +5653,9 @@
         },
         "is_hidden": {
           "type": "boolean"
+        },
+        "name": {
+          "type": "string"
         }
       },
       "description": "ReleasePluginBrief describes the brief release plugin (only core fields for\nlist display)."

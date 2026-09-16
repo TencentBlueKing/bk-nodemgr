@@ -408,6 +408,7 @@ func convertReleasePluginBriefFromTypes(release *types.Release) *ReleasePluginBr
 	data.Enabled = new(bool)
 	data.IsHidden = new(bool)
 	data.AsDefault = new(bool)
+	data.Name = new(string)
 
 	*data.Generation = int64(release.Generation)
 	*data.OsType = string(release.Platform.OS)
@@ -416,6 +417,7 @@ func convertReleasePluginBriefFromTypes(release *types.Release) *ReleasePluginBr
 	*data.Enabled = release.Enabled
 	*data.IsHidden = release.IsHidden
 	*data.AsDefault = release.AsDefault
+	*data.Name = release.Name
 
 	return data
 }
