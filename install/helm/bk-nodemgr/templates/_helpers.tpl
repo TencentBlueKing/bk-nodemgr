@@ -41,6 +41,41 @@ Return the proper bk-nodemgr apigw-sync image registry secret names
 {{- end -}}
 
 {{/*
+Return the proper Tempo image name.
+*/}}
+{{- define "bk-nodemgr.tempo.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.tempo.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the proper Tempo image registry secret names.
+*/}}
+{{- define "bk-nodemgr.tempo.imagePullSecrets" -}}
+{{ include "common.images.pullSecrets" (dict "images" (list .Values.tempo.image) "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the embedded Tempo OTLP gRPC endpoint.
+*/}}
+{{- define "bk-nodemgr.tempo.otlpGrpcEndpoint" -}}
+{{ template "bk-nodemgr.fullname" . }}-tempo:{{ .Values.tempo.service.ports.otlpGrpc }}
+{{- end -}}
+
+{{/*
+Render service tracing config and default empty OTLP endpoints to embedded Tempo when enabled.
+*/}}
+{{- define "bk-nodemgr.tracingConfig" -}}
+{{- $config := deepCopy .config -}}
+{{- if and .context.Values.tempo.enabled (not (get $config "otlpEndpoint")) -}}
+{{- $_ := set $config "exporterType" "otlp" -}}
+{{- $_ := set $config "otlpEndpoint" (include "bk-nodemgr.tempo.otlpGrpcEndpoint" .context) -}}
+{{- $_ := set $config "otlpProtocol" "grpc" -}}
+{{- $_ := set $config "otlpInsecure" true -}}
+{{- end -}}
+{{- omit $config "instanceID" | toYaml -}}
+{{- end -}}
+
+{{/*
 Return the proper bk-nodemgr replica count
 {{ include "bk-nodemgr.replicaCount" ( dict "module" .Values.path.to.module ) }}
 */}}

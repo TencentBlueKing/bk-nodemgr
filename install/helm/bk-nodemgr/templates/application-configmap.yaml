@@ -54,7 +54,7 @@ data:
     notice: {{ .Values.application.config.notice | toYaml | nindent 6 }}
 
     tracing:
-      {{- omit .Values.application.config.tracing "instanceID" | toYaml | nindent 6 }}
+      {{- include "bk-nodemgr.tracingConfig" (dict "config" .Values.application.config.tracing "context" $) | nindent 6 }}
       instanceID: "__TRACING_INSTANCEID__"
 
     configPolicyOption:

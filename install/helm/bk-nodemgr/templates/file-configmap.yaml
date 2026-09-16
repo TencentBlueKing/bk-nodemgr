@@ -106,7 +106,7 @@ data:
       traceSampleRate: {{ .Values.file.config.mongodb.traceSampleRate }}
 
     tracing:
-      {{- omit .Values.file.config.tracing "instanceID" | toYaml | nindent 6 }}
+      {{- include "bk-nodemgr.tracingConfig" (dict "config" .Values.file.config.tracing "context" $) | nindent 6 }}
       instanceID: "__TRACING_INSTANCEID__"
 
     repo: {{ .Values.file.config.repo | toYaml | nindent 6 }}

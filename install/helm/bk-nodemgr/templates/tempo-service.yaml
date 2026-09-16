@@ -1,0 +1,28 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-tempo
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    app: nodemgr-tempo
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    app: nodemgr-tempo
+  ports:
+    - name: http
+      port: {{ .Values.tempo.service.ports.http }}
+      targetPort: http
+    - name: otlp-grpc
+      port: {{ .Values.tempo.service.ports.otlpGrpc }}
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: {{ .Values.tempo.service.ports.otlpHttp }}
+      targetPort: otlp-http
+{{- end }}

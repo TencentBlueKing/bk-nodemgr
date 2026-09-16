@@ -163,6 +163,6 @@ data:
       {{- end }}
 
     tracing:
-      {{- omit .Values.backend.config.tracing "instanceID" | toYaml | nindent 6 }}
+      {{- include "bk-nodemgr.tracingConfig" (dict "config" .Values.backend.config.tracing "context" $) | nindent 6 }}
       instanceID: "__TRACING_INSTANCEID__"
 {{- end }}

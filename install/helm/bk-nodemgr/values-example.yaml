@@ -3,3 +3,20 @@
 ## 同步APIGateway资源配置
 apigwSync:
   enabled: true
+
+## 内嵌 Tempo 默认关闭；生产环境建议改用对象存储，不建议使用默认 local 存储。
+tempo:
+  enabled: false
+  config:
+    storage:
+      trace:
+        backend: s3
+        s3:
+          bucket: bk-nodemgr-tempo
+          endpoint: cos.example.com
+          region: ap-guangzhou
+          access_key: example-access-key
+          secret_key: example-secret-key
+          insecure: false
+        wal:
+          path: /var/tempo/wal
