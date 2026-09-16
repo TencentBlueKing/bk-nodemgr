@@ -21,6 +21,7 @@ package adminclient
 import (
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	backendadmin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -28,8 +29,8 @@ import (
 )
 
 func TestNewRootCMDRegistersBackendSubcommand(t *testing.T) {
-	cmd := NewRootCMD(func(string) (backendadmin.IHandler, error) {
-		return &backendadmin.Handler{}, nil
+	cmd := NewRootCMD(func(string) (backendadmin.IHandler, tenant.Mode, error) {
+		return &backendadmin.Handler{}, tenant.ModeSingle, nil
 	})
 
 	require.NotNil(t, cmd)

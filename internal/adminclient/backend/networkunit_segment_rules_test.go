@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	backendadmin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/spf13/cobra"
@@ -36,7 +37,10 @@ type fakeBackendAdminHandler struct {
 	backendadmin.IHandler
 	rules          types.NetworkUnitSegmentRuleConfig
 	upsertedCfg    types.NetworkUnitSegmentRuleConfig
+	initTenantCtx  contextx.IContext
+	initTenantID   string
 	syncResult     *types.NodeAgentAssignUnitResult
+	initCalls      int
 	syncedBKBizIDs []int64
 	syncCalls      int
 	err            error
@@ -54,6 +58,14 @@ func (f *fakeBackendAdminHandler) UpsertNetworkUnitSegmentRules(
 	return f.err
 }
 
+func (f *fakeBackendAdminHandler) InitTenant(nCtx contextx.IContext, tenantID string) error {
+	f.initTenantCtx = nCtx
+	f.initTenantID = tenantID
+	f.initCalls++
+
+	return f.err
+}
+
 func (f *fakeBackendAdminHandler) SyncUnassignedAgentNetworkUnit(
 	_ contextx.IContext,
 	bizIDs []int64,
@@ -65,8 +77,8 @@ func (f *fakeBackendAdminHandler) SyncUnassignedAgentNetworkUnit(
 }
 
 func TestNewBackendCMDRegistersNetworkUnitSegmentRulesSubcommand(t *testing.T) {
-	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, error) {
-		return &backendadmin.Handler{}, nil
+	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, tenant.Mode, error) {
+		return &backendadmin.Handler{}, tenant.ModeSingle, nil
 	})
 
 	require.NotNil(t, cmd)

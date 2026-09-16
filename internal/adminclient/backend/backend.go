@@ -25,13 +25,17 @@ import (
 	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/spf13/cobra"
 )
 
+// HandlerFactory creates a backend admin handler and returns the tenant mode from the backend config.
+type HandlerFactory func(configPath string) (backendadmin.IHandler, tenant.Mode, error)
+
 // NewBackendCMD creates a new backend command with the given handler factory.
-func NewBackendCMD(handlerFactory func(configPath string) (backendadmin.IHandler, error)) *cobra.Command {
+func NewBackendCMD(handlerFactory HandlerFactory) *cobra.Command {
 	var configPath string
 	var tenantID string
 	var loginName string
@@ -49,18 +53,21 @@ func NewBackendCMD(handlerFactory func(configPath string) (backendadmin.IHandler
 				return err
 			}
 
-			h, err := handlerFactory(configPath)
+			h, tenantMode, err := handlerFactory(configPath)
 			if err != nil {
 				return fmt.Errorf("failed to create backend handler: %w", err)
 			}
 			handler = h
+			tenantID, err = tenantIDByMode(tenantMode)
+			if err != nil {
+				return err
+			}
 
 			return nil
 		},
 	}
 
 	cmd.PersistentFlags().StringVarP(&configPath, "file", "f", "/bk-nodemgr/etc/backend_conf.yaml", "path of backend config file")
-	cmd.PersistentFlags().StringVar(&tenantID, "tenant-id", "default", "tenant id for authentication")
 	cmd.PersistentFlags().StringVar(&loginName, "login-name", "admin", "login name for authentication")
 	// Closure to access handler and auth info after PersistentPreRunE
 	getHandler := func() backendadmin.IHandler { return handler }
@@ -78,6 +85,17 @@ func NewBackendCMD(handlerFactory func(configPath string) (backendadmin.IHandler
 	cmd.AddCommand(NewTenantCMD(getTenantHandler, getAuthInfo))
 
 	return cmd
+}
+
+func tenantIDByMode(mode tenant.Mode) (string, error) {
+	switch mode {
+	case tenant.ModeSingle:
+		return tenant.SingleModeTenantID, nil
+	case tenant.ModeMultiple:
+		return tenant.SystemTenantID, nil
+	default:
+		return "", fmt.Errorf("invalid tenant mode: %s", mode)
+	}
 }
 
 // NewNetworkUnitSegmentRulesCMD creates a new command for managing network unit segment rules.
