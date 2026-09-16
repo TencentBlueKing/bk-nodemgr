@@ -23,13 +23,12 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/backend"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/spf13/cobra"
 )
 
 // NewRootCMD creates the root command for the admin client.
-func NewRootCMD(handlerFactory func(configPath string) (backendadmin.IHandler, error)) *cobra.Command {
+func NewRootCMD(handlerFactory backend.HandlerFactory) *cobra.Command {
 	rootCMD := &cobra.Command{
 		Use:     "bk-nodemgr-adminclient",
 		Short:   "bk-nodemgr admin client",

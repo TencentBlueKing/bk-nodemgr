@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
 )
 
@@ -80,9 +81,9 @@ func TestInitTenantCommandSeparatesAuthTenantAndTargetTenant(t *testing.T) {
 
 func TestBackendCMDRejectsMissingTargetTenantIDBeforeHandlerCreation(t *testing.T) {
 	factoryCalls := 0
-	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, error) {
+	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, tenant.Mode, error) {
 		factoryCalls++
-		return &backendadmin.Handler{}, nil
+		return &backendadmin.Handler{}, tenant.ModeSingle, nil
 	})
 	cmd.SetOut(new(bytes.Buffer))
 	cmd.SetErr(new(bytes.Buffer))
@@ -92,6 +93,62 @@ func TestBackendCMDRejectsMissingTargetTenantIDBeforeHandlerCreation(t *testing.
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "target-tenant-id")
+	assert.Zero(t, factoryCalls)
+}
+
+func TestBackendCMDUsesTenantIDFromTenantMode(t *testing.T) {
+	tests := []struct {
+		name         string
+		tenantMode   tenant.Mode
+		wantTenantID string
+	}{
+		{
+			name:         "single mode",
+			tenantMode:   tenant.ModeSingle,
+			wantTenantID: tenant.SingleModeTenantID,
+		},
+		{
+			name:         "multiple mode",
+			tenantMode:   tenant.ModeMultiple,
+			wantTenantID: tenant.SystemTenantID,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := &fakeBackendAdminHandler{}
+			cmd := NewBackendCMD(func(string) (backendadmin.IHandler, tenant.Mode, error) {
+				return handler, tt.tenantMode, nil
+			})
+			cmd.SetOut(new(bytes.Buffer))
+			cmd.SetErr(new(bytes.Buffer))
+			cmd.SetArgs([]string{"tenant", "init", "--target-tenant-id", "target-tenant"})
+
+			err := cmd.Execute()
+
+			require.NoError(t, err)
+			assert.Equal(t, 1, handler.initCalls)
+			assert.Equal(t, tt.wantTenantID, handler.initTenantCtx.TenantID())
+			assert.Equal(t, "admin", handler.initTenantCtx.LoginName())
+			assert.Equal(t, "target-tenant", handler.initTenantID)
+		})
+	}
+}
+
+func TestBackendCMDRejectsTenantIDFlag(t *testing.T) {
+	factoryCalls := 0
+	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, tenant.Mode, error) {
+		factoryCalls++
+		return &backendadmin.Handler{}, tenant.ModeSingle, nil
+	})
+	cmd.SetOut(new(bytes.Buffer))
+	cmd.SetErr(new(bytes.Buffer))
+	cmd.SetArgs([]string{"--tenant-id", "default", "tenant", "init", "--target-tenant-id", "target-tenant"})
+
+	err := cmd.Execute()
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown flag: --tenant-id")
 	assert.Zero(t, factoryCalls)
 }
 
