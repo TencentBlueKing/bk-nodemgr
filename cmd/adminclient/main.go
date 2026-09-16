@@ -32,6 +32,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
@@ -50,18 +51,18 @@ const (
 	jwtTokenExpiration = 24 * time.Hour
 )
 
-func newBackendAdminHandler(configPath string) (backendadmin.IHandler, error) {
+func newBackendAdminHandler(configPath string) (backendadmin.IHandler, tenant.Mode, error) {
 	conf := config.NewBackendService()
 	if err := conf.LoadFromFile(configPath); err != nil {
-		return nil, fmt.Errorf("failed to load config file(%s): %w", configPath, err)
+		return nil, "", fmt.Errorf("failed to load config file(%s): %w", configPath, err)
 	}
 	if err := conf.Validate(); err != nil {
-		return nil, fmt.Errorf("failed to validate config: %w", err)
+		return nil, "", fmt.Errorf("failed to validate config: %w", err)
 	}
 
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create http client: %w", err)
+		return nil, "", fmt.Errorf("failed to create http client: %w", err)
 	}
 
 	endpoint := "http://" + net.JoinHostPort(conf.AdminServer.AdvertiseIPV4, strconv.Itoa(conf.AdminServer.Port))
@@ -77,10 +78,10 @@ func newBackendAdminHandler(configPath string) (backendadmin.IHandler, error) {
 		RestJWTTokenExpiration: jwtTokenExpiration,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create backendadmin handler: %w", err)
+		return nil, "", fmt.Errorf("failed to create backendadmin handler: %w", err)
 	}
 
-	return handler, nil
+	return handler, conf.TenantMode, nil
 }
 
 type noopTraceService struct{}
