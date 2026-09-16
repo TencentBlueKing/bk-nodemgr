@@ -21,6 +21,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -212,6 +213,44 @@ func TestRequest_WithURL(t *testing.T) {
 
 		assert.Equal(t, int64(0), discovery.calls.Load())
 	})
+}
+
+func TestResultIntoReturnsErrorForEmptyServerError(t *testing.T) {
+	result := &Result{
+		StatusCode: http.StatusInternalServerError,
+		Body:       io.NopCloser(http.NoBody),
+	}
+
+	err := result.Into(new(struct{}))
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "http request failed, status(500), body()")
+}
+
+func TestResultRawDataReturnsErrorForEmptyServerError(t *testing.T) {
+	result := &Result{
+		StatusCode: http.StatusInternalServerError,
+		Body:       io.NopCloser(http.NoBody),
+	}
+
+	data, err := result.RawData()
+
+	require.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "http request failed, status(500), body()")
+}
+
+func TestResultRawDataReturnsEmptyDataForEmptySuccess(t *testing.T) {
+	result := &Result{
+		StatusCode: http.StatusNoContent,
+		Body:       io.NopCloser(http.NoBody),
+	}
+
+	data, err := result.RawData()
+
+	require.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Empty(t, data)
 }
 
 func newRequestTestClient(t *testing.T, discovery *requestTestDiscovery, baseURL string) IClient {

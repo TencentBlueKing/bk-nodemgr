@@ -435,15 +435,15 @@ func (r *Result) Into(obj interface{}) error {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
 
+	if r.StatusCode >= http.StatusInternalServerError {
+		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, bodyData)
+	}
+
 	if len(bodyData) == 0 {
 		return nil
 	}
 
 	logger.G.Sys().With("body", r.maskResponseBody(bodyData), "url", r.maskURL(r.FullURL)).Info("get response data")
-
-	if r.StatusCode >= http.StatusInternalServerError {
-		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, bodyData)
-	}
 
 	err = json.Unmarshal(bodyData, obj)
 	if err != nil {
@@ -468,10 +468,6 @@ func (r *Result) RawData() ([]byte, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
-	}
-
-	if len(bodyData) == 0 {
-		return nil, nil
 	}
 
 	if r.StatusCode >= http.StatusInternalServerError {
