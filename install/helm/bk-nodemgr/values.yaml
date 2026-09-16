@@ -1019,6 +1019,8 @@ application:
       exporterType: "stdout"
       # otlp endpoint configuration
       otlpEndpoint: ""
+      # otlp protocol: grpc or http
+      otlpProtocol: "grpc"
       # otlp insecure skip verify
       otlpInsecure: false
       # otlp headers
@@ -1547,6 +1549,8 @@ backend:
       exporterType: "stdout"
       # otlp endpoint configuration
       otlpEndpoint: ""
+      # otlp protocol: grpc or http
+      otlpProtocol: "grpc"
       # otlp insecure skip verify
       otlpInsecure: false
       # otlp headers
@@ -1790,6 +1794,8 @@ file:
       exporterType: "stdout"
       # otlp endpoint configuration
       otlpEndpoint: ""
+      # otlp protocol: grpc or http
+      otlpProtocol: "grpc"
       # otlp insecure skip verify
       otlpInsecure: false
       # otlp headers

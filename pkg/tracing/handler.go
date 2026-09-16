@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -234,27 +235,70 @@ func newExporter(nCtx contextx.IContext, config ExporterConfig) (sdkTrace.SpanEx
 			return nil, fmt.Errorf("OTLP conf is required for OTLP exporter")
 		}
 
-		var opts []otlptracegrpc.Option
-
-		if config.OTLPConfig.Insecure {
-			opts = append(opts, otlptracegrpc.WithInsecure())
-		}
-
-		if config.OTLPConfig.Endpoint != "" {
-			opts = append(opts, otlptracegrpc.WithEndpoint(config.OTLPConfig.Endpoint))
-		}
-
-		if len(config.OTLPConfig.Headers) > 0 {
-			opts = append(opts, otlptracegrpc.WithHeaders(config.OTLPConfig.Headers))
-		}
-
-		exp, err := otlptrace.New(nCtx, otlptracegrpc.NewClient(opts...))
-		if err != nil {
-			return nil, fmt.Errorf("failed to create OTLP exporter: %w", err)
-		}
-
-		return exp, nil
+		return newOTLPExporter(nCtx, config.OTLPConfig)
 	default:
 		return nil, fmt.Errorf("unsupported exporter type: %s", config.ExporterType)
 	}
+}
+
+func newOTLPExporter(nCtx contextx.IContext, config *OTLPConfig) (sdkTrace.SpanExporter, error) {
+	protocol := config.Protocol
+	if protocol == "" {
+		protocol = OTLPProtocolGRPC
+	}
+
+	switch protocol {
+	case OTLPProtocolGRPC:
+		return newOTLPGRPCExporter(nCtx, config)
+	case OTLPProtocolHTTP:
+		return newOTLPHTTPExporter(nCtx, config)
+	default:
+		return nil, fmt.Errorf("unsupported OTLP protocol: %s", protocol)
+	}
+}
+
+func newOTLPGRPCExporter(nCtx contextx.IContext, config *OTLPConfig) (sdkTrace.SpanExporter, error) {
+	var opts []otlptracegrpc.Option
+
+	if config.Insecure {
+		opts = append(opts, otlptracegrpc.WithInsecure())
+	}
+
+	if config.Endpoint != "" {
+		opts = append(opts, otlptracegrpc.WithEndpoint(config.Endpoint))
+	}
+
+	if len(config.Headers) > 0 {
+		opts = append(opts, otlptracegrpc.WithHeaders(config.Headers))
+	}
+
+	exp, err := otlptrace.New(nCtx, otlptracegrpc.NewClient(opts...))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OTLP gRPC exporter: %w", err)
+	}
+
+	return exp, nil
+}
+
+func newOTLPHTTPExporter(nCtx contextx.IContext, config *OTLPConfig) (sdkTrace.SpanExporter, error) {
+	var opts []otlptracehttp.Option
+
+	if config.Insecure {
+		opts = append(opts, otlptracehttp.WithInsecure())
+	}
+
+	if config.Endpoint != "" {
+		opts = append(opts, otlptracehttp.WithEndpoint(config.Endpoint))
+	}
+
+	if len(config.Headers) > 0 {
+		opts = append(opts, otlptracehttp.WithHeaders(config.Headers))
+	}
+
+	exp, err := otlptrace.New(nCtx, otlptracehttp.NewClient(opts...))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OTLP HTTP exporter: %w", err)
+	}
+
+	return exp, nil
 }

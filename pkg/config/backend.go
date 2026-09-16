@@ -86,6 +86,8 @@ const (
 
 	defaultBackendTracingExporterType    = "stdout"
 	defaultBackendGlobalTraceServiceName = "backend"
+	defaultOTLPProtocolGRPC              = "grpc"
+	otlpProtocolHTTP                     = "http"
 
 	defaultBackendRedisTraceServiceName = "bk-nodemgr_redis"
 
@@ -679,6 +681,7 @@ type Tracing struct {
 	OTLPEndpoint  string            `yaml:"otlpEndpoint" usage:"otlp endpoint of tracing system"`
 	OTLPInsecure  bool              `yaml:"otlpInsecure" usage:"otlp insecure of tracing system"`
 	OTLPHeaders   map[string]string `yaml:"otlpHeaders" usage:"otlp headers of tracing system"`
+	OTLPProtocol  string            `yaml:"otlpProtocol" usage:"otlp protocol of tracing system: grpc or http"`
 	GlobalService TraceService      `yaml:"globalService" usage:"global fallback trace service config"`
 }
 
@@ -686,6 +689,9 @@ type Tracing struct {
 func (conf Tracing) Validate() error {
 	if conf.ExporterType == "" {
 		return fmt.Errorf("exporter type is empty")
+	}
+	if conf.OTLPProtocol != "" && conf.OTLPProtocol != defaultOTLPProtocolGRPC && conf.OTLPProtocol != otlpProtocolHTTP {
+		return fmt.Errorf("otlp protocol is invalid")
 	}
 
 	if err := conf.GlobalService.Validate(); err != nil {

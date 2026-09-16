@@ -106,6 +106,11 @@ func (conf *ExporterConfig) Validate() error {
 	if conf.ExporterType == ExporterTypeOTLP && conf.OTLPConfig == nil {
 		return fmt.Errorf("OTLP conf is required")
 	}
+	if conf.ExporterType == ExporterTypeOTLP {
+		if err := conf.OTLPConfig.Validate(); err != nil {
+			return fmt.Errorf("failed to validate OTLP config: %w", err)
+		}
+	}
 
 	return nil
 }
@@ -120,4 +125,16 @@ type OTLPConfig struct {
 
 	// additional headers
 	Headers map[string]string
+
+	// transport protocol, defaults to grpc when empty
+	Protocol OTLPProtocol
+}
+
+// Validate validates OTLPConfig.
+func (conf *OTLPConfig) Validate() error {
+	if err := conf.Protocol.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }

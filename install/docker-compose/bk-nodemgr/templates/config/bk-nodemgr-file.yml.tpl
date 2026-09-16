@@ -176,6 +176,7 @@ redis:
 tracing:
   exporterType: "stdout"
   otlpEndpoint: ""
+  otlpProtocol: "grpc"
   otlpInsecure: false
   otlpHeaders: {}
   globalService:

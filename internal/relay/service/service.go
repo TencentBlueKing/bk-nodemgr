@@ -123,6 +123,7 @@ func (svc *Service) initTracing() error {
 			Endpoint: svc.conf.Tracing.OTLPEndpoint,
 			Insecure: svc.conf.Tracing.OTLPInsecure,
 			Headers:  svc.conf.Tracing.OTLPHeaders,
+			Protocol: tracing.OTLPProtocol(svc.conf.Tracing.OTLPProtocol),
 		}
 	}
 

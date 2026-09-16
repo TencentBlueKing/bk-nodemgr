@@ -23,11 +23,19 @@ import "fmt"
 // ExporterType defines the type of exporter to use.
 type ExporterType string
 
+// OTLPProtocol defines the transport protocol used by OTLP exporter.
+type OTLPProtocol string
+
 const (
 	// ExporterTypeStdout exports traces to stdout.
 	ExporterTypeStdout ExporterType = "stdout"
 	// ExporterTypeOTLP exports traces using OpenTelemetry Protocol.
 	ExporterTypeOTLP ExporterType = "otlp"
+
+	// OTLPProtocolGRPC exports OTLP traces over gRPC.
+	OTLPProtocolGRPC OTLPProtocol = "grpc"
+	// OTLPProtocolHTTP exports OTLP traces over HTTP.
+	OTLPProtocolHTTP OTLPProtocol = "http"
 )
 
 // Validate validates the exporter type.
@@ -37,5 +45,15 @@ func (et ExporterType) Validate() error {
 		return nil
 	default:
 		return fmt.Errorf("invalid exporter type, exporter-type(%s)", et)
+	}
+}
+
+// Validate validates the OTLP protocol.
+func (p OTLPProtocol) Validate() error {
+	switch p {
+	case "", OTLPProtocolGRPC, OTLPProtocolHTTP:
+		return nil
+	default:
+		return fmt.Errorf("invalid OTLP protocol, protocol(%s)", p)
 	}
 }

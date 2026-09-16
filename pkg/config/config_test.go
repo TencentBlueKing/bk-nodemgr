@@ -130,6 +130,49 @@ func TestTracing_ValidateTraceSampleRate(t *testing.T) {
 	}
 }
 
+func TestTracing_ValidateOTLPProtocol(t *testing.T) {
+	tests := []struct {
+		name         string
+		otlpProtocol string
+		wantErr      bool
+	}{
+		{
+			name: "empty protocol",
+		},
+		{
+			name:         "grpc protocol",
+			otlpProtocol: "grpc",
+		},
+		{
+			name:         "http protocol",
+			otlpProtocol: "http",
+		},
+		{
+			name:         "invalid protocol",
+			otlpProtocol: "invalid",
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conf := Tracing{
+				ExporterType:  "otlp",
+				OTLPProtocol:  tt.otlpProtocol,
+				GlobalService: TraceService{},
+			}
+
+			err := conf.Validate()
+			if tt.wantErr {
+				assert.ErrorContains(t, err, "otlp protocol is invalid")
+				return
+			}
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestRedisType_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
