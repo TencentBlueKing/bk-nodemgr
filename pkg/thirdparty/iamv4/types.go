@@ -94,7 +94,8 @@ type Subject struct {
 
 // Resource is the resource instance used by IAM v4 authorization APIs.
 type Resource struct {
-	ID string `json:"id"`
+	ID         string                 `json:"id"`
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
 }
 
 // AuthorizationResource identifies a concrete resource for a role grant.

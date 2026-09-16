@@ -103,12 +103,17 @@ func toMultiActionSubject(req types.IAMMultiActionCheckRequest) Subject {
 	return Subject{Type: "user", ID: req.Username}
 }
 
+func toResource(resource types.IAMResource) Resource {
+	return Resource{ID: resource.ID, Attributes: resource.Attributes}
+}
+
 func firstResource(resources []types.IAMResource) *Resource {
 	if len(resources) == 0 {
 		return nil
 	}
 
-	return &Resource{ID: resources[0].ID}
+	resource := toResource(resources[0])
+	return &resource
 }
 
 // IsAllowed checks if a user is allowed to perform an action on an optional resource.
@@ -138,7 +143,7 @@ func (h *Handler) GrantRole(ctx contextx.IContext, req types.IAMRoleGrantRequest
 func (h *Handler) ResourcesAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (map[string]bool, error) {
 	resources := make([]Resource, 0, len(req.Resources))
 	for _, resource := range req.Resources {
-		resources = append(resources, Resource{ID: resource.ID})
+		resources = append(resources, toResource(resource))
 	}
 
 	results, err := h.cli.authByResources(ctx, req.SystemID, AuthByResourcesRequest{

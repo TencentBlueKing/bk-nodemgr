@@ -52,15 +52,54 @@ IAM API 调用复用项目已有的网关应用认证封装；`subject` 指定�
 }
 ```
 
-## 批量鉴权与授权范围
+## 一个 Action 对多个资源鉴权
 
-批量鉴权与授权范围查询需确认以下 API 契约：
+`POST /api/v1/open/rbac/authorization/systems/{system_id}/auth-by-resources/`
 
-| 需要补齐的官方能力         | 要核实的契约                                                 |
-| -------------------------- | ------------------------------------------------------------ |
-| 一个 Action 对多个资源鉴权 | API 路径、资源属性、批量上限、逐项结果与缺项语义             |
+| 字段                                   | 位置 | 必填   | 含义                                                 |
+| -------------------------------------- | ---- | ------ | ---------------------------------------------------- |
+| `system_id`                            | path | 是     | 注册系统 ID                                          |
+| `subject.type`                         | body | 是     | 原文只支持 `user`                                    |
+| `subject.id`                           | body | 是     | 被鉴权用户 ID                                        |
+| `action_id`                            | body | 是     | 操作 ID                                              |
+| `resources`                            | body | 是     | 待鉴权资源数组，最多 20 个                           |
+| `resources[].id`                       | body | 是     | 资源实例 ID                                          |
+| `resources[].attributes`               | body | 否     | 资源属性；拓扑授权时原文要求同时提供 `_bk_iam_path_` |
+| `resources[].attributes._bk_iam_path_` | body | 按模型 | 资源在拓扑中的路径，例如 `/networkarea,0/`           |
+
+请求示例：
+
+```json
+{
+  "subject": { "type": "user", "id": "jiananzhang" },
+  "action_id": "networkunit_view",
+  "resources": [
+    {
+      "id": "0",
+      "attributes": { "_bk_iam_path_": "/networkarea,0/" }
+    }
+  ]
+}
+```
+
+成功调用逐项返回资源鉴权结果：
+
+```json
+{
+  "data": [{ "resource_id": "0", "allowed": true }]
+}
+```
+
+调用方必须按 `resource_id` 关联原请求资源；缺少对应资源结果时不能当成允许。
+
+## 其他批量鉴权与授权范围
+
+批量鉴权与授权范围查询仍需确认以下 API 契约：
+
+| 需要补齐的官方能力 | 要核实的契约                                                 |
+| ------------------ | ------------------------------------------------------------ |
 | 多个 Action 对一个资源鉴权 | API 路径、操作上限、资源类型限制、逐项结果                   |
-| 查询已授权资源范围         | API 路径、请求与响应字段、全量标记、父级授权、分页或数量限制 |
+| 查询已授权资源范围 | API 路径、请求与响应字段、全量标记、父级授权、分页或数量限制 |
 
 原文仅把授权关系 API 概括为 `/api/v1/open/rbac/authorization/systems/{system_id}/relations/*`，未给出完整协议。不能由该通配路径推导实际 endpoint；尤其应核实 `relations` 与项目使用的 `relation` 的差异。
 
