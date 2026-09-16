@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -97,8 +98,8 @@ func TestSyncUnassignedNetworkUnitCommandRejectsMissingScope(t *testing.T) {
 }
 
 func TestBackendCMDRejectsMissingSyncScopeBeforeHandlerCreation(t *testing.T) {
-	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, error) {
-		return nil, assert.AnError
+	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, tenant.Mode, error) {
+		return nil, "", assert.AnError
 	})
 	cmd.SetOut(new(bytes.Buffer))
 	cmd.SetErr(new(bytes.Buffer))
@@ -113,9 +114,9 @@ func TestBackendCMDRejectsMissingSyncScopeBeforeHandlerCreation(t *testing.T) {
 func TestBackendCMDRejectsSyncPositionalArgsBeforeHandlerCall(t *testing.T) {
 	handler := &fakeBackendAdminHandler{syncResult: &types.NodeAgentAssignUnitResult{}}
 	factoryCalls := 0
-	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, error) {
+	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, tenant.Mode, error) {
 		factoryCalls++
-		return handler, nil
+		return handler, tenant.ModeSingle, nil
 	})
 	cmd.SetOut(new(bytes.Buffer))
 	cmd.SetErr(new(bytes.Buffer))
