@@ -94,13 +94,6 @@ func (h *handler) ListReleaseProxyBrief(rCtx restserver.IContext) (interface{}, 
 	cond := &types.ReleaseCondition{
 		ExactInclude: exactIncludeCond,
 	}
-	// Check permission.
-	_, _, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypeProxy)
-	if authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list release proxy brief, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
-	}
-
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.fileHandler.CountReleaseProxy(rCtx, cond)

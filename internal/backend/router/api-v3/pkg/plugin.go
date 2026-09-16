@@ -112,24 +112,9 @@ func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{},
 	cond := &types.ReleaseCondition{
 		ExactInclude: exactIncludeCond,
 	}
-	// Check permission and narrow by authorized plugin names.
-	requestedNames := exactIncludeCond.Name
-	narrowedNames, scopeIsAny, authErr := h.narrowAuthorizedPackageNames(rCtx, requestedNames, types.ReleaseTypePlugin)
-	if authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list plugin brief, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
-	}
-	cond = narrowReleaseCondition(cond, narrowedNames, scopeIsAny, types.ReleaseTypePlugin)
 
 	// only count.
 	if req.GetOnlyCount() {
-		if !scopeIsAny && len(narrowedNames) == 0 {
-			resp := new(protoBackend.PackageReleasePluginListBriefResp)
-			resp.ConvertReleasePluginsFromTypes(0, nil)
-
-			return resp.GetData(), nil
-		}
-
 		num, err := h.fileHandler.CountReleasePlugin(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief. failed to count host")
@@ -146,13 +131,6 @@ func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{},
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	if !scopeIsAny && len(narrowedNames) == 0 {
-		resp := new(protoBackend.PackageReleasePluginListBriefResp)
-		resp.ConvertReleasePluginsFromTypes(0, nil)
-
-		return resp.GetData(), nil
 	}
 
 	hosts, num, err := h.fileHandler.ListReleasePlugin(rCtx, page, cond)
