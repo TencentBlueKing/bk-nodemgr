@@ -88,7 +88,9 @@
         >
           <template #default="{ row }">
             <div class="flex items-center">
+              <!-- 无权限时不渲染 PopConfirm，避免点击同时弹出确认气泡与权限申请弹窗 -->
               <PopConfirm
+                v-if="hasRowManageAuth(row)"
                 theme="light"
                 trigger="click"
                 :confirm-text="t('certBintool.delete')"
@@ -97,11 +99,6 @@
                 <Button
                   theme="primary"
                   text
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
-                  @mouseleave="manageMouseLeave()"
                 >{{ t('certBintool.delete') }}</Button>
                 <template #content>
                   <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -116,6 +113,16 @@
                   </div>
                 </template>
               </PopConfirm>
+              <Button
+                v-else
+                theme="primary"
+                text
+                class="unAuthorized"
+                @click="manageAuthClick($event, row.release_type)"
+                @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
+                @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
+                @mouseleave="manageMouseLeave()"
+              >{{ t('certBintool.delete') }}</Button>
             </div>
           </template>
         </TableColumn>
@@ -160,6 +167,7 @@ import { translateOperatorItems } from '@/common/user-display';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
+import { useAuthStore } from '@/stores/auth';
 type filterProp = 'file_name' | 'operator';
 interface IFilterOption {
   list: { value: string | boolean, text: string;  }[];
@@ -180,13 +188,16 @@ const manageResourceId = ref<string>();
 const { hasAuth: hasUploadAuth, handleMouseEnter: uploadMouseEnter, handleMouseMove: uploadMouseMove, handleMouseLeave: uploadMouseLeave, handleAuthClick: uploadAuthClick } = useAuthLock(
   'package_type_upload', () => currentType.value, { resourceType: 'package_type' },
 );
-const { hasAuth: hasManageAuth, handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
+const { handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
   'package_manage', () => manageResourceId.value, { resourceType: 'package' },
 );
 const manageAuthClick = (e: MouseEvent, releaseType?: string) => {
   manageResourceId.value = releaseType;
   _manageAuthClick(e);
 };
+/** 行内操作权限：按当前行的 release_type 判断 package_manage 是否命中，避免用户有任意实例权限就误显示全部行可操作 */
+const authStore = useAuthStore();
+const hasRowManageAuth = (row: Release) => authStore.hasAuthorizedResource('package_manage', row.release_type);
 const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const currentType = computed(() => {

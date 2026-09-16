@@ -375,21 +375,14 @@ const getNetworkUnitList = async () => {
     };
   });
   networkUnitList.value = res.items;
-  // 列表 API 不含 links，用 GraphGet 一次性获取拓扑边（单元间上游关系）
-  // 从 links 里按 source_networkunit_id 建立到上游 target_networkunit_id 的映射（channel 含 cluster）
-  const areaIds = [...new Set(res.items.map((item: any) => item.bk_networkarea_id).filter((id: any) => id != null))];
-  try {
-    const graphRes = await TopoService.GraphGet({
-      bk_networkarea_id: areaIds,
-    });
-    (graphRes.links || []).forEach((edge: any) => {
-      if (edge.channel?.includes('cluster') && edge.source_networkunit_id != null) {
-        networkUnitListMap.set(edge.source_networkunit_id, edge.target_networkunit_id);
-      }
-    });
-  } catch (err) {
-    console.error('获取拓扑图边失败:', err);
-  }
+  // 列表接口已返回 links，直接取 cluster 通道的上游单元 ID 建立映射，
+  // 与安装页（install-proxy）保持一致，避免用 GraphGet 推断时丢失上游关系
+  (res.items || []).forEach((item: any) => {
+    const upstreamId = item.links?.cluster?.bk_networkunit_id;
+    if (upstreamId != null) {
+      networkUnitListMap.set(item.bk_networkunit_id, upstreamId);
+    }
+  });
 };
 
 // 查询各单元是否有 proxy（一次查询所有去重单元，排除正在重装的 proxy）

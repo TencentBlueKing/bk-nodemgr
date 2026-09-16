@@ -291,6 +291,7 @@ interface ReleasePluginBrief {
   enabled: boolean;
   as_default: boolean;
   is_hidden: boolean;
+  name: string;
 }
 
 // ReleaseCert describes the release cert.
@@ -516,3 +517,4 @@ interface HostOpsInfo {
   ops_bmc_ip: string;
   ops_bmc_port: number;
 }
+

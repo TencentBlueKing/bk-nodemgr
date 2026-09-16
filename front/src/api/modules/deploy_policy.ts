@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { DeployPolicyListReq, DeployPolicyListResp, DeployPolicyExecuteReq, DeployPolicyExecuteResp } from '@/@types/deploy_policy';
+import type { DeployPolicyListReq, DeployPolicyListResp, DeployPolicyExecuteReq, DeployPolicyExecuteResp, DeployPolicyWorkflowListReq, DeployPolicyWorkflowListResp } from '@/@types/deploy_policy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -13,5 +13,7 @@ export const DeployPolicyAPIService = {
   ListDeployPolicy: async <Request = DeployPolicyListReq, ResponseData = DeployPolicyListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/deploy_policy/list')(params, config),
   // ExecuteDeployPolicy executes deploy policy.
   ExecuteDeployPolicy: async <Request = DeployPolicyExecuteReq, ResponseData = DeployPolicyExecuteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/deploy_policy/execute')(params, config),
+  // WorkflowList lists deploy policy executions.
+  WorkflowList: async <Request = DeployPolicyWorkflowListReq, ResponseData = DeployPolicyWorkflowListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/deploy_policy/workflow/list')(params, config),
 };
 
