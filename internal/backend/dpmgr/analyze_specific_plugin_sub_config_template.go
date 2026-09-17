@@ -90,7 +90,6 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IC
 		params.Targets,
 		desiredDetails,
 		deployPolicyConfigMap,
-		runningProcessMap,
 	)
 	if err != nil {
 		return nil, err
@@ -107,15 +106,9 @@ func genSpecifyPluginSubConfigTemplateApplyOrUpdateTasks(
 	targets []*types.Target,
 	desiredDetails []*types.PluginConfigDetail,
 	deployPolicyConfigMap map[int64]map[string]*types.ProcessConfig,
-	runningProcessMap map[string]*types.Process,
 ) ([]*ChangeTask, error) {
 	changeTasks := make([]*ChangeTask, 0)
 	for _, target := range targets {
-		_, ok := runningProcessMap[genProcessUniqueID(target.Host.HostID, pluginName)]
-		if !ok {
-			continue
-		}
-
 		applyDetails := findApplyOrUpdateSubConfigDetails(
 			desiredDetails,
 			deployPolicyConfigMap[target.Host.HostID],
