@@ -240,7 +240,7 @@
             <div class="flex">
               <!-- 编辑按钮：有权限正常，无权限置灰+hover带锁+点击申请 -->
               <Button
-                v-if="hasProxyOperateAuth"
+                v-if="hasRowProxyOperateAuth(row)"
                 theme="primary"
                 text
                 class="mr-[12px]"
@@ -251,10 +251,10 @@
               <span
                 v-else
                 class="inline-flex items-center auth-lock-wrapper mr-[12px]"
-                @click="authLockHandleAuthClick()"
+                @click="handleProxyRowAuthClick(row, $event)"
 
-                @mouseenter="authLockMouseEnter($event, false)"
-                @mousemove="authLockMouseMove($event, false)"
+                @mouseenter="handleProxyRowAuthMouseEnter(row, $event)"
+                @mousemove="handleProxyRowAuthMouseMove(row, $event)"
                 @mouseleave="authLockMouseLeave()"
               >
                 <Button theme="primary" text class="auth-disabled-text-btn">
@@ -265,15 +265,15 @@
               <MoreAction
                 :ipv4="row.bk_host_innerip"
                 :data="[row]"
-                :has-auth="hasProxyOperateAuth"
+                :has-auth="hasRowProxyOperateAuth(row)"
                 :unit-proxy-count="unitProxyCount"
                 :unit-agent-count="unitAgentCount"
                 @reinstall="handleReinstall(row)"
                 @assign-unit="emit('assignUnit', row)"
                 @ops-setting="emit('opsSetting', row)"
-                @auth-click="authLockHandleAuthClick()"
-                @auth-lock-enter="authLockMouseEnter($event, false)"
-                @auth-lock-move="authLockMouseMove($event, false)"
+                @auth-click="handleProxyRowAuthClick(row)"
+                @auth-lock-enter="handleProxyRowAuthMouseEnter(row, $event)"
+                @auth-lock-move="handleProxyRowAuthMouseMove(row, $event)"
                 @auth-lock-leave="authLockMouseLeave()">
                 <i class="nodeman-icon nc-more cursor"></i>
               </MoreAction>
@@ -329,7 +329,9 @@ import { TopoService } from '@/api/modules/topo';
 import useAuthLock from '@/composables/use-auth-lock';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
+import { usePermissionStore } from '@/stores/permission';
 
 interface FilterOption {
   list: { text: string; value: string }[];
@@ -368,6 +370,14 @@ const list = ref<Host[]>([]);
 const pagination = reactive({ count: 0, limit: 20, current: 1, remote: true });
 const sortConfig = ref({ multiple: true });
 const mainStore = useMainStore();
+const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
+const PROXY_OPERATE_AUTH_ITEM = {
+  id: 'proxy_operate',
+  action: 'proxy_operate',
+  resourceType: 'biz',
+  routes: [],
+};
 const {
   handleMouseEnter: authLockMouseEnter,
   handleMouseMove: authLockMouseMove,
@@ -404,6 +414,36 @@ const getOrderedProxyTags = (tags: string[] = []) => [...tags].sort((a, b) => {
   }
   return aIndex - bIndex;
 });
+const getProxyRowBizId = (row: Host): number | undefined => {
+  if (route.name !== 'proxy') return undefined;
+  return (row as any).bk_biz_id ?? row.info?.bk_biz_id;
+};
+const hasRowProxyOperateAuth = (row: Host): boolean => {
+  const bkBizId = getProxyRowBizId(row);
+  if (bkBizId === undefined || bkBizId === null) return props.hasProxyOperateAuth;
+  return authStore.hasAuthorizedResource('proxy_operate', bkBizId);
+};
+const handleProxyRowAuthClick = async (row: Host, e?: MouseEvent) => {
+  const bkBizId = getProxyRowBizId(row);
+  if (bkBizId === undefined || bkBizId === null) {
+    await authLockHandleAuthClick(e);
+    return;
+  }
+  e?.stopPropagation();
+  e?.preventDefault();
+  authLockMouseLeave();
+  await authStore.batchVerify([PROXY_OPERATE_AUTH_ITEM], bkBizId);
+  const detail = authStore.permissionDetail;
+  if (detail) {
+    permissionStore.showDialog(detail);
+  }
+};
+const handleProxyRowAuthMouseEnter = (row: Host, e: MouseEvent) => {
+  authLockMouseEnter(e, hasRowProxyOperateAuth(row));
+};
+const handleProxyRowAuthMouseMove = (row: Host, e: MouseEvent) => {
+  authLockMouseMove(e, hasRowProxyOperateAuth(row));
+};
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'bk_host_innerip',
