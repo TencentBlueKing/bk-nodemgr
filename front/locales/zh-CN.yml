@@ -879,8 +879,8 @@ agentStrategy:
   searchPlaceholder: 请选择 配置名称、修改人 搜索
   configStrategy: 配置策略
   deploymentStrategy: 部署策略
-  createConfig: 新建配置
-  createPluginConfig: 新建插件策略
+  createConfig: 新建配置策略
+  createPluginConfig: 新建配置策略
   previewConfig: 预览配置
   sortAndPreview: 排序并预览
   loading: 数据加载中
