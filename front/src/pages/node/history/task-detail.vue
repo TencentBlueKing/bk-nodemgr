@@ -161,10 +161,13 @@
                     <Dropdown.DropdownItem @click="handleSelectCurrentPage">
                       {{ $t('taskDetail.filter.currentPage') }}
                     </Dropdown.DropdownItem>
-                    <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
-                      <Button text :disabled="pagination.count <= pagination.limit">
-                        {{ $t('taskDetail.filter.crossSelected') }}
-                      </Button>
+                    <!-- 参考批量操作下拉项：整行可点，禁用态手动置灰并拦截点击（DropdownItem 无 disabled 属性） -->
+                    <Dropdown.DropdownItem
+                      :disabled="pagination.count <= pagination.limit"
+                      :class="{ 'operate-item-disabled': pagination.count <= pagination.limit }"
+                      @click="handleSelectAllCrossPage()"
+                    >
+                      {{ $t('taskDetail.filter.crossSelected') }}
                     </Dropdown.DropdownItem>
                   </Dropdown.DropdownMenu>
                 </template>
@@ -1812,6 +1815,17 @@ onBeforeUnmount(() => {
 });
 </script>
 <style lang="postcss" scoped>
+/* 下拉项禁用态：DropdownItem 无 disabled 属性，需手动置灰并拦截点击（与 agent 列表批量操作项一致） */
+.operate-item-disabled {
+  color: #c4c6cc !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+
+  &:hover {
+    color: #c4c6cc !important;
+    background-color: transparent !important;
+  }
+}
 .status-icon::before {
   content: "";
   display: inline-block;
