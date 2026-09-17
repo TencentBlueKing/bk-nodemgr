@@ -482,11 +482,6 @@ func convertPackageEventConditionsToTypes(
 		}
 	}
 
-	// fuzzy conditions.
-	if fuzzyCond != nil {
-		condition.FuzzyInclude = &types.PackageEventFuzzyFields{}
-	}
-
 	return condition, nil
 }
 
@@ -518,10 +513,6 @@ func convertPackageEventConditionsFromTypes(condition *types.PackageEventConditi
 			Generation:  types.GenerationListToInt64List(condition.ExactInclude.Generation),
 			Operator:    condition.ExactInclude.Operator,
 		}
-	}
-
-	if condition.FuzzyInclude != nil {
-		fuzzyCond = &PackageEventFuzzyConditions{}
 	}
 
 	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {

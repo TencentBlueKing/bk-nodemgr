@@ -180,12 +180,6 @@ func convertPackageEventConditionsToTypes(conditions []*PackageEventQueryConditi
 			return nil, err
 		}
 		item := &types.PackageEventCondition{ExactInclude: include, ExactExclude: exclude}
-		if condition.GetFuzzyInclude() != nil {
-			item.FuzzyInclude = &types.PackageEventFuzzyFields{}
-		}
-		if condition.GetFuzzyExclude() != nil {
-			item.FuzzyExclude = &types.PackageEventFuzzyFields{}
-		}
 		if value := condition.GetOperateTimeRange(); value != nil {
 			item.OperateTimeRange = &types.TimeRange{StartTime: time.Unix(value.GetStartTimestampSec(), 0), EndTime: time.Unix(value.GetEndTimestampSec(), 0)}
 		}
@@ -218,12 +212,6 @@ func convertPackageEventConditionsFromTypes(conditions ...*types.PackageEventCon
 		}
 		item := &PackageEventQueryConditions{ExactInclude: convertPackageEventExactFieldsFromTypes(condition.ExactInclude),
 			ExactExclude: convertPackageEventExactFieldsFromTypes(condition.ExactExclude)}
-		if condition.FuzzyInclude != nil {
-			item.FuzzyInclude = &PackageEventFuzzyConditions{}
-		}
-		if condition.FuzzyExclude != nil {
-			item.FuzzyExclude = &PackageEventFuzzyConditions{}
-		}
 		if value := condition.OperateTimeRange; value != nil {
 			item.OperateTimeRange = &PackageEventQueryTimeRange{StartTimestampSec: value.StartTime.Unix(), EndTimestampSec: value.EndTime.Unix()}
 		}
