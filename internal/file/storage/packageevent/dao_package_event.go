@@ -19,6 +19,8 @@
 package packageevent
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoPackageEvent "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -27,7 +29,12 @@ import (
 
 // countPackageEvent counts package events by conditions.
 func (s *Storage) countPackageEvent(nCtx contextx.IContext, conditions ...*types.PackageEventCondition) (int64, error) {
-	return s.daoPackageEvent.Count(nCtx, convertPackageEventConditionsToOptions(conditions...)...)
+	opts, err := convertPackageEventConditionsToOptions(conditions...)
+	if err != nil {
+		return 0, err
+	}
+
+	return s.daoPackageEvent.Count(nCtx, opts...)
 }
 
 // listPackageEvent lists package events by page and conditions.
@@ -37,8 +44,12 @@ func (s *Storage) listPackageEvent(nCtx contextx.IContext, page types.Page,
 	page.Sort = types.WithSortFields(page.Sort,
 		types.WithFieldDesc(daoPackageEvent.FieldKeyOperateTime),
 		types.WithFieldDesc(daoPackageEvent.FieldKeyEventID))
+	opts, err := convertPackageEventConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, 0, err
+	}
 
-	return s.daoPackageEvent.List(nCtx, page, convertPackageEventConditionsToOptions(conditions...)...)
+	return s.daoPackageEvent.List(nCtx, page, opts...)
 }
 
 // createManyPackageEvent creates package events.
@@ -54,7 +65,10 @@ func (s *Storage) createManyPackageEvent(nCtx contextx.IContext, events ...*type
 func (s *Storage) distinctPackageEvent(nCtx contextx.IContext, request types.PackageEventDistinctRequest,
 	conditions ...*types.PackageEventCondition) (*types.PackageEventDistinctResult, error) {
 
-	opts := convertPackageEventConditionsToOptions(conditions...)
+	opts, err := convertPackageEventConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
 	data := new(types.PackageEventDistinctResult)
 	gp := gopool.NewPool()
 	if request.ReleaseType {
@@ -112,11 +126,17 @@ func (s *Storage) distinctPackageEvent(nCtx contextx.IContext, request types.Pac
 	return data, nil
 }
 
-func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCondition) []daoPackageEvent.OptFn {
+func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCondition) ([]daoPackageEvent.OptFn, error) {
 	opts := make([]daoPackageEvent.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
 			continue
+		}
+		if condition.FuzzyInclude != nil {
+			return nil, errors.New("fuzzy include is not supported")
+		}
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
 		}
 		if condition.OperateTimeRange != nil {
 			opts = append(opts, daoPackageEvent.WithOperateTimeRange(*condition.OperateTimeRange))
@@ -134,17 +154,16 @@ func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCon
 		}
 		if fields := condition.ExactExclude; fields != nil {
 			opts = append(opts,
-				daoPackageEvent.WithoutEventType(condition.ExactExclude.EventType...),
-				daoPackageEvent.WithoutGeneration(condition.ExactExclude.Generation...),
-				daoPackageEvent.WithoutReleaseType(condition.ExactExclude.ReleaseType...),
-				daoPackageEvent.WithoutCPUArch(condition.ExactExclude.CPUArch...),
-				daoPackageEvent.WithoutOSType(condition.ExactExclude.OSType...),
-				daoPackageEvent.WithoutVersion(condition.ExactExclude.Version...),
-				daoPackageEvent.WithoutOperator(condition.ExactExclude.Operator...),
-				daoPackageEvent.WithoutVersion(condition.ExactExclude.Version...),
+				daoPackageEvent.WithoutEventType(fields.EventType...),
+				daoPackageEvent.WithoutGeneration(fields.Generation...),
+				daoPackageEvent.WithoutReleaseType(fields.ReleaseType...),
+				daoPackageEvent.WithoutCPUArch(fields.CPUArch...),
+				daoPackageEvent.WithoutOSType(fields.OSType...),
+				daoPackageEvent.WithoutVersion(fields.Version...),
+				daoPackageEvent.WithoutOperator(fields.Operator...),
 			)
 		}
 	}
 
-	return opts
+	return opts, nil
 }
