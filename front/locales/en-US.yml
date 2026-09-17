@@ -879,8 +879,8 @@ agentStrategy:
   searchPlaceholder: Search by Name, Operator
   configStrategy: Config Strategy
   deploymentStrategy: Deployment Strategy
-  createConfig: Create Config
-  createPluginConfig: Create Plugin Strategy
+  createConfig: Create Config Strategy
+  createPluginConfig: Create Config Strategy
   previewConfig: Preview Config
   sortAndPreview: Sort & Preview
   loading: Loading...
