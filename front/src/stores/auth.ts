@@ -174,7 +174,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function hasPermissionCache(actionId: string, bizScope?: string | number | Array<string | number>, resourceId?: string | number): boolean {
-    return Object.prototype.hasOwnProperty.call(permissionMap, `${actionId}:${normalizeBizScope(bizScope)}:${resourceId ?? ''}`);
+    // 注意：不能用 Object.prototype.hasOwnProperty.call(permissionMap, key)，
+    // 它走 [[GetOwnProperty]]、不经过 Proxy trap，不会收集响应式依赖，
+    // 导致依赖它的 computed（如 workarea 页 hasCreateAuth）首次短路后永不更新
+    return permissionMap[`${actionId}:${normalizeBizScope(bizScope)}:${resourceId ?? ''}`] !== undefined;
   }
 
   function isPermissionCacheExpired(actionId: string, bizScope?: string | number | Array<string | number>, resourceId?: string | number): boolean {
