@@ -2,7 +2,16 @@
   <div class="p-[24px]">
     <!-- 操作栏：安装按钮 -->
     <div class="flex items-center gap-[8px] mb-[16px]">
-      <Button v-if="enabledOperations.has('install')" class="w-[130px]" theme="primary" @click="handlePluginOperate('install', [], false)">
+      <Button
+        v-if="enabledOperations.has('install')"
+        class="w-[130px]"
+        :class="{ 'unAuthorized': !hasPluginOperateAuth }"
+        theme="primary"
+        @click="hasPluginOperateAuth ? handlePluginOperate('install', [], false) : handleAuthClick($event)"
+        @mouseenter="authLockMouseEnter($event, hasPluginOperateAuth)"
+        @mousemove="authLockMouseMove($event, hasPluginOperateAuth)"
+        @mouseleave="authLockMouseLeave()"
+      >
         {{ $t('pluginManagement.plugin.operate.install') }}
       </Button>
     </div>
@@ -101,7 +110,11 @@
                   <Dropdown.DropdownItem
                     v-for="item in getSingleOperateList(row)"
                     :key="item.id"
-                    @click="handlePluginOperate(item.id, [row])"
+                    :class="{ 'auth-lock-dropdown-item': !hasPluginOperateAuth }"
+                    @click="hasPluginOperateAuth ? handlePluginOperate(item.id, [row]) : handleAuthClick($event)"
+                    @mouseenter="authLockMouseEnter($event, hasPluginOperateAuth)"
+                    @mousemove="authLockMouseMove($event, hasPluginOperateAuth)"
+                    @mouseleave="authLockMouseLeave()"
                   >
                     {{ item.name }}
                   </Dropdown.DropdownItem>
@@ -544,5 +557,9 @@ watch(() => mainStore.selectedBusinessId, () => {
       background: transparent !important;
     }
   }
+}
+
+.unAuthorized {
+  color: #c4c6cc !important;
 }
 </style>

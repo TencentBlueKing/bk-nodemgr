@@ -227,10 +227,13 @@
                     <Dropdown.DropdownItem @click="handleSelectCurrentPage">
                       {{ $t('taskDetail.filter.currentPage') }}
                     </Dropdown.DropdownItem>
-                    <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
-                      <Button text :disabled="total <= pagination.limit">
-                        {{ $t('taskDetail.filter.crossSelected') }}
-                      </Button>
+                    <!-- 参考批量操作下拉项：整行可点，禁用态手动置灰并拦截点击（DropdownItem 无 disabled 属性） -->
+                    <Dropdown.DropdownItem
+                      :disabled="total <= pagination.limit"
+                      :class="{ 'operate-item-disabled': total <= pagination.limit }"
+                      @click="handleSelectAllCrossPage()"
+                    >
+                      {{ $t('taskDetail.filter.crossSelected') }}
                     </Dropdown.DropdownItem>
                   </Dropdown.DropdownMenu>
                 </template>
