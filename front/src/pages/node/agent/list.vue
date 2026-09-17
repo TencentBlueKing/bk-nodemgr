@@ -364,7 +364,7 @@
           <template #default="{ row }">
             <!-- 重装按钮：有权限正常点击，无权限灰色+锁hover+点击申请权限 -->
             <Button
-              v-if="hasOperateAuth"
+              v-if="hasAgentOperateAuth(row)"
               theme="primary"
               text
               ext-cls="reinstall"
@@ -375,7 +375,7 @@
             <span
               v-else
               class="inline-flex items-center auth-lock-wrapper"
-              @click="handleAuthClick"
+              @click="handleRowAuthClick(row, $event)"
               @mouseenter="authLockMouseEnter($event, false)"
               @mousemove="authLockMouseMove($event, false)"
               @mouseleave="authLockMouseLeave()"
@@ -401,7 +401,7 @@
                   <Dropdown.DropdownItem
                     v-for="item in operate"
                     :key="item.id"
-                    v-show="getOperateShow(row, item) && getItemHasAuth(item)"
+                    v-show="getOperateShow(row, item) && getItemHasAuth(item, row)"
                     :disabled="getRowOperateDisabled(row, item).disabled"
                     :class="{ 'operate-item-disabled': getRowOperateDisabled(row, item).disabled }"
                     v-bk-tooltips="{
@@ -414,13 +414,13 @@
                   </Dropdown.DropdownItem>
                   <!-- 无权限的操作项：置灰+hover带锁+点击申请权限 -->
                   <Dropdown.DropdownItem
-                    v-for="item in operate.filter(i => getOperateShow(row, i) && !getItemHasAuth(i))"
+                    v-for="item in operate.filter(i => getOperateShow(row, i) && !getItemHasAuth(i, row))"
                     :key="'noauth-' + item.id"
                     class="auth-lock-dropdown-item"
-                    @mouseenter="getItemAuthMouseEnter(item)($event)"
-                    @mousemove="getItemAuthMouseMove(item)($event)"
+                    @mouseenter="getItemAuthMouseEnter(item, row)($event)"
+                    @mousemove="getItemAuthMouseMove(item, row)($event)"
                     @mouseleave="authLockMouseLeave()"
-                    @click.stop="getItemAuthClick(item)()"
+                    @click.stop="getItemAuthClick(item, row)($event)"
                   >
                     {{ item.name }}
                   </Dropdown.DropdownItem>
@@ -469,6 +469,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import processSideslider from '../plugin/process-sideslider.vue';
+
 import UpgradeSideslider from './upgrade-sideslider.vue';
 
 import type { TopoHostDistinctRespData } from '@/@types/topo';
@@ -484,8 +485,10 @@ import { isNetworkUnitAssigned } from '@/common/const';
 import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
 import BkFooter from '@/pages/app/footer.vue';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
+import { usePermissionStore } from '@/stores/permission';
 
 interface FilterOption {
   list: { text: string; value: string }[];
@@ -496,8 +499,17 @@ interface FilterOption {
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
+const permissionStore = usePermissionStore();
+
+const AGENT_OPERATE_AUTH_ITEM = {
+  id: 'agent_operate',
+  action: 'agent_operate',
+  resourceType: 'biz',
+  routes: [],
+};
 
 // ===== agent_operate 权限控制（批量操作、复制IP、行内重装/更多操作）=====
 const {
@@ -1450,20 +1462,47 @@ const getOperateShow = (row: Host, config: any) => {
   return config.show;
 };
 
+const getRowBizId = (row: Host): number | undefined => (row as any).bk_biz_id ?? row.info?.bk_biz_id;
+
+const hasAgentOperateAuth = (row: Host): boolean => {
+  const bkBizId = getRowBizId(row);
+  if (bkBizId === undefined || bkBizId === null) return hasOperateAuth.value;
+  return authStore.hasAuthorizedResource('agent_operate', bkBizId);
+};
+
+const handleRowAuthClick = async (row: Host, e?: MouseEvent) => {
+  e?.stopPropagation();
+  e?.preventDefault();
+  authLockMouseLeave();
+
+  const bkBizId = getRowBizId(row) ?? mainStore.selectedBusinessId;
+  if (bkBizId === undefined || bkBizId === null) return;
+
+  await authStore.batchVerify([AGENT_OPERATE_AUTH_ITEM], bkBizId);
+  const detail = authStore.permissionDetail;
+  if (detail) {
+    permissionStore.showDialog(detail);
+  }
+};
+
 /** 获取操作项是否有权限：assign_unit/update_ops_fields 不做前端校验（直接放行），其余用 agent_operate */
-const getItemHasAuth = (item: any): boolean => {
+const getItemHasAuth = (item: any, row: Host): boolean => {
   if (item.id === 'assign_unit' || item.id === 'update_ops_fields') return true;
-  return hasOperateAuth.value;
+  return hasAgentOperateAuth(row);
 };
 
 /** 获取操作项对应的权限锁 mouseenter handler */
-const getItemAuthMouseEnter = (_item: any) => (e: MouseEvent) => authLockMouseEnter(e, false);
+const getItemAuthMouseEnter = (_item: any, row: Host) => (e: MouseEvent) => {
+  authLockMouseEnter(e, hasAgentOperateAuth(row));
+};
 
 /** 获取操作项对应的权限锁 mousemove handler */
-const getItemAuthMouseMove = (_item: any) => (e: MouseEvent) => authLockMouseMove(e, false);
+const getItemAuthMouseMove = (_item: any, row: Host) => (e: MouseEvent) => {
+  authLockMouseMove(e, hasAgentOperateAuth(row));
+};
 
 /** 获取操作项对应的权限锁 click handler */
-const getItemAuthClick = (_item: any) => () => handleAuthClick();
+const getItemAuthClick = (_item: any, row: Host) => (e?: MouseEvent) => handleRowAuthClick(row, e);
 
 const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; tooltip: string } => {
   if (config.id === 'assign_unit' && isNetworkUnitAssigned((row as any).bk_networkunit_id)) {
