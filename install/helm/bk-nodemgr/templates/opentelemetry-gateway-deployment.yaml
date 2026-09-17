@@ -1,0 +1,101 @@
+{{- if .Values.opentelemetryGateway.enabled }}
+apiVersion: {{ template "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-opentelemetry-gateway
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    app: nodemgr-opentelemetry-gateway
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.opentelemetryGateway.replicaCount }}
+  {{- if .Values.updateStrategy }}
+  strategy:
+    type: {{ .Values.updateStrategy.type }}
+    {{- if (eq "Recreate" .Values.updateStrategy.type) }}
+    rollingUpdate: null
+    {{- else }}
+    rollingUpdate: {{ .Values.updateStrategy.rollingUpdate | toYaml | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app: nodemgr-opentelemetry-gateway
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        {{- if .Values.podLabels }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
+        {{- end }}
+        app: nodemgr-opentelemetry-gateway
+      annotations:
+        values-hash: "{{ include "bk-nodemgr.opentelemetryGateway.config" . | sha256sum | trunc 63 }}"
+        {{- if .Values.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "bk-nodemgr.opentelemetryGateway.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.hostAliases }}
+      # yamllint disable rule:indentation
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      # yamllint enable rule:indentation
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ template "bk-nodemgr.fullname" . }}-opentelemetry-gateway
+          image: {{ template "bk-nodemgr.opentelemetryGateway.image" . }}
+          imagePullPolicy: {{ .Values.opentelemetryGateway.image.pullPolicy | quote }}
+          args:
+            - --config=/conf/collector.yaml
+          {{- if .Values.opentelemetryGateway.extraEnvVars }}
+          env:
+            {{- include "common.tplvalues.render" (dict "value" .Values.opentelemetryGateway.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.opentelemetryGateway.extraEnvVarsCM .Values.opentelemetryGateway.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.opentelemetryGateway.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ .Values.opentelemetryGateway.extraEnvVarsCM }}
+            {{- end }}
+            {{- if .Values.opentelemetryGateway.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ .Values.opentelemetryGateway.extraEnvVarsSecret }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: otlp-grpc
+              containerPort: {{ .Values.opentelemetryGateway.service.ports.otlpGrpc }}
+            - name: otlp-http
+              containerPort: {{ .Values.opentelemetryGateway.service.ports.otlpHttp }}
+            - name: metrics
+              containerPort: {{ .Values.opentelemetryGateway.service.ports.metrics }}
+          volumeMounts:
+            - name: opentelemetry-gateway-config
+              mountPath: /conf
+          resources: {{- toYaml .Values.opentelemetryGateway.resources | nindent 12 }}
+      volumes:
+        - name: opentelemetry-gateway-config
+          configMap:
+            name: {{ template "bk-nodemgr.fullname" . }}-opentelemetry-gateway-config
+{{- end }}

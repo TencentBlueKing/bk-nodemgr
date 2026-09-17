@@ -124,6 +124,37 @@ tempo:
     usage_report:
       reporting_enabled: false
 
+## Embedded OpenTelemetry Collector Gateway for tracing fan-out.
+## The gateway is optional and keeps multi-destination routing outside bk-nodemgr processes.
+opentelemetryGateway:
+  enabled: false
+  replicaCount: 1
+  image:
+    registry: docker.io
+    repository: otel/opentelemetry-collector
+    tag: 0.130.1
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  service:
+    ports:
+      otlpGrpc: 4317
+      otlpHttp: 4318
+      metrics: 8888
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 128Mi
+      cpu: 100m
+  ## Native OpenTelemetry Collector config. Empty uses chart defaults:
+  ## - with tempo.enabled=true: export traces to embedded Tempo
+  ## - otherwise: use debug exporter so the gateway can start without external dependencies
+  config: {}
+
 ## @param extraEnvVars Array with extra environment variables to add to the bk-nodemgr container
 ## e.g:
 ## extraEnvVars:

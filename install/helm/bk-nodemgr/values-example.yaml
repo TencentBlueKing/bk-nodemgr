@@ -20,3 +20,55 @@ tempo:
           insecure: false
         wal:
           path: /var/tempo/wal
+
+## OpenTelemetry Gateway 默认关闭；用于集中处理 trace fan-out、重试、队列和外部凭证。
+opentelemetryGateway:
+  enabled: false
+  extraEnvVars:
+    - name: EXTERNAL_OTLP_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: external-otlp-secret
+          key: token
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      memory_limiter:
+        limit_mib: 512
+        spike_limit_mib: 128
+        check_interval: 5s
+      batch: {}
+    exporters:
+      otlp/tempo:
+        endpoint: bk-nodemgr-tempo:4317
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+        retry_on_failure:
+          enabled: true
+      otlp/external:
+        endpoint: external-collector.example.com:4317
+        headers:
+          authorization: Bearer ${env:EXTERNAL_OTLP_TOKEN}
+        sending_queue:
+          enabled: true
+        retry_on_failure:
+          enabled: true
+    service:
+      pipelines:
+        traces:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlp/tempo
+            - otlp/external

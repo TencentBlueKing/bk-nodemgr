@@ -62,11 +62,88 @@ Return the embedded Tempo OTLP gRPC endpoint.
 {{- end -}}
 
 {{/*
-Render service tracing config and default empty OTLP endpoints to embedded Tempo when enabled.
+Return the proper OpenTelemetry Gateway image name.
+*/}}
+{{- define "bk-nodemgr.opentelemetryGateway.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.opentelemetryGateway.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the proper OpenTelemetry Gateway image registry secret names.
+*/}}
+{{- define "bk-nodemgr.opentelemetryGateway.imagePullSecrets" -}}
+{{ include "common.images.pullSecrets" (dict "images" (list .Values.opentelemetryGateway.image) "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the embedded OpenTelemetry Gateway OTLP gRPC endpoint.
+*/}}
+{{- define "bk-nodemgr.opentelemetryGateway.otlpGrpcEndpoint" -}}
+{{ template "bk-nodemgr.fullname" . }}-opentelemetry-gateway:{{ .Values.opentelemetryGateway.service.ports.otlpGrpc }}
+{{- end -}}
+
+{{/*
+Render the OpenTelemetry Gateway config. User config fully replaces defaults.
+*/}}
+{{- define "bk-nodemgr.opentelemetryGateway.config" -}}
+{{- if .Values.opentelemetryGateway.config -}}
+{{- include "common.tplvalues.render" (dict "value" .Values.opentelemetryGateway.config "context" $) -}}
+{{- else -}}
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:{{ .Values.opentelemetryGateway.service.ports.otlpGrpc }}
+      http:
+        endpoint: 0.0.0.0:{{ .Values.opentelemetryGateway.service.ports.otlpHttp }}
+processors:
+  memory_limiter:
+    limit_mib: 512
+    spike_limit_mib: 128
+    check_interval: 5s
+  batch: {}
+exporters:
+  {{- if .Values.tempo.enabled }}
+  otlp/tempo:
+    endpoint: {{ include "bk-nodemgr.tempo.otlpGrpcEndpoint" . }}
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+    retry_on_failure:
+      enabled: true
+  {{- else }}
+  debug:
+    verbosity: basic
+  {{- end }}
+service:
+  pipelines:
+    traces:
+      receivers:
+        - otlp
+      processors:
+        - memory_limiter
+        - batch
+      exporters:
+        {{- if .Values.tempo.enabled }}
+        - otlp/tempo
+        {{- else }}
+        - debug
+        {{- end }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Render service tracing config and default empty OTLP endpoints to the in-chart tracing receiver when enabled.
 */}}
 {{- define "bk-nodemgr.tracingConfig" -}}
 {{- $config := deepCopy .config -}}
-{{- if and .context.Values.tempo.enabled (not (get $config "otlpEndpoint")) -}}
+{{- if and .context.Values.opentelemetryGateway.enabled (not (get $config "otlpEndpoint")) -}}
+{{- $_ := set $config "exporterType" "otlp" -}}
+{{- $_ := set $config "otlpEndpoint" (include "bk-nodemgr.opentelemetryGateway.otlpGrpcEndpoint" .context) -}}
+{{- $_ := set $config "otlpProtocol" "grpc" -}}
+{{- $_ := set $config "otlpInsecure" true -}}
+{{- else if and .context.Values.tempo.enabled (not (get $config "otlpEndpoint")) -}}
 {{- $_ := set $config "exporterType" "otlp" -}}
 {{- $_ := set $config "otlpEndpoint" (include "bk-nodemgr.tempo.otlpGrpcEndpoint" .context) -}}
 {{- $_ := set $config "otlpProtocol" "grpc" -}}
