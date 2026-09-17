@@ -47,13 +47,17 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitCreate, nil); authErr != nil {
+	networkAreaID := req.GetBkNetworkareaId()
+	if authErr := h.authorizer.Check(
+		rCtx,
+		auth.ActionNetworkUnitCreate,
+		authRouter.BuildNetworkAreaResources(networkAreaID),
+	); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to create networkunit, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	// check if networkarea exists.
-	networkAreaID := req.GetBkNetworkareaId()
 	networkArea, err := h.storage.GetNetworkArea(rCtx, networkAreaID)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("networkarea-id", networkAreaID).Error("failed to create networkunit, failed to get networkarea")
@@ -117,7 +121,7 @@ func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface
 	if authErr := h.authorizer.Check(
 		rCtx,
 		auth.ActionNetworkUnitCreate,
-		nil,
+		authRouter.BuildNetworkAreaResources(param.NetworkAreaIDs...),
 	); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error(
 			"failed to create default networkunits, permission denied",
