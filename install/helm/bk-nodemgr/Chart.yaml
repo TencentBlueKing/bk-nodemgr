@@ -24,3 +24,7 @@ dependencies:
     name: mongodb
     repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
     version: 13.18.5
+  - condition: grafana.enabled
+    name: grafana
+    repository: "https://grafana-community.github.io/helm-charts"
+    version: 10.5.14

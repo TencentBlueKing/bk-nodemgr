@@ -1,0 +1,22 @@
+{{- if .Values.grafana.enabled }}
+{{- if not .Values.tempo.enabled }}
+{{- fail "grafana.enabled requires tempo.enabled=true" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grafana.fullname" .Subcharts.grafana }}-tempo-datasource
+  namespace: {{ include "grafana.namespace" .Subcharts.grafana | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+data:
+  tempo.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        uid: bk-nodemgr-tempo
+        type: tempo
+        access: proxy
+        url: http://{{ include "bk-nodemgr.fullname" . }}-tempo.{{ .Release.Namespace }}.svc:{{ .Values.tempo.service.ports.http }}
+        isDefault: true
+        editable: false
+{{- end }}

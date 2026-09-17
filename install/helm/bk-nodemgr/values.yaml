@@ -155,6 +155,65 @@ opentelemetryGateway:
   ## - otherwise: use debug exporter so the gateway can start without external dependencies
   config: {}
 
+## Grafana subchart. Requires Tempo; validated against Kubernetes 1.23.17.
+## Administrator password is generated in the Grafana Secret and reused on upgrades.
+grafana:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: grafana/grafana
+    ## Use the image version declared by the upstream Grafana chart.
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  ## Public URL with trailing slash, e.g. https://nodemgr.example.com/grafana/.
+  rootURL: ""
+  adminUser: admin
+  rbac:
+    create: false
+  serviceAccount:
+    create: false
+  automountServiceAccountToken: false
+  replicas: 1
+  deploymentStrategy:
+    type: Recreate
+  service:
+    type: ClusterIP
+    port: 3000
+  ingress:
+    enabled: false
+  persistence:
+    enabled: true
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+  ## The existing fsGroup-based volume access does not require a root init container.
+  initChownData:
+    enabled: false
+  testFramework:
+    enabled: false
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 128Mi
+      cpu: 100m
+  grafana.ini:
+    server:
+      root_url: '{{ required "grafana.rootURL is required when grafana.enabled=true" .Values.rootURL }}'
+      serve_from_sub_path: true
+    users:
+      default_language: zh-Hans
+  ## The parent chart provisions the actual Tempo service name and HTTP port.
+  ## Restart Grafana after changing the Tempo service address or port.
+  extraConfigmapMounts:
+    - name: tempo-datasource
+      mountPath: /etc/grafana/provisioning/datasources/tempo.yaml
+      subPath: tempo.yaml
+      configMap: '{{ include "grafana.fullname" . }}-tempo-datasource'
+      readOnly: true
+
 ## @param extraEnvVars Array with extra environment variables to add to the bk-nodemgr container
 ## e.g:
 ## extraEnvVars:

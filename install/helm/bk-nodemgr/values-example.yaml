@@ -72,3 +72,14 @@ opentelemetryGateway:
           exporters:
             - otlp/tempo
             - otlp/external
+
+## Optional Grafana subchart with password login and an automatically provisioned Tempo data source.
+## Enable tempo.enabled as well. Retrieve the generated password from the Grafana Secret.
+grafana:
+  enabled: false
+  rootURL: https://nodemgr.example.com/grafana/
+  persistence:
+    enabled: true
+    storageClassName: ""
+    size: 1Gi
+  # Manage the /grafana/ ingress separately; do not inject a fixed user identity.
