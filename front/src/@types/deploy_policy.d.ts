@@ -203,5 +203,59 @@ export interface DeployPolicyExecuteResp {
 }
 
 export interface DeployPolicyExecuteRespData {
+  // Identifies the requested policy's execution, not a child workflow.
   workflow_id: string;
 }
+
+// DeployPolicyChildWorkflow describes one associated node or plugin workflow.
+export interface DeployPolicyChildWorkflow {
+  // node or plugin. The pair (type, workflow_id) identifies a child workflow.
+  type: string;
+  workflow_id: string;
+}
+
+// DeployPolicyWorkflowInfo describes one tenant-scoped policy execution.
+export interface DeployPolicyWorkflowInfo {
+  workflow_id: string;
+  trigger_id: string;
+  deploy_policy_id: number;
+  operator: string;
+  // Unix timestamp in milliseconds.
+  operate_time: number;
+  // Unix timestamp in milliseconds, or zero when unfinished.
+  finish_time: number;
+  status: string;
+  children: DeployPolicyChildWorkflow[];
+}
+
+// DeployPolicyWorkflowExactConditions describes exact workflow filters.
+export interface DeployPolicyWorkflowExactConditions {
+  workflow_id: string[];
+  deploy_policy_id: number[];
+  status: string[];
+  operator: string[];
+}
+
+// DeployPolicyWorkflowListReq lists policy executions in the current tenant.
+export interface DeployPolicyWorkflowListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: DeployPolicyWorkflowExactConditions;
+  operate_time_range: TimeRange;
+}
+
+// DeployPolicyWorkflowListResp describes the policy execution list.
+export interface DeployPolicyWorkflowListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: DeployPolicyWorkflowListRespData;
+}
+
+export interface DeployPolicyWorkflowListRespData {
+  total: number;
+  items: DeployPolicyWorkflowInfo[];
+}
+
