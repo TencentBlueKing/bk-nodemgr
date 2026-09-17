@@ -959,7 +959,7 @@ const loadDefaultPluginVersions = async () => {
   const pluginNames = [...new Set(processList.value.map((item: any) => item.plugin_name).filter(Boolean))];
   if (pluginNames.length === 0) { defaultVersionMap.value = new Map(); return; }
 
-  const res = await PackageService.ListReleasePlugin({
+  const res = await PackageService.ListReleasePluginBrief({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
     only_count: false,
@@ -968,9 +968,8 @@ const loadDefaultPluginVersions = async () => {
 
   const map = new Map<string, string>();
   (res.items || []).forEach((item: any) => {
-    const release = item.release || item;
-    if (release.as_default && release.name && release.os_type && release.cpu_arch) {
-      map.set(`${release.name}_${release.os_type}_${release.cpu_arch}`, release.version);
+    if (item.as_default && item.name && item.os_type && item.cpu_arch) {
+      map.set(`${item.name}_${item.os_type}_${item.cpu_arch}`, item.version);
     }
   });
   defaultVersionMap.value = map;
