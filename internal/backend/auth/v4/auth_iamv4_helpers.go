@@ -93,11 +93,51 @@ func iamv4ToIAMResources(resources []types.AuthResource) []types.IAMResource {
 			SystemID:   r.SystemID,
 			Type:       string(r.Type),
 			ID:         r.ID,
-			Attributes: r.Attributes,
+			Attributes: iamv4BuildCheckAttributes(r.Attributes),
 		})
 	}
 
 	return checkResources
+}
+
+func iamv4BuildCheckAttributes(attributes map[string]interface{}) map[string]interface{} {
+	path, ok := iamv4SingleIAMPath(attributes[provider.AttrIAMPath])
+	if !ok {
+		return attributes
+	}
+
+	checkAttributes := make(map[string]interface{}, len(attributes))
+	for key, value := range attributes {
+		checkAttributes[key] = value
+	}
+	// Notice: IAM v4 auth-by-resources does not support _bk_iam_path_ arrays yet.
+	// Remove this compatibility conversion after IAM supports path arrays.
+	checkAttributes[provider.AttrIAMPath] = path
+
+	return checkAttributes
+}
+
+func iamv4SingleIAMPath(pathValue interface{}) (string, bool) {
+	switch paths := pathValue.(type) {
+	case []string:
+		if len(paths) != 1 {
+			return "", false
+		}
+
+		return paths[0], true
+	case []interface{}:
+		if len(paths) != 1 {
+			return "", false
+		}
+		path, ok := paths[0].(string)
+		if !ok {
+			return "", false
+		}
+
+		return path, true
+	default:
+		return "", false
+	}
 }
 
 func iamv4BuildIAMBatchLookupKey(resources []types.IAMResource) string {
