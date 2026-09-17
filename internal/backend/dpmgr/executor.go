@@ -48,17 +48,13 @@ type ExecutionParam struct {
 }
 
 func (execution ExecutionParam) workflowIDs(tasks []*ChangeTask) []string {
-	groups := make(map[int64]struct{})
+	policyIDs := make(map[int64]struct{})
 	for _, task := range tasks {
-		if group, ok := execution.PolicyGroups[task.DeployPolicyID]; ok {
-			groups[group] = struct{}{}
-		}
+		policyIDs[task.DeployPolicyID] = struct{}{}
 	}
+
 	ids := make([]string, 0)
-	for policyID, group := range execution.PolicyGroups {
-		if _, ok := groups[group]; !ok {
-			continue
-		}
+	for policyID := range policyIDs {
 		if workflowID := execution.WorkflowIDs[policyID]; workflowID != "" {
 			ids = append(ids, workflowID)
 		}
@@ -66,6 +62,32 @@ func (execution ExecutionParam) workflowIDs(tasks []*ChangeTask) []string {
 	sort.Strings(ids)
 
 	return ids
+}
+
+type changeTaskGroupKey struct {
+	action         ChangeAction
+	deployPolicyID int64
+}
+
+func newChangeTaskGroupKey(task *ChangeTask) changeTaskGroupKey {
+	key := changeTaskGroupKey{action: task.Action}
+	if task.Action.isPolicyScopedChildWorkflowAction() {
+		key.deployPolicyID = task.DeployPolicyID
+	}
+
+	return key
+}
+
+func (action ChangeAction) isPolicyScopedChildWorkflowAction() bool {
+	switch action {
+	case ChangeActionAgentInstall, ChangeActionAgentUninstall, ChangeActionAgentUpgrade,
+		ChangeActionPluginInstall, ChangeActionPluginUninstall, ChangeActionPluginUpgrade,
+		ChangeActionPluginApplySubConfig, ChangeActionPluginDeleteSubConfig,
+		ChangeActionPluginPkgInstall, ChangeActionPluginPkgUpgrade, ChangeActionPluginPkgUninstall:
+		return true
+	default:
+		return false
+	}
 }
 
 var _ IExecutor = &Executor{}
@@ -106,22 +128,20 @@ func NewExecutor(conf *ExecutorConfig) *Executor {
 	}
 }
 
-// Execute preserves batching while associating children with participating policy groups.
+// Execute preserves batching within one policy while keeping child workflow associations policy-scoped.
 // nolint: gocognit,gocyclo,cyclop
 func (executor *Executor) Execute(nCtx contextx.IContext, execution ExecutionParam, changeTasks ...*ChangeTask) error {
-	tasksByAction := make(map[ChangeAction][]*ChangeTask)
+	tasksByAction := make(map[changeTaskGroupKey][]*ChangeTask)
 	for _, changeTask := range changeTasks {
 		if _, ok := execution.PolicyGroups[changeTask.DeployPolicyID]; !ok {
 			return fmt.Errorf("missing execution group for policy %d", changeTask.DeployPolicyID)
 		}
-		if execution.WorkflowIDs[changeTask.DeployPolicyID] == "" {
-			return fmt.Errorf("missing execution workflow for policy %d", changeTask.DeployPolicyID)
-		}
-		tasksByAction[changeTask.Action] = append(tasksByAction[changeTask.Action], changeTask)
+		key := newChangeTaskGroupKey(changeTask)
+		tasksByAction[key] = append(tasksByAction[key], changeTask)
 	}
 
-	for action, tasks := range tasksByAction {
-		switch action {
+	for key, tasks := range tasksByAction {
+		switch key.action {
 		// ===============================================================================
 		// Agent Related Change Actions
 		// ===============================================================================
@@ -213,7 +233,7 @@ func (executor *Executor) Execute(nCtx contextx.IContext, execution ExecutionPar
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		default:
-			return fmt.Errorf("failed to schedule and execute change action: unknown change action, change-action(%s)", action)
+			return fmt.Errorf("failed to schedule and execute change action: unknown change action, change-action(%s)", key.action)
 		}
 	}
 
@@ -221,17 +241,23 @@ func (executor *Executor) Execute(nCtx contextx.IContext, execution ExecutionPar
 }
 
 func (executor *Executor) recordWorkflowChild(nCtx contextx.IContext, execution ExecutionParam,
-	tasks []*ChangeTask, domain types.WorkflowDomain, workflowID string) error {
+	tasks []*ChangeTask, domain types.WorkflowDomain, workflowID string) {
 
 	workflowIDs := execution.workflowIDs(tasks)
 	if len(workflowIDs) == 0 {
-		return errors.New("deploy policy workflow associations are required")
+		logger.G.Sys().Ctx(nCtx).With("workflow-id", workflowID).With("workflow-domain", domain).
+			Error("failed to record deploy policy workflow child, deploy policy workflow associations are missing")
+		return
 	}
 	if executor.daoDeployPolicyWorkflow == nil {
-		return errors.New("deploy policy workflow storage is required")
+		logger.G.Sys().Ctx(nCtx).With("workflow-id", workflowID).With("workflow-domain", domain).
+			Error("failed to record deploy policy workflow child, deploy policy workflow storage is missing")
+		return
 	}
 	if workflowID == "" {
-		return errors.New("launched workflow id is empty")
+		logger.G.Sys().Ctx(nCtx).With("workflow-domain", domain).
+			Error("failed to record deploy policy workflow child, launched workflow id is empty")
+		return
 	}
 
 	child := types.DeployPolicyWorkflowChild{
@@ -239,10 +265,11 @@ func (executor *Executor) recordWorkflowChild(nCtx contextx.IContext, execution 
 		WorkflowDomain: domain,
 	}
 	if err := executor.daoDeployPolicyWorkflow.RecordDeployPolicyWorkflowChild(nCtx, workflowIDs, child); err != nil {
-		return fmt.Errorf("failed to record deploy policy workflow child: %w", err)
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("workflow-id", workflowID).
+			With("workflow-domain", domain).With("workflow-count", len(workflowIDs)).
+			Error("failed to record deploy policy workflow child")
+		return
 	}
-
-	return nil
 }
 
 func collectDeployPolicyIDs(tasks []*ChangeTask) []int64 {
@@ -327,9 +354,7 @@ func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext
 	if err != nil {
 		return fmt.Errorf("failed to execute change action agent install: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action agent install: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action agent install")
@@ -393,9 +418,7 @@ func (executor *Executor) executeChangeActionAgentUninstall(nCtx contextx.IConte
 	if err != nil {
 		return fmt.Errorf("failed to execute change action agent uninstall: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action agent uninstall: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action agent uninstall")
@@ -457,9 +480,7 @@ func (executor *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext
 	if err != nil {
 		return fmt.Errorf("failed to execute change action agent upgrade: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action agent upgrade: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainNode, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action agent upgrade")
@@ -514,9 +535,7 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin install: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin install: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action plugin install")
@@ -564,9 +583,7 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin uninstall: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin uninstall: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin uninstall")
 
@@ -616,9 +633,7 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin upgrade: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin upgrade: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin upgrade")
 
@@ -673,9 +688,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin apply sub config: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin apply sub config: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action plugin apply sub config")
@@ -728,9 +741,7 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfig(nCtx contextx
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin delete sub config: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin delete sub config: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action plugin delete sub config")
@@ -828,9 +839,7 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin pkg install: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin pkg install: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).
 		Info("successful to execute change action plugin pkg install")
@@ -885,9 +894,7 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin pkg upgrade: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin pkg upgrade: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin pkg upgrade")
 
@@ -936,9 +943,7 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 	if err != nil {
 		return fmt.Errorf("failed to execute change action plugin pkg uninstall: %w", err)
 	}
-	if err := executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID); err != nil {
-		return fmt.Errorf("failed to execute change action plugin pkg uninstall: %w", err)
-	}
+	executor.recordWorkflowChild(nCtx, execution, tasks, types.WorkflowDomainPlugin, workflowID)
 
 	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin pkg uninstall")
 
