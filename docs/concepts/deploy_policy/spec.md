@@ -16,7 +16,7 @@ spec 定义了期望的最终状态，用于指定目标最终应达到的状态
 
 指定插件子配置模板，用于按配置模板为已安装插件生成 deploy-policy 管理的子配置文件。仅更新配置，不涉及插件版本的安装或升级。
 
-对每一个 scope target，系统都应按 `plugin_name` 和 template item 声明缺失的子配置文件。配置文件名称根据模板名和部署策略 ID 自动生成：`{base_name}_deploy_{deploy_policy_id}{ext}`。execute 阶段仍要求目标侧已有可操作的 `plugin_name` 插件。
+对每一个 scope target，系统都应按 `plugin_name` 和 template item 声明缺失的子配置文件。配置文件名称根据模板名和部署策略 ID 自动生成：`{base_name}_deploy_{deploy_policy_id}{ext}`。后续 apply sub config workflow 仍要求目标侧已有可操作的 `plugin_name` 插件。
 
 该 spec 表达的是 `scope targets × template items` 的声明式期望状态：期望存在但实际不存在时创建，已存在时不重复创建。`plugin_name` 表示被声明配置的已安装插件；它不是插件安装声明。
 

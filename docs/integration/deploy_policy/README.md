@@ -186,7 +186,7 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 - create 或 execute 成功响应是即时 API 结果，不是最终机器状态验证。
 - `project_plugin_pkg_to_hosts` 要求 `plugin_pkg_name`、`version` 和非空 `placement_host_ids`；`placement_host_ids` 是承载位置，不是第二套 scope。
 - `specify_plugin_sub_config` 是 config-only，要求插件已安装；它只保证声明的非主配置文件存在，不安装或升级插件。
-- `specify_plugin_sub_config_template` 是 config-only，对 deploy policy `scope` 目标声明缺失配置；要求插件已安装并可被 execute 阶段操作，有效 template item 至少需要 `template_name` 或 `name`。
+- `specify_plugin_sub_config_template` 是 config-only，对 deploy policy `scope` 目标声明缺失配置；要求插件已安装，并可被后续 apply sub config workflow 操作，有效 template item 至少需要 `template_name` 或 `name`。
 - `project_plugin_config_template_to_hosts` 是 config-only，要求 `plugin_name` 能反向定位到已有插件；它不接收 `placement_host_ids`，也不安装或升级插件。
 - `specify_plugin_pkg_sub_config` 出现在概念文档中，但当前 proto、Swagger 和 type contract 均没有该字段；不要把它作为 spec type 发送。
 

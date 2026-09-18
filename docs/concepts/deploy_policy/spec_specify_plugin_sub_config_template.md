@@ -2,7 +2,7 @@
 
 `SpecifyPluginSubConfigTemplate` 根据用户指定的配置文件模板，为指定插件生成 deploy-policy 管理的子配置文件。
 
-该 spec 只声明配置文件的期望状态，不负责安装插件、升级插件或启动插件。`plugin_name` 是用户指定的配置承载插件；补充或更新决策面向当前 deploy scope 目标生成配置声明，execute 阶段仍要求目标侧已有可操作的 `plugin_name` 插件。
+该 spec 只声明配置文件的期望状态，不负责安装插件、升级插件或启动插件。`plugin_name` 是用户指定的配置承载插件；补充或更新决策面向当前 deploy scope 目标生成配置声明，后续 apply sub config workflow 仍要求目标侧已有可操作的 `plugin_name` 插件。
 
 ### 决策输入
 
