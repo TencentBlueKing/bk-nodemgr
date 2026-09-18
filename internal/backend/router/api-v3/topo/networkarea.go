@@ -192,6 +192,11 @@ func (h *handler) DeleteNetworkArea(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	if err := h.cmdbHandler.DeleteNetworkArea(rCtx, networkArea.ID); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkarea. failed to delete networkarea in cmdb")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
 	if err := h.storage.DeleteManyNetworkArea(rCtx, networkAreaID); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
