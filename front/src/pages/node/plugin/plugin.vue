@@ -142,16 +142,12 @@ import { PluginAPIService } from '@/api/modules/plugin';
 import { ProcessAPIService } from '@/api/modules/process';
 import OperateDialog from '@/components/operate-dialog.vue';
 import useTableSetting from '@/composables/use-table-setting';
-import { useAuthStore } from '@/stores/auth';
-import { usePermissionStore } from '@/stores/permission';
 import { useMainStore } from '@/stores/main';
 
 const router = useRouter();
 const mainStore = useMainStore();
 const { t } = useI18n();
 
-const authStore = useAuthStore();
-const permissionStore = usePermissionStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 // 插件列表数据
 const pluginList = ref<any[]>([]);
@@ -395,20 +391,6 @@ const handleOperateConfirm = async (extraData: any = {}) => {
   // 使用弹窗中勾选的行，若无勾选则使用全部
   const data = extraData.selection?.length ? extraData.selection : pendingOperateData.value;
   const operateType = pendingOperateType.value;
-
-  // 按弹窗中实际选择的进程所归属业务校验 plugin_operate 权限：任一业务无权限则弹申请并拦截
-  const bizIds = [...new Set(data.map((item: any) => item.bk_biz_id).filter((id: any) => id != null && id !== '' && id !== 0))];
-  if (bizIds.length) {
-    await authStore.batchVerify(
-      [{ id: 'plugin_operate', action: 'plugin_operate', resourceType: 'biz', routes: [] }],
-      bizIds,
-    );
-    if (!authStore.hasPermission('plugin_operate', bizIds)) {
-      const detail = authStore.permissionDetail;
-      if (detail) permissionStore.showDialog(detail);
-      return;
-    }
-  }
 
   let res: any;
 
