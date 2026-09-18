@@ -47,7 +47,7 @@ AGENTS.md 是项目铁律。以下检查项在步骤 2（Design 审查）和步�
 ### 2.1 错误处理规范
 - [ ] **加载项目 owner skill**：错误创建、传播、包装、REST 映射、log-or-return、`err == nil` 迁移以 `bk-nodemgr-error-handling` 为准
   - 验证方式：审查涉及 `err`、`fmt.Errorf`、`resterrf.ErrWrap`、`WithErr`、`errors.Is/As`、panic/recover 时，先对照该 skill
-  - 参考规范：`references/go-standards.md#错误处理规范`、`.claude/skills/bk-nodemgr-error-handling/SKILL.md`
+  - 参考规范：`references/go-standards.md#错误处理规范`、`.agents/skills/bk-nodemgr-error-handling/SKILL.md`
 
 - [ ] **禁止 `err == nil`**：新增或修改的 Go 代码不得出现 `err == nil`
   - 验证方式：`rg -n "err\s*==\s*nil" --glob '*.go'`

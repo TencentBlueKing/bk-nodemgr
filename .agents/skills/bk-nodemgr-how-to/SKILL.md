@@ -37,12 +37,12 @@ Do not use it for:
 Read these before inventing routing rules:
 
 - `AGENTS.md`: repository-wide architecture, retrieval-first rules, and scoped `AGENTS.md` priority.
-- `.claude/skills/*/SKILL.md`: project skill catalog and local skill style.
+- `.agents/skills/*/SKILL.md`: project skill catalog and local skill style.
 - `~/.agents/skills/golang-how-to/SKILL.md`: generic Go routing model to adapt, not copy blindly.
 - `pkg/contextx/AGENTS.md`: project context propagation contract.
 - `pkg/runtime/conv/AGENTS.md`, `pkg/runtime/criteria/AGENTS.md`, `pkg/runtime/crypter/AGENTS.md`: runtime subpackage contracts.
-- `.claude/skills/bk-nodemgr-{conv,gopool,retrier,contextx,logger,error-handling}/SKILL.md`: high-frequency project Go skills.
-- `.claude/skills/api-scaffold/SKILL.md`, `.claude/skills/router-permission-supplement/SKILL.md`, `.claude/skills/api-doc/SKILL.md`, `.claude/skills/code-review/SKILL.md`: project workflow and review skills.
+- `.agents/skills/bk-nodemgr-{conv,gopool,retrier,contextx,logger,error-handling}/SKILL.md`: high-frequency project Go skills.
+- `.agents/skills/api-scaffold/SKILL.md`, `.agents/skills/router-permission-supplement/SKILL.md`, `.agents/skills/api-doc/SKILL.md`, `.agents/skills/code-review/SKILL.md`: project workflow and review skills.
 
 ## Routing Rules
 
@@ -112,7 +112,7 @@ For architecture judgment signals, load `bk-nodemgr-architecture-judgment` as a 
 
 ## Verification Checklist
 
-- Search existing skills before routing: `rg "name:|description:|Cross-References|When to Use" .claude/skills`.
+- Search existing skills before routing: `rg "name:|description:|Cross-References|When to Use" .agents/skills`.
 - Search source anchors before deciding a project surface is generic: `rg "pkg/contextx|pkg/runtime|pkg/logger|api-v3|workflow" internal pkg cmd proto`.
 - If replacing a generic skill reference, verify the new reference is project-specific and not a pure Go fallback.
 - Keep `golang-how-to` as fallback for pure Go tasks outside bk-nodemgr contracts.

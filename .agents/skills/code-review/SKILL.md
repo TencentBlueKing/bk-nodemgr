@@ -40,7 +40,7 @@ description: Use when user asks to review code, check for errors, audit commits,
 **PR 审查额外步骤**：先用 [scripts/pr-fetch.sh](scripts/pr-fetch.sh) 将 PR 分支 fetch 到本地（不切换当前分支），再按 `using-git-worktrees` 创建 worktree：
 
 ```bash
-BRANCH=$(.claude/skills/code-review/scripts/pr-fetch.sh <PR_URL>)
+BRANCH=$(.agents/skills/code-review/scripts/pr-fetch.sh <PR_URL>)
 # 然后按 using-git-worktrees 流程创建 worktree
 git worktree add .worktrees/"$BRANCH" "$BRANCH"
 ```

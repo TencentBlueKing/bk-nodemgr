@@ -77,10 +77,10 @@
 
    ```bash
    # 获取正确的文件名
-   .claude/skills/api-doc/scripts/get_doc_filename.py <url> [method]
+   .agents/skills/api-doc/scripts/get_doc_filename.py <url> [method]
 
    # 获取当前版本号
-   .claude/skills/api-doc/scripts/get_version.sh
+   .agents/skills/api-doc/scripts/get_version.sh
    ```
 
 3. **编写 URL**
@@ -282,8 +282,8 @@ serena.find_symbol("SpecifyPluginParam", relative_path="pkg/types", include_body
 
 ### 准确性检查
 
-- [ ] 文件名正确（运行 `.claude/skills/api-doc/scripts/get_doc_filename.py` 确认）
-- [ ] 版本号正确（运行 `.claude/skills/api-doc/scripts/get_version.sh` 确认）
+- [ ] 文件名正确（运行 `.agents/skills/api-doc/scripts/get_doc_filename.py` 确认）
+- [ ] 版本号正确（运行 `.agents/skills/api-doc/scripts/get_version.sh` 确认）
 - [ ] 中英文文档都已生成（每个 API 应有 2 个文件）
 
 ### 完整性检查
