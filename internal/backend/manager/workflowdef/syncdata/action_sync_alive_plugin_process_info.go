@@ -19,6 +19,7 @@
 package syncdata
 
 import (
+	"fmt"
 	"slices"
 	"time"
 
@@ -42,9 +43,9 @@ const (
 // NewActionSyncAlivePluginProcessInfo creates a new syncAgentInfo.
 func NewActionSyncAlivePluginProcessInfo(capability *Capability) action.Definition {
 	return &actionSyncAlivePluginProcessInfo{
-		gseHandlerProc: capability.GSEHandler.NewHandlerProc(),
-		hostStg:        capability.StorageTopo,
-		processStg:     capability.StoragePlugin,
+		gseHandler: capability.GSEHandler,
+		hostStg:    capability.StorageTopo,
+		processStg: capability.StoragePlugin,
 	}
 }
 
@@ -56,9 +57,9 @@ type ActionParamSyncAlivePluginProcessInfo struct {
 }
 
 type actionSyncAlivePluginProcessInfo struct {
-	gseHandlerProc gse.IHandlerProc
-	hostStg        topoStg.IStorageHost
-	processStg     plugin.IDaoProcess
+	gseHandler gse.IHandler
+	hostStg    topoStg.IStorageHost
+	processStg plugin.IDaoProcess
 }
 
 // Name returns the name of the action.
@@ -136,10 +137,16 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	}
 
 	if len(aliveProcess) > 0 {
+		aliveProcess, lostAgentProcInfos, err := act.filterLostAgentProcesses(std.Context(), hosts, aliveProcess)
+		if err != nil {
+			return err
+		}
+
 		needUpdateProcInfos, err := act.checkAliveProcess(std.Context(), hosts, aliveProcess)
 		if err != nil {
 			return err
 		}
+		needUpdateProcInfos = slices.Concat(needUpdateProcInfos, lostAgentProcInfos)
 
 		if err = batchHandleProcessInfoDeltas(std.Context(), needUpdateProcInfos, func(processInfoDeltas ...*types.ProcessInfoDelta) error {
 			return act.processStg.UpdateManyProcessInfo(std.Context(), processInfoDeltas)
@@ -155,8 +162,12 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	return nil
 }
 
-func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.IContext, hosts []*types.Host,
-	aliveProcess []*types.Process) ([]*types.ProcessInfoDelta, error) {
+func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.IContext, hosts []*types.Host, aliveProcess []*types.Process) (
+	[]*types.ProcessInfoDelta, error) {
+
+	if len(aliveProcess) == 0 {
+		return nil, nil
+	}
 
 	hostIDAgentIDMap := make(map[int64]string)
 	agentIDHostIDMap := make(map[string]int64)
@@ -182,7 +193,7 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 		})
 	}
 
-	procInfos, err := act.gseHandlerProc.QueryMultiProcessInfoMany(nCtx, pluginNameAgentIDList...)
+	procInfos, err := act.gseHandler.NewHandlerProc().QueryMultiProcessInfoMany(nCtx, pluginNameAgentIDList...)
 	if err != nil {
 		return nil, err
 	}
@@ -235,6 +246,57 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 	needUpdateProcInfos := slices.Concat(underControlledProcInfos, lostControlledProcInfos)
 
 	return needUpdateProcInfos, nil
+}
+
+func (act *actionSyncAlivePluginProcessInfo) filterLostAgentProcesses(nCtx contextx.IContext, hosts []*types.Host, processes []*types.Process) (
+	[]*types.Process, []*types.ProcessInfoDelta, error) {
+
+	hostIDAgentIDMap := make(map[int64]string, len(hosts))
+	for _, host := range hosts {
+		hostIDAgentIDMap[host.HostID] = host.Dynamic.AgentID
+	}
+	agentIDs := conv.SliceToSlice(processes, func(proc *types.Process) string {
+		return hostIDAgentIDMap[proc.HostID]
+	})
+	result, err := batchexecutor.Collect(nCtx, conv.SliceUnique(agentIDs),
+		func(nCtx contextx.IContext, batchAgentIDs []string) ([]*types.AgentState, error) {
+			return act.gseHandler.ListAgentState(nCtx, batchAgentIDs...)
+		},
+		batchexecutor.WithBatchSize(gse.ListAgentStatePageSize),
+		batchexecutor.WithTimeout(act.Timeout()),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list agent states for alive processes: %w", err)
+	}
+
+	agentStates, err := conv.SliceToMap(result.Items, func(state *types.AgentState) string { return state.AgentID })
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to map agent states by agent id: %w", err)
+	}
+
+	aliveProcess := make([]*types.Process, 0, len(processes))
+	lostAgentProcInfos := make([]*types.ProcessInfoDelta, 0)
+	lastSyncAt := time.Now()
+	for _, proc := range processes {
+		agentID := hostIDAgentIDMap[proc.HostID]
+		state, ok := agentStates[agentID]
+		if !ok || state.NodeStatus == types.NodeStatusRunning {
+			aliveProcess = append(aliveProcess, proc)
+			continue
+		}
+
+		info := proc.Info
+		info.AgentID = agentID
+		info.Status = types.ProcessStatusUnknown
+		info.LastSyncAt = lastSyncAt
+		lostAgentProcInfos = append(lostAgentProcInfos, &types.ProcessInfoDelta{
+			HostID:      proc.HostID,
+			PluginName:  proc.PluginName,
+			ProcessInfo: info,
+		})
+	}
+
+	return aliveProcess, lostAgentProcInfos, nil
 }
 
 func batchHandleProcessInfoDeltas(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta,
