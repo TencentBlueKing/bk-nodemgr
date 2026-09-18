@@ -1,27 +1,27 @@
 dependencies:
 - name: common
-  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+  repository: file://./charts/common
   version: 2.27.0
 - name: etcd
-  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+  repository: file://./charts/etcd
   version: 11.1.6
 - name: redis
-  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+  repository: file://./charts/redis
   version: 17.17.1
 - name: mongodb
-  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+  repository: file://./charts/mongodb
   version: 13.18.5
 - name: grafana
-  repository: https://grafana-community.github.io/helm-charts
+  repository: file://./charts/grafana
   version: 10.5.14
 - name: tempo
-  repository: https://grafana.github.io/helm-charts
+  repository: file://./charts/tempo
   version: 1.23.3
 - name: opentelemetry-collector
-  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  repository: file://./charts/opentelemetry-collector
   version: 0.130.2
 - name: prometheus
-  repository: https://prometheus-community.github.io/helm-charts
+  repository: file://./charts/prometheus
   version: 29.30.1
-digest: sha256:16abb0fdb974df88b0bbbd7a1f9ce9d8bda761b877f12e1f7c3f7b6966aeb4b3
-generated: "2026-09-18T18:05:49.848317+08:00"
+digest: sha256:70f025808d29c7e967cfe2f70b627cc640e89ebc852b47640d95b7fb800d6597
+generated: "2026-09-18T21:42:26.494918285+08:00"

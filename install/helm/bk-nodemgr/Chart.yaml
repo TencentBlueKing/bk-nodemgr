@@ -6,38 +6,38 @@ type: application
 version: v3.0.1-alpha.88
 dependencies:
   - name: common
-    repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+    repository: "file://./charts/common"
     tags:
       - bitnami-common
     version: 2.27.0
   - condition: etcd.enabled
     name: etcd
     alias: etcd
-    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
+    repository: "file://./charts/etcd"
     version: 11.1.6
   - condition: redis.enabled
     name: redis
     alias: redis
-    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
+    repository: "file://./charts/redis"
     version: 17.17.1
   - condition: mongodb.enabled
     name: mongodb
-    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
+    repository: "file://./charts/mongodb"
     version: 13.18.5
   - condition: grafana.enabled
     name: grafana
-    repository: "https://grafana-community.github.io/helm-charts"
+    repository: "file://./charts/grafana"
     version: 10.5.14
   - condition: tempo.enabled
     name: tempo
-    repository: "https://grafana.github.io/helm-charts"
+    repository: "file://./charts/tempo"
     version: 1.23.3
   - condition: opentelemetryGateway.enabled
     name: opentelemetry-collector
     alias: opentelemetryGateway
-    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+    repository: "file://./charts/opentelemetry-collector"
     version: 0.130.2
   - condition: prometheus.enabled
     name: prometheus
-    repository: "https://prometheus-community.github.io/helm-charts"
+    repository: "file://./charts/prometheus"
     version: 29.30.1
