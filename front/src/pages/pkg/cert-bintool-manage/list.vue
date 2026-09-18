@@ -1,5 +1,11 @@
 <template>
-  <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
+  <NoPermission
+    v-if="allPluginBinToolUnauthorized"
+    type="action"
+    :auth-items="pluginBinToolViewAuthItems"
+    :resource-id="PLUGIN_BIN_TOOL_NAMES"
+  />
+  <div v-else class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
       <Button
@@ -118,7 +124,7 @@
                 theme="primary"
                 text
                 class="unAuthorized"
-                @click="manageAuthClick($event, row.release_type)"
+                @click="manageAuthClick($event, isPluginBinTool ? row.name : row.release_type)"
                 @mouseenter="manageMouseEnter($event, hasRowManageAuth(row))"
                 @mousemove="manageMouseMove($event, hasRowManageAuth(row))"
                 @mouseleave="manageMouseLeave()"
@@ -158,6 +164,7 @@ import { Table, TableColumn } from '@blueking/table';
 import PkgUploadSideslider from '../agent-proxy-pkg/pkg-upload-sideslider.vue';
 
 import useAuthLock from '@/composables/use-auth-lock';
+import NoPermission from '@/components/no-permission.vue';
 
 import type { Release } from '@/@types/common.d';
 import { PackageService } from '@/api/modules/pkg';
@@ -191,13 +198,10 @@ const { hasAuth: hasUploadAuth, handleMouseEnter: uploadMouseEnter, handleMouseM
 const { handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
   'package_manage', () => manageResourceId.value, { resourceType: 'package' },
 );
-const manageAuthClick = (e: MouseEvent, releaseType?: string) => {
-  manageResourceId.value = releaseType;
+const manageAuthClick = (e: MouseEvent, resourceId?: string) => {
+  manageResourceId.value = resourceId;
   _manageAuthClick(e);
 };
-/** 行内操作权限：按当前行的 release_type 判断 package_manage 是否命中，避免用户有任意实例权限就误显示全部行可操作 */
-const authStore = useAuthStore();
-const hasRowManageAuth = (row: Release) => authStore.hasAuthorizedResource('package_manage', row.release_type);
 const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const currentType = computed(() => {
@@ -205,6 +209,24 @@ const currentType = computed(() => {
   const type = routeName.split('PackageMng')[0];
   return type;
 });
+const authStore = useAuthStore();
+/** 插件工具管理：无 package_view 权限时展示申请占位页。
+ *  列表接口对无权限用户按授权过滤后返回空数据，不能依赖列表内容判断占位；
+ *  插件工具包固定只有 v2/v3 两个包名（与后端 pkg/types/constant.go 的 ReleaseNamePluginBinToolV2/V3 一致） */
+const isPluginBinTool = computed(() => currentType.value === 'plugin_bintool');
+const PLUGIN_BIN_TOOL_NAMES = ['plugin_bintool_v2', 'plugin_bintool_v3'];
+const allPluginBinToolUnauthorized = computed(() => {
+  if (!isPluginBinTool.value) return false;
+  if (!authStore.authorizedMap['package_view']) return false; // 权限数据未加载完，先不判定
+  return PLUGIN_BIN_TOOL_NAMES.every(name => !authStore.hasAuthorizedResource('package_view', name));
+});
+const pluginBinToolViewAuthItems = [{ id: 'package_view', action: 'package_view', resourceType: 'package', routes: [] }];
+/** 行内操作权限：按当前行资源实例判断 package_manage 是否命中
+ *  （插件工具包的 IAM package 实例是具体包名 plugin_bintool_v2/v3，其余类型实例就是固定 release_type） */
+const hasRowManageAuth = (row: Release) => authStore.hasAuthorizedResource(
+  'package_manage',
+  isPluginBinTool.value ? row.name : row.release_type,
+);
 const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);

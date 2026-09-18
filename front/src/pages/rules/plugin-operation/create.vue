@@ -130,19 +130,32 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 
-// ===== plugin_operate 权限控制（提交按钮）=====
+const currentStep = ref(0);
+// 从路由 query 获取操作类型和插件名称
+const operationType = ref((route.query.operationType as string) || '');
+const currentPluginName = ref((route.query.pluginName as string) || '');
+
+const formData = reactive({
+  strategyName: '', // 保留字段兼容 model 类型
+  pluginName: currentPluginName.value,
+  selectedHosts: [] as any[],
+  selectedVersion: '',
+  paramConfig: {} as Record<string, any>,
+});
+
+// ===== plugin_operate 权限控制（提交按钮）：按预览列表选中主机所属业务判断 =====
 const {
   hasAuth: hasPluginOperateAuth,
   handleMouseEnter: authLockMouseEnter,
   handleMouseMove: authLockMouseMove,
   handleMouseLeave: authLockMouseLeave,
   handleAuthClick,
-} = useAuthLock('plugin_operate', () => mainStore.selectedBusinessId);
-
-const currentStep = ref(0);
-// 从路由 query 获取操作类型和插件名称
-const operationType = ref((route.query.operationType as string) || '');
-const currentPluginName = ref((route.query.pluginName as string) || '');
+} = useAuthLock('plugin_operate', () => {
+  const bizIds = formData.selectedHosts
+    .map((h: any) => h.bk_biz_id ?? h.meta?.bk_biz_id)
+    .filter((id: any) => id != null && id !== '' && id !== 0);
+  return bizIds.length ? [...new Set(bizIds)] : mainStore.selectedBusinessId;
+});
 
 // 操作类型映射显示名称
 const operationTypeLabel = computed(() => {
@@ -187,14 +200,6 @@ const stepList = computed(() => {
     return steps.filter(s => s.key !== 'paramConfig');
   }
   return steps;
-});
-
-const formData = reactive({
-  strategyName: '', // 保留字段兼容 model 类型
-  pluginName: currentPluginName.value,
-  selectedHosts: [] as any[],
-  selectedVersion: '',
-  paramConfig: {} as Record<string, any>,
 });
 
 const getStepClass = (index: number) => {

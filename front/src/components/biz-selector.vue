@@ -115,7 +115,10 @@ const isVisible = computed(() => {
   }
   return true;
 });
-const isSingle = computed(() => route.path.includes('rule-manager'));
+// 策略管理为单选；跳转 403 后路由路径不再包含 rule-manager，
+// 但 403 URL 会携带 mainMenu=ruleManager（与导航菜单高亮同一判断来源），据此保持单选
+const isSingle = computed(() => route.path.includes('rule-manager')
+  || route.query.mainMenu === 'ruleManager');
 
 // ===== 菜单路由 → authorized action 映射 =====
 // 该映射仅用于「点击无权限业务申请权限」时，定位需要申请哪个菜单 view action。

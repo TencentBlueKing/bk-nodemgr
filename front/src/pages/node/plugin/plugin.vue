@@ -5,12 +5,8 @@
       <Button
         v-if="enabledOperations.has('install')"
         class="w-[130px]"
-        :class="{ 'unAuthorized': !hasPluginOperateAuth }"
         theme="primary"
-        @click="hasPluginOperateAuth ? handlePluginOperate('install', [], false) : handleAuthClick($event)"
-        @mouseenter="authLockMouseEnter($event, hasPluginOperateAuth)"
-        @mousemove="authLockMouseMove($event, hasPluginOperateAuth)"
-        @mouseleave="authLockMouseLeave()"
+        @click="handlePluginOperate('install', [], false)"
       >
         {{ $t('pluginManagement.plugin.operate.install') }}
       </Button>
@@ -73,28 +69,16 @@
           fixed="right"
         >
           <template #default="{ row }">
-            <!-- 编辑按钮 -->
+            <!-- 重装按钮（提到下拉外） -->
             <Button
-              v-if="hasPluginOperateAuth"
+              v-if="enabledOperations.has('reinstall')"
               text
               theme="primary"
-              @click="handleEditInfo(row)"
+              @click="handlePluginOperate('reinstall', [row])"
             >
-              {{ $t('action.edit') }}
+              {{ $t('pluginManagement.plugin.operate.reinstall') }}
             </Button>
-            <span
-              v-else
-              class="inline-flex items-center auth-lock-wrapper"
-              @click="handleAuthClick"
-              @mouseenter="authLockMouseEnter($event, false)"
-              @mousemove="authLockMouseMove($event, false)"
-              @mouseleave="authLockMouseLeave()"
-            >
-              <Button theme="primary" text class="auth-disabled-text-btn">
-                {{ $t('action.edit') }}
-              </Button>
-            </span>
-            <!-- 更多操作下拉（启停重启等） -->
+            <!-- 更多操作下拉（升级/重载/卸载/启动/重启/停止） -->
             <Dropdown
               v-if="getSingleOperateList(row).length > 0"
               class="ml-[10px]"
@@ -110,11 +94,7 @@
                   <Dropdown.DropdownItem
                     v-for="item in getSingleOperateList(row)"
                     :key="item.id"
-                    :class="{ 'auth-lock-dropdown-item': !hasPluginOperateAuth }"
-                    @click="hasPluginOperateAuth ? handlePluginOperate(item.id, [row]) : handleAuthClick($event)"
-                    @mouseenter="authLockMouseEnter($event, hasPluginOperateAuth)"
-                    @mousemove="authLockMouseMove($event, hasPluginOperateAuth)"
-                    @mouseleave="authLockMouseLeave()"
+                    @click="handlePluginOperate(item.id, [row])"
                   >
                     {{ item.name }}
                   </Dropdown.DropdownItem>
@@ -132,12 +112,6 @@
       type="plugin"
       :plugin="currentPlugin"
     ></processSideslider>
-    <!-- 编辑弹窗 -->
-    <editDialog
-      v-model:is-show="isShowEditDialog"
-      :plugin="currentPlugin"
-      @confirm="handleEditInfoConfirm">
-    </editDialog>
     <!-- 操作确认弹窗（启动/重启/卸载/停止） -->
     <operate-dialog
       v-model:is-show="operateDialogIsShow"
@@ -162,28 +136,22 @@ import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
-import editDialog from './edit-dialog.vue';
 import processSideslider from './process-sideslider.vue';
 
 import { PluginAPIService } from '@/api/modules/plugin';
-import useAuthLock from '@/composables/use-auth-lock';
 import { ProcessAPIService } from '@/api/modules/process';
 import OperateDialog from '@/components/operate-dialog.vue';
 import useTableSetting from '@/composables/use-table-setting';
+import { useAuthStore } from '@/stores/auth';
+import { usePermissionStore } from '@/stores/permission';
 import { useMainStore } from '@/stores/main';
 
 const router = useRouter();
 const mainStore = useMainStore();
 const { t } = useI18n();
 
-// ===== plugin_operate 权限控制（编辑操作） =====
-const {
-  hasAuth: hasPluginOperateAuth,
-  handleMouseEnter: authLockMouseEnter,
-  handleMouseMove: authLockMouseMove,
-  handleMouseLeave: authLockMouseLeave,
-  handleAuthClick,
-} = useAuthLock('plugin_operate', () => mainStore.selectedBusinessId);
+const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 // 插件列表数据
 const pluginList = ref<any[]>([]);
@@ -260,6 +228,7 @@ const getSingleOperateList = (row: any) => {
     ? [{ id: 'restart', nameKey: 'pluginManagement.plugin.operate.restart' }, { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' }]
     : allOperations;
   return ops
+    .filter(op => op.id !== 'reinstall') // 重装已提到下拉外
     .filter(op => enabledOperations.value.has(op.id))
     .map(op => ({ id: op.id, name: t(op.nameKey) }));
 };
@@ -426,6 +395,21 @@ const handleOperateConfirm = async (extraData: any = {}) => {
   // 使用弹窗中勾选的行，若无勾选则使用全部
   const data = extraData.selection?.length ? extraData.selection : pendingOperateData.value;
   const operateType = pendingOperateType.value;
+
+  // 按弹窗中实际选择的进程所归属业务校验 plugin_operate 权限：任一业务无权限则弹申请并拦截
+  const bizIds = [...new Set(data.map((item: any) => item.bk_biz_id).filter((id: any) => id != null && id !== '' && id !== 0))];
+  if (bizIds.length) {
+    await authStore.batchVerify(
+      [{ id: 'plugin_operate', action: 'plugin_operate', resourceType: 'biz', routes: [] }],
+      bizIds,
+    );
+    if (!authStore.hasPermission('plugin_operate', bizIds)) {
+      const detail = authStore.permissionDetail;
+      if (detail) permissionStore.showDialog(detail);
+      return;
+    }
+  }
+
   let res: any;
 
   const pluginParams = data.map((item: any) => ({ bk_host_id: item.bk_host_id, plugin_name: item.plugin_name }));
@@ -459,17 +443,6 @@ const handleGoToPluginPkgMng = (row: any) => {
       name: row.pkg_name,
     },
   });
-};
-
-// 编辑操作
-const isShowEditDialog = ref(false);
-const handleEditInfo = (row: any) => {
-  isShowEditDialog.value = true;
-  currentPlugin.value = row;
-};
-const handleEditInfoConfirm = async () => {
-  isShowEditDialog.value = false;
-  await loadPluginList();
 };
 
 // 侧边栏相关状态
@@ -543,23 +516,4 @@ watch(() => mainStore.selectedBusinessId, () => {
 </script>
 
 <style lang="postcss" scoped>
-/* 无权限按钮：模拟 disabled 视觉效果但保持鼠标事件可响应 */
-.auth-lock-wrapper {
-  cursor: pointer;
-
-  .auth-disabled-text-btn {
-    color: #c4c6cc !important;
-    cursor: pointer !important;
-    pointer-events: auto !important;
-
-    &:hover {
-      color: #c4c6cc !important;
-      background: transparent !important;
-    }
-  }
-}
-
-.unAuthorized {
-  color: #c4c6cc !important;
-}
 </style>
