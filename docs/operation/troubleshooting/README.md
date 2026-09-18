@@ -5,3 +5,7 @@
 ## [Redis Cluster 跨环境消费 Machinery 任务](redis_cluster_machinery_queue_isolation.md)
 
 两套 bk-nodemgr 环境共用 Redis Cluster 时，因 `redis.db` 无法隔离且 Machinery 队列同名，导致任务被另一套环境消费并报 `oper_inst_data not found`。
+
+## [Virtual user changes temporarily return a cached username](virtual_user_cache.md)
+
+Multi-tenant virtual user lookups cache successful results in process memory for one minute. Covers temporary differences across replicas, cache scope, and verification after User Management changes.

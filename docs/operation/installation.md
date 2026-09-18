@@ -112,6 +112,8 @@ config:
 
 > `tenantMode`的合法取值是`multiple`或`single`，不能写作`multi`
 
+> With `tenantMode=multiple`, successful virtual user `bk_username` lookups through `userManager` are cached by tenant and login name in process memory for one minute. Replicas do not share the cache and may temporarily return different results after a mapping change. The TTL is fixed in code. See [Virtual user cache troubleshooting](troubleshooting/virtual_user_cache.md) for scope and verification steps.
+
 > 默认直连网络单元说明：`networkUnit.defaultDirectUnit` 仅影响**默认管控区域（id=0）**中直连网络单元的自动创建，默认关闭。同步数据工作流会在默认管控区域已从 CMDB 同步、且该区域下尚不存在直连网络单元时，按此配置自动创建一个 `is_direct=true` 的网络单元（幂等，已存在则跳过）。
 >
 > - **启用前提**：需确认 `clusterEndpoints` / `fileEndpoints` / `dataEndpoints` 已填写环境中真实可用的 GSE 接入地址（对应 GSE 的 cluster / file / data 三类通道）。
