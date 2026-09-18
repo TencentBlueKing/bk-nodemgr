@@ -1,38 +1,38 @@
-# Virtual user changes temporarily return a cached username
+# 虚拟用户变更后解析结果未立即更新
 
-## Symptoms
+## 现象
 
-In multi-tenant mode (`tenantMode=multiple`), a virtual user's `bk_username` mapping has changed in User Management, but Node Manager may still resolve the same login name to the previous value. Requests handled by different replicas may temporarily resolve to different values.
+多租户模式（`tenantMode=multiple`）下，用户管理侧已修改虚拟用户的 `bk_username` 映射，节点管理查询同一登录名时仍可能返回旧值。多副本部署时，不同副本的解析结果可能短暂不一致。
 
-This can affect current virtual user resolution and APIGateway client credential resolution. A brief discrepancy after a mapping change is not sufficient evidence of a configuration or authentication failure.
+该现象可能影响当前虚拟用户解析和 APIGateway 客户端凭据解析。不能仅凭变更后的短暂不一致，就判定为配置错误或鉴权故障。
 
-## Cause and scope
+## 原因与适用范围
 
-- Successful `login_name` to `bk_username` lookups are cached by `(tenantID, loginName)` in process memory. Replicas do not share this cache.
-- Each cache entry expires one minute after it is written. Cache hits do not extend its lifetime. An expired or missing entry triggers a lookup in User Management on the next request; there is no periodic refresh.
-- A previously cached mapping may remain visible for the rest of that entry's lifetime. Replicas can hold entries written at different times, so they may temporarily return different results.
-- Lookup failures, missing users, duplicate matches, and empty `bk_username` values are not cached. Creating a user that previously could not be found does not require waiting for a cached failure to expire: the next lookup queries User Management again.
-- Single-tenant mode returns the login name directly and does not use this virtual user lookup cache.
+- 多租户下，`login_name` 到 `bk_username` 的成功解析结果按 `(tenantID, loginName)` 缓存在进程内存中，副本之间不共享。
+- 缓存有效期为写入后的 1 分钟，命中缓存不会延长有效期。缓存过期或未命中时，由下一次请求回源查询用户管理，不会定时刷新。
+- 用户管理侧修改映射后，已缓存的旧值在剩余有效期内仍可能被使用。各副本写入缓存的时间不同，因此可能短暂返回不同结果。
+- 查询失败、用户不存在、匹配到多个用户或 `bk_username` 为空时，均不会写入缓存。新增此前查不到的用户后，下次查询会再次访问用户管理，无需等待失败结果过期。
+- 单租户模式直接使用登录名，不经过该虚拟用户查询缓存。
 
-The one-minute TTL limits the lifetime of a local cache entry. It is not an end-to-end guarantee that a User Management change becomes visible within one minute; upstream visibility and request failures must also be considered.
+1 分钟限制的是本地缓存条目的有效期，并不保证用户管理侧的变更一定在 1 分钟内端到端生效；还需考虑上游是否已返回新值、回源请求是否成功等因素。
 
-## Verification
+## 确认方法
 
-1. Confirm that the affected service uses `tenantMode=multiple`. Identify the exact tenant ID and login name used by the failing request.
-2. Confirm that User Management returns the expected non-empty `bk_username` for that tenant and login name. If it does not, investigate the upstream mapping or lookup failure first.
-3. Record the request time, tenant, login name, and serving replica for repeated requests, using the available request logs. Compare requests for the same tenant and login name across replicas.
-4. After confirming the upstream result, wait longer than one minute and repeat the same lookup. Where possible, check each affected replica. Expiration is checked on lookup; waiting alone does not fetch a new value.
-5. If the discrepancy persists, inspect the lookup error and verify the tenant, login name, User Management endpoint, and APIGateway credentials and permissions. Do not attribute a persistent failure to this cache solely because caching is enabled.
+1. 确认受影响服务使用 `tenantMode=multiple`，核对请求中的租户 ID 和登录名。
+2. 确认用户管理对该租户、登录名已返回预期的非空 `bk_username`。若上游结果不符合预期，先排查用户映射或查询错误。
+3. 结合现有请求日志，记录请求时间、租户、登录名和处理请求的副本，对比同一租户、同一登录名在不同副本上的结果。
+4. 确认上游结果后，等待超过 1 分钟再发起相同查询，并尽可能覆盖各受影响副本。缓存过期后需要新的查询触发回源，仅等待不会主动获取新值。
+5. 若仍不一致，结合实际错误继续检查租户、登录名、用户管理地址，以及 APIGateway 凭据和权限，不要将持续失败直接归因于缓存。
 
-## Handling
+## 处理原则
 
-Allow existing successful entries to expire, then retest before concluding that a transient discrepancy is a configuration or authentication fault. For missing users or lookup failures, investigate the returned error directly because those results are not cached.
+对于变更后短暂使用旧值的情况，先等待已有成功结果的缓存过期并复测，再判断是否存在配置或鉴权问题。对于用户不存在或查询失败，应直接排查返回的错误，这类结果不会被缓存。
 
-The default cache TTL is fixed in code as `time.Minute`; there is no deployment configuration option for changing it. The lookup path does not actively invalidate entries when User Management changes. Configurable TTLs, explicit invalidation, or cross-replica consistency require a separate implementation decision and follow-up issue.
+当前缓存时长在代码中固定为 `time.Minute`，没有对应的部署配置项；用户管理侧变更也不会主动使该缓存失效。如需支持时长配置、主动失效或跨副本一致性，应另开实现 issue 评估。
 
-## Implementation references
+## 相关实现
 
-- [User Management handler](../../../pkg/thirdparty/usermanager/handler.go): `NewHandlerMultiTenant`, `GetBKUsernameByLoginName`, and `refreshVirtualUser` define the cache policy; `HandlerSingle` bypasses the lookup.
-- [Memory cache](../../../pkg/runtime/cache/memory.go): process-local storage and default expiration.
-- [Current virtual user resolution](../../../pkg/access/access.go) and [APIGateway client credentials](../../../pkg/thirdparty/apigw/client/config.go): callers of the resolver.
-- [Installation configuration](../installation.md): `tenantMode` and `userManager` connection settings.
+- [用户管理适配层](../../../pkg/thirdparty/usermanager/handler.go)：`NewHandlerMultiTenant`、`GetBKUsernameByLoginName` 和 `refreshVirtualUser` 定义缓存策略；`HandlerSingle` 不经过该查询。
+- [内存缓存](../../../pkg/runtime/cache/memory.go)：进程内存储与默认过期行为。
+- [当前虚拟用户解析](../../../pkg/access/access.go)、[APIGateway 客户端凭据解析](../../../pkg/thirdparty/apigw/client/config.go)：虚拟用户解析的调用方。
+- [安装部署](../installation.md)：`tenantMode` 和 `userManager` 连接配置。

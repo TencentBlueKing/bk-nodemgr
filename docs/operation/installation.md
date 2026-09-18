@@ -112,7 +112,7 @@ config:
 
 > `tenantMode`的合法取值是`multiple`或`single`，不能写作`multi`
 
-> With `tenantMode=multiple`, successful virtual user `bk_username` lookups through `userManager` are cached by tenant and login name in process memory for one minute. Replicas do not share the cache and may temporarily return different results after a mapping change. The TTL is fixed in code. See [Virtual user cache troubleshooting](troubleshooting/virtual_user_cache.md) for scope and verification steps.
+> 虚拟用户缓存说明：`tenantMode=multiple` 时，通过 `userManager` 查询的 `bk_username` 成功结果按租户和登录名在进程内缓存 1 分钟，时长不可通过配置调整。多副本之间不共享缓存，用户管理侧变更后可能短暂返回不同结果，排查方法详见 [虚拟用户变更后解析结果未立即更新](troubleshooting/virtual_user_cache.md)。
 
 > 默认直连网络单元说明：`networkUnit.defaultDirectUnit` 仅影响**默认管控区域（id=0）**中直连网络单元的自动创建，默认关闭。同步数据工作流会在默认管控区域已从 CMDB 同步、且该区域下尚不存在直连网络单元时，按此配置自动创建一个 `is_direct=true` 的网络单元（幂等，已存在则跳过）。
 >
