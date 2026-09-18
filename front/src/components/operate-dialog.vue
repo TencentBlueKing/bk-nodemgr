@@ -65,8 +65,18 @@
             <span>{{ $t('components.operateDialog.seconds') }}</span>
           </div>
         </div>
-        <div class="ml-auto">
-          <Button theme="primary" @click="handleConfirm">{{ $t('action.confirm') }}</Button>
+        <div class="ml-auto flex items-center">
+          <span
+            v-if="confirmLocked"
+            class="inline-flex items-center auth-lock-wrapper"
+            @click="handleAuthApply"
+            @mouseenter="authLockMouseEnter($event, false)"
+            @mousemove="authLockMouseMove($event, false)"
+            @mouseleave="authLockMouseLeave()"
+          >
+            <Button theme="primary" class="auth-disabled-btn">{{ $t('action.confirm') }}</Button>
+          </span>
+          <Button v-else theme="primary" @click="handleConfirm">{{ $t('action.confirm') }}</Button>
           <Button class="ml-[8px]" @click="handleCancel">{{ $t('action.cancel') }}</Button>
         </div>
       </div>
@@ -78,6 +88,9 @@ import { Button, Checkbox, Dialog, Input, Radio } from 'bkui-vue';
 import { computed, type PropType, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Table, TableColumn } from '@blueking/table';
+
+import useAuthLock from '@/composables/use-auth-lock';
+import { useMainStore } from '@/stores/main';
 
 export interface ColumnConfig {
   field: string;
@@ -143,6 +156,31 @@ const { t } = useI18n();
 const selection = ref<any[]>([]);
 
 const dialogTableData = computed(() => props.data);
+
+/** 当前参与操作的数据：无勾选列/简化模式用全部数据，否则用勾选数据 */
+const currentSelection = computed(() =>
+  ((props.hideCheckbox || !props.showTable) ? dialogTableData.value : selection.value),
+);
+
+// 确认按钮权限锁：传入 authAction 时启用，按当前勾选数据所属业务判断是否都有权限
+const mainStore = useMainStore();
+const {
+  hasAuth: confirmHasAuth,
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+  handleAuthClick: handleAuthApply,
+} = useAuthLock(
+  'plugin_operate',
+  () => {
+    // 从当前勾选数据中提取所属业务 ID；进程数据无有效 bk_biz_id 时回退当前选中业务（弹窗数据即按其查询）
+    const bizIds = [...new Set(
+      currentSelection.value.map((item: any) => item.bk_biz_id).filter((id: any) => id != null && id !== '' && id !== 0),
+    )];
+    return bizIds.length ? bizIds : [...mainStore.selectedBusinessId];
+  },
+);
+const confirmLocked = computed(() => !confirmHasAuth.value);
 
 /** 是否强制重启 */
 const isForce = ref(false);
