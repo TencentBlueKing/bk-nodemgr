@@ -126,21 +126,52 @@ tempo:
 ## The gateway is optional and keeps multi-destination routing outside bk-nodemgr processes.
 opentelemetryGateway:
   enabled: false
+  mode: deployment
+  nameOverride: opentelemetry-gateway
   replicaCount: 1
   image:
-    registry: docker.io
-    repository: otel/opentelemetry-collector
+    repository: docker.io/otel/opentelemetry-collector
     tag: 0.130.1
     pullPolicy: IfNotPresent
-    pullSecrets: []
+  imagePullSecrets: []
+  command:
+    name: otelcol
+  serviceAccount:
+    create: false
+    automountServiceAccountToken: true
+  configMap:
+    create: false
+    existingName: '{{ include "opentelemetry-collector.fullname" . }}-config'
   service:
-    ports:
-      otlpGrpc: 4317
-      otlpHttp: 4318
-      metrics: 8888
-  extraEnvVars: []
-  extraEnvVarsCM: ""
-  extraEnvVarsSecret: ""
+    type: ClusterIP
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      protocol: TCP
+      appProtocol: grpc
+    otlp-http:
+      enabled: true
+      containerPort: 4318
+      servicePort: 4318
+      protocol: TCP
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    metrics:
+      enabled: true
+      containerPort: 8888
+      servicePort: 8888
+      protocol: TCP
+  extraEnvs: []
+  extraEnvsFrom: []
+  useGOMEMLIMIT: false
   resources:
     limits:
       memory: 512Mi
@@ -148,10 +179,11 @@ opentelemetryGateway:
     requests:
       memory: 128Mi
       cpu: 100m
-  ## Native OpenTelemetry Collector config. Empty uses chart defaults:
+  ## Native OpenTelemetry Collector alternate config. Empty uses chart defaults:
   ## - with tempo.enabled=true: export traces to embedded Tempo
   ## - otherwise: use debug exporter so the gateway can start without external dependencies
-  config: {}
+  ## The official subchart reserves config for merged defaults; use alternateConfig for full replacement.
+  alternateConfig: {}
 
 ## Grafana subchart. Requires Tempo; validated against Kubernetes 1.23.17.
 ## Administrator password is generated in the Grafana Secret and reused on upgrades.

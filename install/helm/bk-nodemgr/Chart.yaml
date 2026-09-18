@@ -32,3 +32,8 @@ dependencies:
     name: tempo
     repository: "https://grafana.github.io/helm-charts"
     version: 1.23.3
+  - condition: opentelemetryGateway.enabled
+    name: opentelemetry-collector
+    alias: opentelemetryGateway
+    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+    version: 0.130.2

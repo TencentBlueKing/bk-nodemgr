@@ -17,5 +17,8 @@ dependencies:
 - name: tempo
   repository: https://grafana.github.io/helm-charts
   version: 1.23.3
-digest: sha256:00c338ba23726fe1aae7306f2f73bf17b70206efe2ac5786942a99848eaa9ef5
-generated: "2026-09-18T11:52:35.205465399+08:00"
+- name: opentelemetry-collector
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.130.2
+digest: sha256:d983ec9a2002325fc2d868c0f6fb8012baee862cf48b86e90c1ec6bba061d51d
+generated: "2026-09-18T14:29:50.537025173+08:00"

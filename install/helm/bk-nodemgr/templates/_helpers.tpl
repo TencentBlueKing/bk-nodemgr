@@ -66,40 +66,42 @@ Return the embedded Tempo OTLP gRPC endpoint.
 {{- end -}}
 
 {{/*
-Return the proper OpenTelemetry Gateway image name.
+Return the OpenTelemetry Gateway full name used by the official collector subchart.
 */}}
-{{- define "bk-nodemgr.opentelemetryGateway.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.opentelemetryGateway.image "global" .Values.global) }}
+{{- define "bk-nodemgr.opentelemetryGateway.fullname" -}}
+{{- if .Values.opentelemetryGateway.fullnameOverride -}}
+{{- .Values.opentelemetryGateway.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "opentelemetry-gateway" .Values.opentelemetryGateway.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
-
-{{/*
-Return the proper OpenTelemetry Gateway image registry secret names.
-*/}}
-{{- define "bk-nodemgr.opentelemetryGateway.imagePullSecrets" -}}
-{{ include "common.images.pullSecrets" (dict "images" (list .Values.opentelemetryGateway.image) "global" .Values.global) }}
+{{- end -}}
 {{- end -}}
 
 {{/*
 Return the embedded OpenTelemetry Gateway OTLP gRPC endpoint.
 */}}
 {{- define "bk-nodemgr.opentelemetryGateway.otlpGrpcEndpoint" -}}
-{{ template "bk-nodemgr.fullname" . }}-opentelemetry-gateway:{{ .Values.opentelemetryGateway.service.ports.otlpGrpc }}
+{{ include "bk-nodemgr.opentelemetryGateway.fullname" . }}:{{ dig "ports" "otlp" "servicePort" 4317 .Values.opentelemetryGateway }}
 {{- end -}}
 
 {{/*
 Render the OpenTelemetry Gateway config. User config fully replaces defaults.
 */}}
 {{- define "bk-nodemgr.opentelemetryGateway.config" -}}
-{{- if .Values.opentelemetryGateway.config -}}
-{{- include "common.tplvalues.render" (dict "value" .Values.opentelemetryGateway.config "context" $) -}}
+{{- if .Values.opentelemetryGateway.alternateConfig -}}
+{{- include "common.tplvalues.render" (dict "value" .Values.opentelemetryGateway.alternateConfig "context" $) -}}
 {{- else -}}
 receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:{{ .Values.opentelemetryGateway.service.ports.otlpGrpc }}
+        endpoint: 0.0.0.0:{{ dig "ports" "otlp" "containerPort" 4317 .Values.opentelemetryGateway }}
       http:
-        endpoint: 0.0.0.0:{{ .Values.opentelemetryGateway.service.ports.otlpHttp }}
+        endpoint: 0.0.0.0:{{ dig "ports" "otlp-http" "containerPort" 4318 .Values.opentelemetryGateway }}
 processors:
   memory_limiter:
     limit_mib: 512
@@ -120,7 +122,12 @@ exporters:
   debug:
     verbosity: basic
   {{- end }}
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
 service:
+  extensions:
+    - health_check
   pipelines:
     traces:
       receivers:

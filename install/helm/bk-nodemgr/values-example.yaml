@@ -24,13 +24,13 @@ tempo:
 ## OpenTelemetry Gateway 默认关闭；用于集中处理 trace fan-out、重试、队列和外部凭证。
 opentelemetryGateway:
   enabled: false
-  extraEnvVars:
+  extraEnvs:
     - name: EXTERNAL_OTLP_TOKEN
       valueFrom:
         secretKeyRef:
           name: external-otlp-secret
           key: token
-  config:
+  alternateConfig:
     receivers:
       otlp:
         protocols:
@@ -61,7 +61,12 @@ opentelemetryGateway:
           enabled: true
         retry_on_failure:
           enabled: true
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
     service:
+      extensions:
+        - health_check
       pipelines:
         traces:
           receivers:
