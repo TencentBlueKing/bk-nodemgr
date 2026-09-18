@@ -1,0 +1,55 @@
+{
+  "skill_name": "bk-nodemgr-agent-information-architecture",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想把一个 agent 在 internal/backend/router/api-v3 下必须遵守的路由边界和反模式写下来。应该放 README、docs，还是 AGENTS.md？",
+      "expected_output": "Recommends a scoped AGENTS.md for subtree-specific agent constraints, requires reading .agents/skills/scoped-agentsmd/SKILL.md, rejects README/docs as primary placement, and includes a Placement Decision with exact bk-nodemgr anchors."
+    },
+    {
+      "id": 2,
+      "prompt": "我们要新增一个 bk-nodemgr agent workflow，专门判断某类 Go 任务该加载哪些 project skills。这个应该放 docs 还是 skill？要不要更新 bk-nodemgr-how-to？",
+      "expected_output": "Treats reusable agent workflow as .agents/skills placement, requires reading .agents/skills/bk-nodemgr-how-to/SKILL.md, and updates the router only if routing semantics or task-class ownership changes."
+    },
+    {
+      "id": 3,
+      "prompt": "我在写一个 Proto API 的接口说明，包含 URL、权限、版本、请求参数、响应字段，中英文都要有。应该放 docs/api 还是 apigw/apidocs？",
+      "expected_output": "Distinguishes API Gateway reference docs from API design docs, recommends apigw/apidocs/{zh,en}, and hands off actual writing to .agents/skills/api-doc/SKILL.md."
+    },
+    {
+      "id": 4,
+      "prompt": "我要写一篇解释鉴权模型 AuthorizedScope 的长期概念文档，不是单个接口文档。应该放 apigw/apidocs、docs/api 还是 docs/concepts？",
+      "expected_output": "Recommends a concrete docs area based on docs taxonomy, likely docs/concepts for durable domain terminology, rejects apigw/apidocs because it is for endpoint references, and cites docs/README.md or docs/AGENTS.md discovery."
+    },
+    {
+      "id": 5,
+      "prompt": "准备 v3.1.0 的发布说明和 Full Changelog 链接，这个能直接写到 docs/operation 里吗？",
+      "expected_output": "Treats versioned release notes as support-files/changelog/{zh,en}, not normal docs, and hands off writing to changelog-doc or release-version-alignment when version alignment is involved."
+    },
+    {
+      "id": 6,
+      "prompt": "README 开头要不要写：Agent working here must load bk-nodemgr-how-to first？",
+      "expected_output": "Rejects agent-only instructions in README, recommends AGENTS.md or project skill routing depending on responsibility, and only uses README for stable human entrypoint content."
+    },
+    {
+      "id": 7,
+      "prompt": "我只是想在 README 里加一句：这个模块还没完成，后面再补。这样可以吗？",
+      "expected_output": "Rejects transient unfinished status in README/docs as durable truth and recommends issue/task/plan or conversation tracking."
+    },
+    {
+      "id": 8,
+      "prompt": "docs 页面和 AGENTS.md 对某个目录边界描述不一致，agent 应该听谁的？要不要直接改？",
+      "expected_output": "Resolves by artifact responsibility: agent behavior follows AGENTS.md while durable semantics may require docs sync; if public contract, data model, trust boundary, permission model, architecture, or project-wide routing is affected, produces a blocking question instead of editing."
+    },
+    {
+      "id": 9,
+      "prompt": "我新增了一个 skill，只是某个小工作流，是否必须同步更新 .agents/skills/bk-nodemgr-how-to/SKILL.md？",
+      "expected_output": "Says not automatically; reads/uses bk-nodemgr-how-to and recommends router update only when routing semantics, task-class ownership, or cross-reference expectations change."
+    },
+    {
+      "id": 10,
+      "prompt": "我要重写某个模块 README，目标是中文主述、English technical terms、logic-first、不要废话。这个 placement skill 要直接写吗？",
+      "expected_output": "Makes placement decision for README when appropriate, then hands actual README writing to .agents/skills/readme-logic-first/SKILL.md rather than expanding the placement skill into a writing skill."
+    }
+  ]
+}
