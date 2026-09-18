@@ -62,7 +62,7 @@ podSecurityContext:
   fsGroup: 65534
 dnsConfig: {}
   # nameservers:
-  #   - 1.2.3.4
+  #   - x.x.x.x
   # searches:
   #   - ns1.svc.cluster-domain.example
   #   - my.dns.search.suffix
@@ -75,7 +75,7 @@ hostAliases: []
   #   hostnames:
   #   - "foo.local"
   #   - "bar.local"
-  # - ip: "10.1.2.3"
+  # - ip: "x.x.x.x"
   #   hostnames:
   #   - "foo.remote"
   #   - "bar.remote"

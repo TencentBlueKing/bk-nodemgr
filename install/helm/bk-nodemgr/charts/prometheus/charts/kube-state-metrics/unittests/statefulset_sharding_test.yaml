@@ -64,9 +64,9 @@ tests:
         enabled: false
       service:
         type: LoadBalancer
-        loadBalancerIP: 1.2.3.4
+        loadBalancerIP: x.x.x.x
         loadBalancerSourceRanges:
-          - 10.0.0.0/24
+          - x.x.x.x/24
     template: service.yaml
     asserts:
       - equal:
@@ -74,10 +74,10 @@ tests:
           value: LoadBalancer
       - equal:
           path: spec.loadBalancerIP
-          value: 1.2.3.4
+          value: x.x.x.x
       - equal:
           path: spec.loadBalancerSourceRanges[0]
-          value: 10.0.0.0/24
+          value: x.x.x.x/24
 
   - it: renders Deployment resource when autosharding is disabled
     set:

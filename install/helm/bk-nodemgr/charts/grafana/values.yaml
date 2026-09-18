@@ -139,7 +139,7 @@ testFramework:
 dnsPolicy: ~
 dnsConfig: {}
   # nameservers:
-  #   - 8.8.8.8
+  #   - x.x.x.x
   #   options:
   #   - name: ndots
   #     value: "2"
@@ -275,7 +275,7 @@ extraExposePorts: []
 
 # overrides pod.spec.hostAliases in the grafana deployment's pods
 hostAliases: []
-  # - ip: "1.2.3.4"
+  # - ip: "x.x.x.x"
   #   hostnames:
   #     - "my.host.com"
 

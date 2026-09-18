@@ -356,7 +356,7 @@ affinity: {}
 priorityClassName: null
 # -- hostAliases to add
 hostAliases: []
-#  - ip: 1.2.3.4
+#  - ip: x.x.x.x
 #    hostnames:
 #      - domain.tld
 networkPolicy:

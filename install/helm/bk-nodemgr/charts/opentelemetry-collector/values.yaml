@@ -385,7 +385,7 @@ hostNetwork: false
 # Adding entries to Pod /etc/hosts with HostAliases
 # https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
 hostAliases: []
-  # - ip: "1.2.3.4"
+  # - ip: "x.x.x.x"
   #   hostnames:
   #     - "my.host.com"
 
@@ -517,7 +517,7 @@ service:
   type: ClusterIP
   # trafficDistribution: PreferClose
   # type: LoadBalancer
-  # loadBalancerIP: 1.2.3.4
+  # loadBalancerIP: x.x.x.x
   # loadBalancerSourceRanges: []
 
   # By default, Service of type 'LoadBalancer' will be created setting 'externalTrafficPolicy: Cluster'
@@ -653,7 +653,7 @@ networkPolicy:
   # - namespaceSelector: {}
   # # Allow external access from a specific cidr block
   # - ipBlock:
-  #     cidr: 192.168.1.64/32
+  #     cidr: x.x.x.x/32
   # # Allow access from pods in specific namespaces
   # - namespaceSelector:
   #     matchExpressions:
@@ -675,7 +675,7 @@ networkPolicy:
   #     protocol: TCP
   #   from:
   #     - ipBlock:
-  #         cidr: 192.168.1.64/32
+  #         cidr: x.x.x.x/32
 
   # Restrict egress traffic from the OpenTelemetry collector pod
   # See the standard NetworkPolicy 'spec.egress' definition for more info:
@@ -684,7 +684,7 @@ networkPolicy:
   #  - to:
   #      - namespaceSelector: {}
   #      - ipBlock:
-  #          cidr: 192.168.10.10/24
+  #          cidr: x.x.x.x/24
   #    ports:
   #      - port: 1234
   #        protocol: TCP

@@ -729,7 +729,7 @@ server:
   # Custom DNS configuration to be added to prometheus server pods
   dnsConfig: {}
     # nameservers:
-    #   - 1.2.3.4
+    #   - x.x.x.x
     # searches:
     #   - ns1.svc.cluster-domain.example
     #   - my.dns.search.suffix
