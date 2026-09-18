@@ -6,7 +6,7 @@ See [Workflow usage](workflow.md) for parent dispatch status and child workflow 
 
 当第三方平台希望按配置模板为已安装插件声明 deploy-policy 管理的 sub config file 时，使用 `specify_plugin_sub_config_template`。
 
-该 mode 是 config-only desired state：它只声明插件子配置文件，不安装插件、不升级插件，也不选择插件包或插件版本。目标插件必须已经安装并处于可匹配状态。
+该 mode 是 config-only desired state：它只声明插件子配置文件，不安装插件、不升级插件，也不选择插件包或插件版本。目标插件必须已经安装并可被 execute 阶段操作。
 
 ## 输入
 
@@ -99,7 +99,7 @@ WORKFLOW_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.workflow_id')"
 <config_name> = <base_name>_deploy_<deploy_policy_id><ext>
 ```
 
-然后只对已存在并可匹配到 `plugin_name` 的目标插件声明缺失的 sub config file。该 mode 不声明插件安装、插件包选择或插件版本升级。
+然后对 deploy policy `scope` 解析出的目标插件声明缺失的 sub config file。该 mode 不声明插件安装、插件启动、插件包选择或插件版本升级；execute 阶段仍要求目标侧已有可操作的 `plugin_name` 插件。
 
 ## 即时输出
 
@@ -138,7 +138,7 @@ Windows 使用 `\` 作为路径分隔符。配置文件写入后，系统 reload
 - 请求校验要求提供 `plugin_name`。
 - 请求校验不要求 `config_files_detail`，但声明文件内容时至少需要一个有意义的 item。
 - 有效 item 至少需要 `template_name` 或 `name`；两者都为空时不会生成配置声明。
-- 目标插件必须已安装；该 mode 不安装或升级插件。
+- 目标插件必须已安装并可被 execute 阶段操作；该 mode 不安装、启动或升级插件。
 - 该 mode 与 `specify_plugin_sub_config` 互斥，不应在同一 deploy policy 中同时声明同一类配置 desired state。
 - 成功的 `execute` 响应只表示配置收敛任务已发起。
 
