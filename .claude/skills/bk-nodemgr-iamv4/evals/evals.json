@@ -1,0 +1,41 @@
+{
+  "skill_name": "bk-nodemgr-iamv4",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "runtime-action-resource-change",
+      "prompt": "Read-only design: A new IAM V4 protected backend operation needs a new action and resource attribute. The user wants to only edit internal/backend/auth/v4 and skip support-files because runtime checks are the immediate blocker. Inspect local IAM V4 boundaries and propose the impact map, files to inspect, and whether model sync is in scope. Do not edit files.",
+      "expected_output": "Connects runtime authorization to model sync, identifies auth/v4 and support-files/bkiamv4 as both in scope when action/resource model changes, keeps wire DTOs in pkg/thirdparty/iamv4, and produces an IAMV4 impact map with verification.",
+      "files": [],
+      "expectations": [
+        "Identifies service/auth runtime paths and model sync paths rather than treating IAM V4 as a single package.",
+        "Requires checking support-files/bkiamv4 templates/migrate or explicitly explains why model sync is not affected.",
+        "Preserves the boundary that internal/auth builds project-level requests and pkg/thirdparty/iamv4 owns IAM V4 wire DTOs."
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "callback-protocol-review",
+      "prompt": "Review-only: A patch to internal/backend/router/api-v3/iam/v4 accepts a new callback method, returns a top-level code/message envelope for errors, and calls IAM IsAllowed inside the router before dispatching resource queries. Review the IAM V4 boundary and protocol risks. Do not edit files.",
+      "expected_output": "Flags callback protocol drift, rejects IAM V3-style envelope and business authorization decisions in the callback router, points to IAM_IAMV4ResourceCallback.md and router/api-v3/iam/v4 anchors, and requires preserving Basic Auth, tenant, page, requires, request-id, and dispatcher ownership.",
+      "files": [],
+      "expectations": [
+        "Reports findings first and ties them to IAM V4 callback protocol drift.",
+        "Keeps the callback router limited to transport, auth, validation, error envelope, and dispatch.",
+        "Cites source anchors for IAM V4 callback docs and router implementation."
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "runtime-vs-migrate-adapter-boundary",
+      "prompt": "Read-only design: To avoid duplicate code, a user suggests importing pkg/thirdparty/iamv4 types and token cache into support-files/bkiamv4/migrate/iamv4 for model registration, and reusing migrate request structs in runtime role grants. Assess the boundary and propose the smallest safe direction. Do not edit files.",
+      "expected_output": "Rejects cross-reusing runtime and model adapter internals, explains runtime authorization adapter versus model API adapter ownership, points to both AGENTS.md files, recommends keeping named DTOs local to each protocol surface, and suggests using bk-nodemgr-thirdparty for adapter-level signature checks.",
+      "files": [],
+      "expectations": [
+        "Treats runtime adapter and model migration adapter as separate boundaries with separate DTOs and client behavior.",
+        "Does not create a shared pkg helper or common DTO for one reuse pressure.",
+        "Names source anchors and companion skills needed for third-party adapter judgment."
+      ]
+    }
+  ]
+}
