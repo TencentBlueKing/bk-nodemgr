@@ -84,6 +84,7 @@ func (c *cli) addAuthorization(ctx contextx.IContext, systemID string, req Autho
 		WithContext(ctx).
 		WithHeaders(header).
 		Body([]AuthorizationRequest{req}).
+		EnableLogBody().
 		Do()
 	if err := result.Into(resp); err != nil {
 		return fmt.Errorf("add authorization failed: %w", err)
