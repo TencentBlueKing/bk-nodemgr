@@ -185,7 +185,42 @@ opentelemetryGateway:
   ## The official subchart reserves config for merged defaults; use alternateConfig for full replacement.
   alternateConfig: {}
 
-## Grafana subchart. Requires Tempo; validated against Kubernetes 1.23.17.
+## Embedded Prometheus metrics backend for bk-nodemgr self-monitoring.
+## Local storage is disabled by default; enable persistentVolume for durable data.
+prometheus:
+  enabled: false
+  rbac:
+    create: false
+  serviceAccounts:
+    server:
+      create: false
+  alertmanager:
+    enabled: false
+  kube-state-metrics:
+    enabled: false
+  prometheus-node-exporter:
+    enabled: false
+  prometheus-pushgateway:
+    enabled: false
+  server:
+    configMapOverrideName: prometheus-server
+    persistentVolume:
+      enabled: false
+    service:
+      type: ClusterIP
+    resources:
+      limits:
+        memory: 1024Mi
+        cpu: 1000m
+      requests:
+        memory: 256Mi
+        cpu: 100m
+  serverFiles:
+    prometheus.yml:
+      global:
+        scrape_interval: 1m
+
+## Grafana subchart. Requires at least one embedded datasource backend; validated against Kubernetes 1.23.17.
 ## Administrator password is generated in the Grafana Secret and reused on upgrades.
 grafana:
   enabled: false
@@ -235,13 +270,13 @@ grafana:
       serve_from_sub_path: true
     users:
       default_language: zh-Hans
-  ## The parent chart provisions the actual Tempo service name and HTTP port.
-  ## Restart Grafana after changing the Tempo service address or port.
+  ## The parent chart provisions the actual embedded datasource service names and ports.
+  ## Restart Grafana after changing embedded datasource addresses or ports.
   extraConfigmapMounts:
-    - name: tempo-datasource
-      mountPath: /etc/grafana/provisioning/datasources/tempo.yaml
-      subPath: tempo.yaml
-      configMap: '{{ include "grafana.fullname" . }}-tempo-datasource'
+    - name: datasources
+      mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+      subPath: datasources.yaml
+      configMap: '{{ include "grafana.fullname" . }}-datasources'
       readOnly: true
 
 ## @param extraEnvVars Array with extra environment variables to add to the bk-nodemgr container

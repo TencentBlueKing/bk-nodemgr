@@ -1,0 +1,31 @@
+{{- if .Values.prometheus.enabled }}
+{{- $prometheusServerFiles := default dict .Values.prometheus.serverFiles }}
+{{- $prometheusConfig := default dict (index $prometheusServerFiles "prometheus.yml") }}
+{{- $global := default (dict "scrape_interval" "1m") (get $prometheusConfig "global") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bk-nodemgr.prometheus.server.configMapName" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+data:
+  prometheus.yml: |
+    global:
+      {{- toYaml $global | nindent 6 }}
+    scrape_configs:
+      - job_name: bk-nodemgr-application
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - {{ template "bk-nodemgr.fullname" . }}-application:{{ .Values.application.config.infoServer.port }}
+      - job_name: bk-nodemgr-backend
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - {{ template "bk-nodemgr.fullname" . }}-backend:{{ .Values.backend.config.infoServer.port }}
+      - job_name: bk-nodemgr-file
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - {{ template "bk-nodemgr.fullname" . }}-file:{{ .Values.file.config.infoServer.port }}
+{{- end }}

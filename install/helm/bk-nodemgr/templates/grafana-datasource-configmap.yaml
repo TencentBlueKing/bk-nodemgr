@@ -1,22 +1,33 @@
 {{- if .Values.grafana.enabled }}
-{{- if not .Values.tempo.enabled }}
-{{- fail "grafana.enabled requires tempo.enabled=true" }}
+{{- if not (or .Values.tempo.enabled .Values.prometheus.enabled) }}
+{{- fail "grafana.enabled requires tempo.enabled=true or prometheus.enabled=true" }}
 {{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "grafana.fullname" .Subcharts.grafana }}-tempo-datasource
+  name: {{ include "grafana.fullname" .Subcharts.grafana }}-datasources
   namespace: {{ include "grafana.namespace" .Subcharts.grafana | quote }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
 data:
-  tempo.yaml: |
+  datasources.yaml: |
     apiVersion: 1
     datasources:
+      {{- if .Values.tempo.enabled }}
       - name: Tempo
         uid: bk-nodemgr-tempo
         type: tempo
         access: proxy
         url: http://{{ include "bk-nodemgr.tempo.fullname" . }}.{{ .Release.Namespace }}.svc:{{ dig "tempo" "server" "http_listen_port" 3200 .Values.tempo }}
+        isDefault: {{ not .Values.prometheus.enabled }}
+        editable: false
+      {{- end }}
+      {{- if .Values.prometheus.enabled }}
+      - name: Prometheus
+        uid: bk-nodemgr-prometheus
+        type: prometheus
+        access: proxy
+        url: http://{{ include "bk-nodemgr.prometheus.server.fullname" . }}.{{ .Release.Namespace }}.svc:{{ dig "server" "service" "servicePort" 80 .Values.prometheus }}
         isDefault: true
         editable: false
+      {{- end }}
 {{- end }}

@@ -78,8 +78,17 @@ opentelemetryGateway:
             - otlp/tempo
             - otlp/external
 
-## Optional Grafana subchart with password login and an automatically provisioned Tempo data source.
-## Enable tempo.enabled as well. Retrieve the generated password from the Grafana Secret.
+## 内嵌 Prometheus 默认关闭；用于采集 bk-nodemgr application/backend/file 自身指标。
+prometheus:
+  enabled: false
+  server:
+    persistentVolume:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+
+## Optional Grafana subchart with password login and automatically provisioned data sources.
+## Enable tempo.enabled or prometheus.enabled as the embedded backend. Retrieve the generated password from the Grafana Secret.
 grafana:
   enabled: false
   rootURL: https://nodemgr.example.com/grafana/

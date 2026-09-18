@@ -89,6 +89,34 @@ Return the embedded OpenTelemetry Gateway OTLP gRPC endpoint.
 {{- end -}}
 
 {{/*
+Return the embedded Prometheus server dependency full name.
+*/}}
+{{- define "bk-nodemgr.prometheus.server.fullname" -}}
+{{- if .Values.prometheus.server.fullnameOverride -}}
+{{- .Values.prometheus.server.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "prometheus" .Values.prometheus.nameOverride -}}
+{{- $serverName := default "server" .Values.prometheus.server.name -}}
+{{- if contains $name .Release.Name -}}
+{{- printf "%s-%s" .Release.Name $serverName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-%s" .Release.Name $name $serverName | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the embedded Prometheus server ConfigMap name used by the official subchart override.
+*/}}
+{{- define "bk-nodemgr.prometheus.server.configMapName" -}}
+{{- if .Values.prometheus.server.configMapOverrideName -}}
+{{- printf "%s-%s" .Release.Name .Values.prometheus.server.configMapOverrideName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- include "bk-nodemgr.prometheus.server.fullname" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Render the OpenTelemetry Gateway config. User config fully replaces defaults.
 */}}
 {{- define "bk-nodemgr.opentelemetryGateway.config" -}}
