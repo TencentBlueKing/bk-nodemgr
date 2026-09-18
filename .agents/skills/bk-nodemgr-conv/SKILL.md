@@ -36,7 +36,7 @@ Read these before changing behavior:
 - `pkg/runtime/conv/README.md`: package intent and user-facing scope.
 - `pkg/runtime/conv/conv.go`: current helper implementations.
 - `pkg/runtime/conv/conv_test.go`: nil, pointer, overflow, duplicate-key, ordering, and panic-recovery contracts.
-- `.claude/skills/code-review/references/go-standards.md`: project review expectation to prefer common conversion helpers.
+- `.agents/skills/code-review/references/go-standards.md`: project review expectation to prefer common conversion helpers.
 
 Representative caller anchors:
 

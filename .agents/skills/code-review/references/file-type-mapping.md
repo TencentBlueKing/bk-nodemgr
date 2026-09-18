@@ -103,7 +103,7 @@ Read file_path="/data/home/xyuzou/items/bk-nodemgr/docs/developer/README.md"
 
 ### 步骤 5：更新 SKILL.md
 
-同时更新 `/data/home/xyuzou/items/bk-nodemgr/.claude/skills/code-review/SKILL.md` 文件中的映射表（第 52-64 行），保持两处同步。
+同时更新 `/data/home/xyuzou/items/bk-nodemgr/.agents/skills/code-review/SKILL.md` 文件中的映射表（第 52-64 行），保持两处同步。
 
 ## 最佳实践
 

@@ -56,15 +56,15 @@ allowed-tools:
   - 英文版: `apigw/apidocs/en/<filename>.md`
   - 示例: 为 NodeAgentInstall API 生成 `zh/NodeAgent_NodeAgentInstall.md` 和 `en/NodeAgent_NodeAgentInstall.md`
 - **命名规范**: 基于 swagger 的 `operationId`
-  - 运行 `.claude/skills/api-doc/scripts/get_doc_filename.py <url> [method]` 获取正确文件名
-  - 示例: `.claude/skills/api-doc/scripts/get_doc_filename.py /api/v3/node/agent/install POST`
+  - 运行 `.agents/skills/api-doc/scripts/get_doc_filename.py <url> [method]` 获取正确文件名
+  - 示例: `.agents/skills/api-doc/scripts/get_doc_filename.py /api/v3/node/agent/install POST`
   - 输出: `NodeAgent_NodeAgentInstall.md`
 
 ## 版本号管理
 
 文档"该接口提供版本"字段规则：
 
-**获取当前版本**: 运行 `.claude/skills/api-doc/scripts/get_version.sh` 获取最新正式版本号
+**获取当前版本**: 运行 `.agents/skills/api-doc/scripts/get_version.sh` 获取最新正式版本号
 
 **填写规则**:
 
@@ -157,8 +157,8 @@ allowed-tools:
 
 ## 审查检查清单
 
-- [ ] 文件名正确（运行 `.claude/skills/api-doc/scripts/get_doc_filename.py` 确认）
-- [ ] 版本号正确（运行 `.claude/skills/api-doc/scripts/get_version.sh` 确认）
+- [ ] 文件名正确（运行 `.agents/skills/api-doc/scripts/get_doc_filename.py` 确认）
+- [ ] 版本号正确（运行 `.agents/skills/api-doc/scripts/get_version.sh` 确认）
 - [ ] 中英文文档都已生成（每个 API 应有 2 个文件）
 - [ ] 字段名称/类型与 proto 一致
 - [ ] 枚举值完整正确

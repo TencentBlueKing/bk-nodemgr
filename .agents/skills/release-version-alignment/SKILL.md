@@ -214,7 +214,7 @@ Read `references/example-pr.md` when you need concrete branch, commit, or PR wor
 Run the bundled verifier when the working tree represents the intended release-alignment diff:
 
 ```bash
-bash .claude/skills/release-version-alignment/scripts/verify-alignment.sh <target-version> master
+bash .agents/skills/release-version-alignment/scripts/verify-alignment.sh <target-version> master
 ```
 
 The verifier checks:
@@ -306,7 +306,7 @@ If Step 6 Check 5 detects swagger changes that require `apigw/resources.yaml` up
 1. Run the extraction script:
 
    ```bash
-   bash .claude/skills/release-version-alignment/scripts/extract-backend-swagger-changes.sh {FROM_VERSION} {TO_VERSION}
+   bash .agents/skills/release-version-alignment/scripts/extract-backend-swagger-changes.sh {FROM_VERSION} {TO_VERSION}
    ```
 
 2. Report the changed swagger files and exact API Gateway impact decision.

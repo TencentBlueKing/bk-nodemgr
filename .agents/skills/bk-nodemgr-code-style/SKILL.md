@@ -42,8 +42,8 @@ Read these before inventing style rules:
 
 - `AGENTS.md`: repository-wide layering, simplicity, surgical changes, scoped instruction priority, and no speculative abstractions.
 - `.golangci.yml`: project lint thresholds such as `funlen.lines: 120`, `gocyclo.min-complexity: 20`, `gocognit.min-complexity: 20`, `godot`, `lll`, `revive`, and `cyclop`.
-- `.claude/skills/bk-nodemgr-{how-to,error-handling,logger,conv,contextx,gopool,retrier}/SKILL.md`: existing project Go skill style and cross-reference model.
-- `.claude/skills/code-review/references/go-standards.md`: current review quick reference for conversions, errors, logging, comments, API, and proto.
+- `.agents/skills/bk-nodemgr-{how-to,error-handling,logger,conv,contextx,gopool,retrier}/SKILL.md`: existing project Go skill style and cross-reference model.
+- `.agents/skills/code-review/references/go-standards.md`: current review quick reference for conversions, errors, logging, comments, API, and proto.
 
 Representative code anchors:
 

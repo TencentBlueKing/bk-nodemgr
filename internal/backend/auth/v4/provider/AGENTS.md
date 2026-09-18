@@ -1,7 +1,7 @@
 |IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning
 |Required Tools:serena (semantic code ops)|context7 (3rd-party docs)|sequential-thinking (decisions)
 |Language Policy:Chinese for Q&A|English for code/docs/tech discussions
-|Compression Rule:Follow .claude/skills/scoped-agentsmd/references/AGENTS-compression-guide.md (pipe-index format, concise, no prose/code blocks)
+|Compression Rule:Follow .agents/skills/scoped-agentsmd/references/AGENTS-compression-guide.md (pipe-index format, concise, no prose/code blocks)
 |Scope:internal/backend/auth/v4/provider
 |Overview:V4 resource queries and runtime attribute enrichment|typed query validation and resource dispatch|storage queries and callback response shaping
 |Ownership:V3 and V4 providers are independently owned|no cross-version auth/provider imports|keep V4 behavior and changes local to this version
