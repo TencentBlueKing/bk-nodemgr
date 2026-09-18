@@ -39,7 +39,7 @@ var (
 		DBExecCmdFailed:         http.StatusInternalServerError,
 		InvalidCache:            http.StatusInternalServerError,
 		InvalidFileResource:     http.StatusInternalServerError,
-		ThirdpartyRequestFailed: http.StatusInternalServerError,
+		ThirdpartyRequestFailed: http.StatusUnprocessableEntity,
 		BackendOperateFailed:    http.StatusInternalServerError,
 		ResourceScanTooLarge:    http.StatusUnprocessableEntity, // 422
 		InvalidKeyword:          http.StatusNotAcceptable,       // 406

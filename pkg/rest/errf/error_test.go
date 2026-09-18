@@ -21,6 +21,7 @@ package errf
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 )
 
@@ -79,5 +80,12 @@ func TestErrUnwrap_OKCodeDoesNotProbePermissionError(t *testing.T) {
 	}
 	if unwrapErrs != nil {
 		t.Fatalf("expected nil unwrap errors, got %v", unwrapErrs)
+	}
+}
+
+func TestCodeHttpStatusCode_ThirdpartyRequestFailed(t *testing.T) {
+	statusCode := ThirdpartyRequestFailed.HttpStatusCode()
+	if statusCode != http.StatusUnprocessableEntity {
+		t.Fatalf("expected status %d, got %d", http.StatusUnprocessableEntity, statusCode)
 	}
 }
