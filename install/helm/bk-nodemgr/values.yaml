@@ -78,42 +78,29 @@ apiManagerImage:
 ## Local storage is only suitable for development or proof-of-concept deployments.
 tempo:
   enabled: false
-  replicaCount: 1
-  image:
-    registry: docker.io
-    repository: grafana/tempo
+  replicas: 1
+  tempo:
+    repository: docker.io/grafana/tempo
     tag: 2.8.2
     pullPolicy: IfNotPresent
     pullSecrets: []
-  service:
-    ports:
-      http: 3200
-      otlpGrpc: 4317
-      otlpHttp: 4318
-  persistence:
-    enabled: false
-    storageClass: ""
-    accessModes:
-      - ReadWriteOnce
-    size: 10Gi
-  resources:
-    limits:
-      memory: 1024Mi
-      cpu: 1000m
-    requests:
-      memory: 256Mi
-      cpu: 100m
-  config:
+    reportingEnabled: false
+    resources:
+      limits:
+        memory: 1024Mi
+        cpu: 1000m
+      requests:
+        memory: 256Mi
+        cpu: 100m
     server:
       http_listen_port: 3200
-    distributor:
-      receivers:
-        otlp:
-          protocols:
-            grpc:
-              endpoint: 0.0.0.0:4317
-            http:
-              endpoint: 0.0.0.0:4318
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
     storage:
       trace:
         backend: local
@@ -121,8 +108,19 @@ tempo:
           path: /var/tempo/wal
         local:
           path: /var/tempo/blocks
-    usage_report:
-      reporting_enabled: false
+  serviceAccount:
+    create: false
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: false
+    annotations: {}
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+  tempoQuery:
+    enabled: false
 
 ## Embedded OpenTelemetry Collector Gateway for tracing fan-out.
 ## The gateway is optional and keeps multi-destination routing outside bk-nodemgr processes.

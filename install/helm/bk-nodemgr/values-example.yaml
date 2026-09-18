@@ -7,7 +7,7 @@ apigwSync:
 ## 内嵌 Tempo 默认关闭；生产环境建议改用对象存储，不建议使用默认 local 存储。
 tempo:
   enabled: false
-  config:
+  tempo:
     storage:
       trace:
         backend: s3

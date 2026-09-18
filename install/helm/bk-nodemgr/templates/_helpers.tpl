@@ -41,24 +41,28 @@ Return the proper bk-nodemgr apigw-sync image registry secret names
 {{- end -}}
 
 {{/*
-Return the proper Tempo image name.
+Return the embedded Tempo dependency full name.
 */}}
-{{- define "bk-nodemgr.tempo.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.tempo.image "global" .Values.global) }}
+{{- define "bk-nodemgr.tempo.fullname" -}}
+{{- if .Values.tempo.fullnameOverride -}}
+{{- .Values.tempo.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "tempo" .Values.tempo.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
-
-{{/*
-Return the proper Tempo image registry secret names.
-*/}}
-{{- define "bk-nodemgr.tempo.imagePullSecrets" -}}
-{{ include "common.images.pullSecrets" (dict "images" (list .Values.tempo.image) "global" .Values.global) }}
+{{- end -}}
 {{- end -}}
 
 {{/*
 Return the embedded Tempo OTLP gRPC endpoint.
 */}}
 {{- define "bk-nodemgr.tempo.otlpGrpcEndpoint" -}}
-{{ template "bk-nodemgr.fullname" . }}-tempo:{{ .Values.tempo.service.ports.otlpGrpc }}
+{{- $endpoint := dig "tempo" "receivers" "otlp" "protocols" "grpc" "endpoint" "0.0.0.0:4317" .Values.tempo -}}
+{{- $port := regexSplit ":" $endpoint -1 | last -}}
+{{ include "bk-nodemgr.tempo.fullname" . }}:{{ $port }}
 {{- end -}}
 
 {{/*

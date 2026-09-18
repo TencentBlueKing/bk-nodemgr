@@ -28,3 +28,7 @@ dependencies:
     name: grafana
     repository: "https://grafana-community.github.io/helm-charts"
     version: 10.5.14
+  - condition: tempo.enabled
+    name: tempo
+    repository: "https://grafana.github.io/helm-charts"
+    version: 1.23.3
