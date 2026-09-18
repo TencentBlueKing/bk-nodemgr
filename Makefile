@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application adminclient file relay front mock-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files
+.PHONY: tidy build test pre backend application adminclient file relay front mock-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files helm
 
 BASE_IMAGE ?= alpine
 
@@ -33,6 +33,7 @@ RM    = rm
 SH    = sh
 TAR   = tar -zcf
 NPM   = pnpm
+HELM  = helm
 
 default: all
 
@@ -252,3 +253,13 @@ lint: | pre
 	@$(ECHO) "Linting..."
 	@$(CD) $(ROOT_DIR) && GOGC=40 $(if $(strip $(GOMEMLIMIT)),GOMEMLIMIT=$(GOMEMLIMIT),) GOTOOLCHAIN=$(GO) golangci-lint run --config $(ROOT_DIR)/.golangci.yml --path-prefix $(ROOT_DIR) --timeout $(GOLANGCI_LINT_TIMEOUT)
 	@$(ECHO) "Linting completed"
+
+helm:
+	@command -v $(HELM) >/dev/null || { $(ECHO) "Error: helm is required"; exit 1; }
+	@test -f "$(ROOT_DIR)/install/helm/bk-nodemgr/Chart.lock" || { $(ECHO) "Error: Chart.lock is required; run helm dependency update after changing dependencies"; exit 1; }
+	@$(RM) -rf "$(OUTPUT_DIR)/helm/bk-nodemgr"
+	@$(MKDIR) "$(OUTPUT_DIR)/helm/bk-nodemgr"
+	@$(CP) -R "$(ROOT_DIR)/install/helm/bk-nodemgr/." "$(OUTPUT_DIR)/helm/bk-nodemgr/"
+	@$(HELM) lint "$(OUTPUT_DIR)/helm/bk-nodemgr"
+	@$(HELM) package "$(OUTPUT_DIR)/helm/bk-nodemgr" --destination "$(OUTPUT_DIR)/helm"
+	@$(ECHO) "Built successfully Helm chart: $(OUTPUT_DIR)/helm"
