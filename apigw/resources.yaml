@@ -26403,7 +26403,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      workflow_id:
+                      trigger_id:
                         type: string
                   error:
                     type: object
@@ -26541,7 +26541,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      workflow_id:
+                      trigger_id:
                         type: string
                   error:
                     type: object
@@ -26673,7 +26673,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      workflow_id:
+                      trigger_id:
                         type: string
                   error:
                     type: object
@@ -27484,6 +27484,288 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Trigger synchronization of GSE Agent state for all hosts.
+  /api/v3/sync/gse/plugin/process/correct_unknown_status:
+    post:
+      operationId: Sync_CorrectUnknownProcessStatus
+      description: 异步触发当前租户指定主机的插件进程状态过期检查，将过期状态修正为 `unknown`。
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  CorrectUnknownProcessStatusResp describes the HTTP response body when
+                  correcting unknown process status.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host_ids:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: |-
+                CorrectUnknownProcessStatusReq describes the HTTP request body when
+                correcting unknown process status.
+        required: true
+        description: |-
+          CorrectUnknownProcessStatusReq describes the HTTP request body when
+          correcting unknown process status.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/plugin/process/correct_unknown_status
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Asynchronously check plugin process status expiry for the specified hosts in the current tenant and mark expired statuses as unknown.
+  /api/v3/sync/gse/plugin/process/correct_unknown_status/all:
+    post:
+      operationId: Sync_CorrectAllUnknownProcessStatus
+      description: 异步触发当前租户全部主机的插件进程状态过期检查，将过期状态修正为 `unknown`。
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  CorrectAllUnknownProcessStatusResp describes the HTTP response body when
+                  correcting all unknown process status.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |-
+                CorrectAllUnknownProcessStatusReq describes the HTTP request body when
+                correcting all unknown process status.
+        required: true
+        description: |-
+          CorrectAllUnknownProcessStatusReq describes the HTTP request body when
+          correcting all unknown process status.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/plugin/process/correct_unknown_status/all
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Asynchronously check plugin process status expiry for all hosts in the current tenant and mark expired statuses as unknown.
   /api/v3/sync/gse/plugin/process/info:
     post:
       operationId: Sync_SyncAlivePluginProcessInfo
@@ -27779,7 +28061,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      workflow_id:
+                      trigger_id:
                         type: string
                   error:
                     type: object
@@ -27917,7 +28199,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      workflow_id:
+                      trigger_id:
                         type: string
                   error:
                     type: object
