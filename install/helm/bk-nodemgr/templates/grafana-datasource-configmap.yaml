@@ -1,6 +1,6 @@
 {{- if .Values.grafana.enabled }}
-{{- if not (or .Values.tempo.enabled .Values.prometheus.enabled) }}
-{{- fail "grafana.enabled requires tempo.enabled=true or prometheus.enabled=true" }}
+{{- if not (or .Values.tempo.enabled .Values.prometheus.enabled .Values.loki.enabled) }}
+{{- fail "grafana.enabled requires tempo.enabled=true, prometheus.enabled=true, or loki.enabled=true" }}
 {{- end }}
 apiVersion: v1
 kind: ConfigMap
@@ -28,6 +28,15 @@ data:
         access: proxy
         url: http://{{ include "bk-nodemgr.prometheus.server.fullname" . }}.{{ .Release.Namespace }}.svc:{{ dig "server" "service" "servicePort" 80 .Values.prometheus }}
         isDefault: true
+        editable: false
+      {{- end }}
+      {{- if .Values.loki.enabled }}
+      - name: Loki
+        uid: bk-nodemgr-loki
+        type: loki
+        access: proxy
+        url: {{ include "bk-nodemgr.loki.httpEndpoint" . }}
+        isDefault: {{ not .Values.prometheus.enabled }}
         editable: false
       {{- end }}
 {{- end }}

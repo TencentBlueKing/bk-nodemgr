@@ -23,5 +23,11 @@ dependencies:
 - name: prometheus
   repository: file://./charts/prometheus
   version: 29.30.1
-digest: sha256:70f025808d29c7e967cfe2f70b627cc640e89ebc852b47640d95b7fb800d6597
-generated: "2026-09-18T21:42:26.494918285+08:00"
+- name: loki
+  repository: file://./charts/loki
+  version: 3.8.2
+- name: alloy
+  repository: file://./charts/alloy
+  version: 1.12.1
+digest: sha256:a5bb921821e3d9d68fb79cb9441ca4bc7fe1a7f44bc7b47edc3f99229ec40ca3
+generated: "2026-09-19T13:18:05.289130787+08:00"

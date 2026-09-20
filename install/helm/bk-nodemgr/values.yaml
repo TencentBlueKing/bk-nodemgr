@@ -220,6 +220,139 @@ prometheus:
       global:
         scrape_interval: 1m
 
+## Embedded Loki log backend for bk-nodemgr self-monitoring.
+## Uses single-binary filesystem storage for a small, optional in-cluster stack.
+loki:
+  enabled: false
+  nameOverride: loki
+  loki:
+    auth_enabled: false
+    commonConfig:
+      path_prefix: /var/loki
+      replication_factor: 1
+    storage:
+      type: filesystem
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: false
+      size: 8Gi
+    resources:
+      limits:
+        memory: 1024Mi
+        cpu: 1000m
+      requests:
+        memory: 256Mi
+        cpu: 100m
+  write:
+    replicas: 0
+  read:
+    replicas: 0
+  backend:
+    replicas: 0
+  gateway:
+    enabled: false
+  monitoring:
+    dashboards:
+      enabled: false
+    rules:
+      enabled: false
+    serviceMonitor:
+      enabled: false
+    selfMonitoring:
+      enabled: false
+      grafanaAgent:
+        installOperator: false
+  lokiCanary:
+    enabled: false
+  test:
+    enabled: false
+  minio:
+    enabled: false
+
+## Embedded Alloy log collector. Enable with loki.enabled=true to collect Kubernetes pod logs into Loki.
+alloy:
+  enabled: false
+  nameOverride: alloy
+  crds:
+    create: false
+  alloy:
+    enableReporting: false
+    mounts:
+      varlog: true
+      dockercontainers: true
+    configMap:
+      content: |-
+        logging {
+          level  = "warn"
+          format = "logfmt"
+        }
+
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        discovery.relabel "pod_logs" {
+          targets = discovery.kubernetes.pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name", "__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+            separator     = "/"
+            replacement   = "/var/log/pods/*$1*_$3/$4/*.log"
+            target_label  = "__path__"
+          }
+        }
+
+        loki.source.file "pod_logs" {
+          targets    = discovery.relabel.pod_logs.output
+          forward_to = [loki.process.pod_logs.receiver]
+        }
+
+        loki.process "pod_logs" {
+          stage.cri {}
+          forward_to = [loki.write.embedded_loki.receiver]
+        }
+
+        loki.write "embedded_loki" {
+          endpoint {
+            url = "http://{{ .Release.Name }}-loki.{{ .Release.Namespace }}.svc:3100/loki/api/v1/push"
+          }
+        }
+  controller:
+    type: daemonset
+  rbac:
+    create: true
+    rules:
+      - apiGroups: [""]
+        resources: ["pods", "pods/log", "namespaces"]
+        verbs: ["get", "list", "watch"]
+    clusterRules:
+      - apiGroups: [""]
+        resources: ["nodes"]
+        verbs: ["get", "list", "watch"]
+  serviceAccount:
+    create: true
+
 ## Grafana subchart. Requires at least one embedded datasource backend; validated against Kubernetes 1.23.17.
 ## Administrator password is generated in the Grafana Secret and reused on upgrades.
 grafana:

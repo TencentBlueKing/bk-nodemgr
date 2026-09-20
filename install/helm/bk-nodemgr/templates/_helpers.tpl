@@ -117,6 +117,29 @@ Return the embedded Prometheus server ConfigMap name used by the official subcha
 {{- end -}}
 
 {{/*
+Return the embedded Loki single-binary service name.
+*/}}
+{{- define "bk-nodemgr.loki.fullname" -}}
+{{- if .Values.loki.fullnameOverride -}}
+{{- .Values.loki.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "loki" .Values.loki.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the embedded Loki HTTP push/query endpoint.
+*/}}
+{{- define "bk-nodemgr.loki.httpEndpoint" -}}
+http://{{ include "bk-nodemgr.loki.fullname" . }}.{{ .Release.Namespace }}.svc:{{ dig "loki" "server" "http_listen_port" 3100 .Values.loki }}
+{{- end -}}
+
+{{/*
 Render the OpenTelemetry Gateway config. User config fully replaces defaults.
 */}}
 {{- define "bk-nodemgr.opentelemetryGateway.config" -}}

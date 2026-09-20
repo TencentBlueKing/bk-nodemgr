@@ -49,3 +49,13 @@ dependencies:
     # repository: "https://prometheus-community.github.io/helm-charts"
     repository: "file://./charts/prometheus"
     version: 29.30.1
+  - condition: loki.enabled
+    name: loki
+    # repository: "https://grafana.github.io/helm-charts"
+    repository: "file://./charts/loki"
+    version: 3.8.2
+  - condition: alloy.enabled
+    name: alloy
+    # repository: "https://grafana.github.io/helm-charts"
+    repository: "file://./charts/alloy"
+    version: 1.12.1

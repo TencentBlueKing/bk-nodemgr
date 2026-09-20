@@ -87,8 +87,21 @@ prometheus:
       storageClass: ""
       size: 8Gi
 
+## 内嵌 Loki 默认关闭；用于存储并查询 Alloy 采集的 Pod 日志。
+loki:
+  enabled: false
+  singleBinary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+
+## 内嵌 Alloy 默认关闭；开启后以 DaemonSet 采集 Kubernetes Pod 日志并写入内嵌 Loki。
+alloy:
+  enabled: false
+
 ## Optional Grafana subchart with password login and automatically provisioned data sources.
-## Enable tempo.enabled or prometheus.enabled as the embedded backend. Retrieve the generated password from the Grafana Secret.
+## Enable tempo.enabled, prometheus.enabled, or loki.enabled as the embedded backend. Retrieve the generated password from the Grafana Secret.
 grafana:
   enabled: false
   rootURL: https://nodemgr.example.com/grafana/
