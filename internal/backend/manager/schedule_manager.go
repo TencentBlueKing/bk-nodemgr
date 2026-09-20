@@ -40,16 +40,17 @@ import (
 )
 
 const (
-	scheduledWorkflowSyncTenant                 = "sync_tenant"
-	scheduledWorkflowSyncBizAndHost             = "sync_biz_and_host"
-	scheduledWorkflowSyncNetworkArea            = "sync_networkarea"
-	scheduledWorkflowSyncAgentState             = "sync_agent_state"
-	scheduledWorkflowSyncAliveAgentInfo         = "sync_alive_agent_info"
-	scheduledWorkflowSyncAlivePluginProcessInfo = "sync_alive_plugin_process_info"
-	scheduledWorkflowWatchAndApplyCMDBResource  = "watch_and_apply_cmdb_resource"
-	scheduledWorkflowExecuteDeployPolicy        = "execute_deploy_policy"
-	scheduledWorkflowEnsureDefaultPlugin        = "ensure_default_plugin"
-	scheduledWorkflowSyncSharedReleases         = "sync_shared_releases"
+	scheduledWorkflowSyncTenant                     = "sync_tenant"
+	scheduledWorkflowSyncBizAndHost                 = "sync_biz_and_host"
+	scheduledWorkflowSyncNetworkArea                = "sync_networkarea"
+	scheduledWorkflowSyncAgentState                 = "sync_agent_state"
+	scheduledWorkflowSyncAliveAgentInfo             = "sync_alive_agent_info"
+	scheduledWorkflowSyncAlivePluginProcessInfo     = "sync_alive_plugin_process_info"
+	scheduledWorkflowCorrectAllUnknownProcessStatus = "correct_all_unknown_process_status"
+	scheduledWorkflowWatchAndApplyCMDBResource      = "watch_and_apply_cmdb_resource"
+	scheduledWorkflowExecuteDeployPolicy            = "execute_deploy_policy"
+	scheduledWorkflowEnsureDefaultPlugin            = "ensure_default_plugin"
+	scheduledWorkflowSyncSharedReleases             = "sync_shared_releases"
 )
 
 const (
@@ -61,31 +62,33 @@ type syncScheduledWorkflowFunc func(nCtx contextx.IContext, sw *types.ScheduledW
 
 func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWorkflowFunc {
 	return map[string]initScheduledWorkflowFunc{
-		scheduledWorkflowSyncTenant:                 mgr.initSWSyncTenant,
-		scheduledWorkflowSyncBizAndHost:             mgr.initSWSyncBizAndHost,
-		scheduledWorkflowSyncNetworkArea:            mgr.initSWSyncNetworkArea,
-		scheduledWorkflowSyncAgentState:             mgr.initSWSyncAgentState,
-		scheduledWorkflowSyncAliveAgentInfo:         mgr.initSWSyncAliveAgentInfo,
-		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.initSWSyncAlivePluginProcessInfo,
-		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.initSWWatchAndApplyCMDBResource,
-		scheduledWorkflowExecuteDeployPolicy:        mgr.initSWExecuteDeployPolicy,
-		scheduledWorkflowEnsureDefaultPlugin:        mgr.initSWEnsureDefaultPlugin,
-		scheduledWorkflowSyncSharedReleases:         mgr.initSWSyncSharedReleases,
+		scheduledWorkflowSyncTenant:                     mgr.initSWSyncTenant,
+		scheduledWorkflowSyncBizAndHost:                 mgr.initSWSyncBizAndHost,
+		scheduledWorkflowSyncNetworkArea:                mgr.initSWSyncNetworkArea,
+		scheduledWorkflowSyncAgentState:                 mgr.initSWSyncAgentState,
+		scheduledWorkflowSyncAliveAgentInfo:             mgr.initSWSyncAliveAgentInfo,
+		scheduledWorkflowSyncAlivePluginProcessInfo:     mgr.initSWSyncAlivePluginProcessInfo,
+		scheduledWorkflowCorrectAllUnknownProcessStatus: mgr.initSWCorrectAllUnknownProcessStatus,
+		scheduledWorkflowWatchAndApplyCMDBResource:      mgr.initSWWatchAndApplyCMDBResource,
+		scheduledWorkflowExecuteDeployPolicy:            mgr.initSWExecuteDeployPolicy,
+		scheduledWorkflowEnsureDefaultPlugin:            mgr.initSWEnsureDefaultPlugin,
+		scheduledWorkflowSyncSharedReleases:             mgr.initSWSyncSharedReleases,
 	}
 }
 
 func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWorkflowFunc {
 	return map[string]syncScheduledWorkflowFunc{
-		scheduledWorkflowSyncTenant:                 mgr.syncSWSyncTenant,
-		scheduledWorkflowSyncBizAndHost:             mgr.syncSWSyncBizAndHost,
-		scheduledWorkflowSyncNetworkArea:            mgr.syncSWSyncNetworkArea,
-		scheduledWorkflowSyncAgentState:             mgr.syncSWSyncAgentState,
-		scheduledWorkflowSyncAliveAgentInfo:         mgr.syncSWSyncAliveAgentInfo,
-		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.syncSWSyncAlivePluginProcessInfo,
-		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.syncSWWatchAndApplyCMDBResource,
-		scheduledWorkflowExecuteDeployPolicy:        mgr.syncSWExecuteDeployPolicy,
-		scheduledWorkflowEnsureDefaultPlugin:        mgr.syncSWEnsureDefaultPlugin,
-		scheduledWorkflowSyncSharedReleases:         mgr.syncSWSyncSharedReleases,
+		scheduledWorkflowSyncTenant:                     mgr.syncSWSyncTenant,
+		scheduledWorkflowSyncBizAndHost:                 mgr.syncSWSyncBizAndHost,
+		scheduledWorkflowSyncNetworkArea:                mgr.syncSWSyncNetworkArea,
+		scheduledWorkflowSyncAgentState:                 mgr.syncSWSyncAgentState,
+		scheduledWorkflowSyncAliveAgentInfo:             mgr.syncSWSyncAliveAgentInfo,
+		scheduledWorkflowSyncAlivePluginProcessInfo:     mgr.syncSWSyncAlivePluginProcessInfo,
+		scheduledWorkflowCorrectAllUnknownProcessStatus: mgr.syncSWCorrectAllUnknownProcessStatus,
+		scheduledWorkflowWatchAndApplyCMDBResource:      mgr.syncSWWatchAndApplyCMDBResource,
+		scheduledWorkflowExecuteDeployPolicy:            mgr.syncSWExecuteDeployPolicy,
+		scheduledWorkflowEnsureDefaultPlugin:            mgr.syncSWEnsureDefaultPlugin,
+		scheduledWorkflowSyncSharedReleases:             mgr.syncSWSyncSharedReleases,
 	}
 }
 
@@ -520,6 +523,20 @@ func (mgr *Manager) syncSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, sw 
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAlivePluginProcessInfo(schedule.OperParamSyncAlivePluginProcessInfo{
 		ScheduleActionStandardParam: standardParam,
 	}))
+}
+
+func (mgr *Manager) initSWCorrectAllUnknownProcessStatus(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowCorrectAllUnknownProcessStatus, scheduler.Every10m)
+}
+
+func (mgr *Manager) syncSWCorrectAllUnknownProcessStatus(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow correct all unknown process status: %w", err)
+	}
+
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperCorrectAllUnknownProcessStatus(schedule.OperParamCorrectAllUnknownProcessStatus{
+		ScheduleActionStandardParam: standardParam}))
 }
 
 func (mgr *Manager) initSWWatchAndApplyCMDBResource(nCtx contextx.IContext) error {

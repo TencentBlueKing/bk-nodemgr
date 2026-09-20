@@ -168,6 +168,40 @@ message SyncAllAlivePluginProcessInfoResp {
   Data data = 5;
 }
 
+// CorrectUnknownProcessStatusReq describes the HTTP request body when
+// correcting unknown process status.
+message CorrectUnknownProcessStatusReq { repeated int64 host_ids = 1; }
+
+// CorrectUnknownProcessStatusResp describes the HTTP response body when
+// correcting unknown process status.
+message CorrectUnknownProcessStatusResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// CorrectAllUnknownProcessStatusReq describes the HTTP request body when
+// correcting all unknown process status.
+message CorrectAllUnknownProcessStatusReq {}
+
+// CorrectAllUnknownProcessStatusResp describes the HTTP response body when
+// correcting all unknown process status.
+message CorrectAllUnknownProcessStatusResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
 // EnsureDefaultPluginReq describes the HTTP request body when ensuring default
 // plugins.
 message EnsureDefaultPluginReq {}
@@ -278,6 +312,22 @@ service Sync {
       returns (SyncAllAlivePluginProcessInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/plugin/process/info/all"
+      body : "*"
+    };
+  }
+
+  rpc CorrectUnknownProcessStatus(CorrectUnknownProcessStatusReq)
+      returns (CorrectUnknownProcessStatusResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process/correct_unknown_status"
+      body : "*"
+    };
+  }
+
+  rpc CorrectAllUnknownProcessStatus(CorrectAllUnknownProcessStatusReq)
+      returns (CorrectAllUnknownProcessStatusResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process/correct_unknown_status/all"
       body : "*"
     };
   }

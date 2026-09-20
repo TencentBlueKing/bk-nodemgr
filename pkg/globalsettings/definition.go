@@ -49,6 +49,11 @@ const (
 	// OperSyncAlivePluginProcessInfoMaxConcurrencyNumDefault defines the default max concurrency for sync alive plugin process info operations.
 	OperSyncAlivePluginProcessInfoMaxConcurrencyNumDefault = "100"
 
+	// OperCorrectUnknownProcessStatusMaxConcurrencyNum defines the max concurrency setting for process status correction operations.
+	OperCorrectUnknownProcessStatusMaxConcurrencyNum = "oper_correct_unknown_process_status_max_concurrency_num"
+	// OperCorrectUnknownProcessStatusMaxConcurrencyNumDefault defines the default max concurrency for process status correction operations.
+	OperCorrectUnknownProcessStatusMaxConcurrencyNumDefault = "100"
+
 	// OperSyncHostMaxConcurrencyNum defines the max concurrency setting for sync host operations.
 	OperSyncHostMaxConcurrencyNum = "oper_sync_host_max_concurrency_num"
 	// OperSyncHostMaxConcurrencyNumDefault defines the default max concurrency for sync host operations.
@@ -77,6 +82,10 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: OperSyncAlivePluginProcessInfoMaxConcurrencyNum,
 			Value:       OperSyncAlivePluginProcessInfoMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperCorrectUnknownProcessStatusMaxConcurrencyNum,
+			Value:       OperCorrectUnknownProcessStatusMaxConcurrencyNumDefault,
 		},
 		{
 			SettingName: OperSyncHostMaxConcurrencyNum,

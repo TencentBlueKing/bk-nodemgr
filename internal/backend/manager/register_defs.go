@@ -212,6 +212,8 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionWatchCMDBResource(syncdataCap),
 		syncdata.NewActionSyncAlivePluginProcessInfo(syncdataCap),
 		syncdata.NewActionGenOperSyncAlivePluginProcessInfo(syncdataCap),
+		syncdata.NewActionGenOperCorrectUnknownProcessStatus(syncdataCap),
+		syncdata.NewActionCorrectUnknownProcessStatus(syncdataCap),
 	); err != nil {
 		return err
 	}

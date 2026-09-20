@@ -283,6 +283,72 @@
         ]
       }
     },
+    "/api/v3/sync/gse/plugin/process/correct_unknown_status": {
+      "post": {
+        "operationId": "Sync_CorrectUnknownProcessStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3CorrectUnknownProcessStatusResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "CorrectUnknownProcessStatusReq describes the HTTP request body when\ncorrecting unknown process status.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3CorrectUnknownProcessStatusReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/gse/plugin/process/correct_unknown_status/all": {
+      "post": {
+        "operationId": "Sync_CorrectAllUnknownProcessStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3CorrectAllUnknownProcessStatusResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "CorrectAllUnknownProcessStatusReq describes the HTTP request body when\ncorrecting all unknown process status.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3CorrectAllUnknownProcessStatusReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
     "/api/v3/sync/gse/plugin/process/info": {
       "post": {
         "operationId": "Sync_SyncAlivePluginProcessInfo",
@@ -471,6 +537,89 @@
             "type": "object",
             "$ref": "#/definitions/v3RelatedResourceType"
           }
+        }
+      }
+    },
+    "v3CorrectAllUnknownProcessStatusReq": {
+      "type": "object",
+      "description": "CorrectAllUnknownProcessStatusReq describes the HTTP request body when\ncorrecting all unknown process status."
+    },
+    "v3CorrectAllUnknownProcessStatusResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3CorrectAllUnknownProcessStatusRespData"
+        }
+      },
+      "description": "CorrectAllUnknownProcessStatusResp describes the HTTP response body when\ncorrecting all unknown process status."
+    },
+    "v3CorrectAllUnknownProcessStatusRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3CorrectUnknownProcessStatusReq": {
+      "type": "object",
+      "properties": {
+        "host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "CorrectUnknownProcessStatusReq describes the HTTP request body when\ncorrecting unknown process status."
+    },
+    "v3CorrectUnknownProcessStatusResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3CorrectUnknownProcessStatusRespData"
+        }
+      },
+      "description": "CorrectUnknownProcessStatusResp describes the HTTP response body when\ncorrecting unknown process status."
+    },
+    "v3CorrectUnknownProcessStatusRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
         }
       }
     },

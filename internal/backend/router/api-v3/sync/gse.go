@@ -172,3 +172,37 @@ func (h *handler) SyncAllAlivePluginProcessInfo(rCtx restserver.IContext) (any, 
 
 	return resp, nil
 }
+
+// CorrectUnknownProcessStatus starts an operation to mark expired plugin process observations unknown.
+func (h *handler) CorrectUnknownProcessStatus(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.CorrectUnknownProcessStatusReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("correct unknown process status decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchCorrectUnknownProcessStatus(rCtx, req.GetHostIds()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start correct unknown process status operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	return &protoBackend.CorrectUnknownProcessStatusResp_Data{TriggerId: triggerID}, nil
+}
+
+// CorrectAllUnknownProcessStatus starts an operation to distribute process expiry checks across all hosts.
+func (h *handler) CorrectAllUnknownProcessStatus(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.CorrectAllUnknownProcessStatusReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("correct all unknown process status decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchCorrectAllUnknownProcessStatus(rCtx)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start correct all unknown process status operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	return &protoBackend.CorrectAllUnknownProcessStatusResp_Data{TriggerId: triggerID}, nil
+}

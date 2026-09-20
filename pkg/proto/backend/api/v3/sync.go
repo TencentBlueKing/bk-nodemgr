@@ -110,6 +110,23 @@ func (x *SyncAllAlivePluginProcessInfoReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *CorrectUnknownProcessStatusReq) AutoConvert() {}
+
+// Validate check body.
+func (x *CorrectUnknownProcessStatusReq) Validate() error {
+	if len(x.HostIds) == 0 {
+		return errors.New("host_ids is required")
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *CorrectAllUnknownProcessStatusReq) AutoConvert() {}
+
+// Validate check body.
+func (x *CorrectAllUnknownProcessStatusReq) Validate() error { return nil }
+
 // Validate check body.
 func (x *EnsureDefaultPluginReq) Validate() error {
 	return nil

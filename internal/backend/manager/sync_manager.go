@@ -385,6 +385,71 @@ func (mgr *Manager) LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (
 	return triggerCtl.GetTriggerID(), nil
 }
 
+// LaunchCorrectUnknownProcessStatus launches a task to correct unknown process status.
+func (mgr *Manager) LaunchCorrectUnknownProcessStatus(ctx contextx.IContext, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperCorrectUnknownProcessStatus(syncdata.OperParamCorrectUnknownProcessStatus{
+		TenantID: tenantID,
+		Operator: operator,
+		HostIDs:  hostIDs,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err := triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched correct unknown process status task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchCorrectAllUnknownProcessStatus launches a task to correct all unknown process status.
+func (mgr *Manager) LaunchCorrectAllUnknownProcessStatus(ctx contextx.IContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperCorrectAllUnknownProcessStatus(syncdata.OperParamCorrectAllUnknownProcessStatus{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err := triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched correct all unknown process status task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
 // LaunchEnsureDefaultPlugin launches a one-time workflow to ensure default plugins and returns its trigger ID.
 func (mgr *Manager) LaunchEnsureDefaultPlugin(ctx contextx.IContext) (string, error) {
 	if err := ctx.CheckTenantID(); err != nil {
