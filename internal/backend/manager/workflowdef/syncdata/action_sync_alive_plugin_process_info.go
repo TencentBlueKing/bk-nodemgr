@@ -125,13 +125,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 		return nil
 	}
 
-	cond := &types.ProcessCondition{
-		ExactInclude: &types.ProcessExactFields{
-			HostID:     param.HostIDs,
-			InfoStatus: []types.ProcessStatus{types.ProcessStatusRunning},
-		},
-	}
-	aliveProcess, _, err := act.processStg.ListProcesses(std.Context(), types.UnlimitedPage(), cond)
+	aliveProcess, err := act.listProcessesToSync(std.Context(), param.HostIDs)
 	if err != nil {
 		return err
 	}
@@ -171,6 +165,44 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	}
 
 	return nil
+}
+
+func (act *actionSyncAlivePluginProcessInfo) listProcessesToSync(nCtx contextx.IContext, hostIDs []int64) ([]*types.Process, error) {
+	runningProcess, _, err := act.processStg.ListProcesses(nCtx, types.UnlimitedPage(), &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{
+			HostID:     hostIDs,
+			InfoStatus: []types.ProcessStatus{types.ProcessStatusRunning},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	unknownAutoStartProcess, _, err := act.processStg.ListProcesses(nCtx, types.UnlimitedPage(), &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{
+			HostID:          hostIDs,
+			InfoStatus:      []types.ProcessStatus{types.ProcessStatusUnknown},
+			InfoTrusteeship: []bool{true},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	aliveProcess := make([]*types.Process, 0, len(runningProcess)+len(unknownAutoStartProcess))
+	aliveProcessMap := make(map[types.ProcessUniqueKey]struct{}, len(runningProcess)+len(unknownAutoStartProcess))
+	for _, processes := range [][]*types.Process{runningProcess, unknownAutoStartProcess} {
+		for _, proc := range processes {
+			if _, ok := aliveProcessMap[proc.GetUniqueKey()]; ok {
+				continue
+			}
+
+			aliveProcessMap[proc.GetUniqueKey()] = struct{}{}
+			aliveProcess = append(aliveProcess, proc)
+		}
+	}
+
+	return aliveProcess, nil
 }
 
 func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(
@@ -286,7 +318,7 @@ func newUnknownProcessInfoDelta(proc *types.Process, agentID string) *types.Proc
 			Pid:        0,
 			Version:    "",
 			AgentID:    agentID,
-			AutoStart:  false,
+			AutoStart:  proc.Info.AutoStart,
 			Status:     types.ProcessStatusUnknown,
 			LastSyncAt: time.Now(),
 		},
