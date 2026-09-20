@@ -83,12 +83,12 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 #### 自监控配置
 
-自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true`、`prometheus.enabled=true` 或 `loki.enabled=true`。
+自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true`、`prometheus.enabled=true` 或 `loki.enabled=true`。采集服务 trace 时，推荐启用 `opentelemetryGateway.enabled=true` 作为统一 OTLP Gateway，再由 Gateway 转发到 Tempo。
 
 | 参数                         | 类型   | 默认值 | 描述                                                                  |
 | ---------------------------- | ------ | ------ | --------------------------------------------------------------------- |
-| tempo.enabled                | bool   | false  | 启用内嵌 Tempo，用于接收和查询链路追踪数据                            |
-| opentelemetryGateway.enabled | bool   | false  | 启用 OpenTelemetry Collector Gateway，用于集中接收和转发 trace        |
+| tempo.enabled                | bool   | false  | 启用内嵌 Tempo，用于存储和查询链路追踪数据                            |
+| opentelemetryGateway.enabled | bool   | false  | 启用 OpenTelemetry Collector Gateway，作为服务 trace 的推荐入口        |
 | prometheus.enabled           | bool   | false  | 启用内嵌 Prometheus，用于采集 bk-nodemgr 服务指标                     |
 | loki.enabled                 | bool   | false  | 启用内嵌 Loki，用于存储并查询 Alloy 采集的 Kubernetes Pod 日志        |
 | alloy.enabled                | bool   | false  | 启用内嵌 Alloy，以 DaemonSet 采集 Kubernetes Pod 日志并写入内嵌 Loki  |
@@ -139,7 +139,7 @@ $ kubectl get secret -n <namespace> bk-nodemgr-grafana -o jsonpath='{.data.admin
 
 如果使用了其它 ReleaseName，请将 Secret 名称中的 `bk-nodemgr` 替换为实际 ReleaseName，例如 `<release-name>-grafana`。如果配置了 `grafana.fullnameOverride` 或 `grafana.nameOverride`，请以实际生成的 Secret 名称为准。
 
-自监控开启后，`application.config.tracing`、`backend.config.tracing`、`file.config.tracing` 控制三个服务的 trace exporter。若 `opentelemetryGateway.enabled=true` 且对应服务未显式配置 `otlpEndpoint`，Chart 会自动将 trace 发往内嵌 OpenTelemetry Collector Gateway；若仅启用 `tempo.enabled=true`，则自动发往内嵌 Tempo。自动接线会写入 `exporterType: "otlp"`、`otlpProtocol: "grpc"`、`otlpInsecure: true`。
+自监控开启后，`application.config.tracing`、`backend.config.tracing`、`file.config.tracing` 控制三个服务的 trace exporter。推荐路径是服务先发往内嵌 OpenTelemetry Collector Gateway，再由 Gateway 转发到 Tempo。若 `opentelemetryGateway.enabled=true` 且对应服务未显式配置 `otlpEndpoint`，Chart 会自动将 trace 发往 Gateway；只有在未启用 Gateway、但启用了 `tempo.enabled=true` 时，才会回退为服务直连内嵌 Tempo。自动接线会写入 `exporterType: "otlp"`、`otlpProtocol: "grpc"`、`otlpInsecure: true`。
 
 | 参数                                        | 类型   | 默认值 | 描述                                                                 |
 | ------------------------------------------- | ------ | ------ | -------------------------------------------------------------------- |
