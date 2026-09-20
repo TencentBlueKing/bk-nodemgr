@@ -139,6 +139,46 @@ $ kubectl get secret -n <namespace> bk-nodemgr-grafana -o jsonpath='{.data.admin
 
 如果使用了其它 ReleaseName，请将 Secret 名称中的 `bk-nodemgr` 替换为实际 ReleaseName，例如 `<release-name>-grafana`。如果配置了 `grafana.fullnameOverride` 或 `grafana.nameOverride`，请以实际生成的 Secret 名称为准。
 
+自监控开启后，`application.config.tracing`、`backend.config.tracing`、`file.config.tracing` 控制三个服务的 trace exporter。若 `opentelemetryGateway.enabled=true` 且对应服务未显式配置 `otlpEndpoint`，Chart 会自动将 trace 发往内嵌 OpenTelemetry Collector Gateway；若仅启用 `tempo.enabled=true`，则自动发往内嵌 Tempo。自动接线会写入 `exporterType: "otlp"`、`otlpProtocol: "grpc"`、`otlpInsecure: true`。
+
+| 参数                                        | 类型   | 默认值 | 描述                                                                 |
+| ------------------------------------------- | ------ | ------ | -------------------------------------------------------------------- |
+| `<service>.config.tracing.exporterType`     | string | stdout | trace exporter 类型；可设为 `otlp` 发往 OTLP backend                  |
+| `<service>.config.tracing.otlpEndpoint`     | string | 空     | OTLP endpoint；为空时可由内嵌自监控组件自动接线                      |
+| `<service>.config.tracing.otlpProtocol`     | string | grpc   | OTLP 协议；合法值为 `grpc` 或 `http`，非法非空值会导致服务启动失败   |
+| `<service>.config.tracing.otlpInsecure`     | bool   | false  | 是否关闭 OTLP TLS 校验；内嵌自监控自动接线时为 `true`                |
+| `<service>.config.tracing.otlpHeaders`      | object | {}     | 发送 OTLP 请求时附加的 HTTP/gRPC metadata，例如鉴权 header           |
+
+`<service>` 可替换为 `application`、`backend` 或 `file`。`otlpProtocol` 配置错误时，服务启动校验会返回 `otlp protocol is invalid`。当网络环境不便开放 gRPC 出口，或上游只开放 OTLP HTTP receiver 时，可显式使用 `http` 协议；HTTP endpoint 使用 `host:port`，trace 默认路径为 `/v1/traces`。
+
+外部 OTLP HTTP backend 示例：
+
+```yaml
+application:
+  config:
+    tracing:
+      exporterType: "otlp"
+      otlpEndpoint: "otel-collector.example.com:4318"
+      otlpProtocol: "http"
+      otlpInsecure: true
+      otlpHeaders:
+        Authorization: "Bearer <token>"
+backend:
+  config:
+    tracing:
+      exporterType: "otlp"
+      otlpEndpoint: "otel-collector.example.com:4318"
+      otlpProtocol: "http"
+      otlpInsecure: true
+file:
+  config:
+    tracing:
+      exporterType: "otlp"
+      otlpEndpoint: "otel-collector.example.com:4318"
+      otlpProtocol: "http"
+      otlpInsecure: true
+```
+
 #### Ingress 访问配置
 
 Ingress 默认关闭。按访问对象区分为三类：`application.ingress` 用于节点管理 Web/API 服务入口，`backend.ingress` 用于 backend TCP 服务入口，`grafana.ingress` 用于自监控 Grafana 入口。
