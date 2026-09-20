@@ -4,6 +4,28 @@
 apigwSync:
   enabled: true
 
+## 节点管理 Web/API 服务 Ingress 示例；默认关闭。
+## className 为空时使用 BCS Network Extension Ingress；非空时使用标准 Kubernetes Ingress。
+application:
+  ingress:
+    enabled: false
+    className: nginx
+    domain: nodemgr.example.com
+    path: /
+    tlsSecretName: nodemgr-tls
+    lbid: example-bcs-lb-id
+    lbPolicy: WRR
+    isDirectConnect: true
+    certID: example-bcs-cert-id
+
+## backend TCP Ingress 示例；默认关闭，仅支持 BCS Network Extension Ingress。
+backend:
+  ingress:
+    enabled: false
+    lbid: example-bcs-lb-id
+    lbPolicy: WRR
+    isDirectConnect: true
+
 ## 内嵌 Tempo 默认关闭；生产环境建议改用对象存储，不建议使用默认 local 存储。
 tempo:
   enabled: false
@@ -96,4 +118,14 @@ grafana:
     enabled: true
     storageClassName: ""
     size: 1Gi
-  # Manage the /grafana/ ingress separately; do not inject a fixed user identity.
+  ingress:
+    enabled: false
+    ingressClassName: nginx
+    hosts:
+      - nodemgr.example.com
+    path: /grafana
+    pathType: Prefix
+    tls:
+      - secretName: nodemgr-grafana-tls
+        hosts:
+          - nodemgr.example.com
