@@ -103,8 +103,11 @@ func (act *actionCorrectUnknownProcessStatus) Do(ctx *action.InstanceContext) er
 	}
 
 	deadline := time.Now().Add(-processStatusSyncTimeout)
+	if err := act.processStg.MarkExpiredProcessesUnknown(std.Context(), param.HostIDs, deadline); err != nil {
+		return fmt.Errorf("failed to mark expired processes unknown: %w", err)
+	}
 
-	return act.processStg.MarkExpiredProcessesUnknown(std.Context(), param.HostIDs, deadline)
+	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
