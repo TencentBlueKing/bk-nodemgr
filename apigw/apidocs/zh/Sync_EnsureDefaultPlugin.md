@@ -34,7 +34,7 @@ POST /api/v3/sync/plugin/ensure_default
   "error": null,
   "permission": null,
   "data": {
-    "workflow_id": "trig:6c0379fe82b44920a8c49508fb744d72"
+    "trigger_id": "trig:6c0379fe82b44920a8c49508fb744d72"
   }
 }
 ```
@@ -54,4 +54,4 @@ POST /api/v3/sync/plugin/ensure_default
 
 | 参数名称 | 参数类型 | 描述 |
 |---------|----------|------|
-| workflow_id | string | 本次一次性工作流的触发器 ID（trigger ID），不表示执行结果 |
+| trigger_id | string | 本次一次性工作流的触发器 ID（trigger ID），不表示执行结果 |

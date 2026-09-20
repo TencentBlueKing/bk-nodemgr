@@ -406,7 +406,7 @@ func (mgr *Manager) LaunchEnsureDefaultPlugin(ctx contextx.IContext) (string, er
 		TenantID: tenantID,
 		Operator: operator,
 	})
-	_, err = triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
 	}
@@ -414,6 +414,10 @@ func (mgr *Manager) LaunchEnsureDefaultPlugin(ctx contextx.IContext) (string, er
 	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched ensure default plugin task")
 
 	return triggerCtl.GetTriggerID(), nil
 }
@@ -442,7 +446,7 @@ func (mgr *Manager) LaunchSyncSharedReleases(ctx contextx.IContext) (string, err
 		TenantID: tenantID,
 		Operator: operator,
 	})
-	_, err = triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
 	}
@@ -450,6 +454,10 @@ func (mgr *Manager) LaunchSyncSharedReleases(ctx contextx.IContext) (string, err
 	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync shared release task")
 
 	return triggerCtl.GetTriggerID(), nil
 }

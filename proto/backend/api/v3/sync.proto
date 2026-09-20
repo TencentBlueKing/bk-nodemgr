@@ -17,7 +17,7 @@ message SyncCmdbHostResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data { string trigger_id = 1; }
   Data data = 5;
 }
 
@@ -34,7 +34,7 @@ message SyncCmdbNetworkAreaResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data { string trigger_id = 1; }
   Data data = 5;
 }
 
@@ -51,7 +51,7 @@ message SyncCmdbConstantsResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data { string trigger_id = 1; }
   Data data = 5;
 }
 
@@ -181,7 +181,7 @@ message EnsureDefaultPluginResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data { string trigger_id = 1; }
   Data data = 5;
 }
 
@@ -198,7 +198,7 @@ message SyncSharedReleasesResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data { string trigger_id = 1; }
   Data data = 5;
 }
 

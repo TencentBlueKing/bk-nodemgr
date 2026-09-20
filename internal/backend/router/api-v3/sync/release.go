@@ -26,43 +26,22 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-// SyncCmdbHost start an operation to sync business and host from cmdb.
-func (h *handler) SyncCmdbHost(rCtx restserver.IContext) (any, error) {
-	req := new(protoBackend.SyncCmdbHostReq)
+// SyncSharedReleases starts a task to sync shared releases.
+func (h *handler) SyncSharedReleases(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncSharedReleasesReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to sync cmdb host, failed to decode request body")
-
+		logger.G.Biz(rCtx).WithErr(err).Error("sync shared releases decode request body failed")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncBizAndHost(rCtx)
+	triggerID, err := h.manager.LaunchSyncSharedReleases(rCtx)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("failed to start sync cmdb host operation")
-
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync shared releases task failed")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
+	logger.G.Biz(rCtx).With("trigger-id", triggerID).Info("started sync shared releases task")
 
-	resp := &protoBackend.SyncCmdbHostResp_Data{
-		TriggerId: triggerID,
-	}
-
-	return resp, nil
-}
-
-// SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
-func (h *handler) SyncCmdbNetworkArea(rCtx restserver.IContext) (any, error) {
-	req := new(protoBackend.SyncCmdbNetworkAreaReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	triggerID, err := h.manager.LaunchSyncNetworkArea(rCtx)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("failed to start sync cmdb networkarea operation")
-		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
-	}
-
-	resp := &protoBackend.SyncCmdbNetworkAreaResp_Data{
+	resp := &protoBackend.SyncSharedReleasesResp_Data{
 		TriggerId: triggerID,
 	}
 

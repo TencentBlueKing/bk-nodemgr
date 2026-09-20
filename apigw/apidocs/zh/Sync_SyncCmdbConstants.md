@@ -28,7 +28,7 @@ POST /api/v3/sync/cmdb/constants
   "error": null,
   "permission": null,
   "data": {
-    "workflow_id": "workflow-001"
+    "trigger_id": "trig:6c0379fe82b44920a8c49508fb744d72"
   }
 }
 ```
@@ -48,4 +48,4 @@ POST /api/v3/sync/cmdb/constants
 
 | 参数名称 | 参数类型 | 描述 |
 |---------|----------|------|
-| workflow_id | string | 任务流 ID |
+| trigger_id | string | 同步任务的触发器 ID，不表示执行结果 |

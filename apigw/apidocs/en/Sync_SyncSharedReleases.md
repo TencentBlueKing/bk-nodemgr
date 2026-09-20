@@ -35,7 +35,7 @@ No business parameters. Submit an empty JSON object `{}`. The tenant ID and oper
   "error": null,
   "permission": null,
   "data": {
-    "workflow_id": "trig:6c0379fe82b44920a8c49508fb744d72"
+    "trigger_id": "trig:6c0379fe82b44920a8c49508fb744d72"
   }
 }
 ```
@@ -55,4 +55,4 @@ No business parameters. Submit an empty JSON object `{}`. The tenant ID and oper
 
 | Parameter Name | Parameter Type | Description |
 |---------------|----------------|-------------|
-| workflow_id | string | Trigger ID of the one-time workflow; this is not an execution result |
+| trigger_id | string | Trigger ID of the one-time workflow; this is not an execution result |

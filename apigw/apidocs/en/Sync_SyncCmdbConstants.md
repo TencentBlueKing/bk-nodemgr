@@ -28,7 +28,7 @@ None
   "error": null,
   "permission": null,
   "data": {
-    "workflow_id": "workflow-001"
+    "trigger_id": "trig:6c0379fe82b44920a8c49508fb744d72"
   }
 }
 ```
@@ -48,4 +48,4 @@ None
 
 | Parameter Name | Parameter Type | Description |
 |---------------|----------------|-------------|
-| workflow_id | string | Workflow ID |
+| trigger_id | string | Trigger ID of the synchronization task; this is not an execution result |
