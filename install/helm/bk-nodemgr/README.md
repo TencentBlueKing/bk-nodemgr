@@ -83,18 +83,20 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 #### 自监控配置
 
-自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true` 或 `prometheus.enabled=true`。
+自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true`、`prometheus.enabled=true` 或 `loki.enabled=true`。
 
-| 参数                         | 类型   | 默认值 | 描述                                                           |
-| ---------------------------- | ------ | ------ | -------------------------------------------------------------- |
-| tempo.enabled                | bool   | false  | 启用内嵌 Tempo，用于接收和查询链路追踪数据                     |
-| opentelemetryGateway.enabled | bool   | false  | 启用 OpenTelemetry Collector Gateway，用于集中接收和转发 trace |
-| prometheus.enabled           | bool   | false  | 启用内嵌 Prometheus，用于采集 bk-nodemgr 服务指标              |
-| grafana.enabled              | bool   | false  | 启用内嵌 Grafana，用于查看 Tempo 和 Prometheus 数据源          |
-| grafana.rootURL              | string | 空     | Grafana 访问地址，启用 Grafana 时必填，需包含结尾 `/`          |
-| grafana.adminUser            | string | admin  | Grafana 管理员用户名                                           |
+| 参数                         | 类型   | 默认值 | 描述                                                                  |
+| ---------------------------- | ------ | ------ | --------------------------------------------------------------------- |
+| tempo.enabled                | bool   | false  | 启用内嵌 Tempo，用于接收和查询链路追踪数据                            |
+| opentelemetryGateway.enabled | bool   | false  | 启用 OpenTelemetry Collector Gateway，用于集中接收和转发 trace        |
+| prometheus.enabled           | bool   | false  | 启用内嵌 Prometheus，用于采集 bk-nodemgr 服务指标                     |
+| loki.enabled                 | bool   | false  | 启用内嵌 Loki，用于存储并查询 Alloy 采集的 Kubernetes Pod 日志        |
+| alloy.enabled                | bool   | false  | 启用内嵌 Alloy，以 DaemonSet 采集 Kubernetes Pod 日志并写入内嵌 Loki  |
+| grafana.enabled              | bool   | false  | 启用内嵌 Grafana，用于查看 Tempo、Prometheus 和 Loki 数据源           |
+| grafana.rootURL              | string | 空     | Grafana 访问地址，启用 Grafana 时必填，需包含结尾 `/`                 |
+| grafana.adminUser            | string | admin  | Grafana 管理员用户名                                                  |
 
-最小启用示例：
+Trace 和指标最小启用示例：
 
 ```yaml
 tempo:
@@ -108,7 +110,26 @@ grafana:
   rootURL: https://nodemgr.example.com/grafana/
 ```
 
-> 注: `tempo.enabled=true` 的默认 local 存储仅适合开发或验证环境；生产环境建议参考 `values-example.yaml` 配置对象存储。`grafana.rootURL` 需要和实际 Ingress、网关或端口转发访问路径保持一致。
+日志采集最小启用示例：
+
+```yaml
+loki:
+  enabled: true
+  singleBinary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+alloy:
+  enabled: true
+grafana:
+  enabled: true
+  rootURL: https://nodemgr.example.com/grafana/
+```
+
+> 注: `tempo.enabled=true` 的默认 local 存储仅适合开发或验证环境；生产环境建议参考 `values-example.yaml` 配置对象存储。`loki.enabled=true` 默认使用 single-binary filesystem 存储，`loki.singleBinary.persistence.enabled=false` 仅适合开发或验证环境；生产环境建议参考 `values-example.yaml` 开启 PVC。`grafana.rootURL` 需要和实际 Ingress、网关或端口转发访问路径保持一致。
+
+> 注: `alloy.enabled=true` 依赖 `loki.enabled=true`。Alloy 会以 DaemonSet 在每个节点运行，通过 `/var/log/pods` 和 `/var/lib/docker/containers` 采集集群内 Kubernetes Pod 日志，采集范围不是仅限 bk-nodemgr。启用前请确认日志隐私、存储容量和节点资源开销符合预期。
 
 启用 Grafana 后，登录用户默认为 `admin`。管理员密码由 Grafana Chart 在 Secret 中生成并在升级时复用。若 ReleaseName 为 `bk-nodemgr`，默认 Secret 名称为 `bk-nodemgr-grafana`，可通过以下命令获取：
 
