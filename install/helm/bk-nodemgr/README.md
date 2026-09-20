@@ -149,35 +149,50 @@ $ kubectl get secret -n <namespace> bk-nodemgr-grafana -o jsonpath='{.data.admin
 | `<service>.config.tracing.otlpInsecure`     | bool   | false  | 是否关闭 OTLP TLS 校验；内嵌自监控自动接线时为 `true`                |
 | `<service>.config.tracing.otlpHeaders`      | object | {}     | 发送 OTLP 请求时附加的 HTTP/gRPC metadata，例如鉴权 header           |
 
-`<service>` 可替换为 `application`、`backend` 或 `file`。`otlpProtocol` 配置错误时，服务启动校验会返回 `otlp protocol is invalid`。当网络环境不便开放 gRPC 出口，或上游只开放 OTLP HTTP receiver 时，可显式使用 `http` 协议；HTTP endpoint 使用 `host:port`，trace 默认路径为 `/v1/traces`。
+`<service>` 可替换为 `application`、`backend` 或 `file`。`otlpProtocol` 配置错误时，服务启动校验会返回 `otlp protocol is invalid`。启用自监控时，优先保持服务 trace 自动接线到 Gateway；需要转发到外部 OTLP HTTP backend 时，应配置 `opentelemetryGateway.alternateConfig`，由 Gateway 负责外发。`alternateConfig` 会完整替换 Collector 配置，因此需要同时声明 receiver、processor、exporter 和 pipeline。
 
-外部 OTLP HTTP backend 示例：
+通过 Gateway 转发到外部 OTLP HTTP backend 示例：
 
 ```yaml
-application:
-  config:
-    tracing:
-      exporterType: "otlp"
-      otlpEndpoint: "otel-collector.example.com:4318"
-      otlpProtocol: "http"
-      otlpInsecure: true
-      otlpHeaders:
-        Authorization: "Bearer <token>"
-backend:
-  config:
-    tracing:
-      exporterType: "otlp"
-      otlpEndpoint: "otel-collector.example.com:4318"
-      otlpProtocol: "http"
-      otlpInsecure: true
-file:
-  config:
-    tracing:
-      exporterType: "otlp"
-      otlpEndpoint: "otel-collector.example.com:4318"
-      otlpProtocol: "http"
-      otlpInsecure: true
+opentelemetryGateway:
+  enabled: true
+  alternateConfig:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      memory_limiter:
+        limit_mib: 512
+        spike_limit_mib: 128
+        check_interval: 5s
+      batch: {}
+    exporters:
+      otlphttp/external:
+        endpoint: https://otel-collector.example.com:4318
+        headers:
+          Authorization: Bearer <token>
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        traces:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlphttp/external
 ```
+
+仅在不启用 Gateway、且确实需要服务直连外部 OTLP backend 时，才直接配置 `<service>.config.tracing.otlpEndpoint` 和 `otlpProtocol`。服务进程的 OTLP HTTP endpoint 使用 `host:port`，trace 默认路径为 `/v1/traces`。
 
 #### Ingress 访问配置
 
