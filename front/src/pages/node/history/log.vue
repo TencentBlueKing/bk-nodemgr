@@ -506,7 +506,7 @@ const showOfflineGuideButton = (row: { stepKey: string; state: string }): boolea
     && row.stepKey === STEP_KEY_WAIT_OFFLINE_MANUAL_INSTALL
     && row.state === 'running'
 );
-const title = computed(() => t('platform.nodeMan.log.executionLogOf', { inner: currentOperate.value?.bk_host_inner_list, type: typeMap.value[nodeManageStore.taskHistoryTableRowData.type] }));
+const title = computed(() => t('platform.nodeMan.log.executionLogOf', { inner: currentOperate.value?.bk_host_inner_list, type: typeMap.value[nodeManageStore.taskHistoryTableRowData.type] || nodeManageStore.taskHistoryTableRowData.type }));
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
 const curSortNames = ref<string[]>([]);
@@ -601,6 +601,7 @@ const typeMap = computed(() => ({
   uninstall_plugin: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin'),
   reconfig_plugin: t('platform.nodeMan.taskHistory.taskType.reconfig_plugin'),
   apply_plugin_subconfig: t('platform.nodeMan.taskHistory.taskType.apply_plugin_subconfig'),
+  remove_plugin_subconfig: t('platform.nodeMan.taskHistory.taskType.remove_plugin_subconfig'),
   start_plugin: t('platform.nodeMan.taskHistory.taskType.start_plugin'),
   restart_plugin: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
   stop_plugin: t('platform.nodeMan.taskHistory.taskType.stop_plugin'),

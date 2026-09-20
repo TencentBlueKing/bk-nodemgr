@@ -293,6 +293,7 @@ platform:
         migrate_plugin_v2: V2 插件迁移
         reconfig_plugin: 插件重载配置
         apply_plugin_subconfig: 插件应用子配置
+        remove_plugin_subconfig: 插件移除子配置
         restart_plugin: 插件重启
         stop_plugin: 插件停止
       statusType:

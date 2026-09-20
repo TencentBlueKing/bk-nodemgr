@@ -293,6 +293,7 @@ platform:
         migrate_plugin_v2: V2 Plugin Migration
         reconfig_plugin: Plugin Reconfiguration
         apply_plugin_subconfig: Plugin Apply Sub-Config
+        remove_plugin_subconfig: Plugin Remove Sub-Config
         restart_plugin: Plugin Restart
         stop_plugin: Plugin Stop
       statusType:

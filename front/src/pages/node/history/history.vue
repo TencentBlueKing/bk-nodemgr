@@ -84,7 +84,7 @@
           min-width="150"
         >
           <template #default="{ row }">
-            <span>{{ typeMap[row.type as taskType]?.text }}</span>
+            <span>{{ typeMap[row.type as taskType]?.text || row.type }}</span>
           </template>
         </TableColumn>
         <TableColumn
@@ -227,7 +227,8 @@ type taskType =
   | 'upgrade_plugin'
   | 'uninstall_plugin_v2'
   | 'migrate_plugin_v2'
-  | 'assign_proxy_unit';
+  | 'assign_proxy_unit'
+  | 'remove_plugin_subconfig';
 type filterProp = 'type' | 'operator' | 'status';
 type HistoryTab = 'agent' | 'proxy' | 'plugin';
 
@@ -500,6 +501,9 @@ const typeMap = computed(() => ({
   },
   apply_plugin_subconfig: {
     text: t('platform.nodeMan.taskHistory.taskType.apply_plugin_subconfig'),
+  },
+  remove_plugin_subconfig: {
+    text: t('platform.nodeMan.taskHistory.taskType.remove_plugin_subconfig'),
   },
   restart_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
