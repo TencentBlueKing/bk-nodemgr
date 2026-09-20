@@ -102,15 +102,7 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 
 	for _, tenantID := range tenantIDs {
 		tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
-		for name, f := range mgr.getInitScheduledWorkflowFuncs() {
-			if err := mgr.initScheduleWorkflow(tenantCtx, name, f); err != nil {
-				logger.G.Sys().WithErr(err).With("tenant-id", tenantID, "workflow-name", name).Error("failed to initialize scheduled workflow")
-
-				continue
-			}
-
-			logger.G.Sys().With("tenant-id", tenantID, "workflow-name", name).Info("initialized scheduled workflow")
-		}
+		mgr.initScheduledWorkflows(tenantCtx, tenantID)
 	}
 
 	go func() {
@@ -132,6 +124,8 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 
 				for _, tenantID := range tenantIDs {
 					tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
+					mgr.initScheduledWorkflows(tenantCtx, tenantID)
+
 					sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(tenantCtx, types.UnlimitedPage())
 					if err != nil {
 						logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Error("failed to list scheduled workflows")
@@ -155,6 +149,18 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 	}()
 
 	return nil
+}
+
+func (mgr *Manager) initScheduledWorkflows(nCtx contextx.IContext, tenantID string) {
+	for name, f := range mgr.getInitScheduledWorkflowFuncs() {
+		if err := mgr.initScheduleWorkflow(nCtx, name, f); err != nil {
+			logger.G.Sys().WithErr(err).With("tenant-id", tenantID, "workflow-name", name).Error("failed to initialize scheduled workflow")
+
+			continue
+		}
+
+		logger.G.Sys().With("tenant-id", tenantID, "workflow-name", name).Info("initialized scheduled workflow")
+	}
 }
 
 func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, workflowName string, initFunc initScheduledWorkflowFunc) error {
