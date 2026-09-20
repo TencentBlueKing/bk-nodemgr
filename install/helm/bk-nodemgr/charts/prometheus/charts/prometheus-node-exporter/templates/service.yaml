@@ -21,7 +21,7 @@ spec:
 {{- if .Values.service.externalTrafficPolicy }}
   externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
 {{- end }}
-{{- if .Values.service.internalTrafficPolicy }}
+{{- if and .Values.service.internalTrafficPolicy (semverCompare ">=1.22-0" .Capabilities.KubeVersion.Version) }}
   internalTrafficPolicy: {{ .Values.service.internalTrafficPolicy }}
 {{- end }}
   type: {{ .Values.service.type }}
