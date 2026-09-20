@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -38,6 +39,8 @@ import (
 const (
 	// ActionNameSyncAlivePluginProcessInfo defines the action name.
 	ActionNameSyncAlivePluginProcessInfo = "sync_alive_plugin_process_info"
+
+	processSyncListMaxPageSize = 500
 )
 
 // NewActionSyncAlivePluginProcessInfo creates a new syncAgentInfo.
@@ -168,7 +171,21 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 }
 
 func (act *actionSyncAlivePluginProcessInfo) listProcessesToSync(nCtx contextx.IContext, hostIDs []int64) ([]*types.Process, error) {
-	runningProcess, _, err := act.processStg.ListProcesses(nCtx, types.UnlimitedPage(), &types.ProcessCondition{
+	executor := pageexecutor.NewPageExecutor[*types.Process](processSyncListMaxPageSize, act.Timeout())
+	listProcesses := func(cond *types.ProcessCondition) ([]*types.Process, error) {
+		fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Process, error) {
+			processes, _, err := act.processStg.ListProcesses(nCtx, p, cond)
+			return processes, err
+		}
+		result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Items, nil
+	}
+
+	runningProcess, err := listProcesses(&types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
 			HostID:     hostIDs,
 			InfoStatus: []types.ProcessStatus{types.ProcessStatusRunning},
@@ -178,7 +195,7 @@ func (act *actionSyncAlivePluginProcessInfo) listProcessesToSync(nCtx contextx.I
 		return nil, err
 	}
 
-	unknownAutoStartProcess, _, err := act.processStg.ListProcesses(nCtx, types.UnlimitedPage(), &types.ProcessCondition{
+	unknownAutoStartProcess, err := listProcesses(&types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
 			HostID:          hostIDs,
 			InfoStatus:      []types.ProcessStatus{types.ProcessStatusUnknown},
