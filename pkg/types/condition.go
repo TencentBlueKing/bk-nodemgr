@@ -746,6 +746,7 @@ type ProcessExactFields struct {
 	PlatformOS    []string
 	PlatformArch  []string
 	InfoStatus    []ProcessStatus
+	InfoAutoStart []bool
 	InfoAgentID   []string
 	InfoVersion   []string
 	PluginName    []string

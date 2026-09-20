@@ -70,6 +70,12 @@ const (
 	// FieldKeyInfoStatus the info status field key.
 	FieldKeyInfoStatus = "data.info.status"
 
+	// FieldKeyInfoAutoStart the process auto start field key.
+	FieldKeyInfoAutoStart = "data.info.trusteeship"
+
+	// FieldKeyInfoLastSyncAt the process last sync time field key.
+	FieldKeyInfoLastSyncAt = "data.info.last_sync_at"
+
 	// FieldKeyInfoAgentID the info agent_id field key.
 	FieldKeyInfoAgentID = "data.info.agent_id"
 

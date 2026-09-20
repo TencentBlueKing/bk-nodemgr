@@ -68,6 +68,9 @@ type IUpdater interface {
 	// UpdateManyInfo batch update process info by process ID.
 	UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*types.ProcessInfoDelta) error
 
+	// UpdateInfoStatus updates process info status by conditions.
+	UpdateInfoStatus(nCtx contextx.IContext, status types.ProcessStatus, opts ...OptFn) error
+
 	// UpdateManyHostBizID update process biz id for host ids.
 	UpdateManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error
 }
@@ -328,6 +331,32 @@ func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*t
 		logger.G.Sys().WithErr(err).Error("failed to batch update process info")
 
 		return fmt.Errorf("failed to batch update process info: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateInfoStatus updates process info status by conditions.
+func (h *Handler) UpdateInfoStatus(nCtx contextx.IContext, status types.ProcessStatus, opts ...OptFn) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %w", err)
+	}
+
+	if err := status.Validate(); err != nil {
+		return err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyInfoStatus, string(status)); err != nil {
+		return fmt.Errorf("failed to update process info status: %w", err)
 	}
 
 	return nil

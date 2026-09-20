@@ -16,12 +16,14 @@ import (
 	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func testClient(t *testing.T) IHandler {
@@ -131,4 +133,87 @@ func TestHandler_ProcessIntegration(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, exist)
 	})
+}
+
+func TestHandler_UpdateInfoStatusIntegration(t *testing.T) {
+	const tenantID = "update-process-info-status"
+	const otherTenantID = "update-process-info-status-other-tenant"
+
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID(tenantID))
+	h := testClient(t)
+	deadline := time.Now().UTC().Truncate(time.Millisecond)
+
+	expired := testProcess(tenantID)
+	expired.HostID = 101
+	expired.Info.LastSyncAt = deadline.Add(-time.Hour)
+	fresh := testProcess(tenantID)
+	fresh.HostID = expired.HostID
+	fresh.PluginName = "fresh-plugin"
+	fresh.Info.LastSyncAt = deadline.Add(time.Hour)
+	boundary := testProcess(tenantID)
+	boundary.HostID = expired.HostID
+	boundary.PluginName = "boundary-plugin"
+	boundary.Info.LastSyncAt = deadline
+	missingLastSyncAt := testProcess(tenantID)
+	missingLastSyncAt.HostID = expired.HostID
+	missingLastSyncAt.PluginName = "missing-last-sync-at-plugin"
+	otherHost := testProcess(tenantID)
+	otherHost.HostID = 102
+	otherHost.Info.LastSyncAt = deadline.Add(-time.Hour)
+	otherTenantCtx := contextx.New(context.Background(), contextx.WithTenantID(otherTenantID))
+	otherTenant := testProcess(otherTenantID)
+	otherTenant.HostID = expired.HostID
+	otherTenant.Info.LastSyncAt = deadline.Add(-time.Hour)
+
+	for _, process := range []*types.Process{expired, fresh, boundary, missingLastSyncAt, otherHost} {
+		require.NoError(t, h.Create(nCtx, process))
+		t.Cleanup(func() {
+			require.NoError(t, h.Delete(nCtx, process.HostID, process.PluginName))
+		})
+	}
+	require.NoError(t, h.Create(otherTenantCtx, otherTenant))
+	t.Cleanup(func() {
+		require.NoError(t, h.Delete(otherTenantCtx, otherTenant.HostID, otherTenant.PluginName))
+	})
+
+	_, err := h.(*Handler).tenantDao(tenantID).GetClient().UpdateOne(
+		nCtx,
+		bson.D{{Key: FieldKeyHostID, Value: missingLastSyncAt.HostID}, {Key: FieldKeyPluginName, Value: missingLastSyncAt.PluginName}},
+		bson.D{{Key: "$unset", Value: bson.D{{Key: FieldKeyInfoLastSyncAt, Value: ""}}}},
+	)
+	require.NoError(t, err)
+
+	require.NoError(t, h.UpdateInfoStatus(
+		nCtx,
+		types.ProcessStatusUnknown,
+		WithHostID(expired.HostID),
+		WithInfoLastSyncAtBefore(deadline),
+	))
+
+	updatedExpired, err := h.Get(nCtx, WithHostID(expired.HostID), WithPluginName(expired.PluginName))
+	require.NoError(t, err)
+	expectedExpiredInfo := expired.Info
+	expectedExpiredInfo.Status = types.ProcessStatusUnknown
+	require.Equal(t, expectedExpiredInfo, updatedExpired.Info)
+
+	updatedMissingLastSyncAt, err := h.Get(nCtx, WithHostID(missingLastSyncAt.HostID), WithPluginName(missingLastSyncAt.PluginName))
+	require.NoError(t, err)
+	require.Equal(t, types.ProcessStatusUnknown, updatedMissingLastSyncAt.Info.Status)
+	require.True(t, updatedMissingLastSyncAt.Info.LastSyncAt.IsZero())
+
+	updatedFresh, err := h.Get(nCtx, WithHostID(fresh.HostID), WithPluginName(fresh.PluginName))
+	require.NoError(t, err)
+	require.Equal(t, types.ProcessStatusRunning, updatedFresh.Info.Status)
+
+	updatedBoundary, err := h.Get(nCtx, WithHostID(boundary.HostID), WithPluginName(boundary.PluginName))
+	require.NoError(t, err)
+	require.Equal(t, types.ProcessStatusRunning, updatedBoundary.Info.Status)
+
+	updatedOtherHost, err := h.Get(nCtx, WithHostID(otherHost.HostID), WithPluginName(otherHost.PluginName))
+	require.NoError(t, err)
+	require.Equal(t, types.ProcessStatusRunning, updatedOtherHost.Info.Status)
+
+	updatedOtherTenant, err := h.Get(otherTenantCtx, WithHostID(otherTenant.HostID), WithPluginName(otherTenant.PluginName))
+	require.NoError(t, err)
+	require.Equal(t, types.ProcessStatusRunning, updatedOtherTenant.Info.Status)
 }

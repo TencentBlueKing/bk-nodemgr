@@ -89,6 +89,7 @@ const (
 	metricOperationUpdateProcess                      = "update_process"
 	metricOperationUpdateProcessInfo                  = "update_process_info"
 	metricOperationUpdateManyProcessInfo              = "update_many_process_info"
+	metricOperationMarkExpiredProcessesUnknown        = "mark_expired_processes_unknown"
 	metricOperationUpdateProcessBizID                 = "update_process_biz_id"
 	metricOperationDeleteProcess                      = "delete_process"
 	metricOperationExistProcess                       = "exist_process"
@@ -1000,6 +1001,15 @@ func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessD
 	})
 
 	return result, err
+}
+
+// MarkExpiredProcessesUnknown marks stale process status as unknown for the specified hosts.
+func (s *Storage) MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error {
+	err := s.WrapFn(nCtx, metricOperationMarkExpiredProcessesUnknown, func(nCtx contextx.IContext) error {
+		return s.markExpiredProcessesUnknown(nCtx, hostIDs, deadline)
+	})
+
+	return err
 }
 
 // ===============================================================================

@@ -19,6 +19,8 @@
 package plugin
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -35,6 +37,7 @@ type IStorage interface {
 	IDaoProcessConfig
 
 	IDomainPlugin
+	IDomainProcess
 }
 
 // IDaoPluginDeployment defines the plugin deployment dao interface.
@@ -195,4 +198,10 @@ type IDomainPlugin interface {
 
 	// EnsureDefaultPlugin creates a missing default plugin from the release without changing existing plugins.
 	EnsureDefaultPlugin(nCtx contextx.IContext, release *types.ReleasePlugin) error
+}
+
+// IDomainProcess defines process domain queries.
+type IDomainProcess interface {
+	// MarkExpiredProcessesUnknown marks stale process status as unknown for the specified hosts.
+	MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error
 }

@@ -19,8 +19,11 @@
 package process
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn provides filtering options.
@@ -79,6 +82,22 @@ func WithPlatformArch(archs ...string) OptFn {
 // WithInfoStatus filters by info status.
 func WithInfoStatus(statuses ...types.ProcessStatus) OptFn {
 	return base.WithValues(FieldKeyInfoStatus, statuses...)
+}
+
+// WithInfoAutoStart filters by whether the process is trusteeship by GSE.
+func WithInfoAutoStart(autoStarts ...bool) OptFn {
+	return base.WithValues(FieldKeyInfoAutoStart, autoStarts...)
+}
+
+// WithInfoLastSyncAtBefore filters processes whose last sync time is stale or absent.
+func WithInfoLastSyncAtBefore(deadline time.Time) OptFn {
+	return func(filter bson.D) bson.D {
+		return append(filter, bson.E{Key: "$or", Value: bson.A{
+			bson.D{{Key: FieldKeyInfoLastSyncAt, Value: bson.D{{Key: "$lt", Value: deadline}}}},
+			bson.D{{Key: FieldKeyInfoLastSyncAt, Value: bson.D{{Key: "$exists", Value: false}}}},
+			bson.D{{Key: FieldKeyInfoLastSyncAt, Value: nil}},
+		}})
+	}
 }
 
 // WithInfoAgentID filters by info agent ID.
