@@ -304,7 +304,7 @@ func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([
 				daoProcess.WithPlatformOS(condition.ExactInclude.PlatformOS...),
 				daoProcess.WithPlatformArch(condition.ExactInclude.PlatformArch...),
 				daoProcess.WithInfoStatus(condition.ExactInclude.InfoStatus...),
-				daoProcess.WithInfoAutoStart(condition.ExactInclude.InfoAutoStart...),
+				daoProcess.WithInfoTrusteeship(condition.ExactInclude.InfoTrusteeship...),
 				daoProcess.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
 				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...),
 				daoProcess.WithPluginName(condition.ExactInclude.PluginName...),

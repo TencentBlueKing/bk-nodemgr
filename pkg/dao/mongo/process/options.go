@@ -84,9 +84,9 @@ func WithInfoStatus(statuses ...types.ProcessStatus) OptFn {
 	return base.WithValues(FieldKeyInfoStatus, statuses...)
 }
 
-// WithInfoAutoStart filters by whether the process is trusteeship by GSE.
-func WithInfoAutoStart(autoStarts ...bool) OptFn {
-	return base.WithValues(FieldKeyInfoAutoStart, autoStarts...)
+// WithInfoTrusteeship filters by whether the process is trusteeship by GSE.
+func WithInfoTrusteeship(trusteeship ...bool) OptFn {
+	return base.WithValues(FieldKeyInfoTrusteeship, trusteeship...)
 }
 
 // WithInfoLastSyncAtBefore filters processes whose last sync time is stale or absent.
