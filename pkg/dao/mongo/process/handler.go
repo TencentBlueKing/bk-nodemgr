@@ -631,11 +631,12 @@ func convertProcessToTypes(data *Process) *types.Process {
 		BindIP:     data.BindIP,
 		BindPort:   data.BindPort,
 		Info: types.ProcessInfo{
-			Pid:       data.Info.Pid,
-			Version:   data.Info.Version,
-			AgentID:   data.Info.AgentID,
-			AutoStart: data.Info.Trusteeship,
-			Status:    types.ProcessStatus(data.Info.Status),
+			Pid:        data.Info.Pid,
+			Version:    data.Info.Version,
+			AgentID:    data.Info.AgentID,
+			AutoStart:  data.Info.Trusteeship,
+			Status:     types.ProcessStatus(data.Info.Status),
+			LastSyncAt: data.Info.LastSyncAt,
 		},
 		Identity: types.ProcessIdentity{
 
@@ -666,9 +667,6 @@ func convertProcessToTypes(data *Process) *types.Process {
 			StopCheckSecs:  data.MonitorPolicy.StopCheckSecs,
 			OpTimeoutSecs:  data.MonitorPolicy.OpTimeoutSecs,
 		},
-	}
-	if data.Info.LastSyncAt != nil {
-		process.Info.LastSyncAt = *data.Info.LastSyncAt
 	}
 
 	return process
@@ -720,10 +718,7 @@ func convProcessInfoFromTypes(info types.ProcessInfo) processInfo {
 		AgentID:     info.AgentID,
 		Trusteeship: info.AutoStart,
 		Status:      string(info.Status),
-	}
-	if !info.LastSyncAt.IsZero() {
-		lastSyncAt := info.LastSyncAt
-		processInfo.LastSyncAt = &lastSyncAt
+		LastSyncAt:  info.LastSyncAt,
 	}
 
 	return processInfo

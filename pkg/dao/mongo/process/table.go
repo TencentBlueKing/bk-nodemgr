@@ -57,12 +57,12 @@ type Process struct {
 
 // processInfo represents the info of process.
 type processInfo struct {
-	Pid         int        `json:"pid" bson:"pid"`
-	Version     string     `json:"version" bson:"version"`
-	AgentID     string     `json:"agent_id" bson:"agent_id"`
-	Trusteeship bool       `json:"trusteeship" bson:"trusteeship"`
-	Status      string     `json:"status" bson:"status"`
-	LastSyncAt  *time.Time `json:"last_sync_at,omitempty" bson:"last_sync_at,omitempty"`
+	Pid         int       `json:"pid" bson:"pid"`
+	Version     string    `json:"version" bson:"version"`
+	AgentID     string    `json:"agent_id" bson:"agent_id"`
+	Trusteeship bool      `json:"trusteeship" bson:"trusteeship"`
+	Status      string    `json:"status" bson:"status"`
+	LastSyncAt  time.Time `json:"last_sync_at" bson:"last_sync_at"`
 }
 
 type processIdentity struct {

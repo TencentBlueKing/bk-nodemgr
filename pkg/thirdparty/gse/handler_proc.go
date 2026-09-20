@@ -137,11 +137,12 @@ func (h *HandlerProc) QueryProcessInfo(
 	}
 
 	info := &types.ProcessInfo{
-		AutoStart: procInfoMap[agentID].IsAuto,
-		Pid:       procInfoMap[agentID].Pid,
-		AgentID:   agentID,
-		Version:   strings.TrimSpace(procInfoMap[agentID].Version),
-		Status:    convPidToProcStatus(procInfoMap[agentID].Pid),
+		AutoStart:  procInfoMap[agentID].IsAuto,
+		Pid:        procInfoMap[agentID].Pid,
+		AgentID:    agentID,
+		Version:    strings.TrimSpace(procInfoMap[agentID].Version),
+		Status:     convPidToProcStatus(procInfoMap[agentID].Pid),
+		LastSyncAt: time.Now(),
 	}
 
 	return info, nil
@@ -262,11 +263,12 @@ func (h *HandlerProc) queryMultiProcessInfoMany(
 			// For this GSE API, info.ProcessName carries meta.name/pluginName,
 			// not spec.identity.procName/programName.
 			processInfoMap[info.ProcessName] = append(processInfoMap[info.ProcessName], types.ProcessInfo{
-				AutoStart: info.IsAuto,
-				AgentID:   agentID,
-				Pid:       info.Pid,
-				Version:   strings.TrimSpace(info.Version),
-				Status:    convPidToProcStatus(info.Pid),
+				AutoStart:  info.IsAuto,
+				AgentID:    agentID,
+				Pid:        info.Pid,
+				Version:    strings.TrimSpace(info.Version),
+				Status:     convPidToProcStatus(info.Pid),
+				LastSyncAt: time.Now(),
 			})
 		}
 	}

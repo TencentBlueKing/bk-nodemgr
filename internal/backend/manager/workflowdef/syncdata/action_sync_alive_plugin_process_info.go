@@ -154,9 +154,8 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 			return err
 		}
 
-		lastSyncAt := time.Now()
 		agentNotAliveProcInfos := conv.SliceToSlice(agentNotAliveProcess, func(proc *types.Process) *types.ProcessInfoDelta {
-			return newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID], lastSyncAt)
+			return newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID])
 		})
 		needUpdateProcInfos = slices.Concat(needUpdateProcInfos, agentNotAliveProcInfos)
 
@@ -203,13 +202,11 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(
 	if err != nil {
 		return nil, err
 	}
-	lastSyncAt := time.Now()
 
 	underControlledProcInfos := make([]*types.ProcessInfoDelta, 0)
 	for pluginName, infos := range procInfos {
 		for idx := range infos {
 			processInfo := infos[idx]
-			processInfo.LastSyncAt = lastSyncAt
 			hostID := agentIDHostIDMap[processInfo.AgentID]
 			processInfoDelta := &types.ProcessInfoDelta{
 				HostID:      hostID,
@@ -233,7 +230,7 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(
 			continue
 		}
 
-		processInfoDelta := newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID], lastSyncAt)
+		processInfoDelta := newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID])
 		lostControlledProcInfos = append(lostControlledProcInfos, processInfoDelta)
 	}
 
@@ -281,7 +278,7 @@ func (act *actionSyncAlivePluginProcessInfo) splitProcessesByAgentState(
 	return agentAliveProcess, agentNotAliveProcess, nil
 }
 
-func newUnknownProcessInfoDelta(proc *types.Process, agentID string, lastSyncAt time.Time) *types.ProcessInfoDelta {
+func newUnknownProcessInfoDelta(proc *types.Process, agentID string) *types.ProcessInfoDelta {
 	return &types.ProcessInfoDelta{
 		HostID:     proc.HostID,
 		PluginName: proc.PluginName,
@@ -291,7 +288,7 @@ func newUnknownProcessInfoDelta(proc *types.Process, agentID string, lastSyncAt 
 			AgentID:    agentID,
 			AutoStart:  false,
 			Status:     types.ProcessStatusUnknown,
-			LastSyncAt: lastSyncAt,
+			LastSyncAt: time.Now(),
 		},
 	}
 }
