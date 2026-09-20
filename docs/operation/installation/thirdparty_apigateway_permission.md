@@ -55,6 +55,7 @@
 | `list_biz_hosts`                        | 查询业务下的主机                                         | 普通     | 永久     |
 | `list_biz_hosts_topo`                   | 查询业务下的主机和拓扑信息                               | 普通     | 永久     |
 | `list_hosts_without_biz`                | 没有业务ID的主机查询                                     | 普通     | 永久     |
+| `open_list_resource_pool_hosts`         | 查询资源池中的主机                                       | 普通     | 永久     |
 | `list_proc_template`                    | 查询进程模板列表                                         | 普通     | 永久     |
 | `list_process_instance`                 | 查询进程实例列表                                         | 普通     | 永久     |
 | `list_service_instance`                 | 查询服务实例列表                                         | 普通     | 永久     |
@@ -76,6 +77,19 @@
 | `update_cloud_area`                     | 更新管控区域                                             | 普通     | 永久     |
 | `update_dynamic_group`                  | 更新动态分组                                             | 普通     | 永久     |
 | `update_host_cloud_area_field`          | 更新主机的管控区域字段                                   | 普通     | 永久     |
+
+## bk-monitor
+
+| 权限项                              | 权限说明                                           | 权限级别 | 申请期限 |
+| ----------------------------------- | -------------------------------------------------- | -------- | -------- |
+| `get_or_create_agent_event_data_id` | 获取或创建节点管理 Agent 告警事件数据 ID，隐藏接口 | 普通     | 永久     |
+
+## bkiam
+
+| 权限项                     | 权限说明             | 权限级别 | 申请期限 |
+| -------------------------- | -------------------- | -------- | -------- |
+| `add_authorization`        | 角色授权             | 普通     | 永久     |
+| `list_authorized_resource` | 查询有权限的资源列表 | 普通     | 永久     |
 
 ## bk-notice
 
