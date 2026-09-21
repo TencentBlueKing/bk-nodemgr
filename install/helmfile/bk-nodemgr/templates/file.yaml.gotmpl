@@ -1,0 +1,155 @@
+image:
+{{ toYaml .Values.image | nindent 2 }}
+
+apiManagerImage:
+{{ toYaml .Values.apiManagerImage | nindent 2 }}
+
+common:
+{{ toYaml .Values.common | nindent 2 }}
+
+certData:
+{{ toYaml .Values.certData | nindent 2 }}
+
+bkApigatewayPublicKey: {{ .Values.bkApigatewayPublicKey | quote }}
+
+etcd:
+  enabled: false
+redis:
+  enabled: false
+mongodb:
+  enabled: false
+tempo:
+  enabled: false
+opentelemetryGateway:
+  enabled: false
+prometheus:
+  enabled: false
+grafana:
+  enabled: false
+loki:
+  enabled: false
+alloy:
+  enabled: false
+
+externalEtcd:
+{{ toYaml .Values.externalEtcd | nindent 2 }}
+
+externalRedis:
+{{ toYaml .Values.externalRedis | nindent 2 }}
+
+externalMongodb:
+{{ toYaml .Values.externalMongodb | nindent 2 }}
+
+application:
+  enabled: false
+
+backend:
+  enabled: false
+
+file:
+  enabled: true
+  replicaCount: {{ .Values.modules.file.replicaCount }}
+  hostNetwork: {{ .Values.modules.file.hostNetwork }}
+  resources:
+{{ toYaml .Values.modules.file.resources | nindent 4 }}
+  config:
+    runMode: {{ .Values.global.runMode | quote }}
+    tenantMode: {{ .Values.global.tenantMode | quote }}
+    infoServer:
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28200
+      traceServiceName: file-server-info
+      traceSampleRate: 0
+    adminServer:
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28201
+      authIdentity: rest-server
+      traceServiceName: file-server-admin
+      traceSampleRate: 0
+      jwtServerConfig:
+        cryptoType: symmetric
+        symmetricKey: ""
+    basicServer:
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28202
+      authIdentity: none
+      traceServiceName: file-server-basic
+      traceSampleRate: 0
+    downloadServer:
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28203
+      traceServiceName: file-server-download
+      traceSampleRate: 0
+    exportServer:
+      address: ""
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28204
+      authIdentity: none
+      traceServiceName: file-server-export
+      traceSampleRate: 0
+      jwtServerConfig:
+        cryptoType: symmetric
+        symmetricKey: ""
+    downloader:
+      allowHosts: []
+      blockHosts: []
+      maxBytes: 1073741824
+      traceServiceName: file-server-downloader
+      traceSampleRate: 0
+    workspaceFileGroup:
+{{ toYaml .Values.modules.file.workspaceFileGroup | nindent 6 }}
+    fileCache:
+      expirationHours: 72
+      gcIntervalHours: 1
+      restoreOnStart: false
+    tempFile:
+      expirationHours: 24
+      gcIntervalHours: 1
+    mountHostDir: {{ .Values.modules.file.mountHostDir | quote }}
+    gse:
+      endpoints:
+{{ toYaml .Values.gateways.gse.endpoints | nindent 8 }}
+      appCode: {{ .Values.global.appCode | quote }}
+      appSecret: {{ .Values.global.appSecret | quote }}
+      user: {{ .Values.global.user | quote }}
+      authMode: {{ .Values.global.authMode | quote }}
+      bkTicket: {{ .Values.global.bkTicket | quote }}
+      bkToken: {{ .Values.global.bkToken | quote }}
+      accessToken: {{ .Values.global.accessToken | quote }}
+      pluginSlotID: {{ .Values.gateways.gse.pluginSlotID }}
+      pluginSlotToken: {{ .Values.gateways.gse.pluginSlotToken | quote }}
+      tls:
+        insecureSkipVerify: false
+        certFile: ""
+        keyFile: ""
+        caFile: ""
+        password: ""
+    log:
+{{ toYaml .Values.global.log | nindent 6 }}
+    mongodb:
+      traceServiceName: bk_nodemgr_mongo
+      traceSampleRate: 0
+    tracing:
+{{ toYaml .Values.global.tracing | nindent 6 }}
+      globalService:
+        traceServiceName: file
+        traceSampleRate: 0
+    repo:
+{{ toYaml .Values.modules.file.repo | nindent 6 }}
+      traceServiceName: file-client-repo
+      traceSampleRate: 0
+
+initPackages:
+{{ toYaml .Values.hooks.initPackages | nindent 2 }}
+
+apigwSync:
+  enabled: false
+iamV3:
+  enabled: false
+iamV4:
+  enabled: false

@@ -1,0 +1,203 @@
+image:
+{{ toYaml .Values.image | nindent 2 }}
+
+apiManagerImage:
+{{ toYaml .Values.apiManagerImage | nindent 2 }}
+
+common:
+{{ toYaml .Values.common | nindent 2 }}
+
+certData:
+{{ toYaml .Values.certData | nindent 2 }}
+
+bkApigatewayPublicKey: {{ .Values.bkApigatewayPublicKey | quote }}
+
+etcd:
+  enabled: false
+redis:
+  enabled: false
+mongodb:
+  enabled: false
+tempo:
+  enabled: false
+opentelemetryGateway:
+  enabled: false
+prometheus:
+  enabled: false
+grafana:
+  enabled: false
+loki:
+  enabled: false
+alloy:
+  enabled: false
+
+externalEtcd:
+{{ toYaml .Values.externalEtcd | nindent 2 }}
+
+externalRedis:
+{{ toYaml .Values.externalRedis | nindent 2 }}
+
+externalMongodb:
+{{ toYaml .Values.externalMongodb | nindent 2 }}
+
+application:
+  enabled: true
+  replicaCount: {{ .Values.modules.application.replicaCount }}
+  hostNetwork: {{ .Values.modules.application.hostNetwork }}
+  resources:
+{{ toYaml .Values.modules.application.resources | nindent 4 }}
+  ingress:
+{{ toYaml .Values.modules.application.ingress | nindent 4 }}
+  config:
+    runMode: {{ .Values.global.runMode | quote }}
+    tenantMode: {{ .Values.global.tenantMode | quote }}
+    front:
+{{ toYaml .Values.modules.application.front | nindent 6 }}
+    backend:
+      endpoints:
+{{ toYaml .Values.gateways.nodemgr.endpoints | nindent 8 }}
+      appCode: {{ .Values.global.appCode | quote }}
+      appSecret: {{ .Values.global.appSecret | quote }}
+      user: {{ .Values.global.user | quote }}
+      authMode: {{ .Values.global.authMode | quote }}
+      bkTicket: {{ .Values.global.bkTicket | quote }}
+      bkToken: {{ .Values.global.bkToken | quote }}
+      accessToken: {{ .Values.global.accessToken | quote }}
+      traceServiceName: application-client-backend
+      traceSampleRate: 0
+      tls:
+        insecureSkipVerify: false
+        certFile: ""
+        keyFile: ""
+        caFile: ""
+        password: ""
+    userManager:
+      endpoints:
+{{ toYaml .Values.gateways.userManager.endpoints | nindent 8 }}
+      appCode: {{ .Values.global.appCode | quote }}
+      appSecret: {{ .Values.global.appSecret | quote }}
+      user: {{ .Values.global.user | quote }}
+      authMode: {{ .Values.global.authMode | quote }}
+      accessToken: {{ .Values.global.accessToken | quote }}
+      traceServiceName: application-client-usermanager
+      traceSampleRate: 0
+      tls:
+        insecureSkipVerify: false
+        certFile: ""
+        keyFile: ""
+        caFile: ""
+        password: ""
+    access: {}
+    notice:
+      enabled: {{ .Values.gateways.notice.enabled }}
+      endpoints:
+{{ toYaml .Values.gateways.notice.endpoints | nindent 8 }}
+      appCode: {{ .Values.global.appCode | quote }}
+      appSecret: {{ .Values.global.appSecret | quote }}
+      user: {{ .Values.global.user | quote }}
+      authMode: {{ .Values.global.authMode | quote }}
+      accessToken: {{ .Values.global.accessToken | quote }}
+      traceServiceName: application-client-notice
+      traceSampleRate: 0
+      tls:
+        insecureSkipVerify: false
+        certFile: ""
+        keyFile: ""
+        caFile: ""
+        password: ""
+    infoServer:
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28000
+      traceServiceName: application-server-info
+      traceSampleRate: 0
+    adminServer:
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28001
+      authIdentity: rest-server
+      traceServiceName: application-server-admin
+      traceSampleRate: 0
+      jwtServerConfig:
+        cryptoType: symmetric
+        symmetricKey: ""
+    basicServer:
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28002
+      authIdentity: bk-login
+      traceServiceName: application-server-basic
+      traceSampleRate: 0
+    log:
+{{ toYaml .Values.global.log | nindent 6 }}
+    file:
+      traceServiceName: application-client-file
+      traceSampleRate: 0
+      jwtClientConfig:
+        cryptoType: symmetric
+        symmetricKey: ""
+        tokenExpirationHour: 24
+    bkSaaS:
+      bkLogin:
+        loginURL: {{ .Values.gateways.bkLogin.loginURL | quote }}
+        endpoints:
+{{ toYaml .Values.gateways.bkLogin.endpoints | nindent 10 }}
+        appCode: {{ .Values.global.appCode | quote }}
+        appSecret: {{ .Values.global.appSecret | quote }}
+        user: {{ .Values.global.user | quote }}
+        authMode: {{ .Values.global.authMode | quote }}
+        accessToken: {{ .Values.global.accessToken | quote }}
+        authType: {{ .Values.gateways.bkLogin.authType | quote }}
+        traceServiceName: application-client-bklogin
+        traceSampleRate: 0
+        tls:
+          insecureSkipVerify: false
+          certFile: ""
+          keyFile: ""
+          caFile: ""
+          password: ""
+    bkPaaS:
+      analysisScript: ""
+    iamV3:
+      enable: {{ .Values.gateways.iamV3.enabled }}
+      endpoints:
+{{ toYaml .Values.gateways.iamV3.endpoints | nindent 8 }}
+      appCode: {{ .Values.global.appCode | quote }}
+      appSecret: {{ .Values.global.appSecret | quote }}
+      user: {{ .Values.global.user | quote }}
+      authMode: {{ .Values.global.authMode | quote }}
+      accessToken: {{ .Values.global.accessToken | quote }}
+      systemID: {{ .Values.gateways.iamV3.systemID | quote }}
+      cmdbSystemID: {{ .Values.gateways.iamV3.cmdbSystemID | quote }}
+      callbackPath: {{ .Values.gateways.iamV3.callbackPath | quote }}
+      traceServiceName: application-client-iam-v3
+      traceSampleRate: 0
+      tls:
+        insecureSkipVerify: false
+        certFile: ""
+        keyFile: ""
+        caFile: ""
+        password: ""
+    tracing:
+{{ toYaml .Values.global.tracing | nindent 6 }}
+      globalService:
+        traceServiceName: application
+        traceSampleRate: 0
+    configPolicyOption:
+      filePath: /bk-nodemgr/support-files/configpolicy
+
+backend:
+  enabled: false
+
+file:
+  enabled: false
+
+initPackages:
+  enabled: false
+
+apigwSync:
+{{ toYaml .Values.hooks.apigwSync | nindent 2 }}
+iamV3:
+  enabled: false
+iamV4:
+  enabled: false

@@ -1,0 +1,67 @@
+{{- $envName := .Environment.Name | default "example" -}}
+{{- if eq $envName "default" -}}
+{{- $envName = "example" -}}
+{{- end -}}
+
+helmBinary: {{ get .Values "helmBinary" | default "helm" | quote }}
+
+helmDefaults:
+  wait: true
+  timeout: {{ dig "helmDefaults" "timeout" 600 .Values }}
+  createNamespace: true
+
+{{- if dig "chart" "repositoryURL" "" .Values }}
+repositories:
+  - name: {{ dig "chart" "repository" "blueking" .Values | quote }}
+    url: {{ dig "chart" "repositoryURL" "" .Values | quote }}
+{{- end }}
+
+environments:
+  default:
+    values:
+      - environments/example/env.yaml
+  example:
+    values:
+      - environments/example/env.yaml
+{{- if and .Environment.Name (not (or (eq .Environment.Name "default") (eq .Environment.Name "example"))) }}
+  {{ .Environment.Name }}:
+    values:
+      - environments/{{ .Environment.Name }}/env.yaml
+{{- end }}
+
+releases:
+  - name: {{ .Values.releaseName | quote }}
+    namespace: {{ .Values.namespaces.file | quote }}
+    labels:
+      app: bk-nodemgr
+      module: file
+    chart: {{ printf "%s/%s" .Values.chart.repository .Values.chart.name | quote }}
+    version: {{ .Values.chart.version | quote }}
+    missingFileHandler: Warn
+    values:
+      - templates/file.yaml.gotmpl
+      - environments/{{ $envName }}/overrides/file.yaml
+
+  - name: {{ .Values.releaseName | quote }}
+    namespace: {{ .Values.namespaces.backend | quote }}
+    labels:
+      app: bk-nodemgr
+      module: backend
+    chart: {{ printf "%s/%s" .Values.chart.repository .Values.chart.name | quote }}
+    version: {{ .Values.chart.version | quote }}
+    missingFileHandler: Warn
+    values:
+      - templates/backend.yaml.gotmpl
+      - environments/{{ $envName }}/overrides/backend.yaml
+
+  - name: {{ .Values.releaseName | quote }}
+    namespace: {{ .Values.namespaces.application | quote }}
+    labels:
+      app: bk-nodemgr
+      module: application
+    chart: {{ printf "%s/%s" .Values.chart.repository .Values.chart.name | quote }}
+    version: {{ .Values.chart.version | quote }}
+    missingFileHandler: Warn
+    values:
+      - templates/application.yaml.gotmpl
+      - environments/{{ $envName }}/overrides/application.yaml

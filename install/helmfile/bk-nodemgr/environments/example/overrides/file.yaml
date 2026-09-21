@@ -1,0 +1,2 @@
+# Native Helm chart values override for the file release.
+# Fields here must match install/helm/bk-nodemgr/values.yaml.
