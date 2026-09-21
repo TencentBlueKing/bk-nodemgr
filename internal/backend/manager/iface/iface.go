@@ -163,6 +163,9 @@ type ISyncManager interface {
 
 	// LaunchSyncSharedReleases launches shared release synchronization and returns the workflow ID.
 	LaunchSyncSharedReleases(ctx contextx.IContext) (string, error)
+
+	// LaunchCleanOrphanProcess launch a task to clean the processes whose host no longer exists. returns the trigger-id.
+	LaunchCleanOrphanProcess(ctx contextx.IContext) (string, error)
 }
 
 // IDeployPolicyManager defines the DeployPolicyManager interface.

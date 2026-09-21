@@ -146,3 +146,12 @@ func (x *SyncSharedReleasesReq) Validate() error {
 func (x *SyncSharedReleasesReq) AutoConvert() {
 	// Intentionally empty: this request has no fields to convert.
 }
+
+// AutoConvert auto convert.
+func (x *CleanOrphanProcessReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *CleanOrphanProcessReq) Validate() error {
+	return nil
+}

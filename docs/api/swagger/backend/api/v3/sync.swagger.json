@@ -447,6 +447,40 @@
         ]
       }
     },
+    "/api/v3/sync/process/clean_orphan": {
+      "post": {
+        "summary": "CleanOrphanProcess provides cleaning the processes whose host no longer\nexists.",
+        "operationId": "Sync_CleanOrphanProcess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3CleanOrphanProcessResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "CleanOrphanProcessReq describes the HTTP request body when clean orphan\nprocess.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3CleanOrphanProcessReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
     "/api/v3/sync/release/shared": {
       "post": {
         "summary": "SyncSharedReleases syncs shared releases.",
@@ -537,6 +571,43 @@
             "type": "object",
             "$ref": "#/definitions/v3RelatedResourceType"
           }
+        }
+      }
+    },
+    "v3CleanOrphanProcessReq": {
+      "type": "object",
+      "description": "CleanOrphanProcessReq describes the HTTP request body when clean orphan\nprocess."
+    },
+    "v3CleanOrphanProcessResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3CleanOrphanProcessRespData"
+        }
+      },
+      "description": "CleanOrphanProcessResp describes the HTTP response body when clean orphan\nprocess."
+    },
+    "v3CleanOrphanProcessRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
         }
       }
     },

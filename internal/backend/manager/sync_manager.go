@@ -526,3 +526,39 @@ func (mgr *Manager) LaunchSyncSharedReleases(ctx contextx.IContext) (string, err
 
 	return triggerCtl.GetTriggerID(), nil
 }
+
+// LaunchCleanOrphanProcess launch a task to clean the processes whose host no longer exists.
+func (mgr *Manager) LaunchCleanOrphanProcess(ctx contextx.IContext) (string, error) {
+	if err := ctx.CheckTenantID(); err != nil {
+		return "", err
+	}
+	if err := ctx.CheckBKUsername(); err != nil {
+		return "", err
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperGenCleanOrphanProcess(syncdata.OperParamGenCleanOrphanProcess{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched clean orphan process task")
+
+	return triggerCtl.GetTriggerID(), nil
+}

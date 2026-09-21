@@ -214,6 +214,8 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionGenOperSyncAlivePluginProcessInfo(syncdataCap),
 		syncdata.NewActionGenOperCorrectUnknownProcessStatus(syncdataCap),
 		syncdata.NewActionCorrectUnknownProcessStatus(syncdataCap),
+		syncdata.NewActionGenOperCleanOrphanProcess(syncdataCap),
+		syncdata.NewActionCleanOrphanProcess(syncdataCap),
 	); err != nil {
 		return err
 	}

@@ -51,6 +51,7 @@ const (
 	scheduledWorkflowExecuteDeployPolicy            = "execute_deploy_policy"
 	scheduledWorkflowEnsureDefaultPlugin            = "ensure_default_plugin"
 	scheduledWorkflowSyncSharedReleases             = "sync_shared_releases"
+	scheduledWorkflowCleanOrphanProcess             = "clean_orphan_process"
 )
 
 const (
@@ -73,6 +74,7 @@ func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWork
 		scheduledWorkflowExecuteDeployPolicy:            mgr.initSWExecuteDeployPolicy,
 		scheduledWorkflowEnsureDefaultPlugin:            mgr.initSWEnsureDefaultPlugin,
 		scheduledWorkflowSyncSharedReleases:             mgr.initSWSyncSharedReleases,
+		scheduledWorkflowCleanOrphanProcess:             mgr.initSWCleanOrphanProcess,
 	}
 }
 
@@ -89,6 +91,7 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 		scheduledWorkflowExecuteDeployPolicy:            mgr.syncSWExecuteDeployPolicy,
 		scheduledWorkflowEnsureDefaultPlugin:            mgr.syncSWEnsureDefaultPlugin,
 		scheduledWorkflowSyncSharedReleases:             mgr.syncSWSyncSharedReleases,
+		scheduledWorkflowCleanOrphanProcess:             mgr.syncSWCleanOrphanProcess,
 	}
 }
 
@@ -599,6 +602,21 @@ func (mgr *Manager) syncSWSyncSharedReleases(nCtx contextx.IContext, sw *types.S
 	}
 
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncSharedReleases(schedule.OperParamSyncSharedReleases{
+		ScheduleActionStandardParam: standardParam,
+	}))
+}
+
+func (mgr *Manager) initSWCleanOrphanProcess(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowCleanOrphanProcess, scheduler.Daily)
+}
+
+func (mgr *Manager) syncSWCleanOrphanProcess(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow clean orphan process: %w", err)
+	}
+
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperCleanOrphanProcess(schedule.OperParamCleanOrphanProcess{
 		ScheduleActionStandardParam: standardParam,
 	}))
 }

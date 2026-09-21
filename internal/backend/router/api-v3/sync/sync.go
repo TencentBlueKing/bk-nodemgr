@@ -47,6 +47,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/cmdb/host", restserver.Handler(h.SyncCmdbHost))
 	h.rg.POST("/cmdb/networkarea", restserver.Handler(h.SyncCmdbNetworkArea))
+
 	h.rg.POST("/gse/agent/state", restserver.Handler(h.SyncAgentState))
 	h.rg.POST("/gse/agent/state/all", restserver.Handler(h.SyncAllAgentState))
 	h.rg.POST("/gse/agent/info", restserver.Handler(h.SyncAgentInfo))
@@ -56,6 +57,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/gse/plugin/process/info/all", restserver.Handler(h.SyncAllAlivePluginProcessInfo))
 	h.rg.POST("/gse/plugin/process/correct_unknown_status", restserver.Handler(h.CorrectUnknownProcessStatus))
 	h.rg.POST("/gse/plugin/process/correct_unknown_status/all", restserver.Handler(h.CorrectAllUnknownProcessStatus))
+
 	h.rg.POST("/plugin/ensure_default", restserver.Handler(h.EnsureDefaultPlugin))
+
 	h.rg.POST("/release/shared", restserver.Handler(h.SyncSharedReleases))
+
+	h.rg.POST("/process/clean_orphan", restserver.Handler(h.CleanOrphanProcess))
 }

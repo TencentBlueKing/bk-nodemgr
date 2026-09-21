@@ -739,6 +739,9 @@ type ConfigPolicyCondition struct {
 // ProcessExactFields defines the process exact fields.
 // support includes and excludes.
 type ProcessExactFields struct {
+	// InfoLastSyncAtBefore filters stale or absent sync times; nil disables the filter.
+	InfoLastSyncAtBefore *time.Time
+
 	HostID          []int64
 	BizID           []int64
 	PluginGroup     []string

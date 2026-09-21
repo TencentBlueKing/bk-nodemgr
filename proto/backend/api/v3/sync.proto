@@ -236,6 +236,23 @@ message SyncSharedReleasesResp {
   Data data = 5;
 }
 
+// CleanOrphanProcessReq describes the HTTP request body when clean orphan
+// process.
+message CleanOrphanProcessReq {}
+
+// CleanOrphanProcessResp describes the HTTP response body when clean orphan
+// process.
+message CleanOrphanProcessResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
 // sync service.
 service Sync {
   // SyncCmdbHost provides syncing cmdb host.
@@ -346,6 +363,16 @@ service Sync {
       returns (SyncSharedReleasesResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/release/shared"
+      body : "*"
+    };
+  }
+
+  // CleanOrphanProcess provides cleaning the processes whose host no longer
+  // exists.
+  rpc CleanOrphanProcess(CleanOrphanProcessReq)
+      returns (CleanOrphanProcessResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/process/clean_orphan"
       body : "*"
     };
   }

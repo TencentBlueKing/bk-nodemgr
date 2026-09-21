@@ -309,6 +309,9 @@ func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([
 				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...),
 				daoProcess.WithPluginName(condition.ExactInclude.PluginName...),
 				daoProcess.WithPkgName(condition.ExactInclude.PluginPkgName...))
+			if condition.ExactInclude.InfoLastSyncAtBefore != nil {
+				opts = append(opts, daoProcess.WithInfoLastSyncAtBefore(*condition.ExactInclude.InfoLastSyncAtBefore))
+			}
 		}
 
 		if condition.FuzzyInclude != nil {
