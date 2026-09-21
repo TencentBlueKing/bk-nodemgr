@@ -29,6 +29,12 @@ backend:
 {{- $_ := set $config "tenantMode" (dig "global" "tenantMode" "single" .Values) }}
 {{- $_ := set $config "adminServer" (dict "jwtServerConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
 {{- $_ := set $config "exportServer" (dict "jwtServerConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
+{{- $tracing := deepCopy (dig "tracing" dict $config) }}
+{{- $_ := set $tracing "exporterType" "otlp" }}
+{{- $_ := set $tracing "otlpEndpoint" (printf "bk-nodemgr-opentelemetry-gateway.%s.svc.cluster.local:4317" .Values.namespaces.monitoring) }}
+{{- $_ := set $tracing "otlpProtocol" "grpc" }}
+{{- $_ := set $tracing "otlpInsecure" true }}
+{{- $_ := set $config "tracing" $tracing }}
 {{- $gse := deepCopy (dig "gse" dict $config) }}
 {{- $_ := set $gse "appCode" (dig "global" "appCode" "" .Values) }}
 {{- $_ := set $gse "appSecret" (dig "global" "appSecret" "" .Values) }}

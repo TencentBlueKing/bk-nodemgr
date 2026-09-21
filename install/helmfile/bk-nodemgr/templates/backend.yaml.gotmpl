@@ -28,6 +28,12 @@ application:
 {{- $_ := set $config "adminServer" (dict "jwtServerConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
 {{- $_ := set $config "access" (dict "virtualUser" (dig "global" "access" "virtualUser" "" .Values)) }}
 {{- $_ := set $config "file" (dict "jwtClientConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
+{{- $tracing := deepCopy (dig "tracing" dict $config) }}
+{{- $_ := set $tracing "exporterType" "otlp" }}
+{{- $_ := set $tracing "otlpEndpoint" (printf "bk-nodemgr-opentelemetry-gateway.%s.svc.cluster.local:4317" .Values.namespaces.monitoring) }}
+{{- $_ := set $tracing "otlpProtocol" "grpc" }}
+{{- $_ := set $tracing "otlpInsecure" true }}
+{{- $_ := set $config "tracing" $tracing }}
 {{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}
 {{- $gatewayNames := dict "cmdb" "bk-cmdb" "gse" "bk-gse" "userManager" "bk-user" "monitor" "bk-monitor" "iamV3" "bk-iam" "iamV4" "bkiam" }}
 {{- range $name := list "cmdb" "gse" "userManager" "monitor" "iamV3" }}

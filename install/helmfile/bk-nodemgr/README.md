@@ -133,6 +133,7 @@ flowchart LR
 `monitoring` release 参考 `install/helm/bk-nodemgr/values-example.yaml`，默认启用：
 
 - `tempo`
+- `opentelemetryGateway`
 - `prometheus`
 - `grafana`
 - `loki`
@@ -154,6 +155,8 @@ Grafana 默认配置：
 - `hosts` 使用 `global.ingress.domain`。
 - `path` 使用 `global.ingress.grafanaPath`。
 - TLS secret 使用 `global.ingress.tlsSecretName`；为空时不渲染 TLS。
+
+`file`、`backend`、`application` 的 tracing 会自动指向 monitoring release 中的 `opentelemetryGateway`，Gateway 再导出到内置 Tempo。该联动只设置 OTLP exporter、endpoint、protocol 和 insecure 模式，不修改各服务的 `traceSampleRate`。
 
 `tempo` 没有复制 `values-example.yaml` 中的 S3 示例；S3 是生产外部对象存储示例，不适合作为本地 minikube 默认值。
 
