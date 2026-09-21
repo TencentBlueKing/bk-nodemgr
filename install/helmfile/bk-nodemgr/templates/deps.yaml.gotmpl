@@ -1,0 +1,20 @@
+application:
+  enabled: false
+backend:
+  enabled: false
+file:
+  enabled: false
+
+etcd:
+  enabled: true
+
+redis:
+  enabled: true
+
+mongodb:
+  enabled: true
+  replicaCount: 1
+  auth:
+    replicaSetKey: bk-nodemgr-example-replica-set-key
+  persistence:
+    enabled: false

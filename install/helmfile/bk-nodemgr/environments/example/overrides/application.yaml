@@ -1,2 +1,3 @@
 # Native Helm chart values override for the application release.
-# Fields here must match install/helm/bk-nodemgr/values.yaml.
+# Put normal environment settings in environments/example/env.yaml under application:.
+# Use this file only for release-local chart values that the shared template does not cover.

@@ -1,0 +1,66 @@
+application:
+  enabled: false
+backend:
+  enabled: false
+file:
+  enabled: false
+
+etcd:
+  enabled: false
+redis:
+  enabled: false
+mongodb:
+  enabled: false
+
+{{- $ingress := deepCopy (dig "global" "ingress" dict .Values) }}
+{{- $ingressEnabled := dig "enabled" false $ingress }}
+{{- $ingressClassName := dig "className" "" $ingress }}
+{{- $ingressDomain := dig "domain" "" $ingress }}
+{{- $grafanaPath := dig "grafanaPath" "/grafana" $ingress }}
+{{- $tlsSecretName := dig "tlsSecretName" "" $ingress }}
+
+tempo:
+  enabled: true
+prometheus:
+  enabled: true
+  server:
+    persistentVolume:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+grafana:
+  enabled: true
+  rootURL: https://{{ $ingressDomain }}{{ $grafanaPath }}/
+  persistence:
+    enabled: true
+    storageClassName: ""
+    size: 1Gi
+  ingress:
+    enabled: {{ $ingressEnabled }}
+    ingressClassName: {{ $ingressClassName | quote }}
+    hosts:
+      - {{ $ingressDomain | quote }}
+    path: {{ $grafanaPath | quote }}
+    pathType: Prefix
+    {{- if $tlsSecretName }}
+    tls:
+      - secretName: {{ $tlsSecretName | quote }}
+        hosts:
+          - {{ $ingressDomain | quote }}
+    {{- end }}
+loki:
+  enabled: true
+  singleBinary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+alloy:
+  enabled: true
+pyroscope:
+  enabled: true
+  pyroscope:
+    persistence:
+      enabled: true
+      storageClassName: ""
+      size: 10Gi

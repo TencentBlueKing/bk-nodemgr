@@ -3,7 +3,7 @@
 {{- $envName = "example" -}}
 {{- end -}}
 
-helmBinary: {{ get .Values "helmBinary" | default "helm" | quote }}
+helmBinary: {{ dig "helmBinary" "helm" .Values | quote }}
 
 helmDefaults:
   wait: true
@@ -29,7 +29,26 @@ environments:
       - environments/{{ .Environment.Name }}/env.yaml
 {{- end }}
 
+---
+
+{{- $envName := .Environment.Name | default "example" -}}
+{{- if eq $envName "default" -}}
+{{- $envName = "example" -}}
+{{- end -}}
+
 releases:
+  - name: {{ .Values.releaseName | quote }}
+    namespace: {{ .Values.namespaces.deps | quote }}
+    labels:
+      app: bk-nodemgr
+      module: deps
+    chart: {{ printf "%s/%s" .Values.chart.repository .Values.chart.name | quote }}
+    version: {{ .Values.chart.version | quote }}
+    missingFileHandler: Warn
+    values:
+      - templates/deps.yaml.gotmpl
+      - environments/{{ $envName }}/overrides/deps.yaml
+
   - name: {{ .Values.releaseName | quote }}
     namespace: {{ .Values.namespaces.file | quote }}
     labels:
@@ -65,3 +84,15 @@ releases:
     values:
       - templates/application.yaml.gotmpl
       - environments/{{ $envName }}/overrides/application.yaml
+
+  - name: {{ .Values.releaseName | quote }}
+    namespace: {{ .Values.namespaces.monitoring | quote }}
+    labels:
+      app: bk-nodemgr
+      module: monitoring
+    chart: {{ printf "%s/%s" .Values.chart.repository .Values.chart.name | quote }}
+    version: {{ .Values.chart.version | quote }}
+    missingFileHandler: Warn
+    values:
+      - templates/monitoring.yaml.gotmpl
+      - environments/{{ $envName }}/overrides/monitoring.yaml
