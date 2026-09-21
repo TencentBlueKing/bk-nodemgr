@@ -1,0 +1,20 @@
+{
+  "skill_name": "bk-nodemgr-config-sync",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我要给 BackendService 增加一个新的 startup config 字段，字段需要能通过 Helm、helmfile 和本地 docker-compose 配置。请实现并确保不会漏同步配置面。",
+      "expected_output": "Uses Implementation mode, identifies BackendService YAML path, updates pkg/config defaults/validation as needed, syncs Helm values/configmap, helmfile backend gotmpl and example env, docker-compose backend config template when local experience applies, and reports a Config Surface Matrix with omission reasons if any."
+    },
+    {
+      "id": 2,
+      "prompt": "review 这个 PR：它改了 pkg/config/backend.go 新增字段，也改了 values.yaml，但 backend-configmap.yaml 没有新增对应渲染。帮我看配置有没有漏。",
+      "expected_output": "Uses Review mode without editing files, reports a High severity finding for missing Helm ConfigMap rendering, includes file:line style references where available, maps source field to YAML path and deployment surface, and lists checked Helm/helmfile/docker-compose surfaces."
+    },
+    {
+      "id": 3,
+      "prompt": "这次只允许改 Helm，不要动 helmfile 和 docker-compose。我新增了 application 的一个配置项，你帮我把 chart 补上。",
+      "expected_output": "Respects the user-limited scope, updates only Helm-related surfaces, does not modify helmfile or docker-compose, and final response explicitly lists unsynced Helmfile/docker-compose config surface risk with a Config Surface Matrix showing those surfaces as out of scope or pending."
+    }
+  ]
+}

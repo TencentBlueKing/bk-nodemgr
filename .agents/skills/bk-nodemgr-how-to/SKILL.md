@@ -42,6 +42,7 @@ Read these before inventing routing rules:
 - `pkg/contextx/AGENTS.md`: project context propagation contract.
 - `pkg/runtime/conv/AGENTS.md`, `pkg/runtime/criteria/AGENTS.md`, `pkg/runtime/crypter/AGENTS.md`: runtime subpackage contracts.
 - `.agents/skills/bk-nodemgr-{conv,gopool,retrier,contextx,logger,error-handling}/SKILL.md`: high-frequency project Go skills.
+- `.agents/skills/bk-nodemgr-config-sync/SKILL.md`: `pkg/config` startup config synchronization and review across Helm, helmfile, and docker-compose surfaces.
 - `.agents/skills/api-scaffold/SKILL.md`, `.agents/skills/router-permission-supplement/SKILL.md`, `.agents/skills/api-doc/SKILL.md`, `.agents/skills/code-review/SKILL.md`: project workflow and review skills.
 
 ## Routing Rules
@@ -57,6 +58,7 @@ Project-specific skills take precedence over generic Go skills when the task tou
 | Go error creation, propagation, wrapping, inspection, aggregation, `err == nil`, panic/recover, `resterrf.ErrWrap`, log-or-return responsibility | `bk-nodemgr-error-handling` | `golang-safety`, `golang-error-handling` only for language details not covered by the project skill |
 | `pkg/logger`, Biz/Sys logs, fields, levels, third-party logger adapters | `bk-nodemgr-logger` | `bk-nodemgr-error-handling` for error responsibility, `golang-observability` for general concepts |
 | Third-party adapters, handler/client isolation, named API Req/Resp, domain interfaces, CLI-local APIGW adapters | `bk-nodemgr-thirdparty` | Project error/logger/contextx skills as needed; generic Go skills only for language-level gaps |
+| `pkg/config` service startup config fields, YAML tags, defaults, validation, startup config flags, Helm values/configmaps/deployments, helmfile config templates, docker-compose config templates, config surface drift review | `bk-nodemgr-config-sync` | `bk-nodemgr-architecture-judgment` when changing long-lived config surface boundaries; `code-review` for PR review framing |
 | `testsuite/support`, package-level Mongo/Redis integration tests, `NODEMGR_TEST_*`, `RequireMongoDatabase`, `RequireRedisClientWithKeyPrefix` | `bk-nodemgr-testsuite-support` | `golang-testing`, `golang-database` |
 | Cross-layer placement, competing designs, dependency direction, shared-contract changes, pre-flight/post-flight judgment, explicit deepening scans | `bk-nodemgr-architecture-judgment` | Narrow project skill for the affected surface, then generic Go skills only for language-level gaps |
 | New REST/proto endpoint scaffolding | `api-scaffold`, `bk-nodemgr-error-handling` | `golang-grpc`, `golang-testing` when implementation requires them |
@@ -109,6 +111,7 @@ For architecture judgment signals, load `bk-nodemgr-architecture-judgment` as a 
 - Replacing project contracts with generic Go advice, especially for `contextx`, runtime helpers, logger, router permissions, or API scaffolding.
 - Forgetting non-Go project skills for Go work that includes docs, changelog, PR, release, or permission matrices.
 - Adding a new project skill before checking whether an existing one already owns the domain.
+- Reviewing or implementing `pkg/config` changes without checking Helm, helmfile, and docker-compose config surfaces through `bk-nodemgr-config-sync`.
 
 ## Verification Checklist
 
@@ -132,6 +135,7 @@ Pressure prompts live in `evals/evals.json`. Keep run outputs, timing, grading, 
 - `bk-nodemgr-error-handling`: project Go error semantics, wrapping, REST mapping, log-or-return responsibility, and `err == nil` migration.
 - `bk-nodemgr-logger`: project logging conventions.
 - `bk-nodemgr-thirdparty`: provider capabilities, raw API contracts, and shared client reuse, including CLI-local adapters.
+- `bk-nodemgr-config-sync`: service startup config synchronization and drift review across `pkg/config`, Helm, helmfile, and docker-compose.
 - `bk-nodemgr-testsuite-support`: project package-level Mongo/Redis integration test support.
 - `bk-nodemgr-architecture-judgment`: pre-flight/post-flight architecture judgment and explicit deepening scans.
 - `api-scaffold`: project API endpoint scaffolding.
