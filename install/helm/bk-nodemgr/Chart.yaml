@@ -38,6 +38,11 @@ dependencies:
     # repository: "https://grafana.github.io/helm-charts"
     repository: "file://./charts/tempo"
     version: 1.23.3
+  - condition: pyroscope.enabled
+    name: pyroscope
+    # repository: "https://grafana.github.io/helm-charts"
+    repository: "file://./charts/pyroscope"
+    version: 2.3.1
   - condition: opentelemetryGateway.enabled
     name: opentelemetry-collector
     alias: opentelemetryGateway

@@ -122,6 +122,48 @@ tempo:
   tempoQuery:
     enabled: false
 
+## Embedded Pyroscope profiling backend for bk-nodemgr self-monitoring.
+## Single-binary deployment; enable persistence to retain profiles across pod replacement.
+pyroscope:
+  enabled: false
+  pyroscope:
+    replicaCount: 1
+    image:
+      registry: docker.io
+      repository: grafana/pyroscope
+      tag: 2.3.1
+      pullPolicy: IfNotPresent
+    extraArgs:
+      log.level: info
+    service:
+      type: ClusterIP
+      port: 4040
+    resources:
+      limits:
+        memory: 1024Mi
+        cpu: 1000m
+      requests:
+        memory: 256Mi
+        cpu: 100m
+    structuredConfig:
+      storage:
+        backend: filesystem
+        filesystem:
+          dir: /data/shared
+    persistence:
+      enabled: false
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 10Gi
+  ## Services already push profiles through the Go SDK; no additional scraper is needed.
+  alloy:
+    enabled: false
+  agent:
+    enabled: false
+  minio:
+    enabled: false
+
 ## Embedded OpenTelemetry Collector Gateway for tracing fan-out.
 ## The gateway is optional and keeps multi-destination routing outside bk-nodemgr processes.
 opentelemetryGateway:
@@ -1349,6 +1391,20 @@ application:
         # the password to decrypt the certificate.
         password: ""
 
+    ## Process profiling. Omit enabled to follow pyroscope.enabled; explicit true/false wins.
+    ## serverAddress never enables profiling. Empty uses embedded Pyroscope when enabled.
+    profiling:
+      # enabled: false
+      serverAddress: ""
+      applicationName: ""
+      basicAuthUser: ""
+      basicAuthPassword: ""
+      tenantID: ""
+      headers: {}
+      tags: {}
+      # Empty keeps the SDK defaults: CPU and allocation/in-use memory profiles.
+      profileTypes: []
+
     ## defines the tracing related settings.
     tracing:
       # instance id for tracing system (defaults to pod name in k8s)
@@ -1879,6 +1935,20 @@ backend:
         # token expiration duration (e.g., 1h, 24h)
         tokenExpirationHour: 24
 
+    ## Process profiling. Omit enabled to follow pyroscope.enabled; explicit true/false wins.
+    ## serverAddress never enables profiling. Empty uses embedded Pyroscope when enabled.
+    profiling:
+      # enabled: false
+      serverAddress: ""
+      applicationName: ""
+      basicAuthUser: ""
+      basicAuthPassword: ""
+      tenantID: ""
+      headers: {}
+      tags: {}
+      # Empty keeps the SDK defaults: CPU and allocation/in-use memory profiles.
+      profileTypes: []
+
     ## defines the tracing related settings.
     tracing:
       # instance id for tracing system (defaults to pod name in k8s)
@@ -2123,6 +2193,20 @@ file:
     mongodb:
       traceServiceName: "bk_nodemgr_mongo"
       traceSampleRate: 0
+
+    ## Process profiling. Omit enabled to follow pyroscope.enabled; explicit true/false wins.
+    ## serverAddress never enables profiling. Empty uses embedded Pyroscope when enabled.
+    profiling:
+      # enabled: false
+      serverAddress: ""
+      applicationName: ""
+      basicAuthUser: ""
+      basicAuthPassword: ""
+      tenantID: ""
+      headers: {}
+      tags: {}
+      # Empty keeps the SDK defaults: CPU and allocation/in-use memory profiles.
+      profileTypes: []
 
     ## defines the tracing related settings.
     tracing:

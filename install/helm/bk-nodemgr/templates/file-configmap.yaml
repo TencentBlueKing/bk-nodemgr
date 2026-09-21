@@ -105,6 +105,9 @@ data:
       traceServiceName: {{ .Values.file.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.file.config.mongodb.traceSampleRate }}
 
+    profiling:
+      {{- include "bk-nodemgr.profilingConfig" (dict "config" .Values.file.config.profiling "context" $) | nindent 6 }}
+
     tracing:
       {{- include "bk-nodemgr.tracingConfig" (dict "config" .Values.file.config.tracing "context" $) | nindent 6 }}
       instanceID: "__TRACING_INSTANCEID__"

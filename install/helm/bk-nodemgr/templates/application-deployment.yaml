@@ -36,6 +36,7 @@ spec:
         app: nodemgr-application
       annotations:
         values-hash: "{{ toYaml .Values.application.config | sha256sum | trunc 63 }}"
+        profiling-hash: {{ include "bk-nodemgr.profilingConfig" (dict "config" .Values.application.config.profiling "context" $) | sha256sum | trunc 63 | quote }}
         {{- if .Values.application.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.application.podAnnotations "context" $) | nindent 8 }}
         {{- else if .Values.podAnnotations }}

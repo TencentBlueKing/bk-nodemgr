@@ -162,6 +162,9 @@ data:
       virtualUser: {{ ternary "admin" "bk_admin" (eq .Values.backend.config.tenantMode "single") | quote }}
       {{- end }}
 
+    profiling:
+      {{- include "bk-nodemgr.profilingConfig" (dict "config" .Values.backend.config.profiling "context" $) | nindent 6 }}
+
     tracing:
       {{- include "bk-nodemgr.tracingConfig" (dict "config" .Values.backend.config.tracing "context" $) | nindent 6 }}
       instanceID: "__TRACING_INSTANCEID__"

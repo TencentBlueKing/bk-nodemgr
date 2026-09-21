@@ -66,6 +66,33 @@ Return the embedded Tempo OTLP gRPC endpoint.
 {{- end -}}
 
 {{/*
+Return the embedded Pyroscope HTTP ingest/query endpoint.
+*/}}
+{{- define "bk-nodemgr.pyroscope.httpEndpoint" -}}
+http://{{ include "pyroscope.fullname" .Subcharts.pyroscope }}.{{ .Release.Namespace }}.svc:{{ .Values.pyroscope.pyroscope.service.port }}
+{{- end -}}
+
+{{/*
+Render service profiling config. Explicit enabled and serverAddress values take precedence independently.
+*/}}
+{{- define "bk-nodemgr.profilingConfig" -}}
+{{- $config := deepCopy (.config | default dict) -}}
+{{- if not (hasKey $config "enabled") -}}
+{{- $_ := set $config "enabled" .context.Values.pyroscope.enabled -}}
+{{- end -}}
+{{- if not (kindIs "bool" $config.enabled) -}}
+{{- fail "profiling.enabled must be a boolean when specified" -}}
+{{- end -}}
+{{- if and .context.Values.pyroscope.enabled (not (trim (get $config "serverAddress" | default ""))) -}}
+{{- $_ := set $config "serverAddress" (include "bk-nodemgr.pyroscope.httpEndpoint" .context) -}}
+{{- end -}}
+{{- if and $config.enabled (not (trim (get $config "serverAddress" | default ""))) -}}
+{{- fail "profiling.serverAddress is required when profiling.enabled=true and pyroscope.enabled=false" -}}
+{{- end -}}
+{{- toYaml $config -}}
+{{- end -}}
+
+{{/*
 Return the OpenTelemetry Gateway full name used by the official collector subchart.
 */}}
 {{- define "bk-nodemgr.opentelemetryGateway.fullname" -}}

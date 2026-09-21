@@ -17,6 +17,9 @@ dependencies:
 - name: tempo
   repository: file://./charts/tempo
   version: 1.23.3
+- name: pyroscope
+  repository: file://./charts/pyroscope
+  version: 2.3.1
 - name: opentelemetry-collector
   repository: file://./charts/opentelemetry-collector
   version: 0.130.2
@@ -29,5 +32,5 @@ dependencies:
 - name: alloy
   repository: file://./charts/alloy
   version: 1.12.1
-digest: sha256:a5bb921821e3d9d68fb79cb9441ca4bc7fe1a7f44bc7b47edc3f99229ec40ca3
-generated: "2026-09-19T13:18:05.289130787+08:00"
+digest: sha256:9b5a4d18db6c558506c815c3c0af33bd5a38e57657f4cc646b4053e494a89a7c
+generated: "2026-09-21T16:44:35.843588519+08:00"

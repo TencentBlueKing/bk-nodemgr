@@ -53,6 +53,9 @@ data:
 
     notice: {{ .Values.application.config.notice | toYaml | nindent 6 }}
 
+    profiling:
+      {{- include "bk-nodemgr.profilingConfig" (dict "config" .Values.application.config.profiling "context" $) | nindent 6 }}
+
     tracing:
       {{- include "bk-nodemgr.tracingConfig" (dict "config" .Values.application.config.tracing "context" $) | nindent 6 }}
       instanceID: "__TRACING_INSTANCEID__"

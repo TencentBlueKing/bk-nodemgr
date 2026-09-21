@@ -1,6 +1,6 @@
 {{- if .Values.grafana.enabled }}
-{{- if not (or .Values.tempo.enabled .Values.prometheus.enabled .Values.loki.enabled) }}
-{{- fail "grafana.enabled requires tempo.enabled=true, prometheus.enabled=true, or loki.enabled=true" }}
+{{- if not (or .Values.tempo.enabled .Values.prometheus.enabled .Values.loki.enabled .Values.pyroscope.enabled) }}
+{{- fail "grafana.enabled requires tempo.enabled=true, prometheus.enabled=true, loki.enabled=true, or pyroscope.enabled=true" }}
 {{- end }}
 apiVersion: v1
 kind: ConfigMap
@@ -36,7 +36,16 @@ data:
         type: loki
         access: proxy
         url: {{ include "bk-nodemgr.loki.httpEndpoint" . }}
-        isDefault: {{ not .Values.prometheus.enabled }}
+        isDefault: {{ not (or .Values.prometheus.enabled .Values.tempo.enabled) }}
+        editable: false
+      {{- end }}
+      {{- if .Values.pyroscope.enabled }}
+      - name: Pyroscope
+        uid: bk-nodemgr-pyroscope
+        type: grafana-pyroscope-datasource
+        access: proxy
+        url: {{ include "bk-nodemgr.pyroscope.httpEndpoint" . }}
+        isDefault: {{ not (or .Values.prometheus.enabled .Values.tempo.enabled .Values.loki.enabled) }}
         editable: false
       {{- end }}
 {{- end }}

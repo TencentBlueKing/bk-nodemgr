@@ -43,6 +43,16 @@ tempo:
         wal:
           path: /var/tempo/wal
 
+## 内嵌 Pyroscope 默认关闭；开启后自动启用未显式设置 profiling.enabled 的服务。
+## 使用单副本 filesystem 存储；开启 PVC 保留数据。
+pyroscope:
+  enabled: false
+  pyroscope:
+    persistence:
+      enabled: true
+      storageClassName: ""
+      size: 10Gi
+
 ## OpenTelemetry Gateway 默认关闭；用于集中处理 trace fan-out、重试、队列和外部凭证。
 opentelemetryGateway:
   enabled: false
@@ -123,7 +133,7 @@ alloy:
   enabled: false
 
 ## Optional Grafana subchart with password login and automatically provisioned data sources.
-## Enable tempo.enabled, prometheus.enabled, or loki.enabled as the embedded backend. Retrieve the generated password from the Grafana Secret.
+## Enable tempo.enabled, prometheus.enabled, loki.enabled, or pyroscope.enabled as the embedded backend. Retrieve the generated password from the Grafana Secret.
 grafana:
   enabled: false
   rootURL: https://nodemgr.example.com/grafana/

@@ -83,18 +83,63 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 #### 自监控配置
 
-自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true`、`prometheus.enabled=true` 或 `loki.enabled=true`。采集服务 trace 时，推荐启用 `opentelemetryGateway.enabled=true` 作为统一 OTLP Gateway，再由 Gateway 转发到 Tempo。
+自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true`、`prometheus.enabled=true`、`loki.enabled=true` 或 `pyroscope.enabled=true`。采集服务 trace 时，推荐启用 `opentelemetryGateway.enabled=true` 作为统一 OTLP Gateway，再由 Gateway 转发到 Tempo。
 
 | 参数                         | 类型   | 默认值 | 描述                                                                  |
 | ---------------------------- | ------ | ------ | --------------------------------------------------------------------- |
 | tempo.enabled                | bool   | false  | 启用内嵌 Tempo，用于存储和查询链路追踪数据                            |
+| pyroscope.enabled            | bool   | false  | 启用内嵌 Pyroscope，未显式配置 profiling.enabled 的服务自动开始采集 |
 | opentelemetryGateway.enabled | bool   | false  | 启用 OpenTelemetry Collector Gateway，作为服务 trace 的推荐入口        |
 | prometheus.enabled           | bool   | false  | 启用内嵌 Prometheus，用于采集 bk-nodemgr 服务指标                     |
 | loki.enabled                 | bool   | false  | 启用内嵌 Loki，用于存储并查询 Alloy 采集的 Kubernetes Pod 日志        |
 | alloy.enabled                | bool   | false  | 启用内嵌 Alloy，以 DaemonSet 采集 Kubernetes Pod 日志并写入内嵌 Loki  |
-| grafana.enabled              | bool   | false  | 启用内嵌 Grafana，用于查看 Tempo、Prometheus 和 Loki 数据源           |
+| grafana.enabled              | bool   | false  | 启用内嵌 Grafana，用于查看 Tempo、Prometheus、Loki 和 Pyroscope 数据源           |
 | grafana.rootURL              | string | 空     | Grafana 访问地址，启用 Grafana 时必填，需包含结尾 `/`                 |
 | grafana.adminUser            | string | admin  | Grafana 管理员用户名                                                  |
+
+Profiling 最小启用示例：
+
+```yaml
+pyroscope:
+  enabled: true
+grafana:
+  enabled: true
+  rootURL: https://nodemgr.example.com/grafana/
+```
+
+`application.config.profiling`、`backend.config.profiling`、`file.config.profiling` 分别控制服务采集。启用状态和上报地址独立解析，用户显式配置优先：
+
+| 配置 | 解析规则 |
+| --- | --- |
+| `enabled` 显式为 `true` 或 `false` | 严格使用指定值 |
+| 未指定 `enabled` | 跟随 `pyroscope.enabled`；仅填写地址不会启用采集 |
+| `serverAddress` 非空 | 保留用户地址 |
+| `serverAddress` 为空且内嵌 Pyroscope 开启 | 注入内嵌 Service 的 HTTP 地址 |
+| 最终启用但没有可用地址 | Helm 渲染报错 |
+
+```mermaid
+flowchart TD
+    A[服务 profiling 配置] --> B{显式指定 enabled?}
+    B -->|是| C[使用指定值]
+    B -->|否| D[跟随 pyroscope.enabled]
+    C --> E{serverAddress 非空?}
+    D --> E
+    E -->|是| F[保留用户地址]
+    E -->|否| G{内嵌 Pyroscope 开启?}
+    G -->|是| H[注入内嵌地址]
+    G -->|否| I[地址保持为空]
+    F --> J{最终启用且地址为空?}
+    H --> J
+    I --> J
+    J -->|是| K[Helm 渲染报错]
+    J -->|否| L[输出服务配置]
+```
+
+例如，`backend.config.profiling.enabled: false` 可在开启内嵌 Pyroscope 时关闭 backend 采集。连接外部 Pyroscope 且内嵌组件关闭时，必须同时配置 `enabled: true` 和 `serverAddress: https://profiles.example.com`。`applicationName`、`basicAuthUser`、`basicAuthPassword`、`tenantID`、`headers`、`tags` 和 `profileTypes` 按原有服务配置传递；`profileTypes` 留空使用 CPU 和内存采集默认值。
+
+Profiles 通过现有 SDK 直接上报，不经过 OpenTelemetry Gateway 或日志 Alloy。Grafana 的内嵌 Pyroscope 数据源始终查询内嵌后端；给服务填写外部地址不会改写该数据源。服务最终 profiling 配置变化会触发 Pod 更新；修改内嵌数据源地址或端口后，按现有方式重启 Grafana 以加载 provisioning 配置。
+
+内嵌 Pyroscope 默认以单副本运行，使用 filesystem 存储；默认未启用持久化，Pod 替换后数据丢失。需要保留数据时，参考 `values-example.yaml` 设置 `pyroscope.pyroscope.persistence`。本地存储配置不适用于跨 Pod 扩容。
 
 Trace 和指标最小启用示例：
 
