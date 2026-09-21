@@ -33,12 +33,15 @@ externalMongodb:
 {{- $_ := set $config "adminServer" (dict "jwtServerConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
 {{- $_ := set $config "access" (dict "virtualUser" (dig "global" "access" "virtualUser" "" .Values)) }}
 {{- $_ := set $config "file" (dict "jwtClientConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
+{{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}
+{{- $gatewayNames := dict "nodemgr" "bk-nodemgr" "userManager" "bk-user" "notice" "bk-notice" "iamV3" "bk-iam" "bkLogin" "bk-login" }}
 {{- $backendGateway := deepCopy (dig "gateways" "nodemgr" dict .Values) }}
 {{- $backend := deepCopy (dig "backend" dict $config) }}
 {{- $_ := set $backend "appCode" (dig "global" "appCode" "" .Values) }}
 {{- $_ := set $backend "appSecret" (dig "global" "appSecret" "" .Values) }}
 {{- $_ := set $backend "user" (dig "global" "user" "" .Values) }}
-{{- with dig "endpoints" list $backendGateway }}{{- $_ := set $backend "endpoints" . }}{{- end }}
+{{- $nodemgrEndpoint := replace "{gateway_name}" (dig "nodemgr" "" $gatewayNames) $bkAPITmpl }}
+{{- $_ := set $backend "endpoints" (dig "endpoints" (list $nodemgrEndpoint) $backendGateway) }}
 {{- $_ := set $config "backend" $backend }}
 {{- range $configName := list "userManager" "notice" "iamV3" }}
 {{- $gateway := deepCopy (dig "gateways" $configName dict $.Values) }}
@@ -47,7 +50,9 @@ externalMongodb:
 {{- $_ := set $current "appCode" (dig "global" "appCode" "" $.Values) }}
 {{- $_ := set $current "appSecret" (dig "global" "appSecret" "" $.Values) }}
 {{- $_ := set $current "user" (dig "global" "user" "" $.Values) }}
-{{- with dig "endpoints" list $gateway }}{{- $_ := set $current "endpoints" . }}{{- end }}
+{{- $gatewayName := dig $configName "" $gatewayNames }}
+{{- $endpoint := replace "{gateway_name}" $gatewayName $bkAPITmpl }}
+{{- $_ := set $current "endpoints" (dig "endpoints" (list $endpoint) $gateway) }}
 {{- $_ := set $config $configName $current }}
 {{- end }}
 {{- end }}
@@ -56,7 +61,8 @@ externalMongodb:
 {{- $_ := set $bkLogin "appCode" (dig "global" "appCode" "" .Values) }}
 {{- $_ := set $bkLogin "appSecret" (dig "global" "appSecret" "" .Values) }}
 {{- $_ := set $bkLogin "user" (dig "global" "user" "" .Values) }}
-{{- with dig "gateways" "bkLogin" "endpoints" list .Values }}{{- $_ := set $bkLogin "endpoints" . }}{{- end }}
+{{- $bkLoginEndpoint := replace "{gateway_name}" (dig "bkLogin" "" $gatewayNames) $bkAPITmpl }}
+{{- $_ := set $bkLogin "endpoints" (dig "gateways" "bkLogin" "endpoints" (list $bkLoginEndpoint) .Values) }}
 {{- $_ := set $bkSaaS "bkLogin" $bkLogin }}
 {{- $_ := set $config "bkSaaS" $bkSaaS }}
 {{- $_ := set $application "config" $config }}

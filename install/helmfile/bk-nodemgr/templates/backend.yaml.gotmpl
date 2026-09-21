@@ -28,6 +28,8 @@ application:
 {{- $_ := set $config "adminServer" (dict "jwtServerConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
 {{- $_ := set $config "access" (dict "virtualUser" (dig "global" "access" "virtualUser" "" .Values)) }}
 {{- $_ := set $config "file" (dict "jwtClientConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
+{{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}
+{{- $gatewayNames := dict "cmdb" "bk-cmdb" "gse" "bk-gse" "userManager" "bk-user" "monitor" "bk-monitor" "iamV3" "bk-iam" "iamV4" "bkiam" }}
 {{- range $name := list "cmdb" "gse" "userManager" "monitor" "iamV3" }}
 {{- $gateway := deepCopy (dig "gateways" $name dict $.Values) }}
 {{- if or $gateway (hasKey $config $name) }}
@@ -35,7 +37,9 @@ application:
 {{- $_ := set $current "appCode" (dig "global" "appCode" "" $.Values) }}
 {{- $_ := set $current "appSecret" (dig "global" "appSecret" "" $.Values) }}
 {{- $_ := set $current "user" (dig "global" "user" "" $.Values) }}
-{{- with dig "endpoints" list $gateway }}{{- $_ := set $current "endpoints" . }}{{- end }}
+{{- $gatewayName := dig $name "" $gatewayNames }}
+{{- $endpoint := replace "{gateway_name}" $gatewayName $bkAPITmpl }}
+{{- $_ := set $current "endpoints" (dig "endpoints" (list $endpoint) $gateway) }}
 {{- $_ := set $config $name $current }}
 {{- end }}
 {{- end }}
@@ -43,7 +47,8 @@ application:
 {{- $_ := set $iamV4 "appCode" (dig "global" "appCode" "" .Values) }}
 {{- $_ := set $iamV4 "appSecret" (dig "global" "appSecret" "" .Values) }}
 {{- $_ := set $iamV4 "authMode" (dig "global" "authMode" "un" .Values) }}
-{{- with dig "gateways" "iamV4" "endpoints" list .Values }}{{- $_ := set $iamV4 "endpoints" . }}{{- end }}
+{{- $iamV4Endpoint := replace "{gateway_name}" (dig "iamV4" "" $gatewayNames) $bkAPITmpl }}
+{{- $_ := set $iamV4 "endpoints" (dig "gateways" "iamV4" "endpoints" (list $iamV4Endpoint) .Values) }}
 {{- $_ := set $config "iamV4" $iamV4 }}
 {{- $_ := set $backend "config" $config }}
 backend:

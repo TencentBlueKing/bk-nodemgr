@@ -47,6 +47,7 @@ flowchart LR
 - `namespaces`：5 个 release 的 namespace。
 - `global`：多租户、BlueKing app、统一 JWT 和访问用户配置。
 - `global.ingress`：统一入口域名、path、ingress class 和 TLS secret；Grafana 默认使用这里的 `grafanaPath`。
+- `global.bkApiUrlTmpl`：BlueKing API Gateway endpoint 模板。
 - `backend.config`：Backend 需要用户显式确认的业务字段。
 - `application.config`：Application 需要用户显式确认的业务字段。
 - `file.config`：File 需要用户显式确认的业务字段。
@@ -61,7 +62,26 @@ flowchart LR
 - `global.user`：调用 BlueKing API 的用户名。
 - `global.access.virtualUser`：Backend/Application 使用的虚拟用户。
 - `global.serviceJwt.symmetricKey`：File、Backend、Application 之间共享的 JWT symmetric key。
+- `global.bkApiUrlTmpl`：BlueKing API Gateway endpoint 模板，默认 `https://example.com/api/{gateway_name}/prod`。
 - `global.ingress`：Application 和 Grafana 共用的入口配置；`path` 用于 Application，`grafanaPath` 用于 Grafana。
+
+### API Gateway
+
+默认只配置 `global.bkApiUrlTmpl`，模板里的 `{gateway_name}` 会按下面的映射生成各服务使用的 endpoint。
+
+如果某个 gateway 需要特殊地址，不要修改模板逻辑；在对应 release 的 `overrides/*.yaml` 中覆盖 chart 原生 values。
+
+当前映射：
+
+- `nodemgr` -> `bk-nodemgr`
+- `cmdb` -> `bk-cmdb`
+- `gse` -> `bk-gse`
+- `userManager` -> `bk-user`
+- `bkLogin` -> `bk-login`
+- `iamV3` -> `bk-iam`
+- `iamV4` -> `bkiam`
+- `notice` -> `bk-notice`
+- `monitor` -> `bk-monitor`
 
 ### backend
 

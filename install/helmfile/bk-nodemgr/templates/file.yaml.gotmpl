@@ -33,7 +33,9 @@ backend:
 {{- $_ := set $gse "appCode" (dig "global" "appCode" "" .Values) }}
 {{- $_ := set $gse "appSecret" (dig "global" "appSecret" "" .Values) }}
 {{- $_ := set $gse "user" (dig "global" "user" "" .Values) }}
-{{- with dig "gateways" "gse" "endpoints" list .Values }}{{- $_ := set $gse "endpoints" . }}{{- end }}
+{{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}
+{{- $gseEndpoint := replace "{gateway_name}" "bk-gse" $bkAPITmpl }}
+{{- $_ := set $gse "endpoints" (dig "gateways" "gse" "endpoints" (list $gseEndpoint) .Values) }}
 {{- $_ := set $config "gse" $gse }}
 {{- $_ := set $file "config" $config }}
 file:
