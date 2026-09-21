@@ -101,6 +101,40 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 | grafana.rootURL              | string | 空     | Grafana 访问地址，启用 Grafana 时必填，需包含结尾 `/`                 |
 | grafana.adminUser            | string | admin  | Grafana 管理员用户名                                                  |
 
+完整自监控推荐启用示例：
+
+```yaml
+tempo:
+  enabled: true
+pyroscope:
+  enabled: true
+opentelemetryGateway:
+  enabled: true
+prometheus:
+  enabled: true
+loki:
+  enabled: true
+  singleBinary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+alloy:
+  enabled: true
+grafana:
+  enabled: true
+  rootURL: https://nodemgr.example.com/grafana/
+```
+
+启用后，四类信号按以下链路进入 Grafana：
+
+| 信号    | 采集入口                         | 存储/查询后端 | Grafana datasource uid  |
+| ------- | -------------------------------- | ------------- | ----------------------- |
+| Metrics | 服务 `info-http` 端口 `/metrics` | Prometheus    | `bk-nodemgr-prometheus` |
+| Traces  | OpenTelemetry Gateway OTLP       | Tempo         | `bk-nodemgr-tempo`      |
+| Logs    | Alloy DaemonSet 采集 Pod 日志    | Loki          | `bk-nodemgr-loki`       |
+| Profiles | 服务 profiling SDK 直接上报    | Pyroscope     | `bk-nodemgr-pyroscope`  |
+
 Profiling 最小启用示例：
 
 ```yaml
