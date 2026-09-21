@@ -229,3 +229,68 @@ config:
 ### Relay配置
 
 relay将在安装proxy的时候自动安装，无需手动配置
+
+### 自监控开发套件配置
+
+> **使用范围与维护说明**：Grafana、Tempo、Alloy、Loki、Prometheus、Pyroscope、OpenTelemetry Collector（`opentelemetry-collector`，对应 `opentelemetryGateway` 配置）等自监控组件均为开源组件，仅作为用户自行管理的可选开发套件，不属于节点管理的标准能力，默认部署不提供这些组件（启用开关均为 `false`），用户应结合自身环境评估后决定是否启用。
+>
+> 该套件仅用于节点管理自身的指标、日志和链路追踪观测，可供未部署蓝鲸监控的环境按需使用；不提供业务监控能力，也不替代蓝鲸监控产品。
+
+#### 内嵌组件启用示例
+
+以下配置合并到 Helm values 顶层，而不是各服务的 `config` 中。示例为主动启用开发套件，并非默认部署配置。
+
+Trace 和指标最小启用示例：服务通过 OpenTelemetry Collector Gateway 将 trace 写入 Tempo，Prometheus 采集服务指标，Grafana 展示数据。
+
+```yaml
+tempo:
+  enabled: true
+opentelemetryGateway:
+  enabled: true
+prometheus:
+  enabled: true
+grafana:
+  enabled: true
+  rootURL: https://nodemgr.example.com/grafana/
+```
+
+日志采集最小启用示例，可独立使用或与上述配置合并：
+
+```yaml
+loki:
+  enabled: true
+  singleBinary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+alloy:
+  enabled: true
+grafana:
+  enabled: true
+  rootURL: https://nodemgr.example.com/grafana/
+```
+
+- Grafana 至少需要启用 Tempo、Prometheus、Loki 中的一个数据源。`grafana.rootURL` 必须替换为实际访问地址，并保留结尾 `/`；该参数本身不会创建外部访问入口。
+- Tempo 默认 local 存储仅适合开发或验证环境。Loki 示例使用 PVC，`storageClass` 留空时使用集群默认 StorageClass；请根据环境配置存储类和容量。以上示例不包含生产环境所需的完整安全加固、高可用和数据备份配置。
+- Alloy 依赖 Loki，以 DaemonSet 采集 `/var/log/pods` 和 `/var/lib/docker/containers` 中的 Kubernetes Pod 日志，范围不只限于节点管理。启用前需自行评估日志隐私、访问权限、存储容量及节点资源开销。
+- Grafana 默认登录用户为 `admin`，管理员密码由 Chart 在 Secret 中生成。可在实际 namespace 中读取 `<release-name>-grafana` Secret 的 `admin-password` 字段并进行 Base64 解码；自定义 `fullnameOverride` 或 `nameOverride` 时以实际 Secret 名称为准。
+
+#### 依赖自监控套件的 tracing 配置
+
+使用内嵌 Gateway 和 Tempo 时，以下 Helm values 即可启用 trace 接入，无需手工填写服务 endpoint：
+
+```yaml
+tempo:
+  enabled: true
+opentelemetryGateway:
+  enabled: true
+```
+
+链路追踪上报的自动配置适用于 `application.config.tracing`、`backend.config.tracing`、`file.config.tracing`，按各服务的配置分别判断：
+
+- 未显式设置 `otlpEndpoint` 且启用 Gateway 时，服务将 trace 发往 Gateway，再由 Gateway 转发到 Tempo。
+- 未显式设置 `otlpEndpoint`、未启用 Gateway，但启用 Tempo 时，服务自动直连 Tempo。
+- 已显式设置 `otlpEndpoint` 时，不自动配置上报至内嵌组件；需按前述公共 tracing 配置自行设置连接参数。
+
+自动配置链路追踪上报时使用 `exporterType: otlp`、`otlpProtocol: grpc` 和 `otlpInsecure: true`，需自行评估集群内明文传输风险。未启用 Gateway 和 Tempo 时，不会因启用 Grafana、Prometheus、Loki 或 Alloy 而自动开启 OTLP trace 上报。

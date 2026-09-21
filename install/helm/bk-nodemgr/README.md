@@ -83,6 +83,10 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 #### 自监控配置
 
+> **使用范围与维护说明**：Grafana、Tempo、Alloy、Loki、Prometheus、Pyroscope、OpenTelemetry Collector（`opentelemetry-collector`，对应 `opentelemetryGateway` 配置）等自监控组件均为开源组件，仅作为用户自行管理的可选开发套件，不属于节点管理的标准能力，默认部署不提供这些组件（启用开关均为 `false`），用户应结合自身环境评估后决定是否启用。
+>
+> 该套件仅用于节点管理自身的指标、日志和链路追踪观测，可供未部署蓝鲸监控的环境按需使用；不提供业务监控能力，也不替代蓝鲸监控产品。
+
 自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true`、`prometheus.enabled=true`、`loki.enabled=true` 或 `pyroscope.enabled=true`。采集服务 trace 时，推荐启用 `opentelemetryGateway.enabled=true` 作为统一 OTLP Gateway，再由 Gateway 转发到 Tempo。
 
 | 参数                         | 类型   | 默认值 | 描述                                                                  |
@@ -184,17 +188,17 @@ $ kubectl get secret -n <namespace> bk-nodemgr-grafana -o jsonpath='{.data.admin
 
 如果使用了其它 ReleaseName，请将 Secret 名称中的 `bk-nodemgr` 替换为实际 ReleaseName，例如 `<release-name>-grafana`。如果配置了 `grafana.fullnameOverride` 或 `grafana.nameOverride`，请以实际生成的 Secret 名称为准。
 
-自监控开启后，`application.config.tracing`、`backend.config.tracing`、`file.config.tracing` 控制三个服务的 trace exporter。推荐路径是服务先发往内嵌 OpenTelemetry Collector Gateway，再由 Gateway 转发到 Tempo。若 `opentelemetryGateway.enabled=true` 且对应服务未显式配置 `otlpEndpoint`，Chart 会自动将 trace 发往 Gateway；只有在未启用 Gateway、但启用了 `tempo.enabled=true` 时，才会回退为服务直连内嵌 Tempo。自动接线会写入 `exporterType: "otlp"`、`otlpProtocol: "grpc"`、`otlpInsecure: true`。
+自监控开启后，`application.config.tracing`、`backend.config.tracing`、`file.config.tracing` 控制三个服务的 trace exporter。推荐路径是服务先发往内嵌 OpenTelemetry Collector Gateway，再由 Gateway 转发到 Tempo。若 `opentelemetryGateway.enabled=true` 且对应服务未显式配置 `otlpEndpoint`，Chart 会自动将 trace 发往 Gateway；只有在未启用 Gateway、但启用了 `tempo.enabled=true` 时，才会回退为服务直连内嵌 Tempo。自动配置链路追踪上报时会写入 `exporterType: "otlp"`、`otlpProtocol: "grpc"`、`otlpInsecure: true`。
 
 | 参数                                        | 类型   | 默认值 | 描述                                                                 |
 | ------------------------------------------- | ------ | ------ | -------------------------------------------------------------------- |
 | `<service>.config.tracing.exporterType`     | string | stdout | trace exporter 类型；可设为 `otlp` 发往 OTLP backend                  |
-| `<service>.config.tracing.otlpEndpoint`     | string | 空     | OTLP endpoint；为空时可由内嵌自监控组件自动接线                      |
+| `<service>.config.tracing.otlpEndpoint`     | string | 空     | OTLP endpoint；为空时可根据已启用的内嵌自监控组件自动填充                      |
 | `<service>.config.tracing.otlpProtocol`     | string | grpc   | OTLP 协议；合法值为 `grpc` 或 `http`，非法非空值会导致服务启动失败   |
-| `<service>.config.tracing.otlpInsecure`     | bool   | false  | 是否关闭 OTLP TLS 校验；内嵌自监控自动接线时为 `true`                |
+| `<service>.config.tracing.otlpInsecure`     | bool   | false  | 是否关闭 OTLP TLS 校验；自动配置上报至内嵌自监控组件时为 `true`                |
 | `<service>.config.tracing.otlpHeaders`      | object | {}     | 发送 OTLP 请求时附加的 HTTP/gRPC metadata，例如鉴权 header           |
 
-`<service>` 可替换为 `application`、`backend` 或 `file`。`otlpProtocol` 配置错误时，服务启动校验会返回 `otlp protocol is invalid`。启用自监控时，优先保持服务 trace 自动接线到 Gateway；需要转发到外部 OTLP HTTP backend 时，应配置 `opentelemetryGateway.alternateConfig`，由 Gateway 负责外发。`alternateConfig` 会完整替换 Collector 配置，因此需要同时声明 receiver、processor、exporter 和 pipeline。
+`<service>` 可替换为 `application`、`backend` 或 `file`。`otlpProtocol` 配置错误时，服务启动校验会返回 `otlp protocol is invalid`。启用自监控时，优先由 Chart 自动配置服务 trace 上报至 Gateway；需要转发到外部 OTLP HTTP backend 时，应配置 `opentelemetryGateway.alternateConfig`，由 Gateway 负责外发。`alternateConfig` 会完整替换 Collector 配置，因此需要同时声明 receiver、processor、exporter 和 pipeline。
 
 通过 Gateway 转发到外部 OTLP HTTP backend 示例：
 
