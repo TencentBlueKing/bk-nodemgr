@@ -12,7 +12,9 @@ application:
     className: nginx
     domain: nodemgr.example.com
     path: /
-    tlsSecretName: nodemgr-tls
+    ## Name of an existing TLS Secret in the release namespace, not a password.
+    ## Set this to configure Ingress TLS; empty omits the TLS section.
+    tlsSecretName: ""
     lbid: example-bcs-lb-id
     lbPolicy: WRR
     isDirectConnect: true
