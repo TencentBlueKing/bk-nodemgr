@@ -30,7 +30,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
 const (
@@ -44,6 +46,7 @@ func NewActionCleanOrphanProcess(capability *Capability) action.Definition {
 		processStg:  capability.StoragePlugin,
 		hostStg:     capability.StorageTopo,
 		cmdbHandler: capability.CMDBHandler,
+		workflowCtl: capability.WorkflowCtl,
 	}
 }
 
@@ -57,6 +60,7 @@ type actionCleanOrphanProcess struct {
 	processStg  plugin.IDaoProcess
 	hostStg     topoStg.IStorageHost
 	cmdbHandler cmdb.IHandler
+	workflowCtl workflow.IController
 }
 
 // Name returns the name of the action.
@@ -114,7 +118,7 @@ func (act *actionCleanOrphanProcess) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-// cleanOrphanProcesses deletes only the supplied unknown processes whose hosts are missing.
+// cleanOrphanProcesses deletes supplied processes with missing hosts and schedules correction for existing hosts.
 func (act *actionCleanOrphanProcess) cleanOrphanProcesses(std *syncDataUtils.SyncDataActionStandarder, processes []*types.Process) error {
 	if len(processes) == 0 {
 		return nil
@@ -132,11 +136,19 @@ func (act *actionCleanOrphanProcess) cleanOrphanProcesses(std *syncDataUtils.Syn
 		missingHosts[hostID] = struct{}{}
 	}
 
-	targets := make([]*types.Process, 0, len(processes))
-	for _, process := range processes {
-		if process.Info.Status != types.ProcessStatusUnknown {
+	existingHostIDs := make([]int64, 0, len(hostIDs))
+	for _, hostID := range hostIDs {
+		if _, missing := missingHosts[hostID]; missing {
 			continue
 		}
+		existingHostIDs = append(existingHostIDs, hostID)
+	}
+	if err := act.createCorrectionOperation(std, existingHostIDs); err != nil {
+		return err
+	}
+
+	targets := make([]*types.Process, 0, len(processes))
+	for _, process := range processes {
 		if _, missing := missingHosts[process.HostID]; !missing {
 			continue
 		}
@@ -160,6 +172,34 @@ func (act *actionCleanOrphanProcess) cleanOrphanProcesses(std *syncDataUtils.Syn
 			Zh("已删除孤立进程, 主机 ID %d, 插件 %s", process.HostID, process.PluginName).
 			En("deleted orphan process, host id %d, plugin %s", process.HostID, process.PluginName).
 			Info()
+	}
+
+	return nil
+}
+
+func (act *actionCleanOrphanProcess) createCorrectionOperation(
+	std *syncDataUtils.SyncDataActionStandarder, hostIDs []int64) error {
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+	metadata := trigger.NewMetadataOrdered(1)
+	metadata.CleanPolicy = trigger.MetadataCleanPolicy{MaxDays: syncDataCleanPolicyMaxDays(act.Timeout())}
+	trigCtl, err := act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOrdered, metadata)
+	if err != nil {
+		return fmt.Errorf("failed to create process status correction trigger: %w", err)
+	}
+	operDef := NewOperCorrectUnknownProcessStatus(OperParamCorrectUnknownProcessStatus{
+		TenantID: std.TenantID(), Operator: std.Operator(), HostIDs: hostIDs,
+	})
+	operParam := operDef.DefaultParameters()
+	operParam.ParentOperationID = std.InstanceData().OperationID
+	operParam.ParentOperInstID = std.InstanceData().OperationInstanceID
+	if _, err := trigCtl.CreateOperation(std.Context(), operDef, operParam); err != nil {
+		return fmt.Errorf("failed to create process status correction operation: %w", err)
+	}
+	if err := trigCtl.ActivateTrigger(std.Context()); err != nil {
+		return fmt.Errorf("failed to activate process status correction trigger: %w", err)
 	}
 
 	return nil

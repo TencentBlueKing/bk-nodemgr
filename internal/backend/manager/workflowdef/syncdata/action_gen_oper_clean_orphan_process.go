@@ -26,7 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -44,7 +44,7 @@ const (
 	cleanOrphanProcessStaleAfter = 48 * time.Hour
 )
 
-// NewActionGenOperCleanOrphanProcess creates the unknown process scan action.
+// NewActionGenOperCleanOrphanProcess creates the stale process scan action.
 func NewActionGenOperCleanOrphanProcess(capability *Capability) action.Definition {
 	return &actionGenOperCleanOrphanProcess{
 		processStg:  capability.StoragePlugin,
@@ -74,7 +74,7 @@ func (act *actionGenOperCleanOrphanProcess) Version() string {
 
 // Description returns the action description.
 func (act *actionGenOperCleanOrphanProcess) Description() string {
-	return "generate orphan process cleanup operations for unknown processes"
+	return "generate orphan process cleanup operations for stale processes"
 }
 
 // Timeout returns the scan timeout.
@@ -97,7 +97,7 @@ func (act *actionGenOperCleanOrphanProcess) DelayFn(_ int) func() {
 	return func() {}
 }
 
-// Do lists stale unknown processes and generates a cleanup operation for each batch.
+// Do lists one page of stale processes and generates a cleanup operation for each batch.
 func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamGenOperCleanOrphanProcess)
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
@@ -108,25 +108,36 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 		return err
 	}
 
+	pageSize, err := conv.ToInt64(globalsettings.Get(std.Context(), globalsettings.OperCleanOrphanProcessPageSize,
+		globalsettings.OperCleanOrphanProcessPageSizeDefault))
+	if err != nil {
+		return fmt.Errorf("failed to parse %s: %w", globalsettings.OperCleanOrphanProcessPageSize, err)
+	}
+	if pageSize <= 0 {
+		return fmt.Errorf("%s must be positive, got %d", globalsettings.OperCleanOrphanProcessPageSize, pageSize)
+	}
+
 	deadline := time.Now().Add(-cleanOrphanProcessStaleAfter)
 	condition := &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
-			InfoStatus:           []types.ProcessStatus{types.ProcessStatusUnknown},
 			InfoLastSyncAtBefore: &deadline,
 		},
 	}
-	executor := pageexecutor.NewPageExecutor[*types.Process](cleanOrphanProcessBatchSize, act.Timeout())
-	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Process, error) {
-		processes, _, err := act.processStg.ListProcesses(nCtx, p, condition)
-
-		return processes, err
-	}
-	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
+	processes, _, err := act.processStg.ListProcesses(std.Context(), types.Page{Limit: int(pageSize)}, condition)
 	if err != nil {
-		return fmt.Errorf("failed to list stale unknown processes: %w", err)
+		return fmt.Errorf("failed to list stale processes: %w", err)
 	}
+	if len(processes) == 0 {
+		std.InstanceData().Log().
+			Zh("未找到过期进程").
+			En("no stale processes found").
+			Info()
+
+		return nil
+	}
+
 	var trigCtl workflow.ITriggerCtl
-	if err := batchexecutor.Execute(std.Context(), result.Items, func(nCtx contextx.IContext, batchProcesses []*types.Process) error {
+	if err := batchexecutor.Execute(std.Context(), processes, func(nCtx contextx.IContext, batchProcesses []*types.Process) error {
 		if trigCtl == nil {
 			meta := trigger.NewMetadataOrdered(1)
 			meta.CleanPolicy = trigger.MetadataCleanPolicy{
@@ -170,8 +181,8 @@ func (act *actionGenOperCleanOrphanProcess) executeOper(
 		return fmt.Errorf("failed to create orphan process cleanup operation: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("已为 %d 个 unknown 进程生成清理任务 %s", len(processes), operCtl.GetOperationID()).
-		En("created cleanup operation %s for %d unknown processes", operCtl.GetOperationID(), len(processes)).
+		Zh("已为 %d 个过期进程生成清理任务 %s", len(processes), operCtl.GetOperationID()).
+		En("created cleanup operation %s for %d stale processes", operCtl.GetOperationID(), len(processes)).
 		Info()
 
 	return nil

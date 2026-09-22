@@ -88,7 +88,7 @@ func (act *actionCorrectUnknownProcessStatus) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
-// Do marks expired processes unknown without changing their last observation time.
+// Do marks expired processes unknown and records the correction time as their last sync time.
 func (act *actionCorrectUnknownProcessStatus) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamCorrectUnknownProcessStatus)
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {

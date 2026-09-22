@@ -1003,7 +1003,7 @@ func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessD
 	return result, err
 }
 
-// MarkExpiredProcessesUnknown marks stale process status as unknown for the specified hosts.
+// MarkExpiredProcessesUnknown marks stale processes unknown and refreshes their last sync time for the specified hosts.
 func (s *Storage) MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error {
 	err := s.WrapFn(nCtx, metricOperationMarkExpiredProcessesUnknown, func(nCtx contextx.IContext) error {
 		return s.markExpiredProcessesUnknown(nCtx, hostIDs, deadline)

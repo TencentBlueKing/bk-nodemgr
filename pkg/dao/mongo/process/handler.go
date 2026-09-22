@@ -21,6 +21,7 @@ package process
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -68,8 +69,8 @@ type IUpdater interface {
 	// UpdateManyInfo batch update process info by process ID.
 	UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*types.ProcessInfoDelta) error
 
-	// UpdateInfoStatus updates process info status by conditions.
-	UpdateInfoStatus(nCtx contextx.IContext, status types.ProcessStatus, opts ...OptFn) error
+	// UpdateInfoStatusAndLastSyncAt atomically updates process status and last sync time by conditions.
+	UpdateInfoStatusAndLastSyncAt(nCtx contextx.IContext, status types.ProcessStatus, lastSyncAt time.Time, opts ...OptFn) error
 
 	// UpdateManyHostBizID update process biz id for host ids.
 	UpdateManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error
@@ -336,8 +337,8 @@ func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*t
 	return nil
 }
 
-// UpdateInfoStatus updates process info status by conditions.
-func (h *Handler) UpdateInfoStatus(nCtx contextx.IContext, status types.ProcessStatus, opts ...OptFn) error {
+// UpdateInfoStatusAndLastSyncAt atomically updates process status and last sync time by conditions.
+func (h *Handler) UpdateInfoStatusAndLastSyncAt(nCtx contextx.IContext, status types.ProcessStatus, lastSyncAt time.Time, opts ...OptFn) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -355,8 +356,15 @@ func (h *Handler) UpdateInfoStatus(nCtx contextx.IContext, status types.ProcessS
 		filter = opt(filter)
 	}
 
-	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyInfoStatus, string(status)); err != nil {
-		return fmt.Errorf("failed to update process info status: %w", err)
+	updates := []*base.DocumentFieldUpdate{{
+		Filter: filter,
+		Fields: map[string]any{
+			FieldKeyInfoStatus:     string(status),
+			FieldKeyInfoLastSyncAt: lastSyncAt,
+		},
+	}}
+	if err := h.tenantDao(nCtx.TenantID()).UpdateManyFieldsBulk(nCtx, updates); err != nil {
+		return fmt.Errorf("failed to update process info status and last sync time: %w", err)
 	}
 
 	return nil

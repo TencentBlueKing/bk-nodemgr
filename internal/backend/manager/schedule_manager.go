@@ -607,7 +607,7 @@ func (mgr *Manager) syncSWSyncSharedReleases(nCtx contextx.IContext, sw *types.S
 }
 
 func (mgr *Manager) initSWCleanOrphanProcess(nCtx contextx.IContext) error {
-	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowCleanOrphanProcess, scheduler.Daily)
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowCleanOrphanProcess, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWCleanOrphanProcess(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {

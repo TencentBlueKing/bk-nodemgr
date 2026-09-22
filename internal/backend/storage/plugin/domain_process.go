@@ -36,8 +36,12 @@ func (s *Storage) markExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []
 		return nil
 	}
 
-	err := s.daoProcess.UpdateInfoStatus(nCtx, types.ProcessStatusUnknown,
-		daoProcess.WithHostID(hostIDs...), daoProcess.WithInfoLastSyncAtBefore(deadline))
+	err := s.daoProcess.UpdateInfoStatusAndLastSyncAt(
+		nCtx, types.ProcessStatusUnknown,
+		time.Now(),
+		daoProcess.WithHostID(hostIDs...),
+		daoProcess.WithInfoLastSyncAtBefore(deadline),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to mark expired processes unknown: %w", err)
 	}

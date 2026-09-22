@@ -202,6 +202,6 @@ type IDomainPlugin interface {
 
 // IDomainProcess defines process domain queries.
 type IDomainProcess interface {
-	// MarkExpiredProcessesUnknown marks stale process status as unknown for the specified hosts.
+	// MarkExpiredProcessesUnknown marks stale processes unknown and refreshes their last sync time for the specified hosts.
 	MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error
 }

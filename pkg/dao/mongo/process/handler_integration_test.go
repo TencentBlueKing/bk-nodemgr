@@ -135,7 +135,7 @@ func TestHandler_ProcessIntegration(t *testing.T) {
 	})
 }
 
-func TestHandler_UpdateInfoStatusIntegration(t *testing.T) {
+func TestHandler_UpdateInfoStatusAndLastSyncAtIntegration(t *testing.T) {
 	const tenantID = "update-process-info-status"
 	const otherTenantID = "update-process-info-status-other-tenant"
 
@@ -183,9 +183,11 @@ func TestHandler_UpdateInfoStatusIntegration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	require.NoError(t, h.UpdateInfoStatus(
+	lastSyncAt := deadline.Add(48 * time.Hour)
+	require.NoError(t, h.UpdateInfoStatusAndLastSyncAt(
 		nCtx,
 		types.ProcessStatusUnknown,
+		lastSyncAt,
 		WithHostID(expired.HostID),
 		WithInfoLastSyncAtBefore(deadline),
 	))
@@ -194,26 +196,27 @@ func TestHandler_UpdateInfoStatusIntegration(t *testing.T) {
 	require.NoError(t, err)
 	expectedExpiredInfo := expired.Info
 	expectedExpiredInfo.Status = types.ProcessStatusUnknown
+	expectedExpiredInfo.LastSyncAt = lastSyncAt
 	require.Equal(t, expectedExpiredInfo, updatedExpired.Info)
 
 	updatedMissingLastSyncAt, err := h.Get(nCtx, WithHostID(missingLastSyncAt.HostID), WithPluginName(missingLastSyncAt.PluginName))
 	require.NoError(t, err)
 	require.Equal(t, types.ProcessStatusUnknown, updatedMissingLastSyncAt.Info.Status)
-	require.True(t, updatedMissingLastSyncAt.Info.LastSyncAt.IsZero())
+	require.Equal(t, lastSyncAt, updatedMissingLastSyncAt.Info.LastSyncAt)
 
 	updatedFresh, err := h.Get(nCtx, WithHostID(fresh.HostID), WithPluginName(fresh.PluginName))
 	require.NoError(t, err)
-	require.Equal(t, types.ProcessStatusRunning, updatedFresh.Info.Status)
+	require.Equal(t, fresh.Info, updatedFresh.Info)
 
 	updatedBoundary, err := h.Get(nCtx, WithHostID(boundary.HostID), WithPluginName(boundary.PluginName))
 	require.NoError(t, err)
-	require.Equal(t, types.ProcessStatusRunning, updatedBoundary.Info.Status)
+	require.Equal(t, boundary.Info, updatedBoundary.Info)
 
 	updatedOtherHost, err := h.Get(nCtx, WithHostID(otherHost.HostID), WithPluginName(otherHost.PluginName))
 	require.NoError(t, err)
-	require.Equal(t, types.ProcessStatusRunning, updatedOtherHost.Info.Status)
+	require.Equal(t, otherHost.Info, updatedOtherHost.Info)
 
 	updatedOtherTenant, err := h.Get(otherTenantCtx, WithHostID(otherTenant.HostID), WithPluginName(otherTenant.PluginName))
 	require.NoError(t, err)
-	require.Equal(t, types.ProcessStatusRunning, updatedOtherTenant.Info.Status)
+	require.Equal(t, otherTenant.Info, updatedOtherTenant.Info)
 }

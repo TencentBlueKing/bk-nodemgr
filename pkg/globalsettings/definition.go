@@ -54,6 +54,11 @@ const (
 	// OperCorrectUnknownProcessStatusMaxConcurrencyNumDefault defines the default max concurrency for process status correction operations.
 	OperCorrectUnknownProcessStatusMaxConcurrencyNumDefault = "100"
 
+	// OperCleanOrphanProcessPageSize defines the maximum number of processes scanned per cleanup run.
+	OperCleanOrphanProcessPageSize = "oper_clean_orphan_process_page_size"
+	// OperCleanOrphanProcessPageSizeDefault defines the default cleanup scan limit.
+	OperCleanOrphanProcessPageSizeDefault = "1000"
+
 	// OperSyncHostMaxConcurrencyNum defines the max concurrency setting for sync host operations.
 	OperSyncHostMaxConcurrencyNum = "oper_sync_host_max_concurrency_num"
 	// OperSyncHostMaxConcurrencyNumDefault defines the default max concurrency for sync host operations.
@@ -86,6 +91,10 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: OperCorrectUnknownProcessStatusMaxConcurrencyNum,
 			Value:       OperCorrectUnknownProcessStatusMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperCleanOrphanProcessPageSize,
+			Value:       OperCleanOrphanProcessPageSizeDefault,
 		},
 		{
 			SettingName: OperSyncHostMaxConcurrencyNum,
