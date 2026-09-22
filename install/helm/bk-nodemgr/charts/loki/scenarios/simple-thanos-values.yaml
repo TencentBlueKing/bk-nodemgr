@@ -13,8 +13,9 @@ loki:
       type: s3
 
       s3:
-        access_key_id: thanos-minio
-        secret_access_key: thanos-minio123
+        # Supply credentials for the target object store through deployment overrides.
+        access_key_id: null
+        secret_access_key: null
         region: us-east-1
         insecure: true
         endpoint: http://minio.minio.svc.cluster.local:9000
@@ -30,7 +31,7 @@ loki:
       # Azure configuration (when type is "AZURE")
       azure:
         account_name: azure-test  # Storage account name
-        account_key: 1234567890  # Optional storage account key
+        account_key: null  # Supply the optional storage account key through deployment overrides.
 
     bucketNames:
       chunks: chunks_thanos
