@@ -4,7 +4,7 @@ WORKDIR /app
 RUN corepack enable
 
 COPY front/package.json front/.npmrc ./
-COPY front/scripts/patch-bk-table.cjs ./scripts/
+COPY front/scripts/ ./scripts/
 RUN CYPRESS_INSTALL_BINARY=0 pnpm install
 
 COPY front/ .
