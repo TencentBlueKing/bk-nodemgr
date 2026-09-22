@@ -25,6 +25,11 @@ opentelemetryGateway:
   enabled: true
 prometheus:
   enabled: true
+  nodemgrScrape:
+    namespaces:
+      application: {{ .Values.namespaces.application | quote }}
+      backend: {{ .Values.namespaces.backend | quote }}
+      file: {{ .Values.namespaces.file | quote }}
   server:
     persistentVolume:
       enabled: true

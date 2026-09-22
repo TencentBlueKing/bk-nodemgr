@@ -34,6 +34,17 @@ application:
 {{- $_ := set $tracing "otlpProtocol" "grpc" }}
 {{- $_ := set $tracing "otlpInsecure" true }}
 {{- $_ := set $config "tracing" $tracing }}
+{{- $log := deepCopy (dig "log" dict $config) }}
+{{- $_ := set $log "alsoToStderr" true }}
+{{- $_ := set $config "log" $log }}
+{{- $profiling := deepCopy (dig "profiling" dict $config) }}
+{{- if not (hasKey $profiling "enabled") }}
+{{- $_ := set $profiling "enabled" true }}
+{{- end }}
+{{- if and (dig "enabled" false $profiling) (eq (trim (dig "serverAddress" "" $profiling)) "") }}
+{{- $_ := set $profiling "serverAddress" (printf "http://bk-nodemgr-pyroscope.%s.svc:4040" .Values.namespaces.monitoring) }}
+{{- end }}
+{{- $_ := set $config "profiling" $profiling }}
 {{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}
 {{- $gatewayNames := dict "cmdb" "bk-cmdb" "gse" "bk-gse" "userManager" "bk-user" "monitor" "bk-monitor" "iamV3" "bk-iam" "iamV4" "bkiam" }}
 {{- range $name := list "cmdb" "gse" "userManager" "monitor" "iamV3" "iamV4" }}
@@ -50,6 +61,29 @@ application:
 {{- $iamV4 := deepCopy (dig "iamV4" dict $config) }}
 {{- $_ := set $iamV4 "authMode" (dig "global" "authMode" "un" .Values) }}
 {{- $_ := set $config "iamV4" $iamV4 }}
+{{- range $configName := list "infoServer" "adminServer" "basicServer" "callbackServer" "proxyServer" "workflow" "cmdb" "gse" "userManager" "monitor" "mongodb" "redis" "iamV3" "file" }}
+{{- $current := deepCopy (dig $configName dict $config) }}
+{{- if not (hasKey $current "traceSampleRate") }}
+{{- $_ := set $current "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $config $configName $current }}
+{{- end }}
+{{- $creditVault := deepCopy (dig "creditVault" dict $config) }}
+{{- $hostCreditVault := deepCopy (dig "hostCreditVault" dict $creditVault) }}
+{{- $iegtjj := deepCopy (dig "iegtjj" dict $hostCreditVault) }}
+{{- if not (hasKey $iegtjj "traceSampleRate") }}
+{{- $_ := set $iegtjj "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $hostCreditVault "iegtjj" $iegtjj }}
+{{- $_ := set $creditVault "hostCreditVault" $hostCreditVault }}
+{{- $_ := set $config "creditVault" $creditVault }}
+{{- $tracing := deepCopy (dig "tracing" dict $config) }}
+{{- $globalService := deepCopy (dig "globalService" dict $tracing) }}
+{{- if not (hasKey $globalService "traceSampleRate") }}
+{{- $_ := set $globalService "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $tracing "globalService" $globalService }}
+{{- $_ := set $config "tracing" $tracing }}
 {{- $_ := set $backend "config" $config }}
 backend:
 {{ toYaml $backend | nindent 2 }}

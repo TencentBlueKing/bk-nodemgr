@@ -35,6 +35,17 @@ backend:
 {{- $_ := set $tracing "otlpProtocol" "grpc" }}
 {{- $_ := set $tracing "otlpInsecure" true }}
 {{- $_ := set $config "tracing" $tracing }}
+{{- $log := deepCopy (dig "log" dict $config) }}
+{{- $_ := set $log "alsoToStderr" true }}
+{{- $_ := set $config "log" $log }}
+{{- $profiling := deepCopy (dig "profiling" dict $config) }}
+{{- if not (hasKey $profiling "enabled") }}
+{{- $_ := set $profiling "enabled" true }}
+{{- end }}
+{{- if and (dig "enabled" false $profiling) (eq (trim (dig "serverAddress" "" $profiling)) "") }}
+{{- $_ := set $profiling "serverAddress" (printf "http://bk-nodemgr-pyroscope.%s.svc:4040" .Values.namespaces.monitoring) }}
+{{- end }}
+{{- $_ := set $config "profiling" $profiling }}
 {{- $gse := deepCopy (dig "gse" dict $config) }}
 {{- $_ := set $gse "appCode" (dig "global" "appCode" "" .Values) }}
 {{- $_ := set $gse "appSecret" (dig "global" "appSecret" "" .Values) }}
@@ -43,6 +54,20 @@ backend:
 {{- $gseEndpoint := replace "{gateway_name}" "bk-gse" $bkAPITmpl }}
 {{- $_ := set $gse "endpoints" (dig "gateways" "gse" "endpoints" (list $gseEndpoint) .Values) }}
 {{- $_ := set $config "gse" $gse }}
+{{- range $configName := list "infoServer" "adminServer" "basicServer" "downloadServer" "exportServer" "downloader" "repo" "mongodb" }}
+{{- $current := deepCopy (dig $configName dict $config) }}
+{{- if not (hasKey $current "traceSampleRate") }}
+{{- $_ := set $current "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $config $configName $current }}
+{{- end }}
+{{- $tracing := deepCopy (dig "tracing" dict $config) }}
+{{- $globalService := deepCopy (dig "globalService" dict $tracing) }}
+{{- if not (hasKey $globalService "traceSampleRate") }}
+{{- $_ := set $globalService "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $tracing "globalService" $globalService }}
+{{- $_ := set $config "tracing" $tracing }}
 {{- $_ := set $file "config" $config }}
 file:
 {{ toYaml $file | nindent 2 }}

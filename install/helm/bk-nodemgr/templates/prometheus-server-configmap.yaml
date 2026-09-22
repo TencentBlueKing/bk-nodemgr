@@ -2,6 +2,10 @@
 {{- $prometheusServerFiles := default dict .Values.prometheus.serverFiles }}
 {{- $prometheusConfig := default dict (index $prometheusServerFiles "prometheus.yml") }}
 {{- $global := default (dict "scrape_interval" "1m") (get $prometheusConfig "global") }}
+{{- $scrapeNamespaces := default dict .Values.prometheus.nodemgrScrape.namespaces }}
+{{- $applicationNamespace := default .Release.Namespace $scrapeNamespaces.application }}
+{{- $backendNamespace := default .Release.Namespace $scrapeNamespaces.backend }}
+{{- $fileNamespace := default .Release.Namespace $scrapeNamespaces.file }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -17,15 +21,24 @@ data:
         metrics_path: /metrics
         static_configs:
           - targets:
-              - {{ template "bk-nodemgr.fullname" . }}-application:{{ .Values.application.config.infoServer.port }}
+              - {{ template "bk-nodemgr.fullname" . }}-application.{{ $applicationNamespace }}.svc:{{ .Values.application.config.infoServer.port }}
+            labels:
+              namespace: {{ $applicationNamespace | quote }}
+              service: application
       - job_name: bk-nodemgr-backend
         metrics_path: /metrics
         static_configs:
           - targets:
-              - {{ template "bk-nodemgr.fullname" . }}-backend:{{ .Values.backend.config.infoServer.port }}
+              - {{ template "bk-nodemgr.fullname" . }}-backend.{{ $backendNamespace }}.svc:{{ .Values.backend.config.infoServer.port }}
+            labels:
+              namespace: {{ $backendNamespace | quote }}
+              service: backend
       - job_name: bk-nodemgr-file
         metrics_path: /metrics
         static_configs:
           - targets:
-              - {{ template "bk-nodemgr.fullname" . }}-file:{{ .Values.file.config.infoServer.port }}
+              - {{ template "bk-nodemgr.fullname" . }}-file.{{ $fileNamespace }}.svc:{{ .Values.file.config.infoServer.port }}
+            labels:
+              namespace: {{ $fileNamespace | quote }}
+              service: file
 {{- end }}

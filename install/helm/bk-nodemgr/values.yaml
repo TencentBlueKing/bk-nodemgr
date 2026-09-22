@@ -84,13 +84,14 @@ tempo:
     tag: 2.8.2
     pullPolicy: IfNotPresent
     pullSecrets: []
+    memBallastSizeMbs: 128
     reportingEnabled: false
     resources:
       limits:
-        memory: 1024Mi
+        memory: 2048Mi
         cpu: 1000m
       requests:
-        memory: 256Mi
+        memory: 512Mi
         cpu: 100m
     server:
       http_listen_port: 3200
@@ -101,6 +102,14 @@ tempo:
             endpoint: 0.0.0.0:4317
           http:
             endpoint: 0.0.0.0:4318
+    metricsGenerator:
+      enabled: true
+      remoteWriteUrl: "http://bk-nodemgr-prometheus-server:80/api/v1/write"
+    overrides:
+      defaults:
+        metrics_generator:
+          processors:
+            - local-blocks
     storage:
       trace:
         backend: local
@@ -231,6 +240,8 @@ opentelemetryGateway:
 ## Local storage is disabled by default; enable persistentVolume for durable data.
 prometheus:
   enabled: false
+  nodemgrScrape:
+    namespaces: {}
   rbac:
     create: false
   serviceAccounts:

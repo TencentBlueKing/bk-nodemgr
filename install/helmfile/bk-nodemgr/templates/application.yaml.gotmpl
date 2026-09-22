@@ -39,6 +39,17 @@ externalMongodb:
 {{- $_ := set $tracing "otlpProtocol" "grpc" }}
 {{- $_ := set $tracing "otlpInsecure" true }}
 {{- $_ := set $config "tracing" $tracing }}
+{{- $log := deepCopy (dig "log" dict $config) }}
+{{- $_ := set $log "alsoToStderr" true }}
+{{- $_ := set $config "log" $log }}
+{{- $profiling := deepCopy (dig "profiling" dict $config) }}
+{{- if not (hasKey $profiling "enabled") }}
+{{- $_ := set $profiling "enabled" true }}
+{{- end }}
+{{- if and (dig "enabled" false $profiling) (eq (trim (dig "serverAddress" "" $profiling)) "") }}
+{{- $_ := set $profiling "serverAddress" (printf "http://bk-nodemgr-pyroscope.%s.svc:4040" .Values.namespaces.monitoring) }}
+{{- end }}
+{{- $_ := set $config "profiling" $profiling }}
 {{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}
 {{- $gatewayNames := dict "nodemgr" "bk-nodemgr" "userManager" "bk-user" "notice" "bk-notice" "iamV3" "bk-iam" "bkLogin" "bk-login" }}
 {{- $backendGateway := deepCopy (dig "gateways" "nodemgr" dict .Values) }}
@@ -74,6 +85,27 @@ externalMongodb:
 {{- $_ := set $front "bkUserWebURL" (replace "{gateway_name}" "bk-user-web" $bkAPITmpl) }}
 {{- end }}
 {{- $_ := set $config "front" $front }}
+{{- range $configName := list "backend" "userManager" "notice" "infoServer" "adminServer" "basicServer" "mongodb" "file" "iamV3" }}
+{{- $current := deepCopy (dig $configName dict $config) }}
+{{- if not (hasKey $current "traceSampleRate") }}
+{{- $_ := set $current "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $config $configName $current }}
+{{- end }}
+{{- $bkSaaS := deepCopy (dig "bkSaaS" dict $config) }}
+{{- $bkLogin := deepCopy (dig "bkLogin" dict $bkSaaS) }}
+{{- if not (hasKey $bkLogin "traceSampleRate") }}
+{{- $_ := set $bkLogin "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $bkSaaS "bkLogin" $bkLogin }}
+{{- $_ := set $config "bkSaaS" $bkSaaS }}
+{{- $tracing := deepCopy (dig "tracing" dict $config) }}
+{{- $globalService := deepCopy (dig "globalService" dict $tracing) }}
+{{- if not (hasKey $globalService "traceSampleRate") }}
+{{- $_ := set $globalService "traceSampleRate" 1 }}
+{{- end }}
+{{- $_ := set $tracing "globalService" $globalService }}
+{{- $_ := set $config "tracing" $tracing }}
 {{- $_ := set $application "config" $config }}
 application:
 {{ toYaml $application | nindent 2 }}

@@ -20,6 +20,42 @@ data:
         url: http://{{ include "bk-nodemgr.tempo.fullname" . }}.{{ .Release.Namespace }}.svc:{{ dig "tempo" "server" "http_listen_port" 3200 .Values.tempo }}
         isDefault: {{ not .Values.prometheus.enabled }}
         editable: false
+        {{- if or .Values.loki.enabled .Values.pyroscope.enabled }}
+        jsonData:
+          {{- if .Values.loki.enabled }}
+          tracesToLogsV2:
+            datasourceUid: bk-nodemgr-loki
+            spanStartTimeShift: -5m
+            spanEndTimeShift: 5m
+            filterByTraceID: true
+            filterBySpanID: false
+            tags:
+              - key: service.namespace
+                value: service
+          {{- end }}
+          {{- if .Values.prometheus.enabled }}
+          tracesToMetrics:
+            datasourceUid: bk-nodemgr-prometheus
+            spanStartTimeShift: -5m
+            spanEndTimeShift: 5m
+            tags:
+              - key: service.namespace
+                value: service
+            queries:
+              - name: Request rate
+                query: 'sum by (uri, method, code) (rate({__name__=~"server_.+_request_total", $$__tags}[5m]))'
+              - name: P95 request duration
+                query: 'histogram_quantile(0.95, sum by (le, uri, method) (rate({__name__=~"server_.+_request_duration_bucket", $$__tags}[5m])))'
+          {{- end }}
+          {{- if .Values.pyroscope.enabled }}
+          tracesToProfiles:
+            datasourceUid: bk-nodemgr-pyroscope
+            profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
+            tags:
+              - key: service.namespace
+                value: service
+          {{- end }}
+        {{- end }}
       {{- end }}
       {{- if .Values.prometheus.enabled }}
       - name: Prometheus
@@ -38,6 +74,14 @@ data:
         url: {{ include "bk-nodemgr.loki.httpEndpoint" . }}
         isDefault: {{ not (or .Values.prometheus.enabled .Values.tempo.enabled) }}
         editable: false
+        {{- if .Values.tempo.enabled }}
+        jsonData:
+          derivedFields:
+            - datasourceUid: bk-nodemgr-tempo
+              matcherRegex: 'trace-id\(([0-9a-f]{32})\)'
+              name: TraceID
+              url: '$${__value.raw}'
+        {{- end }}
       {{- end }}
       {{- if .Values.pyroscope.enabled }}
       - name: Pyroscope
