@@ -19,6 +19,7 @@
 package filecache
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -268,7 +269,7 @@ func (fc *fileCache) download(
 	filename string,
 	expectedMD5 string,
 	fetchFn func(nCtx contextx.IContext) (io.ReadCloser, error),
-) (fileiface.File, string, error) {
+) (_ fileiface.File, _ string, retErr error) {
 	// Validate MD5 format before using it as a directory name to prevent path traversal.
 	if !isMD5Hex(expectedMD5) {
 		return nil, "", fmt.Errorf("invalid expectedMD5 format %q: must be 32 hex chars", expectedMD5)
@@ -291,16 +292,18 @@ func (fc *fileCache) download(
 		return nil, "", err
 	}
 
-	if err = os.MkdirAll(dirPath, 0750); err != nil { // nolint: mnd
-		_ = content.Close()
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, fmt.Errorf("close source file failed: %w", errClose))
+		}
+	}()
 
+	if err = os.MkdirAll(dirPath, 0750); err != nil { // nolint: mnd
 		return nil, "", fmt.Errorf("failed to create cache subdir %q: %w", dirPath, err)
 	}
 
 	ld, err := local.NewLocalDir(dirPath)
 	if err != nil {
-		_ = content.Close()
-
 		return nil, "", fmt.Errorf("failed to open local dir %q: %w", dirPath, err)
 	}
 

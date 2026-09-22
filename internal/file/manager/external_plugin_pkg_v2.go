@@ -53,7 +53,7 @@ type IExternalPluginV2 interface {
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPluginFile io.ReadCloser) (
-	*types.OriginExternalPluginV2PkgDetail, error) {
+	_ *types.OriginExternalPluginV2PkgDetail, retErr error) {
 
 	if externalPluginFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin external plugin package, file is nil")
@@ -75,6 +75,11 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkOriginExternalPluginPkg(checkingFile)
 	if err != nil {
@@ -89,6 +94,11 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := uploadingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	gen := types.Generation2
 	pkgFileName, err := pluginpkg.FormatPkgFileName(
@@ -341,7 +351,7 @@ func buildExternalPluginPkgController(pluginProject *ExternalPluginProject) type
 
 // PublishReleaseExternalPlugin generates release external plugin by upload-id and is-shared.
 // nolint: funlen,gocognit
-func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string, isShared bool) error {
+func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string, isShared bool) (retErr error) {
 	up, err := m.storageUpload.GetExternalPluginV2Upload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release external plugin, failed to get upload")
@@ -369,6 +379,11 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 
 		return err
 	}
+	defer func() {
+		if errClose := originContent.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// store file to temp.
 	originTempFileName, err := m.saveTempFile(nCtx, originContent)
@@ -384,6 +399,11 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 
 		return err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkOriginExternalPluginPkg(checkingFile)
 	if err != nil {
@@ -408,7 +428,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 	releasesMap := make(map[string]*types.ReleasePlugin)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
-		gp.Go(func() error {
+		gp.Go(func() (retErr error) {
 			// generate package name.
 			pkgName, err := pluginpkg.FormatPkgFileName(pluginPkgName, types.ReleaseTypePlugin, gen, pkg.platform, pluginPkgVersion)
 			if err != nil {
@@ -423,6 +443,11 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 
 				return err
 			}
+			defer func() {
+				if errClose := generatedFile.Close(); errClose != nil {
+					retErr = errors.Join(retErr, errClose)
+				}
+			}()
 
 			if err = m.upstreamReleasePlugin.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to upload to upstream")
@@ -522,7 +547,7 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
-		gp.Go(func() error {
+		gp.Go(func() (err error) {
 			// create target file.
 			tempFileName, err := m.createTempFile(nCtx)
 			if err != nil {
@@ -532,12 +557,22 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 			if err != nil {
 				return fmt.Errorf("failed to open pkg file: %w", err)
 			}
+			defer func() {
+				if errClose := targetFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			// open all source files.
 			origiExternalPluginFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin external plugin file: %w", err)
 			}
+			defer func() {
+				if errClose := origiExternalPluginFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			// set sub dir paths.
 			originDetail.SubDirPaths[plat.String()][externalPluginPkgDirNameBin] = struct{}{}

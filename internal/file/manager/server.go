@@ -48,7 +48,7 @@ type IServer interface {
 // UploadOriginServer uploads the origin server.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
+func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadCloser) (_ *types.OriginPkgDetail, retErr error) {
 	if pkgFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin server package. file is nil")
 
@@ -69,6 +69,11 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkGSE2OriginServerPkg(checkingFile)
 	if err != nil {
@@ -104,6 +109,11 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := uploadingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// upload to upstream.
 	if err := m.upstreamOriginServer.Store(nCtx, fileiface.FileInfo{Name: pkgFileName}, uploadingFile, true); err != nil {
@@ -299,7 +309,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 // PublishReleaseProxyFromServerPkg generates release proxy from server packages by upload-id and is-shared.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string, isShared bool) error {
+func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string, isShared bool) (retErr error) {
 	up, err := m.storageUpload.GetServerUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release server, failed to get upload")
@@ -328,6 +338,11 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 
 		return err
 	}
+	defer func() {
+		if errClose := originContent.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// store file to temp.
 	originTempFileName, err := m.saveTempFile(nCtx, originContent)
@@ -343,6 +358,11 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 
 		return err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkGSE2OriginServerPkg(checkingFile)
 	if err != nil {
@@ -364,7 +384,7 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 	releasesMap := make(map[string]*types.ReleaseProxy)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
-		gp.Go(func() error {
+		gp.Go(func() (retErr error) {
 			// generate package name.
 			pkgFileName, err := nodepkg.FormatPkgFileName(
 				types.Generation2,
@@ -384,6 +404,11 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 
 				return err
 			}
+			defer func() {
+				if errClose := generatedFile.Close(); errClose != nil {
+					retErr = errors.Join(retErr, errClose)
+				}
+			}()
 
 			if err = m.upstreamReleaseProxy.Store(nCtx, fileiface.FileInfo{Name: pkgFileName}, generatedFile, true); err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release server, failed to upload to upstream")
@@ -499,7 +524,7 @@ func (m *Manager) generateProxyPkgByServer(nCtx contextx.IContext, originDetail 
 			return nil, fmt.Errorf("failed to generate release proxy, failed to fetch release agent: %w", err)
 		}
 
-		gp.Go(func() error {
+		gp.Go(func() (err error) {
 			// create target file.
 			tempFileName, err := m.createTempFile(nCtx)
 			if err != nil {
@@ -509,24 +534,49 @@ func (m *Manager) generateProxyPkgByServer(nCtx contextx.IContext, originDetail 
 			if err != nil {
 				return fmt.Errorf("failed to open pkg file: %w", err)
 			}
+			defer func() {
+				if errClose := targetFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			// open all source files.
 			originServerFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin proxy file: %w", err)
 			}
+			defer func() {
+				if errClose := originServerFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 			originCertFile, err := localCert.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin cert file: %w", err)
 			}
+			defer func() {
+				if errClose := originCertFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 			originBinToolFile, err := localBinTool.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin bintool file: %w", err)
 			}
+			defer func() {
+				if errClose := originBinToolFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 			releaseAgentFile, err := localAgent.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open release agent file: %w", err)
 			}
+			defer func() {
+				if errClose := releaseAgentFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{

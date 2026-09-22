@@ -19,6 +19,7 @@
 package upload
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -35,12 +36,13 @@ func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload agent, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -70,12 +72,13 @@ func (h *handler) UploadOriginServer(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload server, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -105,12 +108,13 @@ func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload proxy, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -140,12 +144,13 @@ func (h *handler) UploadOriginCert(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload cert, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -175,12 +180,13 @@ func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin bintool, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -210,12 +216,13 @@ func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (interface
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin plugin bintool, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -245,12 +252,13 @@ func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v2, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -280,12 +288,13 @@ func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (interf
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload external plugin v2, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()
@@ -315,12 +324,13 @@ func (h *handler) UploadOriginPluginV3(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, err := fileHeader.Open()
+	rawFile, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v3, failed to open file")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+	file := filex.OnceReadCloser(rawFile)
 	defer func() {
 		_ = file.Close()
 	}()

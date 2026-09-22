@@ -83,7 +83,7 @@ _ = fc.Close()
 - Do not close the `io.ReadCloser` returned by `cachedFile.Content()` more than once; passing it to
   `TransferFile` or `NewTempFileWithSpecialName` already transfers ownership (double-close causes
   "file already closed" errors on Linux).
-- Do not close the `io.ReadCloser` returned by `fetchFn` — the cache layer (via `LocalDir.Store`) owns it.
+- External callers must not close the `io.ReadCloser` returned by `fetchFn`; the cache download function owns it and defers Close. `LocalDir.Store` only borrows the stream.
 - Do not use an unvalidated string as `expectedMD5`; always ensure it comes from a trusted source
   (e.g. `InfoInstaller` response) and passes `isMD5Hex` before reaching `GetOrFetch`.
 - Do not read from or write to the cache `baseDir` directly; the cache manages its own subdirectory layout.

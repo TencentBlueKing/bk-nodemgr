@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -117,11 +118,12 @@ func (c *cli) UploadFile(nCtx contextx.IContext, req *UploadFileReq) (*UploadFil
 	header := c.getCommonHeader()
 	header = req.Info.BindHeader(header)
 
+	// The HTTP transport closes request bodies; the input stream is only borrowed.
 	err := c.client.Put().
 		SubResourcef("generic/%s/%s/%s", c.effectiveProjectID(), c.config.RepoName, req.Path).
 		WithContext(nCtx).
 		WithHeaders(header).
-		BodyReader(req.Reader).
+		BodyReader(io.NopCloser(req.Reader)).
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("upload file failed: %w", err)

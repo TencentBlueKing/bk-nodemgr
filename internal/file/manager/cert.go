@@ -55,7 +55,7 @@ type ICert interface {
 // UploadOriginCert uploads origin cert.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error) {
+func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadCloser) (_ *types.OriginCertPkgDetail, retErr error) {
 	if certFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin cert package, file is nil")
 
@@ -76,6 +76,11 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkOriginCertPkg(checkingFile)
 	if err != nil {
@@ -91,6 +96,11 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := uploadingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	pkgName := m.wrapOriginPackageName(originalCertFileName)
 
@@ -219,7 +229,7 @@ func originCertFileNames() []string {
 
 // PublishReleaseCert generates release cert by upload-id and is-shared.
 // nolint: funlen
-func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string, isShared bool) error {
+func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string, isShared bool) (retErr error) {
 	up, err := m.storageUpload.GetCertUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release cert, failed to get upload")
@@ -248,6 +258,11 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string, is
 
 		return err
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// generate release file.
 	generatedFile, err := m.generateCertPkg(nCtx, content)
@@ -257,7 +272,9 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string, is
 		return err
 	}
 	defer func() {
-		_ = generatedFile.Close()
+		if errClose := generatedFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
 	}()
 
 	// upload to upstream.
@@ -325,7 +342,18 @@ func (m *Manager) EnsureCertToLocal(nCtx contextx.IContext, _ types.Generation) 
 	return m.ensureReleaseToLocal(nCtx, cert.Release)
 }
 
-func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
+// nolint: nonamedreturns // Deferred cleanup must clear content when closing a file fails.
+func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (content io.ReadCloser, err error) {
+	defer func() {
+		// Target cleanup may fail after the output stream is opened.
+		if err != nil && content != nil {
+			if errClose := content.Close(); errClose != nil {
+				err = errors.Join(err, errClose)
+			}
+			content = nil
+		}
+	}()
+
 	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
 		return nil, err
@@ -335,6 +363,11 @@ func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadClos
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if errClose := targetFile.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
 
 	if err = generateTgz(targetFile,
 		[]tgzWriteRuleDir{

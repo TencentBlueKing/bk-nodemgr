@@ -230,9 +230,7 @@ func (h *Handler) listNodes(nCtx contextx.IContext, path string) ([]NodeRecord, 
 		}
 
 		records := make([]NodeRecord, len(result.Records))
-		for idx, node := range result.Records {
-			records[idx] = node
-		}
+		copy(records, result.Records)
 
 		return records, nil
 	}
@@ -248,14 +246,18 @@ func (h *Handler) listNodes(nCtx contextx.IContext, path string) ([]NodeRecord, 
 func (h *Handler) storeFile(
 	nCtx contextx.IContext, fileGroupPath string, info fileiface.FileInfo, file io.ReadCloser, overwrite bool) error {
 
+	if file == nil {
+		return errors.New("file reader is nil")
+	}
+
 	if nCtx == nil {
 		return errInvalidContext
 	}
+	if err := nCtx.Err(); err != nil {
+		return fmt.Errorf("context is done: %w", err)
+	}
 	if fileGroupPath == "" || info.Name == "" {
 		return errEmptyPathOrName
-	}
-	if file == nil {
-		return errors.New("file reader is nil")
 	}
 
 	uploadFilePath, err := url.JoinPath(fileGroupPath, info.Name)
@@ -279,10 +281,6 @@ func (h *Handler) storeFile(
 	for key, value := range info.ExtendFields {
 		uploadFileReq.Info.Meta[key] = value
 	}
-
-	defer func() {
-		_ = file.Close()
-	}()
 
 	_, err = h.cli.UploadFile(nCtx, uploadFileReq)
 	if err != nil {

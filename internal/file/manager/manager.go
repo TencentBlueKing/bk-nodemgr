@@ -40,6 +40,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/downloader"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -619,11 +620,16 @@ func (m *Manager) createTempFile(nCtx contextx.IContext) (string, error) {
 
 func (m *Manager) openTempFile(_ contextx.IContext, tempFileName string) (io.ReadWriteCloser, error) {
 	// nolint: gosec, mnd
-	return os.OpenFile(
+	file, err := os.OpenFile(
 		local.GetLocalFileGroupAbsFilePath(m.tempFileGroup, tempFileName),
 		os.O_RDWR|os.O_TRUNC,
 		0644,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	return filex.OnceReadWriteCloser(file), nil
 }
 
 // runTempFileGC periodically scans the temp file directory and deletes entries that
@@ -702,7 +708,7 @@ func (m *Manager) wrapOriginPackageName(name string) string {
 	return name + "-" + time.Now().Format("0102150405")
 }
 
-func (m *Manager) fetchReleaseCertToLocal(ctx contextx.IContext) (fileiface.File, error) {
+func (m *Manager) fetchReleaseCertToLocal(ctx contextx.IContext) (_ fileiface.File, retErr error) {
 	// get cert.
 	cert, err := m.storageRelease.GetReleaseCert(ctx)
 	if err != nil {
@@ -718,6 +724,11 @@ func (m *Manager) fetchReleaseCertToLocal(ctx contextx.IContext) (fileiface.File
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upstream release cert content: %w", err)
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	localFileName, err := m.saveTempFile(ctx, content)
 	if err != nil {
@@ -727,7 +738,7 @@ func (m *Manager) fetchReleaseCertToLocal(ctx contextx.IContext) (fileiface.File
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (fileiface.File, error) {
+func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (_ fileiface.File, retErr error) {
 	// get bintool.
 	bintool, err := m.storageRelease.GetReleaseBinTool(ctx, types.Generation2)
 	if err != nil {
@@ -743,6 +754,11 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (fileiface.F
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upstream release bintool content: %w", err)
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	localFileName, err := m.saveTempFile(ctx, content)
 	if err != nil {
@@ -752,7 +768,7 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (fileiface.F
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext, name string) (fileiface.File, error) {
+func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext, name string) (_ fileiface.File, retErr error) {
 	// get plugin bintool.
 	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(ctx, types.Generation2, name)
 	if err != nil {
@@ -768,6 +784,11 @@ func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext, name s
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upstream release plugin bintool content: %w", err)
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	localFileName, err := m.saveTempFile(ctx, content)
 	if err != nil {
@@ -777,7 +798,7 @@ func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext, name s
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleaseAgentLocal(ctx contextx.IContext, plat platfmt.Platform, version string) (fileiface.File, error) {
+func (m *Manager) fetchReleaseAgentLocal(ctx contextx.IContext, plat platfmt.Platform, version string) (_ fileiface.File, retErr error) {
 	// get agent.
 	agent, err := m.storageRelease.GetReleaseAgent(ctx, types.Generation2, plat, version)
 	if err != nil {
@@ -795,6 +816,11 @@ func (m *Manager) fetchReleaseAgentLocal(ctx contextx.IContext, plat platfmt.Pla
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upstream release agent content: %w", err)
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	localFileName, err := m.saveTempFile(ctx, content)
 	if err != nil {

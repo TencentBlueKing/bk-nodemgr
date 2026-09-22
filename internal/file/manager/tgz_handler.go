@@ -66,25 +66,13 @@ type tgzReadRule struct {
 	callback      func(path []string, r io.Reader) error
 }
 
-// generateTgz takes responsibility for all source and target file to close.
+// generateTgz finalizes the archive writers; callers must close the source and target files.
 // nolint: funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func generateTgz(
 	targetFile io.WriteCloser,
 	dirRules []tgzWriteRuleDir,
 	streamRules []*tgzWriteRuleStream) (err error) {
-
-	// close source and target file.
-	defer func() {
-		for _, stream := range streamRules {
-			if errClose := stream.sourceFile.Close(); errClose != nil {
-				err = errors.Join(err, errClose)
-			}
-		}
-		if errClose := targetFile.Close(); errClose != nil {
-			err = errors.Join(err, errClose)
-		}
-	}()
 
 	// target gzip writer.
 	gzipWriter := gzip.NewWriter(targetFile)
@@ -128,6 +116,7 @@ func generateTgz(
 	return nil
 }
 
+// nolint: gocognit,gocyclo,cyclop
 func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWriter *tar.Writer) error {
 	gzipReader, err := gzip.NewReader(sourceFile)
 	if err != nil {
@@ -235,17 +224,10 @@ func buildSuffixMatchRegex(str string) string {
 	return fmt.Sprintf(`.*%s$`, str)
 }
 
-// checkTgz takes responsibility for source file to close.
+// checkTgz borrows sourceFile; its caller is responsible for closing it.
 // nolint: funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
-	// close source file.
-	defer func() {
-		if errClose := sourceFile.Close(); errClose != nil {
-			err = errors.Join(err, errClose)
-		}
-	}()
-
 	// source gzip reader.
 	gzipReader, err := gzip.NewReader(sourceFile)
 	if err != nil {

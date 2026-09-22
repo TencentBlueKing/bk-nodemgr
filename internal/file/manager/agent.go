@@ -52,7 +52,7 @@ type IAgent interface {
 // UploadOriginAgent uploads the origin agent.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
+func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadCloser) (_ *types.OriginPkgDetail, retErr error) {
 	// validation.
 	if pkgFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin agent package. file is nil")
@@ -74,6 +74,11 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkGSE2OriginAgentPkg(checkingFile)
 	if err != nil {
@@ -88,6 +93,11 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := uploadingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 	gen := types.Generation2
 
 	pkgFileName, err := nodepkg.FormatPkgFileName(
@@ -260,7 +270,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 // PublishReleaseAgent generates release agent packages by upload-id and is-shared.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, isShared bool) error {
+func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, isShared bool) (retErr error) {
 	up, err := m.storageUpload.GetAgentUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release agent, failed to get upload(%s). err: %v", uploadID, err)
@@ -290,6 +300,11 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 
 		return err
 	}
+	defer func() {
+		if errClose := originContent.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// store file to temp.
 	originTempFileName, err := m.saveTempFile(nCtx, originContent)
@@ -305,6 +320,11 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 
 		return err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkGSE2OriginAgentPkg(checkingFile)
 	if err != nil {
@@ -327,7 +347,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 	releasesMap := make(map[string]*types.ReleaseAgent)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
-		gp.Go(func() error {
+		gp.Go(func() (retErr error) {
 			// generate package name.
 			pkgName, err := nodepkg.FormatPkgFileName(
 				gen,
@@ -347,6 +367,11 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 
 				return err
 			}
+			defer func() {
+				if errClose := generatedFile.Close(); errClose != nil {
+					retErr = errors.Join(retErr, errClose)
+				}
+			}()
 
 			if err = m.upstreamReleaseAgent.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release agent, failed to upload to upstream")
@@ -493,7 +518,7 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
-		gp.Go(func() error {
+		gp.Go(func() (err error) {
 			// create target file.
 			tempFileName, err := m.createTempFile(nCtx)
 			if err != nil {
@@ -503,20 +528,40 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 			if err != nil {
 				return fmt.Errorf("failed to open pkg file: %w", err)
 			}
+			defer func() {
+				if errClose := targetFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			// open all source files.
 			originAgentFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin agent file: %w", err)
 			}
+			defer func() {
+				if errClose := originAgentFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 			originCertFile, err := localCert.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin cert file: %w", err)
 			}
+			defer func() {
+				if errClose := originCertFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 			originBinToolFile, err := localBinTool.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin bintool file: %w", err)
 			}
+			defer func() {
+				if errClose := originBinToolFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{

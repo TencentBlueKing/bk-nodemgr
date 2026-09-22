@@ -31,7 +31,7 @@
 ## 使用限制
 
 1. `GetOrFetch` 返回的 `fileiface.File` 代表缓存中的文件；调用方通过 `Content()` 获取 `io.ReadCloser` 并负责关闭，**不得对同一 `io.ReadCloser` 关闭两次**。
-2. `fetchFn` 返回的 `io.ReadCloser` 由缓存层内部关闭（通过 `LocalDir.Store`），调用方不应在传入后再次关闭。
+2. `fetchFn` 返回的 `io.ReadCloser` 由缓存下载函数通过 defer 关闭（`LocalDir.Store` 仅借用），调用方不应在传入后再次关闭。
 3. `expectedMD5` 必须是合法的 32 字符十六进制字符串；否则 `GetOrFetch` 直接返回错误。
 4. 缓存的 baseDir 及其所有子目录由此包独占管理，不应在外部直接创建或删除其中的文件和目录。
 

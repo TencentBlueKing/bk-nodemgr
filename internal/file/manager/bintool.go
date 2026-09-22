@@ -58,7 +58,7 @@ const (
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginBinTool(
 	nCtx contextx.IContext,
-	binToolFile io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
+	binToolFile io.ReadCloser) (_ *types.OriginBinToolPkgDetail, retErr error) {
 
 	// validation.
 	if binToolFile == nil {
@@ -81,6 +81,11 @@ func (m *Manager) UploadOriginBinTool(
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkOriginBinToolPkg(checkingFile)
 	if err != nil {
@@ -96,6 +101,11 @@ func (m *Manager) UploadOriginBinTool(
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := uploadingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	pkgName := m.wrapOriginPackageName(originBinToolFileName)
 
@@ -179,7 +189,7 @@ func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, e
 
 // PublishReleaseBinTool generates release bintool by upload-id and is-shared.
 // nolint:funlen
-func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string, isShared bool) error {
+func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string, isShared bool) (retErr error) {
 	up, err := m.storageUpload.GetBinToolUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release bintool, failed to get upload(%s). err: %v", uploadID, err)
@@ -209,6 +219,11 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string,
 
 		return err
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// generate release file.
 	generatedFile, err := m.generateBinToolPkg(nCtx, content)
@@ -218,7 +233,9 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string,
 		return err
 	}
 	defer func() {
-		_ = generatedFile.Close()
+		if errClose := generatedFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
 	}()
 
 	// upload to upstream.
@@ -296,7 +313,18 @@ const (
 	binToolDirNameProxyPlatLinuxArm64   = "proxy_linux_arm64"
 )
 
-func (m *Manager) generateBinToolPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
+// nolint: nonamedreturns // Deferred cleanup must clear content when closing a file fails.
+func (m *Manager) generateBinToolPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (content io.ReadCloser, err error) {
+	defer func() {
+		// Target cleanup may fail after the output stream is opened.
+		if err != nil && content != nil {
+			if errClose := content.Close(); errClose != nil {
+				err = errors.Join(err, errClose)
+			}
+			content = nil
+		}
+	}()
+
 	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
 		return nil, err
@@ -306,6 +334,11 @@ func (m *Manager) generateBinToolPkg(nCtx contextx.IContext, sourceFile io.ReadC
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if errClose := targetFile.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
 
 	if err = generateTgz(targetFile,
 		[]tgzWriteRuleDir{

@@ -279,12 +279,17 @@ func (m *Manager) collectOriginPackages(
 }
 
 func (m *Manager) storeSingleExportOriginPackage(nCtx contextx.IContext, originFile fileiface.File, exportFileName string) (
-	fileiface.FileInfo, error) {
+	_ fileiface.FileInfo, retErr error) {
 
 	content, err := originFile.Content(nCtx)
 	if err != nil {
 		return fileiface.FileInfo{}, fmt.Errorf("failed to get origin package content: %w", err)
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	if err := m.upstreamExport.Store(nCtx, fileiface.FileInfo{Name: exportFileName}, content, true); err != nil {
 		return fileiface.FileInfo{}, fmt.Errorf("failed to store export package: %w", err)
@@ -300,26 +305,15 @@ func (m *Manager) storeSingleExportOriginPackage(nCtx contextx.IContext, originF
 
 func (m *Manager) storeMergedExportOriginPackage(
 	nCtx contextx.IContext, uploadType types.UploadCategory, pluginName string, originPackages []exportOriginPackage, exportFileName string) (
-	fileiface.FileInfo, error) {
-
-	sources, err := buildOriginUploadTgzMergeSources(nCtx, originPackages)
-	if err != nil {
-		return fileiface.FileInfo{}, err
-	}
+	_ fileiface.FileInfo, retErr error) {
 
 	rules, err := buildOriginUploadTgzMergeRules(uploadType, pluginName)
 	if err != nil {
-		for _, source := range sources {
-			if closeErr := source.sourceFile.Close(); closeErr != nil {
-				err = errors.Join(err, closeErr)
-			}
-		}
-
 		return fileiface.FileInfo{}, err
 	}
 
 	var mergedContent bytes.Buffer
-	if err := mergeOriginUploadTgz(&mergedContent, sources, rules); err != nil {
+	if err := mergeExportOriginPackages(nCtx, &mergedContent, originPackages, rules); err != nil {
 		return fileiface.FileInfo{}, err
 	}
 
@@ -343,6 +337,11 @@ func (m *Manager) storeMergedExportOriginPackage(
 	if err != nil {
 		return fileiface.FileInfo{}, fmt.Errorf("failed to read merged export package: %w", err)
 	}
+	defer func() {
+		if errClose := mergedContentReader.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	if err := m.upstreamExport.Store(nCtx, fileiface.FileInfo{Name: exportFileName}, mergedContentReader, true); err != nil {
 		return fileiface.FileInfo{}, fmt.Errorf("failed to store export package: %w", err)
@@ -356,24 +355,22 @@ func (m *Manager) storeMergedExportOriginPackage(
 	return exportedFile.Info(), nil
 }
 
-func buildOriginUploadTgzMergeSources(nCtx contextx.IContext, originPackages []exportOriginPackage) ([]tgzMergeSource, error) {
-	var err error
+func mergeExportOriginPackages(
+	nCtx contextx.IContext, targetFile io.Writer, originPackages []exportOriginPackage, rules []originUploadTgzMergeRule,
+) (retErr error) {
+
 	sources := make([]tgzMergeSource, 0, len(originPackages))
-	defer func() {
-		if err != nil {
-			for _, source := range sources {
-				if errClose := source.sourceFile.Close(); errClose != nil {
-					err = errors.Join(err, errClose)
-				}
-			}
-		}
-	}()
 
 	for _, originPackage := range originPackages {
 		content, err := originPackage.file.Content(nCtx)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get origin package content, upload-id(%s): %w", originPackage.uploadID, err)
+			return fmt.Errorf("failed to get origin package content, upload-id(%s): %w", originPackage.uploadID, err)
 		}
+		defer func() {
+			if errClose := content.Close(); errClose != nil {
+				retErr = errors.Join(retErr, errClose)
+			}
+		}()
 
 		sources = append(sources, tgzMergeSource{
 			name:       originPackage.uploadID,
@@ -381,7 +378,7 @@ func buildOriginUploadTgzMergeSources(nCtx contextx.IContext, originPackages []e
 		})
 	}
 
-	return sources, nil
+	return mergeOriginUploadTgz(targetFile, sources, rules)
 }
 
 func buildOriginUploadTgzMergeRules(uploadType types.UploadCategory, pluginName string) ([]originUploadTgzMergeRule, error) {
@@ -498,16 +495,8 @@ func buildOriginPluginV3TgzMergeRules(pluginName string) []originUploadTgzMergeR
 	}
 }
 
-// mergeOriginUploadTgz takes responsibility for closing all source files and writers.
+// mergeOriginUploadTgz finalizes the archive writers; callers must close the source files.
 func mergeOriginUploadTgz(targetFile io.Writer, sources []tgzMergeSource, rules []originUploadTgzMergeRule) (err error) {
-	defer func() {
-		for _, source := range sources {
-			if errClose := source.sourceFile.Close(); errClose != nil {
-				err = errors.Join(err, errClose)
-			}
-		}
-	}()
-
 	gzipWriter := gzip.NewWriter(targetFile)
 	defer func() {
 		if errClose := gzipWriter.Close(); errClose != nil {

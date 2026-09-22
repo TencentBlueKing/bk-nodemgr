@@ -20,7 +20,7 @@ package local
 
 import (
 	"bufio"
-	"crypto/md5"
+	"crypto/md5" // nolint: gosec
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/spf13/afero"
 )
@@ -135,7 +136,7 @@ func (f *LocalFile) Content(_ contextx.IContext) (io.ReadCloser, error) {
 		return nil, fmt.Errorf("failed to open local file: %w", err)
 	}
 
-	return file, nil
+	return filex.OnceReadCloser(file), nil
 }
 
 // Info returns LocalFile info.

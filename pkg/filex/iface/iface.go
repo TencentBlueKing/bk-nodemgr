@@ -52,7 +52,8 @@ type FileGroup interface {
 	// It should get file with actual action.
 	GetFile(nCtx contextx.IContext, name string) (File, error)
 
-	// Store the func will store a file into the file group.
+	// Store borrows file to store its content; it never closes the input stream.
+	// The caller owns file and must close it after Store returns.
 	Store(nCtx contextx.IContext, info FileInfo, file io.ReadCloser, overwrite bool) error
 
 	// Copy copies a file or subgroup to another file group.
@@ -101,6 +102,7 @@ type FileInfo struct {
 
 // FileContent the content of file.
 type FileContent interface {
+	// Content opens a stream and transfers ownership to the caller, which must defer Close.
 	Content(nCtx contextx.IContext) (io.ReadCloser, error)
 }
 

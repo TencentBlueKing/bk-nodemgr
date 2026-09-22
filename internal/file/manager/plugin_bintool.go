@@ -58,7 +58,7 @@ const (
 // UploadOriginPluginBinTool upload generation2 origin plugin bintool package.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
+func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (_ *types.OriginPluginBinToolPkgDetail, retErr error) {
 	// validation.
 	if binToolFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin plugin bintool package. bin tool file is nil")
@@ -77,6 +77,11 @@ func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile 
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to get temp file")
 		return nil, err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkOriginPluginBinToolPkg(checkingFile)
 	if err != nil {
@@ -89,6 +94,11 @@ func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile 
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to get temp file")
 		return nil, err
 	}
+	defer func() {
+		if errClose := uploadingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	pkgName := m.wrapOriginPackageName(originPluginBinToolFileName)
 
@@ -231,13 +241,18 @@ func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID s
 	return nil
 }
 
-func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile fileiface.File, isShared bool) error {
+func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile fileiface.File, isShared bool) (retErr error) {
 	// get origin content.
 	content, err := sourceFile.Content(nCtx)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("filename", sourceFile.Info().Name).Error("failed to publish release plugin bintool, failed to get content")
 		return err
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// generate release file.
 	generatedFile, err := m.generatePluginBinToolV2Pkg(nCtx, content)
@@ -246,7 +261,9 @@ func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile f
 		return err
 	}
 	defer func() {
-		_ = generatedFile.Close()
+		if errClose := generatedFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
 	}()
 
 	// upload to upstream.
@@ -299,13 +316,18 @@ func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile f
 	return nil
 }
 
-func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile fileiface.File, isShared bool) error {
+func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile fileiface.File, isShared bool) (retErr error) {
 	// get origin content.
 	content, err := sourceFile.Content(nCtx)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("filename", sourceFile.Info().Name).Error("failed to publish release plugin bintool, failed to get content")
 		return err
 	}
+	defer func() {
+		if errClose := content.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// generate release file.
 	generatedFile, err := m.generatePluginBinToolV3Pkg(nCtx, content)
@@ -314,7 +336,9 @@ func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile f
 		return err
 	}
 	defer func() {
-		_ = generatedFile.Close()
+		if errClose := generatedFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
 	}()
 
 	// upload to upstream.
@@ -378,8 +402,18 @@ func (m *Manager) EnsurePluginBinToolToLocal(nCtx contextx.IContext, gen types.G
 	return m.ensureReleaseToLocal(nCtx, pluginBinTool.Release)
 }
 
-// nolint: lll
-func (m *Manager) generatePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
+// nolint: lll,nonamedreturns // Deferred cleanup must clear content when closing a file fails.
+func (m *Manager) generatePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (content io.ReadCloser, err error) {
+	defer func() {
+		// Target cleanup may fail after the output stream is opened.
+		if err != nil && content != nil {
+			if errClose := content.Close(); errClose != nil {
+				err = errors.Join(err, errClose)
+			}
+			content = nil
+		}
+	}()
+
 	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
 		return nil, err
@@ -389,6 +423,11 @@ func (m *Manager) generatePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile 
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if errClose := targetFile.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
 
 	if err = generateTgz(targetFile,
 		[]tgzWriteRuleDir{
@@ -447,8 +486,18 @@ func (m *Manager) generatePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile 
 	return file.Content(nCtx)
 }
 
-// nolint: lll
-func (m *Manager) generatePluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
+// nolint: lll,nonamedreturns // Deferred cleanup must clear content when closing a file fails.
+func (m *Manager) generatePluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (content io.ReadCloser, err error) {
+	defer func() {
+		// Target cleanup may fail after the output stream is opened.
+		if err != nil && content != nil {
+			if errClose := content.Close(); errClose != nil {
+				err = errors.Join(err, errClose)
+			}
+			content = nil
+		}
+	}()
+
 	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
 		return nil, err
@@ -458,6 +507,11 @@ func (m *Manager) generatePluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile 
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if errClose := targetFile.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
 
 	if err = generateTgz(targetFile,
 		[]tgzWriteRuleDir{

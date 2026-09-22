@@ -52,7 +52,7 @@ type IPluginV3 interface {
 // UploadOriginPluginV3 uploads origin plugin package v3.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginPluginV3PkgDetail, error) {
+func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.ReadCloser) (_ *types.OriginPluginV3PkgDetail, retErr error) {
 	if pluginFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin plugin package v3 package, file is nil")
 
@@ -73,6 +73,11 @@ func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.Rea
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkOriginPluginV3Pkg(checkingFile)
 	if err != nil {
@@ -87,6 +92,11 @@ func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.Rea
 
 		return nil, err
 	}
+	defer func() {
+		if errClose := uploadingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	pkgFileName, err := pluginpkg.FormatPkgFileName(detail.PluginPkgName, types.ReleaseTypeOriginPluginV3, types.Generation2,
 		platfmt.UnknownPlatform(), detail.Version)
@@ -398,7 +408,7 @@ const releasePluginV3Label = "v3"
 
 // PublishReleasePluginV3 generates release plugin by upload-id and is-shared.
 // nolint: funlen,gocognit
-func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string, isShared bool) error {
+func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string, isShared bool) (retErr error) {
 	up, err := m.storageUpload.GetPluginV3Upload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin package v3, failed to get upload")
@@ -427,6 +437,11 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 
 		return err
 	}
+	defer func() {
+		if errClose := originContent.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	// store file to temp.
 	originTempFileName, err := m.saveTempFile(nCtx, originContent)
@@ -442,6 +457,11 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 
 		return err
 	}
+	defer func() {
+		if errClose := checkingFile.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
 
 	detail, err := checkOriginPluginV3Pkg(checkingFile)
 	if err != nil {
@@ -466,7 +486,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 	releasesMap := make(map[string]*types.ReleasePlugin)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
-		gp.Go(func() error {
+		gp.Go(func() (retErr error) {
 			// generate package name.
 			pkgName, err := pluginpkg.FormatPkgFileName(pluginPkgName, types.ReleaseTypePlugin, gen, pkg.platform, pluginPkgVersion)
 			if err != nil {
@@ -481,6 +501,11 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 
 				return err
 			}
+			defer func() {
+				if errClose := generatedFile.Close(); errClose != nil {
+					retErr = errors.Join(retErr, errClose)
+				}
+			}()
 
 			if err = m.upstreamReleasePlugin.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v3, failed to upload to upstream")
@@ -587,7 +612,7 @@ func (m *Manager) generatePluginV3Pkg(nCtx contextx.IContext,
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
-		gp.Go(func() error {
+		gp.Go(func() (err error) {
 			// create target file.
 			tempFileName, err := m.createTempFile(nCtx)
 			if err != nil {
@@ -597,17 +622,32 @@ func (m *Manager) generatePluginV3Pkg(nCtx contextx.IContext,
 			if err != nil {
 				return fmt.Errorf("failed to open pkg file: %w", err)
 			}
+			defer func() {
+				if errClose := targetFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			// open all source files.
 			origiPluginFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin plugin package file: %w", err)
 			}
+			defer func() {
+				if errClose := origiPluginFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			originPluginBinToolFile, err := localPluginBinTool.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin plugin bintool file: %w", err)
 			}
+			defer func() {
+				if errClose := originPluginBinToolFile.Close(); errClose != nil {
+					err = errors.Join(err, errClose)
+				}
+			}()
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{

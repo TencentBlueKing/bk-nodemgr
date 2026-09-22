@@ -28,7 +28,6 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/filelock"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/spf13/afero"
@@ -139,13 +138,15 @@ func (group *LocalDir) GetFile(_ contextx.IContext, name string) (fileiface.File
 }
 
 // Store the func will store a file into the file group.
-func (group *LocalDir) Store(nCtx contextx.IContext, info fileiface.FileInfo, reader io.ReadCloser, overwrite bool) error {
+func (group *LocalDir) Store(nCtx contextx.IContext, info fileiface.FileInfo, reader io.ReadCloser, overwrite bool) (retErr error) {
+	if reader == nil {
+		return errors.New("file cannot be nil")
+	}
 	if nCtx == nil {
 		return errors.New("context cannot be nil")
 	}
-
-	if reader == nil {
-		return errors.New("file cannot be nil")
+	if err := nCtx.Err(); err != nil {
+		return fmt.Errorf("context is done: %w", err)
 	}
 
 	// check dir exist or not.
@@ -163,45 +164,21 @@ func (group *LocalDir) Store(nCtx contextx.IContext, info fileiface.FileInfo, re
 		logger.G.Biz(nCtx).With("path", group.fullPath).Info("successfully create dir")
 	}
 
-	if err != nil {
-		return fmt.Errorf("get file info failed: %w", err)
-	}
-
 	fileFullPath := filepath.Join(group.fullPath, info.Name)
-
-	// check file exist or not.
-	if !overwrite {
-		exists, err = afero.Exists(wFs(), fileFullPath)
-		if err != nil {
-			return fmt.Errorf("check file existence failed: %w", err)
-		}
-
-		if exists {
-			return fmt.Errorf("file already exist, file-name(%s)", fileFullPath)
-		}
-
-		flock := filelock.NewFileLock(fileFullPath)
-		if err = flock.TryLock(); err != nil {
-			return fmt.Errorf("lock file failed: %w", err)
-		}
-
-		defer func() {
-			_ = flock.Unlock()
-		}()
+	flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
+	if overwrite {
+		flags = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 	}
 
-	defer func() {
-		_ = reader.Close()
-	}()
-
-	// create file
-	lfile, err := wFs().Create(fileFullPath)
+	lfile, err := wFs().OpenFile(fileFullPath, flags, 0666) // nolint:mnd // Preserve Create permissions, subject to umask.
 	if err != nil {
 		return fmt.Errorf("create file failed: %w", err)
 	}
 
 	defer func() {
-		_ = lfile.Close()
+		if err := lfile.Close(); err != nil {
+			retErr = errors.Join(retErr, fmt.Errorf("close destination file failed: %w", err))
+		}
 	}()
 
 	if err := group.writeDataToFile(nCtx, lfile, reader); err != nil {
