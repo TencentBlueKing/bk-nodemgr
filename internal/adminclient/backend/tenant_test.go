@@ -34,16 +34,17 @@ import (
 type fakeInitTenantHandler struct {
 	nCtx           contextx.IContext
 	targetTenantID string
+	result         *backendadmin.InitTenantResult
 	calls          int
 	err            error
 }
 
-func (f *fakeInitTenantHandler) InitTenant(nCtx contextx.IContext, tenantID string) error {
+func (f *fakeInitTenantHandler) InitTenant(nCtx contextx.IContext, tenantID string) (*backendadmin.InitTenantResult, error) {
 	f.nCtx = nCtx
 	f.targetTenantID = tenantID
 	f.calls++
 
-	return f.err
+	return f.result, f.err
 }
 
 func TestTenantCMDRegistersInitSubcommand(t *testing.T) {
@@ -74,9 +75,32 @@ func TestInitTenantCommandSeparatesAuthTenantAndTargetTenant(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, handler.calls)
 	assert.Equal(t, "auth-tenant", handler.nCtx.TenantID())
+	assert.Equal(t, "admin", handler.nCtx.BKUsername())
 	assert.Equal(t, "admin", handler.nCtx.LoginName())
 	assert.Equal(t, "target-tenant", handler.targetTenantID)
 	assert.Contains(t, out.String(), "Successfully initialized tenant")
+}
+
+func TestInitTenantCommandPrintsTriggeredWorkflows(t *testing.T) {
+	handler := &fakeInitTenantHandler{result: &backendadmin.InitTenantResult{
+		TriggeredWorkflows: []string{"sync_biz_and_host", "sync_networkarea"},
+	}}
+	cmd := NewInitTenantCMD(
+		func() backendadmin.IInitTenantHandler { return handler },
+		func() (string, string) { return "auth-tenant", "admin" },
+	)
+	out := new(bytes.Buffer)
+	cmd.SetOut(out)
+	cmd.SetErr(out)
+	cmd.SetArgs([]string{"--target-tenant-id", "target-tenant"})
+
+	err := cmd.Execute()
+
+	require.NoError(t, err)
+	assert.Contains(t, out.String(), "Successfully initialized tenant")
+	assert.Contains(t, out.String(), "Triggered workflows:")
+	assert.Contains(t, out.String(), "- sync_biz_and_host")
+	assert.Contains(t, out.String(), "- sync_networkarea")
 }
 
 func TestBackendCMDRejectsMissingTargetTenantIDBeforeHandlerCreation(t *testing.T) {

@@ -33,18 +33,20 @@ import (
 
 func TestHandlerInitTenantUsesHook(t *testing.T) {
 	h := &Handler{cli: &cli{}}
-	h.cli.initTenantFn = func(nCtx contextx.IContext, tenantID string) error {
+	h.cli.initTenantFn = func(nCtx contextx.IContext, tenantID string) (*InitTenantResult, error) {
 		assert.Equal(t, "auth-tenant", nCtx.TenantID())
 		assert.Equal(t, "target-tenant", tenantID)
-		return nil
+		return &InitTenantResult{TriggeredWorkflows: []string{"sync_biz_and_host"}}, nil
 	}
 
-	err := h.InitTenant(
+	result, err := h.InitTenant(
 		contextx.New(context.Background(), contextx.WithTenantID("auth-tenant")),
 		"target-tenant",
 	)
 
 	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, []string{"sync_biz_and_host"}, result.TriggeredWorkflows)
 }
 
 func TestHandlerInitTenantViaHTTP(t *testing.T) {
@@ -61,17 +63,19 @@ func TestHandlerInitTenantViaHTTP(t *testing.T) {
 		assert.Equal(t, "target-tenant", body.TenantID)
 
 		rw.Header().Set("Content-Type", "application/json")
-		_, _ = rw.Write([]byte(`{"code":0,"message":"OK","request_id":"rid","data":{}}`))
+		_, _ = rw.Write([]byte(`{"code":0,"message":"OK","request_id":"rid","data":{"triggered_workflows":["sync_biz_and_host","sync_networkarea"]}}`))
 	}))
 	defer server.Close()
 
 	h := newHTTPTestHandler(t, server.URL)
-	err := h.InitTenant(
+	result, err := h.InitTenant(
 		contextx.New(context.Background(), contextx.WithTenantID("auth-tenant"), contextx.WithLoginName("admin")),
 		"target-tenant",
 	)
 
 	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, []string{"sync_biz_and_host", "sync_networkarea"}, result.TriggeredWorkflows)
 }
 
 func TestHandlerInitTenantReturnsResponseError(t *testing.T) {
@@ -82,7 +86,7 @@ func TestHandlerInitTenantReturnsResponseError(t *testing.T) {
 	defer server.Close()
 
 	h := newHTTPTestHandler(t, server.URL)
-	err := h.InitTenant(
+	_, err := h.InitTenant(
 		contextx.New(context.Background(), contextx.WithTenantID("auth-tenant"), contextx.WithLoginName("admin")),
 		"target-tenant",
 	)

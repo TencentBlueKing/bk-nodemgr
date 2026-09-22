@@ -37,7 +37,7 @@ type ISyncUnassignedAgentNetworkUnitHandler interface {
 
 // IInitTenantHandler initializes a tenant through backend admin.
 type IInitTenantHandler interface {
-	InitTenant(nCtx contextx.IContext, tenantID string) error
+	InitTenant(nCtx contextx.IContext, tenantID string) (*InitTenantResult, error)
 }
 
 var (
@@ -85,6 +85,6 @@ func (h *Handler) SyncUnassignedAgentNetworkUnit(
 }
 
 // InitTenant initializes a tenant through backend admin.
-func (h *Handler) InitTenant(nCtx contextx.IContext, tenantID string) error {
+func (h *Handler) InitTenant(nCtx contextx.IContext, tenantID string) (*InitTenantResult, error) {
 	return h.cli.initTenant(nCtx, tenantID)
 }

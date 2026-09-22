@@ -20,18 +20,35 @@
 package tenant
 
 import (
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
-type handler struct {
-	rg *gin.RouterGroup
+type tenantStorage interface {
+	EnsureReservedTenant(nCtx contextx.IContext, tenant *types.Tenant) error
 }
 
-func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
+type userManagerHandler interface {
+	ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error)
+}
+
+type handler struct {
+	rg                 *gin.RouterGroup
+	syncManager        managerIface.ISyncManager
+	tenantStorage      tenantStorage
+	userManagerHandler userManagerHandler
+}
+
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
-		rg: rg.Group("/tenant"),
+		rg:                 rg.Group("/tenant"),
+		syncManager:        capability.Manager,
+		tenantStorage:      capability.StorageTenant,
+		userManagerHandler: capability.UserManagerHandler,
 	}
 }
 

@@ -58,12 +58,15 @@ func (f *fakeBackendAdminHandler) UpsertNetworkUnitSegmentRules(
 	return f.err
 }
 
-func (f *fakeBackendAdminHandler) InitTenant(nCtx contextx.IContext, tenantID string) error {
+func (f *fakeBackendAdminHandler) InitTenant(
+	nCtx contextx.IContext,
+	tenantID string,
+) (*backendadmin.InitTenantResult, error) {
 	f.initTenantCtx = nCtx
 	f.initTenantID = tenantID
 	f.initCalls++
 
-	return f.err
+	return nil, f.err
 }
 
 func (f *fakeBackendAdminHandler) SyncUnassignedAgentNetworkUnit(

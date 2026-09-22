@@ -30,7 +30,9 @@ bk-nodemgr-adminclient -> backend admin API
 
 1. `--target-tenant-id` 必须显式传入；未传时 CLI 在创建 handler 前拒绝执行。
 2. 认证 tenant 只能由 Backend 配置的 `tenantMode` 推导；CLI 不提供 `--tenant-id` 参数。
-3. 当前 Backend `POST /admin/tenant/init` 只校验请求 body 可解析并返回成功，不执行租户数据写入或回填。
+3. `--target-tenant-id` 必须已存在于 usermanager 且处于启用状态；不存在或禁用时拒绝初始化。
+4. `system` 是多租户模式保留租户，不走普通租户初始化流程。
+5. Backend 会将 usermanager 中的目标租户数据同步到本地 tenant collection，并触发一次该租户的初始化 sync 能力：`sync_biz_and_host`、`sync_networkarea`、`ensure_default_plugin`、`sync_shared_releases`。
 
 ```mermaid
 flowchart TD
@@ -40,7 +42,10 @@ flowchart TD
     Config --> Auth[按 tenantMode 推导认证 tenant，并使用 --login-name 生成 admin context]
     Auth --> API[调用 POST /admin/tenant/init]
     API --> Body[body.tenant_id = 目标 tenant]
-    Body --> Result{Backend 返回 code}
+    Body --> UserManager[从 usermanager 校验目标 tenant 存在且启用]
+    UserManager --> Storage[同步目标 tenant 到本地 tenant collection]
+    Storage --> Sync[触发一次初始化 sync 能力]
+    Sync --> Result{Backend 返回 code}
     Result -->|code == 0| Success[输出 Successfully initialized tenant，退出 0]
     Result -->|code != 0 或 HTTP 失败| Failed[返回错误，退出非 0]
 ```
@@ -79,15 +84,21 @@ bk-nodemgr-adminclient backend \
 
 ```text
 Successfully initialized tenant
+Triggered workflows:
+- sync_biz_and_host
+- sync_networkarea
+- ensure_default_plugin
+- sync_shared_releases
 ```
 
 退出码规则：
 
-| 场景                                                      | 退出码 |
-| --------------------------------------------------------- | ------ |
-| 缺少 `--target-tenant-id`、配置文件读取失败、配置校验失败 | 非 0   |
-| HTTP 调用失败或 backend admin API 返回 `code != 0`        | 非 0   |
-| backend admin API 返回 `code == 0`                        | 0      |
+| 场景                                                                                   | 退出码 |
+| -------------------------------------------------------------------------------------- | ------ |
+| 缺少 `--target-tenant-id`、配置文件读取失败、配置校验失败                              | 非 0   |
+| 目标 tenant 不存在、禁用、为 `system`，或与当前 `tenantMode` 不匹配                    | 非 0   |
+| HTTP 调用失败、tenant collection 写入失败、初始化 sync 触发失败、Backend 返回非 0 code | 非 0   |
+| Backend 写入目标 tenant 并成功触发初始化 sync                                          | 0      |
 
 ## 同步未分配 Network Unit 的 Agent
 

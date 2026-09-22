@@ -66,14 +66,36 @@ func NewInitTenantCMD(
 			}
 
 			tenantID, loginName := getAuthInfo()
-			nCtx := contextx.New(cmd.Context(), contextx.WithTenantID(tenantID), contextx.WithLoginName(loginName))
-			if err := handler.InitTenant(nCtx, targetTenantID); err != nil {
+			nCtx := contextx.New(
+				cmd.Context(),
+				contextx.WithTenantID(tenantID),
+				contextx.WithLoginName(loginName),
+				contextx.WithBKUsername(loginName),
+			)
+			result, err := handler.InitTenant(nCtx, targetTenantID)
+			if err != nil {
 				return err
 			}
 
-			_, err := fmt.Fprintln(cmd.OutOrStdout(), "Successfully initialized tenant")
+			if _, err := fmt.Fprintln(cmd.OutOrStdout(), "Successfully initialized tenant"); err != nil {
+				return err
+			}
 
-			return err
+			if result == nil || len(result.TriggeredWorkflows) == 0 {
+				return nil
+			}
+
+			if _, err := fmt.Fprintln(cmd.OutOrStdout(), "Triggered workflows:"); err != nil {
+				return err
+			}
+
+			for _, workflow := range result.TriggeredWorkflows {
+				if _, err := fmt.Fprintf(cmd.OutOrStdout(), "- %s\n", workflow); err != nil {
+					return err
+				}
+			}
+
+			return nil
 		},
 	}
 

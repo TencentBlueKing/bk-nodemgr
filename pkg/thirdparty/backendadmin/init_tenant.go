@@ -28,20 +28,26 @@ type initTenantReq struct {
 	TenantID string `json:"tenant_id"`
 }
 
-type initTenantResp struct {
-	Code      int32  `json:"code"`
-	Message   string `json:"message"`
-	RequestID string `json:"request_id"`
+// InitTenantResult is the backend admin tenant initialization result.
+type InitTenantResult struct {
+	TriggeredWorkflows []string `json:"triggered_workflows"`
 }
 
-func (c *cli) initTenant(nCtx contextx.IContext, tenantID string) error {
+type initTenantResp struct {
+	Code      int32             `json:"code"`
+	Message   string            `json:"message"`
+	RequestID string            `json:"request_id"`
+	Data      *InitTenantResult `json:"data"`
+}
+
+func (c *cli) initTenant(nCtx contextx.IContext, tenantID string) (*InitTenantResult, error) {
 	if c.initTenantFn != nil {
 		return c.initTenantFn(nCtx, tenantID)
 	}
 
 	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	resp := new(initTenantResp)
@@ -52,13 +58,17 @@ func (c *cli) initTenant(nCtx contextx.IContext, tenantID string) error {
 		Body(&initTenantReq{TenantID: tenantID}).
 		Do().Into(resp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.Code != 0 {
-		return fmt.Errorf("init tenant failed, code(%d), message(%s), request-id(%s)",
+		return nil, fmt.Errorf("init tenant failed, code(%d), message(%s), request-id(%s)",
 			resp.Code, resp.Message, resp.RequestID)
 	}
 
-	return nil
+	if resp.Data == nil {
+		return &InitTenantResult{}, nil
+	}
+
+	return resp.Data, nil
 }

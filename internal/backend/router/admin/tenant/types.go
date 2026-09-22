@@ -35,4 +35,5 @@ func (r *initReq) Validate() error {
 func (r *initReq) AutoConvert() {}
 
 type initResp struct {
+	TriggeredWorkflows []string `json:"triggered_workflows"`
 }
