@@ -77,6 +77,34 @@ func testClient(t *testing.T) IHandler {
 	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
+// TestPluginDeploymentProcessLastSyncAt verifies timestamps survive persistence between actions.
+func TestPluginDeploymentProcessLastSyncAt(t *testing.T) {
+	lastSyncAt := time.Date(2026, time.January, 2, 3, 4, 5, 123000000, time.UTC)
+	info := &types.PluginDeploymentInfo{
+		Process: types.Process{Info: types.ProcessInfo{LastSyncAt: lastSyncAt}},
+	}
+
+	stored, err := convertPluginDeploymentInfoFromTypes(info)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := bson.Marshal(stored)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded Info
+	if err := bson.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	restored, err := convertPluginDeploymentInfoToTypes(&decoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !restored.Process.Info.LastSyncAt.Equal(lastSyncAt) {
+		t.Fatalf("LastSyncAt = %s, want %s", restored.Process.Info.LastSyncAt, lastSyncAt)
+	}
+}
+
 // TestHandler_Create test handler Create
 func TestHandler_Create(t *testing.T) {
 	type args struct {

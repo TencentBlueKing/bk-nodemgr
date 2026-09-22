@@ -182,9 +182,9 @@ type process struct {
 
 	Platform   platform `json:"platform" bson:"platform"`
 	Generation int64    `json:"generation" bson:"generation"`
-	
-	BindIP     string   `json:"bind_ip" bson:"bind_ip"`
-	BindPort   int      `json:"bind_port" bson:"bind_port"`
+
+	BindIP   string `json:"bind_ip" bson:"bind_ip"`
+	BindPort int    `json:"bind_port" bson:"bind_port"`
 
 	Info          processInfo          `json:"info" bson:"info"`
 	Identity      processIdentity      `json:"identity" bson:"identity"`
@@ -199,11 +199,12 @@ type platform struct {
 }
 
 type processInfo struct {
-	Pid       int    `json:"pid" bson:"pid"`
-	Version   string `json:"version" bson:"version"`
-	AgentID   string `json:"agent_id" bson:"agent_id"`
-	AutoStart bool   `json:"auto_start" bson:"auto_start"`
-	Status    string `json:"status" bson:"status"`
+	Pid        int       `json:"pid" bson:"pid"`
+	Version    string    `json:"version" bson:"version"`
+	AgentID    string    `json:"agent_id" bson:"agent_id"`
+	AutoStart  bool      `json:"auto_start" bson:"auto_start"`
+	Status     string    `json:"status" bson:"status"`
+	LastSyncAt time.Time `json:"last_sync_at" bson:"last_sync_at"`
 }
 type processIdentity struct {
 	Name       string `json:"name" bson:"name"`

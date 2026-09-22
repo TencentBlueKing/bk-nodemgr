@@ -46,6 +46,9 @@ const (
 	// FieldKeyPluginName the plugin name field key.
 	FieldKeyPluginName = "data.info.process.name"
 
+	// FieldKeyProcessLastSyncAt the process last sync time field key.
+	FieldKeyProcessLastSyncAt = "data.info.process.info.last_sync_at"
+
 	// FieldKeyPluginVersion the plugin version field key.
 	FieldKeyPluginVersion = "data.info.install_options.version"
 )
