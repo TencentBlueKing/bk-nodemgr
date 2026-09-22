@@ -51,7 +51,7 @@ externalMongodb:
 {{- $_ := set $config "backend" $backend }}
 {{- range $configName := list "userManager" "notice" "iamV3" }}
 {{- $gateway := deepCopy (dig "gateways" $configName dict $.Values) }}
-{{- if or $gateway (hasKey $config $configName) }}
+{{- if or (eq $configName "userManager") (or $gateway (hasKey $config $configName)) }}
 {{- $current := deepCopy (dig $configName dict $config) }}
 {{- $_ := set $current "appCode" (dig "global" "appCode" "" $.Values) }}
 {{- $_ := set $current "appSecret" (dig "global" "appSecret" "" $.Values) }}
