@@ -71,6 +71,11 @@ externalMongodb:
 {{- $_ := set $bkLogin "endpoints" (dig "gateways" "bkLogin" "endpoints" (list $bkLoginEndpoint) .Values) }}
 {{- $_ := set $bkSaaS "bkLogin" $bkLogin }}
 {{- $_ := set $config "bkSaaS" $bkSaaS }}
+{{- $front := deepCopy (dig "front" dict $config) }}
+{{- if not (dig "bkUserWebURL" "" $front) }}
+{{- $_ := set $front "bkUserWebURL" (replace "{gateway_name}" "bk-user-web" $bkAPITmpl) }}
+{{- end }}
+{{- $_ := set $config "front" $front }}
 {{- $_ := set $application "config" $config }}
 application:
 {{ toYaml $application | nindent 2 }}

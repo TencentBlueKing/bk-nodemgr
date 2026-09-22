@@ -77,6 +77,7 @@ flowchart LR
 - `cmdb` -> `bk-cmdb`
 - `gse` -> `bk-gse`
 - `userManager` -> `bk-user`
+- `bkUserWebURL` -> `bk-user-web`
 - `bkLogin` -> `bk-login`
 - `iamV3` -> `bk-iam`
 - `iamV4` -> `bkiam`

@@ -38,7 +38,7 @@ application:
 {{- $gatewayNames := dict "cmdb" "bk-cmdb" "gse" "bk-gse" "userManager" "bk-user" "monitor" "bk-monitor" "iamV3" "bk-iam" "iamV4" "bkiam" }}
 {{- range $name := list "cmdb" "gse" "userManager" "monitor" "iamV3" }}
 {{- $gateway := deepCopy (dig "gateways" $name dict $.Values) }}
-{{- if or $gateway (hasKey $config $name) }}
+{{- if or (or (eq $name "userManager") (eq $name "monitor")) (or $gateway (hasKey $config $name)) }}
 {{- $current := deepCopy (dig $name dict $config) }}
 {{- $_ := set $current "appCode" (dig "global" "appCode" "" $.Values) }}
 {{- $_ := set $current "appSecret" (dig "global" "appSecret" "" $.Values) }}
