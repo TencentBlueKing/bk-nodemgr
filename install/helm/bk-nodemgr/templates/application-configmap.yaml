@@ -41,7 +41,8 @@ data:
       virtualUser: {{ ternary "admin" "bk_admin" (eq .Values.application.config.tenantMode "single") | quote }}
       {{- end }}
 
-    log: {{ .Values.application.config.log | toYaml | nindent 6 }}
+    log:
+      {{- include "bk-nodemgr.logConfig" (dict "config" .Values.application.config.log "context" $) | nindent 6 }}
 
     file: {{ .Values.application.config.file | toYaml | nindent 6 }}
 

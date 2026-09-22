@@ -58,7 +58,7 @@ dependencies:
     name: loki
     # repository: "https://grafana.github.io/helm-charts"
     repository: "file://./charts/loki"
-    version: 3.8.2
+    version: 6.30.1
   - condition: alloy.enabled
     name: alloy
     # repository: "https://grafana.github.io/helm-charts"

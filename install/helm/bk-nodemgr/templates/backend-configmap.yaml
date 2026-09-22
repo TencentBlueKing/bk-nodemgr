@@ -54,7 +54,8 @@ data:
 
     creditVault: {{ .Values.backend.config.creditVault | toYaml | nindent 6 }}
 
-    log: {{ .Values.backend.config.log | toYaml | nindent 6 }}
+    log:
+      {{- include "bk-nodemgr.logConfig" (dict "config" .Values.backend.config.log "context" $) | nindent 6 }}
 
     iamV3: {{ .Values.backend.config.iamV3 | toYaml | nindent 6 }}
 

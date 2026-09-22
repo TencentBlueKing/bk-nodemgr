@@ -267,8 +267,18 @@ prometheus:
 loki:
   enabled: false
   nameOverride: loki
+  deploymentMode: SingleBinary
   loki:
     auth_enabled: false
+    schemaConfig:
+      configs:
+        - from: "2024-04-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
     commonConfig:
       path_prefix: /var/loki
       replication_factor: 1
@@ -312,7 +322,7 @@ loki:
   minio:
     enabled: false
 
-## Embedded Alloy log collector. Enable with loki.enabled=true to collect Kubernetes pod logs into Loki.
+## Embedded Alloy log collector. Enable with loki.enabled=true to collect bk-nodemgr self-monitoring container logs into Loki.
 alloy:
   enabled: false
   nameOverride: alloy
@@ -330,12 +340,21 @@ alloy:
           format = "logfmt"
         }
 
-        discovery.kubernetes "pods" {
+        discovery.kubernetes "nodemgr_pods" {
           role = "pod"
+          namespaces {
+            names = ["blueking-nodemgr-application", "blueking-nodemgr-backend", "blueking-nodemgr-file"]
+          }
         }
 
-        discovery.relabel "pod_logs" {
-          targets = discovery.kubernetes.pods.targets
+        discovery.relabel "nodemgr_logs" {
+          targets = discovery.kubernetes.nodemgr_pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            regex         = "bk-nodemgr-(application|backend|file)"
+            action        = "keep"
+          }
 
           rule {
             source_labels = ["__meta_kubernetes_namespace"]
@@ -349,7 +368,9 @@ alloy:
 
           rule {
             source_labels = ["__meta_kubernetes_pod_container_name"]
-            target_label  = "container"
+            regex         = "bk-nodemgr-(.+)"
+            replacement   = "${1}"
+            target_label  = "service"
           }
 
           rule {
@@ -358,20 +379,25 @@ alloy:
           }
 
           rule {
-            source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name", "__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+            source_labels = ["__meta_kubernetes_pod_name", "__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
             separator     = "/"
-            replacement   = "/var/log/pods/*$1*_$3/$4/*.log"
+            regex         = "([^/]+)/([^/]+)/([^/]+)"
+            replacement   = "/var/log/containers/${1}_${2}_${3}-*.log"
             target_label  = "__path__"
           }
         }
 
-        loki.source.file "pod_logs" {
-          targets    = discovery.relabel.pod_logs.output
-          forward_to = [loki.process.pod_logs.receiver]
+        local.file_match "nodemgr_logs" {
+          path_targets = discovery.relabel.nodemgr_logs.output
         }
 
-        loki.process "pod_logs" {
-          stage.cri {}
+        loki.source.file "nodemgr_logs" {
+          targets    = local.file_match.nodemgr_logs.targets
+          forward_to = [loki.process.nodemgr_logs.receiver]
+        }
+
+        loki.process "nodemgr_logs" {
+          stage.docker {}
           forward_to = [loki.write.embedded_loki.receiver]
         }
 

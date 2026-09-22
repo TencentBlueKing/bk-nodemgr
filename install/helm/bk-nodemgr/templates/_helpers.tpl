@@ -73,6 +73,17 @@ http://{{ include "pyroscope.fullname" .Subcharts.pyroscope }}.{{ .Release.Names
 {{- end -}}
 
 {{/*
+Render service log config. Embedded Alloy log collection reads container stdout/stderr.
+*/}}
+{{- define "bk-nodemgr.logConfig" -}}
+{{- $config := deepCopy (.config | default dict) -}}
+{{- if .context.Values.alloy.enabled -}}
+{{- $_ := set $config "alsoToStderr" true -}}
+{{- end -}}
+{{- $config | toYaml -}}
+{{- end -}}
+
+{{/*
 Render service profiling config. Explicit enabled and serverAddress values take precedence independently.
 */}}
 {{- define "bk-nodemgr.profilingConfig" -}}

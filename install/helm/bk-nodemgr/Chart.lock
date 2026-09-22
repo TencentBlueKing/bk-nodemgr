@@ -28,9 +28,9 @@ dependencies:
   version: 29.30.1
 - name: loki
   repository: file://./charts/loki
-  version: 3.8.2
+  version: 6.30.1
 - name: alloy
   repository: file://./charts/alloy
   version: 1.12.1
-digest: sha256:9b5a4d18db6c558506c815c3c0af33bd5a38e57657f4cc646b4053e494a89a7c
-generated: "2026-09-21T16:44:35.843588519+08:00"
+digest: sha256:e84df99d89eb55ef3aaa4db02c96b5401c777e1e92d4a8273313a0e547045445
+generated: "2026-09-22T17:29:59.43568119+08:00"

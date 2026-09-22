@@ -28,9 +28,3 @@ provisioner image name
 {{- $dict := dict "service" .Values.enterprise.provisioner.image "global" .Values.global.image "defaultVersion" "latest" -}}
 {{- include "loki.baseImage" $dict -}}
 {{- end -}}
-
-{{/* Prefix for provisioned secrets created for each provisioned tenant */}}
-{{- define "enterprise-logs.provisionedSecretPrefix" }}
-{{- .Values.enterprise.provisioner.provisionedSecretPrefix | default (printf "%s-provisioned" (include "loki.name" . )) -}}
-{{- end -}}
-
