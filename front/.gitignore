@@ -8,7 +8,6 @@ node_modules
 .idea/
 *.log
 cypress/downloads
-pnpm-lock.yaml
 
 pre-*-bkcodeai
 .env.development
