@@ -23,8 +23,10 @@ else
 fi
 
 function usage() {
-	echo "Usage: $0 {diff|apply|sync|destroy} [environment] [deploy args...] [helmfile args...]"
+	echo "Usage: $0 {diff|apply|sync|destroy|render-values} [environment] [deploy args...] [helmfile args...]"
 	echo "Example: $0 apply example"
+	echo "Example: $0 render-values example"
+	echo "Example: $0 render-values example --modules backend"
 	echo "Example: $0 diff example --skip-deps --debug"
 	echo "Example: $0 diff --skip-deps --debug"
 	echo "Example: $0 diff example --skip-module monitoring --skip-deps"
@@ -89,6 +91,63 @@ function run_module() {
 	"$HELMFILE_BIN" -f "$HELMFILE_FILE" -e "$environment" -l "module=$module" "$action" "$@"
 }
 
+function selected_modules() {
+	local module
+	for module in "$@"; do
+		if should_run_module "$module"; then
+			echo "$module"
+		fi
+	done
+}
+
+function ensure_same_release_name() {
+	local environment=$1
+	shift
+	local release_name=""
+	local module
+	local module_release_name
+	for module in "$@"; do
+		module_release_name=$("$HELMFILE_BIN" -f "$HELMFILE_FILE" -e "$environment" -l "module=$module" list --skip-charts | awk 'NR == 2 {print $1}')
+		if [ -z "$module_release_name" ]; then
+			echo "Failed to resolve release name for module: $module"
+			exit 1
+		fi
+		if [ -z "$release_name" ]; then
+			release_name=$module_release_name
+		elif [ "$release_name" != "$module_release_name" ]; then
+			echo "render-values requires all selected modules to use the same release name"
+			echo "Expected release name: $release_name"
+			echo "Module $module uses release name: $module_release_name"
+			exit 1
+		fi
+	done
+}
+
+function has_helmfile_arg() {
+	local expected=$1
+	local arg
+	for arg in "${HELMFILE_ARGS[@]}"; do
+		if [ "$arg" = "$expected" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+function render_values() {
+	local environment=$1
+	shift
+	local modules=("$@")
+	local output_template="rendered-values/$environment/values/{{ .Release.Namespace }}.yaml"
+	mkdir -p "$ROOT_DIR/rendered-values/$environment/values"
+	ensure_same_release_name "$environment" "${modules[@]}"
+	if ! has_helmfile_arg "--skip-deps"; then
+		HELMFILE_ARGS+=("--skip-deps")
+	fi
+	HELMFILE_ARGS+=("--output-file-template" "$output_template")
+	run_modules "write-values" "$environment" "${modules[@]}"
+}
+
 if [ "$#" -lt 1 ]; then
 	usage
 fi
@@ -151,6 +210,14 @@ function run_modules() {
 case "$ACTION" in
 diff | apply | sync)
 	run_modules "$ACTION" "$ENVIRONMENT" deps file backend application monitoring
+	;;
+render-values)
+	mapfile -t SELECTED_MODULES < <(selected_modules deps file backend application monitoring)
+	if [ "${#SELECTED_MODULES[@]}" -eq 0 ]; then
+		echo "No modules selected"
+		exit 1
+	fi
+	render_values "$ENVIRONMENT" "${SELECTED_MODULES[@]}"
 	;;
 destroy)
 	run_modules "$ACTION" "$ENVIRONMENT" monitoring application backend file deps

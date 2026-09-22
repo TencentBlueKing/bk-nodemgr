@@ -201,6 +201,30 @@ cd install/helmfile/bk-nodemgr
 ./deploy.sh sync example
 ```
 
+只渲染最终 Helm values，不部署：
+
+```bash
+./deploy.sh render-values example
+```
+
+`render-values` 底层使用 Helmfile `write-values`，默认追加 `--skip-deps`，输出到：
+
+```text
+rendered-values/<environment>/values/<namespace>.yaml
+```
+
+例如：
+
+```text
+rendered-values/example/values/bk-nodemgr-deps.yaml
+rendered-values/example/values/blueking-nodemgr-backend.yaml
+rendered-values/example/values/blueking-nodemgr-application.yaml
+```
+
+`rendered-values/<environment>/values/` 默认被 `.gitignore` 忽略，只作为本地检查和排查使用，不提交到仓库。
+
+`render-values` 要求选中的 release name 全部相同，文件名按 namespace 区分。当前 Helmfile 拓扑中各 module 的 release name 均为 `bk-nodemgr`，namespace 可不同。
+
 销毁：
 
 ```bash
@@ -231,12 +255,14 @@ helmfile -f helmfile.yaml.gotmpl -e example -l module=backend template --skip-de
 
 ```bash
 ./deploy.sh diff example --modules file,backend --skip-deps
+./deploy.sh render-values example --modules file,backend
 ```
 
 跳过指定 module：
 
 ```bash
 ./deploy.sh diff example --skip-module monitoring --skip-deps
+./deploy.sh render-values example --skip-module monitoring
 ```
 
 `--modules` 和 `--skip-module` 可以组合使用，最终执行顺序仍由脚本内置依赖顺序决定。`destroy` 始终使用反向顺序。非法 module 会直接报错并打印合法列表。
