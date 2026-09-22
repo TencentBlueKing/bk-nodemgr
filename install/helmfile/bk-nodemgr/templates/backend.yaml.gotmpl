@@ -36,9 +36,8 @@ application:
 {{- $_ := set $config "tracing" $tracing }}
 {{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}
 {{- $gatewayNames := dict "cmdb" "bk-cmdb" "gse" "bk-gse" "userManager" "bk-user" "monitor" "bk-monitor" "iamV3" "bk-iam" "iamV4" "bkiam" }}
-{{- range $name := list "cmdb" "gse" "userManager" "monitor" "iamV3" }}
+{{- range $name := list "cmdb" "gse" "userManager" "monitor" "iamV3" "iamV4" }}
 {{- $gateway := deepCopy (dig "gateways" $name dict $.Values) }}
-{{- if or (or (eq $name "userManager") (eq $name "monitor")) (or $gateway (hasKey $config $name)) }}
 {{- $current := deepCopy (dig $name dict $config) }}
 {{- $_ := set $current "appCode" (dig "global" "appCode" "" $.Values) }}
 {{- $_ := set $current "appSecret" (dig "global" "appSecret" "" $.Values) }}
@@ -48,13 +47,8 @@ application:
 {{- $_ := set $current "endpoints" (dig "endpoints" (list $endpoint) $gateway) }}
 {{- $_ := set $config $name $current }}
 {{- end }}
-{{- end }}
 {{- $iamV4 := deepCopy (dig "iamV4" dict $config) }}
-{{- $_ := set $iamV4 "appCode" (dig "global" "appCode" "" .Values) }}
-{{- $_ := set $iamV4 "appSecret" (dig "global" "appSecret" "" .Values) }}
 {{- $_ := set $iamV4 "authMode" (dig "global" "authMode" "un" .Values) }}
-{{- $iamV4Endpoint := replace "{gateway_name}" (dig "iamV4" "" $gatewayNames) $bkAPITmpl }}
-{{- $_ := set $iamV4 "endpoints" (dig "gateways" "iamV4" "endpoints" (list $iamV4Endpoint) .Values) }}
 {{- $_ := set $config "iamV4" $iamV4 }}
 {{- $_ := set $backend "config" $config }}
 backend:

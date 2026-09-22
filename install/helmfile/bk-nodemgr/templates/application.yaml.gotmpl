@@ -51,7 +51,6 @@ externalMongodb:
 {{- $_ := set $config "backend" $backend }}
 {{- range $configName := list "userManager" "notice" "iamV3" }}
 {{- $gateway := deepCopy (dig "gateways" $configName dict $.Values) }}
-{{- if or (eq $configName "userManager") (or $gateway (hasKey $config $configName)) }}
 {{- $current := deepCopy (dig $configName dict $config) }}
 {{- $_ := set $current "appCode" (dig "global" "appCode" "" $.Values) }}
 {{- $_ := set $current "appSecret" (dig "global" "appSecret" "" $.Values) }}
@@ -60,7 +59,6 @@ externalMongodb:
 {{- $endpoint := replace "{gateway_name}" $gatewayName $bkAPITmpl }}
 {{- $_ := set $current "endpoints" (dig "endpoints" (list $endpoint) $gateway) }}
 {{- $_ := set $config $configName $current }}
-{{- end }}
 {{- end }}
 {{- $bkSaaS := deepCopy (dig "bkSaaS" dict $config) }}
 {{- $bkLogin := deepCopy (dig "bkLogin" dict $bkSaaS) }}
