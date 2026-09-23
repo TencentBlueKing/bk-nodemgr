@@ -894,7 +894,7 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 
 const scanBatchSize int64 = 500
 
-type scanAllDocument[P IData] struct {
+type scanDocument[P IData] struct {
 	ID        any       `bson:"_id"`
 	BasicInfo BasicInfo `json:"basic" bson:"basic"`
 	Data      P         `json:"data" bson:"data"`
@@ -902,20 +902,6 @@ type scanAllDocument[P IData] struct {
 
 // ScanAll scans all data by given filter.
 func (orm *Orm[P, T]) ScanAll(nCtx contextx.IContext, filter bson.D, field ...string) (dataPoints []P, err error) {
-	return orm.scan(nCtx, filter, 0, field...)
-}
-
-// ScanWithLimit scans at most limit documents by given filter. The limit must be positive.
-func (orm *Orm[P, T]) ScanWithLimit(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) ([]P, error) {
-	if limit <= 0 {
-		return nil, errors.New("scan limit must be positive")
-	}
-
-	return orm.scan(nCtx, filter, limit, field...)
-}
-
-// scan scans matching data in cursor batches. A zero limit returns all matches; a positive limit caps the result count.
-func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) (dataPoints []P, err error) {
 	metric := orm.metric().start(daomongo.MetricOperationScanAll, len(filter))
 	defer func() {
 		metric.end(err, len(dataPoints))
@@ -939,11 +925,50 @@ func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, f
 		))
 	}()
 
+	return orm.scan(nCtx, filter, 0, field...)
+}
+
+// ScanWithLimit scans at most limit documents by given filter. The limit must be positive.
+func (orm *Orm[P, T]) ScanWithLimit(
+	nCtx contextx.IContext, filter bson.D, limit int64, field ...string) (dataPoints []P, err error) {
+
+	metric := orm.metric().start(daomongo.MetricOperationScanWithLimit, len(filter))
+	defer func() {
+		metric.end(err, len(dataPoints))
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime || nCtx == nil {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "scan_with_limit"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+		))
+	}()
+
+	if limit <= 0 {
+		return nil, errors.New("scan limit must be positive")
+	}
+
+	return orm.scan(nCtx, filter, limit, field...)
+}
+
+// scan scans matching data in cursor batches. A zero limit returns all matches; a positive limit caps the result count.
+func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) (dataPoints []P, err error) {
 	if nCtx == nil {
 		return nil, errors.New("context is nil")
 	}
 
-	findOpt := buildScanAllFindOptions(field)
+	findOpt := buildScanFindOptions(field)
 	dataPoints = make([]P, 0)
 
 	var lastID any
@@ -953,13 +978,13 @@ func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, f
 			batchLimit = min(batchLimit, limit-int64(len(dataPoints)))
 		}
 		findOpt.SetLimit(batchLimit)
-		queryFilter := buildScanAllFilter(filter, lastID)
+		queryFilter := buildScanFilter(filter, lastID)
 		cursor, err := orm.dao.GetClient().Find(nCtx, queryFilter, findOpt)
 		if err != nil {
 			return nil, err
 		}
 
-		batchCount, advanced, scanErr := orm.scanAllBatch(nCtx, cursor, &lastID, &dataPoints)
+		batchCount, advanced, scanErr := orm.scanBatch(nCtx, cursor, &lastID, &dataPoints)
 		if scanErr != nil {
 			return nil, scanErr
 		}
@@ -967,14 +992,14 @@ func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, f
 			break
 		}
 		if !advanced {
-			return nil, errors.New("failed to scan all documents: cursor did not advance")
+			return nil, errors.New("failed to scan documents: cursor did not advance")
 		}
 	}
 
 	return dataPoints, nil
 }
 
-func buildScanAllFindOptions(fields []string) *mongoOptions.FindOptions {
+func buildScanFindOptions(fields []string) *mongoOptions.FindOptions {
 	findOpt := mongoOptions.Find().SetSort(bson.D{{Key: "_id", Value: 1}}).SetLimit(scanBatchSize)
 	if len(fields) == 0 {
 		return findOpt
@@ -989,17 +1014,17 @@ func buildScanAllFindOptions(fields []string) *mongoOptions.FindOptions {
 	return findOpt
 }
 
-func buildScanAllFilter(filter bson.D, lastID any) bson.D {
+func buildScanFilter(filter bson.D, lastID any) bson.D {
 	if lastID == nil {
 		return filter
 	}
 
 	condition := bson.D{{Key: "_id", Value: bson.D{{Key: "$gt", Value: lastID}}}}
 
-	return appendAndCondition(cloneScanAllFilter(filter), condition)
+	return appendAndCondition(cloneScanFilter(filter), condition)
 }
 
-func cloneScanAllFilter(filter bson.D) bson.D {
+func cloneScanFilter(filter bson.D) bson.D {
 	cloned := make(bson.D, len(filter))
 	copy(cloned, filter)
 	for i := range cloned {
@@ -1020,26 +1045,26 @@ func cloneScanAllFilter(filter bson.D) bson.D {
 	return cloned
 }
 
-func (orm *Orm[P, T]) scanAllBatch(
+func (orm *Orm[P, T]) scanBatch(
 	nCtx contextx.IContext, cursor *mongo.Cursor, lastID *any, dataPoints *[]P) (batchCount int64, advanced bool, err error) {
 
 	defer func() {
 		if closeErr := cursor.Close(nCtx); closeErr != nil {
-			logger.G.Sys().Ctx(nCtx).WithErr(closeErr).With("table", orm.dao.GetTableName()).Warn("failed to close scan all cursor")
+			logger.G.Sys().Ctx(nCtx).WithErr(closeErr).With("table", orm.dao.GetTableName()).Warn("failed to close scan cursor")
 		}
 	}()
 
 	for cursor.Next(nCtx) {
 		batchCount++
 
-		document := &scanAllDocument[P]{}
+		document := &scanDocument[P]{}
 		if err := cursor.Decode(document); err != nil {
-			logger.G.Sys().Ctx(nCtx).WithErr(err).With("table", orm.dao.GetTableName()).Info("failed to scan all, failed to decode document")
+			logger.G.Sys().Ctx(nCtx).WithErr(err).With("table", orm.dao.GetTableName()).Info("failed to scan, failed to decode document")
 
 			continue
 		}
 		if document.ID == nil {
-			return batchCount, advanced, errors.New("failed to scan all documents: missing _id")
+			return batchCount, advanced, errors.New("failed to scan documents: missing _id")
 		}
 
 		*dataPoints = append(*dataPoints, document.Data)
@@ -1048,7 +1073,7 @@ func (orm *Orm[P, T]) scanAllBatch(
 	}
 
 	if err := cursor.Err(); err != nil {
-		return batchCount, advanced, fmt.Errorf("failed to scan all documents: %w", err)
+		return batchCount, advanced, fmt.Errorf("failed to scan documents: %w", err)
 	}
 
 	return batchCount, advanced, nil

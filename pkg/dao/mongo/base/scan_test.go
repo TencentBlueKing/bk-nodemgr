@@ -20,16 +20,26 @@ package base
 
 import (
 	"context"
+	"reflect"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	daomongo "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo"
+	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/otel/attribute"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
-func TestOrm_ScanWithLimit(t *testing.T) {
+func TestOrm_Scan(t *testing.T) {
 	tests := []struct {
 		name        string
 		limit       int64
@@ -61,7 +71,8 @@ func TestOrm_ScanWithLimit(t *testing.T) {
 				total += count
 				mt.AddMockResponses(mtest.CreateCursorResponse(0, mt.DB.Name()+"."+mt.Coll.Name(), mtest.FirstBatch, documents...))
 			}
-			orm := NewOrm[*TestData, TestData](&TestDao{collection: mt.Coll, tableName: mt.Coll.Name()})
+			tableName := mt.Coll.Name() + "_" + uuid.NewString()
+			orm := NewOrm[*TestData, TestData](&TestDao{collection: mt.Coll, tableName: tableName})
 			nCtx := contextx.New(context.Background())
 			filter := AliveFilter()
 			var data []*TestData
@@ -91,16 +102,219 @@ func TestOrm_ScanWithLimit(t *testing.T) {
 				cursor := conditions[len(conditions)-1].Document().Lookup("_id").Document().Lookup("$gt").Int64()
 				require.Equal(mt, int64(i*500), cursor)
 			}
-			require.Nil(mt, mt.GetStartedEvent(), "scan must stop without another query after reaching the limit")
+			require.Nil(mt, mt.GetStartedEvent(), "scan must not issue additional queries after completion")
+			operation := "scan_with_limit"
+			if tt.limit == 0 {
+				operation = "scan_all"
+			}
+			assertScanMetrics(mt.T, tableName, operation, true, total)
 		})
 	}
 }
 
 func TestOrm_ScanWithLimitRejectsNonPositiveLimit(t *testing.T) {
-	orm := new(Orm[*TestData, TestData])
 	for _, limit := range []int64{0, -1} {
+		tableName := t.Name() + "_" + uuid.NewString()
+		orm := NewOrm[*TestData, TestData](&TestDao{tableName: tableName})
 		data, err := orm.ScanWithLimit(contextx.New(context.Background()), nil, limit)
 		require.Error(t, err)
 		require.Nil(t, data)
+		assertScanMetrics(t, tableName, "scan_with_limit", false, 0)
+	}
+}
+
+func assertScanMetrics(t *testing.T, tableName, operation string, success bool, count int) {
+	t.Helper()
+	metrics, err := prometheus.DefaultGatherer.Gather()
+	require.NoError(t, err)
+	values := make(map[string]float64)
+	for _, family := range metrics {
+		for _, metric := range family.GetMetric() {
+			labels := make(map[string]string)
+			for _, label := range metric.GetLabel() {
+				labels[label.GetName()] = label.GetValue()
+			}
+			if labels["table"] != tableName {
+				continue
+			}
+			require.Equal(t, operation, labels["operation"])
+			require.Equal(t, strconv.FormatBool(success), labels["success"])
+			values[family.GetName()] = metric.GetCounter().GetValue()
+			if family.GetName() == "mongodb_request_duration" {
+				require.EqualValues(t, 1, metric.GetHistogram().GetSampleCount())
+			}
+		}
+	}
+	require.Contains(t, values, "mongodb_request_duration")
+	require.Equal(t, float64(1), values["mongodb_request_total"])
+	require.Equal(t, float64(count), values["mongodb_response_data_length"])
+}
+
+func TestOrm_ScanOperationFailureMetrics(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	for _, operation := range []string{"scan_all", "scan_with_limit"} {
+		mt.Run(operation, func(mt *mtest.T) {
+			mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{Code: 2, Message: "invalid query"}))
+			tableName := mt.Coll.Name() + "_" + uuid.NewString()
+			orm := NewOrm[*TestData, TestData](&TestDao{collection: mt.Coll, tableName: tableName})
+			nCtx := contextx.New(context.Background())
+			var err error
+			if operation == "scan_all" {
+				_, err = orm.ScanAll(nCtx, bson.D{})
+			} else {
+				_, err = orm.ScanWithLimit(nCtx, bson.D{}, 1)
+			}
+			require.ErrorContains(mt, err, "invalid query")
+			assertScanMetrics(mt.T, tableName, operation, false, 0)
+		})
+	}
+}
+
+func TestOrm_ScanSlowQueryOperation(t *testing.T) {
+	// Delay the mock command to exercise the public operation's slow-query event.
+	commandMonitor := &event.CommandMonitor{Started: func(context.Context, *event.CommandStartedEvent) {
+		time.Sleep(daomongo.DefaultSlowTime + 10*time.Millisecond)
+	}}
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock).
+		ClientOptions(options.Client().SetMonitor(commandMonitor)))
+	for _, operation := range []string{"scan_all", "scan_with_limit"} {
+		mt.Run(operation, func(mt *mtest.T) {
+			recorder := tracetest.NewSpanRecorder()
+			provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+			defer func() { require.NoError(mt, provider.Shutdown(context.Background())) }()
+			ctx, span := provider.Tracer("scan-test").Start(context.Background(), "scan")
+			mt.AddMockResponses(mtest.CreateCursorResponse(0, mt.DB.Name()+"."+mt.Coll.Name(), mtest.FirstBatch))
+			tableName := mt.Coll.Name() + "_" + uuid.NewString()
+			orm := NewOrm[*TestData, TestData](&TestDao{collection: mt.Coll, tableName: tableName})
+			var err error
+			if operation == "scan_all" {
+				_, err = orm.ScanAll(contextx.New(ctx), bson.D{})
+			} else {
+				_, err = orm.ScanWithLimit(contextx.New(ctx), bson.D{}, 1)
+			}
+			require.NoError(mt, err)
+			span.End()
+			spans := recorder.Ended()
+			require.Len(mt, spans, 1)
+			events := spans[0].Events()
+			require.Len(mt, events, 1)
+			require.Equal(mt, spanEventSlowQuery, events[0].Name)
+			require.Contains(mt, events[0].Attributes, attribute.String(attrKeyORMOperation, operation))
+			assertScanMetrics(mt.T, tableName, operation, true, 0)
+		})
+	}
+}
+
+// TestOrm_ScanAll tests the ScanAll method
+func TestOrm_ScanAll(t *testing.T) {
+	orm, _ := testClient(t)
+	nCtx := contextx.New(context.Background())
+
+	_, err := orm.ScanAll(nil, bson.D{})
+	require.Error(t, err, "ScanAll() expected error with nil context")
+
+	const total = 505
+	datas := make([]*TestData, 0, total+1)
+	for i := range total {
+		datas = append(datas, &TestData{
+			ID:      uuid.NewString(),
+			Name:    "scan-all-enabled",
+			Value:   i,
+			Enabled: true,
+		})
+	}
+	datas = append(datas, &TestData{
+		ID:      uuid.NewString(),
+		Name:    "scan-all-disabled",
+		Value:   total,
+		Enabled: false,
+	})
+
+	if err := orm.CreateMany(nCtx, datas); err != nil {
+		t.Fatalf("Failed to create scan all test data: %v", err)
+	}
+
+	filter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+	wantFilter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+
+	got, err := orm.ScanAll(nCtx, filter)
+	if err != nil {
+		t.Fatalf("ScanAll() error = %v", err)
+	}
+	if len(got) != total {
+		t.Fatalf("ScanAll() got count = %v, want %v", len(got), total)
+	}
+	if !reflect.DeepEqual(filter, wantFilter) {
+		t.Fatalf("ScanAll() mutated filter = %#v, want %#v", filter, wantFilter)
+	}
+
+	seen := make(map[string]struct{}, len(got))
+	for _, data := range got {
+		if !data.Enabled {
+			t.Fatalf("ScanAll() returned disabled data: %#v", data)
+		}
+		if _, ok := seen[data.ID]; ok {
+			t.Fatalf("ScanAll() returned duplicate ID: %s", data.ID)
+		}
+		seen[data.ID] = struct{}{}
+	}
+
+	projected, err := orm.ScanAll(nCtx, filter, FieldKeyTestDataName)
+	if err != nil {
+		t.Fatalf("ScanAll() with projection error = %v", err)
+	}
+	if len(projected) != total {
+		t.Fatalf("ScanAll() with projection got count = %v, want %v", len(projected), total)
+	}
+	for _, data := range projected {
+		if data.Name == "" {
+			t.Fatal("ScanAll() with projection returned empty name")
+		}
+	}
+}
+
+// TestBuildScanFilter tests the scan filter builder.
+func TestBuildScanFilter(t *testing.T) {
+	filter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+	wantFilter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+
+	firstFilter := buildScanFilter(filter, nil)
+	if !reflect.DeepEqual(firstFilter, filter) {
+		t.Fatalf("buildScanFilter() first filter = %#v, want %#v", firstFilter, filter)
+	}
+
+	nextFilter := buildScanFilter(filter, "last-id")
+	if !reflect.DeepEqual(filter, wantFilter) {
+		t.Fatalf("buildScanFilter() mutated filter = %#v, want %#v", filter, wantFilter)
+	}
+	if len(nextFilter) != 1 || nextFilter[0].Key != "$and" {
+		t.Fatalf("buildScanFilter() next filter = %#v, want $and filter", nextFilter)
+	}
+	conditions, ok := nextFilter[0].Value.(bson.A)
+	if !ok {
+		t.Fatalf("buildScanFilter() $and value type = %T, want bson.A", nextFilter[0].Value)
+	}
+	if len(conditions) != 2 {
+		t.Fatalf("buildScanFilter() $and count = %v, want 2", len(conditions))
 	}
 }

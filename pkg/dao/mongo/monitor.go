@@ -176,6 +176,9 @@ const (
 	// MetricOperationScanAll the scan all operation.
 	MetricOperationScanAll MetricOperation = "scan_all"
 
+	// MetricOperationScanWithLimit is a scan with a maximum result count.
+	MetricOperationScanWithLimit MetricOperation = "scan_with_limit"
+
 	// MetricOperationInsertMany the insert many operation.
 	MetricOperationInsertMany MetricOperation = "insert_many"
 
