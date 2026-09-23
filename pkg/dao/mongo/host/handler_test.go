@@ -395,9 +395,9 @@ func Test_handler_UpdateStaticFields(t *testing.T) {
 		CityID:        "city-5001",
 		HostName:      "updated-hostname",
 		DeptName:      "updated-dept",
-		InnerIPList:   []string{"10.0.0.1", "10.0.0.2"},
+		InnerIPList:   []string{"127.0.0.1", "127.0.0.2"},
 		InnerIPV6List: []string{"fe80::1"},
-		OuterIPList:   []string{"172.16.0.1"},
+		OuterIPList:   []string{"127.0.0.3"},
 		OuterIPV6List: []string{"2001:db8::1"},
 		Operator:      "operator-a",
 		Mac:           "00:11:22:33:44:55",
@@ -412,7 +412,7 @@ func Test_handler_UpdateStaticFields(t *testing.T) {
 		SyncedOpsConsoleHostID:   6001,
 		SyncedOpsOutBandType:     "bmc",
 		SyncedOpsOutBandProtocol: "ipmi",
-		SyncedOpsBMCIP:           "192.168.0.10",
+		SyncedOpsBMCIP:           "127.0.0.4",
 		SyncedOpsBMCPort:         623,
 	}
 

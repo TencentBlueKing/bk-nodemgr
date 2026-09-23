@@ -424,12 +424,12 @@ func TestInstanceInfo_MarshalJSON(t *testing.T) {
 			name: "basic instance info",
 			info: InstanceInfo{
 				ID:          "host-123",
-				DisplayName: "192.168.1.1",
+				DisplayName: "127.0.0.1",
 				Attributes: map[string]interface{}{
 					"os": "Linux",
 				},
 			},
-			want:    `{"display_name":"192.168.1.1","id":"host-123","os":"Linux"}`,
+			want:    `{"display_name":"127.0.0.1","id":"host-123","os":"Linux"}`,
 			wantErr: false,
 		},
 		{
@@ -479,10 +479,10 @@ func TestInstanceInfo_UnmarshalJSON(t *testing.T) {
 	}{
 		{
 			name:  "basic instance info",
-			input: `{"id":"host-123","display_name":"192.168.1.1","os":"Linux"}`,
+			input: `{"id":"host-123","display_name":"127.0.0.1","os":"Linux"}`,
 			want: InstanceInfo{
 				ID:          "host-123",
-				DisplayName: "192.168.1.1",
+				DisplayName: "127.0.0.1",
 				Attributes: map[string]interface{}{
 					"os": "Linux",
 				},

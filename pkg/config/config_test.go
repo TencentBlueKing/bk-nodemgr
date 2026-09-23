@@ -341,7 +341,7 @@ func TestRedis_Validate_ClusterMode(t *testing.T) {
 			name: "valid cluster config",
 			config: Redis{
 				Type:     RedisTypeCluster,
-				Addrs:    []string{"10.0.0.1:6379", "10.0.0.2:6379"},
+				Addrs:    []string{"127.0.0.1:6379", "127.0.0.2:6379"},
 				Password: "password",
 			},
 			wantErr: false,
@@ -360,7 +360,7 @@ func TestRedis_Validate_ClusterMode(t *testing.T) {
 			name: "missing password in cluster mode",
 			config: Redis{
 				Type:     RedisTypeCluster,
-				Addrs:    []string{"10.0.0.1:6379"},
+				Addrs:    []string{"127.0.0.1:6379"},
 				Password: "",
 			},
 			wantErr: true,
@@ -370,7 +370,7 @@ func TestRedis_Validate_ClusterMode(t *testing.T) {
 			name: "cluster mode ignores db parameter",
 			config: Redis{
 				Type:     RedisTypeCluster,
-				Addrs:    []string{"10.0.0.1:6379"},
+				Addrs:    []string{"127.0.0.1:6379"},
 				Password: "password",
 				DB:       5, // Should be ignored in cluster mode
 			},

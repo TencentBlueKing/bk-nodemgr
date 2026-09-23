@@ -289,7 +289,7 @@ func TestStorage_AddHostToBusinessIdle(t *testing.T) {
 			hosts: []*cmdb.CreateHostInfo{
 				{
 					BKCloudID:         0,
-					BKHostInnerIP:     "192.168.1.1",
+					BKHostInnerIP:     "127.0.0.1",
 					BKOSType:          "linux",
 					BKAddressing:      "static",
 					BKCpuArchitecture: "x86_64",
@@ -309,8 +309,8 @@ func TestStorage_AddHostToBusinessIdle(t *testing.T) {
 			name:  "normal_test_add_multiple_hosts",
 			bizID: 1,
 			hosts: []*cmdb.CreateHostInfo{
-				{BKCloudID: 0, BKHostInnerIP: "192.168.1.2", BKOSType: "linux"},
-				{BKCloudID: 0, BKHostInnerIP: "192.168.1.3", BKOSType: "linux"},
+				{BKCloudID: 0, BKHostInnerIP: "127.0.0.1", BKOSType: "linux"},
+				{BKCloudID: 0, BKHostInnerIP: "127.0.0.1", BKOSType: "linux"},
 			},
 			wantErr:   false,
 			wantCount: 5, // previous + 2 new
@@ -319,7 +319,7 @@ func TestStorage_AddHostToBusinessIdle(t *testing.T) {
 			name:  "normal_test_add_host_with_invalid_biz_id",
 			bizID: -1,
 			hosts: []*cmdb.CreateHostInfo{
-				{BKCloudID: 0, BKHostInnerIP: "192.168.1.5", BKOSType: "linux"},
+				{BKCloudID: 0, BKHostInnerIP: "127.0.0.1", BKOSType: "linux"},
 			},
 			wantErr: true,
 		},
@@ -357,7 +357,7 @@ func TestStorage_BindHostAgent(t *testing.T) {
 
 	// add a host
 	hostIDs, err := store.AddHostToBusinessIdle(1, []*cmdb.CreateHostInfo{
-		{BKCloudID: 0, BKHostInnerIP: "192.168.1.10", BKOSType: "linux"},
+		{BKCloudID: 0, BKHostInnerIP: "127.0.0.1", BKOSType: "linux"},
 	})
 	if err != nil {
 		t.Fatalf("failed to add host for test: %v", err)
@@ -479,7 +479,7 @@ func TestStorage_WatchResource(t *testing.T) {
 
 	// Add a host to generate events
 	hostIDs, err := store.AddHostToBusinessIdle(1, []*cmdb.CreateHostInfo{
-		{BKCloudID: 0, BKHostInnerIP: "192.168.1.20", BKOSType: "linux"},
+		{BKCloudID: 0, BKHostInnerIP: "127.0.0.1", BKOSType: "linux"},
 	})
 	if err != nil {
 		t.Fatalf("failed to add host for test: %v", err)

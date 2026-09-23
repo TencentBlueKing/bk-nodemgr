@@ -42,14 +42,14 @@ import (
 func TestRecommendNetworkUnitByNetworkSegmentProxySuccess(t *testing.T) {
 	fakeBackend := &fakeBackendHandler{
 		results: []*types.NetworkUnitSegmentRecommendationResult{
-			{NetworkAreaID: 1001, IP: "10.0.0.1", NetworkUnitID: 200101, Message: "matched"},
+			{NetworkAreaID: 1001, IP: "127.0.0.1", NetworkUnitID: 200101, Message: "matched"},
 			{NetworkAreaID: 1001, IP: "bad-ip", NetworkUnitID: -1, Message: "invalid ip"},
 		},
 	}
 	h := &handler{backendHandler: fakeBackend}
 	req := &protoApplication.TopoRecommendNetworkUnitByNetworkSegmentReq{
 		Items: []*protoApplication.TopoRecommendNetworkUnitByNetworkSegmentReq_Item{
-			{BkNetworkareaId: 1001, Ip: "10.0.0.1"},
+			{BkNetworkareaId: 1001, Ip: "127.0.0.1"},
 			{BkNetworkareaId: 1001, Ip: "bad-ip"},
 		},
 	}
@@ -62,7 +62,7 @@ func TestRecommendNetworkUnitByNetworkSegmentProxySuccess(t *testing.T) {
 	require.Len(t, respData.Items, 2)
 	assert.Len(t, fakeBackend.receivedItems, 2)
 	assert.Equal(t, int64(1001), fakeBackend.receivedItems[0].NetworkAreaID)
-	assert.Equal(t, "10.0.0.1", fakeBackend.receivedItems[0].IP)
+	assert.Equal(t, "127.0.0.1", fakeBackend.receivedItems[0].IP)
 	assert.Equal(t, int64(200101), respData.Items[0].GetBkNetworkunitId())
 	assert.Equal(t, "matched", respData.Items[0].GetMessage())
 	assert.Equal(t, int64(-1), respData.Items[1].GetBkNetworkunitId())
@@ -73,7 +73,7 @@ func TestRecommendNetworkUnitByNetworkSegmentProxyFailureWrapsThirdpartyError(t 
 	h := &handler{backendHandler: &fakeBackendHandler{err: errors.New("backend failed")}}
 	req := &protoApplication.TopoRecommendNetworkUnitByNetworkSegmentReq{
 		Items: []*protoApplication.TopoRecommendNetworkUnitByNetworkSegmentReq_Item{
-			{BkNetworkareaId: 1001, Ip: "10.0.0.1"},
+			{BkNetworkareaId: 1001, Ip: "127.0.0.1"},
 		},
 	}
 

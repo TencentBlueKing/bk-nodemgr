@@ -46,7 +46,7 @@ func TestInstanceInfo_MarshalJSON(t *testing.T) {
 		info InstanceInfo
 		want string
 	}{
-		{"basic instance info", InstanceInfo{ID: "host-123", DisplayName: "192.168.1.1", Attributes: map[string]interface{}{"os": "Linux"}}, `{"display_name":"192.168.1.1","id":"host-123","os":"Linux"}`},
+		{"basic instance info", InstanceInfo{ID: "host-123", DisplayName: "127.0.0.1", Attributes: map[string]interface{}{"os": "Linux"}}, `{"display_name":"127.0.0.1","id":"host-123","os":"Linux"}`},
 		{"instance without display_name", InstanceInfo{ID: "host-456", Attributes: map[string]interface{}{"country": "China"}}, `{"country":"China","id":"host-456"}`},
 		{"instance with empty attributes", InstanceInfo{ID: "host-789", DisplayName: "test-host", Attributes: map[string]interface{}{}}, `{"display_name":"test-host","id":"host-789"}`},
 	}
@@ -64,7 +64,7 @@ func TestInstanceInfo_UnmarshalJSON(t *testing.T) {
 		input string
 		want  InstanceInfo
 	}{
-		{`{"id":"host-123","display_name":"192.168.1.1","os":"Linux"}`, InstanceInfo{ID: "host-123", DisplayName: "192.168.1.1", Attributes: map[string]interface{}{"os": "Linux"}}},
+		{`{"id":"host-123","display_name":"127.0.0.1","os":"Linux"}`, InstanceInfo{ID: "host-123", DisplayName: "127.0.0.1", Attributes: map[string]interface{}{"os": "Linux"}}},
 		{`{"id":"host-456","country":"China"}`, InstanceInfo{ID: "host-456", Attributes: map[string]interface{}{"country": "China"}}},
 		{`{"id":"host-789","_bk_iam_path_":["/biz,1/set,1/"]}`, InstanceInfo{ID: "host-789", Attributes: map[string]interface{}{AttrIAMPath: []interface{}{"/biz,1/set,1/"}}}},
 	}

@@ -65,22 +65,22 @@ func TestStorage_GetDirectNetworkAreaHostByAnyInnerIPStaysTenantScoped(t *testin
 	tenantBCtx := testContext(t, "tenant_b")
 
 	err := hostHandler.CreateMany(tenantACtx,
-		directAreaHost("tenant_a", 99001, "10.0.0.1", "fd00::1"),
-		directAreaHost("tenant_a", 99002, "10.0.0.2", "fd00::2"),
+		directAreaHost("tenant_a", 99001, "127.0.0.1", "fd00::1"),
+		directAreaHost("tenant_a", 99002, "127.0.0.2", "fd00::2"),
 	)
 	require.NoError(t, err)
 	err = hostHandler.CreateMany(tenantBCtx,
-		directAreaHost("tenant_b", 99001, "10.0.0.1", "fd00::1"),
-		directAreaHost("tenant_b", 99003, "10.0.0.3", "fd00::3"),
+		directAreaHost("tenant_b", 99001, "127.0.0.1", "fd00::1"),
+		directAreaHost("tenant_b", 99003, "127.0.0.3", "fd00::3"),
 	)
 	require.NoError(t, err)
 
-	tenantAIPv4Host, err := s.GetDirectNetworkAreaHostByAnyInnerIP(tenantACtx, "10.0.0.1", "")
+	tenantAIPv4Host, err := s.GetDirectNetworkAreaHostByAnyInnerIP(tenantACtx, "127.0.0.1", "")
 	require.NoError(t, err)
 	assert.Equal(t, "tenant_a", tenantAIPv4Host.TenantID)
 	assert.Equal(t, int64(99001), tenantAIPv4Host.HostID)
 
-	tenantBIPv4Host, err := s.GetDirectNetworkAreaHostByAnyInnerIP(tenantBCtx, "10.0.0.1", "")
+	tenantBIPv4Host, err := s.GetDirectNetworkAreaHostByAnyInnerIP(tenantBCtx, "127.0.0.1", "")
 	require.NoError(t, err)
 	assert.Equal(t, "tenant_b", tenantBIPv4Host.TenantID)
 	assert.Equal(t, int64(99001), tenantBIPv4Host.HostID)

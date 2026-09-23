@@ -65,11 +65,11 @@ func (f *fakeGlobalSettingsHandler) Delete(contextx.IContext, ...string) error {
 
 func TestParseNetworkUnitSegmentRuleConfig(t *testing.T) {
 	t.Run("parse valid config", func(t *testing.T) {
-		cfg, err := parseNetworkUnitSegmentRuleConfig(`{"1001":{"rules":[{"cidrs":["10.0.0.0/24"],"bk_networkunit_id":200101}]}}`)
+		cfg, err := parseNetworkUnitSegmentRuleConfig(`{"1001":{"rules":[{"cidrs":["127.0.0.0/24"],"bk_networkunit_id":200101}]}}`)
 		require.NoError(t, err)
 		require.Contains(t, cfg, "1001")
 		require.Len(t, cfg["1001"].Rules, 1)
-		assert.Equal(t, []string{"10.0.0.0/24"}, cfg["1001"].Rules[0].CIDRs)
+		assert.Equal(t, []string{"127.0.0.0/24"}, cfg["1001"].Rules[0].CIDRs)
 		assert.Equal(t, int64(200101), cfg["1001"].Rules[0].NetworkUnitID)
 	})
 
@@ -80,7 +80,7 @@ func TestParseNetworkUnitSegmentRuleConfig(t *testing.T) {
 }
 
 func TestLoadNetworkUnitSegmentRuleConfig(t *testing.T) {
-	s := &Storage{daoGlobalSettings: &fakeGlobalSettingsHandler{value: `{"1001":{"rules":[{"cidrs":["10.0.0.0/24"],"bk_networkunit_id":200101}]}}`}}
+	s := &Storage{daoGlobalSettings: &fakeGlobalSettingsHandler{value: `{"1001":{"rules":[{"cidrs":["127.0.0.0/24"],"bk_networkunit_id":200101}]}}`}}
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("t"))
 
 	cfg, err := s.loadNetworkUnitSegmentRuleConfig(nCtx)
@@ -92,16 +92,16 @@ func TestLoadNetworkUnitSegmentRuleConfig(t *testing.T) {
 
 func TestRecommendNetworkUnitsBySegmentKeepsOrderAndUsesFirstMatch(t *testing.T) {
 	items := []*types.NetworkUnitSegmentRecommendationItem{
-		{NetworkAreaID: 1001, IP: "10.0.0.8"},
-		{NetworkAreaID: 1001, IP: "10.0.0.8"},
-		{NetworkAreaID: 1001, IP: "11.0.2.8"},
+		{NetworkAreaID: 1001, IP: "127.0.0.1"},
+		{NetworkAreaID: 1001, IP: "127.0.0.1"},
+		{NetworkAreaID: 1001, IP: "127.1.2.8"},
 	}
 
 	rules := types.NetworkUnitSegmentRuleConfig{
 		"1001": {
 			Rules: []types.NetworkUnitSegmentRule{
-				{CIDRs: []string{"10.0.0.0/24"}, NetworkUnitID: 200101},
-				{CIDRs: []string{"10.0.0.0/16"}, NetworkUnitID: 200102},
+				{CIDRs: []string{"127.0.0.0/24"}, NetworkUnitID: 200101},
+				{CIDRs: []string{"127.0.0.0/16"}, NetworkUnitID: 200102},
 				{CIDRs: []string{"0.0.0.0/0"}, NetworkUnitID: 200199},
 			},
 		},
@@ -118,22 +118,22 @@ func TestRecommendNetworkUnitsBySegmentKeepsOrderAndUsesFirstMatch(t *testing.T)
 	assert.Equal(t, int64(200101), results[0].NetworkUnitID)
 	assert.Equal(t, int64(200101), results[1].NetworkUnitID)
 	assert.Equal(t, int64(200199), results[2].NetworkUnitID)
-	assert.Equal(t, "10.0.0.8", results[0].IP)
-	assert.Equal(t, "10.0.0.8", results[1].IP)
-	assert.Equal(t, "11.0.2.8", results[2].IP)
+	assert.Equal(t, "127.0.0.1", results[0].IP)
+	assert.Equal(t, "127.0.0.1", results[1].IP)
+	assert.Equal(t, "127.1.2.8", results[2].IP)
 }
 
 func TestRecommendNetworkUnitsBySegmentReturnsMinusOneForInvalidOrMissingMatches(t *testing.T) {
 	items := []*types.NetworkUnitSegmentRecommendationItem{
 		{NetworkAreaID: 1001, IP: "bad-ip"},
-		{NetworkAreaID: 2002, IP: "10.0.0.1"},
-		{NetworkAreaID: 1001, IP: "10.0.1.8"},
+		{NetworkAreaID: 2002, IP: "127.0.0.1"},
+		{NetworkAreaID: 1001, IP: "127.0.1.8"},
 	}
 
 	rules := types.NetworkUnitSegmentRuleConfig{
 		"1001": {
 			Rules: []types.NetworkUnitSegmentRule{
-				{CIDRs: []string{"10.0.0.0/24"}, NetworkUnitID: 200101},
+				{CIDRs: []string{"127.0.0.0/24"}, NetworkUnitID: 200101},
 			},
 		},
 	}
@@ -151,11 +151,11 @@ func TestRecommendNetworkUnitsBySegmentReturnsMinusOneForInvalidOrMissingMatches
 }
 
 func TestRecommendNetworkUnitsBySegmentMatchesAnyCIDRInOneRule(t *testing.T) {
-	items := []*types.NetworkUnitSegmentRecommendationItem{{NetworkAreaID: 1001, IP: "10.0.0.8"}}
+	items := []*types.NetworkUnitSegmentRecommendationItem{{NetworkAreaID: 1001, IP: "127.0.0.1"}}
 	rules := types.NetworkUnitSegmentRuleConfig{
 		"1001": {
 			Rules: []types.NetworkUnitSegmentRule{
-				{CIDRs: []string{"192.168.0.0/16", "10.0.0.0/24"}, NetworkUnitID: 200101},
+				{CIDRs: []string{"192.168.0.0/16", "127.0.0.0/24"}, NetworkUnitID: 200101},
 			},
 		},
 	}
@@ -169,11 +169,11 @@ func TestRecommendNetworkUnitsBySegmentMatchesAnyCIDRInOneRule(t *testing.T) {
 }
 
 func TestRecommendNetworkUnitsBySegmentReturnsMinusOneForCrossAreaUnit(t *testing.T) {
-	items := []*types.NetworkUnitSegmentRecommendationItem{{NetworkAreaID: 1001, IP: "10.0.0.8"}}
+	items := []*types.NetworkUnitSegmentRecommendationItem{{NetworkAreaID: 1001, IP: "127.0.0.1"}}
 	rules := types.NetworkUnitSegmentRuleConfig{
 		"1001": {
 			Rules: []types.NetworkUnitSegmentRule{
-				{CIDRs: []string{"10.0.0.0/24"}, NetworkUnitID: 200201},
+				{CIDRs: []string{"127.0.0.0/24"}, NetworkUnitID: 200201},
 			},
 		},
 	}
@@ -189,7 +189,7 @@ func TestRecommendNetworkUnitsBySegmentReturnsMinusOneForCrossAreaUnit(t *testin
 func TestRecommendNetworkUnitByNetworkSegmentReturnsSafeResultsWhenRuleConfigInvalid(t *testing.T) {
 	s := &Storage{daoGlobalSettings: &fakeGlobalSettingsHandler{value: "{"}}
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("t"))
-	items := []*types.NetworkUnitSegmentRecommendationItem{{NetworkAreaID: 1001, IP: "10.0.0.1"}}
+	items := []*types.NetworkUnitSegmentRecommendationItem{{NetworkAreaID: 1001, IP: "127.0.0.1"}}
 
 	results, err := s.recommendNetworkUnitByNetworkSegment(nCtx, items...)
 
@@ -197,6 +197,6 @@ func TestRecommendNetworkUnitByNetworkSegmentReturnsSafeResultsWhenRuleConfigInv
 	require.Len(t, results, 1)
 	assert.Equal(t, int64(-1), results[0].NetworkUnitID)
 	assert.Equal(t, int64(1001), results[0].NetworkAreaID)
-	assert.Equal(t, "10.0.0.1", results[0].IP)
+	assert.Equal(t, "127.0.0.1", results[0].IP)
 	assert.Contains(t, results[0].Message, "invalid")
 }

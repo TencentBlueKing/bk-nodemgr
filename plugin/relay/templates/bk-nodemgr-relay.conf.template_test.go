@@ -53,11 +53,11 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 				"NodeInfo": map[string]any{
 					"Static": map[string]any{
-						"InnerIPList": []string{"10.0.0.1", "10.0.0.2"},
+						"InnerIPList": []string{"127.0.0.1", "127.0.0.2"},
 					},
 					"Dynamic": map[string]any{
 						"NodeOsType":        "linux",
-						"AdvertiseIP":       "192.168.1.100",
+						"AdvertiseIP":       "127.0.0.1",
 						"AdvertiseIPV6":     "2001:db8::1",
 						"RelayCallbackPort": 29000,
 						"RelayDownloadPort": 29001,
@@ -75,12 +75,12 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 						"AuthIdentity": "admin-auth",
 					},
 					"CallbackServer": map[string]any{
-						"BindIP":       "192.168.1.111",
+						"BindIP":       "127.0.0.3",
 						"Port":         28002,
 						"AuthIdentity": "callback-auth",
 					},
 					"DownloadServer": map[string]any{
-						"BindIP":       "192.168.1.112",
+						"BindIP":       "127.0.0.4",
 						"Port":         28003,
 						"AuthIdentity": "download-auth",
 					},
@@ -97,7 +97,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 			},
 			validate: func(t *testing.T, result string) {
 				// Verify all servers use the first static inner IP as bindIP.
-				if strings.Count(result, "bindIP: 10.0.0.1") != 4 {
+				if strings.Count(result, "bindIP: 127.0.0.1") != 4 {
 					t.Error("all bindIP values should use the first NodeInfo.Static.InnerIPList item")
 				}
 				if !strings.Contains(result, "port: 29000") {
@@ -106,7 +106,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				if !strings.Contains(result, "port: 29001") {
 					t.Error("DownloadServer port should use NodeInfo.Dynamic.RelayDownloadPort")
 				}
-				if strings.Contains(result, "192.168.1.111") || strings.Contains(result, "192.168.1.112") {
+				if strings.Contains(result, "127.0.0.3") || strings.Contains(result, "127.0.0.4") {
 					t.Error("CallbackServer and DownloadServer bindIP should ignore CustomContext values")
 				}
 				if strings.Contains(result, "port: 28002") || strings.Contains(result, "port: 28003") {
@@ -125,11 +125,11 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 				"NodeInfo": map[string]any{
 					"Static": map[string]any{
-						"InnerIPList": []string{"10.0.0.1", "10.0.0.2"},
+						"InnerIPList": []string{"127.0.0.1", "127.0.0.2"},
 					},
 					"Dynamic": map[string]any{
 						"NodeOsType":        "linux",
-						"AdvertiseIP":       "192.168.1.100",
+						"AdvertiseIP":       "127.0.0.1",
 						"AdvertiseIPV6":     "2001:db8::1",
 						"RelayCallbackPort": 29000,
 						"RelayDownloadPort": 29001,
@@ -146,7 +146,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 			},
 			validate: func(t *testing.T, result string) {
 				// Verify all servers use the first static inner IP as bindIP.
-				if strings.Count(result, "bindIP: 10.0.0.1") != 4 {
+				if strings.Count(result, "bindIP: 127.0.0.1") != 4 {
 					t.Error("all bindIP values should use the first NodeInfo.Static.InnerIPList item")
 				}
 				if !strings.Contains(result, "port: 29000") {
@@ -422,7 +422,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				"NodeInfo": map[string]any{
 					"Dynamic": map[string]any{
 						"NodeOsType":    "linux",
-						"AdvertiseIP":   "192.168.1.100",
+						"AdvertiseIP":   "127.0.0.1",
 						"AdvertiseIPV6": "2001:db8::1",
 					},
 				},
@@ -430,7 +430,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 			},
 			validate: func(t *testing.T, result string) {
 				// Verify both advertiseIPV4 and advertiseIPV6 are present
-				if !strings.Contains(result, "advertiseIPV4: 192.168.1.100") {
+				if !strings.Contains(result, "advertiseIPV4: 127.0.0.1") {
 					t.Error("advertiseIPV4 should be present")
 				}
 				if !strings.Contains(result, "advertiseIPV6: 2001:db8::1") {
