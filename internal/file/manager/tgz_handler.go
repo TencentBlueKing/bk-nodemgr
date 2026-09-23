@@ -117,7 +117,7 @@ func generateTgz(
 }
 
 // nolint: gocognit,gocyclo,cyclop
-func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWriter *tar.Writer) error {
+func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWriter *tar.Writer) (err error) {
 	gzipReader, err := gzip.NewReader(sourceFile)
 	if err != nil {
 		return fmt.Errorf("failed to copy file to tgz: %w", err)
