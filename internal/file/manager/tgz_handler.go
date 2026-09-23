@@ -37,6 +37,8 @@ const (
 	tgzPathMatchingSegment1 = "*~1"
 	tgzPathMatchingSegment2 = "*~2"
 	tgzPathMatchingSegment3 = "*~3"
+
+	maxTrailingGzipBytes = 1 << 20
 )
 
 func isTgzPathMatchingSegment(pathName string) bool {
@@ -206,11 +208,13 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 		}
 	}
 
-	// Tar EOF may precede the gzip trailer; drain the stream to validate it and surface read errors.
-	// Accept unbounded decompression to preserve gzip validation without imposing a new size limit.
-	// nolint:gosec
-	if _, err := io.Copy(io.Discard, gzipReader); err != nil {
+	// Tar EOF may precede the gzip trailer; read one byte past the limit to distinguish it from gzip EOF.
+	trailingBytes, err := io.Copy(io.Discard, io.LimitReader(gzipReader, maxTrailingGzipBytes+1))
+	if err != nil {
 		return fmt.Errorf("failed to finish reading source gzip stream: %w", err)
+	}
+	if trailingBytes > maxTrailingGzipBytes {
+		return fmt.Errorf("source gzip stream exceeds %d trailing decompressed bytes", maxTrailingGzipBytes)
 	}
 
 	return nil
