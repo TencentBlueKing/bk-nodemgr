@@ -43,6 +43,7 @@ func TestOrm_ScanWithLimit(t *testing.T) {
 		{name: "fewer matches", limit: 1000, batches: []int{500, 1}, queryLimits: []int64{500, 500}},
 		{name: "no matches", limit: 1000, batches: []int{0}, queryLimits: []int64{500}},
 		{name: "existing unlimited scan", limit: 0, batches: []int{500, 1}, queryLimits: []int64{500, 500}},
+		{name: "unlimited exact multiple", limit: 0, batches: []int{500, 500, 0}, queryLimits: []int64{500, 500, 500}},
 	}
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	for _, tt := range tests {

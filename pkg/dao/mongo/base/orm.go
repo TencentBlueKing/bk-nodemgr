@@ -902,7 +902,7 @@ type scanAllDocument[P IData] struct {
 
 // ScanAll scans all data by given filter.
 func (orm *Orm[P, T]) ScanAll(nCtx contextx.IContext, filter bson.D, field ...string) (dataPoints []P, err error) {
-	return orm.scanAll(nCtx, filter, 0, field...)
+	return orm.scan(nCtx, filter, 0, field...)
 }
 
 // ScanWithLimit scans at most limit documents by given filter. The limit must be positive.
@@ -911,11 +911,11 @@ func (orm *Orm[P, T]) ScanWithLimit(nCtx contextx.IContext, filter bson.D, limit
 		return nil, errors.New("scan limit must be positive")
 	}
 
-	return orm.scanAll(nCtx, filter, limit, field...)
+	return orm.scan(nCtx, filter, limit, field...)
 }
 
-// scanAll uses a zero limit for unlimited scans.
-func (orm *Orm[P, T]) scanAll(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) (dataPoints []P, err error) {
+// scan scans matching data in cursor batches. A zero limit returns all matches; a positive limit caps the result count.
+func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) (dataPoints []P, err error) {
 	metric := orm.metric().start(daomongo.MetricOperationScanAll, len(filter))
 	defer func() {
 		metric.end(err, len(dataPoints))
