@@ -117,16 +117,13 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 		return fmt.Errorf("%s must be positive, got %d", globalsettings.OperCleanOrphanProcessPageSize, pageSize)
 	}
 
-	scanCtx, cancel := contextx.WithTimeout(std.Context(), act.Timeout())
-	defer cancel()
-
 	deadline := time.Now().Add(-cleanOrphanProcessStaleAfter)
 	condition := &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
 			InfoLastSyncAtBefore: &deadline,
 		},
 	}
-	processes, err := act.processStg.ScanProcesses(scanCtx, pageSize, condition)
+	processes, err := act.processStg.ScanProcesses(std.Context(), pageSize, condition)
 	if err != nil {
 		return fmt.Errorf("failed to scan stale processes: %w", err)
 	}
@@ -140,7 +137,7 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 	}
 
 	var trigCtl workflow.ITriggerCtl
-	if err := batchexecutor.Execute(scanCtx, processes, func(nCtx contextx.IContext, batchProcesses []*types.Process) error {
+	if err := batchexecutor.Execute(std.Context(), processes, func(nCtx contextx.IContext, batchProcesses []*types.Process) error {
 		if trigCtl == nil {
 			meta := trigger.NewMetadataOrdered(1)
 			meta.CleanPolicy = trigger.MetadataCleanPolicy{
@@ -160,7 +157,7 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 	if trigCtl == nil {
 		return nil
 	}
-	if err := trigCtl.ActivateTrigger(scanCtx); err != nil {
+	if err := trigCtl.ActivateTrigger(std.Context()); err != nil {
 		return fmt.Errorf("failed to activate orphan process cleanup trigger: %w", err)
 	}
 
