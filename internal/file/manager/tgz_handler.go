@@ -206,6 +206,13 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 		}
 	}
 
+	// Tar EOF may precede the gzip trailer; drain the stream to validate it and surface read errors.
+	// Accept unbounded decompression to preserve gzip validation without imposing a new size limit.
+	// nolint:gosec
+	if _, err := io.Copy(io.Discard, gzipReader); err != nil {
+		return fmt.Errorf("failed to finish reading source gzip stream: %w", err)
+	}
+
 	return nil
 }
 

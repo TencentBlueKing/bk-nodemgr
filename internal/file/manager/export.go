@@ -570,6 +570,13 @@ func writeOriginUploadTgzSource(tarWriter *tar.Writer, source tgzMergeSource, ru
 		}
 	}
 
+	// Tar EOF may precede the gzip trailer; drain the stream to validate it and surface read errors.
+	// Accept unbounded decompression to preserve gzip validation without imposing a new size limit.
+	// nolint:gosec
+	if _, err := io.Copy(io.Discard, gzipReader); err != nil {
+		return fmt.Errorf("failed to finish reading source gzip stream, source(%s): %w", source.name, err)
+	}
+
 	return nil
 }
 

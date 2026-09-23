@@ -23,6 +23,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -173,7 +174,11 @@ func runClientRequestsRespectTenantMode(t *testing.T, mode tenant.Mode) {
 
 	downloadResp, err := client.DownloadFile(nCtx, &DownloadFileReq{Path: "packages/agent.tgz"})
 	require.NoError(t, err)
-	assert.Equal(t, []byte("agent-content"), downloadResp.Data)
+	downloadData, readErr := io.ReadAll(downloadResp.Data)
+	closeErr := downloadResp.Data.Close()
+	require.NoError(t, readErr)
+	require.NoError(t, closeErr)
+	assert.Equal(t, []byte("agent-content"), downloadData)
 
 	uploadResp, err := client.UploadFile(nCtx, &UploadFileReq{
 		Path:   "packages/agent.tgz",

@@ -331,9 +331,13 @@ func Test_Get(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			data, err := io.ReadAll(reader)
-			if err != nil {
-				t.Fatal(err)
+			data, readErr := io.ReadAll(reader)
+			closeErr := reader.Close()
+			if readErr != nil {
+				t.Fatal(readErr)
+			}
+			if closeErr != nil {
+				t.Fatal(closeErr)
 			}
 
 			if string(data) != tt.args.fileContent {

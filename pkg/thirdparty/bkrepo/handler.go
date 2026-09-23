@@ -20,7 +20,6 @@
 package bkrepo
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -384,5 +383,5 @@ func (h *Handler) getFileContent(nCtx contextx.IContext, path string) (io.ReadCl
 		return nil, fmt.Errorf("download file failed: %w", err)
 	}
 
-	return io.NopCloser(bytes.NewReader(downloadFileResp.Data)), nil
+	return downloadFileResp.Data, nil
 }

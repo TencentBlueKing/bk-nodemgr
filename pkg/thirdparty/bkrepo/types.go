@@ -73,9 +73,9 @@ type DownloadFileReq struct {
 	Path string
 }
 
-// DownloadFileResp describe the download file response.
+// DownloadFileResp describes the download file response.
 type DownloadFileResp struct {
-	Data []byte
+	Data io.ReadCloser
 }
 
 // UploadFileReq describe the upload file request.

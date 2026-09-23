@@ -93,7 +93,8 @@ func (c *cli) effectiveProjectID() string {
 	return c.config.ProjectID
 }
 
-// DownloadFile download file from bkrepo.
+// DownloadFile opens a download stream from BKRepo. The caller must close it.
+// The context must remain valid until reading finishes; read errors may occur after this method returns.
 func (c *cli) DownloadFile(nCtx contextx.IContext, req *DownloadFileReq) (*DownloadFileResp, error) {
 	resp := new(DownloadFileResp)
 	header := c.getCommonHeader()
@@ -104,7 +105,7 @@ func (c *cli) DownloadFile(nCtx contextx.IContext, req *DownloadFileReq) (*Downl
 		WithParam("download", "true").
 		WithContext(nCtx).
 		WithHeaders(header).
-		Do().RawData()
+		Do().RawStream()
 	if err != nil {
 		return nil, fmt.Errorf("download file failed: %w", err)
 	}
