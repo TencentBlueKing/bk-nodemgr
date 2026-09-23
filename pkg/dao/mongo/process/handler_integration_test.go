@@ -135,6 +135,50 @@ func TestHandler_ProcessIntegration(t *testing.T) {
 	})
 }
 
+func TestHandler_ScanAllIntegration(t *testing.T) {
+	const tenantID = "scan-all-processes"
+	const total = 1001
+
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID(tenantID))
+	h := testClient(t)
+	deadline := time.Now().UTC().Truncate(time.Millisecond)
+	want := make(map[int64]*types.Process, total)
+	for i := range total {
+		process := testProcess(tenantID)
+		process.HostID = int64(i + 1)
+		process.Info.LastSyncAt = deadline.Add(-time.Hour)
+		require.NoError(t, h.Create(nCtx, process))
+		want[process.HostID] = process
+	}
+
+	fresh := testProcess(tenantID)
+	fresh.PluginName = "fresh-plugin"
+	fresh.Info.LastSyncAt = deadline
+	require.NoError(t, h.Create(nCtx, fresh))
+
+	deleted := testProcess(tenantID)
+	deleted.PluginName = "deleted-plugin"
+	deleted.Info.LastSyncAt = deadline.Add(-time.Hour)
+	require.NoError(t, h.Create(nCtx, deleted))
+	require.NoError(t, h.Delete(nCtx, deleted.HostID, deleted.PluginName))
+
+	otherTenantCtx := contextx.New(context.Background(), contextx.WithTenantID("scan-all-processes-other-tenant"))
+	otherTenant := testProcess(otherTenantCtx.TenantID())
+	otherTenant.Info.LastSyncAt = deadline.Add(-time.Hour)
+	require.NoError(t, h.Create(otherTenantCtx, otherTenant))
+
+	processes, err := h.ScanAll(nCtx, WithInfoLastSyncAtBefore(deadline))
+	require.NoError(t, err)
+	require.Len(t, processes, total)
+	for _, process := range processes {
+		expected, exists := want[process.HostID]
+		require.True(t, exists, "unexpected or duplicate host ID %d", process.HostID)
+		require.Equal(t, expected, process)
+		delete(want, process.HostID)
+	}
+	require.Empty(t, want)
+}
+
 func TestHandler_UpdateInfoStatusAndLastSyncAtIntegration(t *testing.T) {
 	const tenantID = "update-process-info-status"
 	const otherTenantID = "update-process-info-status-other-tenant"

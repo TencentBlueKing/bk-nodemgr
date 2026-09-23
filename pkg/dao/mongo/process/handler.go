@@ -44,6 +44,9 @@ type IHandler interface {
 	// List lists process by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Process, int64, error)
 
+	// ScanAll scans all processes by conditions.
+	ScanAll(nCtx contextx.IContext, opts ...OptFn) ([]*types.Process, error)
+
 	// Get gets a process by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, error)
 
@@ -204,6 +207,34 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return process, num, nil
+}
+
+// ScanAll scans all processes by conditions.
+func (h *Handler) ScanAll(nCtx contextx.IContext, opts ...OptFn) ([]*types.Process, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to scan all processes: %w", err)
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	data, err := h.tenantDao(nCtx.TenantID()).ScanAll(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan all processes: %w", err)
+	}
+
+	processes := make([]*types.Process, len(data))
+	for idx, process := range data {
+		processes[idx] = convertProcessToTypes(process)
+	}
+
+	return processes, nil
 }
 
 // Get get a process.
