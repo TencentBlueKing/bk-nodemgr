@@ -85,7 +85,7 @@ const (
 
 	metricOperationCountProcess                       = "count_process"
 	metricOperationListProcess                        = "list_process"
-	metricOperationScanAllProcesses                   = "scan_all_processes"
+	metricOperationScanProcesses                      = "scan_processes"
 	metricOperationCreateProcess                      = "create_process"
 	metricOperationUpdateProcess                      = "update_process"
 	metricOperationUpdateProcessInfo                  = "update_process_info"
@@ -863,13 +863,13 @@ func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditi
 	return processes, total, err
 }
 
-// ScanAllProcesses scans all processes by conditions.
-func (s *Storage) ScanAllProcesses(nCtx contextx.IContext, conditions ...*types.ProcessCondition) ([]*types.Process, error) {
+// ScanProcesses scans at most limit processes by conditions.
+func (s *Storage) ScanProcesses(nCtx contextx.IContext, limit int64, conditions ...*types.ProcessCondition) ([]*types.Process, error) {
 	var processes []*types.Process
 
-	err := s.WrapFn(nCtx, metricOperationScanAllProcesses, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationScanProcesses, func(nCtx contextx.IContext) error {
 		var err error
-		processes, err = s.scanAllProcesses(nCtx, conditions...)
+		processes, err = s.scanProcesses(nCtx, limit, conditions...)
 
 		return err
 	})

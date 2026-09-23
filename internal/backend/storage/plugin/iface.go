@@ -129,8 +129,8 @@ type IDaoProcess interface {
 	// ListProcesses list processes.
 	ListProcesses(nCtx contextx.IContext, page types.Page, condition ...*types.ProcessCondition) ([]*types.Process, int64, error)
 
-	// ScanAllProcesses scans all processes by conditions.
-	ScanAllProcesses(nCtx contextx.IContext, conditions ...*types.ProcessCondition) ([]*types.Process, error)
+	// ScanProcesses scans at most limit processes by conditions.
+	ScanProcesses(nCtx contextx.IContext, limit int64, conditions ...*types.ProcessCondition) ([]*types.Process, error)
 
 	// CreateProcess create process.
 	CreateProcess(nCtx contextx.IContext, process *types.Process) error

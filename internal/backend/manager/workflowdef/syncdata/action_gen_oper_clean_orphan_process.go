@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -96,7 +97,7 @@ func (act *actionGenOperCleanOrphanProcess) DelayFn(_ int) func() {
 	return func() {}
 }
 
-// Do scans all stale processes and generates a cleanup operation for each batch.
+// Do scans up to the configured number of stale processes and generates cleanup operations in batches.
 func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamGenOperCleanOrphanProcess)
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
@@ -105,6 +106,15 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 	std := syncDataUtils.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
+	}
+
+	pageSize, err := conv.ToInt64(globalsettings.Get(std.Context(), globalsettings.OperCleanOrphanProcessPageSize,
+		globalsettings.OperCleanOrphanProcessPageSizeDefault))
+	if err != nil {
+		return fmt.Errorf("failed to parse %s: %w", globalsettings.OperCleanOrphanProcessPageSize, err)
+	}
+	if pageSize <= 0 {
+		return fmt.Errorf("%s must be positive, got %d", globalsettings.OperCleanOrphanProcessPageSize, pageSize)
 	}
 
 	scanCtx, cancel := contextx.WithTimeout(std.Context(), act.Timeout())
@@ -116,9 +126,9 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 			InfoLastSyncAtBefore: &deadline,
 		},
 	}
-	processes, err := act.processStg.ScanAllProcesses(scanCtx, condition)
+	processes, err := act.processStg.ScanProcesses(scanCtx, pageSize, condition)
 	if err != nil {
-		return fmt.Errorf("failed to scan all stale processes: %w", err)
+		return fmt.Errorf("failed to scan stale processes: %w", err)
 	}
 	if len(processes) == 0 {
 		std.InstanceData().Log().

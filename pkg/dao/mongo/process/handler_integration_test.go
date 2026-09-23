@@ -135,7 +135,7 @@ func TestHandler_ProcessIntegration(t *testing.T) {
 	})
 }
 
-func TestHandler_ScanAllIntegration(t *testing.T) {
+func TestHandler_ScanWithLimitIntegration(t *testing.T) {
 	const tenantID = "scan-all-processes"
 	const total = 1001
 
@@ -167,7 +167,14 @@ func TestHandler_ScanAllIntegration(t *testing.T) {
 	otherTenant.Info.LastSyncAt = deadline.Add(-time.Hour)
 	require.NoError(t, h.Create(otherTenantCtx, otherTenant))
 
-	processes, err := h.ScanAll(nCtx, WithInfoLastSyncAtBefore(deadline))
+	limited, err := h.ScanWithLimit(nCtx, 501, WithInfoLastSyncAtBefore(deadline))
+	require.NoError(t, err)
+	require.Len(t, limited, 501)
+	for _, process := range limited {
+		require.Equal(t, want[process.HostID], process)
+	}
+
+	processes, err := h.ScanWithLimit(nCtx, total+1, WithInfoLastSyncAtBefore(deadline))
 	require.NoError(t, err)
 	require.Len(t, processes, total)
 	for _, process := range processes {

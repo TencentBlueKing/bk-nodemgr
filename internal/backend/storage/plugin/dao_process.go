@@ -149,7 +149,7 @@ func (s *Storage) listProcesses(nCtx contextx.IContext, page types.Page, conditi
 	return s.daoProcess.List(nCtx, page, opts...)
 }
 
-func (s *Storage) scanAllProcesses(nCtx contextx.IContext, conditions ...*types.ProcessCondition) ([]*types.Process, error) {
+func (s *Storage) scanProcesses(nCtx contextx.IContext, limit int64, conditions ...*types.ProcessCondition) ([]*types.Process, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -159,9 +159,9 @@ func (s *Storage) scanAllProcesses(nCtx contextx.IContext, conditions ...*types.
 		return nil, err
 	}
 
-	processes, err := s.daoProcess.ScanAll(nCtx, opts...)
+	processes, err := s.daoProcess.ScanWithLimit(nCtx, limit, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan all processes: %w", err)
+		return nil, fmt.Errorf("failed to scan processes: %w", err)
 	}
 
 	return processes, nil
