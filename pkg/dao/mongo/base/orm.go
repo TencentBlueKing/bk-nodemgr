@@ -892,7 +892,7 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 	return dataPoints, nil
 }
 
-const scanAllBatchSize int64 = 500
+const scanBatchSize int64 = 500
 
 type scanAllDocument[P IData] struct {
 	ID        any       `bson:"_id"`
@@ -948,7 +948,7 @@ func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, f
 
 	var lastID any
 	for {
-		batchLimit := scanAllBatchSize
+		batchLimit := scanBatchSize
 		if limit > 0 {
 			batchLimit = min(batchLimit, limit-int64(len(dataPoints)))
 		}
@@ -975,7 +975,7 @@ func (orm *Orm[P, T]) scan(nCtx contextx.IContext, filter bson.D, limit int64, f
 }
 
 func buildScanAllFindOptions(fields []string) *mongoOptions.FindOptions {
-	findOpt := mongoOptions.Find().SetSort(bson.D{{Key: "_id", Value: 1}}).SetLimit(scanAllBatchSize)
+	findOpt := mongoOptions.Find().SetSort(bson.D{{Key: "_id", Value: 1}}).SetLimit(scanBatchSize)
 	if len(fields) == 0 {
 		return findOpt
 	}
