@@ -186,7 +186,7 @@ service:
   ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
   ##
   #loadBalancerSourceRanges:
-  #   - 10.10.10.0/24
+  #   - x.x.x.x/24
   loadBalancerSourceRanges: []
 
   ## service.externalTrafficPolicy minio service external traffic policy
@@ -230,7 +230,7 @@ consoleService:
   ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
   ##
   #loadBalancerSourceRanges:
-  #   - 10.10.10.0/24
+  #   - x.x.x.x/24
   loadBalancerSourceRanges: []
 
   ## servconsoleServiceice.externalTrafficPolicy minio service external traffic policy
@@ -333,7 +333,7 @@ policies: []
 #         - "s3:GetBucketLocation"
 #         - "s3:ListBucket"
 #         - "s3:ListBucketMultipartUploads"
-## conditionsexample policy creates all access to example bucket with aws:username="johndoe" and source ip range 10.0.0.0/8 and 192.168.0.0/24 only
+## conditionsexample policy creates all access to example bucket with aws:username="johndoe" and source ip range 10.0.0.0/8 and x.x.x.x/24 only
 # - name: conditionsexample
 #   statements:
 #     - resources:
@@ -345,7 +345,7 @@ policies: []
 #         - IpAddress: |
 #             "aws:SourceIp": [
 #               "10.0.0.0/8",
-#               "192.168.0.0/24"
+#               "x.x.x.x/24"
 #             ]
 #
 ## Additional Annotations for the Kubernetes Job makePolicyJob

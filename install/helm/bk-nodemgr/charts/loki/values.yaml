@@ -909,7 +909,7 @@ adminApi:
   replicas: 1
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   # -- Additional CLI arguments for the `admin-api` target
@@ -1195,7 +1195,7 @@ enterpriseGateway:
   replicas: 1
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   # -- Additional CLI arguments for the `gateway` target
@@ -1807,7 +1807,7 @@ ingester:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   autoscaling:
@@ -1997,7 +1997,7 @@ distributor:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   autoscaling:
@@ -2091,7 +2091,7 @@ querier:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   autoscaling:
@@ -2209,7 +2209,7 @@ queryFrontend:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   autoscaling:
@@ -2303,7 +2303,7 @@ queryScheduler:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
@@ -2367,7 +2367,7 @@ indexGateway:
   joinMemberlist: true
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
@@ -2457,7 +2457,7 @@ compactor:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
@@ -2565,7 +2565,7 @@ bloomGateway:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
@@ -2664,7 +2664,7 @@ bloomPlanner:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
@@ -2763,7 +2763,7 @@ bloomBuilder:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   autoscaling:
@@ -2853,7 +2853,7 @@ patternIngester:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
@@ -2967,7 +2967,7 @@ ruler:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
@@ -3117,7 +3117,7 @@ overridesExporter:
   replicas: 0
   # -- hostAliases to add
   hostAliases: []
-  #  - ip: 1.2.3.4
+  #  - ip: x.x.x.x
   #    hostnames:
   #      - domain.tld
   image:
