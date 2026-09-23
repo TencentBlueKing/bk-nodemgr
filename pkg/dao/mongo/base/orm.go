@@ -93,6 +93,9 @@ type IOrm[P DataPoint[T], T any] interface {
 	// ScanAll scans all data by given filter.
 	ScanAll(nCtx contextx.IContext, filter bson.D, field ...string) ([]P, error)
 
+	// ScanWithLimit scans at most limit documents by given filter. The limit must be positive.
+	ScanWithLimit(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) ([]P, error)
+
 	// DistinctString distinct the string value of given key.
 	DistinctString(
 		nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error)
@@ -899,6 +902,20 @@ type scanAllDocument[P IData] struct {
 
 // ScanAll scans all data by given filter.
 func (orm *Orm[P, T]) ScanAll(nCtx contextx.IContext, filter bson.D, field ...string) (dataPoints []P, err error) {
+	return orm.scanAll(nCtx, filter, 0, field...)
+}
+
+// ScanWithLimit scans at most limit documents by given filter. The limit must be positive.
+func (orm *Orm[P, T]) ScanWithLimit(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) ([]P, error) {
+	if limit <= 0 {
+		return nil, errors.New("scan limit must be positive")
+	}
+
+	return orm.scanAll(nCtx, filter, limit, field...)
+}
+
+// scanAll uses a zero limit for unlimited scans.
+func (orm *Orm[P, T]) scanAll(nCtx contextx.IContext, filter bson.D, limit int64, field ...string) (dataPoints []P, err error) {
 	metric := orm.metric().start(daomongo.MetricOperationScanAll, len(filter))
 	defer func() {
 		metric.end(err, len(dataPoints))
@@ -931,6 +948,11 @@ func (orm *Orm[P, T]) ScanAll(nCtx contextx.IContext, filter bson.D, field ...st
 
 	var lastID any
 	for {
+		batchLimit := scanAllBatchSize
+		if limit > 0 {
+			batchLimit = min(batchLimit, limit-int64(len(dataPoints)))
+		}
+		findOpt.SetLimit(batchLimit)
 		queryFilter := buildScanAllFilter(filter, lastID)
 		cursor, err := orm.dao.GetClient().Find(nCtx, queryFilter, findOpt)
 		if err != nil {
@@ -941,7 +963,7 @@ func (orm *Orm[P, T]) ScanAll(nCtx contextx.IContext, filter bson.D, field ...st
 		if scanErr != nil {
 			return nil, scanErr
 		}
-		if batchCount < scanAllBatchSize {
+		if batchCount < batchLimit || (limit > 0 && int64(len(dataPoints)) >= limit) {
 			break
 		}
 		if !advanced {
