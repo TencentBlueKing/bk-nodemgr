@@ -38,6 +38,11 @@ func WithTenantID(tenantIDs ...string) OptFn {
 	return base.WithValues(FieldKeyTenantID, tenantIDs...)
 }
 
+// WithStorageKey filters by the stored artifact path.
+func WithStorageKey(keys ...string) OptFn {
+	return base.WithValues(FieldKeyStorageKey, keys...)
+}
+
 // WithOperator filters by operator.
 func WithOperator(operators ...string) OptFn {
 	return base.WithValues(FieldKeyOperator, operators...)

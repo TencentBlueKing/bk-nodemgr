@@ -26,6 +26,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -64,7 +65,7 @@ func (s *Storage) listReleasePluginBinTool(nCtx contextx.IContext, page types.Pa
 
 	rls, total, err := s.listRelease(nCtx, types.ReleaseTypePluginBinTool, page, conditions...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list release plugin bintool: %w", err)
+		return nil, 0, err
 	}
 	results := make([]*types.ReleasePluginBinTool, len(rls))
 	for i, item := range rls {
@@ -82,4 +83,23 @@ func (s *Storage) existReleasePluginBinTool(nCtx contextx.IContext, gen types.Ge
 	}
 
 	return result, nil
+}
+
+// distinctNameReleasePluginBinTool distincts plugin bintool release names.
+func (s *Storage) distinctNameReleasePluginBinTool(
+	nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	bound, err := s.daoRelease.DistinctName(nCtx, types.ReleaseTypePluginBinTool, opts...)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin bintool")
+
+		return nil, fmt.Errorf("failed to distinct name release plugin bintool: %w", err)
+	}
+
+	return bound, nil
 }

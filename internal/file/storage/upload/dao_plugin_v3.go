@@ -59,3 +59,13 @@ func (s *Storage) deletePluginV3Upload(nCtx contextx.IContext, uploadID string) 
 
 	return nil
 }
+
+// distinctPluginV3SavedName distincts saved names of plugin v3 uploads.
+func (s *Storage) distinctPluginV3SavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	bound, err := s.daoUpload.DistinctSavedName(nCtx, types.UploadCategoryOriginPluginV3, names)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct plugin v3 upload saved names: %w", err)
+	}
+
+	return bound, nil
+}

@@ -977,6 +977,7 @@ type PackageExportExactFields struct {
 	ExportID   []string
 	WorkflowID []string
 	TenantID   []string
+	StorageKey []string
 	Operator   []string
 }
 

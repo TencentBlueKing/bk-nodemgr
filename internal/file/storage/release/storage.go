@@ -21,7 +21,6 @@ package release
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -266,13 +265,9 @@ func (s *Storage) ListReleaseAgent(nCtx contextx.IContext, page types.Page,
 
 	err := s.WrapFn(nCtx, metricOperationListReleaseAgent, func(nCtx contextx.IContext) error {
 		var err error
-		if results, num, err = s.listReleaseAgent(nCtx, page, conditions...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to list release agent")
+		results, num, err = s.listReleaseAgent(nCtx, page, conditions...)
 
-			return fmt.Errorf("failed to list release agent: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
 	return results, num, err
@@ -283,13 +278,9 @@ func (s *Storage) CountReleaseAgent(nCtx contextx.IContext, conditions ...*types
 	var num int64
 	err := s.WrapFn(nCtx, metricOperationCountReleaseAgent, func(nCtx contextx.IContext) error {
 		var err error
-		if num, err = s.countRelease(nCtx, types.ReleaseTypeAgent, conditions...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to count release agent")
+		num, err = s.countRelease(nCtx, types.ReleaseTypeAgent, conditions...)
 
-			return fmt.Errorf("failed to count release agent: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
 	return num, err
@@ -305,13 +296,9 @@ func (s *Storage) DistinctReleaseAgent(nCtx contextx.IContext, fields types.Rele
 
 	err := s.WrapFn(nCtx, metricOperationDistinctReleaseAgent, func(nCtx contextx.IContext) error {
 		var err error
-		if data, err = s.distinctRelease(nCtx, types.ReleaseTypeAgent, fields, conditions...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to distinct release agent")
+		data, err = s.distinctRelease(nCtx, types.ReleaseTypeAgent, fields, conditions...)
 
-			return fmt.Errorf("failed to distinct release agent: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
 	return data, err
@@ -438,13 +425,9 @@ func (s *Storage) ListReleaseProxy(nCtx contextx.IContext, page types.Page,
 
 	err := s.WrapFn(nCtx, metricOperationListReleaseProxy, func(nCtx contextx.IContext) error {
 		var err error
-		if results, num, err = s.listReleaseProxy(nCtx, page, conditions...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to list release proxy")
+		results, num, err = s.listReleaseProxy(nCtx, page, conditions...)
 
-			return fmt.Errorf("failed to list release proxy: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
 	return results, num, err
@@ -455,13 +438,9 @@ func (s *Storage) CountReleaseProxy(nCtx contextx.IContext, conditions ...*types
 	var num int64
 	err := s.WrapFn(nCtx, metricOperationCountReleaseProxy, func(nCtx contextx.IContext) error {
 		var err error
-		if num, err = s.countRelease(nCtx, types.ReleaseTypeProxy, conditions...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to count release proxy")
+		num, err = s.countRelease(nCtx, types.ReleaseTypeProxy, conditions...)
 
-			return fmt.Errorf("failed to count release proxy: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
 	return num, err
@@ -477,13 +456,9 @@ func (s *Storage) DistinctReleaseProxy(nCtx contextx.IContext, fields types.Rele
 
 	err := s.WrapFn(nCtx, metricOperationDistinctReleaseProxy, func(nCtx contextx.IContext) error {
 		var err error
-		if data, err = s.distinctRelease(nCtx, types.ReleaseTypeProxy, fields, conditions...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to distinct release proxy")
+		data, err = s.distinctRelease(nCtx, types.ReleaseTypeProxy, fields, conditions...)
 
-			return fmt.Errorf("failed to distinct release proxy: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
 	return data, err
@@ -934,13 +909,9 @@ func (s *Storage) DistinctReleasePlugin(nCtx contextx.IContext, fields types.Rel
 
 	err := s.WrapFn(nCtx, metricOperationDistinctReleasePlugin, func(nCtx contextx.IContext) error {
 		var err error
-		if result, err = s.distinctRelease(nCtx, types.ReleaseTypePlugin, fields, conditions...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to distinct release plugin")
+		result, err = s.distinctRelease(nCtx, types.ReleaseTypePlugin, fields, conditions...)
 
-			return fmt.Errorf("failed to distinct release plugin: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
 	return result, err
@@ -967,42 +938,32 @@ func (s *Storage) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name st
 
 // DistinctNameReleasePlugin gets distinct plugin release names.
 func (s *Storage) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
-	var names []string
+	var (
+		bound []string
+	)
+
 	err := s.WrapFn(nCtx, metricOperationDistinctNameReleasePlugin, func(nCtx contextx.IContext) error {
 		var err error
-		opts, err := convertReleaseConditionsToOptions(conditions...)
-		if err != nil {
-			return fmt.Errorf("failed to convert release conditions to options: %w", err)
-		}
-		if names, err = s.daoRelease.DistinctName(nCtx, types.ReleaseTypePlugin, opts...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin")
+		bound, err = s.distinctNameReleasePlugin(nCtx, conditions...)
 
-			return fmt.Errorf("failed to distinct name release plugin: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
-	return names, err
+	return bound, err
 }
 
 // DistinctNameReleasePluginBinTool gets distinct plugin bintool release names.
 func (s *Storage) DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
-	var names []string
+	var (
+		bound []string
+	)
+
 	err := s.WrapFn(nCtx, metricOperationDistinctNameReleasePluginBinTool, func(nCtx contextx.IContext) error {
 		var err error
-		opts, err := convertReleaseConditionsToOptions(conditions...)
-		if err != nil {
-			return fmt.Errorf("failed to convert release conditions to options: %w", err)
-		}
-		if names, err = s.daoRelease.DistinctName(nCtx, types.ReleaseTypePluginBinTool, opts...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin bintool")
+		bound, err = s.distinctNameReleasePluginBinTool(nCtx, conditions...)
 
-			return fmt.Errorf("failed to distinct name release plugin bintool: %w", err)
-		}
-
-		return nil
+		return err
 	})
 
-	return names, err
+	return bound, err
 }

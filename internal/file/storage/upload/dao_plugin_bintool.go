@@ -59,3 +59,13 @@ func (s *Storage) deletePluginBinToolUpload(nCtx contextx.IContext, uploadID str
 
 	return nil
 }
+
+// distinctPluginBinToolSavedName distincts saved names of plugin bintool uploads.
+func (s *Storage) distinctPluginBinToolSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	bound, err := s.daoUpload.DistinctSavedName(nCtx, types.UploadCategoryOriginPluginBinTool, names)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct plugin bintool upload saved names: %w", err)
+	}
+
+	return bound, nil
+}

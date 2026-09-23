@@ -101,7 +101,7 @@ func (s *Storage) listReleaseAgent(nCtx contextx.IContext, page types.Page,
 
 	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeAgent, page, conditions...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list release agent: %w", err)
+		return nil, 0, err
 	}
 	results := make([]*types.ReleaseAgent, len(rls))
 	for i, item := range rls {

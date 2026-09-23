@@ -24,7 +24,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
+	packageexport "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -49,6 +49,25 @@ func (s *Storage) listPackageExport(
 	return exports, count, nil
 }
 
+// distinctStorageKey distincts storage keys of package exports.
+func (s *Storage) distinctStorageKey(nCtx contextx.IContext, conditions ...*types.PackageExportCondition) ([]string, error) {
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertPackageExportConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	storageKeys, err := s.daoPackageExport.DistinctStorageKey(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct package export storage keys: %w", err)
+	}
+
+	return storageKeys, nil
+}
+
 func convertPackageExportConditionsToOptions(conditions ...*types.PackageExportCondition) (
 	[]packageexport.OptFn, error) {
 
@@ -63,6 +82,7 @@ func convertPackageExportConditionsToOptions(conditions ...*types.PackageExportC
 				packageexport.WithExportID(condition.ExactInclude.ExportID...),
 				packageexport.WithWorkflowID(condition.ExactInclude.WorkflowID...),
 				packageexport.WithTenantID(condition.ExactInclude.TenantID...),
+				packageexport.WithStorageKey(condition.ExactInclude.StorageKey...),
 				packageexport.WithOperator(condition.ExactInclude.Operator...),
 			)
 		}

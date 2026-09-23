@@ -22,6 +22,9 @@ const (
 	// FieldKeyUploadID the upload-id field key.
 	FieldKeyUploadID = "data.upload_id"
 
+	// FieldKeySavedName is the stored artifact name.
+	FieldKeySavedName = "data.saved_name"
+
 	// FieldKeyCategory the category field key.
 	FieldKeyCategory = "data.category"
 )

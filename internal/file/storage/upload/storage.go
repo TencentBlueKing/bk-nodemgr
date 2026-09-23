@@ -34,33 +34,50 @@ const (
 	// StorageName defines the storage name.
 	StorageName = "upload"
 
-	metricOperationGetAgentUpload               = "get_agent_upload"
-	metricOperationCreateAgentUpload            = "create_agent_upload"
-	metricOperationDeleteAgentUpload            = "delete_agent_upload"
-	metricOperationGetServerUpload              = "get_server_upload"
-	metricOperationCreateServerUpload           = "create_server_upload"
-	metricOperationDeleteServerUpload           = "delete_server_upload"
-	metricOperationGetProxyUpload               = "get_proxy_upload"
-	metricOperationCreateProxyUpload            = "create_proxy_upload"
-	metricOperationDeleteProxyUpload            = "delete_proxy_upload"
-	metricOperationGetCertUpload                = "get_cert_upload"
-	metricOperationCreateCertUpload             = "create_cert_upload"
-	metricOperationDeleteCertUpload             = "delete_cert_upload"
-	metricOperationGetBinToolUpload             = "get_bintool_upload"
-	metricOperationCreateBinToolUpload          = "create_bintool_upload"
-	metricOperationDeleteBinToolUpload          = "delete_bintool_upload"
-	metricOperationGetPluginBinToolUpload       = "get_plugin_bintool_upload"
-	metricOperationCreatePluginBinToolUpload    = "create_plugin_bintool_upload"
-	metricOperationDeletePluginBinToolUpload    = "delete_plugin_bintool_upload"
-	metricOperationGetPluginV2Upload            = "get_plugin_v2_upload"
-	metricOperationCreatePluginV2Upload         = "create_plugin_v2_upload"
-	metricOperationDeletePluginV2Upload         = "delete_plugin_v2_upload"
-	metricOperationGetExternalPluginV2Upload    = "get_external_plugin_v2_upload"
-	metricOperationCreateExternalPluginV2Upload = "create_external_plugin_v2_upload"
-	metricOperationDeleteExternalPluginV2Upload = "delete_external_plugin_v2_upload"
-	metricOperationGetPluginV3Upload            = "get_plugin_v3_upload"
-	metricOperationCreatePluginV3Upload         = "create_plugin_v3_upload"
-	metricOperationDeletePluginV3Upload         = "delete_plugin_v3_upload"
+	metricOperationGetAgentUpload         = "get_agent_upload"
+	metricOperationCreateAgentUpload      = "create_agent_upload"
+	metricOperationDeleteAgentUpload      = "delete_agent_upload"
+	metricOperationDistinctAgentSavedName = "distinct_agent_saved_name"
+
+	metricOperationGetServerUpload         = "get_server_upload"
+	metricOperationCreateServerUpload      = "create_server_upload"
+	metricOperationDeleteServerUpload      = "delete_server_upload"
+	metricOperationDistinctServerSavedName = "distinct_server_saved_name"
+
+	metricOperationGetProxyUpload         = "get_proxy_upload"
+	metricOperationCreateProxyUpload      = "create_proxy_upload"
+	metricOperationDeleteProxyUpload      = "delete_proxy_upload"
+	metricOperationDistinctProxySavedName = "distinct_proxy_saved_name"
+
+	metricOperationGetCertUpload         = "get_cert_upload"
+	metricOperationCreateCertUpload      = "create_cert_upload"
+	metricOperationDeleteCertUpload      = "delete_cert_upload"
+	metricOperationDistinctCertSavedName = "distinct_cert_saved_name"
+
+	metricOperationGetBinToolUpload         = "get_bintool_upload"
+	metricOperationCreateBinToolUpload      = "create_bintool_upload"
+	metricOperationDeleteBinToolUpload      = "delete_bintool_upload"
+	metricOperationDistinctBinToolSavedName = "distinct_bintool_saved_name"
+
+	metricOperationGetPluginBinToolUpload         = "get_plugin_bintool_upload"
+	metricOperationCreatePluginBinToolUpload      = "create_plugin_bintool_upload"
+	metricOperationDeletePluginBinToolUpload      = "delete_plugin_bintool_upload"
+	metricOperationDistinctPluginBinToolSavedName = "distinct_plugin_bintool_saved_name"
+
+	metricOperationGetPluginV2Upload         = "get_plugin_v2_upload"
+	metricOperationCreatePluginV2Upload      = "create_plugin_v2_upload"
+	metricOperationDeletePluginV2Upload      = "delete_plugin_v2_upload"
+	metricOperationDistinctPluginV2SavedName = "distinct_plugin_v2_saved_name"
+
+	metricOperationGetExternalPluginV2Upload         = "get_external_plugin_v2_upload"
+	metricOperationCreateExternalPluginV2Upload      = "create_external_plugin_v2_upload"
+	metricOperationDeleteExternalPluginV2Upload      = "delete_external_plugin_v2_upload"
+	metricOperationDistinctExternalPluginV2SavedName = "distinct_external_plugin_v2_saved_name"
+
+	metricOperationGetPluginV3Upload         = "get_plugin_v3_upload"
+	metricOperationCreatePluginV3Upload      = "create_plugin_v3_upload"
+	metricOperationDeletePluginV3Upload      = "delete_plugin_v3_upload"
+	metricOperationDistinctPluginV3SavedName = "distinct_plugin_v3_saved_name"
 )
 
 // NewStorage creates a new upload storage.
@@ -178,6 +195,28 @@ func (s *Storage) DeleteAgentUpload(nCtx contextx.IContext, uploadID string) err
 	return nil
 }
 
+// DistinctAgentSavedName distincts saved names of agent uploads.
+func (s *Storage) DistinctAgentSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctAgentSavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctAgentSavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
+}
+
 // ===============================================================================
 // UploadServer Related Interface
 // ===============================================================================
@@ -244,6 +283,28 @@ func (s *Storage) DeleteServerUpload(nCtx contextx.IContext, uploadID string) er
 	}
 
 	return nil
+}
+
+// DistinctServerSavedName distincts saved names of server uploads.
+func (s *Storage) DistinctServerSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctServerSavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctServerSavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
 }
 
 // ===============================================================================
@@ -314,6 +375,28 @@ func (s *Storage) DeleteProxyUpload(nCtx contextx.IContext, uploadID string) err
 	return nil
 }
 
+// DistinctProxySavedName distincts saved names of proxy uploads.
+func (s *Storage) DistinctProxySavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctProxySavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctProxySavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
+}
+
 // ===============================================================================
 // UploadCert Related Interface
 // ===============================================================================
@@ -380,6 +463,28 @@ func (s *Storage) DeleteCertUpload(nCtx contextx.IContext, uploadID string) erro
 	}
 
 	return nil
+}
+
+// DistinctCertSavedName distincts saved names of cert uploads.
+func (s *Storage) DistinctCertSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctCertSavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctCertSavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
 }
 
 // ===============================================================================
@@ -450,6 +555,28 @@ func (s *Storage) DeleteBinToolUpload(nCtx contextx.IContext, uploadID string) e
 	return nil
 }
 
+// DistinctBinToolSavedName distincts saved names of bintool uploads.
+func (s *Storage) DistinctBinToolSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctBinToolSavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctBinToolSavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
+}
+
 // ===============================================================================
 // UploadPluginBinTool Related Interface
 // ===============================================================================
@@ -516,6 +643,28 @@ func (s *Storage) DeletePluginBinToolUpload(nCtx contextx.IContext, uploadID str
 	}
 
 	return nil
+}
+
+// DistinctPluginBinToolSavedName distincts saved names of plugin bintool uploads.
+func (s *Storage) DistinctPluginBinToolSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctPluginBinToolSavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctPluginBinToolSavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
 }
 
 // ===============================================================================
@@ -586,6 +735,28 @@ func (s *Storage) DeletePluginV2Upload(nCtx contextx.IContext, uploadID string) 
 	return nil
 }
 
+// DistinctPluginV2SavedName distincts saved names of plugin v2 uploads.
+func (s *Storage) DistinctPluginV2SavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctPluginV2SavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctPluginV2SavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
+}
+
 // ===============================================================================
 // UploadExternalPluginV2 Related Interface
 // ===============================================================================
@@ -654,6 +825,28 @@ func (s *Storage) DeleteExternalPluginV2Upload(nCtx contextx.IContext, uploadID 
 	return nil
 }
 
+// DistinctExternalPluginV2SavedName distincts saved names of external plugin v2 uploads.
+func (s *Storage) DistinctExternalPluginV2SavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctExternalPluginV2SavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctExternalPluginV2SavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
+}
+
 // ===============================================================================
 // UploadPluginV3 Related Interface
 // ===============================================================================
@@ -720,4 +913,26 @@ func (s *Storage) DeletePluginV3Upload(nCtx contextx.IContext, uploadID string) 
 	}
 
 	return nil
+}
+
+// DistinctPluginV3SavedName distincts saved names of plugin v3 uploads.
+func (s *Storage) DistinctPluginV3SavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	var (
+		bound []string
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctPluginV3SavedName, func(nCtx contextx.IContext) error {
+		bound, err = s.distinctPluginV3SavedName(nCtx, names)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bound, nil
 }

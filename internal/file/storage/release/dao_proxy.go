@@ -59,7 +59,7 @@ func (s *Storage) listReleaseProxy(nCtx contextx.IContext, page types.Page,
 
 	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeProxy, page, conditions...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list release proxy: %w", err)
+		return nil, 0, err
 	}
 	results := make([]*types.ReleaseProxy, len(rls))
 	for i, item := range rls {

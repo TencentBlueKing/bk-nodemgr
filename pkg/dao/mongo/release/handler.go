@@ -85,6 +85,9 @@ type IDistinctor interface {
 	// DistinctName distincts release names.
 	DistinctName(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
 
+	// DistinctFileName distincts release file names.
+	DistinctFileName(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
+
 	// DistinctVersion distincts release versions.
 	DistinctVersion(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
 }
@@ -428,6 +431,25 @@ func (h *Handler) DistinctName(nCtx contextx.IContext, releaseType types.Release
 	}
 
 	return h.releaseTypeDao(releaseType, tenantID).DistinctString(nCtx, FieldKeyName, filter, nil)
+}
+
+// DistinctFileName distincts release file names.
+func (h *Handler) DistinctFileName(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.releaseTypeDao(releaseType, tenantID).DistinctString(nCtx, FieldKeyFileName, filter, nil)
 }
 
 // DistinctVersion distincts release versions.

@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -47,7 +48,9 @@ func (s *Storage) listReleasePlugin(nCtx contextx.IContext, page types.Page, con
 		opts...,
 	)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list release plugin: %w", err)
+		logger.G.Sys().WithErr(err).Error(fmt.Sprintf("failed to list release %s", types.ReleaseTypePlugin))
+
+		return nil, 0, fmt.Errorf("failed to list release %s: %w", types.ReleaseTypePlugin, err)
 	}
 
 	result := make([]*types.ReleasePlugin, len(releases))
@@ -148,4 +151,21 @@ func (s *Storage) setHiddenReleasePlugin(nCtx contextx.IContext, key types.Relea
 	}
 
 	return nil
+}
+
+// distinctNameReleasePlugin distincts plugin release names.
+func (s *Storage) distinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	bound, err := s.daoRelease.DistinctName(nCtx, types.ReleaseTypePlugin, opts...)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin")
+
+		return nil, fmt.Errorf("failed to distinct name release plugin: %w", err)
+	}
+
+	return bound, nil
 }

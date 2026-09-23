@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -125,7 +126,13 @@ func (s *Storage) setReleaseLabelsMany(
 		return fmt.Errorf("failed to convert release conditions to options: %w", err)
 	}
 
-	return s.daoRelease.SetLabels(nCtx, releaseType, labels, opts...)
+	if err = s.daoRelease.SetLabels(nCtx, releaseType, labels, opts...); err != nil {
+		logger.G.Sys().WithErr(err).Error(fmt.Sprintf("failed to set release %s labels", releaseType))
+
+		return fmt.Errorf("failed to set release %s labels: %w", releaseType, err)
+	}
+
+	return nil
 }
 
 // listRelease lists release by page and conditions.
@@ -138,7 +145,14 @@ func (s *Storage) listRelease(
 		return nil, 0, fmt.Errorf("failed to convert release conditions to options: %w", err)
 	}
 
-	return s.daoRelease.List(nCtx, releaseType, page, opts...)
+	releases, total, err := s.daoRelease.List(nCtx, releaseType, page, opts...)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error(fmt.Sprintf("failed to list release %s", releaseType))
+
+		return nil, 0, fmt.Errorf("failed to list release %s: %w", releaseType, err)
+	}
+
+	return releases, total, nil
 }
 
 // distinctRelease distincts release by conditions.
@@ -186,8 +200,18 @@ func (s *Storage) distinctRelease(
 			return err
 		})
 	}
+	if distinctField.FileName {
+		gp.Go(func() error {
+			var err error
+			data.FileName, err = s.daoRelease.DistinctFileName(nCtx, releaseType, opts...)
+
+			return err
+		})
+	}
 	if err = gp.Wait(); err != nil {
-		return nil, err
+		logger.G.Sys().WithErr(err).Error(fmt.Sprintf("failed to distinct release %s", releaseType))
+
+		return nil, fmt.Errorf("failed to distinct release %s: %w", releaseType, err)
 	}
 
 	return data, nil
@@ -200,7 +224,14 @@ func (s *Storage) countRelease(nCtx contextx.IContext, releaseType types.Release
 		return 0, fmt.Errorf("failed to convert release conditions to options: %w", err)
 	}
 
-	return s.daoRelease.Count(nCtx, releaseType, opts...)
+	num, err := s.daoRelease.Count(nCtx, releaseType, opts...)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error(fmt.Sprintf("failed to count release %s", releaseType))
+
+		return 0, fmt.Errorf("failed to count release %s: %w", releaseType, err)
+	}
+
+	return num, nil
 }
 
 func (s *Storage) getReleaseDefaultVersion(

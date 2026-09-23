@@ -59,3 +59,13 @@ func (s *Storage) deleteProxyUpload(nCtx contextx.IContext, uploadID string) err
 
 	return nil
 }
+
+// distinctProxySavedName distincts saved names of proxy uploads.
+func (s *Storage) distinctProxySavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	bound, err := s.daoUpload.DistinctSavedName(nCtx, types.UploadCategoryOriginProxy, names)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct proxy upload saved names: %w", err)
+	}
+
+	return bound, nil
+}

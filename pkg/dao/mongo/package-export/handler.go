@@ -45,6 +45,15 @@ type IHandler interface {
 
 	// Delete deletes a package export by its export ID.
 	Delete(nCtx contextx.IContext, exportID string) error
+
+	// IDistinctor distincts package export fields.
+	IDistinctor
+}
+
+// IDistinctor package export distinctor interface.
+type IDistinctor interface {
+	// DistinctStorageKey distincts storage keys referenced by live package exports.
+	DistinctStorageKey(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 }
 
 var _ IHandler = &Handler{}
@@ -224,6 +233,25 @@ func (h *Handler) Delete(nCtx contextx.IContext, exportID string) error {
 	}
 
 	return nil
+}
+
+// DistinctStorageKey distincts storage keys of package exports.
+func (h *Handler) DistinctStorageKey(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	data, err := h.dao.DistinctString(nCtx, FieldKeyStorageKey, filter, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct package export storage keys: %w", err)
+	}
+
+	return data, nil
 }
 
 func convertFromTypes(exportData *types.PackageExport) *Data {

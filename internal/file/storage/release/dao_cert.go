@@ -50,7 +50,7 @@ func (s *Storage) listReleaseCert(nCtx contextx.IContext, page types.Page,
 
 	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeCert, page, conditions...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list release cert: %w", err)
+		return nil, 0, err
 	}
 	results := make([]*types.ReleaseCert, len(rls))
 	for i, item := range rls {

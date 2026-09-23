@@ -8,10 +8,10 @@
 |Out of scope:export workflow orchestration|package aggregation|artifact generation/storage|download token/HTTP handling|availability derivation|cross-collection joins
 |Structure:pkg/dao/mongo/package-export:{package_export.go,handler.go,table.go,constants.go,options.go,handler_test.go}
 |Naming:directory/import path=`package-export`|Go package identifier=`packageexport`|Mongo collection=`package_export`|domain model=`types.PackageExport`
-|Where to look:public API+validation+types conversion:handler.go:{IHandler,Handler,New,List,Create,Get,Delete,convertFromTypes,convertToTypes}
+|Where to look:public API+validation+types conversion:handler.go:{IHandler,IDistinctor,Handler,New,List,Create,Get,Delete,DistinctStorageKey,convertFromTypes,convertToTypes}
 |Where to look:dao+base.IOrm+indexes:package_export.go:{newDao,dao,GetClient,GetTableName,GetIndexes}
 |Where to look:collection+document contract+unique key:table.go:{TableName,Data,UniqueFields,UniqueKey,Table}
-|Where to look:BSON field keys+filters:{constants.go,options.go}:{FieldKeyExportID,FieldKeyWorkflowID,FieldKeyTenantID,FieldKeyStorageKey,FieldKeyDownloadName,FieldKeySize,FieldKeyMD5,FieldKeyOperator,WithExportID,WithWorkflowID,WithTenantID,WithOperator}
+|Where to look:BSON field keys+filters:{constants.go,options.go}:{FieldKeyExportID,FieldKeyWorkflowID,FieldKeyTenantID,FieldKeyStorageKey,FieldKeyDownloadName,FieldKeySize,FieldKeyMD5,FieldKeyOperator,WithExportID,WithWorkflowID,WithTenantID,WithStorageKey,WithOperator}
 |Where to look:domain model+conditions:pkg/types/{export.go,condition.go}:{PackageExport,PackageExportCondition,PackageExportExactFields}
 |Where to look:backend caller:internal/backend/storage/pkg:{storage.go,dao_pkg_export.go,iface.go}
 |Where to look:file-service caller:internal/file/storage/packageexport:{storage.go,dao_package_export.go,iface.go}

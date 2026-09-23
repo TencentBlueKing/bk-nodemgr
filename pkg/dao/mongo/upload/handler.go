@@ -39,6 +39,15 @@ type IHandler interface {
 
 	// DeleteMany deletes upload by upload-ids.
 	DeleteMany(nCtx contextx.IContext, category types.UploadCategory, uploadIDs ...string) error
+
+	// IDistinctor distincts upload fields.
+	IDistinctor
+}
+
+// IDistinctor upload distinctor interface.
+type IDistinctor interface {
+	// DistinctSavedName distincts saved names referenced by live uploads in a category.
+	DistinctSavedName(nCtx contextx.IContext, category types.UploadCategory, names []string) ([]string, error)
 }
 
 // Handler implements IHandler.
@@ -102,6 +111,20 @@ func (h *Handler) Get(nCtx contextx.IContext, category types.UploadCategory, upl
 		Operator:  upload.Operator,
 		CreatedAt: upload.CreatedAt,
 	}, nil
+}
+
+// DistinctSavedName distincts saved names of a category; upload collections are category-wide.
+func (h *Handler) DistinctSavedName(nCtx contextx.IContext, category types.UploadCategory, names []string) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+	if len(names) == 0 {
+		return []string{}, nil
+	}
+
+	filter := base.WithValues(FieldKeySavedName, names...)(base.AliveFilter())
+
+	return h.categoryDao(category).DistinctString(nCtx, FieldKeySavedName, filter, nil)
 }
 
 // DeleteMany deletes upload by upload id.

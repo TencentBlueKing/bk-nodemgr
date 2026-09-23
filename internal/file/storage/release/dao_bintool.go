@@ -62,7 +62,7 @@ func (s *Storage) listReleaseBinTool(nCtx contextx.IContext, page types.Page,
 
 	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeBinTool, page, conditions...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list release bintool: %w", err)
+		return nil, 0, err
 	}
 	results := make([]*types.ReleaseBinTool, len(rls))
 	for i, item := range rls {

@@ -59,3 +59,13 @@ func (s *Storage) deleteAgentUpload(nCtx contextx.IContext, uploadID string) err
 
 	return nil
 }
+
+// distinctAgentSavedName distincts saved names of agent uploads.
+func (s *Storage) distinctAgentSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	bound, err := s.daoUpload.DistinctSavedName(nCtx, types.UploadCategoryOriginAgent, names)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct agent upload saved names: %w", err)
+	}
+
+	return bound, nil
+}

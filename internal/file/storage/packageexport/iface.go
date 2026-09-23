@@ -46,4 +46,7 @@ type IDaoExport interface {
 
 	// DeletePackageExport deletes a package export by export ID.
 	DeletePackageExport(nCtx contextx.IContext, exportID string) error
+
+	// DistinctStorageKey distincts storage keys of package exports.
+	DistinctStorageKey(nCtx contextx.IContext, conditions ...*types.PackageExportCondition) ([]string, error)
 }

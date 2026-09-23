@@ -59,3 +59,13 @@ func (s *Storage) deleteServerUpload(nCtx contextx.IContext, uploadID string) er
 
 	return nil
 }
+
+// distinctServerSavedName distincts saved names of server uploads.
+func (s *Storage) distinctServerSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	bound, err := s.daoUpload.DistinctSavedName(nCtx, types.UploadCategoryOriginServer, names)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct server upload saved names: %w", err)
+	}
+
+	return bound, nil
+}

@@ -23,7 +23,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
+	packageexport "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -37,6 +37,7 @@ const (
 	metricOperationCreatePackageExport = "create_package_export"
 	metricOperationGetPackageExport    = "get_package_export"
 	metricOperationDeletePackageExport = "delete_package_export"
+	metricOperationDistinctStorageKey  = "distinct_storage_key"
 )
 
 // NewStorage creates a package export storage.
@@ -127,4 +128,17 @@ func (s *Storage) DeletePackageExport(nCtx contextx.IContext, exportID string) e
 	return s.WrapFn(nCtx, metricOperationDeletePackageExport, func(nCtx contextx.IContext) error {
 		return s.deletePackageExport(nCtx, exportID)
 	})
+}
+
+// DistinctStorageKey distincts storage keys of package exports.
+func (s *Storage) DistinctStorageKey(nCtx contextx.IContext, conditions ...*types.PackageExportCondition) ([]string, error) {
+	var storageKeys []string
+	err := s.WrapFn(nCtx, metricOperationDistinctStorageKey, func(nCtx contextx.IContext) error {
+		var err error
+		storageKeys, err = s.distinctStorageKey(nCtx, conditions...)
+
+		return err
+	})
+
+	return storageKeys, err
 }

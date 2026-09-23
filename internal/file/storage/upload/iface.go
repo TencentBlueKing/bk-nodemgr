@@ -26,6 +26,7 @@ import (
 )
 
 // IStorage defines the interface of upload storage.
+// nolint: interfacebloat
 type IStorage interface {
 	basestorage.Interface
 
@@ -50,6 +51,9 @@ type IDaoAgent interface {
 
 	// DeleteAgentUpload deletes a upload by upload-id.
 	DeleteAgentUpload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctAgentSavedName distincts saved names of agent uploads.
+	DistinctAgentSavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoServer defines the interface of upload storage.
@@ -62,6 +66,9 @@ type IDaoServer interface {
 
 	// DeleteServerUpload deletes a upload by upload-id.
 	DeleteServerUpload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctServerSavedName distincts saved names of server uploads.
+	DistinctServerSavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoProxy defines the interface of upload storage.
@@ -74,6 +81,9 @@ type IDaoProxy interface {
 
 	// DeleteProxyUpload deletes a upload by upload-id.
 	DeleteProxyUpload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctProxySavedName distincts saved names of proxy uploads.
+	DistinctProxySavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoCert defines the interface of upload storage.
@@ -86,6 +96,9 @@ type IDaoCert interface {
 
 	// DeleteCertUpload deletes a upload by upload-id.
 	DeleteCertUpload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctCertSavedName distincts saved names of cert uploads.
+	DistinctCertSavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoBinTool defines the interface of upload storage.
@@ -98,6 +111,9 @@ type IDaoBinTool interface {
 
 	// DeleteBinToolUpload deletes a upload by upload-id.
 	DeleteBinToolUpload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctBinToolSavedName distincts saved names of bintool uploads.
+	DistinctBinToolSavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoPluginBinTool defines the interface of upload storage.
@@ -110,6 +126,9 @@ type IDaoPluginBinTool interface {
 
 	// DeletePluginBinToolUpload deletes an upload by upload-id.
 	DeletePluginBinToolUpload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctPluginBinToolSavedName distincts saved names of plugin bintool uploads.
+	DistinctPluginBinToolSavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoPluginV2 defines the interface of upload storage.
@@ -122,6 +141,9 @@ type IDaoPluginV2 interface {
 
 	// DeletePluginV2Upload deletes a upload by upload-id.
 	DeletePluginV2Upload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctPluginV2SavedName distincts saved names of plugin v2 uploads.
+	DistinctPluginV2SavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoExternalPluginV2 defines the interface of upload storage.
@@ -134,6 +156,9 @@ type IDaoExternalPluginV2 interface {
 
 	// DeleteExternalPluginV2Upload deletes a upload by upload-id.
 	DeleteExternalPluginV2Upload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctExternalPluginV2SavedName distincts saved names of external plugin v2 uploads.
+	DistinctExternalPluginV2SavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }
 
 // IDaoPluginV3 defines the interface of upload storage.
@@ -146,4 +171,7 @@ type IDaoPluginV3 interface {
 
 	// DeletePluginV3Upload deletes a upload by upload-id.
 	DeletePluginV3Upload(nCtx contextx.IContext, uploadID string) error
+
+	// DistinctPluginV3SavedName distincts saved names of plugin v3 uploads.
+	DistinctPluginV3SavedName(nCtx contextx.IContext, names []string) ([]string, error)
 }

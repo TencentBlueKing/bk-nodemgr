@@ -64,6 +64,7 @@ func convertPackageExportConditionsToOptions(conditions ...*types.PackageExportC
 				packageexport.WithExportID(condition.ExactInclude.ExportID...),
 				packageexport.WithWorkflowID(condition.ExactInclude.WorkflowID...),
 				packageexport.WithTenantID(condition.ExactInclude.TenantID...),
+				packageexport.WithStorageKey(condition.ExactInclude.StorageKey...),
 				packageexport.WithOperator(condition.ExactInclude.Operator...),
 			)
 		}

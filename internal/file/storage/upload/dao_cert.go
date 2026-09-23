@@ -59,3 +59,13 @@ func (s *Storage) deleteCertUpload(nCtx contextx.IContext, uploadID string) erro
 
 	return nil
 }
+
+// distinctCertSavedName distincts saved names of cert uploads.
+func (s *Storage) distinctCertSavedName(nCtx contextx.IContext, names []string) ([]string, error) {
+	bound, err := s.daoUpload.DistinctSavedName(nCtx, types.UploadCategoryOriginCert, names)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct cert upload saved names: %w", err)
+	}
+
+	return bound, nil
+}

@@ -150,27 +150,30 @@ type PluginWorkflowDistinctResult struct {
 
 // ReleaseDistinctField describes the wanted distinct fields.
 type ReleaseDistinctField struct {
-	OSType  bool
-	CPUArch bool
-	Name    bool
-	Version bool
+	OSType   bool
+	CPUArch  bool
+	Name     bool
+	Version  bool
+	FileName bool
 }
 
 // ReleaseDistinctResult describes the result of distinct.
 type ReleaseDistinctResult struct {
-	OSType  []string
-	CPUArch []string
-	Name    []string
-	Version []string
+	OSType   []string
+	CPUArch  []string
+	Name     []string
+	Version  []string
+	FileName []string
 }
 
 // ReleaseDistinctFieldAllSet creates a ReleaseDistinctField with all fields set to true.
 func ReleaseDistinctFieldAllSet() ReleaseDistinctField {
 	return ReleaseDistinctField{
-		OSType:  true,
-		CPUArch: true,
-		Name:    true,
-		Version: true,
+		OSType:   true,
+		CPUArch:  true,
+		Name:     true,
+		Version:  true,
+		FileName: true,
 	}
 }
 

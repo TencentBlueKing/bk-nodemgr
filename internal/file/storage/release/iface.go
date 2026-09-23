@@ -211,11 +211,12 @@ type IDaoPlugin interface {
 	CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
 
 	// DistinctReleasePlugin gets distinct plugin release fields.
-	DistinctReleasePlugin(nCtx contextx.IContext, fields types.ReleaseDistinctField,
-		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
+	DistinctReleasePlugin(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
 
 	// GetReleasePluginDefaultVersion gets the default plugin version.
 	GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform) (string, error)
+
 	// DistinctNameReleasePlugin gets distinct plugin release names.
 	DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
 
