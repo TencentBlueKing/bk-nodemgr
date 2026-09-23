@@ -170,6 +170,9 @@ type ISyncManager interface {
 
 // IDeployPolicyManager defines the DeployPolicyManager interface.
 type IDeployPolicyManager interface {
+	// PreviewDeployPolicy computes current policy states without executing changes.
+	PreviewDeployPolicy(ctx contextx.IContext, policy *types.DeployPolicy) ([]*types.DeployPolicySpecPreview, error)
+
 	// LaunchExecuteDeployPolicy launch a task to execute deploy policy. returns the trigger-id.
 	LaunchExecuteDeployPolicy(ctx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error)
 

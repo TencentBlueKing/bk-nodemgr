@@ -31,6 +31,7 @@ type policyCalculation struct {
 	changeTasks   []*ChangeTask
 }
 
+// calculateChanges is the read-only computation shared by execution and preview.
 func (h *Handler) calculateChanges(
 	nCtx contextx.IContext, policies []*types.DeployPolicy,
 ) (*policyCalculation, error) {

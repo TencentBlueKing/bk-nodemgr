@@ -29,6 +29,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
+// PreviewDeployPolicy computes current policy states without executing changes.
+func (mgr *Manager) PreviewDeployPolicy(
+	nCtx contextx.IContext, policy *types.DeployPolicy,
+) ([]*types.DeployPolicySpecPreview, error) {
+
+	return mgr.newDeployPolicyHandler().Preview(nCtx, policy)
+}
+
 func (mgr *Manager) newDeployPolicyHandler() *dpmgr.Handler {
 	return dpmgr.NewHandler(&dpmgr.Config{
 		DaoProcess:              mgr.conf.StoragePlugin,

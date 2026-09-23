@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/deploy_policy/preview": {
+      "post": {
+        "summary": "Preview computes current policy states without executing changes.",
+        "operationId": "DeployPolicySvc_Preview",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyPreviewResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DeployPolicyPreviewReq synchronously previews one enabled policy without\nwrites.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyPreviewReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicySvc"
+        ]
+      }
+    },
     "/api/v3/deploy_policy/update": {
       "post": {
         "summary": "Update updates deploy policy.",
@@ -188,6 +222,19 @@
     }
   },
   "definitions": {
+    "DeployPolicyPreviewTargetServiceInstance": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_module_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
     "ErrorDetails": {
       "type": "object",
       "properties": {
@@ -571,6 +618,106 @@
         }
       },
       "description": "DeployPolicyMeta describes the meta of deploy policy."
+    },
+    "v3DeployPolicyPreviewReq": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "DeployPolicyPreviewReq synchronously previews one enabled policy without\nwrites."
+    },
+    "v3DeployPolicyPreviewResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyPreviewRespData"
+        }
+      },
+      "description": "DeployPolicyPreviewResp returns all states from one read-only calculation."
+    },
+    "v3DeployPolicyPreviewRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeployPolicySpecPreview"
+          },
+          "description": "Items follow the requested policy's original spec order. No pagination."
+        }
+      }
+    },
+    "v3DeployPolicyPreviewTarget": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "$ref": "#/definitions/v3DeployPolicyPreviewTargetHost",
+          "description": "Both host and service instance targets carry their CMDB host identity."
+        },
+        "service_instance": {
+          "$ref": "#/definitions/DeployPolicyPreviewTargetServiceInstance",
+          "description": "Only service instance targets carry a CMDB service instance identity."
+        }
+      },
+      "description": "DeployPolicyPreviewTarget identifies a target from the calculated scope."
+    },
+    "v3DeployPolicyPreviewTargetHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3DeployPolicySpecPreview": {
+      "type": "object",
+      "properties": {
+        "spec": {
+          "$ref": "#/definitions/v3DeploySpec"
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeployPolicyTargetPreview"
+          }
+        }
+      },
+      "description": "DeployPolicySpecPreview preserves the original spec and its scope states."
+    },
+    "v3DeployPolicyTargetPreview": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "$ref": "#/definitions/v3DeployPolicyPreviewTarget"
+        },
+        "status": {
+          "type": "string",
+          "description": "satisfied, unsatisfied or unmanaged, following existing execution\ndecisions."
+        }
+      },
+      "description": "DeployPolicyTargetPreview describes a calculated target's state for a spec."
     },
     "v3DeployPolicyUpdateReq": {
       "type": "object",

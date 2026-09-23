@@ -54,7 +54,7 @@ func (analyzer *Analyzer) Analyze(nCtx contextx.IContext, units ...*DeployUnit) 
 	changeTasks := make([]*ChangeTask, 0)
 
 	for _, unit := range units {
-		for _, spec := range unit.Specs {
+		for specIndex, spec := range unit.Specs {
 			params := &AnalyzeParams{
 				DeployPolicyID: unit.DeployPolicyID,
 				Spec:           spec,
@@ -65,6 +65,9 @@ func (analyzer *Analyzer) Analyze(nCtx contextx.IContext, units ...*DeployUnit) 
 				return nil, fmt.Errorf("failed to analyze deploy unit, deploy-unit(%+v): %w", unit, err)
 			}
 
+			for _, task := range unitChangeTasks {
+				task.specIndex = specIndex
+			}
 			changeTasks = append(changeTasks, unitChangeTasks...)
 		}
 	}

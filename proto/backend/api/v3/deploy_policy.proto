@@ -239,6 +239,51 @@ message DeployPolicyExecuteResp {
   Data data = 5;
 }
 
+// DeployPolicyPreviewReq synchronously previews one enabled policy without
+// writes.
+message DeployPolicyPreviewReq { optional int64 deploy_policy_id = 1; }
+
+// DeployPolicyPreviewTarget identifies a target from the calculated scope.
+message DeployPolicyPreviewTarget {
+  message Host { int64 bk_host_id = 1; }
+  message ServiceInstance {
+    int64 id = 1;
+    int64 bk_module_id = 2;
+  }
+  // Both host and service instance targets carry their CMDB host identity.
+  Host host = 1;
+  // Only service instance targets carry a CMDB service instance identity.
+  ServiceInstance service_instance = 2;
+}
+
+// DeployPolicyTargetPreview describes a calculated target's state for a spec.
+message DeployPolicyTargetPreview {
+  DeployPolicyPreviewTarget target = 1;
+  // satisfied, unsatisfied or unmanaged, following existing execution
+  // decisions.
+  string status = 2;
+}
+
+// DeployPolicySpecPreview preserves the original spec and its scope states.
+message DeployPolicySpecPreview {
+  DeploySpec spec = 1;
+  repeated DeployPolicyTargetPreview results = 2;
+}
+
+// DeployPolicyPreviewResp returns all states from one read-only calculation.
+message DeployPolicyPreviewResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  message Data {
+    // Items follow the requested policy's original spec order. No pagination.
+    repeated DeployPolicySpecPreview items = 1;
+  }
+  Data data = 5;
+}
+
 // DeployPolicyChildWorkflow describes one associated node or plugin workflow.
 message DeployPolicyChildWorkflow {
   // node or plugin. The pair (type, workflow_id) identifies a child workflow.
@@ -320,6 +365,14 @@ service DeployPolicySvc {
   rpc Execute(DeployPolicyExecuteReq) returns (DeployPolicyExecuteResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/execute"
+      body : "*"
+    };
+  }
+
+  // Preview computes current policy states without executing changes.
+  rpc Preview(DeployPolicyPreviewReq) returns (DeployPolicyPreviewResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/preview"
       body : "*"
     };
   }
