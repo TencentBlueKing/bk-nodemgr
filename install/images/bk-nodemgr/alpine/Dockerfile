@@ -9,10 +9,7 @@ RUN corepack enable
 
 COPY front/.npmrc front/package.json front/pnpm-lock.yaml ./
 COPY front/scripts/ ./scripts/
-# Point pnpm's store at the cache mount to reuse downloaded dependencies.
-RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
-    pnpm config set store-dir /root/.pnpm-store --global && \
-    pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 COPY front/ .
 RUN pnpm build --mode ${MODE}
