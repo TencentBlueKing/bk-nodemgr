@@ -1,14 +1,21 @@
 FROM node:20-alpine AS frontend-builder
 
+ARG MODE=production
+# Skip the Cypress binary download during image builds.
+ENV CYPRESS_INSTALL_BINARY=0
+
 WORKDIR /app
 RUN corepack enable
 
-COPY front/package.json front/.npmrc ./
+COPY front/.npmrc front/package.json front/pnpm-lock.yaml ./
 COPY front/scripts/ ./scripts/
-RUN CYPRESS_INSTALL_BINARY=0 pnpm install
+# Point pnpm's store at the cache mount to reuse downloaded dependencies.
+RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
+    pnpm config set store-dir /root/.pnpm-store --global && \
+    pnpm install --frozen-lockfile
 
 COPY front/ .
-RUN pnpm build
+RUN pnpm build --mode ${MODE}
 
 FROM alpine:3.21
 
