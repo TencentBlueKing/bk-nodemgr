@@ -108,6 +108,12 @@ gseDeployConfs:
     baseDeployDir: "/usr/local/"
     manualScriptPath: "/bk-nodemgr/script/manual/darwin/install.sh"
 
+# cryptoType: symmetric crypto suite for sensitive data, CLASSIC(AES-CBC) or SHANGMI(SM4-GCM, GM).
+# Only one suite is enabled globally; after switching, previously stored temporary
+# credentials become invalid and must be re-entered at install time (no migration):
+# see docs/developer/credential-encryption-contract.md
+cryptoType: "__BK_NODEMGR_BACKEND_CRYPTO_TYPE__"
+
 # encryptKey: define the key used to encrypt the sensitive data.
 encryptKey: "__BK_NODEMGR_BACKEND_ENCRYPT_KEY__"
 

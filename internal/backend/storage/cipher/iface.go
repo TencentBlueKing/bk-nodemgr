@@ -47,6 +47,6 @@ type IDaoStorage interface {
 
 // IDomainStorage defines business domain interfaces for cipher storage.
 type IDomainStorage interface {
-	// EnsureDefaultCipher ensures the default RSA cipher.
-	EnsureDefaultCipher(nCtx contextx.IContext) error
+	// EnsureDefaultCipher ensures the default keypair of the given key type.
+	EnsureDefaultCipher(nCtx contextx.IContext, keyType types.CipherKeyType) error
 }

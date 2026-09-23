@@ -28,6 +28,7 @@ import (
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,7 @@ type handler struct {
 	storageGlobalSettings           globalsettingsStorage.IStorage
 	storageHost                     topoStg.IStorageHost
 	storageCipher                   cipherStg.IStorage
+	cryptoType                      config.EncryptCryptoType
 	authorizer                      auth.IAuthorizer
 	cmdbHandler                     cmdb.IHandler
 }
@@ -59,6 +61,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageGlobalSettings:           capability.StorageGlobalSettings,
 		storageHost:                     capability.StorageTopo,
 		storageCipher:                   capability.StorageCipher,
+		cryptoType:                      capability.CryptoType,
 		authorizer:                      capability.Authorizer,
 		cmdbHandler:                     capability.CmdbHandler,
 	}

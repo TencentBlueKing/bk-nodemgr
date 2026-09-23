@@ -294,7 +294,7 @@ import Preview from './preview.vue';
 
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
-import { encryptV1, encryptV2, initPublicKey } from '@/common/crypto';
+import { encrypt, initPublicKey } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
@@ -532,18 +532,20 @@ const handlePreview = async () => {
     };
     // Deep clone to avoid mutating original formData — cancel preview should preserve credit
     const clonedData = cloneDeep(formData);
-    clonedData.info.forEach((item: any) => {
+    for (const item of clonedData.info as any[]) {
       // 获取对应的 key (login_password 或 login_key_file)
       const targetKey = modeMap[item.login_mode];
 
       if (item.credit) {
-        // 密码用 V1 加密，密钥用 V2 加密
-        const encryptedValue = item.login_mode === 'keyfile'
-          ? encryptV2(item.credit)
-          : encryptV1(item.credit);
+        // 统一加密入口：按当前套件加密（RSA 按长度自动 V1/V2，SM2 单层）
+        const encryptedValue = await encrypt(item.credit);
 
-        // 如果加密成功，使用密文；否则使用空字符串
-        item[targetKey] = encryptedValue !== false ? encryptedValue : '';
+        // 加密失败时 encrypt 已提示，这里中止提交，不回退为空凭据
+        if (encryptedValue === false) {
+          return false;
+        }
+
+        item[targetKey] = encryptedValue;
       } else {
         // 如果没有输入值，直接赋值
         item[targetKey] = item.credit;
@@ -552,7 +554,7 @@ const handlePreview = async () => {
       // 清理不需要的字段 — only on the cloned copy
       delete item.credit;
       delete item.bk_host_id;
-    });
+    }
     if (isShow.value) {
       clonedData.target_version = systemData.value
         .filter((item: any) => !!item.version)

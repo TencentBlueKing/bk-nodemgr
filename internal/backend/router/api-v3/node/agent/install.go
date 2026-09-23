@@ -157,11 +157,11 @@ func (h *handler) generateInstallNodeDeployments(
 		}
 	}
 
-	var rsaCrypter crypter.Crypter
+	var credentialCrypter crypter.Crypter
 	if !isManual {
-		rsaCrypter, err = h.initRSACrypter(nCtx)
+		credentialCrypter, err = h.initCredentialCrypter(nCtx)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to init rsa crypter for password hosts: %w", err)
+			return nil, nil, fmt.Errorf("failed to init credential crypter for password hosts: %w", err)
 		}
 	}
 
@@ -240,7 +240,7 @@ func (h *handler) generateInstallNodeDeployments(
 
 			if !isManual {
 				if err = h.processHostCredit(
-					nCtx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile(), rsaCrypter,
+					nCtx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile(), credentialCrypter,
 				); err != nil {
 					return fmt.Errorf("failed to process host credit: %w", err)
 				}
@@ -258,26 +258,32 @@ func (h *handler) generateInstallNodeDeployments(
 	return nodeDeployments, bizIDs, nil
 }
 
-func (h *handler) initRSACrypter(nCtx contextx.IContext) (crypter.Crypter, error) {
-	if err := h.storageCipher.EnsureDefaultCipher(nCtx); err != nil {
+// initCredentialCrypter builds the credential crypter of the globally
+// configured suite: CLASSIC uses the default RSA keypair (ciphertext v1/v2),
+// SHANGMI uses the default SM2 keypair (ciphertext v3). Ciphertexts of the
+// disabled suite are rejected.
+func (h *handler) initCredentialCrypter(nCtx contextx.IContext) (crypter.Crypter, error) {
+	keyType := h.cryptoType.CredentialKeyType()
+
+	if err := h.storageCipher.EnsureDefaultCipher(nCtx, keyType); err != nil {
 		return nil, fmt.Errorf("failed to ensure default cipher: %w", err)
 	}
 
-	cipher, err := h.storageCipher.GetCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
+	cipher, err := h.storageCipher.GetCipher(nCtx, types.DefaultCipherName, keyType)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cipher: %w", err)
+		return nil, fmt.Errorf("failed to get %s cipher: %w", keyType, err)
 	}
 
 	if cipher == nil || len(cipher.PrivateKey) == 0 {
-		return nil, fmt.Errorf("rsa private key is unavailable")
+		return nil, fmt.Errorf("%s private key is unavailable", keyType)
 	}
 
-	rsaCrypter, err := crypter.NewRSACrypterFromPrivateKey(cipher.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create rsa crypter: %w", err)
+	switch keyType {
+	case types.CipherKeyTypeSM2:
+		return crypter.NewSM2CrypterFromPrivateKey(cipher.PrivateKey)
+	default:
+		return crypter.NewRSACrypterFromPrivateKey(cipher.PrivateKey)
 	}
-
-	return rsaCrypter, nil
 }
 
 func (h *handler) fetchNetworkunits(nCtx contextx.IContext, hosts []*protoBackend.NodeAgentInstallReq_Host) (map[int64]*types.NetworkUnit, error) {
@@ -337,13 +343,13 @@ func (h *handler) fetchExistedHosts(nCtx contextx.IContext, hosts []*protoBacken
 	return existedHostMap, nil
 }
 
-func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, password, keyfile string, rsaCrypter crypter.Crypter) error {
+func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, password, keyfile string, credentialCrypter crypter.Crypter) error {
 	switch host.Dynamic.LoginMode {
 	case types.LoginModeKeyFile:
-		return h.processKeyFileCredit(nCtx, host, keyfile, rsaCrypter)
+		return h.processKeyFileCredit(nCtx, host, keyfile, credentialCrypter)
 
 	case types.LoginModePassword:
-		return h.processPasswordCredit(nCtx, host, password, rsaCrypter)
+		return h.processPasswordCredit(nCtx, host, password, credentialCrypter)
 
 	case types.LoginModePasswordVault:
 		// notice: password vault don't need to store password.
@@ -357,7 +363,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 	}
 }
 
-func (h *handler) processKeyFileCredit(nCtx contextx.IContext, host *types.Host, keyfile string, rsaCrypter crypter.Crypter) error {
+func (h *handler) processKeyFileCredit(nCtx contextx.IContext, host *types.Host, keyfile string, credentialCrypter crypter.Crypter) error {
 	if keyfile == "" {
 		if host.Dynamic.LoginCreditID == "" {
 			err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
@@ -370,7 +376,7 @@ func (h *handler) processKeyFileCredit(nCtx contextx.IContext, host *types.Host,
 		return nil
 	}
 
-	plainKeyFile, err := crypter.DecryptRSABase64Ciphertext(rsaCrypter, keyfile)
+	plainKeyFile, err := crypter.DecryptBase64Ciphertext(credentialCrypter, keyfile)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt key file: %w", err)
 	}
@@ -390,7 +396,7 @@ func (h *handler) processKeyFileCredit(nCtx contextx.IContext, host *types.Host,
 	return nil
 }
 
-func (h *handler) processPasswordCredit(nCtx contextx.IContext, host *types.Host, password string, rsaCrypter crypter.Crypter) error {
+func (h *handler) processPasswordCredit(nCtx contextx.IContext, host *types.Host, password string, credentialCrypter crypter.Crypter) error {
 	if password == "" {
 		if host.Dynamic.LoginCreditID == "" {
 			err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
@@ -404,7 +410,7 @@ func (h *handler) processPasswordCredit(nCtx contextx.IContext, host *types.Host
 	}
 
 	// decrypt password.
-	plainPassword, err := crypter.DecryptRSABase64Ciphertext(rsaCrypter, password)
+	plainPassword, err := crypter.DecryptBase64Ciphertext(credentialCrypter, password)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt password: %w", err)
 	}

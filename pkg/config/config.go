@@ -572,6 +572,22 @@ type TLSConfig struct {
 	CertFile           string `yaml:"certFile"`
 	KeyFile            string `yaml:"keyFile"`
 	Password           string `yaml:"password"`
+	// EncCertFile / EncKeyFile are the TLCP (GM TLS, GB/T 38636) encryption
+	// certificate pair; CertFile/KeyFile act as the signing pair. When the
+	// encryption pair is set, the endpoint serves pure TLCP.
+	EncCertFile string `yaml:"encCertFile"`
+	EncKeyFile  string `yaml:"encKeyFile"`
+}
+
+// TLSEnabled reports whether the config enables TLS serving: either the
+// standard CA/cert/key triple, or the TLCP (GM TLS) encryption certificate
+// pair (which does not require a CA for one-way authentication).
+func (conf TLSConfig) TLSEnabled() bool {
+	if conf.CAFile != "" && conf.CertFile != "" && conf.KeyFile != "" {
+		return true
+	}
+
+	return conf.EncCertFile != "" && conf.EncKeyFile != ""
 }
 
 // Validate validates the config.
@@ -584,6 +600,16 @@ func (conf TLSConfig) Validate() error {
 	// the password must be present at the same time as the key file.
 	if len(conf.Password) > 0 && len(conf.KeyFile) == 0 {
 		return errors.New("password provided but no key file specified")
+	}
+
+	// the TLCP encryption certificate must be paired, and implies the signing
+	// pair (CertFile/KeyFile) is present too.
+	if (len(conf.EncCertFile) == 0) != (len(conf.EncKeyFile) == 0) {
+		return errors.New("tlcp enc cert file and enc key file must be both provided or both empty")
+	}
+
+	if len(conf.EncCertFile) > 0 && (len(conf.CertFile) == 0 || len(conf.KeyFile) == 0) {
+		return errors.New("tlcp enc certificate provided but the signing certificate pair is missing")
 	}
 
 	switch {

@@ -4207,3 +4207,32 @@ func (c *cli) getRSAPublicKey(ctx contextx.IContext, req *protoBackend.GetRSAPub
 
 	return resp, nil
 }
+
+func (c *cli) getCurrentPublicKey(ctx contextx.IContext, req *protoBackend.GetCurrentPublicKeyReq) (*protoBackend.GetCurrentPublicKeyResp, error) {
+	resp := new(protoBackend.GetCurrentPublicKeyResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/cipher/get_public_key").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get current public key", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get current public key failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

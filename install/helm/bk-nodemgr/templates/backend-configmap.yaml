@@ -18,6 +18,8 @@ data:
 
     system: {{ .Values.backend.config.system | toYaml | nindent 6 }}
 
+    cryptoType: {{ .Values.backend.config.cryptoType | default "CLASSIC" | quote }}
+
     encryptKey: {{ .Values.backend.config.encryptKey | quote }}
 
     infoServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.backend.config.infoServer "terminationGracePeriodSeconds" (.Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}

@@ -288,7 +288,7 @@ import { useI18n } from 'vue-i18n';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { VALIDATE_REGEX } from '@/common/const';
-import { encryptV1, encryptV2, initPublicKey } from '@/common/crypto';
+import { encrypt, initPublicKey } from '@/common/crypto';
 import { getDefaultLoginMode, resolveLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 
 interface IValidate {
@@ -422,10 +422,14 @@ const handleSave = async () => {
       password: 'login_password',
       keyfile: 'login_key_file',
     };
-    const encryptedValue = formData.login_mode === 'keyfile'
-      ? encryptV2(formData.credit)
-      : encryptV1(formData.credit);
-    formData[modeMap[formData.login_mode]] = encryptedValue !== false ? encryptedValue : '';
+    const encryptedValue = await encrypt(formData.credit);
+
+    // 加密失败时 encrypt 已提示，这里中止提交，不回退为空凭据
+    if (encryptedValue === false) {
+      return false;
+    }
+
+    formData[modeMap[formData.login_mode]] = encryptedValue;
   }
   formData.proxy_tags = [];
   proxyTags.forEach((key) => {

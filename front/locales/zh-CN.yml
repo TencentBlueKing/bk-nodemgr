@@ -768,6 +768,10 @@ message:
     delete: 删除成功
   warn:
     keepAtLeast: 至少保留 {x} 行
+  credentialEncrypt:
+    initFailed: 获取凭据加密公钥失败，请稍后重试
+    unsupportedSuite: 服务端加密套件不受当前页面支持，请联系管理员
+    encryptFailed: 凭据加密失败，已中止提交，请重试
 validate:
   required: 必填项
   ipv4: 请输入正确的内网 IPv4

@@ -5,11 +5,10 @@
  * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * either express or implied. See the License for
+ * the specific language governing permissions and limitations under the License.
 
  * We undertake not to change the open source license (MIT license) applicable
 
@@ -27,8 +26,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) ensureDefaultCipher(nCtx contextx.IContext) error {
-	exist, err := s.existCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
+// ensureDefaultCipher idempotently creates the default keypair of the globally
+// enabled suite under DefaultCipherName. Only one suite is provisioned: the
+// globally enabled crypto suite is a deployment decision, so the keypair of the
+// disabled suite is never generated nor stored.
+func (s *Storage) ensureDefaultCipher(nCtx contextx.IContext, keyType types.CipherKeyType) error {
+	exist, err := s.existCipher(nCtx, types.DefaultCipherName, keyType)
 	if err != nil {
 		return err
 	}
@@ -37,23 +40,35 @@ func (s *Storage) ensureDefaultCipher(nCtx contextx.IContext) error {
 		return nil
 	}
 
-	priv, pub, err := crypter.GenerateRSAKeyPairPEM(crypter.RSAKeySize4096)
-	if err != nil {
-		return fmt.Errorf("failed to generate rsa cipher: %w", err)
+	var priv, pub []byte
+
+	switch keyType {
+	case types.CipherKeyTypeRSA4096:
+		priv, pub, err = crypter.GenerateRSAKeyPairPEM(crypter.RSAKeySize4096)
+		if err != nil {
+			return fmt.Errorf("failed to generate rsa cipher: %w", err)
+		}
+	case types.CipherKeyTypeSM2:
+		priv, pub, err = crypter.GenerateSM2KeyPairPEM()
+		if err != nil {
+			return fmt.Errorf("failed to generate sm2 cipher: %w", err)
+		}
+	default:
+		return fmt.Errorf("unsupported default cipher key type: %s", keyType)
 	}
 
 	if err := s.createCipher(nCtx, &types.Cipher{
 		Name:        types.DefaultCipherName,
-		KeyType:     types.CipherKeyTypeRSA4096,
+		KeyType:     keyType,
 		Description: types.DefaultCipherDescription,
 		PrivateKey:  priv,
 		PublicKey:   pub,
 	}); err != nil {
-		exist, existErr := s.existCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
+		exist, existErr := s.existCipher(nCtx, types.DefaultCipherName, keyType)
 		if existErr != nil {
 			return errors.Join(
-				fmt.Errorf("failed to create rsa cipher: %w", err),
-				fmt.Errorf("failed to re-read existing rsa cipher: %w", existErr),
+				fmt.Errorf("failed to create %s cipher: %w", keyType, err),
+				fmt.Errorf("failed to re-read existing %s cipher: %w", keyType, existErr),
 			)
 		}
 
@@ -61,7 +76,7 @@ func (s *Storage) ensureDefaultCipher(nCtx contextx.IContext) error {
 			return nil
 		}
 
-		return fmt.Errorf("failed to create rsa cipher: %w", err)
+		return fmt.Errorf("failed to create %s cipher: %w", keyType, err)
 	}
 
 	return nil

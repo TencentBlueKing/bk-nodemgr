@@ -3,12 +3,14 @@ module github.com/TencentBlueKing/bk-nodemgr
 go 1.25.12
 
 require (
+	gitee.com/Trisia/gotlcp v1.5.0
 	github.com/RichardKnop/logging v0.0.0-20190827224416-1a693bdd4fae
 	github.com/RichardKnop/machinery/v2 v2.0.16
 	github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1
 	github.com/TencentBlueKing/iam-go-sdk v1.0.1
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/containerd/errdefs v1.0.0
+	github.com/emmansun/gmsm v0.44.1
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/golang-jwt/jwt/v5 v5.2.3
@@ -47,8 +49,8 @@ require (
 	go.opentelemetry.io/otel/sdk v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.53.0
-	golang.org/x/sync v0.21.0
+	golang.org/x/crypto v0.54.0
+	golang.org/x/sync v0.22.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v2 v2.4.0
@@ -179,8 +181,8 @@ require (
 	golang.org/x/arch v0.22.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.39.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	google.golang.org/api v0.215.0 // indirect
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect

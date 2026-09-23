@@ -30,6 +30,7 @@ import (
 	"sync"
 	"time"
 
+	"gitee.com/Trisia/gotlcp/tlcp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
@@ -275,8 +276,9 @@ func (svr *Server) Start() error {
 func (svr *Server) startToListenIPV4() error {
 	addr := fmt.Sprintf("%s:%d", svr.opts.IP, svr.opts.Port)
 
-	// tls server.
-	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
+	// tls server: standard TLS needs the CA/cert/key triple, while TLCP (GM
+	// TLS) is triggered by the encryption certificate pair without CA.
+	if svr.opts.TLSConfig.TLSEnabled() {
 		return svr.startWithTLS(criteria.NetTypeTCP4, addr)
 	}
 
@@ -286,8 +288,9 @@ func (svr *Server) startToListenIPV4() error {
 func (svr *Server) startToListenIPV6() error {
 	addr := fmt.Sprintf("[%s]:%d", svr.opts.IPV6, svr.opts.Port)
 
-	// tls server.
-	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
+	// tls server: standard TLS needs the CA/cert/key triple, while TLCP (GM
+	// TLS) is triggered by the encryption certificate pair without CA.
+	if svr.opts.TLSConfig.TLSEnabled() {
 		return svr.startWithTLS(criteria.NetTypeTCP6, addr)
 	}
 
@@ -318,7 +321,16 @@ func (svr *Server) startWithTLS(network criteria.NetType, addr string) error {
 		KeyFile:            svr.opts.TLSConfig.KeyFile,
 		CAFile:             svr.opts.TLSConfig.CAFile,
 		Password:           svr.opts.TLSConfig.Password,
+		EncCertFile:        svr.opts.TLSConfig.EncCertFile,
+		EncKeyFile:         svr.opts.TLSConfig.EncKeyFile,
 	}
+
+	// TLCP (GM TLS) mode: the encryption certificate pair is configured, the
+	// endpoint serves pure TLCP (GB/T 38636) with double certificates.
+	if conf.GMEnabled() {
+		return svr.startWithTLCP(network, addr, conf)
+	}
+
 	tlsConfig, err := conf.NewServerTLSConf()
 	if err != nil {
 		return fmt.Errorf("failed to create server tls config: %w", err)
@@ -337,6 +349,28 @@ func (svr *Server) startWithTLS(network criteria.NetType, addr string) error {
 	}
 
 	return ignoreServerClosed(server.ServeTLS(listener, "", ""))
+}
+
+// startWithTLCP serves the endpoint with the TLCP (GM TLS) protocol.
+func (svr *Server) startWithTLCP(network criteria.NetType, addr string, conf *ssl.TLSConfig) error {
+	tlcpConfig, err := conf.NewServerTLCPConf()
+	if err != nil {
+		return fmt.Errorf("failed to create server tlcp config: %w", err)
+	}
+
+	listener, err := tlcp.Listen(string(network), addr, tlcpConfig)
+	if err != nil {
+		return fmt.Errorf("failed to listen tlcp %s %s: %w", network, addr, err)
+	}
+
+	server, err := svr.registerHTTPServer(addr, nil)
+	if err != nil {
+		_ = listener.Close()
+
+		return ignoreServerClosed(err)
+	}
+
+	return ignoreServerClosed(server.Serve(listener))
 }
 
 // Shutdown gracefully shuts down all listeners owned by the server.

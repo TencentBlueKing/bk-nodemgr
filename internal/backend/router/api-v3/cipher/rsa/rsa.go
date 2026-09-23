@@ -58,7 +58,10 @@ func (h *handler) GetRSAPublicKey(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := h.daoCipher.EnsureDefaultCipher(rCtx); err != nil {
+	// legacy endpoint for already released clients only: it keeps serving the
+	// RSA keypair regardless of the globally enabled suite, so the requested
+	// key type is passed explicitly instead of the configured one.
+	if err := h.daoCipher.EnsureDefaultCipher(rCtx, types.CipherKeyTypeRSA4096); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get rsa public key, failed to ensure default cipher")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
