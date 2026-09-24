@@ -81,6 +81,7 @@ COPY bk-nodemgr-adminclient /bk-nodemgr/bin/
 COPY serviced.sh /bk-nodemgr/bin/
 COPY scripts/manual/ /bk-nodemgr/script/manual
 COPY scripts/ops/ /bk-nodemgr/script/ops
+COPY docs/adminclient/ /bk-nodemgr/docs/adminclient/
 COPY tools/ /bk-nodemgr/file/tools
 COPY bintools/ /bk-nodemgr/file/packages/bintool
 COPY --from=frontend-builder /app/dist/ /bk-nodemgr/static/

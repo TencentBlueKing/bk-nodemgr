@@ -197,6 +197,9 @@ docker-build-server: backend application file adminclient tools scripts bintools
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/${BASE_IMAGE}/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/bk-nodemgr/serviced.sh $(OUTPUT_DIR)
+	@$(RM) -rf $(OUTPUT_DIR)/docs/adminclient
+	@$(MKDIR) $(OUTPUT_DIR)/docs
+	@$(CP) -R $(ROOT_DIR)/docs/operation/adminclient $(OUTPUT_DIR)/docs/
 	@$(ECHO) "Preparing frontend source for docker build..."
 	@$(MKDIR) $(OUTPUT_DIR)/front
 	@tar -C $(ROOT_DIR)/front --exclude=node_modules --exclude=dist -cf - . | tar -C $(OUTPUT_DIR)/front -xf -
