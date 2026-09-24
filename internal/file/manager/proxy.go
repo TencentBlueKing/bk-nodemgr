@@ -51,7 +51,7 @@ type IProxy interface {
 
 // UploadOriginProxy uploads the origin proxy.
 // nolint:funlen,gocognit,gocyclo,cyclop
-// NOCC: golint/fnsize(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting),golint/funcret(need reassign before return).
 func (m *Manager) UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadCloser) (_ *types.OriginPkgDetail, retErr error) {
 	// validation.
 	if pkgFile == nil {

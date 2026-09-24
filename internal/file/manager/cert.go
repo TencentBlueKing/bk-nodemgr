@@ -54,7 +54,7 @@ type ICert interface {
 
 // UploadOriginCert uploads origin cert.
 // nolint:funlen
-// NOCC: golint/fnsize(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting),golint/funcret(need reassign before return).
 func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadCloser) (_ *types.OriginCertPkgDetail, retErr error) {
 	if certFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin cert package, file is nil")

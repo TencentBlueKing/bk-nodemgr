@@ -264,12 +264,14 @@ func isMD5Hex(s string) bool {
 
 // download fetches the file via fetchFn, stores it under {baseDir}/{md5}/, validates MD5,
 // and updates the index.
+// NOCC: golint/funcret(need reassign before return).
 func (fc *fileCache) download(
 	nCtx contextx.IContext,
 	filename string,
 	expectedMD5 string,
 	fetchFn func(nCtx contextx.IContext) (io.ReadCloser, error),
 ) (_ fileiface.File, _ string, retErr error) {
+
 	// Validate MD5 format before using it as a directory name to prevent path traversal.
 	if !isMD5Hex(expectedMD5) {
 		return nil, "", fmt.Errorf("invalid expectedMD5 format %q: must be 32 hex chars", expectedMD5)

@@ -51,7 +51,7 @@ type IExternalPluginV2 interface {
 
 // UploadOriginExternalPlugin uploads origin external plugin.
 // nolint:funlen
-// NOCC: golint/fnsize(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting),golint/funcret(need reassign before return).
 func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPluginFile io.ReadCloser) (
 	_ *types.OriginExternalPluginV2PkgDetail, retErr error) {
 

@@ -278,6 +278,7 @@ func (m *Manager) collectOriginPackages(
 	return originPackages, nil
 }
 
+// NOCC: golint/funcret(need reassign before return).
 func (m *Manager) storeSingleExportOriginPackage(nCtx contextx.IContext, originFile fileiface.File, exportFileName string) (
 	_ fileiface.FileInfo, retErr error) {
 
@@ -303,6 +304,7 @@ func (m *Manager) storeSingleExportOriginPackage(nCtx contextx.IContext, originF
 	return exportedFile.Info(), nil
 }
 
+// NOCC: golint/fnsize(func design is not suitable for splitting),golint/funcret(need reassign before return).
 func (m *Manager) storeMergedExportOriginPackage(
 	nCtx contextx.IContext, uploadType types.UploadCategory, pluginName string, originPackages []exportOriginPackage, exportFileName string) (
 	_ fileiface.FileInfo, retErr error) {

@@ -57,7 +57,7 @@ const (
 
 // UploadOriginPluginBinTool upload generation2 origin plugin bintool package.
 // nolint:funlen
-// NOCC: golint/fnsize(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting),golint/funcret(need reassign before return).
 func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (_ *types.OriginPluginBinToolPkgDetail, retErr error) {
 	// validation.
 	if binToolFile == nil {

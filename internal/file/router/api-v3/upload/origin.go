@@ -29,6 +29,7 @@ import (
 )
 
 // UploadOriginAgent upload origin agent.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginAgentReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -67,6 +68,7 @@ func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (_ interface{}, re
 }
 
 // UploadOriginServer upload origin server.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginServer(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginServerReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -105,6 +107,7 @@ func (h *handler) UploadOriginServer(rCtx restserver.IContext) (_ interface{}, r
 }
 
 // UploadOriginProxy upload origin proxy.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginProxyReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -143,6 +146,7 @@ func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (_ interface{}, re
 }
 
 // UploadOriginCert upload origin cert.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginCert(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginCertReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -181,6 +185,7 @@ func (h *handler) UploadOriginCert(rCtx restserver.IContext) (_ interface{}, ret
 }
 
 // UploadOriginBinTool upload origin bin tool.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginBinToolReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -219,6 +224,7 @@ func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (_ interface{}, 
 }
 
 // UploadOriginPluginBinTool upload origin plugin bin tool.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginPluginBinToolReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -257,6 +263,7 @@ func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (_ interfa
 }
 
 // UploadOriginPluginV2 upload origin plugin.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginPluginV2Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -295,6 +302,7 @@ func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (_ interface{},
 }
 
 // UploadOriginExternalPluginV2 upload origin external plugin.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginExternalPluginV2Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
@@ -333,6 +341,7 @@ func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (_ inte
 }
 
 // UploadOriginPluginV3 upload origin plugin.
+// NOCC: golint/funcret(need reassign before return).
 func (h *handler) UploadOriginPluginV3(rCtx restserver.IContext) (_ interface{}, retErr error) {
 	req := new(protoFile.UploadOriginPluginV3Req)
 	fileHeader, err := rCtx.ParseFileForm(req)

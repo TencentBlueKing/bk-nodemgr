@@ -708,6 +708,7 @@ func (m *Manager) wrapOriginPackageName(name string) string {
 	return name + "-" + time.Now().Format("0102150405")
 }
 
+// NOCC: golint/funcret(need reassign before return).
 func (m *Manager) fetchReleaseCertToLocal(ctx contextx.IContext) (_ fileiface.File, retErr error) {
 	// get cert.
 	cert, err := m.storageRelease.GetReleaseCert(ctx)
@@ -738,6 +739,7 @@ func (m *Manager) fetchReleaseCertToLocal(ctx contextx.IContext) (_ fileiface.Fi
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
+// NOCC: golint/funcret(need reassign before return).
 func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (_ fileiface.File, retErr error) {
 	// get bintool.
 	bintool, err := m.storageRelease.GetReleaseBinTool(ctx, types.Generation2)
@@ -768,6 +770,7 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (_ fileiface
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
+// NOCC: golint/funcret(need reassign before return).
 func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext, name string) (_ fileiface.File, retErr error) {
 	// get plugin bintool.
 	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(ctx, types.Generation2, name)
@@ -798,6 +801,7 @@ func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext, name s
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
+// NOCC: golint/funcret(need reassign before return).
 func (m *Manager) fetchReleaseAgentLocal(ctx contextx.IContext, plat platfmt.Platform, version string) (_ fileiface.File, retErr error) {
 	// get agent.
 	agent, err := m.storageRelease.GetReleaseAgent(ctx, types.Generation2, plat, version)
