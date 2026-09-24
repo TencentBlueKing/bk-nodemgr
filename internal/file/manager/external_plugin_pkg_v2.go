@@ -53,7 +53,9 @@ type IExternalPluginV2 interface {
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPluginFile io.ReadCloser) (
-	_ *types.OriginExternalPluginV2PkgDetail, retErr error) {
+	*types.OriginExternalPluginV2PkgDetail, error) {
+
+	var retErr error
 
 	if externalPluginFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin external plugin package, file is nil")

@@ -29,7 +29,9 @@ import (
 )
 
 // UploadOriginAgent upload origin agent.
-func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginAgentReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -67,7 +69,9 @@ func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (_ interface{}, re
 }
 
 // UploadOriginServer upload origin server.
-func (h *handler) UploadOriginServer(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginServer(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginServerReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -105,7 +109,9 @@ func (h *handler) UploadOriginServer(rCtx restserver.IContext) (_ interface{}, r
 }
 
 // UploadOriginProxy upload origin proxy.
-func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginProxyReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -143,7 +149,9 @@ func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (_ interface{}, re
 }
 
 // UploadOriginCert upload origin cert.
-func (h *handler) UploadOriginCert(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginCert(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginCertReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -181,7 +189,9 @@ func (h *handler) UploadOriginCert(rCtx restserver.IContext) (_ interface{}, ret
 }
 
 // UploadOriginBinTool upload origin bin tool.
-func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginBinToolReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -219,7 +229,9 @@ func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (_ interface{}, 
 }
 
 // UploadOriginPluginBinTool upload origin plugin bin tool.
-func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginPluginBinToolReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -257,7 +269,9 @@ func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (_ interfa
 }
 
 // UploadOriginPluginV2 upload origin plugin.
-func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginPluginV2Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -295,7 +309,9 @@ func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (_ interface{},
 }
 
 // UploadOriginExternalPluginV2 upload origin external plugin.
-func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginExternalPluginV2Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -333,7 +349,9 @@ func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (_ inte
 }
 
 // UploadOriginPluginV3 upload origin plugin.
-func (h *handler) UploadOriginPluginV3(rCtx restserver.IContext) (_ interface{}, retErr error) {
+func (h *handler) UploadOriginPluginV3(rCtx restserver.IContext) (interface{}, error) {
+	var retErr error
+
 	req := new(protoFile.UploadOriginPluginV3Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {

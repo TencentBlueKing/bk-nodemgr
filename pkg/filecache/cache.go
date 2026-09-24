@@ -269,7 +269,10 @@ func (fc *fileCache) download(
 	filename string,
 	expectedMD5 string,
 	fetchFn func(nCtx contextx.IContext) (io.ReadCloser, error),
-) (_ fileiface.File, _ string, retErr error) {
+) (fileiface.File, string, error) {
+
+	var retErr error
+
 	// Validate MD5 format before using it as a directory name to prevent path traversal.
 	if !isMD5Hex(expectedMD5) {
 		return nil, "", fmt.Errorf("invalid expectedMD5 format %q: must be 32 hex chars", expectedMD5)

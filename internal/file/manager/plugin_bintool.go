@@ -58,7 +58,9 @@ const (
 // UploadOriginPluginBinTool upload generation2 origin plugin bintool package.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (_ *types.OriginPluginBinToolPkgDetail, retErr error) {
+func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
+	var retErr error
+
 	// validation.
 	if binToolFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin plugin bintool package. bin tool file is nil")

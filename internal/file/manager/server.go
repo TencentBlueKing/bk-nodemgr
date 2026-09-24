@@ -48,7 +48,9 @@ type IServer interface {
 // UploadOriginServer uploads the origin server.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadCloser) (_ *types.OriginPkgDetail, retErr error) {
+func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
+	var retErr error
+
 	if pkgFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin server package. file is nil")
 

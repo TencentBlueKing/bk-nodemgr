@@ -52,7 +52,9 @@ type IAgent interface {
 // UploadOriginAgent uploads the origin agent.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadCloser) (_ *types.OriginPkgDetail, retErr error) {
+func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
+	var retErr error
+
 	// validation.
 	if pkgFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin agent package. file is nil")

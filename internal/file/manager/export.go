@@ -279,7 +279,9 @@ func (m *Manager) collectOriginPackages(
 }
 
 func (m *Manager) storeSingleExportOriginPackage(nCtx contextx.IContext, originFile fileiface.File, exportFileName string) (
-	_ fileiface.FileInfo, retErr error) {
+	fileiface.FileInfo, error) {
+
+	var retErr error
 
 	content, err := originFile.Content(nCtx)
 	if err != nil {
@@ -305,7 +307,9 @@ func (m *Manager) storeSingleExportOriginPackage(nCtx contextx.IContext, originF
 
 func (m *Manager) storeMergedExportOriginPackage(
 	nCtx contextx.IContext, uploadType types.UploadCategory, pluginName string, originPackages []exportOriginPackage, exportFileName string) (
-	_ fileiface.FileInfo, retErr error) {
+	fileiface.FileInfo, error) {
+
+	var retErr error
 
 	rules, err := buildOriginUploadTgzMergeRules(uploadType, pluginName)
 	if err != nil {

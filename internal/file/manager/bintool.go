@@ -58,7 +58,9 @@ const (
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginBinTool(
 	nCtx contextx.IContext,
-	binToolFile io.ReadCloser) (_ *types.OriginBinToolPkgDetail, retErr error) {
+	binToolFile io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
+
+	var retErr error
 
 	// validation.
 	if binToolFile == nil {
