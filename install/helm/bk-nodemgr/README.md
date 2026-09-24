@@ -212,7 +212,7 @@ grafana:
 
 > 注: `tempo.enabled=true` 的默认 local 存储仅适合开发或验证环境；生产环境建议参考 `values-example.yaml` 配置对象存储。`loki.enabled=true` 默认使用 single-binary filesystem 存储，`loki.singleBinary.persistence.enabled=false` 仅适合开发或验证环境；生产环境建议参考 `values-example.yaml` 开启 PVC。`grafana.rootURL` 需要和实际 Ingress、网关或端口转发访问路径保持一致。
 
-> 注: `alloy.enabled=true` 依赖 `loki.enabled=true`。Alloy 会以 DaemonSet 在每个节点运行，通过 `/var/log/pods` 和 `/var/lib/docker/containers` 采集集群内 Kubernetes Pod 日志，采集范围不是仅限 bk-nodemgr。启用前请确认日志隐私、存储容量和节点资源开销符合预期。
+> 注: `alloy.enabled=true` 依赖 `loki.enabled=true`。Alloy 以 DaemonSet 在每个节点运行，默认只发现 Helm release 所在 namespace 的 Pod，并只采集容器名匹配 `bk-nodemgr-(application|backend|file)` 的日志；Helmfile 部署会显式指定三个业务 namespace。由于按容器名筛选，同 namespace 中同名的非节点管理容器也可能被采集。启用前请确认日志隐私、存储容量和节点资源开销符合预期。
 
 启用 Grafana 后，登录用户默认为 `admin`。管理员密码由 Grafana Chart 在 Secret 中生成并在升级时复用。若 ReleaseName 为 `bk-nodemgr`，默认 Secret 名称为 `bk-nodemgr-grafana`，可通过以下命令获取：
 

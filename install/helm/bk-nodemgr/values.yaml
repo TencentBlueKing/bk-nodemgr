@@ -337,6 +337,7 @@ loki:
 alloy:
   enabled: false
   nameOverride: alloy
+  nodemgrNamespaces: []
   crds:
     create: false
   alloy:
@@ -354,7 +355,7 @@ alloy:
         discovery.kubernetes "nodemgr_pods" {
           role = "pod"
           namespaces {
-            names = ["blueking-nodemgr-application", "blueking-nodemgr-backend", "blueking-nodemgr-file"]
+            names = {{ default (list .Release.Namespace) .Values.nodemgrNamespaces | toJson }}
           }
         }
 

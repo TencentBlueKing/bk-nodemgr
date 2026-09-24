@@ -64,6 +64,10 @@ loki:
       size: 8Gi
 alloy:
   enabled: true
+  nodemgrNamespaces:
+    - {{ .Values.namespaces.application | quote }}
+    - {{ .Values.namespaces.backend | quote }}
+    - {{ .Values.namespaces.file | quote }}
 pyroscope:
   enabled: true
   pyroscope:

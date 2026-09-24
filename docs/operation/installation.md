@@ -273,7 +273,7 @@ grafana:
 
 - Grafana 至少需要启用 Tempo、Prometheus、Loki 中的一个数据源。`grafana.rootURL` 必须替换为实际访问地址，并保留结尾 `/`；该参数本身不会创建外部访问入口。
 - Tempo 默认 local 存储仅适合开发或验证环境。Loki 示例使用 PVC，`storageClass` 留空时使用集群默认 StorageClass；请根据环境配置存储类和容量。以上示例不包含生产环境所需的完整安全加固、高可用和数据备份配置。
-- Alloy 依赖 Loki，以 DaemonSet 采集 `/var/log/pods` 和 `/var/lib/docker/containers` 中的 Kubernetes Pod 日志，范围不只限于节点管理。启用前需自行评估日志隐私、访问权限、存储容量及节点资源开销。
+- Alloy 依赖 Loki，以 DaemonSet 运行；Chart 默认只发现 release 所在 namespace 的 Pod，并只采集容器名匹配 `bk-nodemgr-(application|backend|file)` 的日志。Helmfile 部署会显式指定三个业务 namespace；同 namespace 中同名的非节点管理容器也可能被采集。启用前需自行评估日志隐私、访问权限、存储容量及节点资源开销。
 - Grafana 默认登录用户为 `admin`，管理员密码由 Chart 在 Secret 中生成。可在实际 namespace 中读取 `<release-name>-grafana` Secret 的 `admin-password` 字段并进行 Base64 解码；自定义 `fullnameOverride` 或 `nameOverride` 时以实际 Secret 名称为准。
 
 #### 依赖自监控套件的 tracing 配置
