@@ -17,7 +17,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
 COPY front/ .
 RUN pnpm build --mode ${MODE}
 
-FROM alpine:3.21
+FROM alpine:3.24
 
 # install dependencies.
 RUN apk add bash curl jq yq-go vim busybox-extras redis etcd-ctl tzdata
@@ -25,10 +25,14 @@ RUN apk add bash curl jq yq-go vim busybox-extras redis etcd-ctl tzdata
 # set timezone.
 ENV TZ Asia/Shanghai
 
-# install mongodb with old package cause it doesn’t exist for Alpine after version 3.9.
-RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories
-RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
-RUN apk add mongodb && rm -f /usr/bin/mongod /usr/bin/mongos
+# Install mongosh without the legacy Alpine 3.9 OpenSSL dependencies.
+# Keep the mongo command used by Helm init containers and ops scripts.
+RUN apk add --no-cache nodejs npm && \
+    npm install --global --no-audit --no-fund mongosh@2.12.0 && \
+    ln -s "$(command -v mongosh)" /usr/bin/mongo && \
+    npm cache clean --force && \
+    apk del npm && \
+    mongo --version
 RUN apk add py3-requests py3-yaml
 
 RUN mkdir -p \
