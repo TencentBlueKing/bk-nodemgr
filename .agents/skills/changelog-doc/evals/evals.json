@@ -29,15 +29,15 @@
     },
     {
       "id": 3,
-      "eval_name": "explicit-gaps-marked-tbd",
+      "eval_name": "gaps-separated-from-reader-draft",
       "prompt": "给我写一个 v3.1.0 的 changelog 草稿，但我现在只知道有 Agent 协议调整和插件仓库兼容性变化，其他信息还不全。",
-      "expected_output": "A draft changelog that preserves the standard structure and explicitly marks unknown version-impact details as pending confirmation instead of inventing them.",
+      "expected_output": "A reader-facing draft with supported facts only and separate author-facing verification items; no unverified compatibility or release facts invented or published.",
       "files": [],
       "expectations": [
         "Output keeps the standard changelog structure even though the facts are incomplete.",
-        "Unknown details are surfaced explicitly as `待确认` instead of being guessed.",
+        "Unknown details are reported to the author outside the changelog body instead of being guessed or inserted as `待确认`.",
         "Output does not invent missing date, tag range, compatibility conclusion, or release-scope requirements.",
-        "Output still highlights Agent protocol and plugin repository compatibility impact as the known facts."
+        "Output treats Agent protocol and plugin repository changes as leads to verify, not confirmed release effects; no final changelog file is written while essential facts remain unverified."
       ]
     },
     {
@@ -50,7 +50,7 @@
         "Output treats the `v2.3.0...v2.4.0` compare range as the primary evidence source.",
         "Output synthesizes release-facing conclusions instead of copying raw commit messages verbatim.",
         "Output organizes the result into feature, optimization, fix, compatibility, and known-issues sections.",
-        "If concrete facts are missing, output uses `待确认` or draft framing rather than pretending the diff was fully analyzed."
+        "If concrete facts are missing, output gives author-facing gaps separately and keeps the reader-facing text a draft rather than pretending the diff was fully analyzed."
       ]
     },
     {
@@ -63,7 +63,7 @@
         "Output includes a `Full Changelog` compare link directly under the version heading.",
         "Link text uses the exact same `from-tag...to-tag` range as the URL target.",
         "Output keeps the compare range as `v3.0.1-alpha.15...v3.0.1-alpha.16` without rewriting or truncating it.",
-        "If tags are unavailable in a variant of this scenario, the skill should mark the compare link requirement as `待确认` instead of fabricating one."
+        "If the range is uncertain, the skill reports the link gap to the author instead of putting `待确认` in the document; a planned target-tag link is verified at the publication gate."
       ]
     }
   ]

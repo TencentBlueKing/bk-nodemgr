@@ -1,0 +1,23 @@
+{
+  "skill_name": "bk-nodemgr-audience-boundary",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "给 bk-nodemgr 写 v3.0.1-alpha.91 双语 changelog。已确认同步接口返回 trigger_id，但还没有验证目标 tag 和比较范围。changelog-doc 说缺失信息写‘待确认’。请给出读者正文和作者交接分别写什么，并说明能否写到 support-files/changelog/{zh,en}/ 的最终路径。不要修改文件。",
+      "expected_output": "Does not attribute trigger_id to alpha.91 without release-window evidence (it may already be in alpha.90); author handoff contains target tag/compare and change attribution checks and reports the changelog-doc conflict; any draft excludes author notes and does not occupy final changelog path.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "审阅 apigw/apidocs/{zh,en}/Sync_CleanOrphanProcess.md：Proto 和 handler 已证实 data.trigger_id，但接口首次提供版本尚未确认。api-doc 允许标记待确认。请判断面向调用方和面向编写者的信息，并说明是否改写历史已发布文档。只读。",
+      "expected_output": "Retains verified response semantics for API consumers; version gap belongs to author, no public placeholder; stops final doc delivery and does not silently modify existing historical API docs.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "有人想在 docs/operation/installation.md 中写‘升级前需要为 IAM v4 新角色重新授权’，还有‘本地 gopls 诊断失败，部署后复查’，但目标环境的角色映射与回滚方案未定。怎么整理面向运维的正文和给作者的核验事项？只给草稿，不改文件。",
+      "expected_output": "Distinguishes evidenced operational prerequisite from unconfirmed role specifics; excludes local gopls and author verification workflow from installation guide; reports the unresolved material upgrade decision separately and keeps draft off final publication path.",
+      "files": []
+    }
+  ]
+}

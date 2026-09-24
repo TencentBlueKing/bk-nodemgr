@@ -5,7 +5,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 
 # Changelog 文档编写 Skill
 
-为 bk-nodemgr 生成可直接发布的 changelog / release note Markdown，默认写入 **`support-files/changelog/{zh,en}/` 下的版本化 Markdown 文件**，供 changelog API 和前端页面直接消费。
+为 bk-nodemgr 编写 changelog / release note Markdown；核实发布事实后写入 **`support-files/changelog/{zh,en}/` 下的版本化 Markdown 文件**，供 changelog API 和前端页面直接消费。
 
 `release.md` 仅视为**历史单文件形态**或用户显式指定的兼容输出；默认不要再把它当成唯一目标文件。
 
@@ -41,9 +41,10 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 - **changelog 是概要，不是详细变更说明**。用户应该点击 `Full Changelog` compare 链接查看详细内容
 - 先写“影响和动作”，再写“变化内容”
 - 先基于证据归纳，再输出面向用户的结论
+- 使用 `bk-nodemgr-audience-boundary` 区分读者正文与编写者核实事项；若已安装通用 `audience-boundary`，可一并使用
 - **证据语言只用于内部判断，最终 changelog 必须是正式发布说明语气**：不要把“当前证据 / 无已知 / No known / current evidence / does not show / identified”这类审查口吻写进正文
 - 结构固定，章节可删减，但不要自由改写顺序
-- 宁可标记 `待确认`，也不要编造版本号、日期、tag、兼容性
+- 宁可向编写者报告缺口并暂缓正式交付，也不要编造版本号、日期、tag、兼容性；不要把核验事项写进读者正文
 - 输出默认面向 **版本化文件 + API + 前端 Markdown 渲染链路**，避免依赖复杂 HTML 或页面私有能力
 
 ## Workflow Overview
@@ -55,7 +56,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 3. **归类变更**：收敛到固定分类：新增功能 / 功能优化 / 缺陷修复 / 兼容性 / 已知问题
 4. **确定承载形态**：明确是单个版本文件、双语文件、还是用户显式要求的 `release.md` 兼容输出
 5. **套用输出契约**：按固定 Markdown 版本块生成，不自由改章节
-6. **处理缺口**：无法确认的信息显式标记 `待确认`
+6. **处理缺口**：将无法确认的信息单独交给编写者；关键事实未确认时只提供正文草稿，不写入最终发布路径
 7. **审查收尾**：检查 compare link、范围、风险、动作、术语、一致性、文件命名与 Markdown 兼容性
 
 ## 证据优先级与 fallback
@@ -70,12 +71,12 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 
 Fallback 规则：
 
-- 用户只给目标版本、没给起始版本：先尝试识别上一个发布 tag；无法可靠确认时写 `待确认`
+- 用户只给目标版本、没给起始版本：先尝试识别上一个发布 tag；无法可靠确认时向编写者说明缺口，不在正文填占位符
 - diff 范围过大：先按组件拆分，再合并成用户可理解的发布结果
 - 只有零散事实、没有可靠 diff：输出"草稿"或"模板化整理"，标注为概要，不要假装完整
 - raw commit message 只能作为证据，不能直接拼成发布说明
 - compare link 的文案与 URL 必须使用同一组 `from-tag...to-tag`
-- 需要落盘为版本化文件时：优先使用 `support-files/changelog/{locale}/<version>_<date>.md`；无法确认文件名时显式标记 `待确认`
+- 需要落盘为版本化文件时：优先使用 `support-files/changelog/{locale}/<version>_<date>.md`；版本或日期无法确认时先向编写者核实，不创建最终版本文件
 
 ## 输出契约
 
@@ -89,7 +90,7 @@ Fallback 规则：
 
 ### 正文模式（写入版本化 changelog 文件）
 
-当用户给了版本事实、diff 范围或发布要求时，默认输出完整版本块，并优先落到版本化 changelog 文件。
+版本、日期、发布窗口和版本归属已核实，且关键兼容性/升级信息足以支持发布判断时，输出完整版本块并优先落到版本化 changelog 文件。只给出其中部分事实不等于可发布；关键事实尚未确认时，只在对话中提供可确认部分的正文草稿，并另列给编写者的核实事项；不要写入最终发布路径。
 
 **默认目标位置**
 
@@ -102,7 +103,7 @@ Fallback 规则：
 **必备项**
 
 - 标题：`## [Version: vX.Y.Z] - YYYY-MM-DD`
-- 标题下的 `Full Changelog` compare 链接；若 tag 缺失，显式写 `待确认`
+- 标题下的 `Full Changelog` compare 链接；目标 tag 尚未创建但起止版本已确认时可先拟定链接，向编写者说明发布前需核验目标及范围，未完成必要核验前不宣称可发布
 - `发布范围`
 - 至少一个变化分类：`新增功能` / `功能优化` / `缺陷修复`
 - 与发布风险相关的 `compatibility` / `组件依赖与升级前置条件`
@@ -116,7 +117,7 @@ Fallback 规则：
 
 - 章节明确“无影响”且用户不要求保留空项时，可删除整节或写“无”，同一文档内保持一致
 - 用户明确要求“完整 release.md 风格”时，优先保留完整章节骨架
-- 信息未知但该节对发布决策重要时，不删除，改为 `待确认`
+- 信息未知但该节对发布决策重要时，向编写者报告缺口并暂缓正式文件；草稿可省略未经证实的断言，但不得用空节或占位符冒充已确认的风险结论
 
 ## 标准模板
 
@@ -126,9 +127,11 @@ Fallback 规则：
 Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemgr/compare/from-tag...to-tag)
 
 > 重要提示
+
 - [存在 breaking change / 强制升级 / 额外动作时保留；无则删除]
 
 **发布范围**
+
 - Agent:
 - Plugin:
 - Package:
@@ -136,23 +139,28 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - Installer/Deployment:
 
 **新增功能**
+
 - [新增的用户/运维能力]
 
 **功能优化**
+
 - [体验、性能、稳定性或可维护性优化]
 
 **缺陷修复**
+
 - [用户可感知或运维可感知的问题修复]
 
 **Agent / Plugin / Package compatibility**
+
 - [版本范围、OS / Arch 限制、包格式兼容性]
 
 **组件依赖与升级前置条件**
+
 - [依赖的 GSE / 制品库 / 平台能力 / 操作系统条件]
 
 **已知问题**
-- [问题现象 / 影响范围 / 临时规避方案]
 
+- [问题现象 / 影响范围 / 临时规避方案]
 ```
 
 ## 文件布局与命名规则
@@ -160,7 +168,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - 默认按语言拆分目录：`support-files/changelog/zh/` 与 `support-files/changelog/en/`
 - 默认一个版本对应一个 Markdown 文件，不要把多个版本持续堆叠到同一个 `release.md`
 - 文件名格式优先：`<version>_<YYYY-MM-DD>.md`
-- 文件名中的 version/date 同时是 API 列表与详情的重要元数据来源；不确定时不要猜，改写成 `待确认`
+- 文件名中的 version/date 同时是 API 列表与详情的重要元数据来源；不确定时不要猜，也不要创建最终版本文件，向编写者核实
 - 如果用户只要正文不要求落盘，正文内容仍应保持可直接放入上述版本文件的形态
 
 ## API / 前端消费兼容性
@@ -177,7 +185,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - 标题固定为 `## [Version: vX.Y.Z] - YYYY-MM-DD`
 - compare link 默认保留，且放在标题正下方
 - link text 和 URL 必须使用同一组 `from-tag...to-tag`
-- 不能确认起止 tag 时，不要伪造 link；改写为 `⚠️ **待确认**`
+- 无法确定起止版本时，不要伪造 link；在对话中告知编写者并暂缓最终文件。目标 tag 尚未建立但起止版本已确定时可拟定 compare link，正式发布前核验链接及范围，核验说明不进入正文
 - 若输出需要落盘，确保标题内容与文件名中的 version/date 不冲突
 
 ### 发布范围
@@ -198,7 +206,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 
 - 优先回答最低兼容版本、OS / Arch 限制、格式兼容性、依赖关系、是否支持灰度 rollout
 - 这些是 changelog 和普通更新摘要的核心差异，不能一笔带过
-- 没有可靠信息时用 `待确认`，不要猜
+- 没有可靠信息时不要猜；将缺口交给编写者，关键兼容性或升级前置条件未确认时不交付正式文件。已证实且影响读者决策的限制或风险仍须写入正文
 
 ### 已知问题
 
@@ -207,7 +215,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 
 ## 缺失信息处理
 
-核心原则：宁可保留缺口，也不要补写未经确认的信息。
+核心原则：宁可向编写者报告缺口，也不要补写未经确认的信息，或把编写过程放进读者正文。
 
 绝对不要臆造：
 
@@ -215,16 +223,13 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - 发布日期
 - 起止 tag
 - compatibility 结论
-- compatibility 结论
 - 发布范围细节
 
-使用统一格式：
+核实事项仅放在对话或明确要求的工作记录中，与正文草稿分开，例如：
 
-```markdown
-⚠️ **待确认**: [问题描述]
-- 来源: [用户输入 / 仓库文档 / PR / issue / diff]
-- 需要确认: [版本号 / 起止 tag / compatibility / 发布范围细节]
-```
+`给编写者：需核实起止版本、目标 tag 的 compare 范围和 Agent compatibility；完成前不写入正式 changelog 路径。`
+
+不要把核实清单放入正文、脚注、frontmatter，或自动创建相邻备注文件。若关键缺口仍在，草稿只在对话或经用户同意的独立草稿位置交付；核验完成后再写入最终路径。
 
 ## diff 使用注意事项
 
@@ -244,26 +249,27 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - 多用 bullet list，少写大段背景
 - 先给结论，再给限制
 - 每个版本块应能独立阅读
-- 用户只要模板时输出空模板；用户给了事实时输出可发布正文
+- 用户只要模板时输出空模板；用户给了足以核实发布窗口及关键结论的事实时才输出可发布正文
 - 术语前后一致，不混用同义词
 - 禁止审查/分析口吻进入正文：
   - 中文避免：`当前证据`、`依据当前变更证据`、`无已知`、`未发现`、`未显示`
   - English avoid: `No known`、`Based on current evidence`、`Current evidence does not show`、`is identified`
-  - 改写为发布说明语气：`本版本不涉及 ... 变更`、`... 保持兼容`、`本版本不引入新增组件依赖`、`This version does not change ...`、`... remain compatible`、`This version does not introduce ...`
+  - 已核实的结论用发布说明语气表达，例如 `本版本不涉及 ... 变更`、`... 保持兼容`；不能只为消除审查口吻而把未知事项改写成肯定结论
 - 默认让正文可直接被 Markdown 渲染器消费，不额外依赖人工二次整理
 
 ## Quick Review Checklist
 
 - [ ] 版本号和日期是否明确
-- [ ] 是否明确起止 tag，或显式标记 `待确认`
+- [ ] 是否已确定起止版本；目标 tag 尚未建立时，是否把发布前核验留在编写者交接中
 - [ ] 是否使用 tag diff 作为核心证据
 - [ ] 是否生成正确的 `Full Changelog` compare 链接
 - [ ] 是否确认输出目标是 `support-files/changelog/{zh,en}/` 版本化文件，或用户显式要求的旧式 `release.md`
-- [ ] 文件名是否符合 `<version>_<YYYY-MM-DD>.md` 约定，或显式标记 `待确认`
+- [ ] 版本和日期是否足以确定 `<version>_<YYYY-MM-DD>.md` 文件名
 - [ ] 是否写清发布范围
 - [ ] 是否区分新增 / 优化 / 修复
 - [ ] 是否覆盖 compatibility 与前置条件
-- [ ] 是否对不确定信息使用 `待确认`
+- [ ] 未核实的关键事实是否单独交给编写者、未进入正文；是否暂缓写入最终发布路径
+- [ ] 已证实、影响升级决策的限制和前置条件是否保留在正文
 - [ ] 是否避免实现细节和空泛措辞
 - [ ] 是否清理“当前证据 / 无已知 / No known / current evidence”等审查口吻，并改为正式发布说明语气
 - [ ] 是否适合直接被 changelog API / 前端页面消费（概要定位，不是详细变更说明）
@@ -271,9 +277,10 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 ## Eval / Acceptance Criteria
 
 这个 skill 至少应通过以下场景：
+
 1. **模板生成**：给定外部参考风格时，能输出可复用的 bk-nodemgr changelog 模板
 2. **事实归类**：给定变更事实时，能正确归类为新增 / 优化 / 修复，并补齐发布范围与 compatibility 视角
-3. **缺口保留**：信息不全时，保留结构并把未知信息标记为 `待确认`
+3. **缺口分流**：信息不全时，正文草稿与编写者核实事项分开；关键事实未确认时不写入最终发布路径
 4. **diff 优先**：给定 `from-tag...to-tag` 时，先基于 diff 归纳，再输出发布结论，而不是复制 raw commits
 5. **compare link 正确**：需要 compare link 时，link text 和 URL 使用完全一致的 tag 范围
 6. **版本文件正确**：需要落盘时，优先输出到 `support-files/changelog/{zh,en}/<version>_<date>.md` 形态，而不是默认回退到 `release.md`
