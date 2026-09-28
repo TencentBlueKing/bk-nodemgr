@@ -93,6 +93,11 @@ func (h *handler) UpdateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	networkArea := req.ConvertNetworkAreaToTypes(rCtx.TenantID())
+	if err := h.cmdbHandler.UpdateNetworkArea(rCtx, networkArea.ID, networkArea.Name, networkArea.CloudVendor); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update networkarea, failed to update networkarea via cmdb")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
 	if err := h.storage.UpdateManyNetworkArea(rCtx, networkArea); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update networkarea, failed to upsert networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
