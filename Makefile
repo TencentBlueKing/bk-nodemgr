@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application adminclient file relay front mock-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files helm
+.PHONY: tidy build test pre backend application adminclient file relay front mock-server docker-prepare-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files helm
 
 BASE_IMAGE ?= alpine
 
@@ -193,8 +193,8 @@ compress-binary:
 		$(ECHO) "UPX compression disabled. Set UPX_ENABLED=1 to enable"; \
 	fi
 
-docker-build-server: backend application file adminclient tools scripts bintools support-files
-	@$(ECHO) "Building docker images..."
+docker-prepare-server: backend application file adminclient tools scripts bintools support-files
+	@$(ECHO) "Preparing docker image context..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/${BASE_IMAGE}/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/bk-nodemgr/serviced.sh $(OUTPUT_DIR)
 	@$(RM) -rf $(OUTPUT_DIR)/docs/adminclient
@@ -204,6 +204,10 @@ docker-build-server: backend application file adminclient tools scripts bintools
 	@$(MKDIR) $(OUTPUT_DIR)/front
 	@tar -C $(ROOT_DIR)/front --exclude=node_modules --exclude=dist -cf - . | tar -C $(OUTPUT_DIR)/front -xf -
 	@$(CP) $(ROOT_DIR)/front/.dockerignore $(OUTPUT_DIR)/.dockerignore
+	@$(ECHO) "Prepared docker image context: $(OUTPUT_DIR)"
+
+docker-build-server: docker-prepare-server
+	@$(ECHO) "Building docker images..."
 	@$(ECHO) "Building docker image in docker build"
 	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodemgr-server:${VERSION} .
 	@$(ECHO) "Built successfully docker images bk-nodemgr-server:${VERSION}"
