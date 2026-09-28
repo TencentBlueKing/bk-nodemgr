@@ -129,6 +129,9 @@ func (c *cli) UploadFile(nCtx contextx.IContext, req *UploadFileReq) (*UploadFil
 	if err != nil {
 		return nil, fmt.Errorf("upload file failed: %w", err)
 	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("upload file failed: %w", err)
+	}
 
 	return resp.Data, nil
 }

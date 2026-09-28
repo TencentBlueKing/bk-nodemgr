@@ -143,7 +143,12 @@ func (h *Handler) EnsureFileGroup(nCtx contextx.IContext, path string) (fileifac
 	}
 
 	if err = h.cli.MkDir(nCtx, &MkdirReq{Path: path}); err != nil {
-		return nil, fmt.Errorf("ensure file group failed: %w", err)
+		group, queryErr := h.GetFileGroup(nCtx, path)
+		if queryErr != nil {
+			return nil, fmt.Errorf("ensure file group failed: %w", err)
+		}
+
+		return group, nil
 	}
 
 	return h.GetFileGroup(nCtx, path)

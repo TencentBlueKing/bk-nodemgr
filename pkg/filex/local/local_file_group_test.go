@@ -21,11 +21,14 @@ package local
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewLocalDir(t *testing.T) {
@@ -171,6 +174,60 @@ func TestLocalDir_CopyRejectsTraversal(t *testing.T) {
 	}
 }
 
+func TestLocalDir_PublicCopyRejectsOverlappingTargetsBeforeWrite(t *testing.T) {
+	root := t.TempDir()
+	writeTestFile(t, filepath.Join(root, "source.txt"), "original")
+	writeTestFile(t, filepath.Join(root, "dir/child.txt"), "directory content")
+	if err := os.Link(filepath.Join(root, "source.txt"), filepath.Join(root, "alias.txt")); err != nil {
+		t.Fatal(err)
+	}
+	source := newTestLocalDir(t, root)
+	otherView := newTestLocalDir(t, root)
+	ctx := contextx.Background()
+	for _, tt := range []struct {
+		name, srcPath, destPath string
+		destination             *LocalDir
+	}{
+		{name: "same file", srcPath: "source.txt", destPath: "source.txt", destination: source},
+		{name: "same file through group root", srcPath: "source.txt", destPath: ".", destination: otherView},
+		{name: "hard link", srcPath: "source.txt", destPath: "alias.txt", destination: otherView},
+		{name: "directory to itself", srcPath: "dir", destPath: ".", destination: source},
+		{name: "directory to descendant", srcPath: "dir", destPath: "dir/created", destination: otherView},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Error(t, source.Copy(ctx, tt.srcPath, tt.destination, tt.destPath, true))
+			assertTestFile(t, filepath.Join(root, "source.txt"), "original")
+			assertTestFile(t, filepath.Join(root, "dir/child.txt"), "directory content")
+			if _, err := os.Stat(filepath.Join(root, "dir/created")); !os.IsNotExist(err) {
+				t.Fatalf("recursive target created: %v", err)
+			}
+		})
+	}
+	if err := source.Copy(ctx, "source.txt", otherView, "safe.txt", false); err != nil {
+		t.Fatalf("non-overlapping Copy() error = %v", err)
+	}
+	assertTestFile(t, filepath.Join(root, "safe.txt"), "original")
+}
+
+func TestLocalDir_PublicCopyRejectsSymlinkedDirectoryAlias(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("directory symlinks require platform-specific privileges on Windows")
+	}
+	root := t.TempDir()
+	writeTestFile(t, filepath.Join(root, "dir", "file.txt"), "original")
+	alias := filepath.Join(t.TempDir(), "alias")
+	if err := os.Symlink(root, alias); err != nil {
+		t.Fatal(err)
+	}
+	source := newTestLocalDir(t, root)
+	destination := newTestLocalDir(t, alias)
+	require.Error(t, source.Copy(contextx.Background(), "dir", destination, "dir/new", true))
+	assertTestFile(t, filepath.Join(root, "dir", "file.txt"), "original")
+	if _, err := os.Stat(filepath.Join(root, "dir", "new")); !os.IsNotExist(err) {
+		t.Fatalf("recursive target created: %v", err)
+	}
+}
+
 func TestLocalDir_Remove(t *testing.T) {
 	root := t.TempDir()
 	writeTestFile(t, filepath.Join(root, "directory/file.txt"), "content")
@@ -234,4 +291,119 @@ func assertTestFile(t *testing.T, path, want string) {
 	if string(got) != want {
 		t.Errorf("ReadFile(%q) = %q, want %q", path, got, want)
 	}
+}
+
+func TestLocalDir_DirectoryQueriesAndStaleRoot(t *testing.T) {
+	root := t.TempDir()
+	local := newTestLocalDir(t, root)
+	ctx := contextx.Background()
+
+	_, err := local.IsDir(ctx, "missing/child")
+	require.ErrorIs(t, err, fs.ErrNotExist)
+	_, err = local.GetSubGroup(ctx, "missing")
+	require.ErrorIs(t, err, fs.ErrNotExist)
+	require.NoError(t, os.Remove(root))
+	_, err = local.IsDir(ctx, ".")
+	require.ErrorIs(t, err, fs.ErrNotExist)
+	_, err = local.GetSubGroup(ctx, ".")
+	require.ErrorIs(t, err, fs.ErrNotExist)
+
+	group, err := local.EnsureSubGroup(ctx, ".")
+	require.NoError(t, err)
+	require.Equal(t, local.Name(), group.Name())
+	require.DirExists(t, root)
+	group, err = local.EnsureSubGroup(ctx, "new/nested")
+	require.NoError(t, err)
+	require.Equal(t, "nested", group.Name())
+	require.DirExists(t, filepath.Join(root, "new", "nested"))
+}
+
+func TestLocalDir_DirectoryQueriesRejectNilContext(t *testing.T) {
+	root := t.TempDir()
+	local := newTestLocalDir(t, root)
+
+	_, err := local.IsDir(nil, ".")
+	require.ErrorContains(t, err, "context cannot be nil")
+	_, err = local.GetSubGroup(nil, ".")
+	require.ErrorContains(t, err, "context cannot be nil")
+	_, err = local.EnsureSubGroup(nil, "new/nested")
+	require.ErrorContains(t, err, "context cannot be nil")
+	require.NoDirExists(t, filepath.Join(root, "new"))
+}
+
+func TestLocalDir_DirectoryQueriesRejectInvalidPaths(t *testing.T) {
+	group := newTestLocalDir(t, t.TempDir())
+	ctx := contextx.Background()
+	invalid := []string{"", "/absolute", "../escape", "nested/../../escape", `nested\child`, "nested/\x00child"}
+	if runtime.GOOS == "windows" {
+		invalid = append(invalid, `C:\outside.txt`, `C:relative.txt`, `./C:relative.txt`,
+			`nested/../C:relative.txt`, `\\server\share\outside.txt`, `\root-relative.txt`)
+	}
+	for _, name := range invalid {
+		t.Run(name, func(t *testing.T) {
+			_, err := group.IsDir(ctx, name)
+			require.Error(t, err)
+			_, err = group.GetSubGroup(ctx, name)
+			require.Error(t, err)
+			_, err = group.EnsureSubGroup(ctx, name)
+			require.Error(t, err)
+		})
+	}
+	entries, err := os.ReadDir(group.fullPath)
+	require.NoError(t, err)
+	require.Empty(t, entries)
+}
+
+func TestLocalDir_AllFilesFollowsRegularSymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symbolic links require platform-specific privileges on Windows")
+	}
+	root := t.TempDir()
+	writeTestFile(t, filepath.Join(root, "target.txt"), "content")
+	require.NoError(t, os.Symlink("target.txt", filepath.Join(root, "alias.txt")))
+	group := newTestLocalDir(t, root)
+
+	files, err := group.AllFiles(contextx.Background())
+	require.NoError(t, err)
+	require.Len(t, files, 2)
+	var names []string
+	for _, file := range files {
+		names = append(names, file.Info().Name)
+	}
+	require.ElementsMatch(t, []string{"alias.txt", "target.txt"}, names)
+}
+
+func TestLocalDir_AllFilesRejectsBrokenAndDirectorySymlinks(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symbolic links require platform-specific privileges on Windows")
+	}
+	for _, target := range []string{"missing", "directory"} {
+		t.Run(target, func(t *testing.T) {
+			root := t.TempDir()
+			makeTestDir(t, filepath.Join(root, "directory"))
+			require.NoError(t, os.Symlink(target, filepath.Join(root, "alias")))
+			group := newTestLocalDir(t, root)
+			_, err := group.AllFiles(contextx.Background())
+			require.Error(t, err)
+		})
+	}
+}
+
+func TestLocalDir_DirectoryQueriesRejectSymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symbolic links require platform-specific privileges on Windows")
+	}
+	root := t.TempDir()
+	makeTestDir(t, filepath.Join(root, "directory"))
+	require.NoError(t, os.Symlink("directory", filepath.Join(root, "alias")))
+	group := newTestLocalDir(t, root)
+	ctx := contextx.Background()
+
+	_, err := group.IsDir(ctx, "alias")
+	require.ErrorContains(t, err, "unsupported file type")
+	_, err = group.GetSubGroup(ctx, "alias")
+	require.ErrorContains(t, err, "unsupported file type")
+	_, err = group.EnsureSubGroup(ctx, "alias/child")
+	require.ErrorContains(t, err, "unsupported file type")
+	require.NoDirExists(t, filepath.Join(root, "directory", "child"))
 }

@@ -75,6 +75,36 @@ func (group *upstreamFileGroup) SubGroups(nCtx contextx.IContext) ([]fileiface.F
 	return tenantGroup.SubGroups(nCtx)
 }
 
+// IsDir reports whether a group-relative path is a directory in the tenant's file group.
+func (group *upstreamFileGroup) IsDir(nCtx contextx.IContext, relativePath string) (bool, error) {
+	tenantGroup, err := group.resolve(nCtx)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve upstream file group, base-path(%s): %w", group.basePath, err)
+	}
+
+	return tenantGroup.IsDir(nCtx, relativePath)
+}
+
+// GetSubGroup returns an existing subgroup in the tenant's file group.
+func (group *upstreamFileGroup) GetSubGroup(nCtx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
+	tenantGroup, err := group.resolve(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve upstream file group, base-path(%s): %w", group.basePath, err)
+	}
+
+	return tenantGroup.GetSubGroup(nCtx, relativePath)
+}
+
+// EnsureSubGroup ensures a subgroup exists in the tenant's file group.
+func (group *upstreamFileGroup) EnsureSubGroup(nCtx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
+	tenantGroup, err := group.resolve(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve upstream file group, base-path(%s): %w", group.basePath, err)
+	}
+
+	return tenantGroup.EnsureSubGroup(nCtx, relativePath)
+}
+
 // AllFiles returns all files in the tenant's file group.
 func (group *upstreamFileGroup) AllFiles(nCtx contextx.IContext) ([]fileiface.File, error) {
 	tenantGroup, err := group.resolve(nCtx)

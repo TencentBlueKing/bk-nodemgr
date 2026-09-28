@@ -22,6 +22,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"path"
 	"strings"
 	"sync"
 	"testing"
@@ -68,12 +69,22 @@ func (handler *fakeUpstreamHandler) paths() []string {
 }
 
 type fakeTenantFileGroup struct {
-	id              int
-	name            string
-	getFileNames    []string
-	storedFileInfo  []fileiface.FileInfo
-	storedOverwrite []bool
-	copyCalls       []fakeCopyCall
+	id                  int
+	name                string
+	getFileNames        []string
+	storedFileInfo      []fileiface.FileInfo
+	storedOverwrite     []bool
+	copyCalls           []fakeCopyCall
+	isDirCalls          []fakeDirectoryCall
+	getSubGroupCalls    []fakeDirectoryCall
+	ensureSubGroupCalls []fakeDirectoryCall
+	isDirResult         bool
+	directoryErr        error
+}
+
+type fakeDirectoryCall struct {
+	ctx          contextx.IContext
+	relativePath string
 }
 
 type fakeCopyCall struct {
@@ -93,6 +104,36 @@ func (group *fakeTenantFileGroup) AbsDirs() []string {
 
 func (group *fakeTenantFileGroup) SubGroups(contextx.IContext) ([]fileiface.FileGroup, error) {
 	return []fileiface.FileGroup{group}, nil
+}
+
+func (group *fakeTenantFileGroup) IsDir(nCtx contextx.IContext, relativePath string) (bool, error) {
+	group.isDirCalls = append(group.isDirCalls, fakeDirectoryCall{ctx: nCtx, relativePath: relativePath})
+	if group.directoryErr != nil {
+		return false, group.directoryErr
+	}
+	return relativePath == "." || group.isDirResult, nil
+}
+
+func (group *fakeTenantFileGroup) GetSubGroup(nCtx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
+	group.getSubGroupCalls = append(group.getSubGroupCalls, fakeDirectoryCall{ctx: nCtx, relativePath: relativePath})
+	if group.directoryErr != nil {
+		return nil, group.directoryErr
+	}
+	if relativePath == "." {
+		return group, nil
+	}
+	return &fakeTenantFileGroup{name: path.Join(group.name, relativePath)}, nil
+}
+
+func (group *fakeTenantFileGroup) EnsureSubGroup(nCtx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
+	group.ensureSubGroupCalls = append(group.ensureSubGroupCalls, fakeDirectoryCall{ctx: nCtx, relativePath: relativePath})
+	if group.directoryErr != nil {
+		return nil, group.directoryErr
+	}
+	if relativePath == "." {
+		return group, nil
+	}
+	return &fakeTenantFileGroup{name: path.Join(group.name, relativePath)}, nil
 }
 
 func (group *fakeTenantFileGroup) AllFiles(contextx.IContext) ([]fileiface.File, error) {
@@ -243,6 +284,90 @@ func TestUpstreamFileGroupDelegatesOperations(t *testing.T) {
 	require.Equal(t, []fileiface.FileInfo{info}, tenantGroup.storedFileInfo)
 	require.Equal(t, []bool{true}, tenantGroup.storedOverwrite)
 	require.Equal(t, []string{"/system/origin/v3/plugin"}, handler.paths())
+}
+
+func TestUpstreamFileGroupDelegatesDirectoryOperationsByTenant(t *testing.T) {
+	handler := new(fakeUpstreamHandler)
+	group := &upstreamFileGroup{ensurer: handler, basePath: "origin/v3/plugin"}
+	for _, tenantID := range []string{"system", "tenant-a"} {
+		nCtx := contextx.New(t.Context(), contextx.WithTenantID(tenantID))
+		resolved, err := group.resolve(nCtx)
+		require.NoError(t, err)
+		tenantGroup, ok := resolved.(*fakeTenantFileGroup)
+		require.True(t, ok)
+		tenantGroup.isDirResult = true
+
+		isDir, err := group.IsDir(nCtx, ".")
+		require.NoError(t, err)
+		require.True(t, isDir)
+		root, err := group.GetSubGroup(nCtx, ".")
+		require.NoError(t, err)
+		require.Same(t, tenantGroup, root)
+		root, err = group.EnsureSubGroup(nCtx, ".")
+		require.NoError(t, err)
+		require.Same(t, tenantGroup, root)
+
+		isDir, err = group.IsDir(nCtx, "nested/child")
+		require.NoError(t, err)
+		require.True(t, isDir)
+		subGroup, err := group.GetSubGroup(nCtx, "nested/child")
+		require.NoError(t, err)
+		require.Equal(t, path.Join(tenantGroup.name, "nested/child"), subGroup.Name())
+		subGroup, err = group.EnsureSubGroup(nCtx, "nested/child")
+		require.NoError(t, err)
+		require.Equal(t, path.Join(tenantGroup.name, "nested/child"), subGroup.Name())
+
+		require.Equal(t, []fakeDirectoryCall{
+			{ctx: nCtx, relativePath: "."},
+			{ctx: nCtx, relativePath: "nested/child"},
+		}, tenantGroup.isDirCalls)
+		require.Equal(t, []fakeDirectoryCall{
+			{ctx: nCtx, relativePath: "."},
+			{ctx: nCtx, relativePath: "nested/child"},
+		}, tenantGroup.getSubGroupCalls)
+		require.Equal(t, []fakeDirectoryCall{
+			{ctx: nCtx, relativePath: "."},
+			{ctx: nCtx, relativePath: "nested/child"},
+		}, tenantGroup.ensureSubGroupCalls)
+	}
+	require.Equal(t, []string{"/system/origin/v3/plugin", "/tenant-a/origin/v3/plugin"}, handler.paths())
+}
+
+func TestUpstreamFileGroupDirectoryOperationsPreserveErrors(t *testing.T) {
+	backendErr := errors.New("backend unavailable")
+	operations := []struct {
+		name string
+		call func(fileiface.FileGroup, contextx.IContext) error
+	}{
+		{name: "IsDir", call: func(group fileiface.FileGroup, nCtx contextx.IContext) error {
+			_, err := group.IsDir(nCtx, ".")
+			return err
+		}},
+		{name: "GetSubGroup", call: func(group fileiface.FileGroup, nCtx contextx.IContext) error {
+			_, err := group.GetSubGroup(nCtx, ".")
+			return err
+		}},
+		{name: "EnsureSubGroup", call: func(group fileiface.FileGroup, nCtx contextx.IContext) error {
+			_, err := group.EnsureSubGroup(nCtx, ".")
+			return err
+		}},
+	}
+	for _, operation := range operations {
+		t.Run(operation.name, func(t *testing.T) {
+			handler := &fakeUpstreamHandler{ensureErrs: []error{backendErr}}
+			group := &upstreamFileGroup{ensurer: handler, basePath: "origin/v3/plugin"}
+			nCtx := contextx.New(t.Context(), contextx.WithTenantID("tenant-a"))
+			require.ErrorIs(t, operation.call(group, nCtx), backendErr)
+
+			resolved, err := group.resolve(nCtx)
+			require.NoError(t, err)
+			tenantGroup, ok := resolved.(*fakeTenantFileGroup)
+			require.True(t, ok)
+			tenantGroup.directoryErr = backendErr
+			require.ErrorIs(t, operation.call(group, nCtx), backendErr)
+			require.ErrorContains(t, operation.call(group, nil), "context is nil")
+		})
+	}
 }
 
 func TestUpstreamFileGroupCopiesFromSystemToRequestTenant(t *testing.T) {

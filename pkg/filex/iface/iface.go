@@ -28,6 +28,7 @@ import (
 )
 
 // FileGroup directory interface.
+// nolint:interfacebloat
 type FileGroup interface {
 	// Name the name of file group.
 	// It is named since this file group is init.
@@ -44,6 +45,19 @@ type FileGroup interface {
 	// It should lists all sub groups with actual action.
 	SubGroups(nCtx contextx.IContext) ([]FileGroup, error)
 
+	// IsDir reports whether a group-relative slash path identifies a directory.
+	// "." identifies this group. Missing nodes must return an error matching fs.ErrNotExist.
+	// Unsupported node types return an error rather than false.
+	IsDir(nCtx contextx.IContext, relativePath string) (bool, error)
+
+	// GetSubGroup returns an existing directory at a group-relative slash path.
+	// "." queries this directory. Missing directories match fs.ErrNotExist; files are errors.
+	GetSubGroup(nCtx contextx.IContext, relativePath string) (FileGroup, error)
+
+	// EnsureSubGroup returns a directory, creating it and missing parents if necessary.
+	// "." ensures this directory exists. A file at the requested path is an error.
+	EnsureSubGroup(nCtx contextx.IContext, relativePath string) (FileGroup, error)
+
 	// AllFiles the all files of file group.
 	// It should lists all files with actual action.
 	AllFiles(nCtx contextx.IContext) ([]File, error)
@@ -56,7 +70,9 @@ type FileGroup interface {
 	// The caller owns file and must close it after Store returns.
 	Store(nCtx contextx.IContext, info FileInfo, file io.ReadCloser, overwrite bool) error
 
-	// Copy copies a file or subgroup to another file group.
+	// Copy copies a file or subgroup to another file group using the backend's copy policy.
+	// Cross-backend paths are group-relative slash paths; native copies retain backend syntax.
+	// A source must identify a node; "." is allowed as a destination group root.
 	Copy(nCtx contextx.IContext, srcPath string, destGroup FileGroup, destPath string, overwrite bool) error
 
 	// Remove deletes a file or subgroup from the file group.

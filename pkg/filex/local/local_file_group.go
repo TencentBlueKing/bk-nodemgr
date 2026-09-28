@@ -24,11 +24,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/internal/filetransfer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/spf13/afero"
 )
@@ -102,6 +105,60 @@ func (group *LocalDir) SubGroups(_ contextx.IContext) ([]fileiface.FileGroup, er
 	return subGroups, nil
 }
 
+// IsDir reports whether the group-relative node is a directory.
+func (group *LocalDir) IsDir(ctx contextx.IContext, name string) (bool, error) {
+	if ctx == nil {
+		return false, errors.New("context cannot be nil")
+	}
+	fullPath, err := group.resolveDirectoryPath(name)
+	if err != nil {
+		return false, err
+	}
+	info, err := os.Lstat(fullPath)
+	if err != nil {
+		return false, err
+	}
+
+	return info.IsDir(), nil
+}
+
+// GetSubGroup returns an existing group-relative directory.
+func (group *LocalDir) GetSubGroup(ctx contextx.IContext, name string) (fileiface.FileGroup, error) {
+	if ctx == nil {
+		return nil, errors.New("context cannot be nil")
+	}
+	fullPath, err := group.resolveDirectoryPath(name)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := os.Lstat(fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("inspect directory failed, path(%s): %w", fullPath, err)
+	}
+	if !info.IsDir() {
+		return nil, fmt.Errorf("path is not a directory, path(%s)", fullPath)
+	}
+
+	return NewLocalDir(fullPath)
+}
+
+// EnsureSubGroup creates a group-relative directory and its missing parents.
+func (group *LocalDir) EnsureSubGroup(ctx contextx.IContext, name string) (fileiface.FileGroup, error) {
+	if ctx == nil {
+		return nil, errors.New("context cannot be nil")
+	}
+	fullPath, err := group.resolveDirectoryPath(name)
+	if err != nil {
+		return nil, err
+	}
+	if err := wFs().MkdirAll(fullPath, 0755); err != nil { // nolint:mnd
+		return nil, fmt.Errorf("create directory failed, path(%s): %w", fullPath, err)
+	}
+
+	return NewLocalDir(fullPath)
+}
+
 // AllFiles the files of file group.
 func (group *LocalDir) AllFiles(_ contextx.IContext) ([]fileiface.File, error) {
 	entries, err := afero.ReadDir(rFs(), group.fullPath)
@@ -111,16 +168,24 @@ func (group *LocalDir) AllFiles(_ contextx.IContext) ([]fileiface.File, error) {
 
 	files := make([]fileiface.File, 0)
 	for _, entry := range entries {
-		fullPath := filepath.Join(group.fullPath, entry.Name())
-
-		if !entry.IsDir() {
-			file, err := NewLocalFile(fullPath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create local file. file(%s): %w", fullPath, err)
-			}
-
-			files = append(files, file)
+		if entry.IsDir() {
+			continue
 		}
+		fullPath := filepath.Join(group.fullPath, entry.Name())
+		info, err := os.Stat(fullPath)
+		if err != nil {
+			return nil, fmt.Errorf("inspect file entry failed, path(%s): %w", fullPath, err)
+		}
+		if !info.Mode().IsRegular() {
+			return nil, fmt.Errorf("unsupported file type, path(%s)", fullPath)
+		}
+
+		file, err := NewLocalFile(fullPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create local file. file(%s): %w", fullPath, err)
+		}
+
+		files = append(files, file)
 	}
 
 	return files, nil
@@ -247,19 +312,21 @@ func (group *LocalDir) AbsDirs() []string {
 	return group.absDirs
 }
 
-// Copy copies a file or directory in this group to a local destination group.
+// Copy copies a file or directory to a supported file group.
 func (group *LocalDir) Copy(nCtx contextx.IContext, srcPath string, destGroup fileiface.FileGroup, destPath string, overwrite bool) error {
 	if nCtx == nil {
 		return errors.New("context cannot be nil")
 	}
-
-	if err := nCtx.Err(); err != nil {
-		return fmt.Errorf("context canceled: %w", err)
+	if group == nil {
+		return errors.New("source file group cannot be nil")
 	}
 
 	destLocalDir, ok := destGroup.(*LocalDir)
-	if !ok || destLocalDir == nil {
-		return errors.New("destination file group must be a local file group")
+	if !ok {
+		return filetransfer.Copy(nCtx, group, srcPath, destGroup, destPath, overwrite)
+	}
+	if destLocalDir == nil {
+		return errors.New("destination file group cannot be nil")
 	}
 
 	srcFullPath, err := group.resolvePath(srcPath)
@@ -276,42 +343,59 @@ func (group *LocalDir) Copy(nCtx contextx.IContext, srcPath string, destGroup fi
 	if err != nil {
 		return fmt.Errorf("stat source path failed: %w", err)
 	}
+	if !srcInfo.IsDir() && !srcInfo.Mode().IsRegular() {
+		return fmt.Errorf("unsupported source file type, path(%s)", srcFullPath)
+	}
 
 	destInfo, err := wFs().Stat(destFullPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("stat destination path failed: %w", err)
 	}
 
-	destExists := err == nil
-
-	if !srcInfo.IsDir() {
-		targetPath := destFullPath
-		if destExists && destInfo.IsDir() {
-			targetPath = filepath.Join(destFullPath, filepath.Base(srcFullPath))
-		}
-		if targetPath == srcFullPath {
-			return errors.New("source and destination files must differ")
-		}
-
-		return group.copyFile(nCtx, srcFullPath, targetPath, srcInfo, overwrite)
+	if srcInfo.IsDir() {
+		return group.copyDirectory(nCtx, srcFullPath, destFullPath, srcInfo, destInfo, overwrite)
 	}
 
-	return group.copyDirectory(nCtx, srcFullPath, destFullPath, srcInfo, destInfo, destExists, overwrite)
+	targetPath := destFullPath
+	if destInfo != nil && destInfo.IsDir() {
+		targetPath = filepath.Join(destFullPath, filepath.Base(srcFullPath))
+	}
+	targetInfo, err := wFs().Stat(targetPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("stat target path failed: %w", err)
+	}
+	if targetInfo != nil && os.SameFile(srcInfo, targetInfo) {
+		return errors.New("source and destination files must differ")
+	}
+
+	return group.copyFile(nCtx, srcFullPath, targetPath, srcInfo, overwrite)
 }
 
 func (group *LocalDir) copyDirectory(
-	nCtx contextx.IContext, srcPath string, destPath string, srcInfo os.FileInfo, destInfo os.FileInfo, destExists bool, overwrite bool) error {
+	nCtx contextx.IContext, srcPath string, destPath string, srcInfo os.FileInfo, destInfo os.FileInfo, overwrite bool) error {
 
-	if destExists && !destInfo.IsDir() {
+	if destInfo != nil && !destInfo.IsDir() {
 		return errors.New("cannot copy a directory to a file")
 	}
 
 	targetPath := destPath
-	if destExists {
+	if destInfo != nil {
 		targetPath = filepath.Join(destPath, filepath.Base(srcPath))
 	}
 
-	if isSameOrSubPath(srcPath, targetPath) {
+	resolvedSource, err := filepath.Abs(srcPath)
+	if err != nil {
+		return fmt.Errorf("check directory overlap failed: %w", err)
+	}
+	resolvedSource, err = filepath.EvalSymlinks(resolvedSource)
+	if err != nil {
+		return fmt.Errorf("check directory overlap failed: %w", err)
+	}
+	resolvedTarget, err := resolveTargetPath(targetPath)
+	if err != nil {
+		return fmt.Errorf("check directory overlap failed: %w", err)
+	}
+	if isSameOrSubPath(resolvedSource, resolvedTarget) || isSameOrSubPath(resolvedTarget, resolvedSource) {
 		return errors.New("cannot copy a directory to itself or its subdirectory")
 	}
 
@@ -384,12 +468,11 @@ func (group *LocalDir) copyFile(nCtx contextx.IContext, srcPath string, destPath
 		return fmt.Errorf("stat destination file failed: %w", err)
 	}
 
-	destExists := err == nil
-	if destExists && os.SameFile(srcInfo, destInfo) {
+	if destInfo != nil && os.SameFile(srcInfo, destInfo) {
 		return errors.New("source and destination files must differ")
 	}
 
-	if destExists && !overwrite {
+	if destInfo != nil && !overwrite {
 		return fmt.Errorf("destination file already exists, path(%s)", destPath)
 	}
 
@@ -497,4 +580,69 @@ func isSameOrSubPath(parentPath string, childPath string) bool {
 	}
 
 	return relPath == "." || (relPath != ".." && !strings.HasPrefix(relPath, ".."+string(filepath.Separator)))
+}
+
+func resolveTargetPath(targetPath string) (string, error) {
+	current, err := filepath.Abs(targetPath)
+	if err != nil {
+		return "", err
+	}
+	var missing []string
+	for {
+		_, err := os.Lstat(current)
+		if os.IsNotExist(err) {
+			parent := filepath.Dir(current)
+			if parent == current {
+				return "", fmt.Errorf("no existing ancestor for target path(%s)", targetPath)
+			}
+			missing = append(missing, filepath.Base(current))
+			current = parent
+
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+
+		resolved, err := filepath.EvalSymlinks(current)
+		if err != nil {
+			return "", err
+		}
+		for _, part := range slices.Backward(missing) {
+			resolved = filepath.Join(resolved, part)
+		}
+
+		return resolved, nil
+	}
+}
+
+// Path checks assume no concurrent changes to the directory tree.
+func (group *LocalDir) resolveDirectoryPath(name string) (string, error) {
+	if group == nil {
+		return "", errors.New("file group cannot be nil")
+	}
+	if name == "" || strings.HasPrefix(name, "/") || strings.ContainsAny(name, "\\\x00") {
+		return "", fmt.Errorf("path must be a relative slash path, path(%s)", name)
+	}
+	cleaned := path.Clean(name)
+	fullPath, err := group.resolveDestinationPath(filepath.FromSlash(cleaned))
+	if err != nil {
+		return "", err
+	}
+	current := group.fullPath
+	for part := range strings.SplitSeq("./"+cleaned, "/") {
+		current = filepath.Join(current, part)
+		info, err := os.Lstat(current)
+		if errors.Is(err, os.ErrNotExist) {
+			return fullPath, nil
+		}
+		if err != nil {
+			return "", fmt.Errorf("inspect path failed, path(%s): %w", current, err)
+		}
+		if !info.IsDir() && !info.Mode().IsRegular() {
+			return "", fmt.Errorf("unsupported file type, path(%s)", current)
+		}
+	}
+
+	return fullPath, nil
 }
