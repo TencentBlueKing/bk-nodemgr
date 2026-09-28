@@ -100,12 +100,6 @@ Frontend 本地验证：
 cd front && pnpm install && pnpm dev
 ```
 
-集成测试：
-
-```bash
-cd test && make build && make test
-```
-
 请在 Pull Request 的 “测试结果 / Test Results” 中记录实际执行的命令和结果。
 
 ## Review 期望

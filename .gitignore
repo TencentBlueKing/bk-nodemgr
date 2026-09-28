@@ -2,7 +2,6 @@
 .vscode/
 build/
 tools/build/
-test/build/
 .DS_Store
 /.air.toml
 /tmp

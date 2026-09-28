@@ -39,19 +39,19 @@ Do not use this skill as the only guide for logger field naming or level formatt
 
 Read the relevant anchor before changing or judging a matching surface:
 
-| Surface                  | Anchor                                                                     | Contract                                                                                              |
-| ------------------------ | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Repository hard rule     | `AGENTS.md`                                                                | Highest-priority project constraints and scoped instruction policy                                    |
-| REST error code chain    | `pkg/rest/errf/error.go`                                                   | `ErrWrap` joins REST code error with cause; `ErrUnwrap` maps returned errors to response code/details |
-| REST handler boundary    | `pkg/rest/server/handler.go`                                               | Handler return error is centrally unwrapped and converted to response                                 |
-| REST response body       | `pkg/rest/server/request.go`                                               | Error details and permission data are exposed from unwrapped errors                                   |
-| Logger error field       | `pkg/logger/logger.go`, `pkg/logger/iface.go`                              | `WithErr` records `err` as structured field; do not format the same error into message                |
-| Mature router boundary   | `internal/backend/router/api-v3/node/agent/install.go`                     | Request decode/auth/service failures log once and return `resterrf.ErrWrap`                           |
-| Similar router boundary  | `internal/backend/router/api-v3/node/proxy/install.go`                     | Confirms agent/proxy handler consistency                                                              |
-| Service/system boundary  | `internal/backend/service/service.go`                                      | Startup/system operations wrap with `%w` and log with `Sys().WithErr` at responsibility boundaries    |
-| Retry/poll migration     | `pkg/runtime/retrier/polling.go`, `pkg/runtime/retrier/expo_backoff.go`    | Historical success-on-nil patterns require semantic migration, not mechanical replacement             |
+| Surface                  | Anchor                                                                        | Contract                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Repository hard rule     | `AGENTS.md`                                                                   | Highest-priority project constraints and scoped instruction policy                                    |
+| REST error code chain    | `pkg/rest/errf/error.go`                                                      | `ErrWrap` joins REST code error with cause; `ErrUnwrap` maps returned errors to response code/details |
+| REST handler boundary    | `pkg/rest/server/handler.go`                                                  | Handler return error is centrally unwrapped and converted to response                                 |
+| REST response body       | `pkg/rest/server/request.go`                                                  | Error details and permission data are exposed from unwrapped errors                                   |
+| Logger error field       | `pkg/logger/logger.go`, `pkg/logger/iface.go`                                 | `WithErr` records `err` as structured field; do not format the same error into message                |
+| Mature router boundary   | `internal/backend/router/api-v3/node/agent/install.go`                        | Request decode/auth/service failures log once and return `resterrf.ErrWrap`                           |
+| Similar router boundary  | `internal/backend/router/api-v3/node/proxy/install.go`                        | Confirms agent/proxy handler consistency                                                              |
+| Service/system boundary  | `internal/backend/service/service.go`                                         | Startup/system operations wrap with `%w` and log with `Sys().WithErr` at responsibility boundaries    |
+| Retry/poll migration     | `pkg/runtime/retrier/polling.go`, `pkg/runtime/retrier/expo_backoff.go`       | Historical success-on-nil patterns require semantic migration, not mechanical replacement             |
 | Probe/fallback migration | `pkg/runtime/crypter/rsa.go`, `internal/backend/auth/v3/provider/provider.go` | Try-parse fallback needs `(value, ok)` or domain helpers, not hidden `err == nil`                     |
-| Error chain tests        | `pkg/rest/server/request_test.go`                                          | Permission and wrapped-error behavior must stay stable                                                |
+| Error chain tests        | `pkg/rest/server/request_test.go`                                             | Permission and wrapped-error behavior must stay stable                                                |
 
 ## Quick Reference
 
@@ -179,8 +179,8 @@ Before completing a change that touches Go error handling:
 
 ```bash
 rg -n "err\s*==\s*nil" --glob '*.go'
-rg -n "fmt\.Errorf\([^\n]*%[vs]" cmd internal pkg tools test --glob '*.go'
-rg -n "WithErr\([^\)]*\)\.Error\([^\n]*%[wv].*err" cmd internal pkg tools test --glob '*.go'
+rg -n "fmt\.Errorf\([^\n]*%[vs]" cmd internal pkg tools --glob '*.go'
+rg -n "WithErr\([^\)]*\)\.Error\([^\n]*%[wv].*err" cmd internal pkg tools --glob '*.go'
 rg -n "logger\.G\.(Biz|Sys).*WithErr|resterrf\.ErrWrap|errf\.ErrWrap" cmd internal pkg tools --glob '*.go'
 ```
 

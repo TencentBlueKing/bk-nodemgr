@@ -49,12 +49,11 @@ Do not use this skill for tag surgery, CI/CD debugging, unrelated Helm configura
    Read `install/AGENTS.md`, then inspect the user-mentioned release commit, target version, or nearest recent release commit that shows the intended bump pattern.
 
 2. **Separate complete release from Helm-only follow-up.**
-   Do not apply the secondary 4-Helm-file constraint to a primary complete release PR. A complete release may legitimately include API Gateway files and versioned changelog files.
+   Do not apply the secondary 2-Helm-file constraint to a primary complete release PR. A complete release may legitimately include API Gateway files and versioned changelog files.
 
 3. **Only touch release-alignment fields.**
    - `Chart.yaml`: `version`, `appVersion`
    - `install/helm/bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`; for complete release PRs, `apigwSync.config.release.version` and `apigwSync.config.release.comment`
-   - `install/helm/mock-server/values.yaml`: `image.tag`
    - for complete release PRs, `apigw/definition.yaml`: `release.version`, `release.comment`
    - `support-files/changelog/{en,zh}/`: add the target version file only
 
@@ -121,8 +120,6 @@ If you cannot extract the target version, mode, or expected field set from evide
 
 - `install/helm/bk-nodemgr/Chart.yaml`
 - `install/helm/bk-nodemgr/values.yaml`
-- `install/helm/mock-server/Chart.yaml`
-- `install/helm/mock-server/values.yaml`
 - `support-files/changelog/en/<version>_<YYYY-MM-DD>.md`
 - `support-files/changelog/zh/<version>_<YYYY-MM-DD>.md`
 
@@ -135,8 +132,6 @@ Primary release field expectations:
 
 - `bk-nodemgr/Chart.yaml`: `version`, `appVersion`
 - `bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`
-- `mock-server/Chart.yaml`: `version`, `appVersion`
-- `mock-server/values.yaml`: `image.tag`
 - changelog files: heading `## [Version: <target version>] - YYYY-MM-DD`
 - API Gateway metadata: `apigw/definition.yaml release.version/comment` and `bk-nodemgr/values.yaml apigwSync.config.release.version/comment` all equal `<target version without v>`
 
@@ -144,15 +139,11 @@ Primary release field expectations:
 
 - `install/helm/bk-nodemgr/Chart.yaml`
 - `install/helm/bk-nodemgr/values.yaml`
-- `install/helm/mock-server/Chart.yaml`
-- `install/helm/mock-server/values.yaml`
 
 Most Helm-only follow-ups update:
 
 - `bk-nodemgr/Chart.yaml`: `version`, `appVersion`
 - `bk-nodemgr/values.yaml`: `image.tag`, and `apiManagerImage.tag` when release evidence shows the apigw-sync image lagging
-- `mock-server/Chart.yaml`: `version`, `appVersion`
-- `mock-server/values.yaml`: `image.tag`
 
 If evidence says the follow-up should touch fewer files, that is acceptable as long as every touched field is release-alignment-only. For example, a follow-up may only bump `install/helm/bk-nodemgr/values.yaml apiManagerImage.tag` when that is the sole lagging field.
 
@@ -191,15 +182,9 @@ Respect `install/AGENTS.md`:
 
 ### Step 5 - Commit in atomic units
 
-For Helm-only follow-ups touching both charts, prefer two commits:
-
-1. `bk-nodemgr` chart + values
-2. `mock-server` chart + values
-
-Recommended Helm-only commit messages:
+Recommended Helm-only commit message:
 
 - `feat: bump bk-nodemgr helm chart to vX.Y.Z-alpha.N --issue=#1234`
-- `feat: bump mock-server helm chart to vX.Y.Z-alpha.N --issue=#1234`
 
 For a single lagging field, use a narrow message:
 

@@ -26,7 +26,6 @@ Do not use this skill for:
 
 - Pure unit tests.
 - Mongo driver `mtest` command-mock tests.
-- Legacy `test/` harness work.
 - Non-Mongo/Redis external service tests.
 - Bulk migration of old `.env` tests; migration is handled separately.
 
@@ -110,10 +109,10 @@ Redis rules:
 
 `testsuite/support` selects the integration environment through `NODEMGR_TEST_ENV_SOURCE`:
 
-| Source | Behavior |
-| --- | --- |
-| `auto` | Use `testsuite/integration.env` when present; otherwise use Docker. |
-| `env` | Require `testsuite/integration.env`; missing or invalid service config fails. |
+| Source   | Behavior                                                                            |
+| -------- | ----------------------------------------------------------------------------------- |
+| `auto`   | Use `testsuite/integration.env` when present; otherwise use Docker.                 |
+| `env`    | Require `testsuite/integration.env`; missing or invalid service config fails.       |
 | `docker` | Use Docker/testcontainers; may still read image and network settings from env file. |
 
 Config precedence is process environment first, then `testsuite/integration.env`, then empty/default. Do not mutate process env from the file.
@@ -190,14 +189,14 @@ For host-network Docker, do not run Mongo packages or Redis packages in parallel
 
 ## Common Mistakes
 
-| Mistake | Correction |
-| --- | --- |
-| Importing `testsuite/support` from a non-`integration` test file | Add `//go:build integration` or do not use the helper. |
-| Creating direct Mongo/Redis clients in package tests | Use the support helper so source selection and cleanup stay consistent. |
-| Reusing package-global DB/client/key state | Create state per test via the helper; keep fixture data isolated. |
-| Falling back from broken env source to Docker | Fail fast; an existing but invalid env file means user-maintained config is wrong. |
-| Using Redis without the generated key prefix | Prefix every Redis key and let cleanup remove only that test's keys. |
-| Adding helper support for a future service | Wait until a real package-level integration test needs it. |
+| Mistake                                                          | Correction                                                                         |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Importing `testsuite/support` from a non-`integration` test file | Add `//go:build integration` or do not use the helper.                             |
+| Creating direct Mongo/Redis clients in package tests             | Use the support helper so source selection and cleanup stay consistent.            |
+| Reusing package-global DB/client/key state                       | Create state per test via the helper; keep fixture data isolated.                  |
+| Falling back from broken env source to Docker                    | Fail fast; an existing but invalid env file means user-maintained config is wrong. |
+| Using Redis without the generated key prefix                     | Prefix every Redis key and let cleanup remove only that test's keys.               |
+| Adding helper support for a future service                       | Wait until a real package-level integration test needs it.                         |
 
 ## Lightweight Eval Scenarios
 

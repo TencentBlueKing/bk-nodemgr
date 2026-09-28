@@ -17,8 +17,6 @@ Expected touched files:
 
 - `install/helm/bk-nodemgr/Chart.yaml`
 - `install/helm/bk-nodemgr/values.yaml`
-- `install/helm/mock-server/Chart.yaml`
-- `install/helm/mock-server/values.yaml`
 - `support-files/changelog/en/vX.Y.Z-alpha.N_YYYY-MM-DD.md`
 - `support-files/changelog/zh/vX.Y.Z-alpha.N_YYYY-MM-DD.md`
 
@@ -31,8 +29,6 @@ Expected fields:
 
 - `install/helm/bk-nodemgr/Chart.yaml`: `version`, `appVersion`
 - `install/helm/bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`
-- `install/helm/mock-server/Chart.yaml`: `version`, `appVersion`
-- `install/helm/mock-server/values.yaml`: `image.tag`
 - changelog heading: `## [Version: vX.Y.Z-alpha.N] - YYYY-MM-DD`
 - API Gateway metadata: `apigw/definition.yaml release.version/comment` and `install/helm/bk-nodemgr/values.yaml apigwSync.config.release.version/comment`
 
@@ -48,6 +44,7 @@ Complete-release PR body example:
 
 ```md
 ## Summary
+
 - align release version to v3.0.1-alpha.40
 
 refs #1502
@@ -59,8 +56,6 @@ Allowed touched files:
 
 - `install/helm/bk-nodemgr/Chart.yaml`
 - `install/helm/bk-nodemgr/values.yaml`
-- `install/helm/mock-server/Chart.yaml`
-- `install/helm/mock-server/values.yaml`
 
 A Helm-only follow-up may touch a subset of these files when evidence shows only one lagging field. For example, `install/helm/bk-nodemgr/values.yaml apiManagerImage.tag` may be the only field that needs a bump.
 
@@ -68,8 +63,6 @@ Expected fields:
 
 - `install/helm/bk-nodemgr/Chart.yaml`: `version`, `appVersion`
 - `install/helm/bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`
-- `install/helm/mock-server/Chart.yaml`: `version`, `appVersion`
-- `install/helm/mock-server/values.yaml`: `image.tag`
 
 If the change needs unrelated Helm settings, templates, dependencies, or API Gateway files in Helm-only mode, stop and re-check scope with the user.
 
@@ -89,19 +82,13 @@ For bk-nodemgr chart follow-up:
 feat: bump bk-nodemgr helm chart to v3.0.1-alpha.17 --issue=#1502
 ```
 
-For mock-server chart follow-up:
-
-```text
-feat: bump mock-server helm chart to v3.0.1-alpha.17 --issue=#1502
-```
-
 For a single lagging apigw-sync image field:
 
 ```text
 chore: bump bk-nodemgr-apigw-sync image to v3.0.1-alpha.40
 ```
 
-Keep one chart per commit for Helm-only both-chart follow-ups. Complete release PR changes may stay together unless the user asks for a different split.
+Complete release PR changes may stay together unless the user asks for a different split.
 
 ## PR Title Examples
 
@@ -127,6 +114,7 @@ type: subject --issue=#number
 
 ```md
 ## Summary
+
 - align release version to v3.0.1-alpha.40
 
 refs #1502
@@ -148,15 +136,15 @@ closes #1502
 
 ## Quick Decision Table
 
-| Situation | Action |
-|---|---|
-| User asks to prepare a concrete new version release | Use complete-release mode |
-| User asks only to supplement missing Helm version fields | Use Helm-only follow-up mode |
-| Current branch only has the target alignment and no unrelated history | Reuse current branch |
-| Current branch has unrelated commits relative to `origin/master` | Create a clean branch from `origin/master` |
-| Helm-only follow-up only needs `apiManagerImage.tag` | Touch only that field |
-| Complete release needs localized changelog | Use `support-files/changelog/{en,zh}/vX.Y.Z-alpha.N_YYYY-MM-DD.md` |
-| Complete release has no `apigw/resources.yaml` change | Align API Gateway metadata to `vX.Y.Z-alpha.N` without `v`; do not touch resources |
-| `apigw/resources.yaml` changed in the release window | Update resources and align API Gateway metadata to `vX.Y.Z-alpha.N` without `v` |
-| User says do not close the issue | Use `refs #...` |
-| User says merge should auto-close the issue | Use `closes #...` |
+| Situation                                                             | Action                                                                             |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| User asks to prepare a concrete new version release                   | Use complete-release mode                                                          |
+| User asks only to supplement missing Helm version fields              | Use Helm-only follow-up mode                                                       |
+| Current branch only has the target alignment and no unrelated history | Reuse current branch                                                               |
+| Current branch has unrelated commits relative to `origin/master`      | Create a clean branch from `origin/master`                                         |
+| Helm-only follow-up only needs `apiManagerImage.tag`                  | Touch only that field                                                              |
+| Complete release needs localized changelog                            | Use `support-files/changelog/{en,zh}/vX.Y.Z-alpha.N_YYYY-MM-DD.md`                 |
+| Complete release has no `apigw/resources.yaml` change                 | Align API Gateway metadata to `vX.Y.Z-alpha.N` without `v`; do not touch resources |
+| `apigw/resources.yaml` changed in the release window                  | Update resources and align API Gateway metadata to `vX.Y.Z-alpha.N` without `v`    |
+| User says do not close the issue                                      | Use `refs #...`                                                                    |
+| User says merge should auto-close the issue                           | Use `closes #...`                                                                  |

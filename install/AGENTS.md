@@ -9,24 +9,20 @@
 ```
 install/
 |- helm/bk-nodemgr/**            # chart, values, templates, nested dependency charts
-|- helm/mock-server/**           # mock-server helm chart
 |- images/**                     # Dockerfiles and image build assets
 `- docker-compose/
    |- generate.sh                # shared template rendering utility
-   |- bk-nodemgr/**              # bk-nodemgr docker-compose deployment
-   `- mock-server/**             # mock-server docker-compose deployment (independent)
+   `- bk-nodemgr/**              # bk-nodemgr docker-compose deployment
 ```
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Helm values/template changes | `install/helm/bk-nodemgr/**` | Main chart plus redis/mongodb/etcd dependencies |
-| Mock-server helm chart | `install/helm/mock-server/**` | Independent mock-server chart |
-| Image build context assets | `install/images/**` | Dockerfile variants by image target |
-| bk-nodemgr docker-compose | `install/docker-compose/bk-nodemgr/**` | nodemgr service deployment |
-| mock-server docker-compose | `install/docker-compose/mock-server/**` | Independent mock-server deployment |
-| Shared template rendering | `install/docker-compose/generate.sh` | Used by both bk-nodemgr and mock-server |
+| Task                         | Location                               | Notes                                           |
+| ---------------------------- | -------------------------------------- | ----------------------------------------------- |
+| Helm values/template changes | `install/helm/bk-nodemgr/**`           | Main chart plus redis/mongodb/etcd dependencies |
+| Image build context assets   | `install/images/**`                    | Dockerfile variants by image target             |
+| bk-nodemgr docker-compose    | `install/docker-compose/bk-nodemgr/**` | nodemgr service deployment                      |
+| Shared template rendering    | `install/docker-compose/generate.sh`   | Used by docker-compose deployment templates     |
 
 ## CONVENTIONS
 

@@ -46,16 +46,16 @@ Representative caller anchors:
 
 ## Quick Reference
 
-| Need | Prefer | Contract to Check |
-| --- | --- | --- |
-| Mixed numeric/string value to `int64` | `ToInt64`, `ToInt64Default` | nil, pointer, json.Number, overflow, NaN/Inf |
-| Request/action map into params struct | `MapToStruct` | destination must be struct pointer; caller handles returned error |
-| Struct params into map | `StructToMap` or `StructToMapIgnoreError` | use ignore variant only when the conversion is known safe |
-| Unique/intersection slice shaping | `SliceUnique`, `SliceIntersect` | first-seen and left-side order stability |
-| Slice to map by key | `SliceToMap` | duplicate key returns error; panic recovery returns nil map + error |
-| Merge maps | `MapUnion`, `MapUnionIgnoreConflict` | conflict error vs right-side overwrite |
-| Map keys or values as slice | `MapKeyToSlice`, `MapValueToSlice` | key order is sorted where defined |
-| String/bool/default coercion | `StringToBool`, `ToBool`, `ToBoolDefault`, `NonEmptyOr` | accepted text/numeric forms and default semantics |
+| Need                                  | Prefer                                                  | Contract to Check                                                   |
+| ------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
+| Mixed numeric/string value to `int64` | `ToInt64`, `ToInt64Default`                             | nil, pointer, json.Number, overflow, NaN/Inf                        |
+| Request/action map into params struct | `MapToStruct`                                           | destination must be struct pointer; caller handles returned error   |
+| Struct params into map                | `StructToMap` or `StructToMapIgnoreError`               | use ignore variant only when the conversion is known safe           |
+| Unique/intersection slice shaping     | `SliceUnique`, `SliceIntersect`                         | first-seen and left-side order stability                            |
+| Slice to map by key                   | `SliceToMap`                                            | duplicate key returns error; panic recovery returns nil map + error |
+| Merge maps                            | `MapUnion`, `MapUnionIgnoreConflict`                    | conflict error vs right-side overwrite                              |
+| Map keys or values as slice           | `MapKeyToSlice`, `MapValueToSlice`                      | key order is sorted where defined                                   |
+| String/bool/default coercion          | `StringToBool`, `ToBool`, `ToBoolDefault`, `NonEmptyOr` | accepted text/numeric forms and default semantics                   |
 
 ## Core Patterns
 
@@ -95,7 +95,7 @@ Add to `pkg/runtime/conv` only when the behavior is portable across modules and 
 
 ## Verification Checklist
 
-- Search for analogous usage before adding or changing helpers: `rg "pkg/runtime/conv|conv\." internal pkg test`.
+- Search for analogous usage before adding or changing helpers: `rg "pkg/runtime/conv|conv\." internal pkg`.
 - If behavior changes, update `pkg/runtime/conv/conv_test.go` in the same change.
 - Check nil, pointer chains, overflow/underflow, duplicate keys, order stability, and recovered panic paths.
 - Keep imports dependency-light; do not import `internal/*`, project service packages, storage, logging, or network clients.

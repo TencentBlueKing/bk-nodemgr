@@ -100,12 +100,6 @@ Frontend local verification:
 cd front && pnpm install && pnpm dev
 ```
 
-Integration tests:
-
-```bash
-cd test && make build && make test
-```
-
 In the pull request, record the commands you actually ran and their results in the "测试结果 / Test Results" section.
 
 ## Review Expectations

@@ -45,8 +45,6 @@ Before tagging, check:
 - target branch or target commit is explicitly known
 - `install/helm/bk-nodemgr/Chart.yaml` is correct
 - `install/helm/bk-nodemgr/values.yaml` is correct
-- `install/helm/mock-server/Chart.yaml` is correct
-- `install/helm/mock-server/values.yaml` is correct
 - no final release follow-up commit is still pending
 
 Only after these are true should the tag be created.
@@ -75,13 +73,13 @@ Do not rewrite a pushed tag based on guesswork.
 
 ## Quick decision table
 
-| Situation | Action |
-|---|---|
-| Release commit exists, but Helm version bump is still missing | Do not tag yet |
-| Tag candidate commit already contains all final release changes | Tag this final commit |
-| User only points to a release-related commit message | Verify whether later release follow-up commits exist |
-| Tag already pushed, but final release commit changed | Ask before moving the remote tag |
-| Unsure whether release state is final | Delay tagging and verify first |
+| Situation                                                       | Action                                               |
+| --------------------------------------------------------------- | ---------------------------------------------------- |
+| Release commit exists, but Helm version bump is still missing   | Do not tag yet                                       |
+| Tag candidate commit already contains all final release changes | Tag this final commit                                |
+| User only points to a release-related commit message            | Verify whether later release follow-up commits exist |
+| Tag already pushed, but final release commit changed            | Ask before moving the remote tag                     |
+| Unsure whether release state is final                           | Delay tagging and verify first                       |
 
 ## Lightweight tag note
 

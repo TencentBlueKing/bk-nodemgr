@@ -15,8 +15,6 @@
           "apigw/resources.yaml",
           "install/helm/bk-nodemgr/Chart.yaml",
           "install/helm/bk-nodemgr/values.yaml",
-          "install/helm/mock-server/Chart.yaml",
-          "install/helm/mock-server/values.yaml",
           "support-files/changelog/en/<version>_<date>.md",
           "support-files/changelog/zh/<version>_<date>.md"
         ],
@@ -29,22 +27,17 @@
             "apigwSync.config.release.version",
             "apigwSync.config.release.comment"
           ],
-          "install/helm/mock-server/Chart.yaml": ["version", "appVersion"],
-          "install/helm/mock-server/values.yaml": ["image.tag"],
           "support-files/changelog/{en,zh}/<version>_<date>.md": ["version heading"]
         }
       },
       "helm_followup": {
         "target_files": [
           "install/helm/bk-nodemgr/Chart.yaml",
-          "install/helm/bk-nodemgr/values.yaml",
-          "install/helm/mock-server/Chart.yaml",
-          "install/helm/mock-server/values.yaml"
+          "install/helm/bk-nodemgr/values.yaml"
         ],
         "target_fields": {
           "Chart.yaml": ["version", "appVersion"],
-          "install/helm/bk-nodemgr/values.yaml": ["image.tag", "apiManagerImage.tag"],
-          "install/helm/mock-server/values.yaml": ["image.tag"]
+          "install/helm/bk-nodemgr/values.yaml": ["image.tag", "apiManagerImage.tag"]
         },
         "allows_subset": true
       }

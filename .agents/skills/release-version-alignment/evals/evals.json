@@ -200,8 +200,8 @@
       },
       {
         "aspect": "commit atomicity",
-        "expected": "Helm-only both-chart follow-up may split per chart; complete release alignment may stay together unless user asks otherwise",
-        "anti_pattern": "force two commits for complete release or force all 4 Helm files for apiManagerImage-only follow-up"
+        "expected": "Keep bk-nodemgr chart and values alignment together; complete release alignment may stay together unless user asks otherwise",
+        "anti_pattern": "force two commits for complete release or force both Helm files for apiManagerImage-only follow-up"
       },
       {
         "aspect": "verification scope",

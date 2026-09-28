@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application adminclient file relay front mock-server docker-prepare-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files helm
+.PHONY: tidy build pre backend application adminclient file relay front docker-prepare-server docker-build-server all clean doc tools bintools scripts apigw-docs support-files helm
 
 BASE_IMAGE ?= alpine
 
@@ -70,11 +70,6 @@ relay: | pre
 	@$(ECHO) "Building proxy $(VERSION)..."
 	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-relay $(ROOT_DIR)/cmd/relay/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-relay"
-
-mock-server: | pre
-	@$(ECHO) "Building mock-server $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/mock-server $(ROOT_DIR)/test/mock-server/*.go
-	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/mock-server"
 
 front: | pre
 	@$(ECHO) "Building frontend..."
@@ -221,29 +216,12 @@ docker-build-apigw-sync: | pre
 	@$(CD) $(OUTPUT_DIR)/apigw-sync && docker build -t bk-nodemgr-apigw-sync:${VERSION} .
 	@$(ECHO) "Built successfully docker image bk-nodemgr-apigw-sync:${VERSION}"
 
-docker-build-mock-server: mock-server
-	@$(ECHO) "Building docker image mock-server..."
-	@$(MKDIR) $(OUTPUT_DIR)/mock-server-image
-	@$(CP) $(OUTPUT_DIR)/mock-server $(OUTPUT_DIR)/mock-server-image/mock-server
-	@$(CP) $(ROOT_DIR)/install/images/mock-server/Dockerfile $(OUTPUT_DIR)/mock-server-image/
-	@$(CD) $(OUTPUT_DIR)/mock-server-image && docker build -t mock-server:${VERSION} .
-	@$(ECHO) "Built successfully docker image mock-server:${VERSION}"
-	@rm -rf $(OUTPUT_DIR)/mock-server-image
-
-test: | pre
-	@$(ECHO) "Building test..."
-	@$(MAKE) -C $(ROOT_DIR)/test all
-	@$(MKDIR) $(OUTPUT_DIR)/test
-	@$(CP) -R $(ROOT_DIR)/test/build/* $(OUTPUT_DIR)/test/ 2>/dev/null || true
-	@$(ECHO) "Built successfully test"
-
-all: backend application adminclient file relay front tools scripts bintools support-files test
+all: backend application adminclient file relay front tools scripts bintools support-files
 
 clean:
 	@$(ECHO) "Cleaning build directory..."
 	@$(RM) -rf build
 	$(MAKE) -C $(ROOT_DIR)/tools clean
-	$(MAKE) -C $(ROOT_DIR)/test clean
 	@$(ECHO) "Cleaned build directory"
 
 doc:
