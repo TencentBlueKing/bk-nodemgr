@@ -1,2 +1,15 @@
 node_modules
 dist
+.cache
+.vite
+.turbo
+.pnpm-store
+coverage
+.nyc_output
+playwright-report
+test-results
+cypress/screenshots
+cypress/videos
+*.log
+*.local
+.DS_Store
