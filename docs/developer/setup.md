@@ -4,24 +4,39 @@
 
 ### 可选: 使用 mise 管理项目所需工具
 
+在仓库根目录执行以下命令，工具版本由 [`.mise.toml`](../../.mise.toml) 统一管理。根据实际使用的 shell，选择对应的配置和加载命令，再执行 `mise install`。
+
 > 如果使用vscode等工具进行开发时找不到go的二进制可以使用mise全局安装go1.25.12
 > `mise use -g go@1.25.12`
 > 安装完成后重启vscode即可
 
 ```bash
 curl https://mise.run | sh
-# use bash
+# 使用 bash 时执行
 echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
-# use zsh
-echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc
-mise install
-pnpm setup
-# use bash
 source ~/.bashrc
-# use zsh
+# 使用 zsh 时执行
+echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc
 source ~/.zshrc
-mise run setup-extra-tools
+mise install
+mise run setup-go-sdk
 ```
+
+配置会安装用于后端构建的 Go 1.25.12，以及用于 `tools` 模块的 Go 1.20.14。默认的 `go` 命令仍使用 Go 1.25.12。
+
+在 macOS 和 Linux 上，`setup-go-sdk` 会安装缺失的 Go 版本，并创建 `~/sdk/go1.25.12` 和 `~/sdk/go1.20.14` 符号链接，分别指向 mise 管理的对应安装目录。重复执行时会保留正确的链接；如果目标位置已有目录或指向其他位置的链接，任务会报错且不会覆盖。请处理提示的冲突后再执行。
+
+该任务仅创建 SDK 链接。`go1.25.12` 和 `go1.20.14` 启动命令分别由根目录和 `tools/` 下 Makefile 的 `pre` 目标安装。如果需要在构建前直接使用这两个命令，可执行：
+
+```bash
+go install golang.org/dl/go1.25.12@latest
+go install golang.org/dl/go1.20.14@latest
+export PATH="$(go env GOPATH)/bin:$PATH" # 如果显式配置了 GOBIN，请改用该目录。
+go1.25.12 version
+go1.20.14 version
+```
+
+UPX 5.1.0 仅在 Linux 和 Windows 上安装，macOS 会自动跳过。SDK 配置任务依赖 POSIX shell 和 Unix 符号链接，Windows 用户请在 WSL 中执行该任务。
 
 ### Go 1.25.12
 
@@ -107,6 +122,8 @@ pnpm --version
 ### UPX v5.1.0（可选，用于二进制压缩）
 
 构建 tools 时启用 `UPX_ENABLED=1` 需要安装 UPX。
+
+使用 mise 时，仅在 Linux 和 Windows 上安装 UPX，macOS 会自动跳过。如果在 macOS 上启用构建压缩，仍需另行安装 UPX。以下手动下载命令适用于 Linux amd64。
 
 ```bash
 curl -L https://github.com/upx/upx/releases/download/v5.1.0/upx-5.1.0-amd64_linux.tar.xz -o /tmp/upx-5.1.0-amd64_linux.tar.xz

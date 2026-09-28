@@ -1,9 +1,9 @@
 [tools]
 # project depand binary
-go = "1.25.12"
+go = ["1.25.12", "1.20.14"]
 node = "24.18.0"
 pnpm = "9.8.0"
-upx = "5.1.0"
+upx = { version = "5.1.0", os = ["linux", "windows"] }
 helm = "3.21.3"
 protoc = "29.3"
 clang-format = "latest"
@@ -21,3 +21,24 @@ clang-format = "latest"
 "npm:yaml-language-server" = "latest"
 "npm:bash-language-server" = "latest"
 "npm:pyright" = "latest"
+
+[tasks.setup-go-sdk]
+description = "Link mise Go installations into ~/sdk for the Makefile Go launchers"
+run = '''
+set -eu
+mise install go@1.25.12 go@1.20.14
+mkdir -p "$HOME/sdk"
+for version in 1.25.12 1.20.14; do
+    target=$(mise where "go@$version")
+    sdk="$HOME/sdk/go$version"
+    if [ -L "$sdk" ] && [ "$(readlink "$sdk")" = "$target" ]; then
+        continue
+    fi
+    if [ -e "$sdk" ] || [ -L "$sdk" ]; then
+        printf 'Refusing to overwrite existing SDK: %s\n' "$sdk" >&2
+        exit 1
+    fi
+    ln -s "$target" "$sdk"
+    printf '%s -> %s\n' "$sdk" "$target"
+done
+'''
