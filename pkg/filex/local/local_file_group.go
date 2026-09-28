@@ -360,13 +360,6 @@ func (group *LocalDir) Copy(nCtx contextx.IContext, srcPath string, destGroup fi
 	if destInfo != nil && destInfo.IsDir() {
 		targetPath = filepath.Join(destFullPath, filepath.Base(srcFullPath))
 	}
-	targetInfo, err := wFs().Stat(targetPath)
-	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("stat target path failed: %w", err)
-	}
-	if targetInfo != nil && os.SameFile(srcInfo, targetInfo) {
-		return errors.New("source and destination files must differ")
-	}
 
 	return group.copyFile(nCtx, srcFullPath, targetPath, srcInfo, overwrite)
 }
