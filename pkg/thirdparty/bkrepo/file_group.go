@@ -28,7 +28,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/internal/filetransfer"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/transfer"
 )
 
 // FileGroup defines the file group.
@@ -50,30 +50,30 @@ func (group *FileGroup) SubGroups(nCtx contextx.IContext) ([]fileiface.FileGroup
 }
 
 // IsDir reports whether a node is a directory.
-func (group *FileGroup) IsDir(nCtx contextx.IContext, name string) (bool, error) {
+func (group *FileGroup) IsDir(nCtx contextx.IContext, relativePath string) (bool, error) {
 	if nCtx == nil {
 		return false, errInvalidContext
 	}
 
-	fullPath, err := group.directoryPath(name)
+	fullPath, err := group.directoryPath(relativePath)
 	if err != nil {
 		return false, err
 	}
 
 	response, err := group.handler.cli.QueryNodeInfo(nCtx, &QueryNodeInfoReq{Path: fullPath})
 	if errors.Is(err, errNodeNotFound) {
-		return false, fmt.Errorf("stat node failed, path(%s): %w", name, errors.Join(fs.ErrNotExist, err))
+		return false, fmt.Errorf("stat node failed, path(%s): %w", relativePath, errors.Join(fs.ErrNotExist, err))
 	}
 	if err != nil {
-		return false, fmt.Errorf("stat node failed, path(%s): %w", name, err)
+		return false, fmt.Errorf("stat node failed, path(%s): %w", relativePath, err)
 	}
 
 	return response.NodeInfo.Folder, nil
 }
 
 // GetSubGroup returns a directory relative to this file group.
-func (group *FileGroup) GetSubGroup(nCtx contextx.IContext, name string) (fileiface.FileGroup, error) {
-	fullPath, err := group.directoryPath(name)
+func (group *FileGroup) GetSubGroup(nCtx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
+	fullPath, err := group.directoryPath(relativePath)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (group *FileGroup) GetSubGroup(nCtx contextx.IContext, name string) (fileif
 
 	subGroup, err := group.handler.GetFileGroup(nCtx, fullPath)
 	if errors.Is(err, errNodeNotFound) {
-		return nil, fmt.Errorf("get subgroup failed, path(%s): %w", name, errors.Join(fs.ErrNotExist, err))
+		return nil, fmt.Errorf("get subgroup failed, path(%s): %w", relativePath, errors.Join(fs.ErrNotExist, err))
 	}
 	if err != nil {
 		return nil, err
@@ -93,8 +93,8 @@ func (group *FileGroup) GetSubGroup(nCtx contextx.IContext, name string) (fileif
 }
 
 // EnsureSubGroup creates a directory and its missing parents relative to this group.
-func (group *FileGroup) EnsureSubGroup(nCtx contextx.IContext, name string) (fileiface.FileGroup, error) {
-	fullPath, err := group.directoryPath(name)
+func (group *FileGroup) EnsureSubGroup(nCtx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
+	fullPath, err := group.directoryPath(relativePath)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (group *FileGroup) Copy(nCtx contextx.IContext, srcPath string, destGroup f
 	}
 	destBKRepoGroup, ok := destGroup.(*FileGroup)
 	if !ok {
-		return filetransfer.Copy(nCtx, group, srcPath, destGroup, destPath, overwrite)
+		return transfer.CopyStream(nCtx, group, srcPath, destGroup, destPath, overwrite)
 	}
 	if destBKRepoGroup == nil {
 		return errors.New("destination file group cannot be nil")
@@ -165,13 +165,13 @@ func (group *FileGroup) AbsDirs() []string {
 	return group.absDirs
 }
 
-func (group *FileGroup) directoryPath(name string) (string, error) {
+func (group *FileGroup) directoryPath(relativePath string) (string, error) {
 	if group == nil {
 		return "", errors.New("file group cannot be nil")
 	}
-	if strings.ContainsAny(name, "\\\x00") {
-		return "", fmt.Errorf("directory path must use slash separators, path(%s)", name)
+	if strings.ContainsAny(relativePath, "\\\x00") {
+		return "", fmt.Errorf("directory path must use slash separators, path(%s)", relativePath)
 	}
 
-	return resolveNodePath(group, name, true)
+	return resolveNodePath(group, relativePath, true)
 }

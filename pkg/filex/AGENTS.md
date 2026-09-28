@@ -3,8 +3,9 @@
 |Language Policy:Chinese for Q&A|English for code/docs/tech discussions
 |Compression Rule:pipe-index format; concise; no prose/code blocks|Reference:.agents/skills/scoped-agentsmd/references/AGENTS-compression-guide.md
 |Scope:pkg/filex
-|Overview:shared file interfaces, local file access, and close-once stream wrappers|service-specific upload/publish policy belongs in internal/<service>
-|Structure:pkg/filex:{close_once.go,iface,local,filelock}
+|Overview:shared file interfaces, local file access, streaming transfer, and close-once stream wrappers|service-specific upload/publish policy belongs in internal/<service>
+|Structure:pkg/filex:{close_once.go,iface,local,filelock,transfer}
+|Where to look:streaming copy:pkg/filex/transfer/copy.go:CopyStream|native dispatch and copy policy remain in FileGroup.Copy implementations
 |Where to look:ownership contracts:pkg/filex/iface/iface.go:{FileGroup.Store,FileContent.Content}
 |Where to look:close-once wrappers:pkg/filex/close_once.go:{OnceReadCloser,OnceReadWriteCloser}
 |Where to look:local stream acquisition:pkg/filex/local/local_file.go:LocalFile.Content

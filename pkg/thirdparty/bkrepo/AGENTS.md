@@ -5,7 +5,7 @@
 |Scope:pkg/thirdparty/bkrepo
 |Overview:BKRepo client, file group and scenario-oriented adapter|keep protocol requests and response mapping inside this package
 |Where to look:client and requests:bkrepo.go|handler operations:handler.go|file metadata/content:file.go|group methods:file_group.go|wire types:types.go|headers:header.go
-|Copy:FileGroup.Copy uses CopyNode for two BKRepo groups only with the same Handler, project and repository|other supported backends use pkg/internal/filetransfer stream copy
+|Copy:FileGroup.Copy uses CopyNode for two BKRepo groups only with the same Handler, project and repository|other supported backends use pkg/filex/transfer.CopyStream stream copy
 |Paths:directoryPath reuses resolveNodePath for group-relative slash paths; reject empty, absolute, backslash, NUL and escaping paths|native CopyNode keeps resolveNodePath behavior|source must name a node; destination may be "." for group root
 |Directories:GetSubGroup(".") queries live state|EnsureSubGroup queries the target first and creates parents only for errNodeNotFound; propagate other errors|Handler.EnsureFileGroup requeries once after mkdir failure and accepts only an existing directory
 |Errors:IsDir/GetSubGroup join fs.ErrNotExist with errNodeNotFound so callers can match either|UploadFile checks business response failure before returning data

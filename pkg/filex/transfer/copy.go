@@ -16,9 +16,9 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package filetransfer implements streaming copy for file group backends.
-// Backend Copy methods select this implementation after handling native pairs.
-package filetransfer
+// Package transfer provides low-level streaming copy for file group backends.
+// Business callers use FileGroup.Copy so backends can apply native copy policy.
+package transfer
 
 import (
 	"errors"
@@ -31,10 +31,11 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
 
-// Copy streams a node between backends using group-relative slash paths.
-// Callers must handle native pairs and tenant copy policy before invoking it.
+// CopyStream streams a node between backends using group-relative slash paths.
+// Callers must handle native dispatch, source/target identity and directory overlap,
+// and tenant policy before invoking it. Business callers use FileGroup.Copy.
 // Partial destination writes are not rolled back.
-func Copy(ctx contextx.IContext, src fileiface.FileGroup, srcPath string, dest fileiface.FileGroup, destPath string, overwrite bool) error {
+func CopyStream(ctx contextx.IContext, src fileiface.FileGroup, srcPath string, dest fileiface.FileGroup, destPath string, overwrite bool) error {
 	if ctx == nil {
 		return errors.New("context cannot be nil")
 	}

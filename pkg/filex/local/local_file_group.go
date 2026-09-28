@@ -31,7 +31,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/internal/filetransfer"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/transfer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/spf13/afero"
 )
@@ -106,11 +106,11 @@ func (group *LocalDir) SubGroups(_ contextx.IContext) ([]fileiface.FileGroup, er
 }
 
 // IsDir reports whether the group-relative node is a directory.
-func (group *LocalDir) IsDir(ctx contextx.IContext, name string) (bool, error) {
+func (group *LocalDir) IsDir(ctx contextx.IContext, relativePath string) (bool, error) {
 	if ctx == nil {
 		return false, errors.New("context cannot be nil")
 	}
-	fullPath, err := group.resolveDirectoryPath(name)
+	fullPath, err := group.resolveDirectoryPath(relativePath)
 	if err != nil {
 		return false, err
 	}
@@ -123,11 +123,11 @@ func (group *LocalDir) IsDir(ctx contextx.IContext, name string) (bool, error) {
 }
 
 // GetSubGroup returns an existing group-relative directory.
-func (group *LocalDir) GetSubGroup(ctx contextx.IContext, name string) (fileiface.FileGroup, error) {
+func (group *LocalDir) GetSubGroup(ctx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
 	if ctx == nil {
 		return nil, errors.New("context cannot be nil")
 	}
-	fullPath, err := group.resolveDirectoryPath(name)
+	fullPath, err := group.resolveDirectoryPath(relativePath)
 	if err != nil {
 		return nil, err
 	}
@@ -144,11 +144,11 @@ func (group *LocalDir) GetSubGroup(ctx contextx.IContext, name string) (fileifac
 }
 
 // EnsureSubGroup creates a group-relative directory and its missing parents.
-func (group *LocalDir) EnsureSubGroup(ctx contextx.IContext, name string) (fileiface.FileGroup, error) {
+func (group *LocalDir) EnsureSubGroup(ctx contextx.IContext, relativePath string) (fileiface.FileGroup, error) {
 	if ctx == nil {
 		return nil, errors.New("context cannot be nil")
 	}
-	fullPath, err := group.resolveDirectoryPath(name)
+	fullPath, err := group.resolveDirectoryPath(relativePath)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func (group *LocalDir) Copy(nCtx contextx.IContext, srcPath string, destGroup fi
 
 	destLocalDir, ok := destGroup.(*LocalDir)
 	if !ok {
-		return filetransfer.Copy(nCtx, group, srcPath, destGroup, destPath, overwrite)
+		return transfer.CopyStream(nCtx, group, srcPath, destGroup, destPath, overwrite)
 	}
 	if destLocalDir == nil {
 		return errors.New("destination file group cannot be nil")
@@ -617,14 +617,14 @@ func resolveTargetPath(targetPath string) (string, error) {
 }
 
 // Path checks assume no concurrent changes to the directory tree.
-func (group *LocalDir) resolveDirectoryPath(name string) (string, error) {
+func (group *LocalDir) resolveDirectoryPath(relativePath string) (string, error) {
 	if group == nil {
 		return "", errors.New("file group cannot be nil")
 	}
-	if name == "" || strings.HasPrefix(name, "/") || strings.ContainsAny(name, "\\\x00") {
-		return "", fmt.Errorf("path must be a relative slash path, path(%s)", name)
+	if relativePath == "" || strings.HasPrefix(relativePath, "/") || strings.ContainsAny(relativePath, "\\\x00") {
+		return "", fmt.Errorf("path must be a relative slash path, path(%s)", relativePath)
 	}
-	cleaned := path.Clean(name)
+	cleaned := path.Clean(relativePath)
 	fullPath, err := group.resolveDestinationPath(filepath.FromSlash(cleaned))
 	if err != nil {
 		return "", err
