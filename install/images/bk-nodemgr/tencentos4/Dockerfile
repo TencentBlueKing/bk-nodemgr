@@ -39,14 +39,36 @@ RUN set -eux; \
     command -v etcdctl >/dev/null 2>&1; \
     ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime || true
 
-# Install mongosh and keep the mongo command used by Helm init containers and ops scripts.
-RUN dnf -y install nodejs npm && \
-    npm install --global --no-audit --no-fund mongosh@2.12.0 && \
-    ln -s "$(command -v mongosh)" /usr/bin/mongo && \
-    npm cache clean --force && \
-    dnf -y --setopt=clean_requirements_on_remove=False remove npm && \
-    dnf -y clean all && \
-    rm -rf /var/cache/dnf && \
+# Install MongoDB Shell from the official tarball and keep the mongo command
+# used by Helm init containers and ops scripts.
+ARG MONGOSH_VERSION=2.12.0
+
+RUN set -eux; \
+    mongosh_arch=""; \
+    mongosh_sha256=""; \
+    case "$(uname -m)" in \
+        x86_64|amd64) \
+            mongosh_arch="x64"; \
+            mongosh_sha256="aa42cb826b7b8e655c5481293f5365ddaf1a23e43af07520326e5bbc957838ad"; \
+            ;; \
+        aarch64|arm64) \
+            mongosh_arch="arm64"; \
+            mongosh_sha256="99f8d38d41c510e7d4c685b71022ea1db113245968d5d933b5333fb3835e64ae"; \
+            ;; \
+        *) echo "unsupported uname -m=$(uname -m)" >&2; exit 1 ;; \
+    esac; \
+    dnf -y install tar gzip; \
+    mongosh_url="https://downloads.mongodb.com/compass/mongosh-${MONGOSH_VERSION}-linux-${mongosh_arch}.tgz"; \
+    curl -fsSL "${mongosh_url}" -o /tmp/mongosh.tgz; \
+    echo "${mongosh_sha256}  /tmp/mongosh.tgz" | sha256sum -c -; \
+    mkdir -p /opt/mongosh; \
+    tar -xzf /tmp/mongosh.tgz -C /opt/mongosh --strip-components=1; \
+    ln -sf /opt/mongosh/bin/mongosh /usr/bin/mongosh; \
+    ln -sf /opt/mongosh/bin/mongosh /usr/bin/mongo; \
+    rm -f /tmp/mongosh.tgz; \
+    dnf -y clean all; \
+    rm -rf /var/cache/dnf; \
+    mongosh --version; \
     mongo --version
 
 RUN pip3 install requests PyYAML
