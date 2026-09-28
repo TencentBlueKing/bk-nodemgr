@@ -20,7 +20,7 @@ RUN pnpm build --mode ${MODE}
 FROM alpine:3.24
 
 # install dependencies.
-RUN apk add bash curl jq yq-go vim busybox-extras redis etcd-ctl tzdata
+RUN apk add --no-cache bash curl jq yq-go vim busybox-extras redis etcd-ctl tzdata
 
 # set timezone.
 ENV TZ Asia/Shanghai
@@ -33,7 +33,7 @@ RUN apk add --no-cache nodejs npm && \
     npm cache clean --force && \
     apk del npm && \
     mongo --version
-RUN apk add py3-requests py3-yaml
+RUN apk add --no-cache py3-requests py3-yaml
 
 RUN mkdir -p \
     /bk-nodemgr/bin \
@@ -42,6 +42,7 @@ RUN mkdir -p \
     /bk-nodemgr/log \
     /bk-nodemgr/script \
     /bk-nodemgr/static \
+    /bk-nodemgr/workspace \
     /bk-nodemgr/bkiam/v3 \
     /bk-nodemgr/bkiam/v4 \
     /bk-nodemgr/file/tools \

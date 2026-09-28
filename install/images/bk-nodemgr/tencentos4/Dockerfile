@@ -65,6 +65,7 @@ RUN mkdir -p \
     /bk-nodemgr/log \
     /bk-nodemgr/script \
     /bk-nodemgr/static \
+    /bk-nodemgr/workspace \
     /bk-nodemgr/bkiam/v3 \
     /bk-nodemgr/bkiam/v4 \
     /bk-nodemgr/file/tools \
