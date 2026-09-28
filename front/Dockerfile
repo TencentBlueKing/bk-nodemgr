@@ -8,6 +8,7 @@ WORKDIR /app
 RUN corepack enable
 
 COPY .npmrc package.json pnpm-lock.yaml ./
+COPY scripts/ ./scripts/
 # 显式把 store 指到 cache mount（pnpm 9 默认 store 在 ~/.local/share/pnpm/store，
 # 不配置的话下面的 cache mount 不会命中，等于每次全量下载依赖）
 RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
