@@ -179,12 +179,20 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
   plugin: [
     { action: 'plugin_view', resource_type: 'biz' },
     { action: 'plugin_operate', resource_type: 'biz' },
+    // 插件进程侧栏 / 插件安装的 ip-selector 依赖 agent_view/proxy_view 计算 node_role 过滤，
+    // 必须随页面级 items 一并加载，否则 authorizedLoaded 已置 true 时兜底不会触发，导致 Proxy 主机被误过滤
+    { action: 'agent_view', resource_type: 'biz' },
+    { action: 'proxy_view', resource_type: 'biz' },
   ],
   pluginOperate: [
     { action: 'plugin_operate', resource_type: 'biz' },
+    { action: 'agent_view', resource_type: 'biz' },
+    { action: 'proxy_view', resource_type: 'biz' },
   ],
   createPluginOperation: [
     { action: 'plugin_operate', resource_type: 'biz' },
+    { action: 'agent_view', resource_type: 'biz' },
+    { action: 'proxy_view', resource_type: 'biz' },
   ],
   assignUnit: [
     { action: 'networkunit_use_for_agent', resource_type: 'networkunit' },

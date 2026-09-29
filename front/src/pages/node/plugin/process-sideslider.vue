@@ -1100,7 +1100,9 @@ watch(
   async () => {
     if (isShow.value) {
       // 先加载权限数据，确保 resolveNodeRoleFilter 能正确判断 node_role
-      if (!authStore.authorizedLoaded) {
+      // 注意：不能用全局 authorizedLoaded 判断（进入插件页后 plugin_view/plugin_operate 已置其为 true），
+      // 而应按 agent_view/proxy_view 是否已加载来补拉，避免缺失时被误判为无权限
+      if (!authStore.authorizedMap.agent_view || !authStore.authorizedMap.proxy_view) {
         await authStore.fetchAuthorized(
           [
             { action: 'agent_view', resource_type: 'biz' },
