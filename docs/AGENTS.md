@@ -29,6 +29,7 @@ docs/
 - Keep docs task-oriented and anchored to concrete paths/commands.
 - When API contracts change, update docs alongside proto/router changes.
 - Prefer concise checklists/tables for multi-step workflows.
+- Write docs from the target reader's task/decision perspective: preserve reader-needed facts, links, limits, risks, and actions; keep author process, draft status, evidence gaps, and unnecessary internal details out of the final docs body; do not remove key evidence just to make the page shorter or template-shaped.
 
 ## ANTI-PATTERNS
 

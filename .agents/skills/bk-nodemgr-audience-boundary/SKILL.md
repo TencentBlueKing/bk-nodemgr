@@ -1,13 +1,19 @@
 ---
 name: bk-nodemgr-audience-boundary
-description: Use when writing or reviewing bk-nodemgr reader-facing project docs, including support-files/changelog release notes, apigw/apidocs API references, docs/ guides, and human-facing READMEs, especially when verification notes or pending release checks might leak into the document. Use with the relevant project writing skill.
+description: Use when writing or reviewing bk-nodemgr reader-facing artifacts, including docs, Issues, PRs, changelogs, API references, release notes, and human-facing READMEs, especially when process notes, draft status, missing evidence, or implementation assumptions might leak into the artifact.
 ---
 
 # bk-nodemgr Audience Boundary
 
 ## Scope
 
-Separate reader-facing information from author-facing checks in bk-nodemgr documents with intended human readers. Use the general `audience-boundary` skill when available; the rules below also stand alone when it is not installed. This skill does not replace `changelog-doc`, `api-doc`, `readme-logic-first`, or their document formats. Do not turn temporary agent status into permanent documentation.
+Use this skill for bk-nodemgr artifacts with intended human readers. It defines project-specific readers, source anchors, and handoff boundaries; it does not replace `changelog-doc`, `api-doc`, `readme-logic-first`, Issue/PR templates, or their document formats. Do not use it to turn temporary agent status into permanent documentation.
+
+## Reader-Facing Artifact Gate
+
+Before drafting or revising a reader-facing artifact, identify the final reader, the decision or action they need to take, and the target artifact format. Preserve facts, links, limits, risks, compatibility boundaries, and validation expectations that the reader needs. Remove author process, low-signal framing, draft or unfinished status, evidence gaps, and unrequested implementation plans from the artifact body; report them separately to the author when needed. Do not drop key evidence merely to make the content shorter or more template-shaped.
+
+When the user asks for a problem handoff or Issue, describe the problem facts, impact, risk boundary, and decision points instead of assuming a solution. If the user asks for a solution plan, keep the plan scoped to what the reader needs to decide or execute.
 
 ## Route By Reader
 
@@ -17,6 +23,8 @@ Separate reader-facing information from author-facing checks in bk-nodemgr docum
 | `apigw/apidocs/{zh,en}/`                                          | How to call an API safely                 | URL, permission, request/response semantics, supported version, asynchronous workflow meaning                               | Proto/handler cross-checks, uncertain introduction version, missing field evidence, review requests                 |
 | `docs/operation/`                                                 | How to deploy and operate                 | Confirmed deployment prerequisites, procedures, failure and rollback implications                                           | Local test output, draft status, deployment verification still to perform                                           |
 | `docs/concepts/`, `docs/api/`, `docs/developer/`, other `docs/**` | How the system works or is integrated     | Stable domain behavior and constraints for that area's audience                                                             | Source-reading notes, hypotheses, documentation progress                                                            |
+| GitHub Issues                                                     | Whether and how to triage or take over    | Problem facts, impact, affected dependency/component, source links, risk boundary, decision points, acceptance expectations | Agent handoff process, generic workflow advice, unsupported implementation plan                                     |
+| GitHub PRs                                                        | Whether and how to review or merge        | User-visible change, risk, validation, compatibility, reviewer focus                                                        | Local drafting history, unrelated investigation notes, unresolved checks not ready for review                       |
 | Human-facing `README.md`                                          | What this component does and how to start | Stable entrypoint and usage rules                                                                                           | Agent instructions, implementation diary, unfinished task list                                                      |
 
 Use `bk-nodemgr-agent-information-architecture` to choose a destination when ownership is unclear. Determine the audience from the destination and nearby examples; ask only if ambiguity changes which facts belong. Read applicable `AGENTS.md` and the narrow writing skill for the target path.

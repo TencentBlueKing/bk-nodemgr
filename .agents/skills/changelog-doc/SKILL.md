@@ -41,7 +41,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 - **changelog 是概要，不是详细变更说明**。用户应该点击 `Full Changelog` compare 链接查看详细内容
 - 先写“影响和动作”，再写“变化内容”
 - 先基于证据归纳，再输出面向用户的结论
-- 使用 `bk-nodemgr-audience-boundary` 区分读者正文与编写者核实事项；若已安装通用 `audience-boundary`，可一并使用
+- 使用 `bk-nodemgr-audience-boundary` 区分读者正文与编写者核实事项
 - **证据语言只用于内部判断，最终 changelog 必须是正式发布说明语气**：不要把“当前证据 / 无已知 / No known / current evidence / does not show / identified”这类审查口吻写进正文
 - 结构固定，章节可删减，但不要自由改写顺序
 - 宁可向编写者报告缺口并暂缓正式交付，也不要编造版本号、日期、tag、兼容性；不要把核验事项写进读者正文
