@@ -189,7 +189,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { usePermissionStore } from '@/stores/permission';
 import { useTopoStore } from '@/stores/topo';
-import { getModuleAuthorizedItems } from '@/constants/auth';
+import { getPageAuthorizedItems } from '@/constants/auth';
 import { useWorkareaStore } from '@/stores/workarea';
 
 const { t } = useI18n();
@@ -209,9 +209,9 @@ const noAreaPermission = ref(false);
 
 /** 检查是否有任何区域的查看权限 */
 async function checkAreaPermission() {
-  // 确保 topoManager 模块的 authorized items 已加载
-  const topoItems = getModuleAuthorizedItems('topoManager');
-  await authStore.fetchAuthorized(topoItems, 'topoManager');
+  // networkarea_view / networkunit_view 按页面 items 兜底加载
+  const pageItems = getPageAuthorizedItems('topo');
+  await authStore.fetchAuthorized(pageItems, 'page:topo');
 
   // 如果 fetchAuthorized 被锁跳过了（其他地方正在请求），等待加载完成
   if (authStore.authorizedLoading) {

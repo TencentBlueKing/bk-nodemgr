@@ -4,7 +4,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 
 import { cancelRequest } from '@/api/request-queue';
 import {
-  getModuleAuthorizedItems,
+  getPageAuthorizedItems,
   handleDeferredBizAuthCheck,
   matchPageAuth,
   PAGE_AUTH_CONFIG,
@@ -412,10 +412,10 @@ export const install: UserModule = ({ app }) => {
       // 包管理：进入或刷新时只拉 authorized，不主动触发 verify/403 跳转
       // 无权限时由 pkg/index.vue 渲染 NoPermission 占位页，用户点击"申请"再触发 verify 弹窗
       if (to.meta?.mainMenu === 'pkgManager') {
-        const moduleName = 'pkgManager';
-        const moduleItems = getModuleAuthorizedItems(moduleName);
-        if (moduleItems.length && !authStore.authorizedMap['package_view']) {
-          await authStore.fetchAuthorized(moduleItems, moduleName);
+        const pageName = typeof to.name === 'string' ? to.name : '';
+        const pageItems = getPageAuthorizedItems(pageName);
+        if (pageItems.length && !authStore.authorizedMap['package_view']) {
+          await authStore.fetchAuthorized(pageItems, `page:${pageName}`);
         }
       }
 

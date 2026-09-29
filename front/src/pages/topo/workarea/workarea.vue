@@ -97,7 +97,7 @@ import type {
   TopoNetworkUnitCreateDefaultMultiResp,
 } from '@/@types/topo';
 import useAuthLock from '@/composables/use-auth-lock';
-import { getModuleAuthorizedItems } from '@/constants/auth';
+import { getPageAuthorizedItems } from '@/constants/auth';
 import { useAuthStore } from '@/stores/auth';
 import type { INetWorkArea } from '@/stores/workarea';
 import { useWorkareaStore } from '@/stores/workarea';
@@ -310,10 +310,10 @@ watch(() => workareaStore.workareaList, () =>  {
   tableData.value = workareaStore.workareaList;
 }, { deep: true });
 onMounted(async () => {
-  // 确保 topoManager 模块权限数据已加载（statistics 接口依赖 authorized 判断有权限的区域）
-  const topoItems = getModuleAuthorizedItems('topoManager');
+  // networkarea_view 等 view 权限按页面 items 兜底加载（App.vue 已按需加载，内容级去重避免重复）
+  const pageItems = getPageAuthorizedItems('workarea');
   await Promise.all([
-    authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {}),
+    authStore.fetchAuthorized(pageItems, 'page:workarea').catch(() => {}),
     authStore.batchVerify(
       [{ id: 'networkarea_create', action: 'networkarea_create', resourceType: '', routes: [] }],
       undefined,

@@ -526,16 +526,8 @@ onBeforeMount(async () => {
   setShortcutIcon(platformConfig.favicon);
 
   await getBusinessList();
-  // 首次加载当前路由模块的 authorized items
-  // 注：若 route.meta.mainMenu 未就绪则不兜底加载，等 watch(route.meta.mainMenu) 触发时再加载，避免重复请求
-  const currentModule = route.meta?.mainMenu ? String(route.meta.mainMenu) : '';
-  if (currentModule) {
-    const moduleItems = getModuleAuthorizedItems(currentModule);
-    if (moduleItems.length) {
-      await authStore.fetchAuthorized(moduleItems, currentModule);
-    }
-  }
-  // 模块 view 类加载完成后，再按需加载当前菜单页的 operate 类 action，保证「view → operate」的请求顺序
+  // 首次进入：加载当前菜单页所需的 authorized items（view + operate 合并，均在页面级配置）
+  // 注：若 route.name 未就绪则不兜底加载，等 watch(route.name)/watch(route.meta.mainMenu) 触发时再加载
   const currentName = typeof route.name === 'string' ? route.name : '';
   if (currentName) {
     const pageItems = getPageAuthorizedItems(currentName);
@@ -575,19 +567,15 @@ watch(
   },
   async (moduleName) => {
     if (!moduleName) return;
-    // biz 类模块首次切入时同时加载 bizSelector
+    // biz 类模块首次切入时同时加载 bizSelector（biz_access 全局共享）
     if (['nodeManager', 'ruleManager'].includes(moduleName)) {
       const bizItems = getModuleAuthorizedItems('bizSelector');
       if (bizItems.length) {
         await authStore.fetchAuthorized(bizItems, 'bizSelector');
       }
     }
-    const moduleItems = getModuleAuthorizedItems(moduleName);
-    if (moduleItems.length) {
-      await authStore.fetchAuthorized(moduleItems, moduleName);
-    }
-    // 模块 view 类加载完成后，串行加载当前菜单页的 operate 类 action，严格保证「view → operate」顺序
-    // 403/404 页面无对应菜单页 operate items，跳过
+    // 加载当前菜单页所需的 authorized items（view + operate 合并，均在页面级配置）
+    // 403/404 页面无对应菜单页 items，跳过
     if (route.name === '403' || route.name === '404') return;
     const currentName = typeof route.name === 'string' ? route.name : '';
     if (currentName) {

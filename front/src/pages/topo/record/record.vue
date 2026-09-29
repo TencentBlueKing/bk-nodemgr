@@ -99,7 +99,7 @@ import { Table, TableColumn } from '@blueking/table';
 import type { TopoEventExactConditions, TopoEventFuzzyConditions } from '@/@types/topo';
 import { formatTimestamp, getTimeStamp } from '@/common/util';
 import NoPermission from '@/components/no-permission.vue';
-import { getModuleAuthorizedItems } from '@/constants/auth';
+import { getPageAuthorizedItems } from '@/constants/auth';
 import type { PageAuthItem } from '@/constants/auth';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
@@ -320,9 +320,9 @@ watch([exactData, fuzzyData, operateTime], () => {
 });
 
 onMounted(async () => {
-  // 确保 topoManager 模块权限数据已加载（刷新直接访问时可能未加载）
-  const topoItems = getModuleAuthorizedItems('topoManager');
-  await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
+  // networkarea_history_view 按页面 items 兜底加载
+  const pageItems = getPageAuthorizedItems('record');
+  await authStore.fetchAuthorized(pageItems, 'page:record').catch(() => {});
   // 拉取全部管控区域：搜索下拉数据源 + 无权限时申请查看权限所需的资源实例列表
   await handleFetchAllWorkarea().catch(() => {});
   if (hasViewAuth.value) fetchRecordList();

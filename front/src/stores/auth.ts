@@ -94,7 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const resp = await fetch.post<{ items: AuthVerifyItem[] }, AuthVerifyResp>('/api/v3/auth/verify')(
         { items },
-        { interceptorErr: false, validateCode: false, needRes: true, ...options },
+        { irrevocable: true, interceptorErr: false, validateCode: false, needRes: true, ...options },
       ) as unknown as AuthVerifyResp;
 
       // 过期响应：期间已发起更新的 verify（如任务历史切 tab），本次结果直接丢弃
@@ -245,6 +245,9 @@ export const useAuthStore = defineStore('auth', () => {
     // 如果指定了模块且已加载过（成功或失败都算），跳过
     if (!options.force && moduleName && (loadedModules.has(moduleName) || failedModules.has(moduleName))) return;
 
+    // 内容级去重：所需 action 都已有授权数据时跳过，避免内容相同的兄弟页面重复请求
+    if (!options.force && items && items.length > 0 && items.every(item => authorizedMap[item.action] !== undefined)) return;
+
     // 用 moduleName 或 items 的 action 列表作为 key，相同 key 的请求共享 Promise
     const requestKey = moduleName || (items || []).map(i => i.action).sort().join(',') || '_default';
 
@@ -270,7 +273,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await AuthService.Authorized({
         items: items || [],
-      });
+      }, { irrevocable: true }); // 权限数据全局共享，不随路由切换取消（如任务历史 setup 的二次 replace 会触发 cancelRequest）
 
       const results: AuthorizedResult[] = (res as any)?.results || [];
       for (const r of results) {

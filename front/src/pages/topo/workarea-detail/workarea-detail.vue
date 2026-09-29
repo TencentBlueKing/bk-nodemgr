@@ -159,7 +159,7 @@ import { usePermissionStore } from '@/stores/permission';
 import { useWorkareaStore } from '@/stores/workarea';
 import { TopoService } from '@/api/modules/topo';
 import useAuthLock from '@/composables/use-auth-lock';
-import { getModuleAuthorizedItems } from '@/constants/auth';
+import { getPageAuthorizedItems } from '@/constants/auth';
 
 const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
@@ -508,9 +508,9 @@ const checkDeleteDisabled = async () => {
 };
 
 onMounted(async () => {
-  // 确保 topoManager 模块权限数据已加载（页面刷新直接访问时可能未加载）
-  const topoItems = getModuleAuthorizedItems('topoManager');
-  await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
+  // networkunit_view 等 view 权限按页面 items 兜底加载
+  const pageItems = getPageAuthorizedItems('workareaDetail');
+  await authStore.fetchAuthorized(pageItems, 'page:workareaDetail').catch(() => {});
   // 单独请求安装 Proxy 权限（networkunit_use_for_proxy）
   authStore.fetchAuthorized([
     { action: 'networkunit_use_for_proxy', resource_type: 'networkunit' },
