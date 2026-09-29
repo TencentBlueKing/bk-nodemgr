@@ -26,6 +26,7 @@ ARCHES := amd64 arm64 arm
 UPX_ENABLED ?=
 UPX_LEVEL   ?= 9
 UPX_ARGS    ?= -$(UPX_LEVEL)
+UPX_SUPPORTED_PLATFORMS := linux/amd64 linux/arm64 linux/arm windows/amd64
 
 # fixed go version.
 GO = CGO_ENABLED=0 go1.20.14
@@ -76,7 +77,7 @@ platform-builds: | pre
 					-o "$$binary" $(MAIN_PATH) && \
 				$(ECHO) "Built: $$binary" && \
 				if [ "$(UPX_ENABLED)" ]; then \
-					$(MAKE) compress-binary BINARY=$$binary; \
+					$(MAKE) compress-binary BINARY=$$binary PLATFORM=$(os)/$(arch); \
 				fi || exit 1; \
 			fi; \
 		)\
@@ -98,7 +99,7 @@ build-matrix: | pre
 	@$(ECHO) "Built: $$binary"
 
 	@if [ "$(UPX_ENABLED)" ]; then \
-		$(MAKE) compress-binary BINARY="$(OUTPUT_DIR)/$(APP_NAME)_$(GOOS)_$(GOARCH)$(if $(filter windows,$(GOOS)),.exe,)"; \
+		$(MAKE) compress-binary BINARY="$(OUTPUT_DIR)/$(APP_NAME)_$(GOOS)_$(GOARCH)$(if $(filter windows,$(GOOS)),.exe,)" PLATFORM=$(GOOS)/$(GOARCH); \
 	fi
 
 # 运行测试
@@ -183,6 +184,10 @@ compress-binary:
 		exit 1; \
 	fi
 	@if [ -n "$(UPX_ENABLED)" ]; then \
+		if [ -n "$(PLATFORM)" ] && ! echo " $(UPX_SUPPORTED_PLATFORMS) " | grep -q " $(PLATFORM) "; then \
+			$(ECHO) "Skipping UPX compression for unsupported platform $(PLATFORM)"; \
+			exit 0; \
+		fi; \
 		$(ECHO) "Compressing $(BINARY) with UPX..."; \
 		upx $(UPX_ARGS) "$(BINARY)"; \
 		$(ECHO) "Compression complete"; \
