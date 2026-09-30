@@ -73,6 +73,7 @@ func (h *handler) DetectInfoBySSH(nCtx contextx.IContext, payload []byte) {
 
 		return
 	}
+	defer func() { _ = client.Close() }()
 	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("try to connect to host")
 
 	osType, cpuArch, connectedDir, err = detectInfoBySSH(client)

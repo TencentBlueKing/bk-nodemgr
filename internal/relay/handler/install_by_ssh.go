@@ -68,6 +68,7 @@ func (h *handler) InstallPagentBySSH(nCtx contextx.IContext, payload []byte) {
 
 		return
 	}
+	defer func() { _ = client.Close() }()
 	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("connect to host successfully")
 
 	// ensure the workspace dir
