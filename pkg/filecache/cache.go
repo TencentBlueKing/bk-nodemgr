@@ -71,6 +71,7 @@ type fileCache struct {
 	baseDir        string
 	expirationTime time.Duration
 	maxSizeBytes   int64
+	nCtx           contextx.IContext
 
 	// indexMu protects the index map (held briefly for reads/writes).
 	indexMu sync.RWMutex
@@ -127,6 +128,7 @@ func New(nCtx contextx.IContext, baseDir string, opts Options) (IFileCache, erro
 		baseDir:        baseDir,
 		expirationTime: expiration,
 		maxSizeBytes:   opts.MaxSizeMB * bytesPerMB,
+		nCtx:           nCtx,
 		index:          make(map[string]*cachedEntry),
 		stopCh:         make(chan struct{}),
 		doneCh:         make(chan struct{}),
@@ -244,7 +246,7 @@ func (fc *fileCache) lookupIndex(filename, expectedMD5 string) (fileiface.File, 
 }
 
 func (fc *fileCache) entryAvailable(filename string, entry *cachedEntry) bool {
-	content, err := entry.file.Content(nil)
+	content, err := entry.file.Content(fc.nCtx)
 	if err != nil {
 		fc.indexMu.Lock()
 		if current, ok := fc.index[filename]; ok && current == entry {
