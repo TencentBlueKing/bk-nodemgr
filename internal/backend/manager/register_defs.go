@@ -21,7 +21,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg"
@@ -226,17 +225,7 @@ func (mgr *Manager) registerDefSyncData() error {
 
 // registerDefDeployPolicy registers the definitions for deploy policy.
 func (mgr *Manager) registerDefDeployPolicy() error {
-	dpMgr := dpmgr.NewHandler(&dpmgr.Config{
-		DaoProcess:              mgr.conf.StoragePlugin,
-		DaoProcessConfig:        mgr.conf.StoragePlugin,
-		DaoPlugin:               mgr.conf.StoragePlugin,
-		DaoHost:                 mgr.conf.StorageTopo,
-		DomainDeployPolicyMgr:   mgr.conf.StorageDeployPolicy,
-		DaoDeployPolicyWorkflow: mgr.conf.StorageDeployPolicy,
-		CmdbHandler:             mgr.conf.CmdbHandler,
-		NodeManager:             mgr,
-		PluginManager:           mgr,
-	})
+	dpMgr := mgr.newDeployPolicyHandler()
 
 	deployPolicyCap := &deploypolicy.Capability{
 		DPMgr:               dpMgr,

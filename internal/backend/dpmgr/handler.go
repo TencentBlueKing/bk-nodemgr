@@ -118,37 +118,14 @@ func (h *Handler) Do(nCtx contextx.IContext, execution ExecutionParam,
 		return err
 	}
 
-	originDeployWorkUnits := make([]*DeployUnit, len(relatedDeployPolicies))
-
-	// 2. convert scope to Targets and spec
-	for idx, deployPolicy := range relatedDeployPolicies {
-		targets, err := h.calculator.Calculate(nCtx, deployPolicy.Scopes...)
-		if err != nil {
-			return fmt.Errorf("failed to calculate targets for policy, deploy-policy(%v): %w", deployPolicy, err)
-		}
-
-		originDeployWorkUnits[idx] = &DeployUnit{
-			DeployPolicyID: deployPolicy.DeployPolicyID,
-			LifeCycle:      deployPolicy.LifeCycle,
-			Targets:        targets,
-			Specs:          deployPolicy.Specs,
-		}
-	}
-
-	// 3. resolve the conflict of work units.
-	unConflictDeployWorkUnits, err := h.conflictResolver.ResolveConflict(originDeployWorkUnits)
+	// 2-4. Calculate targets, resolve conflicts and analyze changes.
+	calculation, err := h.calculateChanges(nCtx, relatedDeployPolicies)
 	if err != nil {
-		return fmt.Errorf("failed to resolve conflict: %w", err)
-	}
-
-	// 4. analyze the work units and design the change tasks.
-	changeTasks, err := h.analyzer.Analyze(nCtx, unConflictDeployWorkUnits...)
-	if err != nil {
-		return fmt.Errorf("failed to analyze work units: %w", err)
+		return err
 	}
 
 	// 5. executor and execute the change tasks.
-	if err := h.executor.Execute(nCtx, execution, changeTasks...); err != nil {
+	if err := h.executor.Execute(nCtx, execution, calculation.changeTasks...); err != nil {
 		return fmt.Errorf("failed to execute change tasks: %w", err)
 	}
 
