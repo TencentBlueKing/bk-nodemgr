@@ -308,6 +308,75 @@ func TestFileExists(t *testing.T) {
 	}
 }
 
+func TestGetOrFetch_DropsStaleIndexWhenDiskFileMissing(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	nCtx := testCtx()
+
+	fc, err := filecache.New(nCtx, baseDir, filecache.Options{})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = fc.Close() }()
+
+	content := "stale content"
+	md5val := md5sum(content)
+	filename := "stale.tgz"
+
+	var fetchCalled int64
+	fetchFn := func(_ contextx.IContext) (io.ReadCloser, error) {
+		atomic.AddInt64(&fetchCalled, 1)
+
+		return io.NopCloser(strings.NewReader(content)), nil
+	}
+
+	if _, _, err = fc.GetOrFetch(nCtx, filename, md5val, fetchFn); err != nil {
+		t.Fatalf("GetOrFetch: %v", err)
+	}
+
+	if err = os.RemoveAll(baseDir); err != nil {
+		t.Fatalf("RemoveAll: %v", err)
+	}
+
+	if fc.FileExists(filename, md5val) {
+		t.Fatal("expected FileExists to drop stale index after backing file is removed")
+	}
+
+	if _, _, err = fc.GetOrFetch(nCtx, filename, md5val, fetchFn); err != nil {
+		t.Fatalf("GetOrFetch after FileExists stale miss: %v", err)
+	}
+
+	if err = os.RemoveAll(baseDir); err != nil {
+		t.Fatalf("RemoveAll after refetch: %v", err)
+	}
+
+	if _, _, ok := fc.GetFile(filename); ok {
+		t.Fatal("expected GetFile to drop stale index after backing file is removed")
+	}
+
+	if _, _, err = fc.GetOrFetch(nCtx, filename, md5val, fetchFn); err != nil {
+		t.Fatalf("GetOrFetch after GetFile stale miss: %v", err)
+	}
+
+	if err = os.RemoveAll(baseDir); err != nil {
+		t.Fatalf("RemoveAll after second refetch: %v", err)
+	}
+
+	if _, _, err = fc.GetOrFetch(nCtx, filename, md5val, fetchFn); err != nil {
+		t.Fatalf("GetOrFetch after stale lookup: %v", err)
+	}
+
+	if atomic.LoadInt64(&fetchCalled) != 4 {
+		t.Fatalf("expected stale index to force each refetch, got %d calls", atomic.LoadInt64(&fetchCalled))
+	}
+
+	if !fc.FileExists(filename, md5val) {
+		t.Fatal("expected FileExists=true after final refetch")
+	}
+}
+
 func TestRestore(t *testing.T) {
 	t.Parallel()
 

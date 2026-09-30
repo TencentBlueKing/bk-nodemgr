@@ -206,6 +206,10 @@ func (fc *fileCache) GetFile(filename string) (fileiface.File, string, bool) {
 		return nil, "", false
 	}
 
+	if !fc.entryAvailable(filename, entry) {
+		return nil, "", false
+	}
+
 	entry.updateLastAccess()
 
 	return entry.file, entry.dirPath, true
@@ -230,9 +234,35 @@ func (fc *fileCache) lookupIndex(filename, expectedMD5 string) (fileiface.File, 
 		return nil, "", false
 	}
 
+	if !fc.entryAvailable(filename, entry) {
+		return nil, "", false
+	}
+
 	entry.updateLastAccess()
 
 	return entry.file, entry.dirPath, true
+}
+
+func (fc *fileCache) entryAvailable(filename string, entry *cachedEntry) bool {
+	content, err := entry.file.Content(nil)
+	if err != nil {
+		fc.indexMu.Lock()
+		if current, ok := fc.index[filename]; ok && current == entry {
+			delete(fc.index, filename)
+			fc.dlMu.Delete(filename)
+		}
+		fc.indexMu.Unlock()
+
+		logger.G.Sys().WithErr(err).
+			With("filename", filename, "dir", entry.dirPath, "md5", entry.md5).
+			Warn("file cache entry missing from disk, dropping stale index")
+
+		return false
+	}
+
+	_ = content.Close()
+
+	return true
 }
 
 // getOrCreateDLMutex returns the per-filename download mutex, creating it if absent.
