@@ -291,7 +291,7 @@ func TestFileExists(t *testing.T) {
 	content := "exists content"
 	md5val := md5sum(content)
 
-	if fc.FileExists("test.tgz", md5val) {
+	if fc.FileExists(nCtx, "test.tgz", md5val) {
 		t.Error("expected FileExists=false before caching")
 	}
 
@@ -299,11 +299,11 @@ func TestFileExists(t *testing.T) {
 		t.Fatalf("GetOrFetch: %v", err)
 	}
 
-	if !fc.FileExists("test.tgz", md5val) {
+	if !fc.FileExists(nCtx, "test.tgz", md5val) {
 		t.Error("expected FileExists=true after caching")
 	}
 
-	if fc.FileExists("test.tgz", strings.Repeat("b", 32)) {
+	if fc.FileExists(nCtx, "test.tgz", strings.Repeat("b", 32)) {
 		t.Error("expected FileExists=false for wrong MD5")
 	}
 }
@@ -340,7 +340,7 @@ func TestGetOrFetch_DropsStaleIndexWhenDiskFileMissing(t *testing.T) {
 		t.Fatalf("RemoveAll: %v", err)
 	}
 
-	if fc.FileExists(filename, md5val) {
+	if fc.FileExists(nCtx, filename, md5val) {
 		t.Fatal("expected FileExists to drop stale index after backing file is removed")
 	}
 
@@ -352,7 +352,7 @@ func TestGetOrFetch_DropsStaleIndexWhenDiskFileMissing(t *testing.T) {
 		t.Fatalf("RemoveAll after refetch: %v", err)
 	}
 
-	if _, _, ok := fc.GetFile(filename); ok {
+	if _, _, ok := fc.GetFile(nCtx, filename); ok {
 		t.Fatal("expected GetFile to drop stale index after backing file is removed")
 	}
 
@@ -372,7 +372,7 @@ func TestGetOrFetch_DropsStaleIndexWhenDiskFileMissing(t *testing.T) {
 		t.Fatalf("expected stale index to force each refetch, got %d calls", atomic.LoadInt64(&fetchCalled))
 	}
 
-	if !fc.FileExists(filename, md5val) {
+	if !fc.FileExists(nCtx, filename, md5val) {
 		t.Fatal("expected FileExists=true after final refetch")
 	}
 }
@@ -522,11 +522,11 @@ func TestEvictBySize_RemovesLeastRecentlyUsed(t *testing.T) {
 		t.Fatalf("GetOrFetch(new): %v", err)
 	}
 
-	if fc.FileExists("old.tgz", oldMD5) {
+	if fc.FileExists(nCtx, "old.tgz", oldMD5) {
 		t.Error("expected the least recently used entry to be evicted, but it is still cached")
 	}
 
-	if !fc.FileExists("new.tgz", newMD5) {
+	if !fc.FileExists(nCtx, "new.tgz", newMD5) {
 		t.Error("expected the most recently stored entry to survive eviction")
 	}
 
@@ -559,7 +559,7 @@ func TestEvictBySize_UnlimitedByDefault(t *testing.T) {
 		t.Fatalf("GetOrFetch(second): %v", err)
 	}
 
-	if !fc.FileExists("first.tgz", firstMD5) || !fc.FileExists("second.tgz", secondMD5) {
+	if !fc.FileExists(nCtx, "first.tgz", firstMD5) || !fc.FileExists(nCtx, "second.tgz", secondMD5) {
 		t.Error("expected no eviction when MaxSizeMB is 0")
 	}
 }
@@ -580,7 +580,7 @@ func TestGetFile(t *testing.T) {
 	content := "get file content"
 	md5val := md5sum(content)
 
-	if _, _, ok := fc.GetFile("absent.tgz"); ok {
+	if _, _, ok := fc.GetFile(nCtx, "absent.tgz"); ok {
 		t.Error("expected GetFile to report a miss for an uncached filename")
 	}
 
@@ -589,7 +589,7 @@ func TestGetFile(t *testing.T) {
 		t.Fatalf("GetOrFetch: %v", err)
 	}
 
-	file, gotDir, ok := fc.GetFile("present.tgz")
+	file, gotDir, ok := fc.GetFile(nCtx, "present.tgz")
 	if !ok {
 		t.Fatal("expected GetFile to report a hit for a cached filename")
 	}
@@ -627,7 +627,7 @@ func TestGetFile_RefreshesEvictionOrder(t *testing.T) {
 
 		if i == 2 {
 			// Refresh a.tgz so b.tgz becomes the least recently used entry.
-			if _, _, ok := fc.GetFile(names[0]); !ok {
+			if _, _, ok := fc.GetFile(nCtx, names[0]); !ok {
 				t.Fatalf("expected %s to still be cached before the evicting store", names[0])
 			}
 
@@ -641,15 +641,15 @@ func TestGetFile_RefreshesEvictionOrder(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	if !fc.FileExists(names[0], md5s[0]) {
+	if !fc.FileExists(nCtx, names[0], md5s[0]) {
 		t.Errorf("expected %s to survive: GetFile should have refreshed its access time", names[0])
 	}
 
-	if fc.FileExists(names[1], md5s[1]) {
+	if fc.FileExists(nCtx, names[1], md5s[1]) {
 		t.Errorf("expected %s to be evicted as the least recently used entry", names[1])
 	}
 
-	if !fc.FileExists(names[2], md5s[2]) {
+	if !fc.FileExists(nCtx, names[2], md5s[2]) {
 		t.Errorf("expected %s to survive as the newest entry", names[2])
 	}
 }
@@ -695,17 +695,17 @@ func TestRestore_SkipsNonMD5Dirs(t *testing.T) {
 
 	defer func() { _ = fc.Close() }()
 
-	if !fc.FileExists("keep.tgz", md5val) {
+	if !fc.FileExists(nCtx, "keep.tgz", md5val) {
 		t.Error("expected the MD5-named dir to be restored into the index")
 	}
 
-	if _, _, ok := fc.GetFile("stale.tgz"); ok {
+	if _, _, ok := fc.GetFile(nCtx, "stale.tgz"); ok {
 		t.Error("expected the non-MD5 dir to be skipped during restore")
 	}
 
 	waitForDirGone(t, staleDir)
 
-	if !fc.FileExists("keep.tgz", md5val) {
+	if !fc.FileExists(nCtx, "keep.tgz", md5val) {
 		t.Error("expected the valid entry to survive the orphan scan")
 	}
 }
@@ -742,7 +742,7 @@ func TestConcurrentGetOrFetch_WithEviction(t *testing.T) {
 				t.Errorf("GetOrFetch(%s): %v", name, fetchErr)
 			}
 
-			fc.GetFile(name)
+			fc.GetFile(nCtx, name)
 		}(i)
 	}
 

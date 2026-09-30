@@ -107,8 +107,8 @@ func (fm *fileManagerImpl) StoreFile(
 
 // GetFile returns the cached file indexed under filename.
 // Only MD5-validated content is indexed, so a hit is always a complete package.
-func (fm *fileManagerImpl) GetFile(_ contextx.IContext, filename string) (fileiface.File, error) {
-	file, _, ok := fm.cache.GetFile(filename)
+func (fm *fileManagerImpl) GetFile(nCtx contextx.IContext, filename string) (fileiface.File, error) {
+	file, _, ok := fm.cache.GetFile(nCtx, filename)
 	if !ok {
 		return nil, fmt.Errorf("file not found. filename(%s)", filename)
 	}
@@ -117,8 +117,8 @@ func (fm *fileManagerImpl) GetFile(_ contextx.IContext, filename string) (fileif
 }
 
 // FileExists reports whether the cache already holds this exact content.
-func (fm *fileManagerImpl) FileExists(_ contextx.IContext, filename, md5 string) bool {
-	return fm.cache.FileExists(filename, md5)
+func (fm *fileManagerImpl) FileExists(nCtx contextx.IContext, filename, md5 string) bool {
+	return fm.cache.FileExists(nCtx, filename, md5)
 }
 
 // Close stops the background reclaim goroutine.
