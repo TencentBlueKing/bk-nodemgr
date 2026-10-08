@@ -44,6 +44,9 @@ type ChangeTask struct {
 	Spec           *types.DeploySpec
 	Target         *types.Target
 	ConfigSource   *types.Target
+
+	// specIndex is the zero-based index in the original policy, even when Spec is rewritten.
+	specIndex int
 }
 
 // ChangeAction defines the change action.
