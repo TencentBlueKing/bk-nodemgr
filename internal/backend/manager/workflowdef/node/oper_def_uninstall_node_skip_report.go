@@ -51,6 +51,7 @@ func (oper *operUninstallNodeSkipReport) ActionDefNames() []string {
 		ActionNameTransferPkgToNode,
 		ActionNameUninstallNodeSkipReport,
 		ActionNameWaitGseNotAlive,
+		ActionNameUnbindAgentHostRel,
 		ActionNameResetNodeDynamic,
 		ActionNameUpdateHost,
 	}
@@ -66,6 +67,7 @@ func (oper *operUninstallNodeSkipReport) DefaultParameters() operation.Param {
 			ActionNameTransferPkgToNode:            true,
 			ActionNameUninstallNodeSkipReport:      true,
 			ActionNameWaitGseNotAlive:              false,
+			ActionNameUnbindAgentHostRel:           true,
 			ActionNameResetNodeDynamic:             true,
 			ActionNameUpdateHost:                   true,
 		},
