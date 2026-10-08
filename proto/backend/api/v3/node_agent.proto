@@ -215,6 +215,7 @@ message NodeAgentRestartResp {
 message NodeAgentUninstallReq {
   message Host { int64 bk_host_id = 1; }
   repeated Host host = 1;
+  bool unbind_agent_id = 2;
 }
 
 // NodeAgentUninstallResp describes the node agent uninstall response.

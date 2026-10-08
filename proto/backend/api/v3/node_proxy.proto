@@ -111,6 +111,7 @@ message NodeProxyReconfigResp {
 message NodeProxyUninstallReq {
   message Host { int64 bk_host_id = 1; }
   repeated Host host = 1;
+  bool unbind_agent_id = 2;
 }
 
 // NodeProxyUninstallResp describes the node proxy uninstall response.

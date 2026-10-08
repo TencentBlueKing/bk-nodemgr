@@ -963,6 +963,9 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeAgentUninstallReqHost"
           }
+        },
+        "unbind_agent_id": {
+          "type": "boolean"
         }
       },
       "description": "NodeAgentUninstallReq describes the node agent uninstall request."

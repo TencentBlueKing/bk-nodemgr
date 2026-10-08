@@ -130,7 +130,8 @@ type NodeProxyUninstallHost struct {
 
 // NodeProxyUninstallParam describes the node proxy uninstall parameter.
 type NodeProxyUninstallParam struct {
-	Hosts []*NodeProxyUninstallHost
+	Hosts         []*NodeProxyUninstallHost
+	UnbindAgentID bool
 }
 
 // NodeProxyInstallCheckParam describes the node proxy install check param.
