@@ -29,7 +29,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -144,40 +143,24 @@ func (act *actionUnbindAgentHostRel) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	agentID := std.DeployInfo().Host.Dynamic.AgentID
-	cmdbHost, dbHost := buildUnbindAgentHostRelHosts(std.DeployInfo().Host)
-
-	gp := gopool.NewPool()
-	gp.Go(func() error {
-		if err := act.UnbindHostAgent(std.Context(), &cmdbHost); err != nil {
-			return err
-		}
-
-		logger.G.Sys().Ctx(std.Context()).
-			With("host-id", cmdbHost.HostID, "agent-id", agentID).
-			Info("successfully unbind host agent relation from cmdb")
-
-		return nil
-	})
-
-	gp.Go(func() error {
-		if err := act.storageHost.UpdateHostDynamicFields(
-			std.Context(), types.HostDynamicFields{AgentID: true}, &dbHost,
-		); err != nil {
-			return err
-		}
-
-		logger.G.Sys().Ctx(std.Context()).
-			With("host-id", dbHost.HostID, "agent-id", agentID).
-			Info("successfully unbind host agent relation from db")
-
-		return nil
-	})
-
-	if err = gp.Wait(); err != nil {
+	if err := act.UnbindHostAgent(std.Context(), &std.DeployInfo().Host); err != nil {
 		return fmt.Errorf("unbind host agent relation failed: %w", err)
 	}
+	logger.G.Sys().Ctx(std.Context()).
+		With("host-id", std.DeployInfo().Host.HostID, "agent-id", agentID).
+		Info("successfully unbind host agent relation from cmdb")
 
 	std.DeployInfo().Host.Dynamic.AgentID = ""
+	if err := act.storageHost.UpdateHostDynamicFields(
+		std.Context(), types.HostDynamicFields{AgentID: true}, &std.DeployInfo().Host,
+	); err != nil {
+		std.DeployInfo().Host.Dynamic.AgentID = agentID
+		return fmt.Errorf("unbind host agent relation failed: %w", err)
+	}
+	logger.G.Sys().Ctx(std.Context()).
+		With("host-id", std.DeployInfo().Host.HostID, "agent-id", agentID).
+		Info("successfully unbind host agent relation from db")
+
 	std.InstanceData().Log().
 		Zh("解除主机与Agent关联成功, 主机ID(%d), agent-id(%s)", std.DeployInfo().Host.HostID, agentID).
 		En("successfully unbind host agent relation, host-id(%d), agent-id(%s)", std.DeployInfo().Host.HostID, agentID).
@@ -201,17 +184,4 @@ func (act *actionUnbindAgentHostRel) checkHostExist(nCtx contextx.IContext, info
 	}
 
 	return nil
-}
-
-func buildUnbindAgentHostRelHosts(host types.Host) (types.Host, types.Host) {
-	cmdbHost := host
-	cmdbDynamic := *host.Dynamic
-	cmdbHost.Dynamic = &cmdbDynamic
-
-	dbHost := host
-	dbDynamic := *host.Dynamic
-	dbDynamic.AgentID = ""
-	dbHost.Dynamic = &dbDynamic
-
-	return cmdbHost, dbHost
 }
