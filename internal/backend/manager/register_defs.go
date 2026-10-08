@@ -114,6 +114,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionWaitGseNotAlive(nodeCap),
 		node.NewActionTryReuseAgentID(nodeCap),
 		node.NewActionBindAgentHostRel(nodeCap),
+		node.NewActionUnbindAgentHostRel(nodeCap),
 		node.NewActionInstallNodeBySSH(nodeCap),
 		node.NewActionInstallProxyBySSH(nodeCap),
 		node.NewActionInstallNodeByWMI(nodeCap),

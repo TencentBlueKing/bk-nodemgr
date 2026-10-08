@@ -77,6 +77,7 @@ type Info struct {
 	UpgradeOptions           UpgradeOptions   `json:"upgrade_options" bson:"upgrade_options"`
 	ReconfigOptions          ReconfigOptions  `json:"reconfig_options" bson:"reconfig_options"`
 	RestartOptions           RestartOptions   `json:"restart_options" bson:"restart_options"`
+	UninstallOptions         UninstallOptions `json:"uninstall_options" bson:"uninstall_options"`
 	TransferOptions          TransferOptions  `json:"transfer_options" bson:"transfer_options"`
 	CurrentVersionSupports   VersionSupports  `json:"current_version_supports" bson:"current_version_supports"`
 	TargetVersion            []TargetVersion  `json:"target_version" bson:"target_version"`
@@ -137,6 +138,13 @@ type ReconfigOptions struct {
 type RestartOptions struct {
 	ForceRestart           bool          `json:"force_restart" bson:"force_restart"`
 	GracefulRestartTimeout time.Duration `json:"graceful_restart_timeout" bson:"graceful_restart_timeout"`
+}
+
+// UninstallOptions this is the options for node uninstall.
+type UninstallOptions struct {
+	DirectLink    bool `json:"direct_link" bson:"direct_link"`
+	SkipReport    bool `json:"skip_report" bson:"skip_report"`
+	UnbindAgentID bool `json:"unbind_agent_id" bson:"unbind_agent_id"`
 }
 
 // TransferOptions this is the options for node transfer.

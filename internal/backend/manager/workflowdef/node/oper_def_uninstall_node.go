@@ -57,6 +57,7 @@ func (oper *operUninstallNode) ActionDefNames() []string {
 		ActionNameTransferPkgToNode,
 		ActionNameUninstallNode,
 		ActionNameWaitInstallerComplete,
+		ActionNameUnbindAgentHostRel,
 		ActionNameResetNodeDynamic,
 		ActionNameUpdateHost,
 	}
@@ -72,6 +73,7 @@ func (oper *operUninstallNode) DefaultParameters() operation.Param {
 			ActionNameTransferPkgToNode:            true,
 			ActionNameUninstallNode:                true,
 			ActionNameWaitInstallerComplete:        false,
+			ActionNameUnbindAgentHostRel:           true,
 			ActionNameResetNodeDynamic:             true,
 			ActionNameUpdateHost:                   true,
 		},

@@ -1028,6 +1028,9 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeProxyUninstallReqHost"
           }
+        },
+        "unbind_agent_id": {
+          "type": "boolean"
         }
       },
       "description": "NodeProxyUninstallReq describes the node proxy uninstall request."

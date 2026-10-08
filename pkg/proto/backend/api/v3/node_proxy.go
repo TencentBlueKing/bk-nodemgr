@@ -576,6 +576,7 @@ func (x *NodeProxyUninstallReq) ConvertParamFromTypes(restartParam *types.NodePr
 	}
 
 	x.Host = hostsParam
+	x.UnbindAgentId = restartParam.UnbindAgentID
 }
 
 // ConvertWorkflowID convert workflow id.
