@@ -21,6 +21,7 @@ package pkg
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -86,4 +87,32 @@ func (s *Storage) getPackageExportWorkflowByTriggerID(nCtx contextx.IContext, tr
 	}
 
 	return workflows[0], nil
+}
+
+func (s *Storage) updatePackageWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PackageWorkflowStatus) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if workflowID == "" {
+		return errors.New("workflow id should not be empty")
+	}
+
+	if err := status.Validate(); err != nil {
+		return fmt.Errorf("invalid workflow status: %w", err)
+	}
+
+	if err := s.daoPackageWorkflow.UpdateStatus(nCtx, workflowID, status); err != nil {
+		return fmt.Errorf("failed to update package workflow status: %w", err)
+	}
+
+	if status == types.PackageWorkflowStatusRunning {
+		return nil
+	}
+
+	if err := s.daoPackageWorkflow.UpdateFinishTime(nCtx, workflowID, time.Now()); err != nil {
+		return fmt.Errorf("failed to update package workflow finish time: %w", err)
+	}
+
+	return nil
 }

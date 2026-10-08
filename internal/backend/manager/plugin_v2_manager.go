@@ -60,6 +60,25 @@ func (mgr *Manager) LaunchPluginEnsurePluginV2(
 		return "", err
 	}
 
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StoragePlugin.UpdatePluginWorkflowStatus(nCtx, workflowID, types.PluginWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark plugin workflow as failed after launch failure")
+		}
+	}()
+
 	gp := gopool.NewPool()
 	for _, pluginDeploy := range param.PluginDeployments {
 		deploy := pluginDeploy
@@ -76,6 +95,8 @@ func (mgr *Manager) LaunchPluginEnsurePluginV2(
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
+
+	needRollback = false
 
 	return workflowID, nil
 }
@@ -155,6 +176,25 @@ func (mgr *Manager) LaunchUninstallPluginV2(nCtx contextx.IContext, param types.
 		return "", err
 	}
 
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StoragePlugin.UpdatePluginWorkflowStatus(nCtx, workflowID, types.PluginWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark plugin workflow as failed after launch failure")
+		}
+	}()
+
 	gp := gopool.NewPool()
 	for _, pluginDeploy := range param.PluginDeployments {
 		deploy := pluginDeploy
@@ -171,6 +211,8 @@ func (mgr *Manager) LaunchUninstallPluginV2(nCtx contextx.IContext, param types.
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
+
+	needRollback = false
 
 	return workflowID, nil
 }
@@ -247,6 +289,25 @@ func (mgr *Manager) LaunchStopPluginV2(nCtx contextx.IContext, param types.StopP
 		return "", err
 	}
 
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StoragePlugin.UpdatePluginWorkflowStatus(nCtx, workflowID, types.PluginWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark plugin workflow as failed after launch failure")
+		}
+	}()
+
 	gp := gopool.NewPool()
 	for _, pluginDeploy := range param.PluginDeployments {
 		deploy := pluginDeploy
@@ -263,6 +324,8 @@ func (mgr *Manager) LaunchStopPluginV2(nCtx contextx.IContext, param types.StopP
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
+
+	needRollback = false
 
 	return workflowID, nil
 }

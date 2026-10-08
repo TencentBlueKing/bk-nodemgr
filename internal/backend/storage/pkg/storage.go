@@ -48,9 +48,10 @@ const (
 	packageWorkflowRecentMonitoredTime       = 5 * time.Minute
 	packageWorkflowMissingOperationGraceTime = 1 * time.Minute
 
-	metricOperationCreatePackageWorkflow    = "create_package_workflow"
-	metricOperationGetPackageWorkflow       = "get_package_workflow"
-	metricOperationGetPackageExportWorkflow = "get_package_export_workflow"
+	metricOperationCreatePackageWorkflow       = "create_package_workflow"
+	metricOperationGetPackageWorkflow          = "get_package_workflow"
+	metricOperationGetPackageExportWorkflow    = "get_package_export_workflow"
+	metricOperationUpdatePackageWorkflowStatus = "update_package_workflow_status"
 
 	metricOperationCreatePackageDeployment  = "create_pkg_deployment"
 	metricOperationListPackageDeployment    = "list_pkg_deployment"
@@ -419,6 +420,13 @@ func (s *Storage) GetPackageWorkflow(nCtx contextx.IContext, workflowID string) 
 	})
 
 	return workflow, err
+}
+
+// UpdatePackageWorkflowStatus updates the status of a package workflow.
+func (s *Storage) UpdatePackageWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PackageWorkflowStatus) error {
+	return s.WrapFn(nCtx, metricOperationUpdatePackageWorkflowStatus, func(ctx contextx.IContext) error {
+		return s.updatePackageWorkflowStatus(ctx, workflowID, status)
+	})
 }
 
 // GetPackageExportWorkflowByTriggerID gets the unique export workflow by trigger ID.
