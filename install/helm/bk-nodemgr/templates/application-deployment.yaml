@@ -186,9 +186,9 @@ spec:
             while [ ${ret} -ne 0 ]
             do
                 {{- if .Values.mongodb.enabled }}
-                ${mongobin} {{ template "bk-nodemgr.fullname" . }}-mongodb-headless:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.database }} -u {{ .Values.mongodb.auth.username }} -p {{ .Values.mongodb.auth.password }} --eval "db.runCommand({ping: 1})"
+                ${mongobin} mongodb://{{ template "bk-nodemgr.fullname" . }}-mongodb-headless:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.database }} -u {{ .Values.mongodb.auth.username }} -p {{ .Values.mongodb.auth.password }} --eval "db.runCommand({ping: 1})"
                 {{- else }}
-                ${mongobin} {{ join "," .Values.externalMongodb.hosts }}/{{ .Values.externalMongodb.database }} --authenticationDatabase {{ .Values.externalMongodb.authSource }} -u {{ .Values.externalMongodb.username }} -p {{ .Values.externalMongodb.password }} --eval "db.runCommand({ping: 1})"
+                ${mongobin} mongodb://{{ join "," .Values.externalMongodb.hosts }}/{{ .Values.externalMongodb.database }} --authenticationDatabase {{ .Values.externalMongodb.authSource }} -u {{ .Values.externalMongodb.username }} -p {{ .Values.externalMongodb.password }} --eval "db.runCommand({ping: 1})"
                 {{- end }}
 
                 ret=$?
