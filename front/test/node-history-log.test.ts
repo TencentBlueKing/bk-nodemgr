@@ -100,6 +100,20 @@ vi.mock('bkui-vue', () => {
     },
   });
 
+  const Checkbox = defineComponent({
+    name: 'Checkbox',
+    props: {
+      modelValue: { type: Boolean, default: false },
+    },
+    emits: ['change', 'update:modelValue'],
+    setup(_, { attrs, slots }) {
+      return () => h('label', {
+        ...attrs,
+        'data-test': 'checkbox',
+      }, slots.default?.());
+    },
+  });
+
   const Dropdown = defineComponent({
     name: 'Dropdown',
     setup(_, { slots }) {
@@ -130,6 +144,7 @@ vi.mock('bkui-vue', () => {
 
   return {
     Button,
+    Checkbox,
     Dropdown: Object.assign(Dropdown, { DropdownMenu, DropdownItem }),
     InfoBox: vi.fn(),
     Input: defineComponent({
@@ -152,7 +167,7 @@ vi.mock('bkui-vue', () => {
       },
     }),
   };
-}, { virtual: true });
+});
 
 vi.mock('bkui-vue/lib/icon', () => {
   const icon = (name: string) => defineComponent({
@@ -171,7 +186,7 @@ vi.mock('bkui-vue/lib/icon', () => {
     RightShape: icon('RightShape'),
     Spinner: icon('Spinner'),
   };
-}, { virtual: true });
+});
 
 vi.mock('@blueking/table', () => {
   const TableColumn = defineComponent({
@@ -210,7 +225,7 @@ vi.mock('@blueking/table', () => {
   });
 
   return { Table, TableColumn };
-}, { virtual: true });
+});
 
 const messages = {
   'zh-CN': {

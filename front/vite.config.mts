@@ -38,9 +38,12 @@ export default ({ mode }: { mode: string }) => {
 
     // 路径别名
     resolve: {
-      alias: {
-        '@/': `${path.resolve(__dirname, 'src')}/`,
-      },
+      alias: [
+        { find: /^@\//, replacement: `${path.resolve(__dirname, 'src')}/` },
+        // bkui-vue 未声明 main/exports（仅老式 module 字段），vite/vitest 按严格条件
+        // 解析根入口会失败，显式指向构建产物；子路径（如 lib/icon）不受影响
+        { find: /^bkui-vue$/, replacement: path.resolve(__dirname, 'node_modules/bkui-vue/lib/index.js') },
+      ],
     },
 
     plugins: [
