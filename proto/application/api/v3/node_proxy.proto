@@ -70,7 +70,10 @@ message NodeProxyUpgradeHost {
 }
 
 // NodeProxyUpgradeReq describes the node proxy upgrade request.
-message NodeProxyUpgradeReq { repeated NodeProxyUpgradeHost host = 1; }
+message NodeProxyUpgradeReq {
+  repeated NodeProxyUpgradeHost host = 1;
+  repeated TargetVersion target_version = 2;
+}
 
 // NodeProxyUpgradeResp describes the node proxy upgrade response.
 message NodeProxyUpgradeResp {
@@ -146,7 +149,10 @@ message NodeProxyUpdateHost {
 message NodeProxyUninstallHost { int64 bk_host_id = 1; }
 
 // NodeProxyUninstallReq describes the node proxy uninstall request.
-message NodeProxyUninstallReq { repeated NodeProxyUninstallHost host = 1; }
+message NodeProxyUninstallReq {
+  repeated NodeProxyUninstallHost host = 1;
+  bool unbind_agent_id = 2;
+}
 
 // NodeProxyUninstallResp describes the node proxy uninstall response.
 message NodeProxyUninstallResp {

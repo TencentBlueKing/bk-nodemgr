@@ -448,6 +448,7 @@ func (x *NodeAgentUninstallReq) ConvertParamFromTypes(restartParam *types.NodeAg
 	}
 
 	x.Host = hostsParam
+	x.UnbindAgentId = restartParam.UnbindAgentID
 }
 
 // ConvertWorkflowID convert workflow id.
