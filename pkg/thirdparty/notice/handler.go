@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -103,13 +104,22 @@ func (h *Handler) initScheduler() {
 
 // registerAppTask is the periodic task function for registering the application.
 func (h *Handler) registerAppTask(nCtx contextx.IContext) error {
-	registration, err := h.registerApplication(nCtx)
+	tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 	if err != nil {
-		logger.G.Sys().WithErr(err).Warn("failed to register notice app")
+		logger.G.Sys().WithErr(err).Warn("failed to list enabled tenants for notice app registration")
 		return nil // Don't return error, allow retry next time
 	}
 
-	logger.G.Sys().With("app-id", registration.ID).Info("registered notice app")
+	for _, tenantID := range tenantIDs {
+		newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
+		registration, err := h.registerApplication(newCtx)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to register notice app")
+			continue
+		}
+
+		logger.G.Sys().With("tenant-id", tenantID, "app-id", registration.ID).Info("registered notice app")
+	}
 
 	return nil
 }
