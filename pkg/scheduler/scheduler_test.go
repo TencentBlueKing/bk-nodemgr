@@ -28,7 +28,7 @@ import (
 
 // TestScheduler tests the scheduler.
 func TestScheduler(t *testing.T) {
-	s := NewScheduler(WithLogger())
+	s := NewScheduler()
 
 	cnt := 0
 	s.RegisterTask(NewTask(
