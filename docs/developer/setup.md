@@ -138,6 +138,90 @@ upx --version
 make tools   # 默认启用 UPX_ENABLED=1
 ```
 
+### GitHub SSH commit signing（可选）
+
+项目不强制开发者开启 commit signing。需要在多台开发机上稳定使用 GitHub Verified commit 时，推荐使用 bk-nodemgr 专用 SSH signing key，并只写入当前仓库的 local Git 配置。
+
+该方式不会占用默认的 `~/.ssh/id_ed25519`，默认使用：
+
+```bash
+~/.ssh/id_ed25519_bk_nodemgr_signing
+```
+
+> GitHub 的 SSH signing key 是账号级资源，不能在 GitHub 侧限制到单个仓库。这里的项目专用命名和 local Git 配置用于本地隔离，并方便后续按 title 吊销指定机器的 key。
+
+在 bk-nodemgr 仓库根目录执行：
+
+```bash
+set -euo pipefail
+
+KEY_PATH="${GIT_SIGNING_KEY_PATH:-${HOME}/.ssh/id_ed25519_bk_nodemgr_signing}"
+KEY_TITLE="${GIT_SIGNING_KEY_TITLE:-bk-nodemgr-$(hostname)-git-signing}"
+
+if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+  echo "请在 bk-nodemgr 仓库内执行"
+  exit 1
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+if [ "$(basename "${REPO_ROOT}")" != "bk-nodemgr" ]; then
+  echo "当前仓库不是 bk-nodemgr：${REPO_ROOT}"
+  exit 1
+fi
+
+if ! gh auth status >/dev/null 2>&1; then
+  echo "gh 未登录，先执行：gh auth login"
+  exit 1
+fi
+
+mkdir -p "${HOME}/.ssh"
+chmod 700 "${HOME}/.ssh"
+
+if [ ! -f "${KEY_PATH}" ]; then
+  EMAIL="$(gh api user --jq .email)"
+  if [ -z "${EMAIL}" ] || [ "${EMAIL}" = "null" ]; then
+    EMAIL="$(gh api user --jq .login)@users.noreply.github.com"
+  fi
+
+  ssh-keygen -t ed25519 -C "${EMAIL}" -f "${KEY_PATH}" -N ""
+  chmod 600 "${KEY_PATH}"
+  chmod 644 "${KEY_PATH}.pub"
+fi
+
+gh ssh-key add "${KEY_PATH}.pub" --type signing --title "${KEY_TITLE}" || true
+
+git config --local gpg.format ssh
+git config --local user.signingkey "${KEY_PATH}.pub"
+git config --local commit.gpgsign true
+git config --local tag.gpgSign true
+```
+
+验证配置：
+
+```bash
+git config --local --get user.signingkey
+git config --local --get gpg.format
+git commit --allow-empty -m "test signed commit"
+git log --show-signature -1
+```
+
+如需覆盖默认 key 路径或 GitHub key title，在执行上述脚本前设置环境变量：
+
+```bash
+export GIT_SIGNING_KEY_PATH="${HOME}/.ssh/work_bk_nodemgr_signing"
+export GIT_SIGNING_KEY_TITLE="bk-nodemgr-workstation-git-signing"
+```
+
+回滚当前仓库配置：
+
+```bash
+git config --local --unset user.signingkey
+git config --local --unset gpg.format
+git config --local --unset commit.gpgsign
+git config --local --unset tag.gpgSign
+```
+
 ## LSP 服务器
 
 用于 Vibe Coding 等 IDE 的语言服务器安装。
