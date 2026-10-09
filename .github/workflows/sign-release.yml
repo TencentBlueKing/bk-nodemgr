@@ -1,0 +1,41 @@
+name: Sign Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  sign-source:
+    name: Sign source archive
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download source archive
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          curl -fsSL \
+            -o "bk-nodemgr-${TAG_NAME}.tar.gz" \
+            "https://github.com/${REPOSITORY}/archive/refs/tags/${TAG_NAME}.tar.gz"
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Sign source archive
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gpg --detach-sign --armor "bk-nodemgr-${TAG_NAME}.tar.gz"
+
+      - name: Upload signature
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bk-nodemgr-${{ github.event.release.tag_name }}.tar.gz.asc
