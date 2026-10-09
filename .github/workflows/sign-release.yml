@@ -10,7 +10,7 @@ permissions:
 jobs:
   sign-source:
     name: Sign source archive
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Download source archive
         env:
