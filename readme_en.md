@@ -1,5 +1,7 @@
 ![](docs/img/logo_en.png)
 
+> Please note: This version is the upgraded Node Management V3, which is currently still in development and is expected to be released in November 2026. Stay tuned.
+
 ---
 
 [![license](https://img.shields.io/badge/license-mit-brightgreen.svg?style=flat)](https://github.com/Tencent/bk-nodemgr/blob/master/LICENSE)

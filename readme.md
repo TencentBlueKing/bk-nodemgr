@@ -1,5 +1,8 @@
 ![](docs/img/logo_zh.png)
 
+
+> 温馨提示：该版本是升级后的节点管理 V3，目前还在研发中，预计在2026年11月发布，敬请期待。
+
 ---
 
 [![license](https://img.shields.io/badge/license-mit-brightgreen.svg?style=flat)](https://github.com/Tencent/bk-nodemgr/blob/master/LICENSE)
