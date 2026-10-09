@@ -37,6 +37,9 @@ var (
 )
 
 const (
+	// BKRepo's node detail API actually returns 251010 for missing nodes, unlike
+	// the documented "resource not found" code 250108. Keep the actual API code.
+	// See https://github.com/TencentBlueKing/bk-nodemgr/issues/3575.
 	errNumNodeNotFound = 251010
 )
 
