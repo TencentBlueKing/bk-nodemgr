@@ -45,6 +45,25 @@ func (mgr *Manager) LaunchPackageImportPluginV3Pkg(nCtx contextx.IContext, param
 		return "", err
 	}
 
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StoragePackage.UpdatePackageWorkflowStatus(nCtx, workflowID, types.PackageWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark package workflow as failed after launch failure")
+		}
+	}()
+
 	gp := gopool.NewPool()
 	for _, pkgDeploy := range param.PackageDeployments {
 		deploy := pkgDeploy
@@ -61,6 +80,8 @@ func (mgr *Manager) LaunchPackageImportPluginV3Pkg(nCtx contextx.IContext, param
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
+
+	needRollback = false
 
 	return workflowID, nil
 }

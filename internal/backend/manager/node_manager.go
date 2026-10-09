@@ -61,6 +61,25 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 		return "", err
 	}
 
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(nCtx, workflowID, types.NodeWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark node workflow as failed after launch failure")
+		}
+	}()
+
 	gp := gopool.NewPool()
 	for _, nodeDeploy := range param.NodeDeployments {
 		deploy := nodeDeploy
@@ -77,6 +96,8 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
+
+	needRollback = false
 
 	return workflowID, nil
 }
@@ -451,6 +472,25 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 		return "", err
 	}
 
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(nCtx, workflowID, types.NodeWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark node workflow as failed after launch failure")
+		}
+	}()
+
 	logger.G.Biz(nCtx).
 		With("trigger-id", triggerCtl.GetTriggerID(), "node-deployments", len(param.NodeDeployments)).
 		Info("launching upgrade node task")
@@ -500,6 +540,8 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
+
+	needRollback = false
 
 	return workflowID, nil
 }
@@ -566,6 +608,25 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.Recon
 		return "", err
 	}
 
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(nCtx, workflowID, types.NodeWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark node workflow as failed after launch failure")
+		}
+	}()
+
 	logger.G.Biz(nCtx).
 		With("trigger-id", triggerCtl.GetTriggerID(), "node-deployments", len(param.NodeDeployments)).
 		Info("launching reconfig node")
@@ -615,6 +676,8 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.Recon
 		return "", err
 	}
 
+	needRollback = false
+
 	return workflowID, nil
 }
 
@@ -642,6 +705,25 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.Restar
 	}); err != nil {
 		return "", err
 	}
+
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(nCtx, workflowID, types.NodeWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark node workflow as failed after launch failure")
+		}
+	}()
 
 	logger.G.Biz(nCtx).
 		With("trigger-id", triggerCtl.GetTriggerID(), "node-deployments", len(param.NodeDeployments)).
@@ -695,6 +777,8 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.Restar
 		return "", err
 	}
 
+	needRollback = false
+
 	return workflowID, nil
 }
 
@@ -723,6 +807,25 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	}); err != nil {
 		return "", err
 	}
+
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(nCtx, workflowID, types.NodeWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark node workflow as failed after launch failure")
+		}
+	}()
 
 	logger.G.Biz(nCtx).
 		With("trigger-id", triggerCtl.GetTriggerID(), "node-deployments", len(param.NodeDeployments)).
@@ -773,6 +876,8 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 		return "", err
 	}
 
+	needRollback = false
+
 	return workflowID, nil
 }
 
@@ -800,6 +905,25 @@ func (mgr *Manager) LaunchAssignProxyUnit(nCtx contextx.IContext, param types.As
 	}); err != nil {
 		return "", err
 	}
+
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(nCtx, workflowID, types.NodeWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark node workflow as failed after launch failure")
+		}
+	}()
 
 	logger.G.Biz(nCtx).
 		With("trigger-id", triggerCtl.GetTriggerID(), "node-deployments", len(param.NodeDeployments)).
@@ -855,6 +979,8 @@ func (mgr *Manager) LaunchAssignProxyUnit(nCtx contextx.IContext, param types.As
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
+
+	needRollback = false
 
 	return workflowID, nil
 }

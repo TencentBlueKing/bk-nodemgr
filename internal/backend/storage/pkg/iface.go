@@ -62,6 +62,9 @@ type IStoragePackageWorkflow interface {
 
 	// GetPackageExportWorkflowByTriggerID gets the unique export workflow by trigger ID.
 	GetPackageExportWorkflowByTriggerID(nCtx contextx.IContext, triggerID string) (*types.PackageWorkflow, error)
+
+	// UpdatePackageWorkflowStatus updates the status of a package workflow.
+	UpdatePackageWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PackageWorkflowStatus) error
 }
 
 // IStoragePackageDeployment defines the interface of package deployment storage.
