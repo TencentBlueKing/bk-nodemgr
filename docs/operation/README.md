@@ -10,6 +10,10 @@
 
 安装部署手册，包括依赖要求、Helm部署配置、各服务模块的配置说明等。
 
+### [release_verification](release_verification.md)
+
+Release 源码包 GPG signature 验证方法，包括 public key、fingerprint 和验证命令。
+
 ### [adminclient](adminclient/README.md)
 
 管理 CLI 运维命令，按一级子命令组织使用说明。
