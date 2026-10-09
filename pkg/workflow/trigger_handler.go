@@ -486,6 +486,9 @@ const (
 
 	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
 	instantiateOperationConcurrency = 20
+
+	// periodicOperationQueryLimit bounds the uniqueness check for periodic trigger operations.
+	periodicOperationQueryLimit = 2
 )
 
 // onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
@@ -578,7 +581,7 @@ func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITr
 			Warn("failed to init once empty operation")
 	}
 
-	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.UnlimitedPage(), operation.StateInit)
+	instanceList, err := handler.listInitOperationInstances(nCtx, trigCtl)
 	if err != nil {
 		return nil, err
 	}
@@ -587,6 +590,27 @@ func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITr
 		Debug("once trigger processed")
 
 	return instanceList, nil
+}
+
+func (handler *triggerHandler) listInitOperationInstances(
+	nCtx contextx.IContext, trigCtl ITriggerCtl,
+) ([]IOperationInstanceCtl, error) {
+	executor := pageexecutor.NewPageExecutor[IOperationInstanceCtl](instantiateOperationBatchSize(), defaultTimeout)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]IOperationInstanceCtl, error) {
+		instanceList, err := trigCtl.ListOperationInstances(nCtx, p, operation.StateInit)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list init operation instances: %w", err)
+		}
+
+		return instanceList, nil
+	}
+
+	pageResult, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list init operation instances: %w", err)
+	}
+
+	return pageResult.Items, nil
 }
 
 func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
@@ -661,7 +685,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).
 			Debug("periodic trigger next activation time reached, no working instance, proceed to create operation instance")
 
-		operList, count, err := handler.mgr.stgOperation.ListOperation(nCtx, types.UnlimitedPage(), &types.OperationCondition{
+		operList, count, err := handler.mgr.stgOperation.ListOperation(nCtx, types.Page{Limit: periodicOperationQueryLimit}, &types.OperationCondition{
 			ExactInclude: &types.OperationExactFields{
 				TriggerID: []string{trigCtl.GetTriggerID()},
 			},
@@ -691,7 +715,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 			Debug("created periodic operation instance")
 	}
 
-	return trigCtl.ListOperationInstances(nCtx, types.UnlimitedPage(), operation.StateInit)
+	return handler.listInitOperationInstances(nCtx, trigCtl)
 }
 
 func (handler *triggerHandler) launchOperationInstance(nCtx contextx.IContext, trigCtl ITriggerCtl, instanceCtls []IOperationInstanceCtl) error {
