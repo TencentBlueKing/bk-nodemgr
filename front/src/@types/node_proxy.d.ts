@@ -67,6 +67,7 @@ export interface NodeProxyUpgradeHost {
 // NodeProxyUpgradeReq describes the node proxy upgrade request.
 export interface NodeProxyUpgradeReq {
   host: NodeProxyUpgradeHost[];
+  target_version: TargetVersion[];
 }
 
 // NodeProxyUpgradeResp describes the node proxy upgrade response.
@@ -159,6 +160,7 @@ export interface NodeProxyUninstallHost {
 // NodeProxyUninstallReq describes the node proxy uninstall request.
 export interface NodeProxyUninstallReq {
   host: NodeProxyUninstallHost[];
+  unbind_agent_id: boolean;
 }
 
 // NodeProxyUninstallResp describes the node proxy uninstall response.
