@@ -200,7 +200,10 @@ async function handleUnitViewAuthClick(e: MouseEvent, unitId: number) {
   const detail = authStore.permissionDetail;
   if (detail) {
     permissionStore.showDialog(detail);
+    return;
   }
+  // verify 通过但本地授权缓存未包含该单元（如新建单元后缓存过期）：统一刷新页面鉴权解锁
+  await refreshPageAuthorized();
 }
 
 const isShow = ref(false);
@@ -257,7 +260,11 @@ const handleAfterDelete = async () => {
 const handleWorkUnitSave = async (bk_networkunit_id: number) => {
   contentLoading.value = true;
   try {
-    await fetchWorkUnits();
+    await Promise.all([
+      fetchWorkUnits(),
+      // 新单元 ID 不在挂载时拉取的授权缓存里，统一刷新页面全部鉴权避免误判无权限
+      refreshPageAuthorized(),
+    ]);
     active.value = bk_networkunit_id;
     await loadUnitDetail();
   } catch (err) {
@@ -507,14 +514,22 @@ const checkDeleteDisabled = async () => {
   deleteDisabledReason.value = '';
 };
 
-onMounted(async () => {
-  // networkunit_view 等 view 权限按页面 items 兜底加载
-  const pageItems = getPageAuthorizedItems('workareaDetail');
-  await authStore.fetchAuthorized(pageItems, 'page:workareaDetail').catch(() => {});
-  // 单独请求安装 Proxy 权限（networkunit_use_for_proxy）
-  authStore.fetchAuthorized([
+/**
+ * 统一刷新管控区域详情页所需的全部授权数据：
+ * 页面进入时加载；新建/编辑单元成功后调用（新单元 ID 不在授权缓存中，需强制刷新避免误判无权限）
+ */
+async function refreshPageAuthorized() {
+  const items = [
+    ...getPageAuthorizedItems('workareaDetail'),
     { action: 'networkunit_use_for_proxy', resource_type: 'networkunit' },
-  ]);
+    { action: 'proxy_view', resource_type: 'networkunit' },
+    { action: 'proxy_operate', resource_type: 'networkunit' },
+  ];
+  await authStore.fetchAuthorized(items, 'page:workareaDetail', { force: true }).catch(() => {});
+}
+
+onMounted(async () => {
+  await refreshPageAuthorized();
   await initData();
 });
 

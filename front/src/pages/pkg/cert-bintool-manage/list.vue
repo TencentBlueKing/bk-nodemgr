@@ -173,6 +173,7 @@ import { formatTimestamp } from '@/common/util';
 import { translateOperatorItems } from '@/common/user-display';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
+import { getPageAuthorizedItems } from '@/constants/auth';
 import { useMainStore } from '@/stores/main';
 import { useAuthStore } from '@/stores/auth';
 type filterProp = 'file_name' | 'operator';
@@ -432,7 +433,11 @@ const handleDelete = async (row: Release) => {
   await handleOperation(row, getDeleteServiceMethod());
 };
 const handleConfirm = async () => {
-  await getPackages();
+  await Promise.all([
+    getPackages(),
+    // 上传成功后强制刷新授权：新包 release_type 不在授权缓存中会被行级误判无权限
+    authStore.fetchAuthorized(getPageAuthorizedItems(route.name as string), `page:${route.name}`, { force: true }).catch(() => {}),
+  ]);
 };
 watch(originPackageList, async () => {
   filterOptionSource.file_name.list = getUniqueChildren('file_name');

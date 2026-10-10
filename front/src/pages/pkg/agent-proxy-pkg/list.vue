@@ -424,6 +424,7 @@ import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { compareVersions, formatTimestamp  } from '@/common/util';
 import { translateOperatorItems } from '@/common/user-display';
+import { getPageAuthorizedItems } from '@/constants/auth';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useAuthStore } from '@/stores/auth';
@@ -1034,7 +1035,11 @@ const handleDelete = async (row: Release) => {
   await handleOperation(row, getServiceMethod('DeleteRelease'));
 };
 const handleConfirm = async () => {
-  await getPackages();
+  await Promise.all([
+    getPackages(),
+    // 上传成功后强制刷新授权：新包 release_type 不在授权缓存中会被行级误判无权限
+    authStore.fetchAuthorized(getPageAuthorizedItems(route.name as string), `page:${route.name}`, { force: true }).catch(() => {}),
+  ]);
 };
 
 const debounceFetchCurrentPageCounts = debounce(fetchCurrentPageCounts, 300);

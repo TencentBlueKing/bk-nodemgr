@@ -941,7 +941,11 @@ const handleDelete = async (row: Release) => {
   await getPackages();
 };
 const handleConfirm = async () => {
-  await getPackages();
+  await Promise.all([
+    getPackages(),
+    // 上传成功后强制刷新授权：新包 release_type 不在授权缓存中会被行级误判无权限
+    authStore.fetchAuthorized(getPageAuthorizedItems('pluginPackageMng'), 'pluginPackageMng', { force: true }).catch(() => {}),
+  ]);
 };
 // 前端过滤数据
 watch(
