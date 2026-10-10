@@ -299,6 +299,7 @@ func (h *Handler) ListBusiness(nCtx contextx.IContext, page types.Page, conditio
 func (h *Handler) GetBusinessHostCount(
 	nCtx contextx.IContext, bizIDs []int64, nodeRoles []types.NodeRole,
 ) (map[int64]int64, error) {
+
 	req := &protoBackend.TopoBusinessHostCountGetReq{
 		BkBizId:  bizIDs,
 		NodeRole: types.NodeRoleListToStringList(nodeRoles),

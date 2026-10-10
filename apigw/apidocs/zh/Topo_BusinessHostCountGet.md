@@ -1,8 +1,8 @@
 ### 描述
 
 - 该接口提供版本：v3.0.1-alpha.38+。
-- 该接口所需权限：`agent_view（查看 Agent）`、`proxy_view（查看 Proxy）`。
-- 该接口功能描述：根据业务 ID 列表，统计每个业务下的主机数量。
+- 该接口所需权限：`agent_view（查看 Agent）`、`proxy_view（查看 Proxy）`。实际校验权限会根据 `node_role` 取值收窄。
+- 该接口功能描述：根据业务 ID 列表和节点类型，统计每个业务下的主机数量。
 
 ### URL
 
@@ -10,17 +10,19 @@ POST /api/v3/topo/business/host_count/get
 
 ### 输入参数
 
-| 参数名称  | 参数类型    | 必选 | 描述                              |
-| --------- | ----------- | ---- | --------------------------------- |
-| bk_biz_id | int64 array | 是   | 业务 ID 列表，至少传入一个业务 ID |
+| 参数名称  | 参数类型     | 必选 | 描述                                                                    |
+| --------- | ------------ | ---- | ----------------------------------------------------------------------- |
+| bk_biz_id | int64 array  | 是   | 业务 ID 列表，至少传入一个业务 ID                                       |
+| node_role | string array | 否   | 节点类型列表，可选值：`blank`、`agent`、`proxy`；不传表示不过滤节点类型 |
 
 ### 调用示例
 
-查询业务 `2` 和业务 `7` 下的主机数量。
+查询业务 `2` 和业务 `7` 下 Agent 节点的主机数量。
 
 ```json
 {
-  "bk_biz_id": [2, 7]
+  "bk_biz_id": [2, 7],
+  "node_role": ["agent"]
 }
 ```
 
@@ -74,4 +76,5 @@ POST /api/v3/topo/business/host_count/get
 
 - 该接口的请求契约与响应结构定义在 `proto/backend/api/v3/topo.proto` 与 `docs/api/swagger/backend/api/v3/topo.swagger.json`。
 - 请求参数 `bk_biz_id` 为空时，协议层校验会返回参数错误。
+- 请求参数 `node_role` 不传时会统计指定业务下所有节点类型的主机数量；仅传 `agent` 或 `blank` 时校验 `agent_view（查看 Agent）` 权限，仅传 `proxy` 时校验 `proxy_view（查看 Proxy）` 权限，混合传入时校验对应节点类型所需权限。
 - 响应中的 `items` 由后端按业务 ID 聚合主机数量生成；未命中的业务通常不会出现在返回列表中。
