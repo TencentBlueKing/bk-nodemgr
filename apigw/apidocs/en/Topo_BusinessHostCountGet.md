@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.38+.
+- API Version: v3.0.1-alpha.96+.
 - Required Permission: `agent_view (View Agent)`, `proxy_view (View Proxy)`. The actual permission check is narrowed by `node_role`.
 - Function: Count hosts for each specified business ID and node role.
 
