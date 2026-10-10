@@ -414,7 +414,12 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
     // 业务 → 加载 CMDB 实例拓扑（set + module 完整子树）
     if (objectId === 'biz') {
       try {
-        const res = await TopoService.BusinessInstTopoGet({ bk_biz_id: meta.bk_biz_id });
+        // 与 HostList 一致：node_role 按场景动态解析（有过滤值才传）
+        const nodeRoleFilter = resolveNodeRoleFilter();
+        const res = await TopoService.BusinessInstTopoGet({
+          bk_biz_id: meta.bk_biz_id,
+          ...(nodeRoleFilter.length > 0 ? { node_role: nodeRoleFilter } : {}),
+        });
         const items = (res as any)?.items; // TopoNodeInfo 根节点（biz 自身）
         if (items?.children?.length > 0) {
           const children = items.children.map((child: any) => transformCmdbNode(child, meta.bk_biz_id));
@@ -444,6 +449,8 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
   if (effectiveBizIds.length > 0) {
     try {
       // 并行调用：BusinessList 获取业务列表 + BusinessHostCountGet 获取主机数量
+      // 与 HostList 一致：node_role 按场景动态解析（有过滤值才传）
+      const nodeRoleFilter = resolveNodeRoleFilter();
       const [bizRes, countRes] = await Promise.all([
         TopoService.BusinessList({
           page: { offset: 0, limit: 500 },
@@ -451,7 +458,10 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
           exact_include_conditions: { bk_biz_id: effectiveBizIds },
           fuzzy_include_conditions: { bk_biz_name: [] },
         }),
-        TopoService.BusinessHostCountGet({ bk_biz_id: effectiveBizIds }),
+        TopoService.BusinessHostCountGet({
+          bk_biz_id: effectiveBizIds,
+          ...(nodeRoleFilter.length > 0 ? { node_role: nodeRoleFilter } : {}),
+        }),
       ]);
 
       const businesses = bizRes?.items || [];
@@ -462,7 +472,12 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
         const firstBiz = businesses[0];
         let firstBizChildren: any[] = [];
         try {
-          const topoRes = await TopoService.BusinessInstTopoGet({ bk_biz_id: firstBiz.bk_biz_id });
+          // 与 HostList 一致：node_role 按场景动态解析（有过滤值才传）
+          const nodeRoleFilter = resolveNodeRoleFilter();
+          const topoRes = await TopoService.BusinessInstTopoGet({
+            bk_biz_id: firstBiz.bk_biz_id,
+            ...(nodeRoleFilter.length > 0 ? { node_role: nodeRoleFilter } : {}),
+          });
           const data = (topoRes as any)?.items;
           firstBizChildren = data?.children || [];
         } catch {
@@ -520,7 +535,11 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
       // 获取所有业务的 host_count
       let countMap = new Map<number, number>();
       try {
-        const countRes = await TopoService.BusinessHostCountGet({ bk_biz_id: bizIds });
+        const nodeRoleFilter = resolveNodeRoleFilter();
+        const countRes = await TopoService.BusinessHostCountGet({
+          bk_biz_id: bizIds,
+          ...(nodeRoleFilter.length > 0 ? { node_role: nodeRoleFilter } : {}),
+        });
         countMap = new Map((countRes?.items || []).map((item: any) => [item.bk_biz_id, item.host_count]));
       } catch {
         // ignore
@@ -530,7 +549,12 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
       const firstBiz = businesses[0];
       let firstBizChildren: any[] = [];
       try {
-        const topoRes = await TopoService.BusinessInstTopoGet({ bk_biz_id: firstBiz.bk_biz_id });
+        // 与 HostList 一致：node_role 按场景动态解析（有过滤值才传）
+        const nodeRoleFilter = resolveNodeRoleFilter();
+        const topoRes = await TopoService.BusinessInstTopoGet({
+          bk_biz_id: firstBiz.bk_biz_id,
+          ...(nodeRoleFilter.length > 0 ? { node_role: nodeRoleFilter } : {}),
+        });
         const data = (topoRes as any)?.items;
         firstBizChildren = data?.children || [];
       } catch {

@@ -248,9 +248,9 @@
         </Button>
         <Button class="w-[88px]" @click="handleBeforeClose">{{ t('agentStrategy.form.cancel') }}</Button>
       </template>
-      <!-- 创建/编辑模式：显示保存按钮 -->
+      <!-- 创建/编辑模式：显示保存按钮（编辑模式仅当表单有改动或动过时才可点击） -->
       <template v-else>
-        <Button theme="primary" class="mr-[8px] w-[88px]" @click="handleSubmit">
+        <Button theme="primary" class="mr-[8px] w-[88px]" :disabled="isEditMode && !isDirty" @click="handleSubmit">
           {{ isEditMode ? t('agentStrategy.form.save') : t('agentStrategy.form.submit') }}
         </Button>
         <Button class="w-[88px]" @click="handleBeforeClose">{{ t('agentStrategy.form.cancel') }}</Button>
@@ -372,6 +372,32 @@ const rules = {
 };
 
 const originData = ref(cloneDeep(formData));
+// 打开侧滑窗时的主机 ID 快照（与 originData 配套，用于"是否有改动"判断）
+const originHostIds = ref<number[]>([]);
+
+/**
+ * 当前表单是否有改动（值比较）：
+ * 1. 表单字段（剔除 selectedHosts 当前页展示数据，避免 IP 表格翻页误判）与打开时快照深比较；
+ * 2. 主机列表按提交口径 allSelectedHostIds 与打开时快照比较（排序后，顺序无关）。
+ */
+const hasChanged = computed(() => {
+  const { selectedHosts: _currentPage, ...currentRest } = formData;
+  const { selectedHosts: _originPage, ...originRest } = originData.value;
+  if (!isEqual(currentRest, originRest)) return true;
+  return !isEqual([...allSelectedHostIds.value].sort(), [...originHostIds.value].sort());
+});
+
+// 用户是否做过任何输入/调整（事件驱动）：即使最终值与初始一致（如删除 IP 后又选了同一个），也算有修改
+const hasEdited = ref(false);
+// 数据装载阶段标记：打开侧滑窗装载数据时的程序性赋值不计入用户修改
+let hydrating = false;
+watch(formData, () => {
+  if (!hydrating) hasEdited.value = true;
+}, { deep: true });
+
+// 编辑模式的保存按钮可用条件：值发生变化，或用户动过表单
+const isDirty = computed(() => hasChanged.value || hasEdited.value);
+
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
   // 没有修改数据，直接关闭
   if (isEqual(formData, originData.value)) {
@@ -498,6 +524,8 @@ const handleEditHosts = () => {
 
 // IP选择器确认事件 — 提取 hostId 后调后端分页接口
 const handleIpSelectorChange = (value: any) => {
+  // 用户调整过主机选择（即使最终与初始相同，如删除后又选了同一个），也算有修改
+  hasEdited.value = true;
   ipSelectorValue.value = value;
   ipPagination.current = 1;
   // 从 hostList 提取所有 hostId
@@ -517,6 +545,7 @@ const handleDeleteAllHosts = () => {
     title: t('agentStrategy.form.confirmDelete'),
     subTitle: t('agentStrategy.form.confirmDeleteAllHosts'),
     onConfirm: () => {
+      hasEdited.value = true;
       ipSelectorValue.value = {
         hostList: [],
         nodeList: [],
@@ -636,6 +665,7 @@ const getPlatform = async () => {
 
 watch(() => isShow.value, async () => {
   if (isShow.value) {
+    hydrating = true;
     getPlatform();
     if (props.mode === 'create') {
       initData();
@@ -659,6 +689,9 @@ watch(() => isShow.value, async () => {
       }
     }
     originData.value = cloneDeep(formData);
+    originHostIds.value = [...allSelectedHostIds.value];
+    hasEdited.value = false;
+    hydrating = false;
   } else {
     // 关闭时清空
     allSelectedHostIds.value = [];
