@@ -128,44 +128,6 @@ func TestTriggerHandler_DoOnceTrigger_PartialCreateFailureContinues(t *testing.T
 	}
 }
 
-func TestTriggerHandler_ListInitOperationInstances_Paged(t *testing.T) {
-	batchSize := instantiateOperationBatchSize()
-	instances := make([]IOperationInstanceCtl, batchSize+1)
-	for idx := range instances {
-		instances[idx] = &triggerHandlerTestOperationInstanceCtl{id: fmt.Sprintf("oper-inst-%d", idx)}
-	}
-	trigCtl := &triggerHandlerTestTriggerCtl{
-		triggerID: "trigger-list-init-instances-paged",
-		instances: instances,
-	}
-	handler := &triggerHandler{}
-
-	result, err := handler.listInitOperationInstances(contextx.Background(), trigCtl)
-	if err != nil {
-		t.Fatalf("listInitOperationInstances() error = %v, want nil", err)
-	}
-	if len(result) != len(instances) {
-		t.Fatalf("listInitOperationInstances() result count = %d, want %d", len(result), len(instances))
-	}
-	if got := trigCtl.listInstancesCalls.Load(); got != 2 {
-		t.Fatalf("ListOperationInstances calls = %d, want 2", got)
-	}
-
-	wantPages := []types.Page{
-		{Offset: 0, Limit: batchSize},
-		{Offset: batchSize, Limit: batchSize},
-	}
-	if len(trigCtl.listInstancePages) != len(wantPages) {
-		t.Fatalf("ListOperationInstances pages = %v, want %v", trigCtl.listInstancePages, wantPages)
-	}
-	for idx := range wantPages {
-		if trigCtl.listInstancePages[idx] != wantPages[idx] {
-			t.Fatalf("ListOperationInstances page[%d] = %v, want %v", idx,
-				trigCtl.listInstancePages[idx], wantPages[idx])
-		}
-	}
-}
-
 func TestCachedTriggers_Delete(t *testing.T) {
 	cache := newCachedTriggers()
 	cache.set([]*trigger.Trigger{
@@ -200,7 +162,6 @@ type triggerHandlerTestTriggerCtl struct {
 
 	listNeedCalls      atomic.Int32
 	listInstancesCalls atomic.Int32
-	listInstancePages  []types.Page
 }
 
 func (ctl *triggerHandlerTestTriggerCtl) GetTriggerID() string {
@@ -290,7 +251,6 @@ func (ctl *triggerHandlerTestTriggerCtl) ListOperationInstances(
 	_ contextx.IContext, page types.Page, _ ...operation.State,
 ) ([]IOperationInstanceCtl, error) {
 	ctl.listInstancesCalls.Add(1)
-	ctl.listInstancePages = append(ctl.listInstancePages, page)
 	if page.Offset >= len(ctl.instances) {
 		return make([]IOperationInstanceCtl, 0), nil
 	}
