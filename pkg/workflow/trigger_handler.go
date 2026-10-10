@@ -498,6 +498,11 @@ func orderedTriggerBatchSize() int {
 	return instantiateOperationBatchSize()
 }
 
+// initOperationInstanceListBatchSize returns the maximum init operation instances listed per page.
+func initOperationInstanceListBatchSize() int {
+	return instantiateOperationBatchSize()
+}
+
 func instantiateOperationBatchSize() int {
 	queryBudget := defaultTimeout / instantiateOperationTimeoutRatio
 	pageCount := int(queryBudget / instantiateOperationListCostLimit)
@@ -592,7 +597,7 @@ func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITr
 func (handler *triggerHandler) listInitOperationInstances(
 	nCtx contextx.IContext, trigCtl ITriggerCtl,
 ) ([]IOperationInstanceCtl, error) {
-	executor := pageexecutor.NewPageExecutor[IOperationInstanceCtl](instantiateOperationBatchSize(), defaultTimeout)
+	executor := pageexecutor.NewPageExecutor[IOperationInstanceCtl](initOperationInstanceListBatchSize(), defaultTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]IOperationInstanceCtl, error) {
 		instanceList, err := trigCtl.ListOperationInstances(nCtx, p, operation.StateInit)
 		if err != nil {
