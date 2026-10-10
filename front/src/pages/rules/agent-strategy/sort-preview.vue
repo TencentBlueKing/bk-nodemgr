@@ -486,6 +486,8 @@ const previewPagination = reactive({
   current: 1,
   limit: 10,
   count: 0,
+  // 数据已由 paginatedPreviewData 前端切片，分页器只负责展示/翻页，不再二次切片
+  remote: true as const,
 });
 
 const paginatedPreviewData = computed(() => {
