@@ -678,7 +678,8 @@ watch(() => isShow.value, async () => {
         formData.scopes = props.configData.scopes.map((item: ConfigPolicyScope) => ({
           ...item,
           bk_networkarea_id: String(item.bk_networkarea_id),
-          bk_networkunit_id: String(item.bk_networkunit_id),
+          // 0 表示未绑定管控单元：归一为空串让下拉显示 placeholder，避免把 0 当值显示
+          bk_networkunit_id: item.bk_networkunit_id ? String(item.bk_networkunit_id) : '',
           os_type: item.os_type === '' ? '-1' : item.os_type,
           cpu_arch: item.cpu_arch === '' ? '-1' : item.cpu_arch,
         }));
