@@ -486,9 +486,6 @@ const (
 
 	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
 	instantiateOperationConcurrency = 20
-
-	// periodicOperationQueryLimit bounds the uniqueness check for periodic trigger operations.
-	periodicOperationQueryLimit = 2
 )
 
 // onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
@@ -685,19 +682,31 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).
 			Debug("periodic trigger next activation time reached, no working instance, proceed to create operation instance")
 
-		operList, count, err := handler.mgr.stgOperation.ListOperation(nCtx, types.Page{Limit: periodicOperationQueryLimit}, &types.OperationCondition{
+		condition := &types.OperationCondition{
 			ExactInclude: &types.OperationExactFields{
 				TriggerID: []string{trigCtl.GetTriggerID()},
 			},
-		})
+		}
+		count, err := handler.mgr.stgOperation.CountOperation(nCtx, condition)
 		if err != nil {
 			return nil, err
 		}
 
-		if count != 1 || len(operList) != 1 {
+		if count != 1 {
 			return nil, errors.Join(common.ErrInvalidPeriodicOperationNum(),
 				fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
 					trigCtl.GetTriggerID(), count))
+		}
+
+		operList, _, err := handler.mgr.stgOperation.ListOperation(nCtx, types.SingleItemPage(), condition)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(operList) != 1 {
+			return nil, errors.Join(common.ErrInvalidPeriodicOperationNum(),
+				fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
+					trigCtl.GetTriggerID(), len(operList)))
 		}
 
 		oper := operList[0]
