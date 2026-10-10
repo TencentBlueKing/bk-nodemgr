@@ -1,6 +1,7 @@
 ### Description
 
 - API Version: v3.0.0+.
+- Version Changes: `v3.0.1-alpha.96+` added the `unbind_agent_id` parameter.
 - Required Permission: agent_operate (Operate Agent).
 - Function: Batch uninstall node agents.
 
@@ -13,6 +14,7 @@ POST /api/v3/node/agent/uninstall
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
 | host | object array | Yes | List of hosts for agent uninstallation |
+| unbind_agent_id | bool | No | Whether to unbind the host AgentID relation after successful uninstallation. Default false |
 
 #### host[n]
 
@@ -22,7 +24,7 @@ POST /api/v3/node/agent/uninstall
 
 ### Request Example
 
-Batch uninstall agents on two hosts.
+Batch uninstall agents on two hosts and unbind the host AgentID relation after successful uninstallation.
 
 ```json
 {
@@ -33,7 +35,8 @@ Batch uninstall agents on two hosts.
     {
       "bk_host_id": 1002
     }
-  ]
+  ],
+  "unbind_agent_id": true
 }
 ```
 

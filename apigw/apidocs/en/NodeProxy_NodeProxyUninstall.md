@@ -1,6 +1,7 @@
 ### Description
 
 - API Version: v3.0.1+.
+- Version Changes: `v3.0.1-alpha.96+` added the `unbind_agent_id` parameter.
 - Required Permission: proxy_operate (Operate Proxy).
 - Function: Batch uninstall node Proxy.
 
@@ -13,6 +14,7 @@ POST /api/v3/node/proxy/uninstall
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | host | array | Yes | Host list, see host parameters below |
+| unbind_agent_id | bool | No | Whether to unbind the host AgentID relation after successful uninstallation. Default false |
 
 **host[n]**
 
@@ -28,7 +30,8 @@ POST /api/v3/node/proxy/uninstall
         {
             "bk_host_id": 1001
         }
-    ]
+    ],
+    "unbind_agent_id": true
 }
 ```
 
