@@ -66,7 +66,9 @@ func (h *handler) GetBusinessHostCount(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	counts, err := h.backendHandler.GetBusinessHostCount(rCtx, req.GetBkBizId())
+	counts, err := h.backendHandler.GetBusinessHostCount(
+		rCtx, req.GetBkBizId(), types.StringListToNodeRoleList(req.GetNodeRole()),
+	)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business host count")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

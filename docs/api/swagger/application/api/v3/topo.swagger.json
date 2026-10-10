@@ -2067,6 +2067,12 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "node_role": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "TopoBusinessHostCountGetReq describes the HTTP request body when get host\ncount of business in topo service."

@@ -73,8 +73,9 @@ func (h *handler) GetBusinessHostCount(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	condition := req.ConvertHostConditionToTypes()
 	bizIDs := req.GetBkBizId()
-	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHostList(rCtx, bizIDs, nil)
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHostList(rCtx, bizIDs, condition)
 	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get business host count, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
@@ -87,11 +88,7 @@ func (h *handler) GetBusinessHostCount(rCtx restserver.IContext) (interface{}, e
 		return resp.GetData(), nil
 	}
 
-	condition := narrowHostConditionByBiz(&types.HostCondition{
-		StaticExactInclude: &types.HostStaticExactFields{
-			BizID: bizIDs,
-		},
-	}, narrowedBizIDs, scopeIsAny)
+	condition = narrowHostConditionByBiz(condition, narrowedBizIDs, scopeIsAny)
 
 	counts, err := h.storage.CountHostGroupByBizID(rCtx, condition)
 	if err != nil {

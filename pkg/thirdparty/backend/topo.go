@@ -64,8 +64,9 @@ type IHandlerBusiness interface {
 	// GetBusinessHostCount get host count grouped by business id.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param bizIDs the business ids.
+	// @param nodeRoles the node roles.
 	// @return map of bizID -> hostCount and error.
-	GetBusinessHostCount(nCtx contextx.IContext, bizIDs []int64) (map[int64]int64, error)
+	GetBusinessHostCount(nCtx contextx.IContext, bizIDs []int64, nodeRoles []types.NodeRole) (map[int64]int64, error)
 
 	// GetBusinessInstTopo get business instance topology with aggregated host count.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -295,8 +296,14 @@ func (h *Handler) ListBusiness(nCtx contextx.IContext, page types.Page, conditio
 }
 
 // GetBusinessHostCount get host count grouped by business id.
-func (h *Handler) GetBusinessHostCount(nCtx contextx.IContext, bizIDs []int64) (map[int64]int64, error) {
-	req := &protoBackend.TopoBusinessHostCountGetReq{BkBizId: bizIDs}
+func (h *Handler) GetBusinessHostCount(
+	nCtx contextx.IContext, bizIDs []int64, nodeRoles []types.NodeRole,
+) (map[int64]int64, error) {
+
+	req := &protoBackend.TopoBusinessHostCountGetReq{
+		BkBizId:  bizIDs,
+		NodeRole: types.NodeRoleListToStringList(nodeRoles),
+	}
 
 	resp, err := h.cli.getBusinessHostCount(nCtx, req)
 	if err != nil {
