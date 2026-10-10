@@ -189,7 +189,11 @@ const handleInstallProxy = () => {
 };
 // 编辑更新
 const handleUpdate = async () => {
-  await getTableData();
+  await Promise.all([
+    getTableData(),
+    // 新建/编辑区域成功后强制刷新授权：新区域 ID 不在授权缓存中会被行级误判无权限
+    authStore.fetchAuthorized(getPageAuthorizedItems('workarea'), 'page:workarea', { force: true }).catch(() => {}),
+  ]);
 };
 
 // 表格数据
