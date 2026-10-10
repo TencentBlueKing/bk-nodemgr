@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.38+.
+- API Version: v3.0.1-alpha.96+.
 - Required Permission: `agent_view (View Agent)`, `proxy_view (View Proxy)`.
 - Function: Query the business instance topology by business ID, with aggregated host counts for topology nodes.
 
@@ -10,17 +10,19 @@ POST /api/v3/topo/business/inst_topo/get
 
 ### Request Parameters
 
-| Parameter | Type  | Required | Description |
-| --------- | ----- | -------- | ----------- |
-| bk_biz_id | int64 | Yes      | Business ID |
+| Parameter | Type  | Required | Description                                                         |
+| --------- | ----- | -------- | ------------------------------------------------------------------- |
+| bk_biz_id | int64 | Yes      | Business ID                                                         |
+| node_role | array | No       | Node role filter. Valid values: `blank`, `agent`, `proxy`. Omit it to disable filtering |
 
 ### Request Example
 
-Query the business instance topology of business `2`.
+Query the business instance topology of business `2`, and count only Agent hosts.
 
 ```json
 {
-  "bk_biz_id": 2
+  "bk_biz_id": 2,
+  "node_role": ["agent"]
 }
 ```
 
@@ -98,7 +100,7 @@ Query the business instance topology of business `2`.
 | topo_inst_id   | int64  | Topology instance ID                                                                 |
 | topo_inst_name | string | Topology instance name                                                               |
 | topo_obj_id    | string | Topology object ID, such as `biz`, `set`, `module`, or a CMDB custom level object ID |
-| host_count     | int64  | Aggregated host count for the current topology node                                  |
+| host_count     | int64  | Aggregated host count for the current topology node. When `node_role` is set, only hosts matching the selected node roles are counted |
 | children       | array  | Child topology node list. Each child uses the same node structure                    |
 
 ### Notes
@@ -106,4 +108,5 @@ Query the business instance topology of business `2`.
 - The request and response contract is defined by `proto/backend/api/v3/topo.proto`, `pkg/proto/backend/api/v3/business.go`, `internal/backend/router/api-v3/topo/business.go`, and `docs/api/swagger/backend/api/v3/topo.swagger.json`.
 - If `bk_biz_id` is `0`, protocol-layer validation returns a parameter error.
 - The backend queries the business instance topology from CMDB and counts hosts directly for `biz`, `set`, and `module` nodes. For other custom topology levels, `host_count` is aggregated from child nodes.
+- The `node_role` request parameter only changes the `host_count` aggregation scope. It does not change the returned topology tree structure.
 - `data.items` is the root node of a single business topology tree. Every `children` element uses the same node structure.

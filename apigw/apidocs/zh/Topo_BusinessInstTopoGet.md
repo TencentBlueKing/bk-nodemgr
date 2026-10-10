@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.38+。
+- 该接口提供版本：v3.0.1-alpha.96+。
 - 该接口所需权限：`agent_view（查看 Agent）`、`proxy_view（查看 Proxy）`。
 - 该接口功能描述：根据业务 ID 查询业务实例拓扑，并返回各拓扑节点聚合后的主机数量。
 
@@ -10,17 +10,19 @@ POST /api/v3/topo/business/inst_topo/get
 
 ### 输入参数
 
-| 参数名称  | 参数类型 | 必选 | 描述    |
-| --------- | -------- | ---- | ------- |
-| bk_biz_id | int64    | 是   | 业务 ID |
+| 参数名称  | 参数类型 | 必选 | 描述                                                        |
+| --------- | -------- | ---- | ----------------------------------------------------------- |
+| bk_biz_id | int64    | 是   | 业务 ID                                                     |
+| node_role | array    | 否   | 节点类型过滤条件，可选值：`blank`、`agent`、`proxy`。不传表示不过滤 |
 
 ### 调用示例
 
-查询业务 `2` 的业务实例拓扑。
+查询业务 `2` 的业务实例拓扑，并仅统计 Agent 节点主机数量。
 
 ```json
 {
-  "bk_biz_id": 2
+  "bk_biz_id": 2,
+  "node_role": ["agent"]
 }
 ```
 
@@ -98,7 +100,7 @@ POST /api/v3/topo/business/inst_topo/get
 | topo_inst_id   | int64    | 拓扑实例 ID                                                               |
 | topo_inst_name | string   | 拓扑实例名称                                                              |
 | topo_obj_id    | string   | 拓扑对象 ID，例如 `biz`、`set`、`module`，也可能是 CMDB 自定义层级对象 ID |
-| host_count     | int64    | 当前拓扑节点聚合后的主机数量                                              |
+| host_count     | int64    | 当前拓扑节点聚合后的主机数量；传入 `node_role` 时，仅统计匹配节点类型的主机 |
 | children       | array    | 子拓扑节点列表，结构与当前节点一致                                        |
 
 ### 说明
@@ -106,4 +108,5 @@ POST /api/v3/topo/business/inst_topo/get
 - 该接口的请求契约与响应结构定义在 `proto/backend/api/v3/topo.proto`、`pkg/proto/backend/api/v3/business.go`、`internal/backend/router/api-v3/topo/business.go` 与 `docs/api/swagger/backend/api/v3/topo.swagger.json`。
 - 请求参数 `bk_biz_id` 为 `0` 时，协议层校验会返回参数错误。
 - 后端从 CMDB 查询业务实例拓扑，并对 `biz`、`set`、`module` 节点按实际主机关系统计主机数量；其他自定义层级节点的 `host_count` 由子节点数量向上汇总得到。
+- 请求参数 `node_role` 只影响各拓扑节点的 `host_count` 统计口径，不改变返回的拓扑树结构。
 - `data.items` 是单棵业务拓扑树的根节点；每个 `children` 元素都使用同一节点结构。

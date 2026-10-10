@@ -152,6 +152,18 @@ func (x *TopoBusinessInstTopoGetReq) Validate() error {
 func (x *TopoBusinessInstTopoGetReq) AutoConvert() {
 }
 
+// ConvertHostConditionToTypes converts business inst topo request to host conditions.
+func (x *TopoBusinessInstTopoGetReq) ConvertHostConditionToTypes() *types.HostCondition {
+	return &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			BizID: []int64{x.GetBkBizId()},
+		},
+		DynamicExactInclude: &types.HostDynamicExactFields{
+			NodeRole: types.StringListToNodeRoleList(x.GetNodeRole()),
+		},
+	}
+}
+
 // ConvertBusinessInstTopoFromTypes converts a single business topo root node to response.
 func (x *TopoBusinessInstTopoGetResp) ConvertBusinessInstTopoFromTypes(topoNode *types.TopoNodeInfo) {
 	x.Data = &TopoBusinessInstTopoGetResp_Data{Items: convertBusinessInstTopoFromTypes(topoNode)}

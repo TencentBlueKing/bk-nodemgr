@@ -111,7 +111,9 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	}
 
 	bizID := req.GetBkBizId()
-	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHostList(rCtx, []int64{bizID}, nil)
+	condition := req.ConvertHostConditionToTypes()
+	nodeRoles := condition.DynamicExactInclude.NodeRole
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHostList(rCtx, []int64{bizID}, condition)
 	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get business inst topo, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
@@ -120,10 +122,12 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	// A single business topology requires permission on that specific business.
 	if !scopeIsAny && len(narrowedBizIDs) == 0 {
 		resources := buildBizResources([]int64{bizID})
-		if authErr := h.authorizer.CheckMany(rCtx, map[auth.Action][]types.AuthResource{
-			auth.ActionAgentView: resources,
-			auth.ActionProxyView: resources,
-		}); authErr != nil {
+		actions := hostListBizActions(condition)
+		actionResources := make(map[auth.Action][]types.AuthResource, len(actions))
+		for _, action := range actions {
+			actionResources[action] = resources
+		}
+		if authErr := h.authorizer.CheckMany(rCtx, actionResources); authErr != nil {
 			logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get business inst topo, permission denied")
 			return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 		}
@@ -154,7 +158,9 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	}
 
 	topoNode := topoNodes[0]
-	bizHostCount, setHostCount, moduleHostCount, customHostCount, err := h.getBusinessInstTopoHostCounts(rCtx, topoNode, narrowedBizIDs, scopeIsAny)
+	bizHostCount, setHostCount, moduleHostCount, customHostCount, err := h.getBusinessInstTopoHostCounts(
+		rCtx, topoNode, narrowedBizIDs, nodeRoles, scopeIsAny,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -221,19 +227,20 @@ func (h *handler) getBusinessInstTopoHostCounts(
 	rCtx restserver.IContext,
 	topoNode *types.TopoNodeInfo,
 	narrowedBizIDs []int64,
+	nodeRoles []types.NodeRole,
 	scopeIsAny bool,
 ) (bizHostCount, setHostCount, moduleHostCount map[int64]int64, customHostCount map[*types.TopoNodeInfo]int64, err error) {
 
 	topoIDs := collectBusinessInstTopoIDs(topoNode)
 	bizHostCount, setHostCount, moduleHostCount, err = h.countStandardBusinessInstTopoHosts(
-		rCtx, topoIDs, narrowedBizIDs, scopeIsAny,
+		rCtx, topoIDs, narrowedBizIDs, nodeRoles, scopeIsAny,
 	)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
 	customHostCount, err = h.countCustomBusinessInstTopoHosts(
-		rCtx, topoIDs.customTopoSetIDs, narrowedBizIDs, scopeIsAny,
+		rCtx, topoIDs.customTopoSetIDs, narrowedBizIDs, nodeRoles, scopeIsAny,
 	)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -247,13 +254,14 @@ func (h *handler) countStandardBusinessInstTopoHosts(
 	rCtx restserver.IContext,
 	topoIDs businessInstTopoIDs,
 	narrowedBizIDs []int64,
+	nodeRoles []types.NodeRole,
 	scopeIsAny bool,
 ) (bizHostCount, setHostCount, moduleHostCount map[int64]int64, err error) {
 
 	if len(topoIDs.bizIDs) != 0 {
-		bizCond := narrowHostConditionByBiz(&types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{BizID: topoIDs.bizIDs},
-		}, narrowedBizIDs, scopeIsAny)
+		bizCond := narrowHostConditionByBiz(newBusinessInstTopoHostCondition(
+			&types.HostStaticExactFields{BizID: topoIDs.bizIDs}, nodeRoles,
+		), narrowedBizIDs, scopeIsAny)
 		bizHostCount, err = h.storage.CountHostGroupByBizID(rCtx, bizCond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by biz id")
@@ -262,9 +270,9 @@ func (h *handler) countStandardBusinessInstTopoHosts(
 	}
 
 	if len(topoIDs.setIDs) != 0 {
-		setCond := narrowHostConditionByBiz(&types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{SetID: topoIDs.setIDs},
-		}, narrowedBizIDs, scopeIsAny)
+		setCond := narrowHostConditionByBiz(newBusinessInstTopoHostCondition(
+			&types.HostStaticExactFields{SetID: topoIDs.setIDs}, nodeRoles,
+		), narrowedBizIDs, scopeIsAny)
 		setHostCount, err = h.storage.CountHostGroupBySetID(rCtx, setCond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by set id")
@@ -273,9 +281,9 @@ func (h *handler) countStandardBusinessInstTopoHosts(
 	}
 
 	if len(topoIDs.moduleIDs) != 0 {
-		moduleCond := narrowHostConditionByBiz(&types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{ModuleID: topoIDs.moduleIDs},
-		}, narrowedBizIDs, scopeIsAny)
+		moduleCond := narrowHostConditionByBiz(newBusinessInstTopoHostCondition(
+			&types.HostStaticExactFields{ModuleID: topoIDs.moduleIDs}, nodeRoles,
+		), narrowedBizIDs, scopeIsAny)
 		moduleHostCount, err = h.storage.CountHostGroupByModuleID(rCtx, moduleCond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by module id")
@@ -286,10 +294,23 @@ func (h *handler) countStandardBusinessInstTopoHosts(
 	return bizHostCount, setHostCount, moduleHostCount, nil
 }
 
+func newBusinessInstTopoHostCondition(
+	staticFields *types.HostStaticExactFields, nodeRoles []types.NodeRole,
+) *types.HostCondition {
+
+	return &types.HostCondition{
+		StaticExactInclude: staticFields,
+		DynamicExactInclude: &types.HostDynamicExactFields{
+			NodeRole: nodeRoles,
+		},
+	}
+}
+
 func (h *handler) countCustomBusinessInstTopoHosts(
 	rCtx restserver.IContext,
 	customTopoSetIDs map[*types.TopoNodeInfo][]int64,
 	narrowedBizIDs []int64,
+	nodeRoles []types.NodeRole,
 	scopeIsAny bool,
 ) (map[*types.TopoNodeInfo]int64, error) {
 
@@ -308,9 +329,9 @@ func (h *handler) countCustomBusinessInstTopoHosts(
 		rCtx,
 		customSetIDList,
 		func(nCtx contextx.IContext, batchSetIDs []int64) error {
-			customSetCondition := narrowHostConditionByBiz(&types.HostCondition{
-				StaticExactInclude: &types.HostStaticExactFields{SetID: batchSetIDs},
-			}, narrowedBizIDs, scopeIsAny)
+			customSetCondition := narrowHostConditionByBiz(newBusinessInstTopoHostCondition(
+				&types.HostStaticExactFields{SetID: batchSetIDs}, nodeRoles,
+			), narrowedBizIDs, scopeIsAny)
 			hosts, _, err := h.storage.ListHostWithFields(
 				nCtx,
 				types.UnlimitedPage(),
