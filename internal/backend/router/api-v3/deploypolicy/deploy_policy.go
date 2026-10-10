@@ -66,5 +66,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/update", restserver.Handler(h.Update))
 	h.rg.POST("/execute", restserver.Handler(h.Execute))
+	h.rg.POST("/preview", restserver.Handler(h.Preview))
 	h.rg.POST("/workflow/list", restserver.Handler(h.WorkflowList))
 }

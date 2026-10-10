@@ -21,12 +21,35 @@ package manager
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
+
+// PreviewDeployPolicy computes current policy states without executing changes.
+func (mgr *Manager) PreviewDeployPolicy(
+	nCtx contextx.IContext, policy *types.DeployPolicy,
+) ([]*types.DeployPolicySpecPreview, error) {
+
+	return mgr.newDeployPolicyHandler().Preview(nCtx, policy)
+}
+
+func (mgr *Manager) newDeployPolicyHandler() *dpmgr.Handler {
+	return dpmgr.NewHandler(&dpmgr.Config{
+		DaoProcess:              mgr.conf.StoragePlugin,
+		DaoProcessConfig:        mgr.conf.StoragePlugin,
+		DaoPlugin:               mgr.conf.StoragePlugin,
+		DaoHost:                 mgr.conf.StorageTopo,
+		DomainDeployPolicyMgr:   mgr.conf.StorageDeployPolicy,
+		DaoDeployPolicyWorkflow: mgr.conf.StorageDeployPolicy,
+		CmdbHandler:             mgr.conf.CmdbHandler,
+		NodeManager:             mgr,
+		PluginManager:           mgr,
+	})
+}
 
 // LaunchExecuteDeployPolicy launch execute deploy policy trigger.
 func (mgr *Manager) LaunchExecuteDeployPolicy(nCtx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error) {
