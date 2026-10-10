@@ -128,6 +128,7 @@ export interface NodeAgentUninstallHost {
 // NodeAgentUninstallReq describes the node agent uninstall request.
 export interface NodeAgentUninstallReq {
   host: NodeAgentUninstallHost[];
+  unbind_agent_id: boolean;
 }
 
 // NodeAgentUninstallResp describes the node agent uninstall response.
