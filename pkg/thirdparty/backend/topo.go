@@ -71,8 +71,9 @@ type IHandlerBusiness interface {
 	// GetBusinessInstTopo get business instance topology with aggregated host count.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param bizID the single business id.
+	// @param nodeRoles the node roles.
 	// @return topo root node and error.
-	GetBusinessInstTopo(nCtx contextx.IContext, bizID int64) (*types.TopoNodeInfo, error)
+	GetBusinessInstTopo(nCtx contextx.IContext, bizID int64, nodeRoles []types.NodeRole) (*types.TopoNodeInfo, error)
 }
 
 // IHandlerConstant defines the constant Handler.
@@ -314,8 +315,14 @@ func (h *Handler) GetBusinessHostCount(
 }
 
 // GetBusinessInstTopo get business instance topology with aggregated host count.
-func (h *Handler) GetBusinessInstTopo(nCtx contextx.IContext, bizID int64) (*types.TopoNodeInfo, error) {
-	req := &protoBackend.TopoBusinessInstTopoGetReq{BkBizId: bizID}
+func (h *Handler) GetBusinessInstTopo(
+	nCtx contextx.IContext, bizID int64, nodeRoles []types.NodeRole,
+) (*types.TopoNodeInfo, error) {
+
+	req := &protoBackend.TopoBusinessInstTopoGetReq{
+		BkBizId:  bizID,
+		NodeRole: types.NodeRoleListToStringList(nodeRoles),
+	}
 
 	resp, err := h.cli.getBusinessInstTopo(nCtx, req)
 	if err != nil {

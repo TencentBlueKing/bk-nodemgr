@@ -88,7 +88,9 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	topoNode, err := h.backendHandler.GetBusinessInstTopo(rCtx, req.GetBkBizId())
+	topoNode, err := h.backendHandler.GetBusinessInstTopo(
+		rCtx, req.GetBkBizId(), types.StringListToNodeRoleList(req.GetNodeRole()),
+	)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business inst topo")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

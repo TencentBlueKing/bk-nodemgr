@@ -1,7 +1,7 @@
 ### Description
 
-- API Version: v3.0.1-alpha.38+.
-- Required Permission: `agent_view (View Agent)`, `proxy_view (View Proxy)`.
+- API Version: v3.0.1-alpha.96+.
+- Required Permission: `agent_view (View Agent)` for `agent` or `blank`; `proxy_view (View Proxy)` for `proxy`. Both permissions are required when no role filter is supplied or both categories are selected.
 - Function: Query the business instance topology by business ID, with aggregated host counts for topology nodes.
 
 ### URL
@@ -13,14 +13,16 @@ POST /api/v3/topo/business/inst_topo/get
 | Parameter | Type  | Required | Description |
 | --------- | ----- | -------- | ----------- |
 | bk_biz_id | int64 | Yes      | Business ID |
+| node_role | array[string] | No | Filter host counts by node role: `agent`, `proxy`, or `blank`. Omitted or empty means all roles |
 
 ### Request Example
 
-Query the business instance topology of business `2`.
+Query the business instance topology of business `2`, counting only Agent hosts.
 
 ```json
 {
-  "bk_biz_id": 2
+  "bk_biz_id": 2,
+  "node_role": ["agent"]
 }
 ```
 
@@ -104,6 +106,7 @@ Query the business instance topology of business `2`.
 ### Notes
 
 - The request and response contract is defined by `proto/backend/api/v3/topo.proto`, `pkg/proto/backend/api/v3/business.go`, `internal/backend/router/api-v3/topo/business.go`, and `docs/api/swagger/backend/api/v3/topo.swagger.json`.
+- `node_role` filters `host_count` at every topology level; it preserves the topology structure, including nodes with zero matching hosts.
 - If `bk_biz_id` is `0`, protocol-layer validation returns a parameter error.
 - The backend queries the business instance topology from CMDB and counts hosts directly for `biz`, `set`, and `module` nodes. For other custom topology levels, `host_count` is aggregated from child nodes.
 - `data.items` is the root node of a single business topology tree. Every `children` element uses the same node structure.

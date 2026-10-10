@@ -1,7 +1,7 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.38+。
-- 该接口所需权限：`agent_view（查看 Agent）`、`proxy_view（查看 Proxy）`。
+- 该接口提供版本：v3.0.1-alpha.96+。
+- 该接口所需权限：筛选 `agent` 或 `blank` 时需要 `agent_view（查看 Agent）`；筛选 `proxy` 时需要 `proxy_view（查看 Proxy）`。不传角色筛选条件或同时选择两类时，需要上述两项权限。
 - 该接口功能描述：根据业务 ID 查询业务实例拓扑，并返回各拓扑节点聚合后的主机数量。
 
 ### URL
@@ -13,14 +13,16 @@ POST /api/v3/topo/business/inst_topo/get
 | 参数名称  | 参数类型 | 必选 | 描述    |
 | --------- | -------- | ---- | ------- |
 | bk_biz_id | int64    | 是   | 业务 ID |
+| node_role | array[string] | 否 | 按节点角色筛选主机数，可选 `agent`、`proxy`、`blank`；不传或空列表表示所有角色 |
 
 ### 调用示例
 
-查询业务 `2` 的业务实例拓扑。
+查询业务 `2` 的业务实例拓扑，仅统计 Agent 主机。
 
 ```json
 {
-  "bk_biz_id": 2
+  "bk_biz_id": 2,
+  "node_role": ["agent"]
 }
 ```
 
@@ -104,6 +106,7 @@ POST /api/v3/topo/business/inst_topo/get
 ### 说明
 
 - 该接口的请求契约与响应结构定义在 `proto/backend/api/v3/topo.proto`、`pkg/proto/backend/api/v3/business.go`、`internal/backend/router/api-v3/topo/business.go` 与 `docs/api/swagger/backend/api/v3/topo.swagger.json`。
+- `node_role` 筛选所有拓扑层级的 `host_count`，保留完整拓扑结构，包括匹配主机数为零的节点。
 - 请求参数 `bk_biz_id` 为 `0` 时，协议层校验会返回参数错误。
 - 后端从 CMDB 查询业务实例拓扑，并对 `biz`、`set`、`module` 节点按实际主机关系统计主机数量；其他自定义层级节点的 `host_count` 由子节点数量向上汇总得到。
 - `data.items` 是单棵业务拓扑树的根节点；每个 `children` 元素都使用同一节点结构。
