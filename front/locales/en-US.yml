@@ -27,11 +27,11 @@ platform:
       running: Running
       damaged: Abnormal
       unknown: Not Installed
-      online: Online
-      offline: Offline
+      online: Normal
+      offline: Abnormal
       notInstalled: Not Installed
-      onlineAgentCount: Online Agent Count
-      offlineAgentCount: Offline Agent Count
+      onlineAgentCount: Normal Agent Count
+      offlineAgentCount: Abnormal Agent Count
       notInstalledAgentCount: Not Installed Agent Count
       unassigned: Unassigned
       confirmIsBatch: Confirm batch {type}?
@@ -100,12 +100,12 @@ platform:
       assignUnitConfirmDeleteRowSub: Host {ip} will not be assigned a network unit after removal
     proxyStatus:
       title: Proxy Status
-      online: Online
-      abnormal: Offline
+      online: Normal
+      abnormal: Abnormal
       notInstalled: Not Installed
-      abnormalProxyCount: Offline Proxy Count
+      abnormalProxyCount: Abnormal Proxy Count
       notInstalledProxyCount: Not Installed Proxy Count
-      onlineProxyCount: Online Proxy Count
+      onlineProxyCount: Normal Proxy Count
       assignUnitDisabledAssigned: Selected hosts include nodes already assigned to a network unit. Please deselect or filter for unassigned hosts
       assignUnitDisabledRowAssigned: This host is already assigned to a network unit
       assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please select hosts from the same area
