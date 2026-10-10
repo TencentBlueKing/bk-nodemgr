@@ -248,11 +248,16 @@ func (ctl *triggerHandlerTestTriggerCtl) ListNeedInstantiateOperation(
 }
 
 func (ctl *triggerHandlerTestTriggerCtl) ListOperationInstances(
-	_ contextx.IContext, _ types.Page, _ ...operation.State,
+	_ contextx.IContext, page types.Page, _ ...operation.State,
 ) ([]IOperationInstanceCtl, error) {
 	ctl.listInstancesCalls.Add(1)
-	instances := make([]IOperationInstanceCtl, len(ctl.instances))
-	copy(instances, ctl.instances)
+	if page.Offset >= len(ctl.instances) {
+		return make([]IOperationInstanceCtl, 0), nil
+	}
+
+	end := min(page.Offset+page.Limit, len(ctl.instances))
+	instances := make([]IOperationInstanceCtl, end-page.Offset)
+	copy(instances, ctl.instances[page.Offset:end])
 
 	return instances, nil
 }

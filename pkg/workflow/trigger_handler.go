@@ -486,6 +486,9 @@ const (
 
 	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
 	instantiateOperationConcurrency = 20
+
+	// operationInstanceListPageSize limits each operation instance list query.
+	operationInstanceListPageSize = 5000
 )
 
 // onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
@@ -496,6 +499,11 @@ func onceTriggerBatchSize() int {
 // orderedTriggerBatchSize returns the maximum operations instantiated and launched per ordered trigger cycle.
 func orderedTriggerBatchSize() int {
 	return instantiateOperationBatchSize()
+}
+
+// initOperationInstanceListBatchSize returns the maximum init operation instances listed per page.
+func initOperationInstanceListBatchSize() int {
+	return operationInstanceListPageSize
 }
 
 func instantiateOperationBatchSize() int {
@@ -578,7 +586,7 @@ func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITr
 			Warn("failed to init once empty operation")
 	}
 
-	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.UnlimitedPage(), operation.StateInit)
+	instanceList, err := handler.listInitOperationInstances(nCtx, trigCtl)
 	if err != nil {
 		return nil, err
 	}
@@ -587,6 +595,28 @@ func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITr
 		Debug("once trigger processed")
 
 	return instanceList, nil
+}
+
+func (handler *triggerHandler) listInitOperationInstances(
+	nCtx contextx.IContext, trigCtl ITriggerCtl,
+) ([]IOperationInstanceCtl, error) {
+
+	executor := pageexecutor.NewPageExecutor[IOperationInstanceCtl](initOperationInstanceListBatchSize(), defaultTimeout)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]IOperationInstanceCtl, error) {
+		instanceList, err := trigCtl.ListOperationInstances(nCtx, p, operation.StateInit)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list init operation instances: %w", err)
+		}
+
+		return instanceList, nil
+	}
+
+	pageResult, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list init operation instances: %w", err)
+	}
+
+	return pageResult.Items, nil
 }
 
 func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
@@ -661,37 +691,57 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).
 			Debug("periodic trigger next activation time reached, no working instance, proceed to create operation instance")
 
-		operList, count, err := handler.mgr.stgOperation.ListOperation(nCtx, types.UnlimitedPage(), &types.OperationCondition{
-			ExactInclude: &types.OperationExactFields{
-				TriggerID: []string{trigCtl.GetTriggerID()},
-			},
-		})
-		if err != nil {
+		if err := handler.createPeriodicOperationInstance(nCtx, trigCtl); err != nil {
 			return nil, err
 		}
-
-		if count != 1 || len(operList) != 1 {
-			return nil, errors.Join(common.ErrInvalidPeriodicOperationNum(),
-				fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
-					trigCtl.GetTriggerID(), count))
-		}
-
-		oper := operList[0]
-		operCtl, err := trigCtl.GetOperation(nCtx, oper.OperationID)
-		if err != nil {
-			return nil, err
-		}
-
-		if _, err = operCtl.CreateOperationInstance(nCtx); err != nil {
-			return nil, err
-		}
-
-		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(),
-			"oper-id", operCtl.GetOperationID()).
-			Debug("created periodic operation instance")
 	}
 
-	return trigCtl.ListOperationInstances(nCtx, types.UnlimitedPage(), operation.StateInit)
+	return handler.listInitOperationInstances(nCtx, trigCtl)
+}
+
+func (handler *triggerHandler) createPeriodicOperationInstance(nCtx contextx.IContext, trigCtl ITriggerCtl) error {
+	condition := &types.OperationCondition{
+		ExactInclude: &types.OperationExactFields{
+			TriggerID: []string{trigCtl.GetTriggerID()},
+		},
+	}
+	count, err := handler.mgr.stgOperation.CountOperation(nCtx, condition)
+	if err != nil {
+		return err
+	}
+
+	if count != 1 {
+		return errors.Join(common.ErrInvalidPeriodicOperationNum(),
+			fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
+				trigCtl.GetTriggerID(), count))
+	}
+
+	operList, _, err := handler.mgr.stgOperation.ListOperation(nCtx, types.SingleItemPage(), condition)
+	if err != nil {
+		return err
+	}
+
+	if len(operList) != 1 {
+		return errors.Join(common.ErrInvalidPeriodicOperationNum(),
+			fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
+				trigCtl.GetTriggerID(), len(operList)))
+	}
+
+	oper := operList[0]
+	operCtl, err := trigCtl.GetOperation(nCtx, oper.OperationID)
+	if err != nil {
+		return err
+	}
+
+	if _, err = operCtl.CreateOperationInstance(nCtx); err != nil {
+		return err
+	}
+
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(),
+		"oper-id", operCtl.GetOperationID()).
+		Debug("created periodic operation instance")
+
+	return nil
 }
 
 func (handler *triggerHandler) launchOperationInstance(nCtx contextx.IContext, trigCtl ITriggerCtl, instanceCtls []IOperationInstanceCtl) error {
@@ -738,9 +788,7 @@ func (handler *triggerHandler) checkAccumulateOperationInstance(nCtx contextx.IC
 		},
 	}
 
-	maxPageSize := 5000
-
-	queryExecutor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](maxPageSize, time.Minute)
+	queryExecutor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](operationInstanceListPageSize, time.Minute)
 	queryFn := func(nCtx contextx.IContext, p types.Page) ([]*operation.InstanceBriefData, error) {
 		operationInstanceBriefData, _, err := handler.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInst(nCtx, p, &condition)
 		if err != nil {
