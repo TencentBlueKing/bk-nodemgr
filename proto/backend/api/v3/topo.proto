@@ -46,7 +46,10 @@ message TopoBusinessListResp {
 
 // TopoBusinessHostCountGetReq describes the HTTP request body when get host
 // count of business in topo service.
-message TopoBusinessHostCountGetReq { repeated int64 bk_biz_id = 1; }
+message TopoBusinessHostCountGetReq {
+  repeated int64 bk_biz_id = 1;
+  repeated string node_role = 2;
+}
 
 // BusinessHostCount describes the host count of business in topo service.
 message BusinessHostCount {

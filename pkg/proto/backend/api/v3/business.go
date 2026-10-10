@@ -192,6 +192,18 @@ func (x *TopoBusinessHostCountGetReq) Validate() error {
 func (x *TopoBusinessHostCountGetReq) AutoConvert() {
 }
 
+// ConvertHostConditionToTypes converts business host count request to host conditions.
+func (x *TopoBusinessHostCountGetReq) ConvertHostConditionToTypes() *types.HostCondition {
+	return &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			BizID: x.GetBkBizId(),
+		},
+		DynamicExactInclude: &types.HostDynamicExactFields{
+			NodeRole: types.StringListToNodeRoleList(x.GetNodeRole()),
+		},
+	}
+}
+
 // ConvertHostCountFromTypes converts host count map from types to response.
 func (x *TopoBusinessHostCountGetResp) ConvertHostCountFromTypes(counts map[int64]int64) {
 	items := make([]*BusinessHostCount, 0, len(counts))
