@@ -125,6 +125,18 @@ func (act *actionUnbindAgentHostRel) Do(ctx *action.InstanceContext) (err error)
 		}
 	}()
 
+	if !std.DeployInfo().UninstallOptions.UnbindAgentID {
+		std.InstanceData().Log().
+			Zh("跳过解除主机与Agent关联, 主机ID(%d), 未启用解除AgentID绑定", std.DeployInfo().Host.HostID).
+			En("skip unbinding host agent relation, host-id(%d), unbind agent id is disabled", std.DeployInfo().Host.HostID).
+			Info()
+		logger.G.Sys().Ctx(std.Context()).
+			With("host-id", std.DeployInfo().Host.HostID).
+			Info("skip unbinding host agent relation because unbind agent id is disabled")
+
+		return nil
+	}
+
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
 	if err := act.checkHostExist(std.Context(), std.DeployInfo()); err != nil {
 		return err

@@ -1,6 +1,7 @@
 ### 描述
 
 - 该接口提供版本：v3.0.0+。
+- 版本变更：`v3.0.1-alpha.96+` 新增 `unbind_agent_id` 参数。
 - 该接口所需权限：agent_operate（操作Agent）。
 - 该接口功能描述：批量卸载节点Agent。
 
@@ -13,6 +14,7 @@ POST /api/v3/node/agent/uninstall
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | host | object array | 是 | 待卸载Agent的主机列表 |
+| unbind_agent_id | bool | 否 | 是否在卸载成功后解绑主机的 AgentID 关系，默认 false |
 
 #### host[n]
 
@@ -22,7 +24,7 @@ POST /api/v3/node/agent/uninstall
 
 ### 调用示例
 
-批量卸载两台主机的Agent。
+批量卸载两台主机的Agent，并在卸载成功后解绑主机的 AgentID 关系。
 
 ```json
 {
@@ -33,7 +35,8 @@ POST /api/v3/node/agent/uninstall
     {
       "bk_host_id": 1002
     }
-  ]
+  ],
+  "unbind_agent_id": true
 }
 ```
 

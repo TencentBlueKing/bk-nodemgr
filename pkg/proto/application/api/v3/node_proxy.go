@@ -581,7 +581,8 @@ func (x *NodeProxyUninstallReq) ConvertParamToTypes() *types.NodeProxyUninstallP
 	}
 
 	return &types.NodeProxyUninstallParam{
-		Hosts: hostsParam,
+		Hosts:         hostsParam,
+		UnbindAgentID: x.GetUnbindAgentId(),
 	}
 }
 

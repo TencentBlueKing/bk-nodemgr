@@ -550,7 +550,8 @@ func (x *NodeAgentUninstallReq) ConvertParamToTypes() *types.NodeAgentUninstallP
 	}
 
 	return &types.NodeAgentUninstallParam{
-		Hosts: hostsParam,
+		Hosts:         hostsParam,
+		UnbindAgentID: x.GetUnbindAgentId(),
 	}
 }
 

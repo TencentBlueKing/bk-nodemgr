@@ -1,6 +1,7 @@
 ### 描述
 
 - 该接口提供版本：v3.0.1+。
+- 版本变更：`v3.0.1-alpha.96+` 新增 `unbind_agent_id` 参数。
 - 该接口所需权限：proxy_operate（操作Proxy）。
 - 该接口功能描述：批量卸载节点Proxy。
 
@@ -13,6 +14,7 @@ POST /api/v3/node/proxy/uninstall
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|---------|------|------|
 | host | array | 是 | 主机列表，详见下方 host 参数说明 |
+| unbind_agent_id | bool | 否 | 是否在卸载成功后解绑主机的 AgentID 关系，默认 false |
 
 **host[n]**
 
@@ -28,7 +30,8 @@ POST /api/v3/node/proxy/uninstall
         {
             "bk_host_id": 1001
         }
-    ]
+    ],
+    "unbind_agent_id": true
 }
 ```
 

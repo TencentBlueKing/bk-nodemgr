@@ -100,7 +100,8 @@ type NodeAgentUninstallHost struct {
 
 // NodeAgentUninstallParam describes the node agent uninstall parameter.
 type NodeAgentUninstallParam struct {
-	Hosts []*NodeAgentUninstallHost
+	Hosts         []*NodeAgentUninstallHost
+	UnbindAgentID bool
 }
 
 // NodeAgentInstallCheckParam describes the node agent install check param.

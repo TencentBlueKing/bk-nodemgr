@@ -70,7 +70,9 @@ func (h *handler) Uninstall(rCtx restserver.IContext) (interface{}, error) {
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesUninstallDeploys(rCtx.TenantID(), reqHost, hosts, originUnitDirectMap)
+		nodeDeploy, err := h.generatesUninstallDeploys(
+			rCtx.TenantID(), reqHost, hosts, originUnitDirectMap, req.GetUnbindAgentId(),
+		)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy, failed to generate node deployment")
 
@@ -166,7 +168,8 @@ func (h *handler) generatesUninstallDeploys(
 	tenantID string,
 	reqHost *protoBackend.NodeProxyUninstallReq_Host,
 	hostMap map[int64]*types.Host,
-	originUnitDirectMap map[int64]bool) (*types.NodeDeployment, error) {
+	originUnitDirectMap map[int64]bool,
+	unbindAgentID bool) (*types.NodeDeployment, error) {
 
 	hostID := reqHost.GetBkHostId()
 	host, ok := hostMap[hostID]
@@ -195,8 +198,9 @@ func (h *handler) generatesUninstallDeploys(
 			},
 		},
 		UninstallOptions: types.DeploymentUninstallOptions{
-			DirectLink: originUnitDirectMap[originUnitID],
-			SkipReport: crossUnit,
+			DirectLink:    originUnitDirectMap[originUnitID],
+			SkipReport:    crossUnit,
+			UnbindAgentID: unbindAgentID,
 		},
 		TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 	})
