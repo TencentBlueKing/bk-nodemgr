@@ -486,6 +486,9 @@ const (
 
 	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
 	instantiateOperationConcurrency = 20
+
+	// operationInstanceListPageSize limits each operation instance list query.
+	operationInstanceListPageSize = 5000
 )
 
 // onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
@@ -500,7 +503,7 @@ func orderedTriggerBatchSize() int {
 
 // initOperationInstanceListBatchSize returns the maximum init operation instances listed per page.
 func initOperationInstanceListBatchSize() int {
-	return instantiateOperationBatchSize()
+	return operationInstanceListPageSize
 }
 
 func instantiateOperationBatchSize() int {
@@ -776,9 +779,7 @@ func (handler *triggerHandler) checkAccumulateOperationInstance(nCtx contextx.IC
 		},
 	}
 
-	maxPageSize := 5000
-
-	queryExecutor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](maxPageSize, time.Minute)
+	queryExecutor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](operationInstanceListPageSize, time.Minute)
 	queryFn := func(nCtx contextx.IContext, p types.Page) ([]*operation.InstanceBriefData, error) {
 		operationInstanceBriefData, _, err := handler.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInst(nCtx, p, &condition)
 		if err != nil {
