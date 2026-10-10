@@ -144,16 +144,16 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) (err err
 	// Check if this is offline mode by reading from deployment info.
 	if pollingSwitch {
 		std.InstanceData().Log().
-			Zh("采用离线轮询模式, 等待插件安装完成").
-			En("using offline polling mode to wait for plugin installation to complete").
+			Zh("采用离线轮询模式, 等待节点安装完成").
+			En("using offline polling mode to wait for node installation to complete").
 			Info()
 
 		return act.doOfflinePolling(std, ensureAgentID)
 	}
 
 	std.InstanceData().Log().
-		Zh("采用回调模式，等待插件安装完成").
-		En("using callback mode to wait for plugin installation to complete").
+		Zh("采用回调模式，等待节点安装完成").
+		En("using callback mode to wait for node installation to complete").
 		Info()
 
 	return act.doCallbackPolling(std, ensureAgentID)
