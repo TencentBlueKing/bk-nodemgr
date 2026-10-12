@@ -255,11 +255,12 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 			}
 
 			deployParams = append(deployParams, &types.PluginDeploymentParam{
-				HostID:     deployInfo.Host.HostID,
-				BizID:      deployInfo.Host.Static.BizID,
-				PluginName: name,
-				Version:    version,
-				IsOffline:  deployInfo.InstallOptions.IsOffline,
+				HostID:                  deployInfo.Host.HostID,
+				BizID:                   deployInfo.Host.Static.BizID,
+				PluginName:              name,
+				Version:                 version,
+				IsOffline:               deployInfo.InstallOptions.IsOffline,
+				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
 			})
 
 			return nil
@@ -369,11 +370,12 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 			}
 
 			deployParams = append(deployParams, &types.PluginDeploymentParam{
-				HostID:     deployInfo.Host.HostID,
-				BizID:      deployInfo.Host.Static.BizID,
-				PluginName: name,
-				Version:    version,
-				IsOffline:  deployInfo.InstallOptions.IsOffline,
+				HostID:                  deployInfo.Host.HostID,
+				BizID:                   deployInfo.Host.Static.BizID,
+				PluginName:              name,
+				Version:                 version,
+				IsOffline:               deployInfo.InstallOptions.IsOffline,
+				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
 			})
 
 			return nil
