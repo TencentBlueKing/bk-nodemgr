@@ -16923,6 +16923,8 @@ paths:
                       bk_host_id:
                         type: integer
                         format: int64
+                unbind_agent_id:
+                  type: boolean
               description: NodeProxyUninstallReq describes the node proxy uninstall request.
         required: true
         description: NodeProxyUninstallReq describes the node proxy uninstall request.
@@ -18073,6 +18075,8 @@ paths:
                       bk_host_id:
                         type: integer
                         format: int64
+                unbind_agent_id:
+                  type: boolean
               description: NodeAgentUninstallReq describes the node agent uninstall request.
         required: true
         description: NodeAgentUninstallReq describes the node agent uninstall request.
@@ -25980,6 +25984,10 @@ paths:
                   items:
                     type: integer
                     format: int64
+                node_role:
+                  type: array
+                  items:
+                    type: string
               description: |-
                 TopoBusinessHostCountGetReq describes the HTTP request body when get host
                 count of business in topo service.
@@ -26045,6 +26053,10 @@ paths:
                 bk_biz_id:
                   type: integer
                   format: int64
+                node_role:
+                  type: array
+                  items:
+                    type: string
               description: |-
                 TopoBusinessInstTopoGetReq describes the HTTP request body when get business
                 instance topology in topo service.
