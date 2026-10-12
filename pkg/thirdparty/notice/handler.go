@@ -205,6 +205,7 @@ func parseTime(timeStr string) (time.Time, error) {
 	// Try common time formats
 	formats := []string{
 		time.RFC3339,
+		"2006-01-02 15:04:05 -0700",
 		"2006-01-02 15:04:05",
 		"2006-01-02",
 	}

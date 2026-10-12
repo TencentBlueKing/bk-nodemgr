@@ -134,6 +134,11 @@ func Test_parseTime(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "datetime with timezone format",
+			timeStr: "2026-10-01 00:00:00 +0800",
+			wantErr: false,
+		},
+		{
 			name:    "date format",
 			timeStr: "2024-01-15",
 			wantErr: false,
