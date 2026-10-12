@@ -980,7 +980,7 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
     console.error('获取管控区域列表失败:', err);
     return { total: 0, items: [] };
   });
-  networkAreaListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
+  networkAreaListMap.value.set(Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID), t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
     networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
   });
@@ -1050,13 +1050,14 @@ const getHostDistinct = async () => {
             if (key === 'node_status') text = statusMap.value.get(value as string) || value;
             return { text, value };
           });
-        // 管控区域筛选项排序：-1（未分配）最后，0（默认）最前，其余 ID 降序
+        // 管控区域筛选项排序：未分配最后，0（默认）最前，其余 ID 降序
         if (key === 'bk_networkarea_id') {
           filterOptionSource[key].list.sort((a: any, b: any) => {
             const aId = Number(a.value);
             const bId = Number(b.value);
-            if (aId === -1) return 1;
-            if (bId === -1) return -1;
+            const unassignedAreaID = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
+            if (aId === unassignedAreaID) return 1;
+            if (bId === unassignedAreaID) return -1;
             if (aId === 0) return -1;
             if (bId === 0) return 1;
             return bId - aId;

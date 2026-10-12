@@ -44,6 +44,20 @@ access:
 	assert.Equal(t, RunModeDebug, svc.RunMode)
 	assert.Equal(t, "<script>window.bkAnalytics=true</script>", svc.BKPaas.AnalysisScript)
 	assert.Equal(t, "bk-nodemgr-app", svc.Access.VirtualUser)
+	assert.Equal(t, int64(-1), svc.Front.UnassignedNetworkAreaID)
+}
+
+func TestApplicationService_LoadFromFileReadsUnassignedNetworkAreaID(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
+	configContent := []byte(`front:
+  unassignedNetworkAreaID: 100
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	svc := NewApplicationService()
+	require.NoError(t, svc.LoadFromFile(configPath))
+
+	assert.Equal(t, int64(100), svc.Front.UnassignedNetworkAreaID)
 }
 
 func TestApplicationService_LoadFromFileKeepsLegacyModeKeyCompatible(t *testing.T) {

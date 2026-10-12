@@ -23,6 +23,8 @@ front:
   windowsSSHPortDefault: __BK_NODEMGR_APPLICATION_WINDOWS_SSH_PORT_DEFAULT__
   # default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
   unixSSHPortDefault: __BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT__
+  # CMDB network-area ID used for unassigned hosts.
+  unassignedNetworkAreaID: __BK_NODEMGR_APPLICATION_UNASSIGNED_NETWORK_AREA_ID__
   # bk iam saas host.
   bkIamSaaSHost: __BK_NODEMGR_APPLICATION_IAM_SAAS_HOST__
   # bk user saas host.

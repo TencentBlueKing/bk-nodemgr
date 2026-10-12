@@ -38,12 +38,13 @@ const (
 	defaultApplicationTenantMode = tenant.ModeSingle
 
 	// front config default values.
-	defaultApplicationFrontPasswordVaultSwitch   = false
-	defaultApplicationFrontPasswordVaultName     = "password_vault"
-	defaultApplicationFrontBKAppNavOpenSourceURL = "https://github.com/TencentBlueKing/bk-nodemgr"
-	defaultApplicationFrontWindowsWMIPortDefault = 135
-	defaultApplicationFrontWindowsSSHPortDefault = 22
-	defaultApplicationFrontUnixSSHPortDefault    = 22
+	defaultApplicationFrontPasswordVaultSwitch           = false
+	defaultApplicationFrontPasswordVaultName             = "password_vault"
+	defaultApplicationFrontBKAppNavOpenSourceURL         = "https://github.com/TencentBlueKing/bk-nodemgr"
+	defaultApplicationFrontWindowsWMIPortDefault         = 135
+	defaultApplicationFrontWindowsSSHPortDefault         = 22
+	defaultApplicationFrontUnixSSHPortDefault            = 22
+	defaultApplicationFrontUnassignedNetworkAreaID int64 = -1
 
 	defaultApplicationBackendTraceServiceName     = "application-client-backend"
 	defaultApplicationUserManagerTraceServiceName = "application-client-usermanager"
@@ -174,12 +175,13 @@ func NewApplicationService() *ApplicationService {
 			},
 		},
 		Front: Front{
-			PasswordVaultSwitch:   defaultApplicationFrontPasswordVaultSwitch,
-			PasswordVaultName:     defaultApplicationFrontPasswordVaultName,
-			BKAppNavOpenSourceURL: defaultApplicationFrontBKAppNavOpenSourceURL,
-			WindowsWMIPortDefault: defaultApplicationFrontWindowsWMIPortDefault,
-			WindowsSSHPortDefault: defaultApplicationFrontWindowsSSHPortDefault,
-			UnixSSHPortDefault:    defaultApplicationFrontUnixSSHPortDefault,
+			PasswordVaultSwitch:     defaultApplicationFrontPasswordVaultSwitch,
+			PasswordVaultName:       defaultApplicationFrontPasswordVaultName,
+			BKAppNavOpenSourceURL:   defaultApplicationFrontBKAppNavOpenSourceURL,
+			WindowsWMIPortDefault:   defaultApplicationFrontWindowsWMIPortDefault,
+			WindowsSSHPortDefault:   defaultApplicationFrontWindowsSSHPortDefault,
+			UnixSSHPortDefault:      defaultApplicationFrontUnixSSHPortDefault,
+			UnassignedNetworkAreaID: defaultApplicationFrontUnassignedNetworkAreaID,
 		},
 		Backend: Backend{
 			APIGatewayClient: APIGatewayClient{

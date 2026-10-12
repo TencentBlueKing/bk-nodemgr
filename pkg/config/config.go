@@ -699,6 +699,9 @@ type Front struct {
 	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
 	UnixSSHPortDefault int `yaml:"unixSSHPortDefault" usage:"default port for Unix-like OS SSH connection"`
 
+	// UnassignedNetworkAreaID is the CMDB network-area ID used for unassigned hosts.
+	UnassignedNetworkAreaID int64 `yaml:"unassignedNetworkAreaID" usage:"unassigned network-area ID"`
+
 	// BKIamSaaSHost is the host of bk iam saas.
 	BKIamSaaSHost string `yaml:"bkIamSaaSHost" usage:"bk iam saas host of application service"`
 

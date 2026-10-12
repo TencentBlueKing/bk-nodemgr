@@ -80,6 +80,9 @@ type IFrontSetting interface {
 	// UnixSSHPortDefault the front setting field.
 	UnixSSHPortDefault() int
 
+	// UnassignedNetworkAreaID returns the CMDB network-area ID used for unassigned hosts.
+	UnassignedNetworkAreaID() int64
+
 	// EnableNotice the front setting field.
 	EnableNotice() bool
 
@@ -109,9 +112,10 @@ type FrontSetting struct {
 	bkDocsCenterURL       string
 	bkAppNavOpenSourceURL string
 
-	windowsWMIPortDefault int
-	windowsSSHPortDefault int
-	unixSSHPortDefault    int
+	windowsWMIPortDefault   int
+	windowsSSHPortDefault   int
+	unixSSHPortDefault      int
+	unassignedNetworkAreaID int64
 
 	enableNotice bool
 
@@ -156,6 +160,9 @@ type Option struct {
 	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
 	UnixSSHPortDefault int
 
+	// UnassignedNetworkAreaID is the CMDB network-area ID used for unassigned hosts.
+	UnassignedNetworkAreaID int64
+
 	// EnableNotice controls whether the notice feature is enabled.
 	EnableNotice bool
 
@@ -186,23 +193,24 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 	}
 
 	return &FrontSetting{
-		bkloginURL:             normalizeFrontValue(opt.BKLoginURL, frontValueKindURL),
-		bkRequestIDHeaderKEy:   opt.BKRequestIDHeaderKEy,
-		bkPassAnalyticsScript:  opt.BKPassAnalyticsScript,
-		passwordVaultSwitch:    opt.PasswordVaultSwitch,
-		passwordVaultName:      opt.PasswordVaultName,
-		bkUserWebURL:           normalizeFrontValue(opt.BKUserWebURL, frontValueKindURL),
-		bkIamSaaSHost:          opt.BKIamSaaSHost,
-		bkUserSaaSHost:         opt.BKUserSaaSHost,
-		bkDomain:               normalizeFrontValue(opt.BKDomain, frontValueKindHost),
-		bkDocsCenterURL:        normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
-		bkAppNavOpenSourceURL:  normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
-		windowsWMIPortDefault:  opt.WindowsWMIPortDefault,
-		windowsSSHPortDefault:  opt.WindowsSSHPortDefault,
-		unixSSHPortDefault:     opt.UnixSSHPortDefault,
-		enableNotice:           opt.EnableNotice,
-		bkIamSystemIDBKNodemgr: opt.BKIamSystemIDBKNodemgr,
-		bkIamSystemIDBKCmdb:    opt.BKIamSystemIDBKCmdb,
+		bkloginURL:              normalizeFrontValue(opt.BKLoginURL, frontValueKindURL),
+		bkRequestIDHeaderKEy:    opt.BKRequestIDHeaderKEy,
+		bkPassAnalyticsScript:   opt.BKPassAnalyticsScript,
+		passwordVaultSwitch:     opt.PasswordVaultSwitch,
+		passwordVaultName:       opt.PasswordVaultName,
+		bkUserWebURL:            normalizeFrontValue(opt.BKUserWebURL, frontValueKindURL),
+		bkIamSaaSHost:           opt.BKIamSaaSHost,
+		bkUserSaaSHost:          opt.BKUserSaaSHost,
+		bkDomain:                normalizeFrontValue(opt.BKDomain, frontValueKindHost),
+		bkDocsCenterURL:         normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
+		bkAppNavOpenSourceURL:   normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
+		windowsWMIPortDefault:   opt.WindowsWMIPortDefault,
+		windowsSSHPortDefault:   opt.WindowsSSHPortDefault,
+		unixSSHPortDefault:      opt.UnixSSHPortDefault,
+		unassignedNetworkAreaID: opt.UnassignedNetworkAreaID,
+		enableNotice:            opt.EnableNotice,
+		bkIamSystemIDBKNodemgr:  opt.BKIamSystemIDBKNodemgr,
+		bkIamSystemIDBKCmdb:     opt.BKIamSystemIDBKCmdb,
 	}, nil
 }
 
@@ -332,6 +340,11 @@ func (setting *FrontSetting) WindowsSSHPortDefault() int {
 // UnixSSHPortDefault get Unix-like OS SSH port default.
 func (setting *FrontSetting) UnixSSHPortDefault() int {
 	return setting.unixSSHPortDefault
+}
+
+// UnassignedNetworkAreaID returns the CMDB network-area ID used for unassigned hosts.
+func (setting *FrontSetting) UnassignedNetworkAreaID() int64 {
+	return setting.unassignedNetworkAreaID
 }
 
 // BKIamSystemIDBKNodemgr get bk_nodemgr system id in bkiam.

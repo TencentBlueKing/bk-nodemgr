@@ -48,6 +48,7 @@ func (testFrontSetting) BKAppNavOpenSourceURL() string        { return "https://
 func (testFrontSetting) WindowsWMIPortDefault() int           { return 445 }
 func (testFrontSetting) WindowsSSHPortDefault() int           { return 22 }
 func (testFrontSetting) UnixSSHPortDefault() int              { return 36000 }
+func (testFrontSetting) UnassignedNetworkAreaID() int64       { return -1 }
 func (testFrontSetting) EnableNotice() bool                   { return false }
 func (testFrontSetting) BKIamSystemIDBKNodemgr() string       { return "" }
 func (testFrontSetting) BKIamSystemIDBKCmdb() string          { return "" }
