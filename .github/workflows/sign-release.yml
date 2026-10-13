@@ -11,6 +11,7 @@ jobs:
   sign-source:
     name: Sign source archive
     runs-on: self-hosted
+    environment: GPG
     steps:
       - name: Download source archive
         env:
