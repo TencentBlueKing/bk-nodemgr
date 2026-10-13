@@ -31,7 +31,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 不要用于：
 
 - 纯 API 参数/reference 文档，优先 `api-doc`
-- 纯 PR 描述、提单摘要、合并说明，优先 `create-github-pr`
+- 纯 PR 描述、提单摘要、合并说明，优先 `bk-nodemgr-create-github-pr`
 - 纯 README/流程文档整理且不涉及版本变更，优先 `readme-logic-first`
 
 ## 核心原则

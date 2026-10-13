@@ -43,31 +43,32 @@ Read these before inventing routing rules:
 - `pkg/runtime/conv/AGENTS.md`, `pkg/runtime/criteria/AGENTS.md`, `pkg/runtime/crypter/AGENTS.md`: runtime subpackage contracts.
 - `.agents/skills/bk-nodemgr-{conv,gopool,retrier,contextx,logger,error-handling}/SKILL.md`: high-frequency project Go skills.
 - `.agents/skills/bk-nodemgr-config-sync/SKILL.md`: `pkg/config` startup config synchronization and review across Helm, helmfile, and docker-compose surfaces.
-- `.agents/skills/api-scaffold/SKILL.md`, `.agents/skills/router-permission-supplement/SKILL.md`, `.agents/skills/api-doc/SKILL.md`, `.agents/skills/code-review/SKILL.md`: project workflow and review skills.
+- `.agents/skills/api-scaffold/SKILL.md`, `.agents/skills/router-permission-supplement/SKILL.md`, `.agents/skills/api-doc/SKILL.md`, `.agents/skills/code-review/SKILL.md`, `.agents/skills/bk-nodemgr-create-github-pr/SKILL.md`: project workflow and review skills.
 
 ## Routing Rules
 
 Project-specific skills take precedence over generic Go skills when the task touches a bk-nodemgr-owned contract. Generic Go skills remain useful as companions for language-level details.
 
-| Task Signal | Load First | Add Generic Companions When Needed |
-| --- | --- | --- |
-| `pkg/contextx`, `contextx.IContext`, tenant/user/message propagation, `WithoutCancel` | `bk-nodemgr-contextx` | `golang-context`, `golang-concurrency` |
-| `pkg/runtime/conv`, data shaping, duplicate conversion helpers | `bk-nodemgr-conv` | `golang-data-structures`, `golang-safety`, `golang-testing` |
-| `pkg/runtime/gopool`, fan-out/fan-in, `Wait`, bounded goroutines | `bk-nodemgr-gopool`, `bk-nodemgr-error-handling` | `golang-concurrency`, `golang-safety` |
-| `pkg/runtime/retrier`, polling, backoff, fallback candidates, `err == nil` success branches | `bk-nodemgr-retrier`, `bk-nodemgr-error-handling` | `golang-context`, `golang-observability` |
-| Go error creation, propagation, wrapping, inspection, aggregation, `err == nil`, panic/recover, `resterrf.ErrWrap`, log-or-return responsibility | `bk-nodemgr-error-handling` | `golang-safety`, `golang-error-handling` only for language details not covered by the project skill |
-| `pkg/logger`, Biz/Sys logs, fields, levels, third-party logger adapters | `bk-nodemgr-logger` | `bk-nodemgr-error-handling` for error responsibility, `golang-observability` for general concepts |
-| Third-party adapters, handler/client isolation, named API Req/Resp, domain interfaces, CLI-local APIGW adapters | `bk-nodemgr-thirdparty` | Project error/logger/contextx skills as needed; generic Go skills only for language-level gaps |
-| `pkg/config` service startup config fields, YAML tags, defaults, validation, startup config flags, Helm values/configmaps/deployments, helmfile config templates, docker-compose config templates, config surface drift review | `bk-nodemgr-config-sync` | `bk-nodemgr-architecture-judgment` when changing long-lived config surface boundaries; `code-review` for PR review framing |
-| `testsuite/support`, package-level Mongo/Redis integration tests, `NODEMGR_TEST_*`, `RequireMongoDatabase`, `RequireRedisClientWithKeyPrefix` | `bk-nodemgr-testsuite-support` | `golang-testing`, `golang-database` |
-| Cross-layer placement, competing designs, dependency direction, shared-contract changes, pre-flight/post-flight judgment, explicit deepening scans | `bk-nodemgr-architecture-judgment` | Narrow project skill for the affected surface, then generic Go skills only for language-level gaps |
-| New REST/proto endpoint scaffolding | `api-scaffold`, `bk-nodemgr-error-handling` | `golang-grpc`, `golang-testing` when implementation requires them |
-| Router permission mapping | `router-permission-supplement` | `golang-security` only for broader security review |
-| Proto API reference documentation | `api-doc` | `golang-documentation` only for generic doc style |
-| Code review, PR review, lint-risk audit | `code-review` | `golang-lint`, `golang-safety`, `golang-testing`, `golang-security` as findings require |
-| README or logic-first docs | `readme-logic-first` | `golang-documentation` only for Go doc comments/examples |
-| Release/changelog/version alignment | `release-version-alignment`, `changelog-doc` | Generic Go skills usually unnecessary |
-| Scoped `AGENTS.md` creation/compression | `scoped-agentsmd` | Generic Go skills only if source code patterns must be interpreted |
+| Task Signal                                                                                                                                                                                                                    | Load First                                        | Add Generic Companions When Needed                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `pkg/contextx`, `contextx.IContext`, tenant/user/message propagation, `WithoutCancel`                                                                                                                                          | `bk-nodemgr-contextx`                             | `golang-context`, `golang-concurrency`                                                                                     |
+| `pkg/runtime/conv`, data shaping, duplicate conversion helpers                                                                                                                                                                 | `bk-nodemgr-conv`                                 | `golang-data-structures`, `golang-safety`, `golang-testing`                                                                |
+| `pkg/runtime/gopool`, fan-out/fan-in, `Wait`, bounded goroutines                                                                                                                                                               | `bk-nodemgr-gopool`, `bk-nodemgr-error-handling`  | `golang-concurrency`, `golang-safety`                                                                                      |
+| `pkg/runtime/retrier`, polling, backoff, fallback candidates, `err == nil` success branches                                                                                                                                    | `bk-nodemgr-retrier`, `bk-nodemgr-error-handling` | `golang-context`, `golang-observability`                                                                                   |
+| Go error creation, propagation, wrapping, inspection, aggregation, `err == nil`, panic/recover, `resterrf.ErrWrap`, log-or-return responsibility                                                                               | `bk-nodemgr-error-handling`                       | `golang-safety`, `golang-error-handling` only for language details not covered by the project skill                        |
+| `pkg/logger`, Biz/Sys logs, fields, levels, third-party logger adapters                                                                                                                                                        | `bk-nodemgr-logger`                               | `bk-nodemgr-error-handling` for error responsibility, `golang-observability` for general concepts                          |
+| Third-party adapters, handler/client isolation, named API Req/Resp, domain interfaces, CLI-local APIGW adapters                                                                                                                | `bk-nodemgr-thirdparty`                           | Project error/logger/contextx skills as needed; generic Go skills only for language-level gaps                             |
+| `pkg/config` service startup config fields, YAML tags, defaults, validation, startup config flags, Helm values/configmaps/deployments, helmfile config templates, docker-compose config templates, config surface drift review | `bk-nodemgr-config-sync`                          | `bk-nodemgr-architecture-judgment` when changing long-lived config surface boundaries; `code-review` for PR review framing |
+| `testsuite/support`, package-level Mongo/Redis integration tests, `NODEMGR_TEST_*`, `RequireMongoDatabase`, `RequireRedisClientWithKeyPrefix`                                                                                  | `bk-nodemgr-testsuite-support`                    | `golang-testing`, `golang-database`                                                                                        |
+| Cross-layer placement, competing designs, dependency direction, shared-contract changes, pre-flight/post-flight judgment, explicit deepening scans                                                                             | `bk-nodemgr-architecture-judgment`                | Narrow project skill for the affected surface, then generic Go skills only for language-level gaps                         |
+| New REST/proto endpoint scaffolding                                                                                                                                                                                            | `api-scaffold`, `bk-nodemgr-error-handling`       | `golang-grpc`, `golang-testing` when implementation requires them                                                          |
+| Router permission mapping                                                                                                                                                                                                      | `router-permission-supplement`                    | `golang-security` only for broader security review                                                                         |
+| Proto API reference documentation                                                                                                                                                                                              | `api-doc`                                         | `golang-documentation` only for generic doc style                                                                          |
+| Code review, PR review, lint-risk audit                                                                                                                                                                                        | `code-review`                                     | `golang-lint`, `golang-safety`, `golang-testing`, `golang-security` as findings require                                    |
+| Prepare, create, update, replace, or split a GitHub PR in bk-nodemgr                                                                                                                                                           | `bk-nodemgr-create-github-pr`                     | `code-review` for review findings; affected domain skills for changed surfaces                                             |
+| README or logic-first docs                                                                                                                                                                                                     | `readme-logic-first`                              | `golang-documentation` only for Go doc comments/examples                                                                   |
+| Release/changelog/version alignment                                                                                                                                                                                            | `release-version-alignment`, `changelog-doc`      | Generic Go skills usually unnecessary                                                                                      |
+| Scoped `AGENTS.md` creation/compression                                                                                                                                                                                        | `scoped-agentsmd`                                 | Generic Go skills only if source code patterns must be interpreted                                                         |
 
 If no project skill owns the surface, fall back to `golang-how-to` and load the relevant generic Go skills directly.
 
@@ -75,18 +76,18 @@ If no project skill owns the surface, fall back to `golang-how-to` and load the 
 
 Use generic Go skills for language concerns after the project surface is identified.
 
-| Language Concern | Generic Skill |
-| --- | --- |
-| Naming packages, exported identifiers, test names | `golang-naming` |
-| Error creation, wrapping, `errors.Is/As`, panic/recover | `bk-nodemgr-error-handling` first; use `golang-error-handling`, `golang-safety` only for language-level gaps |
-| Goroutines, channels, locks, shared state, cancellation observation | `golang-concurrency`, `golang-context` |
-| Context cancellation/deadlines without project identity values | `golang-context` |
-| Tests, table-driven cases, testify, flaky tests | `golang-testing`, `golang-stretchr-testify` |
-| Lint, staticcheck, vet, style issues | `golang-lint`, `golang-code-style` |
-| Security-sensitive input, crypto, secrets, filesystem/network risk | `golang-security`, `golang-safety` |
-| Performance optimization after measurement | `golang-benchmark`, then `golang-performance` |
-| Database/sqlx/transactions/query safety | `golang-database`, `golang-security`; use `bk-nodemgr-error-handling` for project error propagation |
-| CLI/cobra/viper command behavior | `golang-cli`, `golang-spf13-cobra`, `golang-spf13-viper` |
+| Language Concern                                                    | Generic Skill                                                                                                |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Naming packages, exported identifiers, test names                   | `golang-naming`                                                                                              |
+| Error creation, wrapping, `errors.Is/As`, panic/recover             | `bk-nodemgr-error-handling` first; use `golang-error-handling`, `golang-safety` only for language-level gaps |
+| Goroutines, channels, locks, shared state, cancellation observation | `golang-concurrency`, `golang-context`                                                                       |
+| Context cancellation/deadlines without project identity values      | `golang-context`                                                                                             |
+| Tests, table-driven cases, testify, flaky tests                     | `golang-testing`, `golang-stretchr-testify`                                                                  |
+| Lint, staticcheck, vet, style issues                                | `golang-lint`, `golang-code-style`                                                                           |
+| Security-sensitive input, crypto, secrets, filesystem/network risk  | `golang-security`, `golang-safety`                                                                           |
+| Performance optimization after measurement                          | `golang-benchmark`, then `golang-performance`                                                                |
+| Database/sqlx/transactions/query safety                             | `golang-database`, `golang-security`; use `bk-nodemgr-error-handling` for project error propagation          |
+| CLI/cobra/viper command behavior                                    | `golang-cli`, `golang-spf13-cobra`, `golang-spf13-viper`                                                     |
 
 ## Core Pattern
 
@@ -141,3 +142,4 @@ Pressure prompts live in `evals/evals.json`. Keep run outputs, timing, grading, 
 - `api-scaffold`: project API endpoint scaffolding.
 - `router-permission-supplement`: router permission action/resource mapping.
 - `code-review`: project Go change review.
+- `bk-nodemgr-create-github-pr`: project PR preparation, Issue lifecycle, current PR template, verification matrix, and remote-write gates.

@@ -118,6 +118,6 @@
     "install/AGENTS.md",
     ".github/workflows/pr-title-lint.yml",
     ".github/labeler.yml",
-    "create-github-pr/SKILL.md"
+    "bk-nodemgr-create-github-pr/SKILL.md"
   ]
 }

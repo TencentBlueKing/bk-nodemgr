@@ -45,6 +45,8 @@ BlueKing Node Manager 欢迎聚焦的问题反馈和 Pull Request。贡献前请
 
 ## 提交 Pull Request
 
+详细的 Branch、Commit、Issue 关联、PR 标题、正文和验证规范请参考 [`docs/developer/git-contribution.md`](../docs/developer/git-contribution.md)。
+
 提交 Pull Request 前请确认：
 
 1. 基于最新目标分支创建改动分支。

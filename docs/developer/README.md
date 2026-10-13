@@ -10,7 +10,10 @@
 
 编译指南，介绍项目的编译方法、产出物说明、Docker镜像构建等。
 
+### [git-contribution](git-contribution.md)
+
+Git 提交规范，介绍 Branch、Commit、Issue 关联、Pull Request 标题、正文和按改动范围选择验证的方法。
+
 ### [plugin_pkg_build_guide](plugin_pkg_build_guide.md)
 
 插件包构建指南，介绍标准插件v3的文件结构、规范、配置模板等。
-
