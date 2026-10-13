@@ -933,8 +933,9 @@ const handleUpload = (data: any) => {
 };
 onMounted(async () => {
   await initPublicKey();
-  // 预加载 proxy_operate 权限（biz 级别），供 BizSelect 过滤业务列表
-  authStore.fetchAuthorized([{ action: 'proxy_operate', resource_type: 'biz' }]);
+  // 预加载 proxy_operate 权限（biz 级别），供 BizSelect 过滤业务列表；
+  // force 强制刷新：避免被其他页面按 action 名缓存的旧维度数据去重跳过
+  authStore.fetchAuthorized([{ action: 'proxy_operate', resource_type: 'biz' }], undefined, { force: true });
 });
 
 const handleSetpBack = () => {

@@ -370,6 +370,22 @@ const ipSelectorValue = ref({
 
 const selectedHosts = ref<ISelectedHost[]>([]);
 
+// ===== 管控单元 id→name Map（HostList 的 info 不含单元名，按 ID 反查补充）=====
+const networkUnitMap = ref(new Map<number, string>());
+const fetchNetworkUnitNames = async (ids: number[]) => {
+  // -1 = 未分配（不用查），只查 >=0 的有效 ID
+  const uniqueIds = [...new Set(ids.filter(id => id != null && id !== -1))];
+  if (uniqueIds.length === 0) return;
+  const res = await TopoService.NetworkUnitListBrief({
+    exact_include_conditions: { bk_networkunit_id: uniqueIds },
+  }).catch(() => ({ total: 0, items: [] }));
+  const map = new Map<number, string>();
+  (res.items || []).forEach((item: any) => {
+    map.set(item.bk_networkunit_id, item.bk_networkunit_name);
+  });
+  networkUnitMap.value = map;
+};
+
 const handleAddIP = () => {
   setPolicyType(props.configpolicyType);
   setStrategyBizId(props.bizId);
@@ -466,6 +482,15 @@ const handleIpSelectorChange = async (value: any) => {
   } else {
     selectedHosts.value = [];
   }
+
+  // HostList 的 info 不含管控单元名，按单元 ID 反查补充
+  await fetchNetworkUnitNames(selectedHosts.value.map(h => h.bk_networkunit_id));
+  selectedHosts.value = selectedHosts.value.map(h => ({
+    ...h,
+    bk_networkunit_name: h.bk_networkunit_id === -1
+      ? t('pluginOperation.preview.unassigned')
+      : (networkUnitMap.value.get(h.bk_networkunit_id) || h.bk_networkunit_name || `[${h.bk_networkunit_id}]`),
+  }));
 
   ipSelectorValue.value = { ...value, hostList: [...hostList] };
   // 选择变化后即时触发预览

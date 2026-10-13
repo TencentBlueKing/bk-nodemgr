@@ -229,8 +229,9 @@ const fetchUnitStats = async () => {
 watch(() => props.active, (id) => {
   if (!id) return;
   const items = [
-    { action: 'proxy_view', resource_type: 'networkunit' },
-    { action: 'proxy_operate', resource_type: 'networkunit' },
+    // proxy_view / proxy_operate 后端资源类型为 biz，与 useAuthLock 的 biz 判断保持一致
+    { action: 'proxy_view', resource_type: 'biz' },
+    { action: 'proxy_operate', resource_type: 'biz' },
   ];
   if (!isProxyStatus.value) {
     items.push({ action: 'networkunit_use_for_proxy', resource_type: 'networkunit' });

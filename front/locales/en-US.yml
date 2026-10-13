@@ -1117,6 +1117,7 @@ rulesRecord:
   configTypeMap:
     agent: Agent Strategy
     proxy: Proxy Strategy
+    plugin: Plugin Strategy
 agentProxyPkg:
   upload: Upload
   searchPlaceholder: Search by Version, OS, Arch, Tag, User, Status, Default

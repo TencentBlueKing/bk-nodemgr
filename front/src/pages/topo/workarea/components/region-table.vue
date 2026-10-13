@@ -10,6 +10,7 @@
       :show-settings="isShowSetting"
       :settings="settings"
       :max-height="maxHeight"
+      :row-class-name="rowClassName"
       @page-limit-change="pageLimitChange"
       @page-value-change="pageValueChange"
       @setting-change="handleSettingChange"
@@ -167,7 +168,8 @@
         fixed="right"
         :min-width="140">
         <template #default="{ row }">
-          <div class="flex">
+          <!-- 未分配管控区域不提供编辑/删除操作 -->
+          <div v-if="row.bk_networkarea_id !== unassignedAreaId" class="flex">
             <Button
               theme="primary"
               text
@@ -336,6 +338,12 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   disabled: ['action'],
 }, 'topoMng-workarea');
 
+// CC 同步的未分配管控区域 ID（后端环境变量注入，默认 -1）
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
+
+// 未分配管控区域行置灰
+const rowClassName = ({ row }: { row: any }) => (row.bk_networkarea_id === unassignedAreaId ? 'unassigned-area-row' : '');
+
 // table filter逻辑
 const filterOption = reactive<{
   list: {
@@ -470,5 +478,12 @@ defineExpose({
 <style lang="postcss">
 .unAuthorized {
   color: #C4C6CC !important;
+}
+</style>
+<style lang="postcss" scoped>
+
+/* 未分配管控区域行整体置灰 */
+.unassigned-area-row td {
+  color: #c4c6cc !important;
 }
 </style>

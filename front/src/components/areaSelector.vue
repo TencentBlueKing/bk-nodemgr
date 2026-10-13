@@ -13,7 +13,7 @@
     :disabled="disabled"
     @change="handleSelectChange"
   >
-    <!-- 「不限」使用独立 value，避免与区域列表中 CC 同步的 Unassigned Area（不同环境 ID 可能同为 -1）回显冲突 -->
+    <!-- 「不限」使用独立 value，避免与区域列表中 CC 同步的未分配管控区域（ID 由 UNASSIGNED_NETWORK_AREA_ID 配置，可能为 -1）回显冲突 -->
     <Select.Option v-if="noLimit" id="unlimited" name="不限" value="unlimited"></Select.Option>
     <Select.Group :label="$t('topoManager.topo.select.default')">
       <Select.Option
@@ -43,6 +43,7 @@
         :id="String(item.bk_networkarea_id)"
         :name="item.bk_networkarea_name"
         :value="String(item.bk_networkarea_id)"
+        :disabled="item.bk_networkarea_id === unassignedAreaId"
         v-bk-tooltips="{
           content: isAreaAuthorized(item.bk_networkarea_id)
             ? `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`
@@ -165,10 +166,13 @@ const handleApplyPermission = async (areaId: number) => {
 const localLoading = ref(false);
 // 内部统一用字符串管理 ID，解决数字 0 的显示 Bug
 const internalValue = ref<any>(props.multiple ? [] : '');
-// 「不限」选项的内部 value：不复用 '-1'，避免与区域列表中 CC 同步的 Unassigned Area（不同环境 ID 可能同为 -1）
-// 匹配冲突导致回显成无权限区域；对外（emit / prop）语义仍为 '-1'
+// 「不限」选项的内部 value：不复用 '-1'，避免与区域列表中 CC 同步的未分配管控区域
+// （ID 由 UNASSIGNED_NETWORK_AREA_ID 配置，可能为 -1）匹配冲突导致回显成无权限区域；
+// 对外（emit / prop）语义仍为 '-1'
 const NO_LIMIT_VALUE = 'unlimited';
 const toInternalValue = (val: number | string) => (props.noLimit && String(val) === '-1' ? NO_LIMIT_VALUE : String(val));
+// CC 同步的未分配管控区域 ID（后端环境变量注入，默认 -1）
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 const textOverflowMap = reactive<Record<number, boolean>>({});
 
 onMounted(async () => {
@@ -224,7 +228,7 @@ const sortedOtherList = computed(() => {
     if (isFavorited(a.bk_networkarea_id) !== isFavorited(b.bk_networkarea_id)) {
       return isFavorited(a.bk_networkarea_id) ? -1 : 1;
     }
-    // 优先级4: 按 ID 从小到大
+    // 优先级4: 按 ID 从大到小
     return b.bk_networkarea_id - a.bk_networkarea_id;
   });
 });

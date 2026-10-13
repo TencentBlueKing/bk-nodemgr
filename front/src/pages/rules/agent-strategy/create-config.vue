@@ -429,7 +429,13 @@ const handleAdd = () => {
 const isShowIpSelector = ref(false);
 
 // IP选择器的值（蓝鲸IP选择器数据结构）
-const ipSelectorValue = ref({
+const ipSelectorValue = ref<{
+  hostList: { hostId: number }[];
+  nodeList: any[];
+  dynamicGroupList: any[];
+  serviceTemplateList: any[];
+  setTemplateList: any[];
+}>({
   hostList: [],
   nodeList: [],
   dynamicGroupList: [],
@@ -685,6 +691,14 @@ watch(() => isShow.value, async () => {
         }));
         // 将 target_host_ids 存入 allSelectedHostIds，然后调后端分页接口
         allSelectedHostIds.value = props.configData.target_host_ids || [];
+        // 回填 IP 选择器已选对象：编辑时再次打开"添加IP"，选择器需回显已添加的 IP
+        ipSelectorValue.value = {
+          hostList: allSelectedHostIds.value.map(id => ({ hostId: id })),
+          nodeList: [],
+          dynamicGroupList: [],
+          serviceTemplateList: [],
+          setTemplateList: [],
+        };
         ipPagination.current = 1;
         await fetchHostData();
       }
@@ -697,6 +711,14 @@ watch(() => isShow.value, async () => {
     // 关闭时清空
     allSelectedHostIds.value = [];
     tableHosts.value = [];
+    // 清空 IP 选择器回显状态，避免下次新建时残留上次编辑的已选 IP
+    ipSelectorValue.value = {
+      hostList: [],
+      nodeList: [],
+      dynamicGroupList: [],
+      serviceTemplateList: [],
+      setTemplateList: [],
+    };
   }
 }, { immediate: true });
 </script>

@@ -278,6 +278,7 @@ const operateMap = computed(() => ({
 const configMap = computed(() => ({
   config_policy_agent: t('rulesRecord.configTypeMap.agent'),
   config_policy_proxy: t('rulesRecord.configTypeMap.proxy'),
+  config_policy_plugin: t('rulesRecord.configTypeMap.plugin'),
 }));
 
 // eslint-disable-next-line max-len

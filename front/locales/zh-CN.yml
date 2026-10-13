@@ -1120,6 +1120,7 @@ rulesRecord:
   configTypeMap:
     agent: Agent 策略
     proxy: Proxy 策略
+    plugin: 插件策略
 agentProxyPkg:
   upload: 包上传
   searchPlaceholder: 请输入 版本号、操作系统、架构、标签、上传用户、状态、默认版本 搜索

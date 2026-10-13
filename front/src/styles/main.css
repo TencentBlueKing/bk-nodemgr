@@ -42,3 +42,9 @@ body,
 .vxe-table--resizable-bar .vxe-table--resizable-number-tip {
   display: none !important;
 }
+
+/* IP 选择器 dialog（内嵌 Vue2 的 bk-dialog）与外层 Vue3 bkui-vue 弹层的 z-index 各自独立自增，
+   多次打开弹层后 Sideslider 会盖住 IP 选择器。将包含 IP 选择器内容的 dialog 统一抬到最高层 */
+.bk-dialog-wrapper:has(.ip-selector-resize-layout) {
+  z-index: 99999 !important;
+}

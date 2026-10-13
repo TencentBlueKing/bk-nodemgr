@@ -128,8 +128,10 @@
                   <Table :data="row.scopes" :min-width="600">
                     <TableColumn field="bk_networkarea_id" :title="$t('taskDetail.table.workarea')" :min-width="120">
                       <template #default="{ row: scopesRow }">
-                        <!-- eslint-disable-next-line max-len -->
-                        {{ networkAreaList?.find(item => item.bk_networkarea_id === scopesRow.bk_networkarea_id )?.bk_networkarea_name || $t('agentStrategy.table.unlimited') }}
+                        <!-- scope 的 -1 = 不限：优先判断，避免命中区域列表中 ID 为 -1 的未分配管控区域 -->
+                        {{ scopesRow.bk_networkarea_id === -1
+                          ? $t('agentStrategy.table.unlimited')
+                          : networkAreaList?.find(item => item.bk_networkarea_id === scopesRow.bk_networkarea_id )?.bk_networkarea_name || $t('agentStrategy.table.unlimited') }}
                       </template>
                     </TableColumn>
                     <TableColumn field="bk_networkunit_id" :title="$t('taskDetail.table.workUnit')" :min-width="120">
