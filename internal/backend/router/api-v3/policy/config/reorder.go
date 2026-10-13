@@ -20,7 +20,6 @@ package config
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
@@ -84,17 +83,13 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// record event.
-	// reorder is a biz-level operation, so only biz_id is recorded without specific policy info.
-	reorderEvent := &types.ConfigPolicyEvent{
-		TenantID:         rCtx.TenantID(),
-		BizID:            bizID,
-		Type:             types.ConfigPolicyEventTypeReorderPriorities,
-		ConfigPolicyType: policyType,
-		Operator:         rCtx.BKUsername(),
-		OperateTime:      time.Now(),
-	}
-	h.recordConfigPolicyEvent(rCtx, reorderEvent)
+	// Record one event per affected policy so the event contains its name and version.
+	h.recordConfigPolicyEventsByPoliciesWithOperator(
+		rCtx,
+		types.ConfigPolicyEventTypeReorderPriorities,
+		func(*types.ConfigPolicy) string { return rCtx.BKUsername() },
+		all...,
+	)
 
 	resp := new(protoBackend.ConfigPolicyPriorityReorderResp)
 
