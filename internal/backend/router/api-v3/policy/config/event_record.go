@@ -34,17 +34,7 @@ func (h *handler) recordConfigPolicyEventsByPolicies(
 	eventType types.ConfigPolicyEventType,
 	policies ...*types.ConfigPolicy,
 ) {
-	h.recordConfigPolicyEventsByPoliciesWithOperator(rCtx, eventType, func(cp *types.ConfigPolicy) string {
-		return cp.Operator
-	}, policies...)
-}
-
-func (h *handler) recordConfigPolicyEventsByPoliciesWithOperator(
-	rCtx restserver.IContext,
-	eventType types.ConfigPolicyEventType,
-	operator func(*types.ConfigPolicy) string,
-	policies ...*types.ConfigPolicy,
-) {
+	operator := rCtx.BKUsername()
 
 	err := h.goAsyncPool.Run(
 		rCtx,
@@ -59,7 +49,7 @@ func (h *handler) recordConfigPolicyEventsByPoliciesWithOperator(
 					ConfigPolicyName: cp.Name,
 					ConfigPolicyType: cp.Type,
 					Version:          int64(cp.Version),
-					Operator:         operator(cp),
+					Operator:         operator,
 					OperateTime:      time.Now(),
 				}
 			}
@@ -75,6 +65,8 @@ func (h *handler) recordConfigPolicyEventsByPoliciesWithOperator(
 
 // recordConfigPolicyEventsByPolicyIDs queries policies by IDs, builds events, and records them via the goasync pool.
 func (h *handler) recordConfigPolicyEventsByPolicyIDs(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, policyIDs ...int64) {
+	operator := rCtx.BKUsername()
+
 	err := h.goAsyncPool.Run(
 		rCtx,
 		func(nCtx contextx.IContext) error {
@@ -93,7 +85,7 @@ func (h *handler) recordConfigPolicyEventsByPolicyIDs(rCtx restserver.IContext, 
 					ConfigPolicyName: cp.Name,
 					ConfigPolicyType: cp.Type,
 					Version:          int64(cp.Version),
-					Operator:         cp.Operator,
+					Operator:         operator,
 					OperateTime:      time.Now(),
 				}
 			}

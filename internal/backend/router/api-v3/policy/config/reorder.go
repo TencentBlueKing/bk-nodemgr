@@ -84,12 +84,7 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 	}
 
 	// Record one event per affected policy so the event contains its name and version.
-	h.recordConfigPolicyEventsByPoliciesWithOperator(
-		rCtx,
-		types.ConfigPolicyEventTypeReorderPriorities,
-		func(*types.ConfigPolicy) string { return rCtx.BKUsername() },
-		all...,
-	)
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeReorderPriorities, all...)
 
 	resp := new(protoBackend.ConfigPolicyPriorityReorderResp)
 
