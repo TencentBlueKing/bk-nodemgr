@@ -207,15 +207,6 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 		)
 	}
 	if successWorkflowCount != expectedWorkflowCount {
-		if launchErr != nil {
-			return fmt.Errorf(
-				"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d): %w",
-				expectedWorkflowCount,
-				successWorkflowCount,
-				launchErr,
-			)
-		}
-
 		return fmt.Errorf(
 			"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d)",
 			expectedWorkflowCount,
