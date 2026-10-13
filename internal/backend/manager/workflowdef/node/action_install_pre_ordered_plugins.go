@@ -182,11 +182,10 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 		return nil
 	})
 
-	launchErr := gp.Wait()
-	if launchErr != nil {
+	if err = gp.Wait(); err != nil {
 		std.InstanceData().Log().
-			Zh("安装预设插件失败, 错误(%v)", launchErr).
-			En("install pre-ordered plugins failed, error(%v)", launchErr).
+			Zh("安装预设插件失败, 错误(%v)", err).
+			En("install pre-ordered plugins failed, error(%v)", err).
 			Error()
 	}
 	close(subWorkflowRefChan)
