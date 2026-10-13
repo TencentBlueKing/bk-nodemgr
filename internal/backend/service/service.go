@@ -329,11 +329,6 @@ func (svc *Service) initialCapability() error {
 	// initial locker factory.
 	svc.Cap.LockerFactory = redsync.New(svc.Cap.RedisClient)
 
-	// initial manager.
-	if err = svc.initialManager(); err != nil {
-		return fmt.Errorf("failed to initial manager: %w", err)
-	}
-
 	// initial period task.
 	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
 		Locker:      svc.Cap.LockerFactory,
@@ -348,6 +343,11 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.Authorizer, err = svc.newAuthorizer()
 	if err != nil {
 		return fmt.Errorf("failed to create authorizer: %w", err)
+	}
+
+	// initial manager after the authorizer wires the manager role granter.
+	if err = svc.initialManager(); err != nil {
+		return fmt.Errorf("failed to initial manager: %w", err)
 	}
 
 	return nil
@@ -915,6 +915,7 @@ func (svc *Service) initialManager() error {
 	}
 
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
+		ManagerRoleGranter:        svc.Cap.ManagerRoleGranter,
 		CmdbHandler:               svc.Cap.CmdbHandler,
 		GSEHandler:                svc.Cap.GSEHandler,
 		FileHandler:               svc.Cap.FileHandler,

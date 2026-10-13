@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -32,14 +33,16 @@ const (
 // NewActionPackagePublishExternalPluginV2Pkg creates the external v2 publish action.
 func NewActionPackagePublishExternalPluginV2Pkg(capability *Capability) action.Definition {
 	return &actionPackagePublishExternalPluginV2Pkg{
-		fileHandler:    capability.FileHandler,
-		storagePackage: capability.StoragePackage,
+		fileHandler:        capability.FileHandler,
+		storagePackage:     capability.StoragePackage,
+		managerRoleGranter: capability.ManagerRoleGranter,
 	}
 }
 
 type actionPackagePublishExternalPluginV2Pkg struct {
-	fileHandler    file.IHandler
-	storagePackage pkgStg.IStorage
+	fileHandler        file.IHandler
+	storagePackage     pkgStg.IStorage
+	managerRoleGranter auth.IManagerRoleGranter
 }
 
 func (act *actionPackagePublishExternalPluginV2Pkg) Name() string {
@@ -162,6 +165,12 @@ func (act *actionPackagePublishExternalPluginV2Pkg) Do(ctx *action.InstanceConte
 
 	logger.G.Sys().Ctx(nCtx).With("upload-id", uploadInfo.UploadID, "plugin-name", uploadInfo.Name).
 		Info("published release external plugin v2 package")
+
+	resource := auth.BuildPackageResources(uploadInfo.Name)[0]
+	if err := act.managerRoleGranter.GrantManagerRole(nCtx, nCtx.BKUsername(), resource); err != nil {
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("resource-type", resource.Type,
+			"resource-id", resource.ID, "creator", nCtx.BKUsername()).Error("failed to grant package creator permissions")
+	}
 
 	std.InstanceData().Log().
 		Zh("发布安装包成功，上传ID: %s，插件包: %s，版本: %s", uploadInfo.UploadID, uploadInfo.Name, uploadInfo.Version).

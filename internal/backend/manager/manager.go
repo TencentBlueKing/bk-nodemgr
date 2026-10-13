@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -52,6 +53,9 @@ type IManager interface {
 func NewManager(conf Config) (*Manager, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, err
+	}
+	if conf.ManagerRoleGranter == nil {
+		conf.ManagerRoleGranter = auth.NewNoOpManagerRoleGranter()
 	}
 
 	mgr := &Manager{
