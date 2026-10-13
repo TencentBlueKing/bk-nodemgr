@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.63+.
+- API Version: v3.0.1-alpha.97+.
 - Required Permission: config_policy_view (View Config Policy).
 - Function: Preview policy matching results and merged config results by business, policy type, and host list.
 
@@ -10,12 +10,13 @@ POST /api/v3/policy/config/preview
 
 ### Request Parameters
 
-| Parameter   | Type   | Required | Description                                                                                                |
-| ----------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------- |
-| bk_biz_id   | int64  | Yes      | Business ID                                                                                                |
-| policy_type | string | Yes      | Config policy type, available values: `config_policy_agent`, `config_policy_proxy`, `config_policy_plugin` |
-| plugin_name | string | No       | Plugin name; required when `policy_type` is `config_policy_plugin`                                         |
-| hosts       | array  | Yes      | Target host list for preview, at least one element                                                         |
+| Parameter                | Type        | Required | Description                                                                                                                                                         |
+| ----------------------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| bk_biz_id               | int64       | Yes      | Business ID                                                                                                                                                         |
+| policy_type             | string      | Yes      | Config policy type, available values: `config_policy_agent`, `config_policy_proxy`, `config_policy_plugin`                                                          |
+| plugin_name             | string      | No       | Plugin name; required when `policy_type` is `config_policy_plugin`                                                                                                   |
+| hosts                   | array       | Yes      | Target host list for preview, at least one element                                                                                                                   |
+| ordered_configpolicy_id | int64 array | No       | Config policy ID order. If omitted, the database priority order is used. If provided, only enabled policies in the list are previewed; the first ID has the highest priority, and IDs must be unique |
 
 #### hosts[n]
 
@@ -34,6 +35,7 @@ POST /api/v3/policy/config/preview
   "bk_biz_id": 2,
   "policy_type": "config_policy_plugin",
   "plugin_name": "bkmonitorbeat",
+  "ordered_configpolicy_id": [10001, 10003],
   "hosts": [
     {
       "bk_host_id": 1001,

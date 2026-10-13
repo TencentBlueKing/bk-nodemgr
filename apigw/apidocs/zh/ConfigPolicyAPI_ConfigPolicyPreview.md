@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.63+。
+- 该接口提供版本：v3.0.1-alpha.97+。
 - 该接口所需权限：config_policy_view（查看配置策略）。
 - 该接口功能描述：按业务、策略类型和主机列表预览配置策略匹配结果与配置合并结果。
 
@@ -10,12 +10,13 @@ POST /api/v3/policy/config/preview
 
 ### 输入参数
 
-| 参数名称    | 参数类型 | 必选 | 描述                                                                                       |
-| ----------- | -------- | ---- | ------------------------------------------------------------------------------------------ |
-| bk_biz_id   | int64    | 是   | 业务 ID                                                                                    |
-| policy_type | string   | 是   | 配置策略类型，可选值：`config_policy_agent`、`config_policy_proxy`、`config_policy_plugin` |
-| plugin_name | string   | 否   | 插件名称；当 `policy_type` 为 `config_policy_plugin` 时必填                                |
-| hosts       | array    | 是   | 预览目标主机列表，至少一个元素                                                             |
+| 参数名称                  | 参数类型    | 必选 | 描述                                                                                                                                               |
+| ------------------------- | ----------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| bk_biz_id                 | int64       | 是   | 业务 ID                                                                                                                                            |
+| policy_type               | string      | 是   | 配置策略类型，可选值：`config_policy_agent`、`config_policy_proxy`、`config_policy_plugin`                                                         |
+| plugin_name               | string      | 否   | 插件名称；当 `policy_type` 为 `config_policy_plugin` 时必填                                                                                        |
+| hosts                     | array       | 是   | 预览目标主机列表，至少一个元素                                                                                                                     |
+| ordered_configpolicy_id   | int64 array | 否   | 配置策略 ID 顺序列表；不传时按数据库中的策略优先级预览，传入时仅预览列表中的已启用策略，列表中的第一个 ID 优先级最高，ID 不可重复                     |
 
 #### hosts[n]
 
@@ -34,6 +35,7 @@ POST /api/v3/policy/config/preview
   "bk_biz_id": 2,
   "policy_type": "config_policy_plugin",
   "plugin_name": "bkmonitorbeat",
+  "ordered_configpolicy_id": [10001, 10003],
   "hosts": [
     {
       "bk_host_id": 1001,
