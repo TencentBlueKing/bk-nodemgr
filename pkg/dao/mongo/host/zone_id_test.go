@@ -59,3 +59,29 @@ func TestGenerateHostStaticUpdatesWritesNumericZoneID(t *testing.T) {
 		t.Fatalf("ZoneID update = %v, want 42", updates[FieldKeyStaticZoneID])
 	}
 }
+
+func TestConvertHostToTypesReadsLegacyOpsFields(t *testing.T) {
+	host := convertHostToTypes(&Host{
+		Static: &HostStatic{
+			LegacySyncedOpsOutBandIP:   "127.0.0.1",
+			LegacySyncedOpsOutBandPort: 623,
+		},
+		Dynamic: &HostDynamic{
+			LegacyOpsOutBandIP:   "127.0.0.2",
+			LegacyOpsOutBandPort: 624,
+		},
+	})
+
+	if host.Static.SyncedOpsOutBandIP != "127.0.0.1" {
+		t.Fatalf("SyncedOpsOutBandIP = %q, want %q", host.Static.SyncedOpsOutBandIP, "127.0.0.1")
+	}
+	if host.Static.SyncedOpsOutBandPort != 623 {
+		t.Fatalf("SyncedOpsOutBandPort = %d, want 623", host.Static.SyncedOpsOutBandPort)
+	}
+	if host.Dynamic.OpsOutBandIP != "127.0.0.2" {
+		t.Fatalf("OpsOutBandIP = %q, want %q", host.Dynamic.OpsOutBandIP, "127.0.0.2")
+	}
+	if host.Dynamic.OpsOutBandPort != 624 {
+		t.Fatalf("OpsOutBandPort = %d, want 624", host.Dynamic.OpsOutBandPort)
+	}
+}

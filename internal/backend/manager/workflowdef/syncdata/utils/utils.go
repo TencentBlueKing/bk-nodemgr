@@ -39,10 +39,10 @@ func FillHostDynamicOpsInfo(host *types.Host) {
 	if host.Static.SyncedOpsOutBandProtocol != "" {
 		host.Dynamic.OpsOutBandProtocol = host.Static.SyncedOpsOutBandProtocol
 	}
-	if host.Static.SyncedOpsBMCIP != "" {
-		host.Dynamic.OpsBMCIP = host.Static.SyncedOpsBMCIP
+	if host.Static.SyncedOpsOutBandIP != "" {
+		host.Dynamic.OpsOutBandIP = host.Static.SyncedOpsOutBandIP
 	}
-	if host.Static.SyncedOpsBMCPort > 0 {
-		host.Dynamic.OpsBMCPort = host.Static.SyncedOpsBMCPort
+	if host.Static.SyncedOpsOutBandPort > 0 {
+		host.Dynamic.OpsOutBandPort = host.Static.SyncedOpsOutBandPort
 	}
 }

@@ -59,8 +59,8 @@ platform:
       opsConsoleHostId: 主控机
       opsOutBandType: 设备类型
       opsOutBandProtocol: 设备协议
-      opsBMCIP: 管理IP
-      opsBMCPort: 管理端口
+      opsOutBandIP: 带外 IP
+      opsOutBandPort: 带外端口
       batchFill: 批量填写
       opsSettingBatchFillDone: 批量填写完成
       operateDisabledNotRunning: 选中主机中包含 Agent 状态异常的节点，请先排查修复后再操作

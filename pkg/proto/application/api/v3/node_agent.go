@@ -829,8 +829,8 @@ func (x *NodeAgentUpdateOpsFieldsReq) ConvertParamToTypes() []*types.Host {
 				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
 				OpsOutBandType:     host.GetOpsOutBandType(),
 				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
-				OpsBMCIP:           host.GetOpsBmcIp(),
-				OpsBMCPort:         host.GetOpsBmcPort(),
+				OpsOutBandIP:       host.GetOpsOutBandIp(),
+				OpsOutBandPort:     host.GetOpsOutBandPort(),
 			},
 		}
 	}

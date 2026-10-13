@@ -427,8 +427,8 @@ message HostOpsInfo {
   int64 ops_console_host_id = 2;
   string ops_out_band_type = 3;
   string ops_out_band_protocol = 4;
-  string ops_bmc_ip = 5;
-  int64 ops_bmc_port = 6;
+  string ops_out_band_ip = 5;
+  int64 ops_out_band_port = 6;
 }
 
 // ProcessInfo describes the process information.

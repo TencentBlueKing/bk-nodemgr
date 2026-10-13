@@ -671,8 +671,8 @@ func convertHostFromTypes(host *types.Host) *Host {
 			SyncedOpsConsoleHostID:   host.Static.SyncedOpsConsoleHostID,
 			SyncedOpsOutBandType:     host.Static.SyncedOpsOutBandType,
 			SyncedOpsOutBandProtocol: host.Static.SyncedOpsOutBandProtocol,
-			SyncedOpsBMCIP:           host.Static.SyncedOpsBMCIP,
-			SyncedOpsBMCPort:         host.Static.SyncedOpsBMCPort,
+			SyncedOpsOutBandIP:       host.Static.SyncedOpsOutBandIP,
+			SyncedOpsOutBandPort:     host.Static.SyncedOpsOutBandPort,
 		}
 
 		static.Topo = conv.SliceToSlice(host.Static.Topo, func(topo *types.HostTopo) HostTopo {
@@ -722,8 +722,8 @@ func convertHostFromTypes(host *types.Host) *Host {
 			OpsConsoleHostID:         host.Dynamic.OpsConsoleHostID,
 			OpsOutBandType:           host.Dynamic.OpsOutBandType,
 			OpsOutBandProtocol:       host.Dynamic.OpsOutBandProtocol,
-			OpsBMCIP:                 host.Dynamic.OpsBMCIP,
-			OpsBMCPort:               host.Dynamic.OpsBMCPort,
+			OpsOutBandIP:             host.Dynamic.OpsOutBandIP,
+			OpsOutBandPort:           host.Dynamic.OpsOutBandPort,
 		}
 		if !host.Dynamic.LastSyncAt.IsZero() {
 			lastSyncAt := host.Dynamic.LastSyncAt
@@ -749,6 +749,14 @@ func convertHostFromTypes(host *types.Host) *Host {
 func convertHostToTypes(host *Host) *types.Host {
 	static := &types.HostStatic{}
 	if host.Static != nil {
+		syncedOpsOutBandIP := host.Static.SyncedOpsOutBandIP
+		if syncedOpsOutBandIP == "" {
+			syncedOpsOutBandIP = host.Static.LegacySyncedOpsOutBandIP
+		}
+		syncedOpsOutBandPort := host.Static.SyncedOpsOutBandPort
+		if syncedOpsOutBandPort == 0 {
+			syncedOpsOutBandPort = host.Static.LegacySyncedOpsOutBandPort
+		}
 		static = &types.HostStatic{
 			BizID:                    host.Static.BizID,
 			NetworkAreaID:            host.Static.NetworkAreaID,
@@ -772,8 +780,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			SyncedOpsConsoleHostID:   host.Static.SyncedOpsConsoleHostID,
 			SyncedOpsOutBandType:     host.Static.SyncedOpsOutBandType,
 			SyncedOpsOutBandProtocol: host.Static.SyncedOpsOutBandProtocol,
-			SyncedOpsBMCIP:           host.Static.SyncedOpsBMCIP,
-			SyncedOpsBMCPort:         host.Static.SyncedOpsBMCPort,
+			SyncedOpsOutBandIP:       syncedOpsOutBandIP,
+			SyncedOpsOutBandPort:     syncedOpsOutBandPort,
 		}
 
 		static.Topo = conv.SliceToSlice(host.Static.Topo, func(topo HostTopo) *types.HostTopo {
@@ -786,6 +794,14 @@ func convertHostToTypes(host *Host) *types.Host {
 
 	dynamic := &types.HostDynamic{}
 	if host.Dynamic != nil {
+		opsOutBandIP := host.Dynamic.OpsOutBandIP
+		if opsOutBandIP == "" {
+			opsOutBandIP = host.Dynamic.LegacyOpsOutBandIP
+		}
+		opsOutBandPort := host.Dynamic.OpsOutBandPort
+		if opsOutBandPort == 0 {
+			opsOutBandPort = host.Dynamic.LegacyOpsOutBandPort
+		}
 		dynamic = &types.HostDynamic{
 			NodeRole:       types.NodeRole(host.Dynamic.NodeRole),
 			NodeStatus:     types.NodeStatus(host.Dynamic.NodeStatus),
@@ -823,8 +839,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			OpsConsoleHostID:         host.Dynamic.OpsConsoleHostID,
 			OpsOutBandType:           host.Dynamic.OpsOutBandType,
 			OpsOutBandProtocol:       host.Dynamic.OpsOutBandProtocol,
-			OpsBMCIP:                 host.Dynamic.OpsBMCIP,
-			OpsBMCPort:               host.Dynamic.OpsBMCPort,
+			OpsOutBandIP:             opsOutBandIP,
+			OpsOutBandPort:           opsOutBandPort,
 		}
 		if host.Dynamic.LastSyncAt != nil {
 			dynamic.LastSyncAt = *host.Dynamic.LastSyncAt
@@ -1062,11 +1078,11 @@ func generateHostStaticUpdates(fields types.HostStaticFields, host *Host) map[st
 	if fields.SyncedOpsOutBandProtocol {
 		updates[FieldKeyStaticSyncedOpsOutBandProtocol] = host.Static.SyncedOpsOutBandProtocol
 	}
-	if fields.SyncedOpsBMCIP {
-		updates[FieldKeyStaticSyncedOpsBMCIP] = host.Static.SyncedOpsBMCIP
+	if fields.SyncedOpsOutBandIP {
+		updates[FieldKeyStaticSyncedOpsOutBandIP] = host.Static.SyncedOpsOutBandIP
 	}
-	if fields.SyncedOpsBMCPort {
-		updates[FieldKeyStaticSyncedOpsBMCPort] = host.Static.SyncedOpsBMCPort
+	if fields.SyncedOpsOutBandPort {
+		updates[FieldKeyStaticSyncedOpsOutBandPort] = host.Static.SyncedOpsOutBandPort
 	}
 
 	return updates
@@ -1201,11 +1217,11 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	if fields.OpsOutBandProtocol {
 		updates[FieldKeyDynamicOpsOutBandProtocol] = host.Dynamic.OpsOutBandProtocol
 	}
-	if fields.OpsBMCIP {
-		updates[FieldKeyDynamicOpsBMCIP] = host.Dynamic.OpsBMCIP
+	if fields.OpsOutBandIP {
+		updates[FieldKeyDynamicOpsOutBandIP] = host.Dynamic.OpsOutBandIP
 	}
-	if fields.OpsBMCPort {
-		updates[FieldKeyDynamicOpsBMCPort] = host.Dynamic.OpsBMCPort
+	if fields.OpsOutBandPort {
+		updates[FieldKeyDynamicOpsOutBandPort] = host.Dynamic.OpsOutBandPort
 	}
 
 	return updates

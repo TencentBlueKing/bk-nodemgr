@@ -22,8 +22,8 @@ POST /api/v3/node/agent/update_ops_fields
 | ops_console_host_id | int64 | No | Out-of-band console host ID |
 | ops_out_band_type | string | No | Out-of-band management type |
 | ops_out_band_protocol | string | No | Out-of-band management protocol |
-| ops_bmc_ip | string | No | BMC IP address |
-| ops_bmc_port | int64 | No | BMC port |
+| ops_out_band_ip | string | No | Out-of-band IP address |
+| ops_out_band_port | int64 | No | Out-of-band port |
 
 ### Request Example
 
@@ -35,8 +35,8 @@ POST /api/v3/node/agent/update_ops_fields
       "ops_console_host_id": 1,
       "ops_out_band_type": "string",
       "ops_out_band_protocol": "string",
-      "ops_bmc_ip": "10.0.0.1",
-      "ops_bmc_port": 22
+      "ops_out_band_ip": "10.0.0.1",
+      "ops_out_band_port": 22
     }
   ]
 }

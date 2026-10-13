@@ -59,8 +59,8 @@ platform:
       opsConsoleHostId: Console Host ID
       opsOutBandType: Device Type
       opsOutBandProtocol: Device Protocol
-      opsBMCIP: Management IP
-      opsBMCPort: Management Port
+      opsOutBandIP: Out-of-band IP
+      opsOutBandPort: Out-of-band Port
       batchFill: Batch Fill
       opsSettingBatchFillDone: Batch fill completed
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating

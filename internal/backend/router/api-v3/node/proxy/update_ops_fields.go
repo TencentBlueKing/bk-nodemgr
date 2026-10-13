@@ -72,8 +72,8 @@ func (h *handler) ProxyUpdateOpsFields(rCtx restserver.IContext) (interface{}, e
 		OpsConsoleHostID:   true,
 		OpsOutBandType:     true,
 		OpsOutBandProtocol: true,
-		OpsBMCIP:           true,
-		OpsBMCPort:         true,
+		OpsOutBandIP:       true,
+		OpsOutBandPort:     true,
 	}
 	if err := h.storageHost.UpdateHostDynamicFields(rCtx, dynamicFields, opsHosts...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update ops fields in DB")

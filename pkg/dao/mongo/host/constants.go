@@ -111,11 +111,11 @@ const (
 	// FieldKeyStaticSyncedOpsOutBandProtocol the static synced ops out-band protocol field key.
 	FieldKeyStaticSyncedOpsOutBandProtocol = "data.static.synced_ops_out_band_protocol"
 
-	// FieldKeyStaticSyncedOpsBMCIP the static synced ops bmc ip field key.
-	FieldKeyStaticSyncedOpsBMCIP = "data.static.synced_ops_bmc_ip"
+	// FieldKeyStaticSyncedOpsOutBandIP the static synced ops out-band ip field key.
+	FieldKeyStaticSyncedOpsOutBandIP = "data.static.synced_ops_out_band_ip"
 
-	// FieldKeyStaticSyncedOpsBMCPort the static synced ops bmc port field key.
-	FieldKeyStaticSyncedOpsBMCPort = "data.static.synced_ops_bmc_port"
+	// FieldKeyStaticSyncedOpsOutBandPort the static synced ops out-band port field key.
+	FieldKeyStaticSyncedOpsOutBandPort = "data.static.synced_ops_out_band_port"
 
 	// Dynamic fields.
 
@@ -212,11 +212,11 @@ const (
 	// FieldKeyDynamicOpsOutBandProtocol the dynamic ops out-band protocol field key.
 	FieldKeyDynamicOpsOutBandProtocol = "data.dynamic.ops_out_band_protocol"
 
-	// FieldKeyDynamicOpsBMCIP the dynamic ops bmc ip field key.
-	FieldKeyDynamicOpsBMCIP = "data.dynamic.ops_bmc_ip"
+	// FieldKeyDynamicOpsOutBandIP the dynamic ops out-band ip field key.
+	FieldKeyDynamicOpsOutBandIP = "data.dynamic.ops_out_band_ip"
 
-	// FieldKeyDynamicOpsBMCPort the dynamic ops bmc port field key.
-	FieldKeyDynamicOpsBMCPort = "data.dynamic.ops_bmc_port"
+	// FieldKeyDynamicOpsOutBandPort the dynamic ops out-band port field key.
+	FieldKeyDynamicOpsOutBandPort = "data.dynamic.ops_out_band_port"
 
 	// FieldKeyOperationUpdatedAt the operation updated at field key for business-operation sort ordering.
 	FieldKeyOperationUpdatedAt = "data.operation_updated_at"

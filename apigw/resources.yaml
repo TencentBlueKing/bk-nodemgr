@@ -26386,9 +26386,9 @@ paths:
                       bk_host_id:
                         type: integer
                         format: int64
-                      ops_bmc_ip:
+                      ops_out_band_ip:
                         type: string
-                      ops_bmc_port:
+                      ops_out_band_port:
                         type: integer
                         format: int64
                       ops_out_band_type:
@@ -26540,10 +26540,10 @@ paths:
                       bk_host_id:
                         type: number
                         default: ''
-                      ops_bmc_ip:
+                      ops_out_band_ip:
                         type: string
                         default: ''
-                      ops_bmc_port:
+                      ops_out_band_port:
                         type: number
                         default: ''
                       ops_out_band_type:

@@ -135,9 +135,9 @@ type HostInfo struct {
 	// 带外设备协议
 	OpsOutBandProtocol string `json:"ops_out_band_protocol"`
 	// 带外管理IP
-	OpsBMCIP string `json:"ops_out_band_ip"`
+	OpsOutBandIP string `json:"ops_out_band_ip"`
 	// 带外管理端口
-	OpsBMCPort int64 `json:"ops_out_band_port"`
+	OpsOutBandPort int64 `json:"ops_out_band_port"`
 }
 
 // BusinessInfo describe the information of single business.
@@ -1346,10 +1346,10 @@ type UpdateHostProperties struct {
 		OpsOutBandType *string `json:"ops_out_band_type,omitempty"`
 		// OpsOutBandProtocol matches HostInfo.OpsOutBandProtocol.
 		OpsOutBandProtocol *string `json:"ops_out_band_protocol,omitempty"`
-		// OpsBMCIP matches HostInfo.OpsBMCIP.
-		OpsBMCIP *string `json:"ops_out_band_ip,omitempty"`
-		// OpsBMCPort matches HostInfo.OpsBMCPort.
-		OpsBMCPort *int64 `json:"ops_out_band_port,omitempty"`
+		// OpsOutBandIP matches HostInfo.OpsOutBandIP.
+		OpsOutBandIP *string `json:"ops_out_band_ip,omitempty"`
+		// OpsOutBandPort matches HostInfo.OpsOutBandPort.
+		OpsOutBandPort *int64 `json:"ops_out_band_port,omitempty"`
 	} `json:"properties"`
 	BKHostID int64 `json:"bk_host_id"`
 }
