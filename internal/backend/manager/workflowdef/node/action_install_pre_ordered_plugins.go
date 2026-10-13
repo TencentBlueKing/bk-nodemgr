@@ -217,7 +217,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 		}
 
 		return fmt.Errorf(
-			"failed to install all pre-ordered plugins, expected workflow count(%d), actual(%d)",
+			"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d)",
 			expectedWorkflowCount,
 			successWorkflowCount,
 		)
