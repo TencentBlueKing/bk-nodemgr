@@ -195,8 +195,8 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 		subWorkflowRefs = append(subWorkflowRefs, subWorkflowRef)
 	}
 
-	successWorkflowCount, waitErr := act.waitWorkflow(std, subWorkflowRefs)
 	expectedWorkflowCount := act.expectedWorkflowCount(std)
+	successWorkflowCount, waitErr := act.waitWorkflow(std, subWorkflowRefs)
 	if waitErr != nil {
 		return fmt.Errorf(
 			"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d): %w",
