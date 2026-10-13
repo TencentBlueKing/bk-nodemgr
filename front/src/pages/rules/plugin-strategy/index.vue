@@ -13,6 +13,9 @@
           <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
           {{ $t('agentStrategy.createPluginConfig') }}
         </Button>
+        <Button @click="handleSortPreview">
+          {{ $t('agentStrategy.sortAndPreview') }}
+        </Button>
       </div>
       <div class="">
         <SearchSelect
@@ -114,7 +117,10 @@
                   <Table :data="row.scopes" :min-width="600">
                     <TableColumn field="bk_networkarea_id" :title="$t('taskDetail.table.workarea')" :min-width="120">
                       <template #default="{ row: scopesRow }">
-                        {{ networkAreaList?.find(item => item.bk_networkarea_id === scopesRow.bk_networkarea_id)?.bk_networkarea_name || $t('agentStrategy.table.unlimited') }}
+                        <!-- scope 的 -1 = 不限：优先判断，避免命中区域列表中 ID 为 -1 的未分配管控区域 -->
+                        {{ scopesRow.bk_networkarea_id === -1
+                          ? $t('agentStrategy.table.unlimited')
+                          : networkAreaList?.find(item => item.bk_networkarea_id === scopesRow.bk_networkarea_id)?.bk_networkarea_name || $t('agentStrategy.table.unlimited') }}
                       </template>
                     </TableColumn>
                     <TableColumn field="bk_networkunit_id" :title="$t('taskDetail.table.workUnit')" :min-width="120">
@@ -239,6 +245,16 @@
     @save="handleSave"
     @request-edit="handleRequestEdit"
   />
+
+  <!-- SortPreview 排序并预览组件（与 agent 配置策略共用） -->
+  <SortPreview
+    v-model:is-show="isShowSortPreview"
+    :config-list="tableData"
+    :configpolicy-type="'config_policy_plugin'"
+    :biz-id="strategyBizId || 0"
+    @save-sort="handleSaveSort"
+    @view-policy="handleViewPolicy"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -251,6 +267,8 @@ import { useRoute } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import PluginCreateConfig from './create-config.vue';
+// 插件策略独立排序预览组件（按插件维度预览，与 agent/proxy 共用组件分离）
+import SortPreview from './sort-preview.vue';
 
 import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
@@ -345,6 +363,31 @@ const handleDelete = async (row: ConfigPolicy) => {
 };
 
 const handleSave = async () => { await getConfigPolicyList(); };
+
+// ===== SortPreview =====
+const isShowSortPreview = ref(false);
+const handleSortPreview = () => {
+  isShowSortPreview.value = true;
+};
+
+const handleSaveSort = async () => {
+  await getConfigPolicyList();
+};
+
+// 从 sort-preview 点击策略名称跳转到查看页
+const handleViewPolicy = async (configpolicyId: number) => {
+  try {
+    const res = await ConfigPolicyAPIService.ConfigPolicyGet({
+      configpolicy_id: configpolicyId,
+    });
+    sidesliderMode.value = 'view';
+    currentEditConfig.value = { ...res };
+    mainStore.updateConfigEditData({ ...res });
+    isShowSideslider.value = true;
+  } catch {
+    // error handled by fetch interceptor
+  }
+};
 
 const networkAreaList = ref<NetworkArea[]>([]);
 const getNetworkAreaList = async (data: { bk_networkarea_id: number }[]) => {

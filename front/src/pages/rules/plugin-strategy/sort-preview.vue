@@ -1,0 +1,862 @@
+<template>
+  <Sideslider
+    v-model:is-show="isShow"
+    render-directive="if"
+    width="800"
+    :before-close="handleBeforeClose"
+  >
+    <template #header>
+      <div class="flex items-center">
+        <span class="text-[16px] font-bold text-[#313238] mr-[24px]">{{ t('agentStrategy.sortAndPreview') }}</span>
+        <!-- 步骤指示器 -->
+        <div class="flex items-center">
+          <div
+            v-for="(step, index) in steps"
+            :key="index"
+            class="flex items-center"
+          >
+            <div
+              :class="['flex items-center cursor-pointer', { 'opacity-50': index > currentStep }]"
+              @click="handleStepClick(index)"
+            >
+              <div
+                :class="['w-[24px] h-[24px] rounded-full flex items-center justify-center text-[12px] font-medium', getStepClass(index)]"
+              >
+                <span>{{ index + 1 }}</span>
+              </div>
+              <span
+                :class="['ml-[8px] text-[14px]', index <= currentStep ? 'text-[#313238]' : 'text-[#979BA5]']"
+              >{{ step }}</span>
+            </div>
+            <div
+              v-if="index < steps.length - 1"
+              class="w-[60px] h-[1px] bg-[#DCDEE5] mx-[12px]"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <div class="p-[24px] h-full overflow-auto">
+      <!-- Step 0: 策略排序 -->
+      <div v-show="currentStep === 0">
+        <Table
+          ref="sortTableRef"
+          :data="sortedConfigs"
+          :max-height="maxTableHeight"
+          :row-config="{ drag: true }"
+          :row-drag-config="rowDragConfig"
+          show-overflow-tooltip
+          @row-dragend="handleDragEnd"
+        >
+          <TableColumn
+            field="configpolicy_name"
+            :title="t('agentStrategy.table.configName')"
+            :min-width="120"
+          >
+            <template #default="{ row }">
+              <div class="flex items-center" :class="{ 'opacity-50': !row.enabled }">
+                <Tag class="mr-[8px]">{{ row.enabled ? enabledIndexOf(row) + 1 : '-' }}</Tag>
+                <i :class="`nodeman-icon nc-${row.enabled ? 'success' : 'incomplete'} status-icon`"></i>
+                <span>{{ row.configpolicy_name }}</span>
+              </div>
+            </template>
+          </TableColumn>
+          <TableColumn
+            field="target_plugin_name"
+            :title="t('agentStrategy.table.pluginName')"
+            :min-width="140"
+            show-overflow="tooltip"
+          ></TableColumn>
+          <TableColumn
+            field="sort"
+            drag-sort
+            width="120"
+            align="right"
+          >
+            <template #default="{ row }">
+              <span v-if="!row.enabled" class="text-[12px] text-[#979BA5]">{{ t('agentStrategy.table.disabled') }}</span>
+            </template>
+          </TableColumn>
+        </Table>
+      </div>
+
+      <!-- Step 1: 选择作用IP -->
+      <div v-show="currentStep === 1">
+        <!-- 插件策略按插件维度生效，预览需指定目标插件 -->
+        <div class="flex items-center mb-[16px]">
+          <span class="text-[14px] text-[#63656E] font-medium w-[120px] shrink-0">{{ t('agentStrategy.table.pluginName') }}</span>
+          <Select
+            v-model="selectedPluginName"
+            class="w-[320px]"
+            :clearable="false"
+            :loading="pluginOptions.length === 0"
+          >
+            <Select.Option
+              v-for="name in pluginOptions"
+              :key="name"
+              :id="name"
+              :name="name"
+              :value="name"
+            ></Select.Option>
+          </Select>
+        </div>
+
+        <div class="text-[14px] text-[#63656E] font-medium mb-[12px]">
+          step 1. {{ t('agentStrategy.preview.selectIP') }}
+        </div>
+        <!-- 添加IP按钮 -->
+        <div
+          v-if="selectedHosts.length === 0"
+          class="bg-[#F0F5FF] border-dashed border-2 border-[#A3C5FD] text-[#3A84FF] h-[30px] flex items-center justify-center cursor-pointer mb-[10px]"
+          @click="handleAddIP"
+        >
+          <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
+          <span class="text-[14px]">{{ $t('common.addIP') }}</span>
+        </div>
+
+        <!-- IP统计和操作 -->
+        <div v-if="selectedHosts.length > 0" class="mb-[16px]">
+          <div class="flex items-center mb-[10px]">
+            <span class="text-[14px] text-[#63656E]">
+              {{ t('common.totalAdded') }}
+              <span class="text-[#3A84FF] font-medium mx-[2px]">{{ selectedHosts.length }}</span>
+              {{ t('common.hostUnit') }}
+            </span>
+            <i class="nodeman-icon nc-icon-edit-2 text-[16px] text-[#979BA5] cursor-pointer ml-[10px]" @click="handleEditHosts"></i>
+          </div>
+        </div>
+
+        <div class="text-[14px] text-[#63656E] font-medium mb-[12px] mt-[24px]">
+          step 2. {{ t('agentStrategy.preview.previewMatchStrategy') }}
+        </div>
+
+        <!-- 预览匹配策略表格 -->
+        <Loading :loading="previewLoading">
+          <div v-if="previewData.length > 0">
+            <Table
+              ref="previewTableRef"
+              :data="paginatedPreviewData"
+              :max-height="600"
+              :pagination="previewPagination"
+              :span-method="reliableSpanMethod"
+              show-overflow-tooltip
+              @page-value-change="handlePreviewPageChange"
+              @page-limit-change="handlePreviewPageLimitChange"
+            >
+              <TableColumn
+                field="reliable"
+                title=""
+                :width="100"
+                fixed="left"
+              >
+                <template #default="{ row }">
+                  <div class="cursor-pointer" v-bk-tooltips="{
+                    content: t('agentStrategy.preview.reliableTip'),
+                    disabled: row.reliable
+                  }">
+                    <Tag :theme="row.reliable ? 'success' : 'warning'" >
+                      {{ row.reliable ? t('agentStrategy.preview.reliableYes') : t('agentStrategy.preview.reliableNo') }}
+                    </Tag>
+                  </div>
+                </template>
+              </TableColumn>
+              <TableColumn
+                field="bk_host_id"
+                title="Host ID"
+                :width="100"
+                fixed="left"
+              ></TableColumn>
+              <TableColumn
+                field="bk_host_innerip"
+                title="IP"
+                :min-width="130"
+              ></TableColumn>
+              <TableColumn
+                field="bk_networkarea_name"
+                :title="t('agentStrategy.preview.networkArea')"
+                :min-width="120"
+              ></TableColumn>
+              <TableColumn
+                field="bk_networkunit_name"
+                :title="t('agentStrategy.preview.networkUnit')"
+                :min-width="120"
+              ></TableColumn>
+              <TableColumn
+                field="os_type"
+                :title="t('agentStrategy.preview.osType')"
+                :width="100"
+              ></TableColumn>
+              <TableColumn
+                field="cpu_arch"
+                :title="t('agentStrategy.preview.cpuArch')"
+                :width="100"
+              ></TableColumn>
+              <TableColumn
+                field="matched_policies"
+                :title="t('agentStrategy.preview.matchedPolicy')"
+                :min-width="180"
+                fixed="right"
+              >
+                <template #default="{ row }">
+                  <span v-if="row.matched_policies?.length">
+                    <Button
+                      v-for="(policy, idx) in row.matched_policies"
+                      :key="policy.configpolicy_id"
+                      text
+                      theme="primary"
+                      size="small"
+                      @click="handleViewPolicy(policy.configpolicy_id)"
+                    >{{ policy.configpolicy_name }}{{ Number(idx) < row.matched_policies.length - 1 ? '、' : '' }}</Button>
+                  </span>
+                  <span v-else>-</span>
+                </template>
+              </TableColumn>
+              <TableColumn
+                field="action"
+                :title="$t('table.action')"
+                :width="100"
+                fixed="right"
+              >
+                <template #default="{ row }">
+                  <Button
+                    text
+                    theme="primary"
+                    @click="handleViewConfigDetail(row)"
+                  >{{ t('agentStrategy.preview.configDetail') }}</Button>
+                </template>
+              </TableColumn>
+            </Table>
+          </div>
+        </Loading>
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="flex items-center">
+        <template v-if="currentStep === 0">
+          <Button theme="primary" class="mr-[8px] w-[88px]" @click="handleNextStep">
+            {{ t('agentStrategy.preview.previewConfig') }}
+          </Button>
+          <Button class="w-[88px]" @click="handleBeforeClose">{{ t('agentStrategy.form.cancel') }}</Button>
+        </template>
+        <template v-else>
+          <Button class="mr-[8px] w-[88px]" @click="handlePrevStep">
+            {{ t('agentStrategy.preview.prevStep') }}
+          </Button>
+          <span
+            v-bk-tooltips="{
+              content: t('agentStrategy.preview.noSortData'),
+              disabled: hasEnabledConfigs,
+            }"
+            class="mr-[8px] inline-block"
+          >
+            <Button
+              theme="primary"
+              class="w-[88px]"
+              :loading="saveLoading"
+              :disabled="!hasEnabledConfigs"
+              @click="handleSaveSort"
+            >
+              {{ t('agentStrategy.preview.saveSort') }}
+            </Button>
+          </span>
+          <Button class="w-[88px]" @click="handleBeforeClose">{{ t('agentStrategy.form.cancel') }}</Button>
+        </template>
+      </div>
+    </template>
+
+    <!-- 蓝鲸IP选择器 -->
+    <IpSelector
+      v-if="isShowIpSelector"
+      mode="dialog"
+      :show-dialog="isShowIpSelector"
+      :value="ipSelectorValue"
+      @change="handleIpSelectorChange"
+      @panel-change="(panel: string) => IpSelectorService.setActiveIpsPanel(panel)"
+      @close-dialog="handleIpSelectorClose"
+    />
+
+    <!-- JSON配置详情弹窗 -->
+    <Dialog
+      :is-show="isShowConfigDetail"
+      :title="t('agentStrategy.preview.jsonConfigDetail')"
+      width="680"
+      @closed="isShowConfigDetail = false"
+      @confirm="isShowConfigDetail = false"
+    >
+      <div class="json-editor-wrapper">
+        <div class="json-editor-body" ref="jsonEditorRef">
+          <table class="json-editor-table" cellpadding="0" cellspacing="0">
+            <tbody>
+              <tr v-for="(line, index) in configDetailLines" :key="index" :class="{ 'json-line-active': activeLine === index }" @click="activeLine = index">
+                <td class="json-line-num">{{ index + 1 }}</td>
+                <td class="json-line-content"><pre v-html="line"></pre></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Dialog>
+  </Sideslider>
+</template>
+
+<script lang="ts" setup>
+import { Button, Dialog, Loading, Message, Select, Sideslider, Tag } from 'bkui-vue';
+import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import type { ConfigPolicyPreviewRespPreviewItem } from '@/@types/configpolicy';
+import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
+import IpSelector from '@/components/IpSelector';
+import { setPolicyType, setStrategyBizId } from '@/services/ip-selector';
+import * as IpSelectorService from '@/services/ip-selector';
+import { TopoService } from '@/api/modules/topo';
+
+interface ISelectedHost {
+  bk_host_id: number;
+  bk_host_innerip: string;
+  bk_host_innerip_v6: string;
+  bk_host_name: string;
+  bk_networkarea_name: string;
+  bk_networkunit_name: string;
+  os_type: string;
+  cpu_arch: string;
+  bk_networkarea_id: number;
+  bk_networkunit_id: number;
+}
+
+const isShow = defineModel('isShow', { type: Boolean });
+
+const props = defineProps<{
+  configList: ConfigPolicy[];
+  configpolicyType: string;
+  bizId: number;
+}>();
+
+const emit = defineEmits(['save-sort', 'view-policy']);
+const { t } = useI18n();
+
+// ===== 插件维度（插件策略按 target_plugin_name 生效，预览需指定插件）=====
+const pluginOptions = computed(() => [...new Set(props.configList
+  .map(item => item.target_plugin_name)
+  .filter(Boolean))]);
+const selectedPluginName = ref(pluginOptions.value[0] || '');
+watch(pluginOptions, (options) => {
+  // 策略列表变化后，若当前选中插件不存在则回退到第一个
+  if (!options.includes(selectedPluginName.value)) {
+    selectedPluginName.value = options[0] || '';
+  }
+});
+watch(selectedPluginName, () => {
+  // 切换插件后若已选主机，重新拉取预览
+  if (selectedHosts.value.length > 0) {
+    fetchPreviewMatchStrategy();
+  }
+});
+
+// 步骤
+const steps = computed(() => [
+  t('agentStrategy.preview.sortConfig'),
+  t('agentStrategy.preview.previewConfig'),
+]);
+const currentStep = ref(0);
+const maxTableHeight = 500;
+
+// 排序配置
+const sortTableRef = ref<any>(null);
+const sortedConfigs = ref<ConfigPolicy[]>([]);
+const saveLoading = ref(false);
+// 是否存在启用的策略（保存排序按钮仅在有启用项时可用）
+const hasEnabledConfigs = computed(() => sortedConfigs.value.some(item => item.enabled));
+
+const rowDragConfig = {
+  disabledMethod: ({ row }: { row: ConfigPolicy }) => !row.enabled,
+  visibleMethod: ({ row }: { row: ConfigPolicy }) => row.enabled,
+};
+
+const enabledIndexOf = (row: ConfigPolicy) => {
+  let idx = 0;
+  for (const item of sortedConfigs.value) {
+    if (!item.enabled) continue;
+    if (item === row) return idx;
+    idx++;
+  }
+  return -1;
+};
+
+const handleDragEnd = () => {
+  // 从 table 内部获取拖拽后的最新排序数据，同步到 sortedConfigs
+  const vxeInstance = sortTableRef.value?.getVxeTableInstance?.();
+  if (vxeInstance) {
+    sortedConfigs.value = vxeInstance.getTableData().fullData;
+  }
+  // 保证未启用的始终在最下方
+  const enabled = sortedConfigs.value.filter(item => item.enabled);
+  const disabled = sortedConfigs.value.filter(item => !item.enabled);
+  sortedConfigs.value = [...enabled, ...disabled];
+};
+
+// IP选择器
+const isShowIpSelector = ref(false);
+const ipSelectorValue = ref({
+  hostList: [],
+  nodeList: [],
+  dynamicGroupList: [],
+  serviceTemplateList: [],
+  setTemplateList: [],
+});
+
+const selectedHosts = ref<ISelectedHost[]>([]);
+
+// ===== 管控单元 id→name Map（HostList 的 info 不含单元名，按 ID 反查补充）=====
+const networkUnitMap = ref(new Map<number, string>());
+const fetchNetworkUnitNames = async (ids: number[]) => {
+  // -1 = 未分配（不用查），只查 >=0 的有效 ID
+  const uniqueIds = [...new Set(ids.filter(id => id != null && id !== -1))];
+  if (uniqueIds.length === 0) return;
+  const res = await TopoService.NetworkUnitListBrief({
+    exact_include_conditions: { bk_networkunit_id: uniqueIds },
+  }).catch(() => ({ total: 0, items: [] }));
+  const map = new Map<number, string>();
+  (res.items || []).forEach((item: any) => {
+    map.set(item.bk_networkunit_id, item.bk_networkunit_name);
+  });
+  networkUnitMap.value = map;
+};
+
+const handleAddIP = () => {
+  setPolicyType(props.configpolicyType);
+  setStrategyBizId(props.bizId);
+  isShowIpSelector.value = true;
+};
+
+const handleEditHosts = () => {
+  setPolicyType(props.configpolicyType);
+  setStrategyBizId(props.bizId);
+  isShowIpSelector.value = true;
+};
+
+// IP选择器变化事件（dialog模式：选择即生效+即时预览）
+const handleIpSelectorChange = async (value: any) => {
+  const hostList = value.hostList || [];
+  const ids = hostList.map((h: any) => h.hostId || h.host_id).filter(Boolean);
+
+  if (ids.length > 0) {
+    // 1. 先从缓存取
+    const { cached, missIds } = IpSelectorService.getCachedHosts(ids);
+    const rowMap = new Map<number, ISelectedHost>();
+
+    cached.forEach((item: any) => {
+      rowMap.set(item.bk_host_id ?? item.host_id, {
+        bk_host_id: item.bk_host_id ?? item.host_id ?? 0,
+        bk_host_innerip: item.ip || '',
+        bk_host_innerip_v6: item.ipv6 || '',
+        bk_host_name: item.host_name || '',
+        bk_networkarea_name: item.cloud_area?.name || '',
+        bk_networkunit_name: item.networkunit_name || '',
+        os_type: item.os_type || '',
+        cpu_arch: item.cpu_arch || '',
+        bk_networkarea_id: item.cloud_id ?? item.bk_cloud_id ?? 0,
+        bk_networkunit_id: item.bk_networkunit_id ?? 0,
+      });
+    });
+
+    // 2. 缓存未命中的 ID，调后端补齐
+    if (missIds.length > 0) {
+      try {
+        const res = await TopoService.HostList({
+          page: { offset: 0, limit: missIds.length },
+          only_count: false,
+          exact_include_conditions: {
+            bk_host_id: missIds,
+            // 插件策略的主机为 agent 节点（插件进程由 agent 承载），proxy 策略才是 proxy 节点
+            node_role: props.configpolicyType.includes('proxy') ? ['proxy'] : ['agent', 'blank'],
+          },
+          fuzzy_include_conditions: {},
+        });
+        (res.items || []).forEach((item: any) => {
+          const mapped = IpSelectorService.mapHostItem(item);
+          IpSelectorService.cacheHostItem(mapped);
+          const info = item?.info || {};
+          rowMap.set(item.bk_host_id, {
+            bk_host_id: item.bk_host_id,
+            bk_host_innerip: info.bk_host_innerip_list?.join(',') || '',
+            bk_host_innerip_v6: info.bk_host_innerip_v6_list?.join(',') || '',
+            bk_host_name: info.bk_host_name || '',
+            bk_networkarea_name: info.bk_networkarea_name || '',
+            bk_networkunit_name: info.bk_networkunit_name || '',
+            os_type: info.os_type || '',
+            cpu_arch: info.cpu_arch || '',
+            bk_networkarea_id: info.bk_networkarea_id || 0,
+            bk_networkunit_id: info.bk_networkunit_id || 0,
+          });
+        });
+      } catch {
+        // API 失败时只展示缓存中的数据
+      }
+    }
+
+    // 3. 按原始 ids 顺序组装结果
+    selectedHosts.value = ids.map((id: number) => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
+  } else {
+    selectedHosts.value = [];
+  }
+
+  // HostList 的 info 不含管控单元名，按单元 ID 反查补充
+  await fetchNetworkUnitNames(selectedHosts.value.map(h => h.bk_networkunit_id));
+  selectedHosts.value = selectedHosts.value.map(h => ({
+    ...h,
+    bk_networkunit_name: h.bk_networkunit_id === -1
+      ? t('pluginOperation.preview.unassigned')
+      : (networkUnitMap.value.get(h.bk_networkunit_id) || h.bk_networkunit_name || `[${h.bk_networkunit_id}]`),
+  }));
+
+  ipSelectorValue.value = { ...value, hostList: [...hostList] };
+  // 选择变化后即时触发预览
+  if (selectedHosts.value.length > 0) {
+    fetchPreviewMatchStrategy();
+  }
+};
+
+// IP选择器关闭
+const handleIpSelectorClose = () => {
+  isShowIpSelector.value = false;
+};
+
+// 预览匹配策略
+const previewData = ref<ConfigPolicyPreviewRespPreviewItem[]>([]);
+const previewLoading = ref(false);
+let previewRequestId = 0;
+const previewPagination = reactive({
+  current: 1,
+  limit: 10,
+  count: 0,
+  // 数据已由 paginatedPreviewData 前端切片，分页器只负责展示/翻页，不再二次切片
+  remote: true as const,
+});
+
+const paginatedPreviewData = computed(() => {
+  const start = (previewPagination.current - 1) * previewPagination.limit;
+  const end = start + previewPagination.limit;
+  return previewData.value.slice(start, end);
+});
+
+/** 合并 reliable 列的同类单元格（数据已按 reliable 排序：true 在前，false 在后） */
+const reliableSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
+  if (column.field !== 'reliable') return { rowspan: 1, colspan: 1 };
+  const rows = visibleData;
+  // 找到连续相同 reliable 值的范围
+  const currentValue = row.reliable;
+  let start = _rowIndex;
+  while (start > 0 && rows[start - 1].reliable === currentValue) start--;
+  let end = _rowIndex;
+  while (end < rows.length - 1 && rows[end + 1].reliable === currentValue) end++;
+  const rowspan = end - start + 1;
+  if (_rowIndex === start) {
+    return { rowspan, colspan: 1 };
+  }
+  return { rowspan: 0, colspan: 0 };
+};
+
+const fetchPreviewMatchStrategy = async () => {
+  const requestId = ++previewRequestId;
+  previewData.value = [];
+  previewPagination.count = 0;
+  previewPagination.current = 1;
+  previewLoading.value = true;
+  try {
+    const res = await ConfigPolicyAPIService.ConfigPolicyPreview({
+      bk_biz_id: props.bizId,
+      policy_type: props.configpolicyType,
+      // 插件策略按插件维度预览，必须传具体插件名（后端对 plugin 类型按 target_plugin_name 过滤）
+      plugin_name: selectedPluginName.value,
+      // preview with the user-adjusted priority order, highest first,
+      // instead of the saved DB priority order.
+      ordered_configpolicy_id: sortedConfigs.value.filter(item => item.enabled).map(item => item.configpolicy_id),
+      hosts: selectedHosts.value.map(host => ({
+        bk_host_id: host.bk_host_id,
+        bk_networkunit_id: host.bk_networkunit_id || 0,
+        bk_networkarea_id: host.bk_networkarea_id || 0,
+        os_type: host.os_type || '',
+        cpu_arch: host.cpu_arch || '',
+      })),
+    });
+    if (requestId !== previewRequestId) return;
+
+    // 构建 hostId -> selectedHost 映射，用于补充主机信息
+    const hostMap = new Map<number, ISelectedHost>();
+    selectedHosts.value.forEach(h => hostMap.set(h.bk_host_id, h));
+
+    const reliableItems = (res.reliable_items || []).map((item: any) => ({
+      ...item,
+      reliable: true,
+      bk_host_innerip: hostMap.get(item.bk_host_id)?.bk_host_innerip || '',
+      bk_networkarea_name: hostMap.get(item.bk_host_id)?.bk_networkarea_name || '',
+      bk_networkunit_name: hostMap.get(item.bk_host_id)?.bk_networkunit_name || '',
+      os_type: hostMap.get(item.bk_host_id)?.os_type || '',
+      cpu_arch: hostMap.get(item.bk_host_id)?.cpu_arch || '',
+    }));
+    const unreliableItems = (res.unreliable_items || []).map((item: any) => ({
+      ...item,
+      reliable: false,
+      bk_host_innerip: hostMap.get(item.bk_host_id)?.bk_host_innerip || '',
+      bk_networkarea_name: hostMap.get(item.bk_host_id)?.bk_networkarea_name || '',
+      bk_networkunit_name: hostMap.get(item.bk_host_id)?.bk_networkunit_name || '',
+      os_type: hostMap.get(item.bk_host_id)?.os_type || '',
+      cpu_arch: hostMap.get(item.bk_host_id)?.cpu_arch || '',
+    }));
+    const items = [...reliableItems, ...unreliableItems];
+    previewData.value = items;
+    previewPagination.count = items.length;
+    previewPagination.current = 1;
+  } catch {
+    if (requestId !== previewRequestId) return;
+
+    previewData.value = [];
+    previewPagination.count = 0;
+  } finally {
+    if (requestId === previewRequestId) {
+      previewLoading.value = false;
+    }
+  }
+};
+
+const handlePreviewPageChange = (page: number) => {
+  previewPagination.current = page;
+};
+
+const handlePreviewPageLimitChange = (limit: number) => {
+  previewPagination.limit = limit;
+  previewPagination.current = 1;
+};
+
+// 配置详情弹窗
+const isShowConfigDetail = ref(false);
+const configDetailJson = ref('');
+const activeLine = ref(-1);
+
+/** 将 JSON 字符串按行拆分并语法高亮，括号按层级黄紫交替 */
+const configDetailLines = computed(() => {
+  const raw = configDetailJson.value;
+  if (!raw) return [];
+  const lines = raw.split('\n');
+  const bracketColors = ['json-bracket-y', 'json-bracket-p']; // 黄/紫交替
+
+  let depth = 0;
+  const highlight = (text: string) => text
+    .replace(/"([^"]+)"(\s*:)/g, '<span class="json-key">"$1"</span>$2')
+    .replace(/:\s*"([^"]*)"/g, ':  <span class="json-string">"$1"</span>')
+    .replace(/:\s*(true|false)/g, ':  <span class="json-bool">$1</span>')
+    .replace(/:\s*(-?\d+\.?\d*)/g, ':  <span class="json-num">$1</span>')
+    .replace(/:(\s*)([{\[])/g, ':  $2')
+    .replace(/\b(null)\b/g, '<span class="json-null">$1</span>')
+    // 括号：开括号先用当前depth着色再++，闭括号先--用新depth着色
+    .replace(/[{}\[\]]/g, (match) => {
+      let cls;
+      if (match === '{' || match === '[') {
+        cls = bracketColors[depth % 2];
+        depth++;
+      } else {
+        depth--;
+        cls = bracketColors[depth % 2];
+      }
+      return `<span class="${cls}">${match}</span>`;
+    });
+  return lines.map((line) => highlight(line));
+});
+
+const handleViewConfigDetail = (row: ConfigPolicyPreviewRespPreviewItem) => {
+  activeLine.value = -1;
+  try {
+    const parsed = JSON.parse(row.merged_config);
+    configDetailJson.value = JSON.stringify(parsed, null, 4);
+  } catch {
+    configDetailJson.value = row.merged_config || '{}';
+  }
+  isShowConfigDetail.value = true;
+};
+
+// 点击匹配策略名称，跳转到策略查看页
+const handleViewPolicy = (configpolicyId: number) => {
+  isShow.value = false;
+  emit('view-policy', configpolicyId);
+};
+
+// 步骤导航
+const handleStepClick = (index: number) => {
+  if (index <= currentStep.value) {
+    currentStep.value = index;
+  }
+};
+
+const getStepClass = (index: number) => {
+  if (index < currentStep.value) {
+    return 'bg-[#E1ECFF] text-[#3A84FF]'; // completed
+  }
+  if (index === currentStep.value) {
+    return 'bg-[#3A84FF] text-white'; // active
+  }
+  return 'bg-[#F0F1F5] text-[#979BA5]'; // pending
+};
+
+const handlePrevStep = () => {
+  if (currentStep.value > 0) {
+    currentStep.value -= 1;
+  }
+};
+
+const handleNextStep = () => {
+  if (currentStep.value < steps.value.length - 1) {
+    currentStep.value += 1;
+    if (currentStep.value === 1 && selectedHosts.value.length > 0) {
+      fetchPreviewMatchStrategy();
+    }
+  }
+};
+
+const handleSaveSort = async () => {
+  saveLoading.value = true;
+  try {
+    await ConfigPolicyAPIService.ConfigPolicyPriorityReorder({
+      bk_biz_id: props.bizId,
+      configpolicy_type: props.configpolicyType,
+      ordered_configpolicy_id: sortedConfigs.value.filter(item => item.enabled).map(item => item.configpolicy_id),
+    });
+    Message({ theme: 'success', message: t('agentStrategy.preview.saveSuccess') });
+    emit('save-sort');
+    isShow.value = false;
+  } catch {
+    // error handled by fetch interceptor
+  } finally {
+    saveLoading.value = false;
+  }
+};
+
+const handleBeforeClose = (): Promise<boolean> => new Promise((resolve) => {
+  resolve(true);
+  isShow.value = false;
+});
+
+// 初始化（弹窗打开时从最新策略列表重建排序数据，并重置预览状态）
+watch(() => isShow.value, (val) => {
+  if (val) {
+    currentStep.value = 0;
+    const enabled = props.configList.filter(item => item.enabled);
+    const disabled = props.configList.filter(item => !item.enabled);
+    sortedConfigs.value = [...enabled, ...disabled];
+    // 重置插件选择为第一个可选插件
+    selectedPluginName.value = pluginOptions.value[0] || '';
+    selectedHosts.value = [];
+    previewData.value = [];
+    ipSelectorValue.value = {
+      hostList: [],
+      nodeList: [],
+      dynamicGroupList: [],
+      serviceTemplateList: [],
+      setTemplateList: [],
+    };
+    previewPagination.count = 0;
+    previewPagination.current = 1;
+  }
+});
+</script>
+<style lang="postcss" scoped>
+.status-icon::before {
+  content: "";
+  display: inline-block;
+  margin-right: 8px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #f0f1f5;
+  border-radius: 6.5px;
+  background: #b2b5bd;
+}
+.nc-success {
+  &::before {
+    border-color: #2DCC56;
+    background: #cbf0da;
+  }
+}
+.nc-incomplete {
+  &::before {
+    border-color: #90A4B2;
+    background: #e2e7eb;
+  }
+}
+
+/* JSON 代码编辑器样式 */
+.json-editor-wrapper {
+  border: 1px solid #dcdee5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.json-editor-body {
+  max-height: 480px;
+  overflow: auto;
+  background: #1e1e1e;
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    &:hover { background: rgba(255, 255, 255, 0.25); }
+  }
+}
+.json-editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  tr {
+    cursor: pointer;
+    transition: background 0.1s;
+    &:hover { background: rgba(255, 255, 255, 0.04); }
+  }
+}
+.json-line-num {
+  width: 48px;
+  min-width: 48px;
+  text-align: right;
+  padding: 0 10px;
+  user-select: none;
+  vertical-align: top;
+  line-height: 24px;
+  font-size: 12px;
+  font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+  color: #6a737d;
+  background: #1e1e1e;
+  border-right: 1px solid #333;
+}
+.json-line-content {
+  vertical-align: top;
+  padding: 0 16px;
+  pre {
+    margin: 0;
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 24px;
+    color: #d4d4d4;
+    white-space: pre;
+    tab-size: 2;
+  }
+}
+/* JSON 语法高亮颜色 - v-html 注入内容需 :deep 穿透 */
+::deep(.json-key)     { color: #9cdcfe; }  /* 属性名 - 浅蓝 */
+::deep(.json-string)  { color: #ce9178; }  /* 字符串值 - 橙色 */
+::deep(.json-bool)    { color: #569cd6; }  /* 布尔值 - 蓝色 */
+::deep(.json-num)     { color: #b5cea8; }  /* 数字 - 绿色 */
+::deep(.json-null)    { color: #569cd6; }  /* null - 蓝色 */
+/* 括号按层级交替：第1层黄、第2层紫、第3层黄... */
+::deep(.json-bracket-y) { color: #ffd700; }
+::deep(.json-bracket-p) { color: #d197d9; }
+
+/* 点击行高亮 */
+.json-line-active {
+  background: rgba(255, 255, 255, 0.08) !important;
+  .json-line-num { color: #d4d4d4; }
+}
+</style>
