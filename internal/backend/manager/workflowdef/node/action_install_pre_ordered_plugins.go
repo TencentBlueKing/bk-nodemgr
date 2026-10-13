@@ -198,16 +198,32 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 
 	successWorkflowCount, waitErr := act.waitWorkflow(std, subWorkflowRefs)
 	expectedWorkflowCount := act.expectedWorkflowCount(std)
-	var countErr error
+	if waitErr != nil {
+		return fmt.Errorf(
+			"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d): %w",
+			expectedWorkflowCount,
+			successWorkflowCount,
+			waitErr,
+		)
+	}
 	if successWorkflowCount != expectedWorkflowCount {
-		countErr = fmt.Errorf(
-			"pre-ordered plugin workflow success count mismatch, expected(%d), actual(%d)",
+		if launchErr != nil {
+			return fmt.Errorf(
+				"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d): %w",
+				expectedWorkflowCount,
+				successWorkflowCount,
+				launchErr,
+			)
+		}
+
+		return fmt.Errorf(
+			"failed to install all pre-ordered plugins, expected workflow count(%d), actual(%d)",
 			expectedWorkflowCount,
 			successWorkflowCount,
 		)
 	}
 
-	return errors.Join(launchErr, waitErr, countErr)
+	return nil
 }
 
 func (act *actionInstallPreOrderedPlugins) expectedWorkflowCount(std *nodeUtils.NodeActionStandarder) int {
