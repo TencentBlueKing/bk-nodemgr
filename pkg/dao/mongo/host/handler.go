@@ -749,14 +749,6 @@ func convertHostFromTypes(host *types.Host) *Host {
 func convertHostToTypes(host *Host) *types.Host {
 	static := &types.HostStatic{}
 	if host.Static != nil {
-		syncedOpsOutBandIP := host.Static.SyncedOpsOutBandIP
-		if syncedOpsOutBandIP == "" {
-			syncedOpsOutBandIP = host.Static.LegacySyncedOpsOutBandIP
-		}
-		syncedOpsOutBandPort := host.Static.SyncedOpsOutBandPort
-		if syncedOpsOutBandPort == 0 {
-			syncedOpsOutBandPort = host.Static.LegacySyncedOpsOutBandPort
-		}
 		static = &types.HostStatic{
 			BizID:                    host.Static.BizID,
 			NetworkAreaID:            host.Static.NetworkAreaID,
@@ -780,8 +772,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			SyncedOpsConsoleHostID:   host.Static.SyncedOpsConsoleHostID,
 			SyncedOpsOutBandType:     host.Static.SyncedOpsOutBandType,
 			SyncedOpsOutBandProtocol: host.Static.SyncedOpsOutBandProtocol,
-			SyncedOpsOutBandIP:       syncedOpsOutBandIP,
-			SyncedOpsOutBandPort:     syncedOpsOutBandPort,
+			SyncedOpsOutBandIP:       host.Static.SyncedOpsOutBandIP,
+			SyncedOpsOutBandPort:     host.Static.SyncedOpsOutBandPort,
 		}
 
 		static.Topo = conv.SliceToSlice(host.Static.Topo, func(topo HostTopo) *types.HostTopo {
@@ -794,14 +786,6 @@ func convertHostToTypes(host *Host) *types.Host {
 
 	dynamic := &types.HostDynamic{}
 	if host.Dynamic != nil {
-		opsOutBandIP := host.Dynamic.OpsOutBandIP
-		if opsOutBandIP == "" {
-			opsOutBandIP = host.Dynamic.LegacyOpsOutBandIP
-		}
-		opsOutBandPort := host.Dynamic.OpsOutBandPort
-		if opsOutBandPort == 0 {
-			opsOutBandPort = host.Dynamic.LegacyOpsOutBandPort
-		}
 		dynamic = &types.HostDynamic{
 			NodeRole:       types.NodeRole(host.Dynamic.NodeRole),
 			NodeStatus:     types.NodeStatus(host.Dynamic.NodeStatus),
@@ -839,8 +823,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			OpsConsoleHostID:         host.Dynamic.OpsConsoleHostID,
 			OpsOutBandType:           host.Dynamic.OpsOutBandType,
 			OpsOutBandProtocol:       host.Dynamic.OpsOutBandProtocol,
-			OpsOutBandIP:             opsOutBandIP,
-			OpsOutBandPort:           opsOutBandPort,
+			OpsOutBandIP:             host.Dynamic.OpsOutBandIP,
+			OpsOutBandPort:           host.Dynamic.OpsOutBandPort,
 		}
 		if host.Dynamic.LastSyncAt != nil {
 			dynamic.LastSyncAt = *host.Dynamic.LastSyncAt

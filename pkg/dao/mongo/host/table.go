@@ -61,9 +61,6 @@ type HostStatic struct {
 	SyncedOpsOutBandProtocol string `json:"synced_ops_out_band_protocol" bson:"synced_ops_out_band_protocol"`
 	SyncedOpsOutBandIP       string `json:"synced_ops_out_band_ip" bson:"synced_ops_out_band_ip"`
 	SyncedOpsOutBandPort     int64  `json:"synced_ops_out_band_port" bson:"synced_ops_out_band_port"`
-	// Legacy fields keep existing host documents readable until they are rewritten.
-	LegacySyncedOpsOutBandIP   string `json:"-" bson:"synced_ops_bmc_ip,omitempty"`
-	LegacySyncedOpsOutBandPort int64  `json:"-" bson:"synced_ops_bmc_port,omitempty"`
 }
 
 // HostTopo represents a host topo relation in CMDB.
@@ -110,9 +107,6 @@ type HostDynamic struct {
 	OpsOutBandProtocol string `json:"ops_out_band_protocol" bson:"ops_out_band_protocol"`
 	OpsOutBandIP       string `json:"ops_out_band_ip" bson:"ops_out_band_ip"`
 	OpsOutBandPort     int64  `json:"ops_out_band_port" bson:"ops_out_band_port"`
-	// Legacy fields keep existing host documents readable until they are rewritten.
-	LegacyOpsOutBandIP   string `json:"-" bson:"ops_bmc_ip,omitempty"`
-	LegacyOpsOutBandPort int64  `json:"-" bson:"ops_bmc_port,omitempty"`
 }
 
 var _ base.IData = &Host{}
