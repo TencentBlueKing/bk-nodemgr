@@ -166,7 +166,7 @@ func (act *actionPackagePublishExternalPluginV2Pkg) Do(ctx *action.InstanceConte
 	logger.G.Sys().Ctx(nCtx).With("upload-id", uploadInfo.UploadID, "plugin-name", uploadInfo.Name).
 		Info("published release external plugin v2 package")
 
-	resource := auth.BuildPackageResources(uploadInfo.Name)[0]
+	resource := auth.BuildPackageResources(info.Release[0].Name)[0]
 	if err := act.managerRoleGranter.GrantManagerRole(nCtx, nCtx.BKUsername(), resource); err != nil {
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("resource-type", resource.Type,
 			"resource-id", resource.ID, "creator", nCtx.BKUsername()).Error("failed to grant package creator permissions")
