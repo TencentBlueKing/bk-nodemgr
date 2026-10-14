@@ -39,8 +39,8 @@ importers:
         specifier: 0.0.1-beta.42
         version: 0.0.1-beta.42(@blueking/bkui-library@0.0.0-beta.6)(bkui-vue@2.0.1-beta.100(highlight.js@11.5.1)(vue@3.5.33(typescript@5.9.3)))(tippy.js@6.3.7)(vue@3.5.33(typescript@5.9.3))
       '@noble/ciphers':
-        specifier: ^2.2.0
-        version: 2.2.0
+        specifier: ^2.4.0
+        version: 2.4.0
       '@noble/hashes':
         specifier: ^2.2.0
         version: 2.2.0
@@ -851,8 +851,8 @@ packages:
   '@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1':
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
 
-  '@noble/ciphers@2.2.0':
-    resolution: {integrity: sha512-Z6pjIZ/8IJcCGzb2S/0Px5J81yij85xASuk1teLNeg75bfT07MV3a/O2Mtn1I2se43k3lkVEcFaR10N4cgQcZA==}
+  '@noble/ciphers@2.4.0':
+    resolution: {integrity: sha512-AnjFn0Jv92laAkvMrghlFZq4qQCIN/4DxFV/eooqtC2YTjB7kBeLMS2T9KJX4Dn+ZVXLOwK0lSgqDtx9gvxtiw==}
     engines: {node: '>= 20.19.0'}
 
   '@noble/hashes@2.2.0':
@@ -5661,7 +5661,7 @@ snapshots:
     dependencies:
       eslint-scope: 5.1.1
 
-  '@noble/ciphers@2.2.0': {}
+  '@noble/ciphers@2.4.0': {}
 
   '@noble/hashes@2.2.0': {}
 
