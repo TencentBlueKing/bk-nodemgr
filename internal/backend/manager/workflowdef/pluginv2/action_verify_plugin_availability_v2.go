@@ -132,14 +132,10 @@ func (act *actionVerifyPluginAvailabilityV2) Do(ctx *action.InstanceContext) (er
 	pluginPlatform := platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
 	version := deployInfo.InstallOptions.Version
 	if version == "" {
-		if ctx.Data.OperationDefName == OperDefNamePluginEnsurePluginV2 {
-			version, err = act.fileHandler.GetReleasePluginDefaultVersion(
-				nCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
-			if err != nil {
-				return fmt.Errorf("failed to get default plugin version, plugin-name(%s): %w", plugin.Name, err)
-			}
-		} else {
-			version = deployInfo.Process.Info.Version
+		version, err = act.fileHandler.GetReleasePluginDefaultVersion(
+			nCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
+		if err != nil {
+			return fmt.Errorf("failed to get default plugin version, plugin-name(%s): %w", plugin.Name, err)
 		}
 	}
 
