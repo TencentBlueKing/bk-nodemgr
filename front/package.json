@@ -30,7 +30,7 @@
     "@vueuse/core": "^12.7.0",
     "@vueuse/head": "^2.0.0",
     "bkui-vue": "2.0.1-beta.100",
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.23",
     "js-yaml": "^4.3.0",
     "jsencrypt": "^3.5.4",
     "lodash": "^4.17.21",
