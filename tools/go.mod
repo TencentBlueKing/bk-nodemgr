@@ -1,11 +1,11 @@
 module github.com/TencentBlueKing/bk-nodemgr/tools
 
-go 1.20
+go 1.26.0
 
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.9.1
-	golang.org/x/sys v0.28.0
+	golang.org/x/sys v0.49.0
 )
 
 require (
