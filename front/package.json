@@ -57,7 +57,7 @@
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "@vue/test-utils": "^2.4.6",
     "cypress": "^14.0.3",
-    "cypress-vite": "^1.6.0",
+    "cypress-vite": "^1.10.2",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "http-server": "^14.1.1",

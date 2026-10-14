@@ -130,8 +130,8 @@ importers:
         specifier: ^14.0.3
         version: 14.5.4
       cypress-vite:
-        specifier: ^1.6.0
-        version: 1.8.0(vite@6.4.2(@types/node@25.6.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.3))
+        specifier: ^1.10.2
+        version: 1.10.2(chokidar@5.0.0)(debug@4.4.3)(vite@6.4.2(@types/node@25.6.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.3))
       eslint-plugin-import:
         specifier: ^2.31.0
         version: 2.32.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)
@@ -140,7 +140,7 @@ importers:
         version: 12.1.1(eslint@8.57.1)
       http-server:
         specifier: ^14.1.1
-        version: 14.1.1
+        version: 14.1.1(debug@4.4.3)
       jsdom:
         specifier: ^29.0.1
         version: 29.1.0(@noble/hashes@2.2.0)
@@ -2187,10 +2187,12 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  cypress-vite@1.8.0:
-    resolution: {integrity: sha512-rPkIpDzCIo+upsDkFa/NlrnzVumuQ45UcwL7a2k/n8WFIwsW8QYuQaWU2JiIKExP/LNQew3H3Hbs/bp26xC0Fw==}
+  cypress-vite@1.10.2:
+    resolution: {integrity: sha512-tmCH7riwzprnl5M21ZXfU4jzBY7XBFHLBOAZA7B+SXSYOHmMbNPFrt+Y45EzlW8DVQCTVWs/dH76zx3WXvCZAA==}
     peerDependencies:
-      vite: ^2.9.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
+      chokidar: ^2 || ^3 || ^4 || ^5
+      debug: ^2 || ^3 || ^4
+      vite: ^2.9 || ^3 || ^4 || ^5 || ^6 || ^7 || ^8
 
   cypress@14.5.4:
     resolution: {integrity: sha512-0Dhm4qc9VatOcI1GiFGVt8osgpPdqJLHzRwcAB5MSD/CAAts3oybvPUPawHyvJZUd8osADqZe/xzMsZ8sDTjXw==}
@@ -7047,13 +7049,11 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  cypress-vite@1.8.0(vite@6.4.2(@types/node@25.6.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.3)):
+  cypress-vite@1.10.2(chokidar@5.0.0)(debug@4.4.3)(vite@6.4.2(@types/node@25.6.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.3)):
     dependencies:
-      chokidar: 3.6.0
+      chokidar: 5.0.0
       debug: 4.4.3(supports-color@8.1.1)
       vite: 6.4.2(@types/node@25.6.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.3)
-    transitivePeerDependencies:
-      - supports-color
 
   cypress@14.5.4:
     dependencies:
@@ -7832,7 +7832,9 @@ snapshots:
 
   flatted@3.4.2: {}
 
-  follow-redirects@1.16.0: {}
+  follow-redirects@1.16.0(debug@4.4.3):
+    optionalDependencies:
+      debug: 4.4.3(supports-color@8.1.1)
 
   for-each@0.3.5:
     dependencies:
@@ -8047,22 +8049,22 @@ snapshots:
       css-line-break: 2.1.0
       text-segmentation: 1.0.3
 
-  http-proxy@1.18.1:
+  http-proxy@1.18.1(debug@4.4.3):
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.16.0
+      follow-redirects: 1.16.0(debug@4.4.3)
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
 
-  http-server@14.1.1:
+  http-server@14.1.1(debug@4.4.3):
     dependencies:
       basic-auth: 2.0.1
       chalk: 4.1.2
       corser: 2.0.1
       he: 1.2.0
       html-encoding-sniffer: 3.0.0
-      http-proxy: 1.18.1
+      http-proxy: 1.18.1(debug@4.4.3)
       mime: 1.6.0
       minimist: 1.2.8
       opener: 1.5.2
