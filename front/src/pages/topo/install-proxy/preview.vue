@@ -210,14 +210,14 @@
         <Button
           theme="primary"
           @click="handleSetup"
-          :disabled="disabledDataNum > 0 || checkFailed"
+          :disabled="!tableData.length || disabledDataNum > 0 || checkFailed"
           :loading="loading"
           v-bk-tooltips="{
             content: disabledDataNum
               ? $t('platform.nodeMan.preview.disabledTip')
               : installCheckLoading
                 ? $t('platform.nodeMan.preview.loadingTip') : $t('platform.nodeMan.preview.checkFailedTip'),
-            disabled: disabledDataNum === 0 && !checkFailed,
+            disabled: tableData.length === 0 || (disabledDataNum === 0 && !checkFailed),
           }"
         >{{ $t('platform.nodeMan.preview.button.setup') }}</Button
         >
