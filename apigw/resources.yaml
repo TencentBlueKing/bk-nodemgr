@@ -18360,7 +18360,7 @@ paths:
                         type: string
                       param:
                         type: object
-                        title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam\n- For "project_plugin_config_template_to_hosts": see\nProjectPluginConfigTemplateToHostsParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam\n- For "specify_plugin_sub_config_template": see\nSpecifyPluginSubConfigTemplateParam'
+                        title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For 'specify_agent': see SpecifyAgentParam\n- For 'specify_proxy': see SpecifyProxyParam\n- For 'specify_plugin': see SpecifyPluginParam\n- For 'specify_plugin_pkg': see SpecifyPluginPkgParam\n- For 'project_plugin_pkg_to_hosts': see ProjectPluginPkgToHostsParam\n- For 'project_plugin_config_template_to_hosts': see\nProjectPluginConfigTemplateToHostsParam\n- For 'specify_plugin_sub_config': see SpecifyPluginSubConfigParam\n- For 'specify_plugin_sub_config_template': see\nSpecifyPluginSubConfigTemplateParam'
                     description: DeploySpec describes the spec of deploy policy.
                 scopes:
                   type: array
@@ -18371,7 +18371,7 @@ paths:
                         type: string
                       scope:
                         type: object
-                        title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For "service_template": see ScopeServiceTemplate\n- For "set_template": see ScopeSetTemplate\n- For "instance": see ScopeInstance\n- For "topo": see ScopeTopo\n- For "dynamic_group": see ScopeDynamicGroup'
+                        title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For 'service_template': see ScopeServiceTemplate\n- For 'set_template': see ScopeSetTemplate\n- For 'instance': see ScopeInstance\n- For 'topo': see ScopeTopo\n- For 'dynamic_group': see ScopeDynamicGroup'
                     description: Scope describes the scope of deploy policy.
                 enabled:
                   type: boolean
@@ -18483,7 +18483,7 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: "DeployPolicyExecuteResp describes HTTP response body when execute deploy\npolicy."
+                description: 'DeployPolicyExecuteResp describes HTTP response body when execute deploy\npolicy.'
           description: A successful response.
         default:
           content:
@@ -18514,9 +18514,9 @@ paths:
                 deploy_policy_id:
                   type: integer
                   format: int64
-              description: "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy."
+              description: 'DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy.'
         required: true
-        description: "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy."
+        description: 'DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy.'
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -18575,7 +18575,7 @@ paths:
                                     type: string
                                   param:
                                     type: object
-                                    title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam\n- For "project_plugin_config_template_to_hosts": see\nProjectPluginConfigTemplateToHostsParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam\n- For "specify_plugin_sub_config_template": see\nSpecifyPluginSubConfigTemplateParam'
+                                    title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For 'specify_agent': see SpecifyAgentParam\n- For 'specify_proxy': see SpecifyProxyParam\n- For 'specify_plugin': see SpecifyPluginParam\n- For 'specify_plugin_pkg': see SpecifyPluginPkgParam\n- For 'project_plugin_pkg_to_hosts': see ProjectPluginPkgToHostsParam\n- For 'project_plugin_config_template_to_hosts': see\nProjectPluginConfigTemplateToHostsParam\n- For 'specify_plugin_sub_config': see SpecifyPluginSubConfigParam\n- For 'specify_plugin_sub_config_template': see\nSpecifyPluginSubConfigTemplateParam'
                                 description: DeploySpec describes the spec of deploy policy.
                             dsu_id:
                               type: integer
@@ -18589,13 +18589,13 @@ paths:
                                     type: string
                                   scope:
                                     type: object
-                                    title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For "service_template": see ScopeServiceTemplate\n- For "set_template": see ScopeSetTemplate\n- For "instance": see ScopeInstance\n- For "topo": see ScopeTopo\n- For "dynamic_group": see ScopeDynamicGroup'
+                                    title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For 'service_template': see ScopeServiceTemplate\n- For 'set_template': see ScopeSetTemplate\n- For 'instance': see ScopeInstance\n- For 'topo': see ScopeTopo\n- For 'dynamic_group': see ScopeDynamicGroup'
                                 description: Scope describes the scope of deploy policy.
                             enabled:
                               type: boolean
                             ensure_absent:
                               type: boolean
-                              description: "Whether all specs should ensure absence. Defaults to false (forward).\nCurrently stored only; execution does not interpret this field yet."
+                              description: 'Whether all specs should ensure absence. Defaults to false (forward).\nCurrently stored only; execution does not interpret this field yet.'
                             operator:
                               type: string
                             deploy_policy_id:
@@ -18800,6 +18800,186 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Query deploy policy list with pagination and filtering support.
+  /api/v3/deploy_policy/preview:
+    post:
+      operationId: DeployPolicySvc_Preview
+      description: 预览部署策略当前状态，不执行变更。
+      tags:
+        - DeployPolicySvc
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            spec:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                param:
+                                  type: object
+                                  title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For \'specify_agent\': see SpecifyAgentParam\n- For \'specify_proxy\': see SpecifyProxyParam\n- For \'specify_plugin\': see SpecifyPluginParam\n- For \'specify_plugin_pkg\': see SpecifyPluginPkgParam\n- For \'project_plugin_pkg_to_hosts\': see ProjectPluginPkgToHostsParam\n- For \'project_plugin_config_template_to_hosts\': see\nProjectPluginConfigTemplateToHostsParam\n- For \'specify_plugin_sub_config\': see SpecifyPluginSubConfigParam\n- For \'specify_plugin_sub_config_template\': see\nSpecifyPluginSubConfigTemplateParam'
+                              description: DeploySpec describes the spec of deploy policy.
+                            results:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  target:
+                                    type: object
+                                    properties:
+                                      host:
+                                        type: object
+                                        properties:
+                                          bk_host_id:
+                                            type: integer
+                                            format: int64
+                                        description: Both host and service instance targets carry their CMDB host identity.
+                                      service_instance:
+                                        type: object
+                                        properties:
+                                          id:
+                                            type: integer
+                                            format: int64
+                                          bk_module_id:
+                                            type: integer
+                                            format: int64
+                                        description: Only service instance targets carry a CMDB service instance identity.
+                                    description: DeployPolicyPreviewTarget identifies a target from the calculated scope.
+                                  status:
+                                    type: string
+                                    description: 'satisfied, unsatisfied or unmanaged, following existing execution\ndecisions.'
+                                description: DeployPolicyTargetPreview describes a calculated target's state for a spec.
+                          description: DeployPolicySpecPreview preserves the original spec and its scope states.
+                        description: Items follow the requested policy's original spec order. No pagination.
+                description: DeployPolicyPreviewResp returns all states from one read-only calculation.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deploy_policy_id:
+                  type: integer
+                  format: int64
+              description: 'DeployPolicyPreviewReq synchronously previews one enabled policy without\nwrites.'
+        required: true
+        description: 'DeployPolicyPreviewReq synchronously previews one enabled policy without\nwrites.'
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/deploy_policy/preview
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Preview the current state of a deploy policy without executing changes.
   /api/v3/deploy_policy/update:
     post:
       operationId: DeployPolicySvc_Update
@@ -18936,7 +19116,7 @@ paths:
                               type: string
                             param:
                               type: object
-                              title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For "specify_agent": see SpecifyAgentParam\n- For "specify_proxy": see SpecifyProxyParam\n- For "specify_plugin": see SpecifyPluginParam\n- For "specify_plugin_pkg": see SpecifyPluginPkgParam\n- For "project_plugin_pkg_to_hosts": see ProjectPluginPkgToHostsParam\n- For "project_plugin_config_template_to_hosts": see\nProjectPluginConfigTemplateToHostsParam\n- For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam\n- For "specify_plugin_sub_config_template": see\nSpecifyPluginSubConfigTemplateParam'
+                              title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For 'specify_agent': see SpecifyAgentParam\n- For 'specify_proxy': see SpecifyProxyParam\n- For 'specify_plugin': see SpecifyPluginParam\n- For 'specify_plugin_pkg': see SpecifyPluginPkgParam\n- For 'project_plugin_pkg_to_hosts': see ProjectPluginPkgToHostsParam\n- For 'project_plugin_config_template_to_hosts': see\nProjectPluginConfigTemplateToHostsParam\n- For 'specify_plugin_sub_config': see SpecifyPluginSubConfigParam\n- For 'specify_plugin_sub_config_template': see\nSpecifyPluginSubConfigTemplateParam'
                           description: DeploySpec describes the spec of deploy policy.
                       dsu_id:
                         type: integer
@@ -18950,13 +19130,13 @@ paths:
                               type: string
                             scope:
                               type: object
-                              title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For "service_template": see ScopeServiceTemplate\n- For "set_template": see ScopeSetTemplate\n- For "instance": see ScopeInstance\n- For "topo": see ScopeTopo\n- For "dynamic_group": see ScopeDynamicGroup'
+                              title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For 'service_template': see ScopeServiceTemplate\n- For 'set_template': see ScopeSetTemplate\n- For 'instance': see ScopeInstance\n- For 'topo': see ScopeTopo\n- For 'dynamic_group': see ScopeDynamicGroup'
                           description: Scope describes the scope of deploy policy.
                       enabled:
                         type: boolean
                       ensure_absent:
                         type: boolean
-                        description: "Whether all specs should ensure absence. Defaults to false (forward).\nCurrently stored only; execution does not interpret this field yet."
+                        description: 'Whether all specs should ensure absence. Defaults to false (forward).\nCurrently stored only; execution does not interpret this field yet.'
                       operator:
                         type: string
                       deploy_policy_id:
@@ -21458,8 +21638,8 @@ paths:
                       action:
                         type: string
                         description: |-
-                          action is the IAM action identifier (e.g. "agent_view",
-                          "networkarea_create").
+                          action is the IAM action identifier (e.g. 'agent_view',
+                          'networkarea_create').
                       resources:
                         type: array
                         items:
@@ -21470,12 +21650,12 @@ paths:
                               description: id is the resource instance ID.
                             type:
                               type: string
-                              description: type is the resource type identifier (e.g. "biz", "networkarea").
+                              description: type is the resource type identifier (e.g. 'biz', 'networkarea').
                             system_id:
                               type: string
                               description: |-
-                                system_id is the IAM system that owns this resource (e.g. "bk_cmdb" or
-                                "bk_nodemgr").
+                                system_id is the IAM system that owns this resource (e.g. 'bk_cmdb' or
+                                'bk_nodemgr').
                           description: AuthResource describes a single resource instance for authorization checks.
                         description: |-
                           resources lists the resources to check for this action. Empty for
@@ -21692,6 +21872,11 @@ paths:
                   format: int64
                 policy_type:
                   type: string
+                ordered_configpolicy_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
               description: ConfigPolicyPreviewReq describes HTTP request body for previewing merged\nconfig result by host list.
         required: true
         description: ConfigPolicyPreviewReq describes HTTP request body for previewing merged\nconfig result by host list.
@@ -21899,13 +22084,13 @@ paths:
                   description: IAMResourceCallbackPage describes the pagination for IAM resource callback.
                 type:
                   type: string
-                  title: type is the resource type, e.g., "host", "plugin", "business"
+                  title: type is the resource type, e.g., 'host', 'plugin', 'business'
                 filter:
                   type: object
                   title: filter contains the query conditions, structure varies by method
                 method:
                   type: string
-                  title: 'method is the callback method, e.g., "list_instance", "fetch_instance_info"\nSupported methods:\n  - list_attr: List resource attributes\n  - list_attr_value: List attribute values\n  - list_instance: List resource instances\n  - fetch_instance_info: Fetch instance details\n  - list_instance_by_policy: List instances by policy expression\n  - search_instance: Search instances by keyword\n  - fetch_instance_list: Fetch instance list by IDs\n  - fetch_resource_type_schema: Fetch resource type schema'
+                  title: 'method is the callback method, e.g., 'list_instance', 'fetch_instance_info'\nSupported methods:\n  - list_attr: List resource attributes\n  - list_attr_value: List attribute values\n  - list_instance: List resource instances\n  - fetch_instance_info: Fetch instance details\n  - list_instance_by_policy: List instances by policy expression\n  - search_instance: Search instances by keyword\n  - fetch_instance_list: Fetch instance list by IDs\n  - fetch_resource_type_schema: Fetch resource type schema'
               description: IAMResourceCallbackReq describes the IAM resource callback request.\nThis is the standard request format defined by BlueKing IAM.
         required: true
         description: IAMResourceCallbackReq describes the IAM resource callback request.\nThis is the standard request format defined by BlueKing IAM.
@@ -21933,7 +22118,7 @@ paths:
       tags:
         - IAM
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -23267,12 +23452,12 @@ paths:
                                     description: id is the resource instance ID.
                                   type:
                                     type: string
-                                    description: type is the resource type identifier (e.g. "biz", "networkarea").
+                                    description: type is the resource type identifier (e.g. 'biz', 'networkarea').
                                   system_id:
                                     type: string
                                     description: |-
-                                      system_id is the IAM system that owns this resource (e.g. "bk_cmdb" or
-                                      "bk_nodemgr").
+                                      system_id is the IAM system that owns this resource (e.g. 'bk_cmdb' or
+                                      'bk_nodemgr').
                                 description: AuthResource describes a single resource instance for authorization checks.
                               description: |-
                                 resources lists the authorized resource instances. Empty when is_any is
@@ -23385,13 +23570,13 @@ paths:
                       action:
                         type: string
                         description: |-
-                          action is the IAM action identifier (e.g. "agent_view",
-                          "networkarea_create").
+                          action is the IAM action identifier (e.g. 'agent_view',
+                          'networkarea_create').
                       resource_type:
                         type: string
                         description: |-
                           resource_type is the resource type to query authorized scope for (e.g.
-                          "biz", "networkarea").
+                          'biz', 'networkarea').
                     description: |-
                       AuthorizedItem describes a single action-resource type pair for querying
                       authorized scope.
@@ -30259,8 +30444,8 @@ paths:
                             type: integer
                             format: int64
                       description: |-
-                        ScopeInstance describes the scope when type is "instance".
-                        This message defines the structure for scope when type is "instance".
+                        ScopeInstance describes the scope when type is 'instance'.
+                        This message defines the structure for scope when type is 'instance'.
                         It serves as documentation to help users understand the scope structure.
                     version:
                       type: string
