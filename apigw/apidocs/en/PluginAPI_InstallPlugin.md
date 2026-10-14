@@ -11,17 +11,17 @@ POST /api/v3/plugin/install
 
 ### Input Parameters
 
-| Parameter Name              | Parameter Type | Required | Description                                                |
-|-----------------------------|----------------|----------|------------------------------------------------------------|
-| plugin                      | object array   | Yes      | Plugin installation targets; at least one item is required |
+| Parameter Name | Parameter Type | Required | Description                                                |
+| -------------- | -------------- | -------- | ---------------------------------------------------------- |
+| plugin         | object array   | Yes      | Plugin installation targets; at least one item is required |
 
 #### plugin[n]
 
 | Parameter Name        | Parameter Type | Required | Description                                                                                                        |
-|-----------------------|----------------|----------|--------------------------------------------------------------------------------------------------------------------|
+| --------------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
 | bk_host_id            | int64          | No       | Target host ID; defaults to -1 when omitted                                                                        |
 | plugin_name           | string         | Yes      | Plugin name                                                                                                        |
-| version               | string         | Yes      | Plugin version to install                                                                                          |
+| version               | string         | No       | Plugin version to install; when omitted or empty, the plugin's current default release version is used             |
 | config_template_name  | string array   | No       | Sub-configuration file names to apply; values come from config template names in the target plugin release package |
 | custom_config_context | object         | No       | Custom configuration render context; free-form object with reserved top-level keys forbidden                       |
 
@@ -46,9 +46,7 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
       "bk_host_id": 1001,
       "plugin_name": "bk-monitor-agent",
       "version": "2.4.0",
-      "config_template_name": [
-        "bkmonitoragent.conf"
-      ],
+      "config_template_name": ["bkmonitoragent.conf"],
       "custom_config_context": {
         "cluster_id": "prod-ap-guangzhou",
         "labels": {
@@ -83,7 +81,7 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
 ### Response Parameters
 
 | Parameter Name | Parameter Type | Description                        |
-|----------------|----------------|------------------------------------|
+| -------------- | -------------- | ---------------------------------- |
 | code           | int32          | Status code, 0 indicates success   |
 | message        | string         | Request message                    |
 | request_id     | string         | Request ID                         |
@@ -93,13 +91,13 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
 #### data
 
 | Parameter Name | Parameter Type | Description                                           |
-|----------------|----------------|-------------------------------------------------------|
+| -------------- | -------------- | ----------------------------------------------------- |
 | workflow_id    | string         | Workflow ID for tracking the plugin installation task |
 
 #### error
 
 | Parameter Name | Parameter Type | Description             |
-|----------------|----------------|-------------------------|
+| -------------- | -------------- | ----------------------- |
 | system         | string         | Error system identifier |
 | message        | string         | Error message           |
 | details        | array          | Error detail list       |
@@ -107,6 +105,6 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
 #### error.details[n]
 
 | Parameter Name | Parameter Type | Description   |
-|----------------|----------------|---------------|
+| -------------- | -------------- | ------------- |
 | code           | string         | Error code    |
 | message        | string         | Error message |

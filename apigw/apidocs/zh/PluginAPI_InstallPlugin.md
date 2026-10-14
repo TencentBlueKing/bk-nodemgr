@@ -10,19 +10,19 @@ POST /api/v3/plugin/install
 
 ### 输入参数
 
-| 参数名称                      | 参数类型         | 必选 | 描述                    |
-|---------------------------|--------------|----|-----------------------|
-| plugin                    | object array | 是  | 待安装插件列表，至少包含一个元素      |
+| 参数名称 | 参数类型     | 必选 | 描述                             |
+| -------- | ------------ | ---- | -------------------------------- |
+| plugin   | object array | 是   | 待安装插件列表，至少包含一个元素 |
 
 #### plugin[n]
 
-| 参数名称                  | 参数类型         | 必选 | 描述                                   |
-|-----------------------|--------------|----|--------------------------------------|
-| bk_host_id            | int64        | 否  | 目标主机ID；未传时默认按 -1 处理                  |
-| plugin_name           | string       | 是  | 插件名称                                 |
-| version               | string       | 是  | 待安装插件版本                              |
-| config_template_name  | string array | 否  | 需要下发的子配置文件名称列表；取值来自对应插件版本发布包中的配置模板名称 |
-| custom_config_context | object       | 否  | 自定义配置渲染上下文；为自由结构对象，但禁止使用系统保留顶层键      |
+| 参数名称              | 参数类型     | 必选 | 描述                                                                     |
+| --------------------- | ------------ | ---- | ------------------------------------------------------------------------ |
+| bk_host_id            | int64        | 否   | 目标主机ID；未传时默认按 -1 处理                                         |
+| plugin_name           | string       | 是   | 插件名称                                                                 |
+| version               | string       | 否   | 待安装插件版本；未传或传空时使用该插件当前默认发布版本                   |
+| config_template_name  | string array | 否   | 需要下发的子配置文件名称列表；取值来自对应插件版本发布包中的配置模板名称 |
+| custom_config_context | object       | 否   | 自定义配置渲染上下文；为自由结构对象，但禁止使用系统保留顶层键           |
 
 **参数说明**：
 
@@ -43,9 +43,7 @@ POST /api/v3/plugin/install
       "bk_host_id": 1001,
       "plugin_name": "bk-monitor-agent",
       "version": "2.4.0",
-      "config_template_name": [
-        "bkmonitoragent.conf"
-      ],
+      "config_template_name": ["bkmonitoragent.conf"],
       "custom_config_context": {
         "cluster_id": "prod-ap-guangzhou",
         "labels": {
@@ -79,31 +77,31 @@ POST /api/v3/plugin/install
 
 ### 响应参数说明
 
-| 参数名称       | 参数类型   | 描述            |
-|------------|--------|---------------|
-| code       | int32  | 状态码，0表示成功     |
-| message    | string | 请求信息          |
-| request_id | string | 请求ID          |
-| error      | object | 错误信息，成功时为null |
-| data       | object | 响应数据          |
+| 参数名称   | 参数类型 | 描述                   |
+| ---------- | -------- | ---------------------- |
+| code       | int32    | 状态码，0表示成功      |
+| message    | string   | 请求信息               |
+| request_id | string   | 请求ID                 |
+| error      | object   | 错误信息，成功时为null |
+| data       | object   | 响应数据               |
 
 #### data
 
-| 参数名称        | 参数类型   | 描述                  |
-|-------------|--------|---------------------|
-| workflow_id | string | 工作流ID，可用于查询插件安装任务状态 |
+| 参数名称    | 参数类型 | 描述                                 |
+| ----------- | -------- | ------------------------------------ |
+| workflow_id | string   | 工作流ID，可用于查询插件安装任务状态 |
 
 #### error
 
-| 参数名称    | 参数类型   | 描述     |
-|---------|--------|--------|
-| system  | string | 错误系统标识 |
-| message | string | 错误消息   |
-| details | array  | 错误详情列表 |
+| 参数名称 | 参数类型 | 描述         |
+| -------- | -------- | ------------ |
+| system   | string   | 错误系统标识 |
+| message  | string   | 错误消息     |
+| details  | array    | 错误详情列表 |
 
 #### error.details[n]
 
-| 参数名称    | 参数类型   | 描述   |
-|---------|--------|------|
-| code    | string | 错误代码 |
-| message | string | 错误消息 |
+| 参数名称 | 参数类型 | 描述     |
+| -------- | -------- | -------- |
+| code     | string   | 错误代码 |
+| message  | string   | 错误消息 |

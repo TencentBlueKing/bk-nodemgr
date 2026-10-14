@@ -254,9 +254,6 @@ func (x *PluginInstallReq) Validate() error {
 			return errors.New("plugin_name can not be empty")
 		}
 
-		if plugin.GetVersion() == "" {
-			return errors.New("version can not be empty")
-		}
 	}
 
 	return nil

@@ -129,14 +129,23 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) (err 
 		return err
 	}
 
+	pluginPlatform := platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
 	version := deployInfo.InstallOptions.Version
 	if version == "" {
-		version = deployInfo.Process.Info.Version
+		if ctx.Data.OperationDefName == OperDefNameInstallPlugin {
+			version, err = act.fileHandler.GetReleasePluginDefaultVersion(
+				nCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
+			if err != nil {
+				return fmt.Errorf("failed to get default plugin version, plugin-name(%s): %w", plugin.Name, err)
+			}
+		} else {
+			version = deployInfo.Process.Info.Version
+		}
 	}
 
 	pluginPkg, err := act.fileHandler.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: host.Dynamic.NodeGeneration,
-		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
+		Platform:   pluginPlatform,
 		Version:    version,
 		Name:       plugin.PkgName,
 	})
@@ -188,8 +197,9 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) (err 
 	std.DeployInfo().Process.PluginName = plugin.Name
 	std.DeployInfo().Process.PluginGroup = plugin.Group
 	std.DeployInfo().Process.PluginPkgName = plugin.PkgName
+	std.DeployInfo().Process.Info.Version = version
 	std.DeployInfo().Process.Generation = pluginPkg.Generation
-	std.DeployInfo().Process.Platform = platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
+	std.DeployInfo().Process.Platform = pluginPlatform
 
 	std.InstanceData().Log().
 		Zh("更新插件信息成功, plugin-name(%s), plugin-group(%s), plugin-pkg-name(%s), version(%s), generation(%d), platform(%s)",
