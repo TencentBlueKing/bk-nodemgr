@@ -41,7 +41,7 @@ jobs:
 
       - name: Run golangci-lint with config
         id: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.4.0
           args: >
