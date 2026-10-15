@@ -14,6 +14,10 @@
 
 Git 提交规范，介绍 Branch、Commit、Issue 关联、Pull Request 标题、正文和按改动范围选择验证的方法。
 
+### [dependency-management](dependency-management.md)
+
+依赖管理指引，说明禁用自动依赖 PR 的项目策略、人工升级、Dependabot 触发机制、忽略与暂停及已有 PR 的处理。
+
 ### [plugin_pkg_build_guide](plugin_pkg_build_guide.md)
 
 插件包构建指南，介绍标准插件v3的文件结构、规范、配置模板等。
