@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.72+
+- API Version: v3.0.1-alpha.98+
 - Required Permission: None.
 - Function: Import a plugin V3 package from a download URL. The interface launches an asynchronous import workflow (download and upload the package, publish the package, update package visibility) and returns a workflow ID, which can be used to query the import result via the PackageImportResult API.
 
@@ -15,6 +15,7 @@ POST /api/v3/package/workflow/import/v3/plugin
 | filename     | string | Yes      | Package file name                |
 | download_url | string | Yes      | Package download URL             |
 | md5          | string | Yes      | MD5 checksum of the package file |
+| is_shared    | bool   | No       | Whether to publish the package as shared. Defaults to `false`. Only takes effect for requests from the `system` tenant; ignored for other tenants. |
 
 ### Request Example
 
@@ -22,7 +23,8 @@ POST /api/v3/package/workflow/import/v3/plugin
 {
   "filename": "bkmonitorbeat-2.1.3.tgz",
   "download_url": "https://example.com/packages/bkmonitorbeat-2.1.3.tgz",
-  "md5": "5d41402abc4b2a76b9719d911017c592"
+  "md5": "5d41402abc4b2a76b9719d911017c592",
+  "is_shared": false
 }
 ```
 

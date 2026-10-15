@@ -117,7 +117,7 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 		En("publish plugin v3 package, upload-id: %s", uploadInfo.UploadID).
 		Info()
 
-	if err := act.fileHandler.PublishReleasePluginV3(nCtx, uploadInfo.UploadID, false); err != nil {
+	if err := act.fileHandler.PublishReleasePluginV3(nCtx, uploadInfo.UploadID, info.ImportPluginPkgOptions.IsShared); err != nil {
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("upload-id", uploadInfo.UploadID).Error("failed to publish release plugin v3 package")
 
 		return fmt.Errorf("failed to publish release plugin package: %w", err)

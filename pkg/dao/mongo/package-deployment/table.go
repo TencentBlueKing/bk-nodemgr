@@ -53,6 +53,7 @@ type importPluginPkgOptions struct {
 	FileSource     string `json:"file_source" bson:"file_source"`
 	FileName       string `json:"file_name" bson:"file_name"`
 	MD5            string `json:"md5" bson:"md5"`
+	IsShared       bool   `json:"is_shared" bson:"is_shared"`
 }
 
 type uploadInfo struct {

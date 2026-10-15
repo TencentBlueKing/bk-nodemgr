@@ -112,7 +112,7 @@ func (act *actionPackagePublishExternalPluginV2Pkg) Do(ctx *action.InstanceConte
 		En("publish external plugin v2 package, upload-id: %s", uploadInfo.UploadID).
 		Info()
 
-	if err := act.fileHandler.PublishReleaseExternalPluginV2(nCtx, uploadInfo.UploadID, false); err != nil {
+	if err := act.fileHandler.PublishReleaseExternalPluginV2(nCtx, uploadInfo.UploadID, info.ImportPluginPkgOptions.IsShared); err != nil {
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("upload-id", uploadInfo.UploadID).
 			Error("failed to publish release external plugin v2 package")
 

@@ -18,6 +18,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -31,7 +32,12 @@ func (h *handler) PackagePluginV3Import(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	deployment := h.generatePackageImportDeployment(req.GetFilename(), req.GetDownloadUrl(), req.GetMd5())
+	deployment := h.generatePackageImportDeployment(
+		req.GetFilename(),
+		req.GetDownloadUrl(),
+		req.GetMd5(),
+		req.GetIsShared() && rCtx.TenantID() == tenant.SystemTenantID,
+	)
 	workflowID, err := h.pkgMgrIface.LaunchPackageImportPluginV3Pkg(rCtx, types.PackageImportParam{
 		Type:               types.PackageWorkflowTypeImport,
 		PackageDeployments: []*types.PackageDeployment{deployment},
@@ -63,7 +69,12 @@ func (h *handler) PackagePluginV2Import(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	deployment := h.generatePackageImportDeployment(req.GetFilename(), req.GetDownloadUrl(), req.GetMd5())
+	deployment := h.generatePackageImportDeployment(
+		req.GetFilename(),
+		req.GetDownloadUrl(),
+		req.GetMd5(),
+		req.GetIsShared() && rCtx.TenantID() == tenant.SystemTenantID,
+	)
 	workflowID, err := h.pkgMgrIface.LaunchPackageImportPluginV2Pkg(rCtx, types.PackageImportParam{
 		Type:               types.PackageWorkflowTypeImport,
 		PackageDeployments: []*types.PackageDeployment{deployment},
@@ -95,7 +106,12 @@ func (h *handler) PackageExternalPluginV2Import(rCtx restserver.IContext) (inter
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	deployment := h.generatePackageImportDeployment(req.GetFilename(), req.GetDownloadUrl(), req.GetMd5())
+	deployment := h.generatePackageImportDeployment(
+		req.GetFilename(),
+		req.GetDownloadUrl(),
+		req.GetMd5(),
+		req.GetIsShared() && rCtx.TenantID() == tenant.SystemTenantID,
+	)
 	workflowID, err := h.pkgMgrIface.LaunchPackageImportExternalPluginV2Pkg(rCtx, types.PackageImportParam{
 		Type:               types.PackageWorkflowTypeImport,
 		PackageDeployments: []*types.PackageDeployment{deployment},
@@ -118,13 +134,14 @@ func (h *handler) PackageExternalPluginV2Import(rCtx restserver.IContext) (inter
 	return resp.GetData(), nil
 }
 
-func (h *handler) generatePackageImportDeployment(filename, downloadURL, md5 string) *types.PackageDeployment {
+func (h *handler) generatePackageImportDeployment(filename, downloadURL, md5 string, isShared bool) *types.PackageDeployment {
 	deployment := types.NewPackageDeployment(&types.PackageDeploymentInfo{
 		ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
 			FileSourceType: types.FileSourceTypeDownload,
 			FileSource:     downloadURL,
 			FileName:       filename,
 			MD5:            md5,
+			IsShared:       isShared,
 		},
 	})
 
