@@ -153,6 +153,9 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 }
 
 const (
+	originServerVersionPathDepth = 2
+	originServerBinaryPathDepth  = 4
+
 	originalServerDirNameRoot        = "server"
 	originalServerDirNameBin         = "bin"
 	originalServerDirNameEnv         = "env"
@@ -174,17 +177,29 @@ const (
 // NOCC: golint/gocyclo,cyclop (this function should be complex).
 func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	detail := types.NewOriginPkgDetail()
-	var seenFile, seenData bool
+	platSet := make(map[string]struct{})
+	packageRoots := make(map[string]struct{})
+	var seenFile, seenData, seenVersion bool
 	if err := checkTgz(file, []tgzReadRule{
 		{
 			filePathRegex: []string{".*", buildFullMatchRegex(originalServerFileNameVersion)},
-			callback: func(_ []string, r io.Reader) error {
+			callback: func(path []string, r io.Reader) error {
+				if len(path) != originServerVersionPathDepth { // VERSION is directly under the package root.
+					return nil
+				}
+
 				content, err := io.ReadAll(r)
 				if err != nil {
 					return fmt.Errorf("failed to read version file: %w", err)
 				}
 
-				detail.Version = strings.Trim(string(content), "\n\r\t ")
+				version := strings.TrimSpace(string(content))
+				if seenVersion && detail.Version != version {
+					return fmt.Errorf("conflicting server package versions: %q and %q", detail.Version, version)
+				}
+				seenVersion = true
+				detail.Version = version
+				packageRoots[path[0]] = struct{}{}
 
 				return nil
 			},
@@ -192,13 +207,19 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 		{
 			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot),
 				buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameFileServer)},
-			callback: func(_ []string, r io.Reader) error {
-				seenFile = true
-				plat, err := checkServerBinaryPlatform(r)
-				if err != nil {
-					return fmt.Errorf("failed to check server binary platform: %w", err)
+			callback: func(path []string, r io.Reader) error {
+				if len(path) != originServerBinaryPathDepth {
+					return nil
 				}
 
+				seenFile = true
+				packageRoots[path[0]] = struct{}{}
+				plat, err := checkServerBinaryPlatform(r)
+				if err != nil {
+					return fmt.Errorf("failed to check gse_file binary platform: %w", err)
+				}
+
+				platSet[plat.String()] = struct{}{}
 				if len(detail.Platforms) == 0 {
 					detail.Platforms = append(detail.Platforms, *plat)
 				}
@@ -209,13 +230,19 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 		{
 			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot),
 				buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameDataServer)},
-			callback: func(_ []string, r io.Reader) error {
-				seenData = true
-				plat, err := checkServerBinaryPlatform(r)
-				if err != nil {
-					return fmt.Errorf("failed to check server binary platform: %w", err)
+			callback: func(path []string, r io.Reader) error {
+				if len(path) != originServerBinaryPathDepth {
+					return nil
 				}
 
+				seenData = true
+				packageRoots[path[0]] = struct{}{}
+				plat, err := checkServerBinaryPlatform(r)
+				if err != nil {
+					return fmt.Errorf("failed to check gse_data binary platform: %w", err)
+				}
+
+				platSet[plat.String()] = struct{}{}
 				if len(detail.Platforms) == 0 {
 					detail.Platforms = append(detail.Platforms, *plat)
 				}
@@ -298,9 +325,12 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 		return nil, fmt.Errorf("failed to check origin server package: %w", err)
 	}
 
-	if !seenFile || !seenData || detail.Version == "" {
-		return nil, fmt.Errorf("invalid origin server package. gse-file(%t) gse-data(%t) version(%s) platform(%v)",
-			seenFile, seenData, detail.Version, detail.Platforms)
+	if !seenFile || !seenData || detail.Version == "" || len(platSet) != 1 {
+		return nil, fmt.Errorf("invalid origin server package. gse-file(%t) gse-data(%t) version(%s) platform(%v) platform-set-size(%d)",
+			seenFile, seenData, detail.Version, detail.Platforms, len(platSet))
+	}
+	if len(packageRoots) != 1 {
+		return nil, fmt.Errorf("invalid origin server package roots: %v", packageRoots)
 	}
 
 	return detail, nil
