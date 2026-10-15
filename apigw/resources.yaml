@@ -18360,7 +18360,7 @@ paths:
                         type: string
                       param:
                         type: object
-                        title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For 'specify_agent': see SpecifyAgentParam\n- For 'specify_proxy': see SpecifyProxyParam\n- For 'specify_plugin': see SpecifyPluginParam\n- For 'specify_plugin_pkg': see SpecifyPluginPkgParam\n- For 'project_plugin_pkg_to_hosts': see ProjectPluginPkgToHostsParam\n- For 'project_plugin_config_template_to_hosts': see\nProjectPluginConfigTemplateToHostsParam\n- For 'specify_plugin_sub_config': see SpecifyPluginSubConfigParam\n- For 'specify_plugin_sub_config_template': see\nSpecifyPluginSubConfigTemplateParam'
+                        title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For ''specify_agent'': see SpecifyAgentParam\n- For ''specify_proxy'': see SpecifyProxyParam\n- For ''specify_plugin'': see SpecifyPluginParam\n- For ''specify_plugin_pkg'': see SpecifyPluginPkgParam\n- For ''project_plugin_pkg_to_hosts'': see ProjectPluginPkgToHostsParam\n- For ''project_plugin_config_template_to_hosts'': see\nProjectPluginConfigTemplateToHostsParam\n- For ''specify_plugin_sub_config'': see SpecifyPluginSubConfigParam\n- For ''specify_plugin_sub_config_template'': see\nSpecifyPluginSubConfigTemplateParam'
                     description: DeploySpec describes the spec of deploy policy.
                 scopes:
                   type: array
@@ -18371,7 +18371,7 @@ paths:
                         type: string
                       scope:
                         type: object
-                        title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For 'service_template': see ScopeServiceTemplate\n- For 'set_template': see ScopeSetTemplate\n- For 'instance': see ScopeInstance\n- For 'topo': see ScopeTopo\n- For 'dynamic_group': see ScopeDynamicGroup'
+                        title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For ''service_template'': see ScopeServiceTemplate\n- For ''set_template'': see ScopeSetTemplate\n- For ''instance'': see ScopeInstance\n- For ''topo'': see ScopeTopo\n- For ''dynamic_group'': see ScopeDynamicGroup'
                     description: Scope describes the scope of deploy policy.
                 enabled:
                   type: boolean
@@ -18575,7 +18575,7 @@ paths:
                                     type: string
                                   param:
                                     type: object
-                                    title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For 'specify_agent': see SpecifyAgentParam\n- For 'specify_proxy': see SpecifyProxyParam\n- For 'specify_plugin': see SpecifyPluginParam\n- For 'specify_plugin_pkg': see SpecifyPluginPkgParam\n- For 'project_plugin_pkg_to_hosts': see ProjectPluginPkgToHostsParam\n- For 'project_plugin_config_template_to_hosts': see\nProjectPluginConfigTemplateToHostsParam\n- For 'specify_plugin_sub_config': see SpecifyPluginSubConfigParam\n- For 'specify_plugin_sub_config_template': see\nSpecifyPluginSubConfigTemplateParam'
+                                    title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For ''specify_agent'': see SpecifyAgentParam\n- For ''specify_proxy'': see SpecifyProxyParam\n- For ''specify_plugin'': see SpecifyPluginParam\n- For ''specify_plugin_pkg'': see SpecifyPluginPkgParam\n- For ''project_plugin_pkg_to_hosts'': see ProjectPluginPkgToHostsParam\n- For ''project_plugin_config_template_to_hosts'': see\nProjectPluginConfigTemplateToHostsParam\n- For ''specify_plugin_sub_config'': see SpecifyPluginSubConfigParam\n- For ''specify_plugin_sub_config_template'': see\nSpecifyPluginSubConfigTemplateParam'
                                 description: DeploySpec describes the spec of deploy policy.
                             dsu_id:
                               type: integer
@@ -18589,7 +18589,7 @@ paths:
                                     type: string
                                   scope:
                                     type: object
-                                    title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For 'service_template': see ScopeServiceTemplate\n- For 'set_template': see ScopeSetTemplate\n- For 'instance': see ScopeInstance\n- For 'topo': see ScopeTopo\n- For 'dynamic_group': see ScopeDynamicGroup'
+                                    title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For ''service_template'': see ScopeServiceTemplate\n- For ''set_template'': see ScopeSetTemplate\n- For ''instance'': see ScopeInstance\n- For ''topo'': see ScopeTopo\n- For ''dynamic_group'': see ScopeDynamicGroup'
                                 description: Scope describes the scope of deploy policy.
                             enabled:
                               type: boolean
@@ -18895,7 +18895,7 @@ paths:
                                   type: string
                                 param:
                                   type: object
-                                  title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For \'specify_agent\': see SpecifyAgentParam\n- For \'specify_proxy\': see SpecifyProxyParam\n- For \'specify_plugin\': see SpecifyPluginParam\n- For \'specify_plugin_pkg\': see SpecifyPluginPkgParam\n- For \'project_plugin_pkg_to_hosts\': see ProjectPluginPkgToHostsParam\n- For \'project_plugin_config_template_to_hosts\': see\nProjectPluginConfigTemplateToHostsParam\n- For \'specify_plugin_sub_config\': see SpecifyPluginSubConfigParam\n- For \'specify_plugin_sub_config_template\': see\nSpecifyPluginSubConfigTemplateParam'
+                                  title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For ''specify_agent'': see SpecifyAgentParam\n- For ''specify_proxy'': see SpecifyProxyParam\n- For ''specify_plugin'': see SpecifyPluginParam\n- For ''specify_plugin_pkg'': see SpecifyPluginPkgParam\n- For ''project_plugin_pkg_to_hosts'': see ProjectPluginPkgToHostsParam\n- For ''project_plugin_config_template_to_hosts'': see\nProjectPluginConfigTemplateToHostsParam\n- For ''specify_plugin_sub_config'': see SpecifyPluginSubConfigParam\n- For ''specify_plugin_sub_config_template'': see\nSpecifyPluginSubConfigTemplateParam'
                               description: DeploySpec describes the spec of deploy policy.
                             results:
                               type: array
@@ -19116,7 +19116,7 @@ paths:
                               type: string
                             param:
                               type: object
-                              title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For 'specify_agent': see SpecifyAgentParam\n- For 'specify_proxy': see SpecifyProxyParam\n- For 'specify_plugin': see SpecifyPluginParam\n- For 'specify_plugin_pkg': see SpecifyPluginPkgParam\n- For 'project_plugin_pkg_to_hosts': see ProjectPluginPkgToHostsParam\n- For 'project_plugin_config_template_to_hosts': see\nProjectPluginConfigTemplateToHostsParam\n- For 'specify_plugin_sub_config': see SpecifyPluginSubConfigParam\n- For 'specify_plugin_sub_config_template': see\nSpecifyPluginSubConfigTemplateParam'
+                              title: 'param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For ''specify_agent'': see SpecifyAgentParam\n- For ''specify_proxy'': see SpecifyProxyParam\n- For ''specify_plugin'': see SpecifyPluginParam\n- For ''specify_plugin_pkg'': see SpecifyPluginPkgParam\n- For ''project_plugin_pkg_to_hosts'': see ProjectPluginPkgToHostsParam\n- For ''project_plugin_config_template_to_hosts'': see\nProjectPluginConfigTemplateToHostsParam\n- For ''specify_plugin_sub_config'': see SpecifyPluginSubConfigParam\n- For ''specify_plugin_sub_config_template'': see\nSpecifyPluginSubConfigTemplateParam'
                           description: DeploySpec describes the spec of deploy policy.
                       dsu_id:
                         type: integer
@@ -19130,7 +19130,7 @@ paths:
                               type: string
                             scope:
                               type: object
-                              title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For 'service_template': see ScopeServiceTemplate\n- For 'set_template': see ScopeSetTemplate\n- For 'instance': see ScopeInstance\n- For 'topo': see ScopeTopo\n- For 'dynamic_group': see ScopeDynamicGroup'
+                              title: 'scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For ''service_template'': see ScopeServiceTemplate\n- For ''set_template'': see ScopeSetTemplate\n- For ''instance'': see ScopeInstance\n- For ''topo'': see ScopeTopo\n- For ''dynamic_group'': see ScopeDynamicGroup'
                           description: Scope describes the scope of deploy policy.
                       enabled:
                         type: boolean
@@ -22090,7 +22090,7 @@ paths:
                   title: filter contains the query conditions, structure varies by method
                 method:
                   type: string
-                  title: 'method is the callback method, e.g., 'list_instance', 'fetch_instance_info'\nSupported methods:\n  - list_attr: List resource attributes\n  - list_attr_value: List attribute values\n  - list_instance: List resource instances\n  - fetch_instance_info: Fetch instance details\n  - list_instance_by_policy: List instances by policy expression\n  - search_instance: Search instances by keyword\n  - fetch_instance_list: Fetch instance list by IDs\n  - fetch_resource_type_schema: Fetch resource type schema'
+                  title: 'method is the callback method, e.g., ''list_instance'', ''fetch_instance_info''\nSupported methods:\n  - list_attr: List resource attributes\n  - list_attr_value: List attribute values\n  - list_instance: List resource instances\n  - fetch_instance_info: Fetch instance details\n  - list_instance_by_policy: List instances by policy expression\n  - search_instance: Search instances by keyword\n  - fetch_instance_list: Fetch instance list by IDs\n  - fetch_resource_type_schema: Fetch resource type schema'
               description: IAMResourceCallbackReq describes the IAM resource callback request.\nThis is the standard request format defined by BlueKing IAM.
         required: true
         description: IAMResourceCallbackReq describes the IAM resource callback request.\nThis is the standard request format defined by BlueKing IAM.
