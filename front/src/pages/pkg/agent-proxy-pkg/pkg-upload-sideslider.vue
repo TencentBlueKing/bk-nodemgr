@@ -235,8 +235,9 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
     onCancel: () => reject(),
   });
 });
-const handleUpload = (data: PackageUploadOriginAgentRespData) => {
-  uploadData.value = { ...data };
+const handleUpload = (data: PackageUploadOriginAgentRespData | null) => {
+  // 注意：{ ...null } 会得到空对象，导致 hasPkg 判断失真（开关不隐藏、提交按钮不禁用）
+  uploadData.value = data ? { ...data } : null;
 };
 const handleCancel = () => {
   isShow.value = false;

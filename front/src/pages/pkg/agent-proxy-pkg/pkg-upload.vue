@@ -189,19 +189,33 @@ const handleUpload = () => {
     emit('loading', false);
     if (xhr.status >= 200 && xhr.status < 300) {
       const response = JSON.parse(xhr.responseText);
-      curFile.status = response.code === 0
-        ? (response.data.existed && !overwrite.value)
+      // 后端业务错误（HTTP 200 + code 非 0）：展示后端返回的具体错误信息
+      if (response.code !== 0) {
+        curFile.message = response.message || t('pkgUpload.uploadFailed');
+        curFile.status = 'failed';
+        Message({
+          theme: 'error',
+          message: curFile.message,
+        });
+        emit('upload', null);
+        return;
+      }
+      curFile.status = (response.data.existed && !overwrite.value)
         ? 'existed'
-        : 'success'
-        : 'failed';
+        : 'success';
       curFile.data = response.data;
       emit('upload', response.data);
     } else {
-      curFile.message = xhr.statusText;
+      // HTTP 错误：优先取响应体中的 message，兜底 statusText
+      let errMsg = xhr.statusText || t('pkgUpload.uploadFailed');
+      try {
+        errMsg = JSON.parse(xhr.responseText)?.message || errMsg;
+      } catch { /* responseText 非 JSON，使用 statusText */ }
+      curFile.message = errMsg;
       curFile.status = 'failed';
       Message({
         theme: 'error',
-        message: xhr.statusText,
+        message: errMsg,
       });
       emit('upload', null);
     }
@@ -227,5 +241,13 @@ const handleCancel = () => {
 };
 const handleDelete = () => {
   uploader.value?.handleRemove(curFile);
+  // 重置当前文件状态并通知父组件清空上传结果：
+  // 删除后没有可提交的包，父组件需据此隐藏「全租户共享」开关并禁用提交按钮
+  curFile.file = null;
+  curFile.progress = 0;
+  curFile.status = '';
+  curFile.data = null;
+  curFile.message = '';
+  emit('upload', null);
 };
 </script>

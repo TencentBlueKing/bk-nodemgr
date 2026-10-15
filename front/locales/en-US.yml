@@ -202,6 +202,8 @@ platform:
     uninstall: Uninstall
     bussinessTopology: Business Topology
     agentSearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
+    invalidSearchValue: "Search value {values} does not meet the required format"
+    unmatchedSearchValue: "Search value {values} does not match any search condition"
     proxySearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
     historySearchPlaceholder: Enter IP or execution status for quick search
     inner_ip: Private IPv4

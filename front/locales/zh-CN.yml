@@ -202,6 +202,8 @@ platform:
     uninstall: 卸载
     bussinessTopology: 业务拓扑
     agentSearchPlaceholder: 输入IP、管控区域ID:IP、AgentID快速搜索
+    invalidSearchValue: "搜索值 {values} 不合规"
+    unmatchedSearchValue: "搜索值 {values} 未匹配搜索条件项"
     proxySearchPlaceholder: 输入IP、管控区域ID:IP、AgentID快速搜索
     historySearchPlaceholder: 输入IP、执行状态快速搜索
     inner_ip: 内网IPv4
