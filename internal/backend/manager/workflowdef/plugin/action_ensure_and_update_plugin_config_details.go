@@ -594,7 +594,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 			keyOuterIP:  runtimeHostRenderData.outerIP,
 			keyLoginIP:  runtimeHostInfo.Dynamic.LoginIP,
 		},
-		keyIsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
+		keyIsMultiTenant: conv.ToStringDefault(tenant.GetMode() == tenant.ModeMultiple, "false"),
 		keyConstants:     constants,
 	}
 

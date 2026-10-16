@@ -523,7 +523,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) generateJinja2SystemConfi
 			keyOuterIP:  outerIP,
 			keyLoginIP:  hostInfo.Dynamic.LoginIP,
 		},
-		keyIsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
+		keyIsMultiTenant: conv.ToStringDefault(tenant.GetMode() == tenant.ModeMultiple, "false"),
 		keyConstants:     constants,
 	}
 
