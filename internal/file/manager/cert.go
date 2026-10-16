@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -205,10 +206,14 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 		return nil, err
 	}
 
+	missingFiles := make([]string, 0, len(certFileNames))
 	for _, fileName := range certFileNames {
-		if _, ok := seenFiles[fileName]; !ok {
-			return nil, fmt.Errorf("missing cert file %s", fileName)
+		if _, ok := seenFiles[fileName]; !ok && fileName != certFileNameCertEncryptKey {
+			missingFiles = append(missingFiles, fileName)
 		}
+	}
+	if len(missingFiles) > 0 {
+		return nil, fmt.Errorf("missing cert files: %s", strings.Join(missingFiles, ", "))
 	}
 
 	return detail, nil
