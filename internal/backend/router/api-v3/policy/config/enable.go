@@ -59,7 +59,7 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// record event.
-	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeEnable, req.GetConfigpolicyId()...)
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeEnable, policies...)
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
 

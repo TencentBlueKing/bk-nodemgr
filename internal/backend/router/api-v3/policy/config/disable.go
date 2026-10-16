@@ -60,7 +60,7 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 	}
 
 	// record event.
-	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeDisable, req.GetConfigpolicyId()...)
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeDisable, policies...)
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
 

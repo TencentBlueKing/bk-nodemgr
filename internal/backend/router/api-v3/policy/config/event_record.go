@@ -35,64 +35,43 @@ func (h *handler) recordConfigPolicyEventsByPolicies(
 	policies ...*types.ConfigPolicy,
 ) {
 	operator := rCtx.BKUsername()
+	events := make([]*types.ConfigPolicyEvent, len(policies))
+	for i, cp := range policies {
+		events[i] = &types.ConfigPolicyEvent{
+			TenantID:         rCtx.TenantID(),
+			BizID:            cp.BizID,
+			Type:             eventType,
+			ConfigPolicyID:   cp.ID,
+			ConfigPolicyName: cp.Name,
+			ConfigPolicyType: cp.Type,
+			Version:          int64(cp.Version),
+			Operator:         operator,
+			OperateTime:      time.Now(),
+		}
+	}
+	h.recordConfigPolicyEvents(rCtx, events...)
+}
+
+// recordConfigPolicyEventsByPolicyIDs queries policies and builds event snapshots before recording them asynchronously.
+func (h *handler) recordConfigPolicyEventsByPolicyIDs(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, policyIDs ...int64) {
+	policies, err := h.getConfigPolicy(rCtx, policyIDs)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to get config policy for event recording")
+
+		return
+	}
+
+	h.recordConfigPolicyEventsByPolicies(rCtx, eventType, policies...)
+}
+
+func (h *handler) recordConfigPolicyEvents(rCtx restserver.IContext, events ...*types.ConfigPolicyEvent) {
 
 	err := h.goAsyncPool.Run(
 		rCtx,
 		func(nCtx contextx.IContext) error {
-			events := make([]*types.ConfigPolicyEvent, len(policies))
-			for i, cp := range policies {
-				events[i] = &types.ConfigPolicyEvent{
-					TenantID:         nCtx.TenantID(),
-					BizID:            cp.BizID,
-					Type:             eventType,
-					ConfigPolicyID:   cp.ID,
-					ConfigPolicyName: cp.Name,
-					ConfigPolicyType: cp.Type,
-					Version:          int64(cp.Version),
-					Operator:         operator,
-					OperateTime:      time.Now(),
-				}
-			}
-
 			return h.storageConfigPolicy.CreateManyConfigPolicyEvent(nCtx, events...)
 		},
 		goasync.WithName("record_config_policy_event_by_policies"),
-	)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to submit policy event recording task")
-	}
-}
-
-// recordConfigPolicyEventsByPolicyIDs queries policies by IDs, builds events, and records them via the goasync pool.
-func (h *handler) recordConfigPolicyEventsByPolicyIDs(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, policyIDs ...int64) {
-	operator := rCtx.BKUsername()
-
-	err := h.goAsyncPool.Run(
-		rCtx,
-		func(nCtx contextx.IContext) error {
-			policies, err := h.getConfigPolicy(nCtx, policyIDs)
-			if err != nil {
-				return err
-			}
-
-			events := make([]*types.ConfigPolicyEvent, len(policies))
-			for i, cp := range policies {
-				events[i] = &types.ConfigPolicyEvent{
-					TenantID:         nCtx.TenantID(),
-					BizID:            cp.BizID,
-					Type:             eventType,
-					ConfigPolicyID:   cp.ID,
-					ConfigPolicyName: cp.Name,
-					ConfigPolicyType: cp.Type,
-					Version:          int64(cp.Version),
-					Operator:         operator,
-					OperateTime:      time.Now(),
-				}
-			}
-
-			return h.storageConfigPolicy.CreateManyConfigPolicyEvent(nCtx, events...)
-		},
-		goasync.WithName("record_config_policy_event_by_ids"),
 	)
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to submit policy event recording task")

@@ -55,7 +55,8 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// record event.
-	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeCreate, configPolicyID)
+	configPolicy.ID = configPolicyID
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeCreate, configPolicy)
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
 	resp.ConvertConfigPolicyID(configPolicyID)
