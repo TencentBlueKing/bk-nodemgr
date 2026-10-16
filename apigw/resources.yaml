@@ -31019,6 +31019,9 @@ paths:
                   type: string
                 download_url:
                   type: string
+                is_shared:
+                  type: boolean
+                  description: Only system tenant requests can enable sharing; ignored for other tenants.
               description: |-
                 PackageImportExternalPluginV2PkgReq describes the HTTP request body when
                 import external plugin v2 package in package service.
@@ -31166,6 +31169,9 @@ paths:
                   type: string
                 download_url:
                   type: string
+                is_shared:
+                  type: boolean
+                  description: Only system tenant requests can enable sharing; ignored for other tenants.
               description: |-
                 PackageImportPluginV2PkgReq describes the HTTP request body when import
                 plugin v2 package in package service.
@@ -31313,6 +31319,9 @@ paths:
                   type: string
                 download_url:
                   type: string
+                is_shared:
+                  type: boolean
+                  description: Only system tenant requests can enable sharing; ignored for other tenants.
               description: |-
                 PackageImportPluginV3PkgReq describes the HTTP request body when import
                 plugin package in package service.
