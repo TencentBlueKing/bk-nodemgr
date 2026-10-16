@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -160,33 +161,31 @@ const (
 	pluginBinToolDirNamePlatWindowsAmd64 = "windows_amd64"
 	pluginBinToolDirNamePlatAix6Ppc64    = "aix6_ppc64"
 	pluginBinToolDirNamePlatAix7Ppc64    = "aix7_ppc64"
+	pluginBinToolPlatformPathDepth       = 3
+	pluginBinToolFilePathDepth           = 4
 )
 
 func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
 	platformsV2 := make(map[string]platfmt.Platform)
 	platformsV3 := make(map[string]platfmt.Platform)
-
-	if err := checkTgz(file, []tgzReadRule{
-		{
-			filePathRegex: []string{buildFullMatchRegex(pluginBinToolDirNameRoot), buildFullMatchRegex(pluginBinToolDirNameGenerationV2), ".*", ".*"},
-			callback: func(path []string, _ io.Reader) error {
-				plat := convPluginBinToolDirNameToPlat(path[2])
-				platformsV2[plat.String()] = plat
-
-				return nil
-			},
+	tools := make(map[string]map[string]bool)
+	if err := checkTgz(file, []tgzReadRule{{
+		filePathRegex: []string{buildFullMatchRegex(pluginBinToolDirNameRoot), ".*"},
+		callback: func(path []string, reader io.Reader) error {
+			return checkPluginBinToolEntry(path, reader, tools, platformsV2, platformsV3)
 		},
-		{
-			filePathRegex: []string{buildFullMatchRegex(pluginBinToolDirNameRoot), buildFullMatchRegex(pluginBinToolDirNameGenerationV3), ".*", ".*"},
-			callback: func(path []string, _ io.Reader) error {
-				plat := convPluginBinToolDirNameToPlat(path[2])
-				platformsV3[plat.String()] = plat
-
-				return nil
-			},
-		},
-	}); err != nil {
-		return nil, err
+	}}); err != nil {
+		return nil, fmt.Errorf("invalid origin plugin bintool package: %w", err)
+	}
+	if len(tools) == 0 {
+		return nil, errors.New("invalid origin plugin bintool package: no platform tools")
+	}
+	for unit, files := range tools {
+		for name, present := range files {
+			if !present {
+				return nil, fmt.Errorf("missing plugin bintool file %s/%s", unit, name)
+			}
+		}
 	}
 
 	detail := new(types.OriginPluginBinToolPkgDetail)
@@ -201,6 +200,84 @@ func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinTool
 	}
 
 	return detail, nil
+}
+
+func checkPluginBinToolEntry(path []string, reader io.Reader, tools map[string]map[string]bool,
+	platformsV2, platformsV3 map[string]platfmt.Platform) error {
+
+	var platforms map[string]platfmt.Platform
+	switch path[1] {
+	case pluginBinToolDirNameGenerationV2:
+		platforms = platformsV2
+	case pluginBinToolDirNameGenerationV3:
+		platforms = platformsV3
+	default:
+		// Ignore ancillary entries, but reject unknown vN generations and platform units.
+		if (len(path[1]) > 1 && path[1][0] == 'v' && strings.Trim(path[1][1:], "0123456789") == "") ||
+			(len(path) >= pluginBinToolPlatformPathDepth && strings.Contains(path[2], "_") && !strings.Contains(path[2], ".")) {
+
+			return fmt.Errorf("unknown plugin bintool generation %q", path[1])
+		}
+
+		return nil
+	}
+	if len(path) < pluginBinToolPlatformPathDepth {
+		return nil
+	}
+
+	plat := convPluginBinToolDirNameToPlat(path[2])
+	if plat.OS == criteria.OSUnknown {
+		if !strings.Contains(path[2], "_") || strings.Contains(path[2], ".") {
+			return nil
+		}
+
+		return fmt.Errorf("unknown plugin bintool platform directory %q", path[2])
+	}
+	unit := strings.Join(path[:pluginBinToolPlatformPathDepth], "/")
+	if _, ok := tools[unit]; !ok {
+		tools[unit] = pluginBinToolRequiredFiles(plat)
+		platforms[plat.String()] = plat
+	}
+	if len(path) != pluginBinToolFilePathDepth {
+		return nil
+	}
+	if _, ok := tools[unit][path[3]]; !ok {
+		return nil
+	}
+	size, err := io.Copy(io.Discard, reader)
+	if err != nil {
+		return fmt.Errorf("failed to read plugin bintool file %s/%s: %w", unit, path[3], err)
+	}
+	if size == 0 {
+		return fmt.Errorf("empty plugin bintool file %s/%s", unit, path[3])
+	}
+	tools[unit][path[3]] = true
+
+	return nil
+}
+
+func pluginBinToolRequiredFiles(plat platfmt.Platform) map[string]bool {
+	var suffix string
+	switch plat.OS {
+	case criteria.OSWindows:
+		suffix = ".bat"
+	case criteria.OSDarwin:
+		suffix = ".zsh"
+	case criteria.OSAix6, criteria.OSAix7:
+		suffix = ".ksh"
+	default:
+		suffix = ".sh"
+	}
+	files := map[string]bool{
+		"start" + suffix:   false,
+		"stop" + suffix:    false,
+		"restart" + suffix: false,
+	}
+	if plat.OS != criteria.OSWindows {
+		files["reload"+suffix] = false
+	}
+
+	return files
 }
 
 // PublishReleasePluginBinTool generates release plugin bintool by upload-id and is-shared.
@@ -224,14 +301,26 @@ func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID s
 		return err
 	}
 
-	gp := gopool.NewPool()
-	gp.Go(func() error {
-		return m.handlerPluginBinToolV2Pkg(nCtx, file, isShared)
-	})
+	checkingContent, err := file.Content(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to get origin plugin bintool content for validation: %w", err)
+	}
+	detail, checkErr := checkOriginPluginBinToolPkg(checkingContent)
+	if err := errors.Join(checkErr, checkingContent.Close()); err != nil {
+		return fmt.Errorf("failed to validate origin plugin bintool package before publishing: %w", err)
+	}
 
-	gp.Go(func() error {
-		return m.handlerPluginBinToolV3Pkg(nCtx, file, isShared)
-	})
+	gp := gopool.NewPool()
+	if len(detail.V2.Platforms) > 0 {
+		gp.Go(func() error {
+			return m.handlerPluginBinToolV2Pkg(nCtx, file, isShared)
+		})
+	}
+	if len(detail.V3.Platforms) > 0 {
+		gp.Go(func() error {
+			return m.handlerPluginBinToolV3Pkg(nCtx, file, isShared)
+		})
+	}
 
 	if err = gp.Wait(); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to generate release package")

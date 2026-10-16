@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -240,6 +241,10 @@ type PluginV2Property struct {
 func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail, error) {
 	detail := types.NewOriginPluginV2PkgDetail()
 	multiPlatConfigTplSourceContent := make(map[string]map[string]string)
+	projects := make(map[string]*PluginV2Project)
+	payloads := make(map[string]bool)
+	payloadFiles := make(map[string]struct{})
+	platformPayloads := make(map[string]bool)
 
 	tgzReadRules := []tgzReadRule{
 		{
@@ -248,41 +253,7 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 				".*",
 				buildFullMatchRegex(originalPluginPkgV2FileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
-				plat := convPluginV2DirNameToPlat(path[0])
-				detail.Platforms = append(detail.Platforms, plat)
-
-				pluginProject := new(PluginV2Project)
-				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
-					return fmt.Errorf("failed to decode project.yaml")
-				}
-				if err := validateOptionalPluginPkgPortRange(pluginProject.PortRange); err != nil {
-					return fmt.Errorf("invalid port_range for platform(%s): %w", plat.String(), err)
-				}
-
-				detail.PluginPkgName = pluginProject.Name
-				detail.Version = pluginProject.Version
-				detail.Description = pluginProject.Description
-				detail.DescriptionEn = pluginProject.DescriptionEn
-				detail.Scenario = pluginProject.Scenario
-				detail.ScenarioEn = pluginProject.ScenarioEn
-				detail.ConfigFile = pluginProject.ConfigFile
-				detail.ConfigFormat = pluginProject.ConfigFormat
-				detail.LaunchNode = pluginProject.LaunchNode
-				detail.BindAddressAllocated[plat.String()] = buildPluginV2PkgBindAddressAllocated(pluginProject.PortRange)
-
-				if _, ok := detail.ConfigTemplates[plat.String()]; !ok {
-					detail.ConfigTemplates[plat.String()] = make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))
-				}
-
-				pkgConfigTemplates, err := parsePluginV2PkgConfigTemplateFromProject(pluginProject)
-				if err != nil {
-					return fmt.Errorf("failed to get config templates: %w", err)
-				}
-				detail.ConfigTemplates[plat.String()] = pkgConfigTemplates
-
-				detail.Controller[plat.String()] = buildPluginV2PkgController(plat, pluginProject)
-
-				return nil
+				return readOriginPluginV2Project(path, projectFile, detail, projects)
 			},
 		},
 		{
@@ -313,8 +284,17 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 		},
 	}
 
+	tgzReadRules = append(tgzReadRules, tgzReadRule{
+		filePathRegex: []string{buildPrefixMatchRegex(originalPluginPkgV2DirNamePlatPrefix)},
+		callback: func(path []string, r io.Reader) error {
+			return readOriginPluginV2Payload(path, r, payloads, platformPayloads, payloadFiles)
+		},
+	})
 	err := checkTgz(file, tgzReadRules)
 	if err != nil {
+		return nil, err
+	}
+	if err := checkOriginPluginV2Contents(projects, payloads, platformPayloads); err != nil {
 		return nil, err
 	}
 
@@ -329,6 +309,124 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 	}
 
 	return detail, nil
+}
+
+const (
+	originPluginV2ProjectPathDepth = 3
+	originPluginV2RootPathDepth    = 2
+	originPluginV2PayloadPathDepth = 4
+)
+
+func readOriginPluginV2Project(path []string, projectFile io.Reader,
+	detail *types.OriginPluginV2PkgDetail, projects map[string]*PluginV2Project,
+) error {
+
+	if len(path) != originPluginV2ProjectPathDepth {
+		return fmt.Errorf("invalid project.yaml path(%s)", strings.Join(path, "/"))
+	}
+	plat := convPluginV2DirNameToPlat(path[0])
+	pluginProject := new(PluginV2Project)
+	if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
+		return fmt.Errorf("failed to decode project.yaml: %w", err)
+	}
+	if strings.TrimSpace(pluginProject.Name) == "" || strings.TrimSpace(pluginProject.Version) == "" ||
+		pluginProject.Name != path[1] {
+
+		return fmt.Errorf("invalid plugin name or version in project.yaml(%s)", strings.Join(path, "/"))
+	}
+	if len(projects) > 0 && (detail.PluginPkgName != pluginProject.Name || detail.Version != pluginProject.Version) {
+		return fmt.Errorf("inconsistent plugin name or version for platform(%s)", plat.String())
+	}
+	root := strings.Join(path[:originPluginV2RootPathDepth], "/")
+	if previous, ok := projects[root]; ok {
+		if !reflect.DeepEqual(previous, pluginProject) {
+			return fmt.Errorf("conflicting project.yaml for plugin(%s)", root)
+		}
+
+		return nil
+	}
+	projects[root] = pluginProject
+	detail.Platforms = append(detail.Platforms, plat)
+	if err := validateOptionalPluginPkgPortRange(pluginProject.PortRange); err != nil {
+		return fmt.Errorf("invalid port_range for platform(%s): %w", plat.String(), err)
+	}
+
+	detail.PluginPkgName = pluginProject.Name
+	detail.Version = pluginProject.Version
+	detail.Description = pluginProject.Description
+	detail.DescriptionEn = pluginProject.DescriptionEn
+	detail.Scenario = pluginProject.Scenario
+	detail.ScenarioEn = pluginProject.ScenarioEn
+	detail.ConfigFile = pluginProject.ConfigFile
+	detail.ConfigFormat = pluginProject.ConfigFormat
+	detail.LaunchNode = pluginProject.LaunchNode
+	detail.BindAddressAllocated[plat.String()] = buildPluginV2PkgBindAddressAllocated(pluginProject.PortRange)
+
+	pkgConfigTemplates, err := parsePluginV2PkgConfigTemplateFromProject(pluginProject)
+	if err != nil {
+		return fmt.Errorf("failed to get config templates: %w", err)
+	}
+	detail.ConfigTemplates[plat.String()] = pkgConfigTemplates
+	detail.Controller[plat.String()] = buildPluginV2PkgController(plat, pluginProject)
+
+	return nil
+}
+
+func readOriginPluginV2Payload(path []string, r io.Reader, payloads, platformPayloads map[string]bool,
+	payloadFiles map[string]struct{},
+) error {
+
+	plat := convPluginV2DirNameToPlat(path[0])
+	if !plat.Validate() || plat.OS == criteria.OSUnknown || plat.Arch == criteria.CPUArchUnknown ||
+		path[0] != convPlatToPluginV2DirName(plat) {
+
+		return fmt.Errorf("invalid plugin platform directory(%s)", path[0])
+	}
+	if _, ok := platformPayloads[path[0]]; !ok {
+		platformPayloads[path[0]] = false
+	}
+	if len(path) < originPluginV2RootPathDepth || path[1] == "" {
+		// Explicit platform directory entries do not represent plugin payloads.
+		return nil
+	}
+	root := strings.Join(path[:originPluginV2RootPathDepth], "/")
+	if _, ok := payloads[root]; !ok {
+		payloads[root] = false
+	}
+	if len(path) != originPluginV2PayloadPathDepth || path[2] != originalPluginPkgV2DirNameBin || path[3] == "" {
+		return nil
+	}
+	filePath := strings.Join(path, "/")
+	if _, exists := payloadFiles[filePath]; exists {
+		return fmt.Errorf("duplicate plugin payload(%s)", filePath)
+	}
+	payloadFiles[filePath] = struct{}{}
+	size, err := io.Copy(io.Discard, r)
+	if err != nil {
+		return fmt.Errorf("failed to read plugin payload(%s): %w", strings.Join(path, "/"), err)
+	}
+	payloads[root] = payloads[root] || size > 0
+	platformPayloads[path[0]] = platformPayloads[path[0]] || size > 0
+
+	return nil
+}
+
+func checkOriginPluginV2Contents(projects map[string]*PluginV2Project, payloads, platformPayloads map[string]bool) error {
+	if len(projects) == 0 {
+		return errors.New("plugin package contains no project.yaml")
+	}
+	for directory, hasPayload := range platformPayloads {
+		if !hasPayload {
+			return fmt.Errorf("plugin platform(%s) contains no non-empty bin payload", directory)
+		}
+	}
+	for root, hasPayload := range payloads {
+		if projects[root] == nil || !hasPayload {
+			return fmt.Errorf("plugin platform(%s) requires project.yaml and non-empty bin payload", root)
+		}
+	}
+
+	return nil
 }
 
 func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) ([]types.PluginPkgConfigTemplate, error) {

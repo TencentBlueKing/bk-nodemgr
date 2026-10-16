@@ -226,7 +226,7 @@ plugin_bintool/aix7_ppc64/<tool files>
 
 `cert` 原始导入包只支持以下两种格式，二选一。
 
-格式一：八个证书文件直接放在 `.tgz` 根目录。
+格式一：七个必需证书文件直接放在 `.tgz` 根目录，`cert_encrypt.key` 为可选文件。
 
 ```text
 gseca.crt
@@ -239,7 +239,7 @@ gse_api_client.key
 cert_encrypt.key
 ```
 
-格式二：八个证书文件全部放在 `.tgz` 内的 `cert/` 目录下。
+格式二：七个必需证书文件全部放在 `.tgz` 内的 `cert/` 目录下，可选的 `cert_encrypt.key` 如有也放在该目录下。
 
 ```text
 cert/gseca.crt
@@ -256,7 +256,7 @@ cert/cert_encrypt.key
 
 1. 只能使用上述两种布局之一。
 2. 不能把部分证书放在根目录、部分证书放在 `cert/` 目录下。
-3. 八个证书文件必须全部存在，文件名必须完全一致。
+3. 除 `cert_encrypt.key` 可选外，上述七个证书文件必须全部存在，文件名必须完全一致；缺件错误会列出全部缺失的必需文件名。
 4. `cert` 导入包不要再额外套一层业务目录，例如不要使用 `package/cert/gseca.crt`。
 
 发布后生成的 release 证书包会统一为 `cert.tgz`，包内路径统一为 `cert/<file>`。

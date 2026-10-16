@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -159,19 +160,23 @@ func (m *Manager) UploadOriginBinTool(
 func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
 	agentPlatforms := make(map[string]platfmt.Platform)
 	proxyPlatforms := make(map[string]platfmt.Platform)
-
-	if err := checkTgz(file, []tgzReadRule{
-		{
-			filePathRegex: []string{buildFullMatchRegex(binToolDirNameRoot), ".*", ".*"},
-			callback: func(path []string, _ io.Reader) error {
-				plat := convBinToolDirNameToPlat(path[1])
-				agentPlatforms[plat.String()] = plat
-
-				return nil
-			},
+	tools := make(map[string]bool)
+	if err := checkTgz(file, []tgzReadRule{{
+		filePathRegex: []string{buildFullMatchRegex(binToolDirNameRoot), ".*"},
+		callback: func(path []string, reader io.Reader) error {
+			return checkBinToolEntry(path, reader, tools, agentPlatforms, proxyPlatforms)
 		},
-	}); err != nil {
-		return nil, err
+	}}); err != nil {
+		return nil, fmt.Errorf("invalid origin bintool package: %w", err)
+	}
+	for dir, present := range tools {
+		if !present {
+			return nil, fmt.Errorf("missing gsectl tool in bintool platform directory %q", dir)
+		}
+	}
+
+	if len(agentPlatforms) == 0 && len(proxyPlatforms) == 0 {
+		return nil, errors.New("invalid origin bintool package: no valid gsectl tools")
 	}
 
 	detail := new(types.OriginBinToolPkgDetail)
@@ -186,6 +191,52 @@ func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, e
 
 	return detail, nil
 }
+
+func checkBinToolEntry(path []string, reader io.Reader, tools map[string]bool,
+	agentPlatforms, proxyPlatforms map[string]platfmt.Platform) error {
+
+	plat := convBinToolDirNameToPlat(path[1])
+	if plat.OS == criteria.OSUnknown {
+		// Ancillary entries do not use the role_OS_arch business directory shape.
+		if !strings.Contains(path[1], "_") || strings.Contains(path[1], ".") {
+			return nil
+		}
+
+		return fmt.Errorf("unknown bintool platform directory %q", path[1])
+	}
+	if _, ok := tools[path[1]]; !ok {
+		tools[path[1]] = false
+	}
+	if len(path) != originBinToolFilePathDepth {
+		return nil
+	}
+
+	toolName := "gsectl"
+	if plat.OS == criteria.OSWindows {
+		toolName += ".bat"
+	}
+	if path[2] != toolName {
+		return nil
+	}
+	size, err := io.Copy(io.Discard, reader)
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %w", toolName, err)
+	}
+	if size == 0 {
+		return fmt.Errorf("empty bintool file %q", toolName)
+	}
+	tools[path[1]] = true
+	switch path[1] {
+	case binToolDirNameProxyPlatLinuxAmd64, binToolDirNameProxyPlatLinuxArm64:
+		proxyPlatforms[plat.String()] = plat
+	default:
+		agentPlatforms[plat.String()] = plat
+	}
+
+	return nil
+}
+
+const originBinToolFilePathDepth = 3
 
 // PublishReleaseBinTool generates release bintool by upload-id and is-shared.
 // nolint:funlen
@@ -209,6 +260,15 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string,
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release bintool, failed to get file(%s). err: %v", up.SavedName, err)
 
 		return err
+	}
+
+	checkingContent, err := file.Content(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to get origin bintool content for validation: %w", err)
+	}
+	_, checkErr := checkOriginBinToolPkg(checkingContent)
+	if err := errors.Join(checkErr, checkingContent.Close()); err != nil {
+		return fmt.Errorf("failed to validate origin bintool package before publishing: %w", err)
 	}
 
 	// get origin content.
