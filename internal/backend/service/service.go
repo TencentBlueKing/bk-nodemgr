@@ -625,15 +625,12 @@ func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
 
 func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
 	var tlsConfig *tls.Config
-	if svc.conf.Redis.TLS.CAFile != "" && svc.conf.Redis.TLS.CertFile != "" && svc.conf.Redis.TLS.KeyFile != "" {
-		sslConf := &ssl.TLSConfig{
-			CAFile:   svc.conf.Redis.TLS.CAFile,
-			CertFile: svc.conf.Redis.TLS.CertFile,
-			KeyFile:  svc.conf.Redis.TLS.KeyFile,
-			Password: svc.conf.Redis.TLS.Password,
+	if svc.conf.Redis.TLS.IsEnabled() {
+		sslConf, err := svc.conf.Redis.TLS.ToSSLConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve redis tls config: %w", err)
 		}
 
-		var err error
 		tlsConfig, err = sslConf.NewClientTLSConf()
 		if err != nil {
 			return nil, fmt.Errorf("failed to create tls config: %w", err)
@@ -687,15 +684,12 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	}
 
 	var tlsConfig *tls.Config
-	if svc.conf.MongoDB.TLS.CAFile != "" && svc.conf.MongoDB.TLS.CertFile != "" && svc.conf.MongoDB.TLS.KeyFile != "" {
-		sslConf := &ssl.TLSConfig{
-			CAFile:   svc.conf.MongoDB.TLS.CAFile,
-			CertFile: svc.conf.MongoDB.TLS.CertFile,
-			KeyFile:  svc.conf.MongoDB.TLS.KeyFile,
-			Password: svc.conf.MongoDB.TLS.Password,
+	if svc.conf.MongoDB.TLS.IsEnabled() {
+		sslConf, err := svc.conf.MongoDB.TLS.ToSSLConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve mongodb tls config: %w", err)
 		}
 
-		var err error
 		tlsConfig, err = sslConf.NewClientTLSConf()
 		if err != nil {
 			return nil, fmt.Errorf("failed to create tls config: %w", err)
@@ -1250,13 +1244,12 @@ func newIEGTJJHandler(conf config.IEGTJJ) (iegtjj.IHandler, error) {
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
 func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
-		CertFile:           conf.TLS.CertFile,
-		KeyFile:            conf.TLS.KeyFile,
-		CAFile:             conf.TLS.CAFile,
-		Password:           conf.TLS.Password,
-	})
+	sslConf, err := conf.TLS.ToSSLConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve client tls config: %w", err)
+	}
+
+	httpClient, err := restclient.NewHTTPClient(sslConf)
 	if err != nil {
 		return nil, err
 	}

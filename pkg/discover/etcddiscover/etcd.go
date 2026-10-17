@@ -33,7 +33,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/concurrency"
 	"go.uber.org/zap"
@@ -729,22 +728,16 @@ func (reg *registration) currentSession() *concurrency.Session {
 var errNotTLS = errors.New("not tls")
 
 func (provider *ProviderEtcd) initTLS() (*tls.Config, error) {
-	if provider.config.TLS.CAFile == "" || provider.config.TLS.CertFile == "" || provider.config.TLS.KeyFile == "" {
+	if !provider.config.TLS.IsEnabled() {
 		return nil, errNotTLS
 	}
 
-	tlsConf := &ssl.TLSConfig{
-		CAFile:   provider.config.TLS.CAFile,
-		CertFile: provider.config.TLS.CertFile,
-		KeyFile:  provider.config.TLS.KeyFile,
-		Password: provider.config.TLS.Password,
+	sslConf, err := provider.config.TLS.ToSSLConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve etcd tls config: %w", err)
 	}
 
-	if err := tlsConf.Validate(); err != nil {
-		return nil, err
-	}
-
-	return tlsConf.NewClientTLSConf()
+	return sslConf.NewClientTLSConf()
 }
 
 func (provider *ProviderEtcd) startWatching() {

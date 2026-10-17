@@ -45,7 +45,7 @@ func NewHTTPClient(c *ssl.TLSConfig) (*http.Client, error) {
 	tlsConf := new(tls.Config)
 	if c != nil {
 		tlsConf.InsecureSkipVerify = c.InsecureSkipVerify
-		if len(c.CAFile) != 0 && len(c.CertFile) != 0 && len(c.KeyFile) != 0 {
+		if c.IsEnabled() {
 			var err error
 			tlsConf, err = c.NewClientTLSConf()
 			if err != nil {

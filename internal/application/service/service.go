@@ -666,13 +666,12 @@ func withAdmin(capability *options.Capability, middleware ...gin.HandlerFunc) re
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
 func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
-		CertFile:           conf.TLS.CertFile,
-		KeyFile:            conf.TLS.KeyFile,
-		CAFile:             conf.TLS.CAFile,
-		Password:           conf.TLS.Password,
-	})
+	sslConf, err := conf.TLS.ToSSLConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve client tls config: %w", err)
+	}
+
+	httpClient, err := restclient.NewHTTPClient(sslConf)
 	if err != nil {
 		return nil, err
 	}
@@ -716,13 +715,12 @@ func newVirtualUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUser
 
 // newBKLoginHandler creates a new bklogin handler.
 func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
-		CertFile:           conf.TLS.CertFile,
-		KeyFile:            conf.TLS.KeyFile,
-		CAFile:             conf.TLS.CAFile,
-		Password:           conf.TLS.Password,
-	})
+	sslConf, err := conf.TLS.ToSSLConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve client tls config: %w", err)
+	}
+
+	httpClient, err := restclient.NewHTTPClient(sslConf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http client for bklogin handler: %w", err)
 	}

@@ -309,7 +309,9 @@ func (svc *ExportServer) ToURL() (*url.URL, error) {
 }
 
 func exportServerURLScheme(svc *ExportServer) string {
-	if svc.TLSConfig.CertFile != "" && svc.TLSConfig.KeyFile != "" {
+	if (svc.TLSConfig.Cert != "" || svc.TLSConfig.CertFile != "") &&
+		(svc.TLSConfig.Key != "" || svc.TLSConfig.KeyFile != "") {
+
 		return exportServerHTTPS
 	}
 

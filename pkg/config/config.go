@@ -22,7 +22,11 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 )
 
 // Etcd the config of etcd.
@@ -566,42 +570,126 @@ func (repo Repo) Validate() error {
 
 // TLSConfig defines tls related options.
 type TLSConfig struct {
-	InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
-	VerifyClient       bool   `yaml:"verifyClient"`
-	CAFile             string `yaml:"caFile"`
-	CertFile           string `yaml:"certFile"`
-	KeyFile            string `yaml:"keyFile"`
-	Password           string `yaml:"password"`
+	InsecureSkipVerify bool `yaml:"insecureSkipVerify"`
+	VerifyClient       bool `yaml:"verifyClient"`
+
+	// CA has higher priority than caFile.
+	// once CA is provided, caFile is ignored.
+	CA     string `yaml:"ca"`
+	CAFile string `yaml:"caFile"`
+
+	// Cert has higher priority than certFile.
+	// once Cert is provided, certFile is ignored.
+	Cert     string `yaml:"cert"`
+	CertFile string `yaml:"certFile"`
+
+	// Key has higher priority than keyFile.
+	// once Key is provided, keyFile is ignored.
+	Key     string `yaml:"key"`
+	KeyFile string `yaml:"keyFile"`
+
+	Password string `yaml:"password"`
 }
 
-// Validate validates the config.
+// GetCA gets ca.
+func (conf TLSConfig) GetCA() ([]byte, error) {
+	if conf.CA != "" {
+		return []byte(conf.CA), nil
+	}
+
+	return readTLSMaterialFromFile(conf.CAFile)
+}
+
+// GetCert gets cert.
+func (conf TLSConfig) GetCert() ([]byte, error) {
+	if conf.Cert != "" {
+		return []byte(conf.Cert), nil
+	}
+
+	return readTLSMaterialFromFile(conf.CertFile)
+}
+
+// GetKey gets key.
+func (conf TLSConfig) GetKey() ([]byte, error) {
+	if conf.Key != "" {
+		return []byte(conf.Key), nil
+	}
+
+	return readTLSMaterialFromFile(conf.KeyFile)
+}
+
+// ToSSLConfig resolves certificate sources without modifying the config.
+func (conf TLSConfig) ToSSLConfig() (*ssl.TLSConfig, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate tls config: %w", err)
+	}
+
+	ca, err := conf.GetCA()
+	if err != nil {
+		return nil, err
+	}
+
+	cert, err := conf.GetCert()
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := conf.GetKey()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ssl.TLSConfig{
+		InsecureSkipVerify: conf.InsecureSkipVerify,
+		VerifyClient:       conf.VerifyClient,
+		CA:                 ca,
+		Cert:               cert,
+		Key:                key,
+		Password:           conf.Password,
+	}, nil
+}
+
+func readTLSMaterialFromFile(filePath string) ([]byte, error) {
+	if filePath == "" {
+		return nil, nil
+	}
+
+	data, err := os.ReadFile(filepath.Clean(filePath))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file(%s): %w", filePath, err)
+	}
+	if len(data) == 0 {
+		return nil, fmt.Errorf("file(%s) is empty", filePath)
+	}
+
+	return data, nil
+}
+
+// Validate validates certificate source combinations without reading files.
 func (conf TLSConfig) Validate() error {
-	// certificate and key must be paired.
-	if (len(conf.CertFile) == 0) != (len(conf.KeyFile) == 0) {
-		return errors.New("cert file and key file must be both provided or both empty")
+	hasCert := conf.Cert != "" || conf.CertFile != ""
+	hasKey := conf.Key != "" || conf.KeyFile != ""
+
+	// Certificate and key must be paired.
+	if hasCert != hasKey {
+		return errors.New("cert and key must be both provided or both empty")
 	}
 
-	// the password must be present at the same time as the key file.
-	if len(conf.Password) > 0 && len(conf.KeyFile) == 0 {
-		return errors.New("password provided but no key file specified")
+	// A password requires a key source.
+	if conf.Password != "" && !hasKey {
+		return errors.New("password provided but no key specified")
 	}
 
-	switch {
-	// case1: unused tls config.
-	case len(conf.CertFile) == 0 && len(conf.KeyFile) == 0 &&
-		len(conf.CAFile) == 0 && len(conf.Password) == 0:
-		return nil
+	return nil
+}
 
-	// case2: one-way authentication
-	case len(conf.CertFile) == 0 && len(conf.CAFile) > 0:
-		return nil
+// IsEnabled checks if tls is enabled.
+func (conf TLSConfig) IsEnabled() bool {
+	hasCA := conf.CA != "" || conf.CAFile != ""
+	hasCert := conf.Cert != "" || conf.CertFile != ""
+	hasKey := conf.Key != "" || conf.KeyFile != ""
 
-	// case3: two-way authentication
-	case len(conf.CertFile) > 0 && len(conf.KeyFile) > 0:
-		return nil
-	default:
-		return fmt.Errorf("failed to validate tls config: invalid combination of tls config")
-	}
+	return hasCA && hasCert && hasKey
 }
 
 // Workflow the config of workflow.

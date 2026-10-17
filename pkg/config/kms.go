@@ -82,9 +82,21 @@ func (k *KMS) ParseApplicationServiceConfig(service *ApplicationService) error {
 	}
 
 	// etcd.
+	// - decoding etcd tls.
+	etcdTLS, err := parseTLSConfigFromBase64(
+		dataGlobal.Etcd.Default.TLSCABase64,
+		dataGlobal.Etcd.Default.TLSCertBase64,
+		dataGlobal.Etcd.Default.TLSKeyBase64,
+		dataGlobal.Etcd.Default.TLSPassword,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to parse etcd tls config: %w", err)
+	}
 	service.Etcd.Password = dataGlobal.Etcd.Default.Password
-	service.Etcd.TLS.Password = dataGlobal.Etcd.Default.TLSPassword
-	// TODO: add tls certs from dataGlobal.
+	service.Etcd.TLS.CA = etcdTLS.CA
+	service.Etcd.TLS.Cert = etcdTLS.Cert
+	service.Etcd.TLS.Key = etcdTLS.Key
+	service.Etcd.TLS.Password = etcdTLS.Password
 
 	// mongodb.
 	service.MongoDB.Username = dataGlobal.MongoDB.Default.Username
@@ -136,9 +148,21 @@ func (k *KMS) ParseBackendServiceConfig(service *BackendService) error {
 	}
 
 	// etcd.
+	// - decoding etcd tls.
+	etcdTLS, err := parseTLSConfigFromBase64(
+		dataGlobal.Etcd.Default.TLSCABase64,
+		dataGlobal.Etcd.Default.TLSCertBase64,
+		dataGlobal.Etcd.Default.TLSKeyBase64,
+		dataGlobal.Etcd.Default.TLSPassword,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to parse etcd tls config: %w", err)
+	}
 	service.Etcd.Password = dataGlobal.Etcd.Default.Password
-	service.Etcd.TLS.Password = dataGlobal.Etcd.Default.TLSPassword
-	// TODO: add tls certs from dataGlobal.
+	service.Etcd.TLS.CA = etcdTLS.CA
+	service.Etcd.TLS.Cert = etcdTLS.Cert
+	service.Etcd.TLS.Key = etcdTLS.Key
+	service.Etcd.TLS.Password = etcdTLS.Password
 
 	// mongodb.
 	service.MongoDB.Username = dataGlobal.MongoDB.Default.Username
@@ -148,18 +172,13 @@ func (k *KMS) ParseBackendServiceConfig(service *BackendService) error {
 	service.Redis.Password = dataGlobal.Redis.Default.Password
 
 	// services.
-	// - prework for decoding base64.
-	basicPublicKeyPem, err := base64.StdEncoding.DecodeString(dataGlobal.JwtServerConfig.BackendBasic.PublicKeyPEMBase64)
-	if err != nil {
-		return fmt.Errorf("failed to decode public key pem: %w", err)
-	}
 	// - info
 	service.InfoServer.JWTServerConfig.SymmetricKey = dataGlobal.JwtServerConfig.BackendInfo.SymmetricKey
 	// - admin
 	service.AdminServer.JWTServerConfig.SymmetricKey = dataGlobal.JwtServerConfig.BackendAdmin.SymmetricKey
 	// - basic
 	service.BasicServer.JWTServerConfig.SymmetricKey = dataGlobal.JwtServerConfig.BackendBasic.SymmetricKey
-	service.BasicServer.JWTServerConfig.PublicKeyPem = string(basicPublicKeyPem)
+	service.BasicServer.JWTServerConfig.PublicKeyPem = string(dataGlobal.JwtServerConfig.BackendBasic.PublicKeyPEMBase64)
 	// - callback
 	service.CallbackServer.JWTServerConfig.SymmetricKey = dataGlobal.JwtServerConfig.BackendCallback.SymmetricKey
 	// - proxy
@@ -220,9 +239,21 @@ func (k *KMS) ParseFileServiceConfig(service *FileService) error {
 	}
 
 	// etcd.
+	// - decoding etcd tls.
+	etcdTLS, err := parseTLSConfigFromBase64(
+		dataGlobal.Etcd.Default.TLSCABase64,
+		dataGlobal.Etcd.Default.TLSCertBase64,
+		dataGlobal.Etcd.Default.TLSKeyBase64,
+		dataGlobal.Etcd.Default.TLSPassword,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to parse etcd tls config: %w", err)
+	}
 	service.Etcd.Password = dataGlobal.Etcd.Default.Password
-	service.Etcd.TLS.Password = dataGlobal.Etcd.Default.TLSPassword
-	// TODO: add tls certs from dataGlobal.
+	service.Etcd.TLS.CA = etcdTLS.CA
+	service.Etcd.TLS.Cert = etcdTLS.Cert
+	service.Etcd.TLS.Key = etcdTLS.Key
+	service.Etcd.TLS.Password = etcdTLS.Password
 
 	// mongodb.
 	service.MongoDB.Username = dataGlobal.MongoDB.Default.Username
@@ -250,4 +281,33 @@ func (k *KMS) ParseFileServiceConfig(service *FileService) error {
 	service.Repo.SecretKey = dataModule.BKRepo.Default.SecretKey
 
 	return nil
+}
+
+func parseTLSConfigFromBase64(caBase64, certBase64, keyBase64, password string) (*TLSConfig, error) {
+	// decoding base64.
+	tlsCA, err := base64.StdEncoding.DecodeString(caBase64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode tls ca: %w", err)
+	}
+	tlsCert, err := base64.StdEncoding.DecodeString(certBase64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode tls cert: %w", err)
+	}
+	tlsKey, err := base64.StdEncoding.DecodeString(keyBase64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode tls key: %w", err)
+	}
+
+	conf := &TLSConfig{
+		CA:       string(tlsCA),
+		Cert:     string(tlsCert),
+		Key:      string(tlsKey),
+		Password: password,
+	}
+
+	if err = conf.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid tls config: %w", err)
+	}
+
+	return conf, nil
 }
