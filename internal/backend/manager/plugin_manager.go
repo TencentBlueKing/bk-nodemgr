@@ -45,14 +45,14 @@ func (mgr *Manager) LaunchInstallPlugin(
 
 	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(
 		nCtx,
-		globalsettings.PluginInstallMaxConcurrencyNum,
-		globalsettings.PluginInstallMaxConcurrencyNumDefault,
+		globalsettings.OperPluginInstallMaxConcurrencyNum,
+		globalsettings.OperPluginInstallMaxConcurrencyNumDefault,
 	))
 	if err != nil {
-		return "", fmt.Errorf("failed to parse %s: %w", globalsettings.PluginInstallMaxConcurrencyNum, err)
+		return "", fmt.Errorf("failed to parse %s: %w", globalsettings.OperPluginInstallMaxConcurrencyNum, err)
 	}
 	if maxConcurrencyNum <= 0 {
-		return "", fmt.Errorf("%s must be positive, got %d", globalsettings.PluginInstallMaxConcurrencyNum, maxConcurrencyNum)
+		return "", fmt.Errorf("%s must be positive, got %d", globalsettings.OperPluginInstallMaxConcurrencyNum, maxConcurrencyNum)
 	}
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(

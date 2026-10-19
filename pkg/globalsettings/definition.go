@@ -64,10 +64,10 @@ const (
 	// OperSyncHostMaxConcurrencyNumDefault defines the default max concurrency for sync host operations.
 	OperSyncHostMaxConcurrencyNumDefault = "100"
 
-	// PluginInstallMaxConcurrencyNum defines the max concurrency setting for plugin install operations.
-	PluginInstallMaxConcurrencyNum = "plugin_install_max_concurrency_num"
-	// PluginInstallMaxConcurrencyNumDefault defines the default max concurrency for plugin install operations.
-	PluginInstallMaxConcurrencyNumDefault = "200"
+	// OperPluginInstallMaxConcurrencyNum defines the max concurrency setting for plugin install operations.
+	OperPluginInstallMaxConcurrencyNum = "oper_plugin_install_max_concurrency_num"
+	// OperPluginInstallMaxConcurrencyNumDefault defines the default max concurrency for plugin install operations.
+	OperPluginInstallMaxConcurrencyNumDefault = "200"
 )
 
 // PreDefinition returns the definition of global settings.
@@ -106,8 +106,8 @@ func PreDefinition() []*types.GlobalSettings {
 			Value:       OperSyncHostMaxConcurrencyNumDefault,
 		},
 		{
-			SettingName: PluginInstallMaxConcurrencyNum,
-			Value:       PluginInstallMaxConcurrencyNumDefault,
+			SettingName: OperPluginInstallMaxConcurrencyNum,
+			Value:       OperPluginInstallMaxConcurrencyNumDefault,
 		},
 	}
 }
