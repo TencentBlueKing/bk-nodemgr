@@ -34,6 +34,7 @@ func (h *handler) recordConfigPolicyEventsByPolicies(
 	eventType types.ConfigPolicyEventType,
 	policies ...*types.ConfigPolicy,
 ) {
+
 	operator := rCtx.BKUsername()
 	events := make([]*types.ConfigPolicyEvent, len(policies))
 	for i, cp := range policies {
@@ -65,7 +66,6 @@ func (h *handler) recordConfigPolicyEventsByPolicyIDs(rCtx restserver.IContext, 
 }
 
 func (h *handler) recordConfigPolicyEvents(rCtx restserver.IContext, events ...*types.ConfigPolicyEvent) {
-
 	err := h.goAsyncPool.Run(
 		rCtx,
 		func(nCtx contextx.IContext) error {

@@ -58,7 +58,6 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 	configPolicy.TenantID = rCtx.TenantID()
-	configPolicy.Version = policies[0].Version + 1
 	fields := types.UpdateAllConfigPolicyFields()
 	if err := h.storageConfigPolicy.UpdateConfigPolicy(rCtx, fields, configPolicy); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy")
@@ -66,8 +65,8 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// record event.
-	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeUpdate, configPolicy)
+	// record event with the persisted policy, since biz, type and version are not taken from the request.
+	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeUpdate, req.GetConfigpolicyId())
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
 	resp.ConvertConfigPolicyID(req.GetConfigpolicyId())
