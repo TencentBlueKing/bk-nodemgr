@@ -43,15 +43,13 @@ type KMS struct {
 }
 
 func (k *KMS) load(moduleEnvName string) error {
-	if k.GlobalSecretFile == "" || k.ModuleSecretFile == "" {
-		return fmt.Errorf("kms globalSecretFile or moduleSecretFile is empty")
-	}
-
-	envelopeGlobal, err := os.ReadFile(k.GlobalSecretFile)
-	if err != nil {
+	if err := k.loadGlobal(); err != nil {
 		return err
 	}
-	k.param.EnvelopeGlobal = string(envelopeGlobal)
+
+	if k.ModuleSecretFile == "" {
+		return fmt.Errorf("kms moduleSecretFile is empty")
+	}
 
 	envelopeModule, err := os.ReadFile(k.ModuleSecretFile)
 	if err != nil {
@@ -60,8 +58,69 @@ func (k *KMS) load(moduleEnvName string) error {
 	k.param.EnvelopeModule = string(envelopeModule)
 
 	// get private key from env.
-	k.param.PrivateKeyGlobal = os.Getenv(kmsPrivateKeyGlobalEnvName)
 	k.param.PrivateKeyModule = os.Getenv(moduleEnvName)
+
+	return nil
+}
+
+// loadGlobal loads only the global envelope file and the global private key.
+func (k *KMS) loadGlobal() error {
+	if k.GlobalSecretFile == "" {
+		return fmt.Errorf("kms globalSecretFile is empty")
+	}
+
+	envelopeGlobal, err := os.ReadFile(k.GlobalSecretFile)
+	if err != nil {
+		return err
+	}
+	k.param.EnvelopeGlobal = string(envelopeGlobal)
+
+	// get private key from env.
+	k.param.PrivateKeyGlobal = os.Getenv(kmsPrivateKeyGlobalEnvName)
+
+	return nil
+}
+
+// ParseAdminClientDatabase parses the adminclient database config.
+// Database credentials (etcd/redis/mongodb) all come from the global envelope,
+// so only the global private key is required.
+func (k *KMS) ParseAdminClientDatabase(conf *AdminClientDatabase) error {
+	if !k.Enabled {
+		return nil
+	}
+
+	if err := k.loadGlobal(); err != nil {
+		return err
+	}
+
+	dataGlobal, err := kms.LoadGlobalEnvelope(k.param)
+	if err != nil {
+		return err
+	}
+
+	// etcd.
+	// - decoding etcd tls.
+	etcdTLS, err := parseTLSConfigFromBase64(
+		dataGlobal.Etcd.Default.TLSCABase64,
+		dataGlobal.Etcd.Default.TLSCertBase64,
+		dataGlobal.Etcd.Default.TLSKeyBase64,
+		dataGlobal.Etcd.Default.TLSPassword,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to parse etcd tls config: %w", err)
+	}
+	conf.Etcd.Password = dataGlobal.Etcd.Default.Password
+	conf.Etcd.TLS.CA = etcdTLS.CA
+	conf.Etcd.TLS.Cert = etcdTLS.Cert
+	conf.Etcd.TLS.Key = etcdTLS.Key
+	conf.Etcd.TLS.Password = etcdTLS.Password
+
+	// redis.
+	conf.Redis.Password = dataGlobal.Redis.Default.Password
+
+	// mongodb.
+	conf.MongoDB.Username = dataGlobal.MongoDB.Default.Username
+	conf.MongoDB.Password = dataGlobal.MongoDB.Default.Password
 
 	return nil
 }

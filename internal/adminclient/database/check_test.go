@@ -16,29 +16,32 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package adminclient provides the root command for the admin client CLI.
-package adminclient
+package database
 
 import (
-	"fmt"
+	"bytes"
+	"path/filepath"
+	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/backend"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
-	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// NewRootCMD creates the root command for the admin client.
-func NewRootCMD(handlerFactory backend.HandlerFactory) *cobra.Command {
-	rootCMD := &cobra.Command{
-		Use:     "bk-nodemgr-adminclient",
-		Short:   "bk-nodemgr admin client",
-		Version: version.FormatVersion(),
-		PreRun: func(_ *cobra.Command, _ []string) {
-			fmt.Println(version.GetStartInfo())
-		},
+func TestCheckCMDRejectsPositionalArgsBeforeConfigLoad(t *testing.T) {
+	for _, component := range []string{"etcd", "redis", "mongodb"} {
+		t.Run(component, func(t *testing.T) {
+			cmd := NewDatabaseCMD()
+			cmd.SetOut(new(bytes.Buffer))
+			cmd.SetErr(new(bytes.Buffer))
+			cmd.SetArgs([]string{
+				"check", component, "unexpected", "-f", filepath.Join(t.TempDir(), "missing.yaml"),
+			})
+
+			err := cmd.Execute()
+
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), `unknown command "unexpected"`)
+			assert.NotContains(t, err.Error(), "failed to load config")
+		})
 	}
-
-	rootCMD.AddCommand(backend.NewBackendCMD(handlerFactory))
-
-	return rootCMD
 }

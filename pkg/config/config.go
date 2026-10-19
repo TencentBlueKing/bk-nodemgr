@@ -75,7 +75,6 @@ func (redisType RedisType) Validate() error {
 // Redis the config of redis.
 type Redis struct {
 	// Type defines the Redis deployment type: standalone, sentinel, cluster.
-	// Defaults to "standalone" if not specified.
 	Type RedisType `yaml:"type" usage:"redis deployment type: standalone, sentinel, cluster"`
 	// Addrs is the list of Redis addresses.
 	// - standalone: ["host:port"] (single address)
@@ -92,15 +91,6 @@ type Redis struct {
 	TLS TLSConfig `yaml:"tls" usage:"tls of redis"`
 
 	TraceService `yaml:",inline"`
-}
-
-// GetType returns the Redis type, defaulting to standalone if not specified.
-func (conf Redis) GetType() RedisType {
-	if conf.Type == "" {
-		return RedisTypeStandalone
-	}
-
-	return conf.Type
 }
 
 // Validate validates the Redis configuration.
@@ -126,7 +116,7 @@ func (conf Redis) Validate() error {
 
 // validateAddrs validates the Redis addresses configuration based on the deployment type.
 func (conf Redis) validateAddrs() error {
-	switch conf.GetType() {
+	switch conf.Type {
 	case RedisTypeSentinel:
 		return conf.validateSentinelAddrs()
 	case RedisTypeCluster:

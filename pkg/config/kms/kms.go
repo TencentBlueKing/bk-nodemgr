@@ -38,6 +38,11 @@ type EnvelopeLoadParam struct {
 	PrivateKeyModule string
 }
 
+// LoadGlobalEnvelope loads only the kms global secret.
+func LoadGlobalEnvelope(param EnvelopeLoadParam) (*envelope.GlobalEnvelope, error) {
+	return loadKMSGlobalSecret(param.EnvelopeGlobal, param.PrivateKeyGlobal)
+}
+
 // LoadApplicationEnvelopes load the kms application secret.
 func LoadApplicationEnvelopes(param EnvelopeLoadParam) (*envelope.GlobalEnvelope, *envelope.ApplicationEnvelope, error) {
 	dataGlobal, err := loadKMSGlobalSecret(param.EnvelopeGlobal, param.PrivateKeyGlobal)

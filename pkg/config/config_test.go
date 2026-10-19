@@ -210,9 +210,10 @@ func TestRedisType_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "empty type defaults to standalone",
+			name:    "empty type",
 			t:       "",
-			wantErr: false,
+			wantErr: true,
+			errMsg:  "invalid redis type",
 		},
 		{
 			name:    "invalid type",
@@ -235,41 +236,6 @@ func TestRedisType_Validate(t *testing.T) {
 	}
 }
 
-func TestRedis_GetType(t *testing.T) {
-	tests := []struct {
-		name     string
-		config   Redis
-		expected RedisType
-	}{
-		{
-			name:     "empty type returns standalone",
-			config:   Redis{Type: ""},
-			expected: RedisTypeStandalone,
-		},
-		{
-			name:     "explicit standalone",
-			config:   Redis{Type: RedisTypeStandalone},
-			expected: RedisTypeStandalone,
-		},
-		{
-			name:     "explicit sentinel",
-			config:   Redis{Type: RedisTypeSentinel},
-			expected: RedisTypeSentinel,
-		},
-		{
-			name:     "explicit cluster",
-			config:   Redis{Type: RedisTypeCluster},
-			expected: RedisTypeCluster,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, tt.config.GetType())
-		})
-	}
-}
-
 func TestRedis_Validate_StandaloneMode(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -288,13 +254,14 @@ func TestRedis_Validate_StandaloneMode(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "valid standalone config with empty type",
+			name: "empty type is rejected",
 			config: Redis{
 				Addrs:    []string{"127.0.0.1:6379"},
 				Password: "password",
 				DB:       0,
 			},
-			wantErr: false,
+			wantErr: true,
+			errMsg:  "invalid redis type",
 		},
 		{
 			name: "missing addrs in standalone mode",

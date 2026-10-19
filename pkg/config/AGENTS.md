@@ -28,6 +28,7 @@ Not responsible for:
 | `file.go` | `FileService` — file server config; download port, mount host dir |
 | `relay.go` | `RelayService` — relay server config |
 | `kms.go` | `KMS` — shared KMS secret loading; decrypts envelopes via `pkg/kms` and maps values into each service config |
+| `adminclient.go` | `AdminClientDatabase` — minimal database-sections-only config for adminclient check/proxy commands |
 | `config_test.go` | Unit tests for shared sub-struct validation |
 
 ### Key types in `config.go`
@@ -85,3 +86,14 @@ env BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT
   together with the `Parse*ServiceConfig` mapping functions (~250 lines) that translate the
   decrypted KMS envelope into each service's config fields. Moving only the struct into
   `config.go` would split tightly coupled code; treat `kms.go` as the KMS integration unit.
+- **`AdminClientDatabase` (in `adminclient.go`) is not a `*Service` struct.** It is a
+  client-side config shared by the adminclient database commands and deliberately deviates
+  from two conventions: (1) it is not tied to one service binary — it aggregates only the
+  database sections common to all service conf files; (2) `LoadFromFile` does not call
+  `Validate()` — each command validates only the database section it uses, because the raw
+  config file may contain unreplaced rendering placeholders (e.g. `__ADVERTISE_IPV4__`) in
+  unrelated fields.
+- **`KMS.loadGlobal()` reads env vars like `KMS.load()`.** Both are covered by the KMS
+  exception above; `loadGlobal` reads only the global private key
+  (`BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL`) for consumers whose secrets all live in the global
+  envelope.

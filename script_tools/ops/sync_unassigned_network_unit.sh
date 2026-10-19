@@ -4,11 +4,14 @@
 
 set -eu
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONF_DIR="${CONF_DIR:-/bk-nodemgr/etc}"
 CONFIG_FILE=""
 LOGIN_NAME="admin"
 BK_BIZ_ID=""
 ALL="false"
+
+. "${SCRIPT_DIR}/_common.sh"
 
 usage() {
 	cat <<EOF
@@ -40,20 +43,6 @@ discover_backend_config() {
 	done
 
 	return 1
-}
-
-find_adminclient() {
-	if [ -n "${ADMINCLIENT_BIN:-}" ]; then
-		echo "$ADMINCLIENT_BIN"
-		return 0
-	fi
-
-	if [ -x "/bk-nodemgr/bin/bk-nodemgr-adminclient" ]; then
-		echo "/bk-nodemgr/bin/bk-nodemgr-adminclient"
-		return 0
-	fi
-
-	command -v bk-nodemgr-adminclient 2>/dev/null || return 1
 }
 
 # --- Parse script options ---

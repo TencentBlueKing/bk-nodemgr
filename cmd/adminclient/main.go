@@ -27,20 +27,34 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/backend"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/database"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backendadmin"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
+	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
 func main() {
-	rootCMD := adminclient.NewRootCMD(newBackendAdminHandler)
+	rootCMD := &cobra.Command{
+		Use:     "bk-nodemgr-adminclient",
+		Short:   "bk-nodemgr admin client",
+		Version: version.FormatVersion(),
+		PreRun: func(_ *cobra.Command, _ []string) {
+			fmt.Println(version.GetStartInfo())
+		},
+	}
+
+	rootCMD.AddCommand(backend.NewBackendCMD(newBackendAdminHandler))
+	rootCMD.AddCommand(database.NewDatabaseCMD())
+
 	if err := rootCMD.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to execute cmd: %v\n", err)
 		os.Exit(1)

@@ -325,3 +325,62 @@ Render an HTTP server config and inject gracefulShutdownTimeoutSec from terminat
 {{- end -}}
 {{- $config | toYaml -}}
 {{- end -}}
+
+{{/*
+Render a storage check init container polling bk-nodemgr-adminclient database check.
+Credentials come from the module config file, with kms secret override when kms.enabled.
+Each check is a single attempt; the container retries in a loop until the storage is ready,
+so a slow first-install storage does not surface as Init:CrashLoopBackOff backoff.
+Params: dict "root" . "module" (backend|application|file) "moduleValues" <module values> "component" (etcd|redis|mongodb)
+*/}}
+{{- define "bk-nodemgr.storageCheckInitContainer" -}}
+{{- $root := .root -}}
+{{- $module := .module -}}
+{{- $moduleValues := .moduleValues -}}
+- name: {{ template "bk-nodemgr.fullname" $root }}-{{ $module }}-check-{{ .component }}
+  {{- if len $moduleValues.image.tag }}
+  {{- if len $root.Values.global.imageRegistry }}
+  image: {{ $root.Values.global.imageRegistry }}/{{ $root.Values.image.repository }}:{{ $moduleValues.image.tag }}
+  {{- else }}
+  image: {{ $root.Values.image.registry }}/{{ $root.Values.image.repository }}:{{ $moduleValues.image.tag }}
+  {{- end }}
+  {{- else }}
+  image: {{ template "bk-nodemgr.image" $root }}
+  {{- end }}
+  imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
+  command: ["sh", "-c"]
+  args:
+  - |
+    try_times=1
+    until "{{ $root.Values.common.binPath }}/bk-nodemgr-adminclient" database check {{ .component }} -f "/tmp/nodemgr-config/{{ $module }}_conf.yaml"; do
+        echo "check {{ .component }} failed, retried ${try_times} times"
+        try_times=$((try_times+1))
+        sleep 1
+    done
+    echo "check {{ .component }} done"
+  {{- if $root.Values.kms.enabled }}
+  env:
+    - name: BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL
+      valueFrom:
+        secretKeyRef:
+          name: {{ template "bk-nodemgr.fullname" $root }}-global-kms-secret
+          key: privateKey
+  {{- end }}
+  volumeMounts:
+    - name: {{ template "bk-nodemgr.fullname" $root }}-{{ $module }}-config
+      mountPath: /tmp/nodemgr-config
+      readOnly: true
+    # storage tls files referenced by the config live under certPath.
+    - name: nodemgr-cert
+      mountPath: {{ $root.Values.common.certPath }}
+      readOnly: true
+  {{- if $root.Values.kms.enabled }}
+    - name: kms-envelope
+      # least privilege: storage credentials all live in the global envelope,
+      # mount only the global item, not the module envelope.
+      mountPath: {{ $root.Values.common.secretPath }}/kms-global-envelope
+      subPath: kms-global-envelope
+      readOnly: true
+  {{- end }}
+  resources: {{- toYaml $root.Values.initContainerResources | nindent 4 }}
+{{- end -}}

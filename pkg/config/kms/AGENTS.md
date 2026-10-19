@@ -21,7 +21,7 @@ Not responsible for:
 
 | File        | Purpose                                                                                                                                                  |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kms.go`    | `LoadParam` input contract; `LoadApplicationEnvelopes` / `LoadBackendEnvelopes` / `LoadFileEnvelopes` entrypoints; internal per-envelope decrypt helpers |
+| `kms.go`    | `LoadParam` input contract; per-service entrypoints (`LoadApplicationEnvelopes` / `LoadBackendEnvelopes` / `LoadFileEnvelopes`) plus the global-only `LoadGlobalEnvelope` (for consumers whose secrets all live in the global envelope, e.g. adminclient database check/proxy); internal per-envelope decrypt helpers |
 | `envelope/` | Typed structs for decrypted global and per-module envelope JSON                                                                                          |
 
 ### Call flow
@@ -33,11 +33,22 @@ pkg/config kms.go KMS.load()                (reads envelope files + private-key 
     → pkg/config kms.go Parse*ServiceConfig (maps values into *Service config fields)
 ```
 
+Global-only consumers (database credentials) use a shortened path:
+
+```
+pkg/config kms.go KMS.loadGlobal()          (reads only the global envelope file + global key env)
+    → pkg/kms LoadGlobalEnvelope(param)     (decrypt + unmarshal global envelope only)
+    → pkg/config kms.go ParseAdminClientDatabase (maps etcd/redis/mongodb credentials)
+```
+
 ## CONVENTIONS
 
 - **One `LoadKMS*Secret` entrypoint per service.** Each returns the shared global envelope plus
   its own module envelope type. New services add a new entrypoint and a new module envelope
   type — do not widen existing signatures (OCP).
+- **Global-only consumers use `LoadGlobalEnvelope`.** Consumers whose secrets all live in the
+  global envelope (database credentials: etcd/redis/mongodb) must not require a module private
+  key; they use the global-only entrypoint instead of a per-service one.
 - **Secrets enter only via `LoadParam`.** This package never touches `os.Getenv` or
   `os.ReadFile`; callers assemble `LoadParam`.
 - **Errors are wrapped with context.** Every decrypt/unmarshal failure returns
