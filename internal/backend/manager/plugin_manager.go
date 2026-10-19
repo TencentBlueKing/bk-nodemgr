@@ -26,8 +26,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -41,7 +43,23 @@ func (mgr *Manager) LaunchInstallPlugin(
 	param types.InstallPluginParam,
 ) (string, error) {
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(
+		nCtx,
+		globalsettings.PluginInstallMaxConcurrencyNum,
+		globalsettings.PluginInstallMaxConcurrencyNumDefault,
+	))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse %s: %w", globalsettings.PluginInstallMaxConcurrencyNum, err)
+	}
+	if maxConcurrencyNum <= 0 {
+		return "", fmt.Errorf("%s must be positive, got %d", globalsettings.PluginInstallMaxConcurrencyNum, maxConcurrencyNum)
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(
+		nCtx,
+		trigger.CategoryOrdered,
+		trigger.NewMetadataOrdered(int(maxConcurrencyNum)),
+	)
 	if err != nil {
 		return "", err
 	}
