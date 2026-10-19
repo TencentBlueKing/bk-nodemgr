@@ -619,7 +619,18 @@ func (conf TLSConfig) GetKey() ([]byte, error) {
 }
 
 // ToSSLConfig resolves certificate sources without modifying the config.
+// When TLS is not fully enabled, residual cert/key sources are ignored and
+// no file is read, matching the historical behavior of partial TLS configs.
 func (conf TLSConfig) ToSSLConfig() (*ssl.TLSConfig, error) {
+	sslConf := &ssl.TLSConfig{
+		InsecureSkipVerify: conf.InsecureSkipVerify,
+		VerifyClient:       conf.VerifyClient,
+	}
+
+	if !conf.IsEnabled() {
+		return sslConf, nil
+	}
+
 	if err := conf.Validate(); err != nil {
 		return nil, fmt.Errorf("failed to validate tls config: %w", err)
 	}
@@ -639,14 +650,12 @@ func (conf TLSConfig) ToSSLConfig() (*ssl.TLSConfig, error) {
 		return nil, err
 	}
 
-	return &ssl.TLSConfig{
-		InsecureSkipVerify: conf.InsecureSkipVerify,
-		VerifyClient:       conf.VerifyClient,
-		CA:                 ca,
-		Cert:               cert,
-		Key:                key,
-		Password:           conf.Password,
-	}, nil
+	sslConf.CA = ca
+	sslConf.Cert = cert
+	sslConf.Key = key
+	sslConf.Password = conf.Password
+
+	return sslConf, nil
 }
 
 func readTLSMaterialFromFile(filePath string) ([]byte, error) {

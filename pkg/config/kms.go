@@ -178,7 +178,7 @@ func (k *KMS) ParseBackendServiceConfig(service *BackendService) error {
 	service.AdminServer.JWTServerConfig.SymmetricKey = dataGlobal.JwtServerConfig.BackendAdmin.SymmetricKey
 	// - basic
 	service.BasicServer.JWTServerConfig.SymmetricKey = dataGlobal.JwtServerConfig.BackendBasic.SymmetricKey
-	service.BasicServer.JWTServerConfig.PublicKeyPem = string(dataGlobal.JwtServerConfig.BackendBasic.PublicKeyPEMBase64)
+	service.BasicServer.JWTServerConfig.PublicKeyPem = dataGlobal.JwtServerConfig.BackendBasic.PublicKeyPEMBase64
 	// - callback
 	service.CallbackServer.JWTServerConfig.SymmetricKey = dataGlobal.JwtServerConfig.BackendCallback.SymmetricKey
 	// - proxy

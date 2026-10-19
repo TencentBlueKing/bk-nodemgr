@@ -23,7 +23,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 )
 
@@ -52,23 +51,6 @@ type TLSConfig struct {
 
 	// Password authentication key file password.
 	Password string
-}
-
-// Validate validates the config.
-func (c TLSConfig) Validate() error {
-	hasCert := len(c.Cert) != 0
-	hasKey := len(c.Key) != 0
-
-	if hasCert != hasKey {
-		return errors.New("cert and key must be both provided or both empty")
-	}
-
-	// A password requires a key source.
-	if c.Password != "" && !hasKey {
-		return errors.New("password provided but no key specified")
-	}
-
-	return nil
 }
 
 // IsEnabled checks if ssl is enabled.
