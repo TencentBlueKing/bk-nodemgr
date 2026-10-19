@@ -88,6 +88,83 @@ configTemplates:
         description: 文件分发工作空间路径，留空则按部署环境自动隔离为 /tmp/bknm/{部署环境}/relay（Windows 为 c:/tmp/bknm/{部署环境}/relay）
         descriptionEn: File distribution workspace path. Leave empty to isolate per deploy env at /tmp/bknm/{deploy_env}/relay (c:/tmp/bknm/{deploy_env}/relay on Windows)
         properties:
+      - title: Tracing
+        type: object
+        default:
+        required: false
+        description: APM 链路追踪配置
+        descriptionEn: APM tracing configuration
+        properties:
+          - title: ExporterType
+            type: string
+            default: stdout
+            required: false
+            description: 链路导出类型，支持 stdout 或 otlp
+            descriptionEn: Trace exporter type, stdout or otlp
+            properties:
+          - title: OtlpEndpoint
+            type: string
+            default: ""
+            required: false
+            description: OTLP 服务地址，填写 host:port
+            descriptionEn: OTLP endpoint in host:port format
+            properties:
+          - title: OtlpProtocol
+            type: string
+            default: grpc
+            required: false
+            description: OTLP 传输协议，支持 grpc 或 http
+            descriptionEn: OTLP transport protocol, grpc or http
+            properties:
+          - title: OtlpInsecure
+            type: bool
+            default: false
+            required: false
+            description: 是否使用不加密的 OTLP 连接
+            descriptionEn: Whether to use an insecure OTLP connection
+            properties:
+          - title: OtlpHeaders
+            type: array
+            default: []
+            required: false
+            description: OTLP 请求头列表
+            descriptionEn: OTLP request headers
+            properties:
+              - title: Key
+                type: string
+                default: ""
+                required: false
+                description: 请求头名称
+                descriptionEn: Header name
+                properties:
+              - title: Value
+                type: string
+                default: ""
+                required: false
+                description: 请求头值
+                descriptionEn: Header value
+                properties:
+          - title: GlobalService
+            type: object
+            default:
+            required: false
+            description: 全局链路服务配置
+            descriptionEn: Global trace service configuration
+            properties:
+              - title: TraceServiceName
+                type: string
+                default: relay
+                required: false
+                description: APM 服务名称
+                descriptionEn: APM service name
+                properties:
+              - title: TraceSampleRate
+                type: number
+                default: 0
+                required: false
+                description: 链路采样率，取值范围 0 到 1
+                descriptionEn: Trace sample rate from 0 to 1
+                properties:
 control:
   start: "./start.sh bk-nodemgr-relay"
   stop: "./stop.sh bk-nodemgr-relay"

@@ -246,7 +246,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 			},
 		},
 		{
-			name: "CustomContext Tracing config is ignored",
+			name: "CustomContext Tracing config is rendered",
 			data: map[string]any{
 				"PluginInfo": map[string]any{
 					"Name":      "bk-nodemgr-relay",
@@ -262,10 +262,16 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				"CustomContext": map[string]any{
 					"Tracing": map[string]any{
 						"ExporterType": "otlp",
-						"OtlpEndpoint": "http://localhost:4317",
+						"OtlpEndpoint": "collector:4318",
+						"OtlpProtocol": "http",
 						"OtlpInsecure": true,
-						"OtlpHeaders": map[string]string{
-							"Authorization": "Bearer token",
+						"OtlpHeaders": []map[string]string{{
+							"Key":   "Authorization",
+							"Value": "Bearer token",
+						}},
+						"GlobalService": map[string]any{
+							"TraceServiceName": "relay-apm",
+							"TraceSampleRate":  0.5,
 						},
 					},
 				},
@@ -274,14 +280,26 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				if !strings.Contains(result, "tracing:") {
 					t.Error("Tracing section should be present")
 				}
-				if strings.Contains(result, "exporterType: otlp") {
-					t.Error("Tracing exporterType should be ignored")
+				if !strings.Contains(result, "exporterType: otlp") {
+					t.Error("Tracing exporterType should be rendered")
 				}
-				if strings.Contains(result, "otlpEndpoint: http://localhost:4317") {
-					t.Error("Tracing otlpEndpoint should be ignored")
+				if !strings.Contains(result, `otlpEndpoint: "collector:4318"`) {
+					t.Error("Tracing otlpEndpoint should be rendered")
 				}
-				if !strings.Contains(result, "traceServiceName: relay") {
-					t.Error("Tracing globalService traceServiceName should default to relay")
+				if !strings.Contains(result, `otlpProtocol: "http"`) {
+					t.Error("Tracing otlpProtocol should be rendered")
+				}
+				if !strings.Contains(result, "otlpInsecure: true") {
+					t.Error("Tracing otlpInsecure should be rendered")
+				}
+				if !strings.Contains(result, `"Authorization": "Bearer token"`) {
+					t.Error("Tracing otlpHeaders should be rendered as a map")
+				}
+				if !strings.Contains(result, "traceServiceName: relay-apm") {
+					t.Error("Tracing globalService traceServiceName should be rendered")
+				}
+				if !strings.Contains(result, "traceSampleRate: 0.5") {
+					t.Error("Tracing globalService traceSampleRate should be rendered")
 				}
 			},
 		},
@@ -384,7 +402,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 			},
 		},
 		{
-			name: "Tracing config is not included",
+			name: "Tracing config uses defaults",
 			data: map[string]any{
 				"PluginInfo": map[string]any{
 					"Name":      "bk-nodemgr-relay",
