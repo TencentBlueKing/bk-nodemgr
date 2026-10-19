@@ -20,12 +20,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/throttle"
 	"github.com/spf13/cobra"
 )
@@ -47,6 +49,12 @@ var (
 )
 
 func main() {
+	tracing.Init()
+	defer func() {
+		_ = tracing.Shutdown(context.Background())
+	}()
+	fmt.Printf("trace-id: %s\n", tracing.TraceID())
+
 	if err := NewRootCommand().Execute(); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
