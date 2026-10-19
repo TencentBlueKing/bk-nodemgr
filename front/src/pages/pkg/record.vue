@@ -4,7 +4,7 @@
       <div class="flex gap-[12px]">
         <DatePicker
           v-model="dateValue"
-          :shortcut-selected-index="1"
+          :shortcut-selected-index="shortcutSelectedIndex"
           :shortcuts="shortcutsRange"
           format="yyyy-MM-dd HH:mm:ss"
           type="datetimerange"
@@ -243,6 +243,21 @@ const shortcutsRange = reactive([
     },
   },
 ]);
+// 快捷项索引不写死，按当前值反查匹配的快捷项：
+// 从详情返回组件重建时，dateValue 会被恢复为离开前的范围，
+// 若索引写死为 1，输入框会按「近7天」文案展示，与实际值不一致。
+// 匹配规则：起始时间秒级一致即命中（「今天」起点是天边界，返回后依然稳定；「近N天」随时间漂移则不命中，改显实际日期）
+const shortcutSelectedIndex = computed(() => {
+  const range = dateValue.value;
+  if (!Array.isArray(range) || range.length !== 2) return -1;
+  const toSec = (v: Date | number | string) => Math.floor(new Date(v).getTime() / 1000);
+  const start = toSec(range[0]);
+  const index = shortcutsRange.findIndex((item) => {
+    const value = item.value();
+    return Array.isArray(value) && value.length === 2 && toSec(value[0]) === start;
+  });
+  return index;
+});
 const pickSuccess = async () => {
   await getTaskList();
 };
