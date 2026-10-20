@@ -37,28 +37,37 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
+// createOrderedPluginTrigger creates an ordered trigger whose max concurrency is read from the given global setting.
+func (mgr *Manager) createOrderedPluginTrigger(
+	nCtx contextx.IContext,
+	settingName string,
+	settingDefault string,
+) (workflow.ITriggerCtl, error) {
+	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(nCtx, settingName, settingDefault))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", settingName, err)
+	}
+	if maxConcurrencyNum <= 0 {
+		return nil, fmt.Errorf("%s must be positive, got %d", settingName, maxConcurrencyNum)
+	}
+
+	return mgr.workflowMgr.CreateTrigger(
+		nCtx,
+		trigger.CategoryOrdered,
+		trigger.NewMetadataOrdered(int(maxConcurrencyNum)),
+	)
+}
+
 // LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
 func (mgr *Manager) LaunchInstallPlugin(
 	nCtx contextx.IContext,
 	param types.InstallPluginParam,
 ) (string, error) {
 
-	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
 		nCtx,
 		globalsettings.OperPluginInstallMaxConcurrencyNum,
 		globalsettings.OperPluginInstallMaxConcurrencyNumDefault,
-	))
-	if err != nil {
-		return "", fmt.Errorf("failed to parse %s: %w", globalsettings.OperPluginInstallMaxConcurrencyNum, err)
-	}
-	if maxConcurrencyNum <= 0 {
-		return "", fmt.Errorf("%s must be positive, got %d", globalsettings.OperPluginInstallMaxConcurrencyNum, maxConcurrencyNum)
-	}
-
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(
-		nCtx,
-		trigger.CategoryOrdered,
-		trigger.NewMetadataOrdered(int(maxConcurrencyNum)),
 	)
 	if err != nil {
 		return "", err
@@ -176,7 +185,11 @@ func (mgr *Manager) getPluginInstallOperationDef(
 
 // LaunchUpgradePlugin launch a task to upgrade plugin. returns the workflow-id.
 func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.UpgradePluginParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginUpgradeMaxConcurrencyNum,
+		globalsettings.OperPluginUpgradeMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -286,7 +299,11 @@ func (mgr *Manager) getPluginUpgradeOperationDef(deploy *types.PluginDeployment,
 
 // LaunchUninstallPlugin launch a task to uninstall plugin. returns the workflow-id.
 func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginUninstallMaxConcurrencyNum,
+		globalsettings.OperPluginUninstallMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -401,7 +418,11 @@ func (mgr *Manager) getPluginUninstallOperationDef(deploy *types.PluginDeploymen
 
 // LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
 func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginApplySubConfigMaxConcurrencyNum,
+		globalsettings.OperPluginApplySubConfigMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -501,7 +522,11 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 
 // LaunchRemovePluginSubConfig launch a task to remove plugin subconfig. returns the workflow-id.
 func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param types.RemovePluginSubConfigParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginRemoveSubConfigMaxConcurrencyNum,
+		globalsettings.OperPluginRemoveSubConfigMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -600,7 +625,11 @@ func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param ty
 
 // LaunchStartProcess launch a task to start process. returns the workflow-id.
 func (mgr *Manager) LaunchStartProcess(nCtx contextx.IContext, param types.StartProcessParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginStartProcessMaxConcurrencyNum,
+		globalsettings.OperPluginStartProcessMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -709,7 +738,11 @@ func (mgr *Manager) getPluginStartOperationDef(deploy *types.PluginDeployment, o
 
 // LaunchRestartProcess launch a task to restart process. returns the workflow-id.
 func (mgr *Manager) LaunchRestartProcess(nCtx contextx.IContext, param types.RestartProcessParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginRestartProcessMaxConcurrencyNum,
+		globalsettings.OperPluginRestartProcessMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -822,7 +855,11 @@ func (mgr *Manager) LaunchMigrateFromV2(
 	param types.MigrateFromV2Param,
 ) (string, error) {
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginMigrateFromV2MaxConcurrencyNum,
+		globalsettings.OperPluginMigrateFromV2MaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -935,7 +972,11 @@ func (mgr *Manager) getPluginMigrateFromV2OperationDef(
 
 // LaunchStopProcess launch a task to stop process. returns the workflow-id.
 func (mgr *Manager) LaunchStopProcess(nCtx contextx.IContext, param types.StopProcessParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginStopProcessMaxConcurrencyNum,
+		globalsettings.OperPluginStopProcessMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -1044,7 +1085,11 @@ func (mgr *Manager) getProcessStopOperationDef(deploy *types.PluginDeployment, o
 
 // LaunchStartDebugPlugin launches a task to debug one prepared plugin deployment. returns the workflow-id.
 func (mgr *Manager) LaunchStartDebugPlugin(nCtx contextx.IContext, param types.StartDebugPluginParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginStartDebugMaxConcurrencyNum,
+		globalsettings.OperPluginStartDebugMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}

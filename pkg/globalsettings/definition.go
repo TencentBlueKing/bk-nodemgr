@@ -68,6 +68,51 @@ const (
 	OperPluginInstallMaxConcurrencyNum = "oper_plugin_install_max_concurrency_num"
 	// OperPluginInstallMaxConcurrencyNumDefault defines the default max concurrency for plugin install operations.
 	OperPluginInstallMaxConcurrencyNumDefault = "200"
+
+	// OperPluginUpgradeMaxConcurrencyNum defines the max concurrency setting for plugin upgrade operations.
+	OperPluginUpgradeMaxConcurrencyNum = "oper_plugin_upgrade_max_concurrency_num"
+	// OperPluginUpgradeMaxConcurrencyNumDefault defines the default max concurrency for plugin upgrade operations.
+	OperPluginUpgradeMaxConcurrencyNumDefault = "200"
+
+	// OperPluginUninstallMaxConcurrencyNum defines the max concurrency setting for plugin uninstall operations.
+	OperPluginUninstallMaxConcurrencyNum = "oper_plugin_uninstall_max_concurrency_num"
+	// OperPluginUninstallMaxConcurrencyNumDefault defines the default max concurrency for plugin uninstall operations.
+	OperPluginUninstallMaxConcurrencyNumDefault = "200"
+
+	// OperPluginApplySubConfigMaxConcurrencyNum defines the max concurrency setting for plugin sub config apply operations.
+	OperPluginApplySubConfigMaxConcurrencyNum = "oper_plugin_apply_sub_config_max_concurrency_num"
+	// OperPluginApplySubConfigMaxConcurrencyNumDefault defines the default max concurrency for plugin sub config apply operations.
+	OperPluginApplySubConfigMaxConcurrencyNumDefault = "200"
+
+	// OperPluginRemoveSubConfigMaxConcurrencyNum defines the max concurrency setting for plugin sub config remove operations.
+	OperPluginRemoveSubConfigMaxConcurrencyNum = "oper_plugin_remove_sub_config_max_concurrency_num"
+	// OperPluginRemoveSubConfigMaxConcurrencyNumDefault defines the default max concurrency for plugin sub config remove operations.
+	OperPluginRemoveSubConfigMaxConcurrencyNumDefault = "200"
+
+	// OperPluginStartProcessMaxConcurrencyNum defines the max concurrency setting for plugin process start operations.
+	OperPluginStartProcessMaxConcurrencyNum = "oper_plugin_start_process_max_concurrency_num"
+	// OperPluginStartProcessMaxConcurrencyNumDefault defines the default max concurrency for plugin process start operations.
+	OperPluginStartProcessMaxConcurrencyNumDefault = "200"
+
+	// OperPluginRestartProcessMaxConcurrencyNum defines the max concurrency setting for plugin process restart operations.
+	OperPluginRestartProcessMaxConcurrencyNum = "oper_plugin_restart_process_max_concurrency_num"
+	// OperPluginRestartProcessMaxConcurrencyNumDefault defines the default max concurrency for plugin process restart operations.
+	OperPluginRestartProcessMaxConcurrencyNumDefault = "200"
+
+	// OperPluginStopProcessMaxConcurrencyNum defines the max concurrency setting for plugin process stop operations.
+	OperPluginStopProcessMaxConcurrencyNum = "oper_plugin_stop_process_max_concurrency_num"
+	// OperPluginStopProcessMaxConcurrencyNumDefault defines the default max concurrency for plugin process stop operations.
+	OperPluginStopProcessMaxConcurrencyNumDefault = "200"
+
+	// OperPluginMigrateFromV2MaxConcurrencyNum defines the max concurrency setting for plugin migrate-from-v2 operations.
+	OperPluginMigrateFromV2MaxConcurrencyNum = "oper_plugin_migrate_from_v2_max_concurrency_num"
+	// OperPluginMigrateFromV2MaxConcurrencyNumDefault defines the default max concurrency for plugin migrate-from-v2 operations.
+	OperPluginMigrateFromV2MaxConcurrencyNumDefault = "200"
+
+	// OperPluginStartDebugMaxConcurrencyNum defines the max concurrency setting for plugin debug start operations.
+	OperPluginStartDebugMaxConcurrencyNum = "oper_plugin_start_debug_max_concurrency_num"
+	// OperPluginStartDebugMaxConcurrencyNumDefault defines the default max concurrency for plugin debug start operations.
+	OperPluginStartDebugMaxConcurrencyNumDefault = "200"
 )
 
 // PreDefinition returns the definition of global settings.
@@ -108,6 +153,42 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: OperPluginInstallMaxConcurrencyNum,
 			Value:       OperPluginInstallMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginUpgradeMaxConcurrencyNum,
+			Value:       OperPluginUpgradeMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginUninstallMaxConcurrencyNum,
+			Value:       OperPluginUninstallMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginApplySubConfigMaxConcurrencyNum,
+			Value:       OperPluginApplySubConfigMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginRemoveSubConfigMaxConcurrencyNum,
+			Value:       OperPluginRemoveSubConfigMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginStartProcessMaxConcurrencyNum,
+			Value:       OperPluginStartProcessMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginRestartProcessMaxConcurrencyNum,
+			Value:       OperPluginRestartProcessMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginStopProcessMaxConcurrencyNum,
+			Value:       OperPluginStopProcessMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginMigrateFromV2MaxConcurrencyNum,
+			Value:       OperPluginMigrateFromV2MaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperPluginStartDebugMaxConcurrencyNum,
+			Value:       OperPluginStartDebugMaxConcurrencyNumDefault,
 		},
 	}
 }
