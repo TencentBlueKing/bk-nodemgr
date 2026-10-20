@@ -20,6 +20,7 @@ package pkg
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -155,34 +156,65 @@ func (h *handler) narrowAuthorizedPackageNamesForHistory(
 	return fixedTypes, pluginNames, scopeIsAny, nil
 }
 
-// narrowPackageEventCondition restricts the package event condition to authorized package types and plugin names.
-// The authorization groups are ANDed with the requested conditions, so requested release types only narrow the result.
-func narrowPackageEventCondition(
+// narrowPackageEventConditions creates normal package event conditions for authorized fixed and plugin packages.
+func narrowPackageEventConditions(
 	condition *types.PackageEventCondition, fixedTypes []types.ReleaseType, pluginNames []string, scopeIsAny bool,
-) (*types.PackageEventCondition, bool) {
+) (*types.PackageEventCondition, *types.PackageEventCondition, bool) {
 	if scopeIsAny {
-		return condition, true
+		if condition == nil {
+			condition = &types.PackageEventCondition{}
+		}
+		return condition, nil, true
 	}
 	if len(fixedTypes) == 0 && len(pluginNames) == 0 {
-		return condition, false
+		return nil, nil, false
 	}
 
+	requested := types.PackageEventExactFields{}
+	if condition != nil && condition.ExactInclude != nil {
+		requested = *condition.ExactInclude
+	}
+	fixedTypes = slices.Clone(fixedTypes)
+	pluginNames = slices.Clone(pluginNames)
+	pluginTypes := []types.ReleaseType{types.ReleaseTypePlugin, types.ReleaseTypePluginBinTool}
+	if len(requested.ReleaseType) > 0 {
+		fixedTypes = slices.DeleteFunc(fixedTypes, func(releaseType types.ReleaseType) bool {
+			return !slices.Contains(requested.ReleaseType, releaseType)
+		})
+		pluginTypes = slices.DeleteFunc(pluginTypes, func(releaseType types.ReleaseType) bool {
+			return !slices.Contains(requested.ReleaseType, releaseType)
+		})
+	}
+	if len(requested.Name) > 0 {
+		pluginNames = slices.DeleteFunc(pluginNames, func(name string) bool {
+			return !slices.Contains(requested.Name, name)
+		})
+	}
+
+	// Empty exact filters are unrestricted, so omit groups with no authorized matches.
+	var fixedCondition, pluginCondition *types.PackageEventCondition
+	if len(fixedTypes) > 0 {
+		fixedCondition = clonePackageEventCondition(condition)
+		fixedCondition.ExactInclude.ReleaseType = fixedTypes
+	}
+	if len(pluginTypes) > 0 && len(pluginNames) > 0 {
+		pluginCondition = clonePackageEventCondition(condition)
+		pluginCondition.ExactInclude.ReleaseType = pluginTypes
+		pluginCondition.ExactInclude.Name = pluginNames
+	}
+
+	return fixedCondition, pluginCondition, fixedCondition != nil || pluginCondition != nil
+}
+
+func clonePackageEventCondition(condition *types.PackageEventCondition) *types.PackageEventCondition {
 	if condition == nil {
 		condition = &types.PackageEventCondition{}
 	}
-	if len(fixedTypes) > 0 {
-		condition.AnyOf = append(condition.AnyOf, &types.PackageEventCondition{
-			ExactInclude: &types.PackageEventExactFields{ReleaseType: fixedTypes},
-		})
+	clone := *condition
+	fields := types.PackageEventExactFields{}
+	if condition.ExactInclude != nil {
+		fields = *condition.ExactInclude
 	}
-	if len(pluginNames) > 0 {
-		condition.AnyOf = append(condition.AnyOf, &types.PackageEventCondition{
-			ExactInclude: &types.PackageEventExactFields{
-				ReleaseType: []types.ReleaseType{types.ReleaseTypePlugin, types.ReleaseTypePluginBinTool},
-				Name:        pluginNames,
-			},
-		})
-	}
-
-	return condition, true
+	clone.ExactInclude = &fields
+	return &clone
 }

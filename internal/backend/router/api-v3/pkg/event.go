@@ -19,6 +19,10 @@
 package pkg
 
 import (
+	"errors"
+	"math"
+	"sort"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -48,7 +52,9 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
-	conditions, hasAuthorizedPackages := narrowPackageEventCondition(conditions, fixedTypes, pluginNames, scopeIsAny)
+	fixedCondition, pluginCondition, hasAuthorizedPackages := narrowPackageEventConditions(
+		conditions, fixedTypes, pluginNames, scopeIsAny,
+	)
 
 	// only count.
 	if req.GetOnlyCount() {
@@ -59,7 +65,7 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 			return resp.GetData(), nil
 		}
 
-		num, err := h.fileHandler.CountPackageEvent(rCtx, conditions)
+		num, err := h.countAuthorizedPackageEvents(rCtx, fixedCondition, pluginCondition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, failed to count event")
 
@@ -86,7 +92,7 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.fileHandler.ListPackageEvent(rCtx, page, conditions)
+	events, num, err := h.listAuthorizedPackageEvents(rCtx, page, fixedCondition, pluginCondition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event")
 
@@ -97,6 +103,69 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 	resp.ConvertPackageEventsFromTypes(num, events)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) countAuthorizedPackageEvents(
+	rCtx restserver.IContext, fixedCondition, pluginCondition *types.PackageEventCondition,
+) (int64, error) {
+	var total int64
+	for _, condition := range []*types.PackageEventCondition{fixedCondition, pluginCondition} {
+		if condition == nil {
+			continue
+		}
+		count, err := h.fileHandler.CountPackageEvent(rCtx, condition)
+		if err != nil {
+			return 0, err
+		}
+		total += count
+	}
+
+	return total, nil
+}
+
+func (h *handler) listAuthorizedPackageEvents(
+	rCtx restserver.IContext, page types.Page, fixedCondition, pluginCondition *types.PackageEventCondition,
+) ([]*types.PackageEvent, int64, error) {
+	if fixedCondition == nil {
+		return h.fileHandler.ListPackageEvent(rCtx, page, pluginCondition)
+	}
+	if pluginCondition == nil {
+		return h.fileHandler.ListPackageEvent(rCtx, page, fixedCondition)
+	}
+	if page.Offset > math.MaxInt-page.Limit {
+		return nil, 0, errors.New("package event page offset plus limit exceeds maximum value")
+	}
+	queryPage := page
+	queryPage.Offset = 0
+	queryPage.Limit += page.Offset
+
+	var events []*types.PackageEvent
+	var total int64
+	for _, condition := range []*types.PackageEventCondition{fixedCondition, pluginCondition} {
+		if condition == nil {
+			continue
+		}
+		items, count, err := h.fileHandler.ListPackageEvent(rCtx, queryPage, condition)
+		if err != nil {
+			return nil, 0, err
+		}
+		events = append(events, items...)
+		total += count
+	}
+
+	// Preserve source order for equal timestamps; the File API does not expose event IDs.
+	sort.SliceStable(events, func(i, j int) bool {
+		return events[i].OperateTime.After(events[j].OperateTime)
+	})
+	if page.Offset >= len(events) {
+		return nil, total, nil
+	}
+	end := page.Offset + page.Limit
+	if end > len(events) {
+		end = len(events)
+	}
+
+	return events[page.Offset:end], total, nil
 }
 
 // DistinctPackageEvent distincts events with conditions.

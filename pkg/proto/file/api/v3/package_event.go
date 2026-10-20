@@ -183,11 +183,6 @@ func convertPackageEventConditionsToTypes(conditions []*PackageEventQueryConditi
 		if value := condition.GetOperateTimeRange(); value != nil {
 			item.OperateTimeRange = &types.TimeRange{StartTime: time.Unix(value.GetStartTimestampSec(), 0), EndTime: time.Unix(value.GetEndTimestampSec(), 0)}
 		}
-		anyOf, err := convertPackageEventConditionsToTypes(condition.GetAnyOf())
-		if err != nil {
-			return nil, err
-		}
-		item.AnyOf = anyOf
 		result = append(result, item)
 	}
 	return result, nil
@@ -221,7 +216,6 @@ func convertPackageEventConditionsFromTypes(conditions ...*types.PackageEventCon
 		if value := condition.OperateTimeRange; value != nil {
 			item.OperateTimeRange = &PackageEventQueryTimeRange{StartTimestampSec: value.StartTime.Unix(), EndTimestampSec: value.EndTime.Unix()}
 		}
-		item.AnyOf = convertPackageEventConditionsFromTypes(condition.AnyOf...)
 		result = append(result, item)
 	}
 	return result

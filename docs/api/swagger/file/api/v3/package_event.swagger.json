@@ -382,14 +382,6 @@
         },
         "operate_time_range": {
           "$ref": "#/definitions/v3PackageEventQueryTimeRange"
-        },
-        "any_of": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageEventQueryConditions"
-          },
-          "description": "any_of matches when at least one sub condition matches."
         }
       },
       "description": "PackageEventQueryConditions describes one package event condition."

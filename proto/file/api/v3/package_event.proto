@@ -27,8 +27,6 @@ message PackageEventQueryConditions {
   PackageEventFuzzyConditions fuzzy_include = 3;
   PackageEventFuzzyConditions fuzzy_exclude = 4;
   PackageEventQueryTimeRange operate_time_range = 5;
-  // any_of matches when at least one sub condition matches.
-  repeated PackageEventQueryConditions any_of = 6;
 }
 
 // PackageEventDistinctFields selects package event fields for distinct queries.
