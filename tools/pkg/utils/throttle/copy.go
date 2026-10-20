@@ -13,6 +13,7 @@ package throttle
 
 import (
 	"io"
+	"sync"
 	"time"
 )
 
@@ -27,6 +28,8 @@ const (
 	// to guard against measurement anomalies. With a 10ms window this supports
 	// cpuLimit values down to ~0.01 (1%) without clipping.
 	maxSleepPerWindow = time.Second
+
+	bytesPerMB = 1 << 20
 )
 
 // CPULimit is the global CPU usage limit for throttled IO operations.
@@ -34,10 +37,63 @@ const (
 // Values <= 0 or >= 1.0 disable throttling entirely.
 var CPULimit float64
 
-// Copy copies from src to dst using the global CPULimit setting.
-// This is the primary entry point for callers that rely on the CLI-configured limit.
+// DiskIOLimit is the global byte rate limit in MB/s for throttled IO operations.
+// Values <= 0 disable the rate limit. The limit is shared by all Copy calls of the process.
+var DiskIOLimit float64
+
+var diskIOPacer paceState
+
+// Copy copies from src to dst using the global CPULimit and DiskIOLimit settings.
+// This is the primary entry point for callers that rely on the CLI-configured limits.
+// When both limits apply, the slower one wins.
 func Copy(dst io.Writer, src io.Reader) (int64, error) {
+	if DiskIOLimit > 0 {
+		dst = &pacedWriter{dst: dst, limit: DiskIOLimit, state: &diskIOPacer}
+	}
+
 	return ThrottledCopy(dst, src, CPULimit)
+}
+
+// paceState tracks the time at which all bytes written so far are allowed to have been written.
+type paceState struct {
+	mu   sync.Mutex
+	next time.Time
+}
+
+// pacedWriter limits the byte rate written to dst to limit MB/s, shared through state.
+// Debt shorter than throttleWindow is carried over instead of slept, so many small files are
+// still limited as a whole.
+type pacedWriter struct {
+	dst   io.Writer
+	limit float64
+	state *paceState
+}
+
+// Write writes p to the underlying writer, then sleeps when the shared byte budget is exhausted.
+func (w *pacedWriter) Write(p []byte) (int, error) {
+	n, err := w.dst.Write(p)
+	if n > 0 {
+		w.state.pace(n, w.limit)
+	}
+
+	return n, err
+}
+
+func (state *paceState) pace(n int, limit float64) {
+	cost := time.Duration(float64(n) / (limit * bytesPerMB) * float64(time.Second))
+
+	state.mu.Lock()
+	now := time.Now()
+	if state.next.Before(now) {
+		state.next = now
+	}
+	state.next = state.next.Add(cost)
+	wait := state.next.Sub(now)
+	state.mu.Unlock()
+
+	if wait >= throttleWindow {
+		time.Sleep(wait)
+	}
 }
 
 // ThrottledCopy copies from src to dst while limiting CPU utilisation.

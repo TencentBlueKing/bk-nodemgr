@@ -267,6 +267,7 @@ type ReleaseAdditionInfoPlugin struct {
 	BindAddressAllocated BindAddressAllocated
 	InstallCPULimit      float64
 	LegacyConflict       bool
+	InstallDiskIOLimit   float64
 }
 
 // BindAddressAllocated defines the bind address allocation settings of a plugin release.

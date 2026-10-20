@@ -206,16 +206,17 @@ type OriginPluginV3PkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	PluginPkgName    string
-	Version          string
-	Description      string
-	DescriptionEn    string
-	Scenario         string
-	ScenarioEn       string
-	LaunchNode       string
-	TemplateRenderer TemplateRendererType
-	InstallCPULimit  float64
-	LegacyConflict   bool
+	PluginPkgName      string
+	Version            string
+	Description        string
+	DescriptionEn      string
+	Scenario           string
+	ScenarioEn         string
+	LaunchNode         string
+	TemplateRenderer   TemplateRendererType
+	InstallCPULimit    float64
+	InstallDiskIOLimit float64
+	LegacyConflict     bool
 
 	// key: platform.String()
 	BindAddressAllocated map[string]BindAddressAllocated

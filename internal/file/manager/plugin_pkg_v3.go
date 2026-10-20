@@ -160,23 +160,29 @@ func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.Rea
 
 // PluginV3Project represents the project.yaml file.
 type PluginV3Project struct {
-	Name             string  `yaml:"name"`
-	Version          string  `yaml:"version"`
-	Description      string  `yaml:"description"`
-	DescriptionEn    string  `yaml:"descriptionEn"`
-	Scenario         string  `yaml:"scenario"`
-	ScenarioEn       string  `yaml:"scenarioEn"`
-	LaunchNode       string  `yaml:"launchNode"`
-	TemplateRenderer string  `yaml:"templateRenderer"`
-	InstallCPULimit  float64 `yaml:"installCpuLimit"`
-	LegacyConflict   bool    `yaml:"legacyConflict"`
+	Name               string  `yaml:"name"`
+	Version            string  `yaml:"version"`
+	Description        string  `yaml:"description"`
+	DescriptionEn      string  `yaml:"descriptionEn"`
+	Scenario           string  `yaml:"scenario"`
+	ScenarioEn         string  `yaml:"scenarioEn"`
+	LaunchNode         string  `yaml:"launchNode"`
+	TemplateRenderer   string  `yaml:"templateRenderer"`
+	InstallCPULimit    float64 `yaml:"installCpuLimit"`
+	InstallDiskIOLimit float64 `yaml:"installDiskIoLimit"`
+	LegacyConflict     bool    `yaml:"legacyConflict"`
 }
 
-// Validate validates the project.yaml installer CPU limit.
+// Validate validates the project.yaml installer CPU and disk IO limits.
 func (project *PluginV3Project) Validate() error {
-	if math.IsNaN(project.InstallCPULimit) || math.IsInf(project.InstallCPULimit, 0) ||
-		project.InstallCPULimit < 0 || project.InstallCPULimit > 1 {
-		return fmt.Errorf("invalid installCpuLimit(%v), must be between 0 and 1", project.InstallCPULimit)
+	cpuLimit := project.InstallCPULimit
+	if math.IsNaN(cpuLimit) || math.IsInf(cpuLimit, 0) || cpuLimit < 0 || cpuLimit > 1 {
+		return fmt.Errorf("invalid installCpuLimit(%v), must be between 0 and 1", cpuLimit)
+	}
+
+	diskIOLimit := project.InstallDiskIOLimit
+	if math.IsNaN(diskIOLimit) || math.IsInf(diskIOLimit, 0) || diskIOLimit < 0 {
+		return fmt.Errorf("invalid installDiskIoLimit(%v), must be a non-negative number", diskIOLimit)
 	}
 
 	return nil
@@ -278,6 +284,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				detail.LaunchNode = pluginProject.LaunchNode
 				detail.TemplateRenderer = types.TemplateRendererType(pluginProject.TemplateRenderer)
 				detail.InstallCPULimit = pluginProject.InstallCPULimit
+				detail.InstallDiskIOLimit = pluginProject.InstallDiskIOLimit
 				detail.LegacyConflict = pluginProject.LegacyConflict
 
 				return nil
@@ -671,6 +678,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					ScenarioEn:           detail.ScenarioEn,
 					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
 					InstallCPULimit:      detail.InstallCPULimit,
+					InstallDiskIOLimit:   detail.InstallDiskIOLimit,
 					LegacyConflict:       detail.LegacyConflict,
 				},
 			}

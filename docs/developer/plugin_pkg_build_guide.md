@@ -138,6 +138,7 @@ launchNode: proxy
 templateRenderer: go-template
 installCpuLimit: 0.5
 legacyConflict: false
+installDiskIoLimit: 2
 ```
 
 - name：插件名称
@@ -149,6 +150,7 @@ legacyConflict: false
 - launchNode：插件启动节点类型, 支持 proxy（Proxy节点）、agent（Agent节点）、all（所有节点）
 - templateRenderer：配置模板渲染器类型, 支持 go-template（Go模板，推荐）、 jinja2（Jinja2模板，不推荐）
 - installCpuLimit：V3 插件安装和升级时，installer 处理 tgz 包的 CPU 限制比例。取值范围为 0 到 1；未配置、0 或 1 表示不限速，只有 0 到 1 之间的值会注入 installer 的 `--cpu-limit` 参数。该配置只影响 installer 包处理阶段，不影响插件运行时 CPU 限制。
+- installDiskIoLimit：V3 插件安装和升级时，installer 处理 tgz 包的读写速率限制，单位 MB/s，支持小数。未配置或 0 表示不限速，大于 0 的值会注入 installer 的 `--diskio-limit` 参数。该配置是尽力而为的限制，只影响 installer 包处理阶段，不影响插件运行时的磁盘使用。
 - legacyConflict：插件 Install API 的旧版冲突声明，bool 类型，可选，缺省为 `false`。设为 `true` 时，仅支持当前系统部署。
 
 > **legacyConflict 注意事项**
@@ -166,6 +168,9 @@ legacyConflict: false
 
 > **installCpuLimit 注意事项**
 > `installCpuLimit` 只对 V3 插件包生效，V2 插件包会忽略该字段。负数、大于 1 或非数值类型会在插件包导入时被拒绝。
+>
+> **installDiskIoLimit 注意事项**
+> `installDiskIoLimit` 只对 V3 插件包生效，V2 插件包会忽略该字段。负数或非数值类型会在插件包导入时被拒绝。
 
 `definition.yaml`文件内容如下：
 

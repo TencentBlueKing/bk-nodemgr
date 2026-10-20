@@ -272,6 +272,7 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 			targetPlugin.PkgName, std.DeployInfo().Process.Info.Version, err)
 	}
 	params.InstallCPULimit = pluginRelease.InstallCPULimit
+	params.InstallDiskIOLimit = pluginRelease.InstallDiskIOLimit
 
 	return params, nil
 }

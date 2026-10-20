@@ -81,7 +81,7 @@
 **注意事项**：
 - 限速通过周期性休眠实现，进程 CPU 总时间不变，处理耗时会相应变长；例如 `0.5` 时耗时约为不限速的 2 倍
 - 按 installer 进程自身的 CPU 时间（user + sys）计算，无法读取该时间时退回按 wall-clock 比例休眠
-- 这是尽力而为的限制，不限制磁盘 IO，也不保证主机总 CPU 或监控告警不被触发
+- 这是尽力而为的限制，不保证主机总 CPU 或监控告警不被触发；磁盘 IO 请使用 `--diskio-limit`
 - 单次休眠上限为 1 秒，取值低于 `0.01` 时无法达到预期限速
 - 该参数限制的是 installer 处理安装包时的行为，不是插件运行时的 `cpu_percent_limit`
 
@@ -95,6 +95,42 @@ installer --cpu-limit 0.5 plugin --deploy_env test --plugin_name bk-nodemgr-rela
 
 ```yaml
 installCpuLimit: 0.5
+```
+
+### 磁盘 IO 限制参数 (`--diskio-limit`)
+
+**用途**：限制 installer 处理 tgz 包时的读写速率，降低磁盘带宽被短时打满、触发敏感主机监控告警的风险。
+
+**格式**：`--diskio-limit <MB/s>`，全局参数，`node`、`plugin` 子命令均可使用，支持小数，例如 `0.5`。
+
+| 取值 | 行为 |
+| ---- | ---- |
+| 不设置或 `0`（默认） | 不限速 |
+| `> 0` | 将 installer 拷贝 tgz 内容的速率限制在约 `<MB/s>` |
+| `< 0` | 作为插件包配置时在导入阶段被拒绝；直接传给 installer 时按不限速处理 |
+
+**生效范围**：
+- Agent 与插件 tgz 包的解压，以及 Agent 包的压缩
+- 通过插件 V3 `project.yaml` 的 `installDiskIoLimit` 配置生成的 install/upgrade script
+- V2 插件包中的 `installDiskIoLimit` 配置会被忽略
+- 仅限制 tgz 内容的读写拷贝，其余步骤（如下载、配置渲染）不受影响
+
+**注意事项**：
+- 同一进程内所有拷贝共享同一个速率预算；与 `--cpu-limit` 同时配置时，两个限制各自独立计算，实际速率取较慢者
+- 速率按经过拷贝的未压缩字节数计量，处理耗时会相应变长
+- 这是尽力而为的限制，限制的是写入文件系统的逻辑字节速率，不保证物理磁盘带宽、IOPS、延迟或监控告警不被触发
+- 该参数限制的是 installer 处理安装包时的行为，不是插件运行时的磁盘限制
+
+**示例**：
+```bash
+# 将 installer 处理安装包时的读写速率限制在约 2 MB/s
+installer --diskio-limit 2 plugin --deploy_env test --plugin_name bk-nodemgr-relay step install --pkg_file /path/to/package.tgz
+```
+
+插件 V3 也可以在 `project.yaml` 中配置，Node Manager 会在生成插件 install/upgrade script 时注入该参数：
+
+```yaml
+installDiskIoLimit: 2
 ```
 
 ## 相关文档

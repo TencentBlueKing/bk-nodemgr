@@ -114,6 +114,10 @@ const (
 // SYNC: tools/cmd/installer/main.go cpu-limit flag.
 const installerFlagCPULimit = "cpu-limit"
 
+// installerFlagDiskIOLimit is the installer global flag name that defines the disk IO rate limit in MB/s.
+// SYNC: tools/cmd/installer/main.go diskio-limit flag.
+const installerFlagDiskIOLimit = "diskio-limit"
+
 // PluginCommonParams defines the common params of installer.
 type PluginCommonParams struct {
 	InstallWorkDir    string
@@ -166,6 +170,8 @@ type PluginInstallParams struct {
 	PluginVersion   string
 	PluginPkgName   string
 	InstallCPULimit float64
+	// InstallDiskIOLimit is the installer disk IO rate limit in MB/s, 0 means unlimited.
+	InstallDiskIOLimit float64
 
 	DownloadSvrAddr string
 	CallbackSvrAddr string
@@ -183,6 +189,9 @@ func (params *PluginInstallParams) Validate() error {
 		return err
 	}
 	if err := validateInstallCPULimit(params.InstallCPULimit); err != nil {
+		return err
+	}
+	if err := validateInstallDiskIOLimit(params.InstallDiskIOLimit); err != nil {
 		return err
 	}
 
@@ -233,6 +242,24 @@ func appendInstallCPULimitArg(args []string, limit float64) []string {
 	return append(args, fmt.Sprintf("--%s %s", installerFlagCPULimit, strconv.FormatFloat(limit, 'f', -1, 64)))
 }
 
+// appendInstallDiskIOLimitArg appends the installer global --diskio-limit flag only when the limit is positive,
+// 0 means unlimited.
+func appendInstallDiskIOLimitArg(args []string, limit float64) []string {
+	if limit <= 0 {
+		return args
+	}
+
+	return append(args, fmt.Sprintf("--%s %s", installerFlagDiskIOLimit, strconv.FormatFloat(limit, 'f', -1, 64)))
+}
+
+func validateInstallDiskIOLimit(limit float64) error {
+	if math.IsNaN(limit) || math.IsInf(limit, 0) || limit < 0 {
+		return fmt.Errorf("install disk io limit must be a non-negative number")
+	}
+
+	return nil
+}
+
 func validateInstallCPULimit(limit float64) error {
 	if math.IsNaN(limit) || math.IsInf(limit, 0) || limit < 0 || limit > 1 {
 		return fmt.Errorf("install cpu limit must be between 0 and 1")
@@ -274,6 +301,7 @@ func (params *PluginInstallParams) buildArgs() []string {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginFlagHTTPProxy, params.HTTPProxyAddress))
 	}
 	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
+	args = appendInstallDiskIOLimitArg(args, params.InstallDiskIOLimit)
 
 	return args
 }
@@ -327,6 +355,8 @@ type PluginUpgradeParams struct {
 	PluginVersion   string
 	PluginPkgName   string
 	InstallCPULimit float64
+	// InstallDiskIOLimit is the installer disk IO rate limit in MB/s, 0 means unlimited.
+	InstallDiskIOLimit float64
 
 	DownloadSvrAddr string
 	CallbackSvrAddr string
@@ -344,6 +374,9 @@ func (params *PluginUpgradeParams) Validate() error {
 		return err
 	}
 	if err := validateInstallCPULimit(params.InstallCPULimit); err != nil {
+		return err
+	}
+	if err := validateInstallDiskIOLimit(params.InstallDiskIOLimit); err != nil {
 		return err
 	}
 
@@ -416,6 +449,7 @@ func (params *PluginUpgradeParams) buildArgs() []string {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginFlagHTTPProxy, params.HTTPProxyAddress))
 	}
 	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
+	args = appendInstallDiskIOLimitArg(args, params.InstallDiskIOLimit)
 
 	return args
 }

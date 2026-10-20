@@ -81,6 +81,8 @@ func NewRootCommand() *cobra.Command {
 	// global flags.
 	rootCmd.PersistentFlags().Float64Var(&throttle.CPULimit, "cpu-limit", 0,
 		"CPU usage limit ratio (0.0~1.0), 0 means unlimited")
+	rootCmd.PersistentFlags().Float64Var(&throttle.DiskIOLimit, "diskio-limit", 0,
+		"disk IO rate limit in MB/s for package content copy, 0 means unlimited")
 
 	// sub commands.
 	rootCmd.AddCommand(node.NewNodeCommand())
