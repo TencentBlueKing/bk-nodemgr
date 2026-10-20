@@ -183,6 +183,11 @@ func convertPackageEventConditionsToTypes(conditions []*PackageEventQueryConditi
 		if value := condition.GetOperateTimeRange(); value != nil {
 			item.OperateTimeRange = &types.TimeRange{StartTime: time.Unix(value.GetStartTimestampSec(), 0), EndTime: time.Unix(value.GetEndTimestampSec(), 0)}
 		}
+		anyOf, err := convertPackageEventConditionsToTypes(condition.GetAnyOf())
+		if err != nil {
+			return nil, err
+		}
+		item.AnyOf = anyOf
 		result = append(result, item)
 	}
 	return result, nil
@@ -199,7 +204,8 @@ func convertPackageEventExactFieldsToTypes(fields *PackageEventExactConditions) 
 	if err != nil {
 		return nil, err
 	}
-	return &types.PackageEventExactFields{EventType: types.StringListToPackageEventTypeList(fields.GetEventType()),
+	return &types.PackageEventExactFields{Name: fields.GetName(),
+		EventType:   types.StringListToPackageEventTypeList(fields.GetEventType()),
 		ReleaseType: types.StringListToReleaseTypeList(fields.GetReleaseType()), Version: fields.GetVersion(),
 		OSType: osTypes, CPUArch: cpuArchs, Generation: types.Int64ListToGenerationList(fields.GetGeneration()),
 		Operator: fields.GetOperator()}, nil
@@ -215,6 +221,7 @@ func convertPackageEventConditionsFromTypes(conditions ...*types.PackageEventCon
 		if value := condition.OperateTimeRange; value != nil {
 			item.OperateTimeRange = &PackageEventQueryTimeRange{StartTimestampSec: value.StartTime.Unix(), EndTimestampSec: value.EndTime.Unix()}
 		}
+		item.AnyOf = convertPackageEventConditionsFromTypes(condition.AnyOf...)
 		result = append(result, item)
 	}
 	return result
@@ -223,8 +230,9 @@ func convertPackageEventExactFieldsFromTypes(fields *types.PackageEventExactFiel
 	if fields == nil {
 		return nil
 	}
-	return &PackageEventExactConditions{Generation: types.GenerationListToInt64List(fields.Generation),
-		OsType: criteria.OSTypeListToStringList(fields.OSType), CpuArch: criteria.CPUArchListToStringList(fields.CPUArch),
+	return &PackageEventExactConditions{Name: fields.Name,
+		Generation: types.GenerationListToInt64List(fields.Generation),
+		OsType:     criteria.OSTypeListToStringList(fields.OSType), CpuArch: criteria.CPUArchListToStringList(fields.CPUArch),
 		ReleaseType: types.ReleaseTypeListToStringList(fields.ReleaseType), Operator: fields.Operator,
 		EventType: types.PackageEventTypeListToStringList(fields.EventType), Version: fields.Version}
 }

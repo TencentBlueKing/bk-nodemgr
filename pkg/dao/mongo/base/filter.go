@@ -138,6 +138,29 @@ func WithAnyFieldValues[T ~bool | ~string | ~int64](fields []string, values ...T
 	}
 }
 
+// WithAnyOf matches when at least one option group matches; options inside a group are ANDed.
+// A group without any filter matches everything, so it makes the whole option a no-op.
+func WithAnyOf(groups ...[]OptFn) OptFn {
+	return func(f bson.D) bson.D {
+		conditions := make(bson.A, 0, len(groups))
+		for _, group := range groups {
+			groupFilter := bson.D{}
+			for _, opt := range group {
+				groupFilter = opt(groupFilter)
+			}
+			if len(groupFilter) == 0 {
+				return f
+			}
+			conditions = append(conditions, groupFilter)
+		}
+		if len(conditions) == 0 {
+			return f
+		}
+
+		return appendAndCondition(f, bson.D{{Key: "$or", Value: conditions}})
+	}
+}
+
 // WithGreaterThanValue filters by greater than value.
 func WithGreaterThanValue[T ~string | ~int64](key string, value T) OptFn {
 	return func(f bson.D) bson.D {

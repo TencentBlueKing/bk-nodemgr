@@ -27,6 +27,16 @@ import (
 // OptFn provides filtering options.
 type OptFn = base.OptFn
 
+// WithName provides filtering by package name.
+func WithName(names ...string) OptFn {
+	return base.WithValues(FieldKeyName, names...)
+}
+
+// WithoutName provides filtering by package name.
+func WithoutName(names ...string) OptFn {
+	return base.WithoutValues(FieldKeyName, names...)
+}
+
 // WithGeneration provides filtering by generation.
 func WithGeneration(gen ...types.Generation) OptFn {
 	return base.WithValues(FieldKeyGeneration, types.GenerationListToInt64List(gen)...)

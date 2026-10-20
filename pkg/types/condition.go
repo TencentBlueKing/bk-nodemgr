@@ -327,6 +327,7 @@ type TopoConstantFields struct {
 
 // PackageEventExactFields defines the package event exact fields.
 type PackageEventExactFields struct {
+	Name        []string
 	Generation  []Generation
 	ReleaseType []ReleaseType
 	OSType      []criteria.OSType
@@ -356,6 +357,9 @@ type PackageEventCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *PackageEventFuzzyFields
+
+	// any of the sub conditions must match; each sub condition is matched as a whole (AND inside, OR between).
+	AnyOf []*PackageEventCondition
 }
 
 // ConfigPolicyEventExactFields defines the policy event exact fields.

@@ -22,6 +22,7 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	daoPackageEvent "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -143,6 +144,7 @@ func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCon
 		}
 		if fields := condition.ExactInclude; fields != nil {
 			opts = append(opts,
+				daoPackageEvent.WithName(fields.Name...),
 				daoPackageEvent.WithEventType(fields.EventType...),
 				daoPackageEvent.WithGeneration(fields.Generation...),
 				daoPackageEvent.WithReleaseType(fields.ReleaseType...),
@@ -154,6 +156,7 @@ func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCon
 		}
 		if fields := condition.ExactExclude; fields != nil {
 			opts = append(opts,
+				daoPackageEvent.WithoutName(fields.Name...),
 				daoPackageEvent.WithoutEventType(fields.EventType...),
 				daoPackageEvent.WithoutGeneration(fields.Generation...),
 				daoPackageEvent.WithoutReleaseType(fields.ReleaseType...),
@@ -163,7 +166,28 @@ func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCon
 				daoPackageEvent.WithoutOperator(fields.Operator...),
 			)
 		}
+		if len(condition.AnyOf) > 0 {
+			anyOfOpt, err := convertPackageEventAnyOfToOption(condition.AnyOf)
+			if err != nil {
+				return nil, err
+			}
+			opts = append(opts, anyOfOpt)
+		}
 	}
 
 	return opts, nil
+}
+
+// convertPackageEventAnyOfToOption converts sub conditions into one option, matched when any sub condition matches.
+func convertPackageEventAnyOfToOption(anyOf []*types.PackageEventCondition) (daoPackageEvent.OptFn, error) {
+	groups := make([][]daoPackageEvent.OptFn, 0, len(anyOf))
+	for _, condition := range anyOf {
+		group, err := convertPackageEventConditionsToOptions(condition)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+
+	return base.WithAnyOf(groups...), nil
 }
