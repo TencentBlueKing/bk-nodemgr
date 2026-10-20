@@ -42,6 +42,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 - 先写“影响和动作”，再写“变化内容”
 - 先基于证据归纳，再输出面向用户的结论
 - 使用 `bk-nodemgr-audience-boundary` 区分读者正文与编写者核实事项
+- 术语以 `docs/concepts/glossary.md` 为准，不照搬 PR 描述或 issue 措辞；插件代际只有 V3（当前）和旧版 V2，不存在 V1 插件，写入前用代码或 glossary 核对
 - **证据语言只用于内部判断，最终 changelog 必须是正式发布说明语气**：不要把“当前证据 / 无已知 / No known / current evidence / does not show / identified”这类审查口吻写进正文
 - 结构固定，章节可删减，但不要自由改写顺序
 - 宁可向编写者报告缺口并暂缓正式交付，也不要编造版本号、日期、tag、兼容性；不要把核验事项写进读者正文
