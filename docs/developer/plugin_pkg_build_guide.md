@@ -136,6 +136,7 @@ scenario: 蓝鲸节点管理中继模块，用于节点管理在多级 proxy 场
 scenarioEn: BlueKing Node Management Relay Module, used for forwarding operation commands to agents in multi-level proxy scenarios in node management
 launchNode: proxy
 templateRenderer: go-template
+installCpuLimit: 0.5
 ```
 
 - name：插件名称
@@ -146,10 +147,14 @@ templateRenderer: go-template
 - scenarioEn：插件使用场景英文描述
 - launchNode：插件启动节点类型, 支持 proxy（Proxy节点）、agent（Agent节点）、all（所有节点）
 - templateRenderer：配置模板渲染器类型, 支持 go-template（Go模板，推荐）、 jinja2（Jinja2模板，不推荐）
+- installCpuLimit：V3 插件安装和升级时，installer 处理 tgz 包的 CPU 限制比例。取值范围为 0 到 1；未配置、0 或 1 表示不限速，只有 0 到 1 之间的值会注入 installer 的 `--cpu-limit` 参数。该配置只影响 installer 包处理阶段，不影响插件运行时 CPU 限制。
 
 > **注意**
 > 配置模板渲染器请选择 go-template，因为 jinja2 模板渲染器已不推荐使用，未来版本可能会移除对 jinja2 模板的支持
 > go-template后续会提供更多的功能和优化。
+
+> **installCpuLimit 注意事项**
+> `installCpuLimit` 只对 V3 插件包生效，V2 插件包会忽略该字段。负数、大于 1 或非数值类型会在插件包导入时被拒绝。
 
 `definition.yaml`文件内容如下：
 

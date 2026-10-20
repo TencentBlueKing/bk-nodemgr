@@ -214,6 +214,7 @@ type OriginPluginV3PkgDetail struct {
 	ScenarioEn       string
 	LaunchNode       string
 	TemplateRenderer TemplateRendererType
+	InstallCPULimit  float64
 
 	// key: platform.String()
 	BindAddressAllocated map[string]BindAddressAllocated

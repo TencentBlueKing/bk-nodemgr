@@ -74,7 +74,8 @@
 
 **生效范围**：
 - Agent 与插件 tgz 包的解压，以及 Agent 包的压缩
-- `pluginv2` 子命令不受影响
+- 通过插件 V3 `project.yaml` 的 `installCpuLimit` 配置生成的 install/upgrade script
+- V2 插件包中的 `installCpuLimit` 配置会被忽略
 - 仅限制 tgz 内容的读写拷贝，其余步骤（如下载、配置渲染）不受影响
 
 **注意事项**：
@@ -82,11 +83,18 @@
 - 按 installer 进程自身的 CPU 时间（user + sys）计算，无法读取该时间时退回按 wall-clock 比例休眠
 - 这是尽力而为的限制，不限制磁盘 IO，也不保证主机总 CPU 或监控告警不被触发
 - 单次休眠上限为 1 秒，取值低于 `0.01` 时无法达到预期限速
+- 该参数限制的是 installer 处理安装包时的行为，不是插件运行时的 `cpu_percent_limit`
 
 **示例**：
 ```bash
 # 将 installer 处理安装包时的 CPU 占用限制在约 0.5 个核
 installer --cpu-limit 0.5 plugin --deploy_env test --plugin_name bk-nodemgr-relay step install --pkg_file /path/to/package.tgz
+```
+
+插件 V3 也可以在 `project.yaml` 中配置，Node Manager 会在生成插件 install/upgrade script 时注入该参数：
+
+```yaml
+installCpuLimit: 0.5
 ```
 
 ## 相关文档

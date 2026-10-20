@@ -20,7 +20,9 @@ package installer
 
 import (
 	"fmt"
+	"math"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
@@ -155,10 +157,11 @@ func (params *PluginCommonParams) Validate() error {
 type PluginInstallParams struct {
 	PluginCommonParams
 
-	PluginGroup   string
-	PluginName    string
-	PluginVersion string
-	PluginPkgName string
+	PluginGroup     string
+	PluginName      string
+	PluginVersion   string
+	PluginPkgName   string
+	InstallCPULimit float64
 
 	DownloadSvrAddr string
 	CallbackSvrAddr string
@@ -173,6 +176,9 @@ type PluginInstallParams struct {
 // Validate validates the install params.
 func (params *PluginInstallParams) Validate() error {
 	if err := params.PluginCommonParams.Validate(); err != nil {
+		return err
+	}
+	if err := validateInstallCPULimit(params.InstallCPULimit); err != nil {
 		return err
 	}
 
@@ -213,6 +219,14 @@ func (params *PluginInstallParams) Validate() error {
 	return nil
 }
 
+func validateInstallCPULimit(limit float64) error {
+	if math.IsNaN(limit) || math.IsInf(limit, 0) || limit < 0 || limit > 1 {
+		return fmt.Errorf("install cpu limit must be between 0 and 1")
+	}
+
+	return nil
+}
+
 func (params *PluginInstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, params.BaseDeployDir),
@@ -244,6 +258,9 @@ func (params *PluginInstallParams) buildArgs() []string {
 
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginFlagHTTPProxy, params.HTTPProxyAddress))
+	}
+	if params.InstallCPULimit > 0 && params.InstallCPULimit < 1 {
+		args = append(args, fmt.Sprintf("--cpu-limit %s", strconv.FormatFloat(params.InstallCPULimit, 'f', -1, 64)))
 	}
 
 	return args
@@ -293,10 +310,11 @@ func (params *PluginInstallParams) ToWindowsScript() (string, string, error) {
 type PluginUpgradeParams struct {
 	PluginCommonParams
 
-	PluginGroup   string
-	PluginName    string
-	PluginVersion string
-	PluginPkgName string
+	PluginGroup     string
+	PluginName      string
+	PluginVersion   string
+	PluginPkgName   string
+	InstallCPULimit float64
 
 	DownloadSvrAddr string
 	CallbackSvrAddr string
@@ -311,6 +329,9 @@ type PluginUpgradeParams struct {
 // Validate validates the upgrade params.
 func (params *PluginUpgradeParams) Validate() error {
 	if err := params.PluginCommonParams.Validate(); err != nil {
+		return err
+	}
+	if err := validateInstallCPULimit(params.InstallCPULimit); err != nil {
 		return err
 	}
 
@@ -381,6 +402,9 @@ func (params *PluginUpgradeParams) buildArgs() []string {
 
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginFlagHTTPProxy, params.HTTPProxyAddress))
+	}
+	if params.InstallCPULimit > 0 && params.InstallCPULimit < 1 {
+		args = append(args, fmt.Sprintf("--cpu-limit %s", strconv.FormatFloat(params.InstallCPULimit, 'f', -1, 64)))
 	}
 
 	return args

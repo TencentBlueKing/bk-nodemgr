@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -159,14 +160,25 @@ func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.Rea
 
 // PluginV3Project represents the project.yaml file.
 type PluginV3Project struct {
-	Name             string `yaml:"name"`
-	Version          string `yaml:"version"`
-	Description      string `yaml:"description"`
-	DescriptionEn    string `yaml:"descriptionEn"`
-	Scenario         string `yaml:"scenario"`
-	ScenarioEn       string `yaml:"scenarioEn"`
-	LaunchNode       string `yaml:"launchNode"`
-	TemplateRenderer string `yaml:"templateRenderer"`
+	Name             string  `yaml:"name"`
+	Version          string  `yaml:"version"`
+	Description      string  `yaml:"description"`
+	DescriptionEn    string  `yaml:"descriptionEn"`
+	Scenario         string  `yaml:"scenario"`
+	ScenarioEn       string  `yaml:"scenarioEn"`
+	LaunchNode       string  `yaml:"launchNode"`
+	TemplateRenderer string  `yaml:"templateRenderer"`
+	InstallCPULimit  float64 `yaml:"installCpuLimit"`
+}
+
+// Validate validates the project.yaml installer CPU limit.
+func (project *PluginV3Project) Validate() error {
+	if math.IsNaN(project.InstallCPULimit) || math.IsInf(project.InstallCPULimit, 0) ||
+		project.InstallCPULimit < 0 || project.InstallCPULimit > 1 {
+		return fmt.Errorf("invalid installCpuLimit(%v), must be between 0 and 1", project.InstallCPULimit)
+	}
+
+	return nil
 }
 
 // PluginV3Definition represents the definition.yaml file's definition field.
@@ -264,6 +276,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				detail.ScenarioEn = pluginProject.ScenarioEn
 				detail.LaunchNode = pluginProject.LaunchNode
 				detail.TemplateRenderer = types.TemplateRendererType(pluginProject.TemplateRenderer)
+				detail.InstallCPULimit = pluginProject.InstallCPULimit
 
 				return nil
 			},
@@ -345,6 +358,9 @@ func readOriginPluginV3Project(path []string, projectFile io.Reader, previous *P
 	project := new(PluginV3Project)
 	if err := yaml.NewDecoder(projectFile).Decode(project); err != nil {
 		return nil, fmt.Errorf("failed to decode project.yaml: %w", err)
+	}
+	if err := project.Validate(); err != nil {
+		return nil, err
 	}
 	if strings.TrimSpace(project.Name) == "" || strings.TrimSpace(project.Version) == "" || project.Name != path[0] {
 		return nil, fmt.Errorf("invalid plugin name or version in project.yaml(%s)", strings.Join(path, "/"))
@@ -652,6 +668,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					Scenario:             detail.Scenario,
 					ScenarioEn:           detail.ScenarioEn,
 					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
+					InstallCPULimit:      detail.InstallCPULimit,
 				},
 			}
 
