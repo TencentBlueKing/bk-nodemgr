@@ -207,11 +207,12 @@ docker-build-server: docker-prepare-server
 	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodemgr-server:${VERSION} .
 	@$(ECHO) "Built successfully docker images bk-nodemgr-server:${VERSION}"
 
-docker-build-apigw-sync: | pre
+docker-build-apigw-sync: | pre adminclient
 	@$(ECHO) "Building docker image bk-nodemgr-apigw-sync..."
 	@$(MKDIR) $(OUTPUT_DIR)/apigw-sync
 	@$(CP) -R $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/support-files $(OUTPUT_DIR)/apigw-sync/
 	@$(CP) -R $(ROOT_DIR)/apigw/* $(OUTPUT_DIR)/apigw-sync/support-files
+	@$(CP) $(OUTPUT_DIR)/bk-nodemgr-adminclient $(OUTPUT_DIR)/apigw-sync
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/Dockerfile $(OUTPUT_DIR)/apigw-sync
 	@$(CD) $(OUTPUT_DIR)/apigw-sync && docker build -t bk-nodemgr-apigw-sync:${VERSION} .
 	@$(ECHO) "Built successfully docker image bk-nodemgr-apigw-sync:${VERSION}"

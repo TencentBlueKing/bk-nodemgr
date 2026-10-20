@@ -61,20 +61,23 @@ spec:
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
-            - name: BK_APP_SECRET
-              value: {{ .Values.backend.config.iamV4.appSecret | quote }}
             - name: IAM_GATEWAY_URL
               value: {{ index .Values.backend.config.iamV4.endpoints 0 | quote }}
-            - name: IAM_APP_CODE
-              value: {{ .Values.backend.config.iamV4.appCode | quote }}
             - name: IAM_TENANT_ID
               value: {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
+            {{- include "bk-nodemgr.bkappKMSEnv" . | nindent 12 }}
           command:
             - /bin/sh
             - -c
           args:
             - |
               set -eu
+
+              # Resolve app credentials: from the kms global envelope when kms.enabled, else from values.
+              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "appCode" .Values.backend.config.iamV4.appCode "appSecret" .Values.backend.config.iamV4.appSecret) | nindent 14 }}
+              # iam-migrate reads the secret from BK_APP_SECRET.
+              export BK_APP_SECRET="${APP_SECRET}"
+
               BKIAMV4_DIR="/bk-nodemgr/support-files/bkiamv4"
               OUTPUT_DIR="$(mktemp -d /tmp/bkiamv4-output.XXXXXX)"
               trap 'rm -rf "$OUTPUT_DIR"' EXIT
@@ -83,17 +86,19 @@ spec:
                 -v "${BKIAMV4_DIR}/vars.yaml" -o "${OUTPUT_DIR}"
               "${BKIAMV4_DIR}/migrate/iam-migrate" \
                 --gateway-url "${IAM_GATEWAY_URL}" \
-                --app-code "${IAM_APP_CODE}" \
+                --app-code "${APP_CODE}" \
                 --tenant-id "${IAM_TENANT_ID}" --dir "${OUTPUT_DIR}"
           volumeMounts:
             - name: bkiamv4-vars
               mountPath: /bk-nodemgr/support-files/bkiamv4/vars.yaml
               subPath: vars.yaml
               readOnly: true
+            {{- include "bk-nodemgr.bkappVolumeMounts" . | nindent 12 }}
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       volumes:
         - name: bkiamv4-vars
           configMap:
             name: {{ template "bk-nodemgr.fullname" . }}-bkiamv4-vars
+        {{- include "bk-nodemgr.bkappVolumes" . | nindent 8 }}
       restartPolicy: Never
 {{- end }}
