@@ -66,6 +66,7 @@ func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(deployConfig *types
 		DefaultDeployConfig: &CustomDeployConfig{
 			InstallerRuntime: &InstallerRuntime{
 				BaseWorkDir: &deployConfig.InstallerRuntime.BaseWorkDir,
+				Firewall:    convertFirewallFromTypes(deployConfig.InstallerRuntime.Firewall),
 			},
 			NodeRuntime: &NodeRuntime{
 				BaseDeployDir: &deployConfig.NodeRuntime.BaseDeployDir,

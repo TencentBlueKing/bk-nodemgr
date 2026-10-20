@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -40,7 +41,7 @@ func (x *TopoNetworkUnitCreateReq) Validate() error {
 		return fmt.Errorf("invalid generation, generation(%d): %w", x.GetGeneration(), err)
 	}
 
-	return nil
+	return normalizeCustomDeployFirewalls(x.GetCustomDeployConfig())
 }
 
 // AutoConvert auto convert.
@@ -244,6 +245,10 @@ func (x *TopoNetworkUnitUpdateReq) Validate() error {
 
 	if x.GetNetworkunit().GetBkNetworkareaId() < 0 {
 		return errors.New("bk_networkarea_id is invalid")
+	}
+
+	if x.GetFields().GetCustomDeployConfig() {
+		return normalizeCustomDeployFirewalls(x.GetNetworkunit().GetCustomDeployConfig())
 	}
 
 	return nil
@@ -844,6 +849,7 @@ func convertCustomDeployConfigToTypes(deployConfig map[string]*CustomDeployConfi
 		data[criteria.OSType(osType)] = types.CustomDeployConfig{
 			InstallerRuntime: types.InstallerRuntime{
 				BaseWorkDir: config.GetInstallerRuntime().GetBaseWorkDir(),
+				Firewall:    config.GetInstallerRuntime().GetFirewall().convertToTypes(),
 			},
 			NodeRuntime: types.NodeRuntime{
 				BaseDeployDir: config.GetNodeRuntime().GetBaseDeployDir(),
@@ -873,6 +879,7 @@ func convertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.C
 		data[osType.String()] = &CustomDeployConfig{
 			InstallerRuntime: &InstallerRuntime{
 				BaseWorkDir: &config.InstallerRuntime.BaseWorkDir,
+				Firewall:    convertFirewallFromTypes(config.InstallerRuntime.Firewall),
 			},
 			NodeRuntime: &NodeRuntime{
 				BaseDeployDir: &config.NodeRuntime.BaseDeployDir,
@@ -890,4 +897,48 @@ func convertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.C
 	}
 
 	return data
+}
+
+func (x *Firewall) convertToTypes() *types.DeploymentFirewall {
+	if x == nil {
+		return nil
+	}
+
+	return &types.DeploymentFirewall{
+		RemoteIPs: x.GetRemoteIps(),
+		Features: conv.SliceToSlice(x.GetFeatures(), func(feature string) types.FirewallFeature {
+			return types.FirewallFeature(feature)
+		}),
+	}
+}
+
+func convertFirewallFromTypes(firewall *types.DeploymentFirewall) *Firewall {
+	if firewall == nil {
+		return nil
+	}
+
+	return &Firewall{
+		RemoteIps: firewall.RemoteIPs,
+		Features: conv.SliceToSlice(firewall.Features, func(feature types.FirewallFeature) string {
+			return string(feature)
+		}),
+	}
+}
+
+func normalizeCustomDeployFirewalls(configs map[string]*CustomDeployConfig) error {
+	for osType, config := range configs {
+		firewall := config.GetInstallerRuntime().GetFirewall().convertToTypes()
+		if firewall == nil {
+			continue
+		}
+
+		normalized, err := firewall.Normalize()
+		if err != nil {
+			return fmt.Errorf("invalid custom_deploy_config[%s].installer_runtime.firewall: %w", osType, err)
+		}
+
+		config.InstallerRuntime.Firewall = convertFirewallFromTypes(&normalized)
+	}
+
+	return nil
 }

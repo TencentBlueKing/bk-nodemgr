@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -413,6 +414,7 @@ func convertDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomD
 		data[osType.String()] = CustomDeployConfig{
 			InstallerRuntime: InstallerRuntime{
 				BaseWorkDir: config.InstallerRuntime.BaseWorkDir,
+				Firewall:    convertFirewallFromTypes(config.InstallerRuntime.Firewall),
 			},
 			NodeRuntime: NodeRuntime{
 				BaseDeployDir: config.NodeRuntime.BaseDeployDir,
@@ -442,6 +444,7 @@ func convertDeployConfigToTypes(deployConfig map[string]CustomDeployConfig) map[
 		data[criteria.OSType(osType)] = types.CustomDeployConfig{
 			InstallerRuntime: types.InstallerRuntime{
 				BaseWorkDir: config.InstallerRuntime.BaseWorkDir,
+				Firewall:    config.InstallerRuntime.Firewall.convertToTypes(),
 			},
 			NodeRuntime: types.NodeRuntime{
 				BaseDeployDir: config.NodeRuntime.BaseDeployDir,
@@ -459,6 +462,32 @@ func convertDeployConfigToTypes(deployConfig map[string]CustomDeployConfig) map[
 	}
 
 	return data
+}
+
+func convertFirewallFromTypes(firewall *types.DeploymentFirewall) *Firewall {
+	if firewall == nil {
+		return nil
+	}
+
+	return &Firewall{
+		RemoteIPs: firewall.RemoteIPs,
+		Features: conv.SliceToSlice(firewall.Features, func(feature types.FirewallFeature) string {
+			return string(feature)
+		}),
+	}
+}
+
+func (firewall *Firewall) convertToTypes() *types.DeploymentFirewall {
+	if firewall == nil {
+		return nil
+	}
+
+	return &types.DeploymentFirewall{
+		RemoteIPs: firewall.RemoteIPs,
+		Features: conv.SliceToSlice(firewall.Features, func(feature string) types.FirewallFeature {
+			return types.FirewallFeature(feature)
+		}),
+	}
 }
 
 func generateNetworkUnitUpdates(fields types.NetworkUnitUpdateFields, networkUnit *types.NetworkUnit) map[string]any {

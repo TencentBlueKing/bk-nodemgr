@@ -45,7 +45,12 @@ message Endpoints {
 }
 
 // InstallerRuntime describes the installer runtime config.
-message InstallerRuntime { optional string base_work_dir = 1; }
+message InstallerRuntime {
+  optional string base_work_dir = 1;
+  // Unset inherits deployment defaults; an empty object disables firewall
+  // setup.
+  Firewall firewall = 2;
+}
 
 // NodeRuntime describes the node runtime config.
 message NodeRuntime {
@@ -509,4 +514,10 @@ message HostOpsInfo {
   string ops_out_band_protocol = 4;
   string ops_out_band_ip = 5;
   int64 ops_out_band_port = 6;
+}
+
+// Firewall describes the local firewall setup before installation.
+message Firewall {
+  repeated string remote_ips = 1;
+  repeated string features = 2;
 }

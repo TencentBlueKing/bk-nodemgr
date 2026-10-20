@@ -123,6 +123,7 @@ func (x *NodeConstantDeployGetResp) ConvertConstantToTypes() *types.CustomDeploy
 	return &types.CustomDeployConfig{
 		InstallerRuntime: types.InstallerRuntime{
 			BaseWorkDir: config.GetInstallerRuntime().GetBaseWorkDir(),
+			Firewall:    config.GetInstallerRuntime().GetFirewall().convertToTypes(),
 		},
 		NodeRuntime: types.NodeRuntime{
 			BaseDeployDir: config.GetNodeRuntime().GetBaseDeployDir(),

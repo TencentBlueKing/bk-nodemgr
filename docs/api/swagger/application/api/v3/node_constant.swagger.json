@@ -150,11 +150,33 @@
         }
       }
     },
+    "v3Firewall": {
+      "type": "object",
+      "properties": {
+        "remote_ips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Firewall describes the local firewall setup before installation."
+    },
     "v3InstallerRuntime": {
       "type": "object",
       "properties": {
         "base_work_dir": {
           "type": "string"
+        },
+        "firewall": {
+          "$ref": "#/definitions/v3Firewall",
+          "description": "Unset inherits deployment defaults; an empty object disables firewall\nsetup."
         }
       },
       "description": "InstallerRuntime describes the installer runtime config."
