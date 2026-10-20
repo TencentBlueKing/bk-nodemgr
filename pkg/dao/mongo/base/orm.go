@@ -57,10 +57,11 @@ func NewOrm[P DataPoint[T], T any](dao IDao, opts ...OrmOption) *Orm[P, T] {
 		opt(&options)
 	}
 	orm := &Orm[P, T]{
-		dao: dao,
+		dao:            dao,
+		updateExecutor: &immediateUpdateExecutor{dao: dao},
 	}
 	if options.updateFieldBatching {
-		orm.updateFieldBatcher = &updateFieldBatcher{dao: dao}
+		orm.updateExecutor = &updateFieldBatcher{dao: dao, immediate: orm.updateExecutor}
 	}
 
 	return orm
@@ -135,8 +136,8 @@ type IOrm[P DataPoint[T], T any] interface {
 
 // Orm this is a common orm to operate mongo db.
 type Orm[P DataPoint[T], T any] struct {
-	dao                IDao
-	updateFieldBatcher *updateFieldBatcher
+	dao            IDao
+	updateExecutor updateExecutor
 }
 
 // DataPoint is a pointer.
@@ -480,9 +481,6 @@ func (orm *Orm[P, T]) EnsureIndexes() (err error) {
 
 // UpdateField this is a common operation for mongo db.
 func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field string, value any) (err error) {
-	if orm.updateFieldBatcher != nil && mongo.SessionFromContext(nCtx) == nil {
-		return orm.updateFieldBatcher.update(nCtx, filter, field, value)
-	}
 	var result *mongo.UpdateResult
 
 	// record metric.
@@ -537,8 +535,13 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 	}()
 
 	// update field.
-	if result, err = orm.dao.GetClient().UpdateMany(nCtx, filter, buildUpdateField(field, value)); err != nil {
+	if result, err = orm.updateExecutor.UpdateMany(nCtx, filter, buildUpdateField(field, value)); err != nil {
 		return err
+	}
+
+	// BulkWrite only reports aggregate counts; do not attribute them to this call.
+	if result == nil {
+		return nil
 	}
 
 	logger.G.Sys().Ctx(nCtx).

@@ -43,7 +43,8 @@ func TestOrm_UpdateFieldBatchingOptIn(t *testing.T) {
 			if enabled {
 				orm = NewOrm[*TestData](dao, WithUpdateFieldBatching())
 			}
-			require.Equal(mt, enabled, orm.updateFieldBatcher != nil)
+			_, batchingEnabled := orm.updateExecutor.(*updateFieldBatcher)
+			require.Equal(mt, enabled, batchingEnabled)
 			for _, value := range []int{1, 2} {
 				mt.AddMockResponses(mtest.CreateSuccessResponse(bson.E{Key: "n", Value: 2}))
 				require.NoError(mt, orm.UpdateField(contextx.Background(), AliveFilter(), FieldKeyTestDataValue, value))
@@ -106,10 +107,11 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 			canceled <- orm.UpdateField(canceledCtx, AliveFilter(), FieldKeyTestDataName, "canceled")
 		}()
 		require.Eventually(mt, func() bool {
-			orm.updateFieldBatcher.mu.Lock()
-			defer orm.updateFieldBatcher.mu.Unlock()
+			batcher := orm.updateExecutor.(*updateFieldBatcher)
+			batcher.mu.Lock()
+			defer batcher.mu.Unlock()
 
-			return len(orm.updateFieldBatcher.pending) == callers+1
+			return len(batcher.pending) == callers+1
 		}, 5*time.Second, time.Millisecond)
 		cancel()
 		select {
@@ -148,7 +150,10 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 func TestUpdateFieldBatchErrors(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	mt.Run("indexed write error", func(mt *mtest.T) {
-		batcher := &updateFieldBatcher{dao: &TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}}
+		batcher := &updateFieldBatcher{
+			dao:       &TestDao{collection: mt.Coll, tableName: mt.Coll.Name()},
+			immediate: &immediateUpdateExecutor{dao: &TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}},
+		}
 		for range 3 {
 			batcher.pending = append(batcher.pending, &pendingFieldUpdate{
 				ctx: contextx.Background(), done: make(chan struct{}),
@@ -170,7 +175,8 @@ func TestUpdateFieldBatchErrors(t *testing.T) {
 	mt.Run("invalid encoding does not enter queue", func(mt *mtest.T) {
 		orm := NewOrm[*TestData](&TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}, WithUpdateFieldBatching())
 		require.Error(mt, orm.UpdateField(contextx.Background(), AliveFilter(), FieldKeyTestDataValue, make(chan int)))
-		require.Empty(mt, orm.updateFieldBatcher.pending)
+		batcher := orm.updateExecutor.(*updateFieldBatcher)
+		require.Empty(mt, batcher.pending)
 		require.Nil(mt, mt.GetStartedEvent())
 	})
 	mt.Run("command and write concern errors affect every caller", func(mt *mtest.T) {
@@ -220,6 +226,7 @@ func TestOrm_UpdateFieldBatchingSessionBypass(t *testing.T) {
 		evt := mt.GetStartedEvent()
 		require.NotNil(mt, evt)
 		require.True(mt, evt.Command.Lookup("ordered").Boolean())
-		require.Empty(mt, orm.updateFieldBatcher.pending)
+		batcher := orm.updateExecutor.(*updateFieldBatcher)
+		require.Empty(mt, batcher.pending)
 	})
 }

@@ -44,6 +44,22 @@ type ormOptions struct {
 	updateFieldBatching bool
 }
 
+// A nil result means that only batch-level counts are available, not zero matches.
+type updateExecutor interface {
+	UpdateMany(nCtx contextx.IContext, filter bson.D, update bson.D) (*mongo.UpdateResult, error)
+}
+
+type immediateUpdateExecutor struct {
+	dao IDao
+}
+
+func (executor *immediateUpdateExecutor) UpdateMany(
+	nCtx contextx.IContext, filter bson.D, update bson.D,
+) (*mongo.UpdateResult, error) {
+
+	return executor.dao.GetClient().UpdateMany(nCtx, filter, update)
+}
+
 // OrmOption configures optional ORM behavior at construction time.
 type OrmOption func(*ormOptions)
 
@@ -69,24 +85,31 @@ type pendingFieldUpdate struct {
 }
 
 type updateFieldBatcher struct {
-	dao     IDao
-	mu      sync.Mutex
-	pending []*pendingFieldUpdate
-	sends   singleflight.Group
+	dao       IDao
+	immediate updateExecutor
+	mu        sync.Mutex
+	pending   []*pendingFieldUpdate
+	sends     singleflight.Group
 }
 
-func (batcher *updateFieldBatcher) update(nCtx contextx.IContext, filter bson.D, field string, value any) error {
+func (batcher *updateFieldBatcher) UpdateMany(
+	nCtx contextx.IContext, filter bson.D, update bson.D,
+) (*mongo.UpdateResult, error) {
+
+	if mongo.SessionFromContext(nCtx) != nil {
+		return batcher.immediate.UpdateMany(nCtx, filter, update)
+	}
 	if err := nCtx.Err(); err != nil {
-		return err
+		return nil, err
 	}
 	// Encode before admission so a caller's invalid value cannot fail its peers.
 	encodedFilter, err := bson.Marshal(filter)
 	if err != nil {
-		return fmt.Errorf("encode batched update filter: %w", err)
+		return nil, fmt.Errorf("encode batched update filter: %w", err)
 	}
-	encodedUpdate, err := bson.Marshal(buildUpdateField(field, value))
+	encodedUpdate, err := bson.Marshal(update)
 	if err != nil {
-		return fmt.Errorf("encode batched update fields: %w", err)
+		return nil, fmt.Errorf("encode batched update fields: %w", err)
 	}
 	item := &pendingFieldUpdate{
 		ctx: nCtx,
@@ -101,7 +124,7 @@ func (batcher *updateFieldBatcher) update(nCtx contextx.IContext, filter bson.D,
 	for {
 		select {
 		case <-item.done:
-			return item.err
+			return nil, item.err // nolint: nilnil // BulkWrite has no per-command counts.
 		default:
 		}
 		// Joining a flight does not mean this item was in its drained batch.
@@ -113,7 +136,7 @@ func (batcher *updateFieldBatcher) update(nCtx contextx.IContext, filter bson.D,
 		})
 		select {
 		case <-item.done:
-			return item.err
+			return nil, item.err // nolint: nilnil // BulkWrite has no per-command counts.
 		case <-nCtx.Done():
 			batcher.mu.Lock()
 			if !item.dispatched {
@@ -121,15 +144,15 @@ func (batcher *updateFieldBatcher) update(nCtx contextx.IContext, filter bson.D,
 				batcher.pending = slices.Delete(batcher.pending, index, index+1)
 				batcher.mu.Unlock()
 
-				return nCtx.Err()
+				return nil, nCtx.Err()
 			}
 			batcher.mu.Unlock()
 			<-item.done
 
-			return item.err
+			return nil, item.err // nolint: nilnil // BulkWrite has no per-command counts.
 		case result := <-resultCh:
 			if result.Err != nil {
-				return result.Err
+				return nil, result.Err
 			}
 		}
 	}
