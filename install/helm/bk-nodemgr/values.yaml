@@ -1949,6 +1949,13 @@ backend:
           override: false
           address: ""
         manualScriptPath: "/bk-nodemgr/script/manual/windows/install.bat"
+        # firewall configures the local firewall of windows hosts before the installer installs the agent.
+        # remoteIPs are CIDRs (IPv4 and IPv6) allowed by the rules, a single address must be written as x.x.x.x/32.
+        # features are the enabled port features (gse, nodemgr); the ports are computed by the installer.
+        # empty features means the installer does not manage any firewall rule.
+        firewall:
+          remoteIPs: []
+          features: []
         custom:
           logDir: ""
           extraConfigDir: ""

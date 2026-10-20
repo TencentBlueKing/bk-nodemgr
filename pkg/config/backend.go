@@ -623,6 +623,7 @@ type GSEDeployConf struct {
 	BaseWorkDir      string                `yaml:"baseWorkDir" usage:"base work dir"`
 	BaseDeployDir    string                `yaml:"baseDeployDir" usage:"base deploy dir"`
 	HTTPProxy        HTTPProxy             `yaml:"httpProxy" usage:"http proxy override settings for the installer"`
+	Firewall         Firewall              `yaml:"firewall" usage:"local firewall settings the installer applies before installing"`
 	Custom           GSEDeployCustom       `yaml:"custom" usage:"custom deploy conf"`
 	PluginCustom     GSEDeployPluginCustom `yaml:"pluginCustom" usage:"plugin custom deploy conf"`
 	ManualScriptPath string                `yaml:"manualScriptPath" usage:"manual script"`
@@ -659,6 +660,22 @@ func (conf HTTPProxy) Validate() error {
 	return nil
 }
 
+// Firewall defines the local firewall settings the installer applies before installing. Only the windows
+// installer applies them, the ports are computed by the installer from the enabled features.
+type Firewall struct {
+	// RemoteIPs are the CIDRs allowed by the firewall rules, both IPv4 and IPv6 are supported.
+	RemoteIPs []string `yaml:"remoteIPs" usage:"CIDRs allowed by the firewall rules"`
+	// Features are the enabled port features, supports gse and nodemgr. Empty means no rule is managed.
+	Features []types.FirewallFeature `yaml:"features" usage:"enabled firewall port features, supports gse and nodemgr"`
+}
+
+// Validate validates the config.
+func (conf Firewall) Validate() error {
+	_, err := types.DeploymentFirewall{RemoteIPs: conf.RemoteIPs, Features: conf.Features}.Normalize()
+
+	return err
+}
+
 // Validate validates the config.
 func (conf GSEDeployConf) Validate() error {
 	if err := types.Generation(conf.Generation).Validate(); err != nil {
@@ -675,6 +692,10 @@ func (conf GSEDeployConf) Validate() error {
 
 	if err := conf.HTTPProxy.Validate(); err != nil {
 		return fmt.Errorf("failed to validate http proxy config: %w", err)
+	}
+
+	if err := conf.Firewall.Validate(); err != nil {
+		return fmt.Errorf("failed to validate firewall config: %w", err)
 	}
 
 	if err := conf.Custom.Validate(); err != nil {
