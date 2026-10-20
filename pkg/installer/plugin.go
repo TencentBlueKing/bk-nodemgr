@@ -110,6 +110,10 @@ const (
 	pluginFlagHTTPProxy pluginFlagName = "http_proxy"
 )
 
+// installerFlagCPULimit is the installer global flag name that defines the CPU usage limit ratio.
+// SYNC: tools/cmd/installer/main.go cpu-limit flag.
+const installerFlagCPULimit = "cpu-limit"
+
 // PluginCommonParams defines the common params of installer.
 type PluginCommonParams struct {
 	InstallWorkDir    string
@@ -219,6 +223,16 @@ func (params *PluginInstallParams) Validate() error {
 	return nil
 }
 
+// appendInstallCPULimitArg appends the installer global --cpu-limit flag only when the ratio throttles,
+// that is 0 < limit < 1; 0 and 1 both mean unlimited.
+func appendInstallCPULimitArg(args []string, limit float64) []string {
+	if limit <= 0 || limit >= 1 {
+		return args
+	}
+
+	return append(args, fmt.Sprintf("--%s %s", installerFlagCPULimit, strconv.FormatFloat(limit, 'f', -1, 64)))
+}
+
 func validateInstallCPULimit(limit float64) error {
 	if math.IsNaN(limit) || math.IsInf(limit, 0) || limit < 0 || limit > 1 {
 		return fmt.Errorf("install cpu limit must be between 0 and 1")
@@ -259,9 +273,7 @@ func (params *PluginInstallParams) buildArgs() []string {
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginFlagHTTPProxy, params.HTTPProxyAddress))
 	}
-	if params.InstallCPULimit > 0 && params.InstallCPULimit < 1 {
-		args = append(args, fmt.Sprintf("--cpu-limit %s", strconv.FormatFloat(params.InstallCPULimit, 'f', -1, 64)))
-	}
+	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
 
 	return args
 }
@@ -403,9 +415,7 @@ func (params *PluginUpgradeParams) buildArgs() []string {
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginFlagHTTPProxy, params.HTTPProxyAddress))
 	}
-	if params.InstallCPULimit > 0 && params.InstallCPULimit < 1 {
-		args = append(args, fmt.Sprintf("--cpu-limit %s", strconv.FormatFloat(params.InstallCPULimit, 'f', -1, 64)))
-	}
+	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
 
 	return args
 }

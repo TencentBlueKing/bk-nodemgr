@@ -32,7 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
-	fileThirdParty "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -75,7 +75,7 @@ type actionInstallPlugin struct {
 	daoPluginDeployment   pluginStg.IDaoPluginDeployment
 	provider              discover.Discover
 	gseHandler            gse.IHandler
-	fileHandler           fileThirdParty.IReleasePluginHandler
+	fileHandler           file.IReleasePluginHandler
 	storageActionInstance workflow.IStorageActionInstance
 }
 
@@ -267,7 +267,8 @@ func (act *actionInstallPlugin) buildInstallParams(
 		Name:       targetPlugin.PkgName,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin release: %w", err)
+		return nil, fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w",
+			targetPlugin.PkgName, std.DeployInfo().Process.Info.Version, err)
 	}
 	params.InstallCPULimit = pluginRelease.InstallCPULimit
 
