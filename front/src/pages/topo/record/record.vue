@@ -19,6 +19,7 @@
         unique-select
         :placeholder="$t('topoManager.record.searchPlaceholder.searchSelect')"
         v-model.trim="searchSelectValue"
+        @update:model-value="handleSearchSelectChange"
         :data="searchSelectData">
       </SearchSelect>
     </div>
@@ -33,10 +34,12 @@
         :show-settings="isShowSetting"
         :settings="settings"
         :max-height="maxHeight"
+        @column-filter="handleFilter"
         @setting-change="handleSettingChange">
         <TableColumn
           :label="$t('topoManager.record.table.workareaName')"
           field="bk_networkarea_name"
+          :filter="filterOptionSource.workareaName"
           show-overflow="tooltip">
           <template #default="{ row }">
             {{ row.bk_networkarea_name || '--' }}
@@ -45,6 +48,7 @@
         <TableColumn
           :label="$t('topoManager.record.table.workareaId')"
           field="bk_networkarea_id"
+          :filter="filterOptionSource.workareaId"
           show-overflow="tooltip">
           <template #default="{ row }">
             {{ `#${row.bk_networkarea_id}` || '--' }}
@@ -53,6 +57,7 @@
         <TableColumn
           :label="$t('topoManager.record.table.workUnit')"
           field="bk_networkunit_name"
+          :filter="filterOptionSource.workUnit"
           show-overflow="tooltip">
           <template #default="{ row }">
             {{ row.bk_networkunit_name || '--' }}
@@ -61,6 +66,7 @@
         <TableColumn
           :label="$t('topoManager.record.table.type')"
           field="type"
+          :filter="filterOptionSource.type"
           show-overflow="tooltip">
           <template #default="{ row }">
             {{ typeMap[row.type] || row.type || '--' }}
@@ -69,6 +75,7 @@
         <TableColumn
           :label="$t('topoManager.record.table.operator')"
           field="operator"
+          :filter="filterOptionSource.operator"
           show-overflow="tooltip">
           <template #default="{ row }">
             <UserNameDisplay :name="row.operator" />
@@ -97,12 +104,14 @@ import { useI18n } from 'vue-i18n';
 import { Table, TableColumn } from '@blueking/table';
 
 import type { TopoEventExactConditions, TopoEventFuzzyConditions } from '@/@types/topo';
+import { TopoService } from '@/api/modules/topo';
+import { translateOperatorItems } from '@/common/user-display';
 import { formatTimestamp, getTimeStamp } from '@/common/util';
 import NoPermission from '@/components/no-permission.vue';
-import { getPageAuthorizedItems } from '@/constants/auth';
-import type { PageAuthItem } from '@/constants/auth';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+import type { PageAuthItem } from '@/constants/auth';
+import { getPageAuthorizedItems } from '@/constants/auth';
 import { useAuthStore } from '@/stores/auth';
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -147,12 +156,17 @@ const searchSelectValue = ref<ISearchValue[]>([]);
 const loading = ref(false);
 
 const allWorkareaList = computed(() => Array.from(workareaStore.allWorkareaList.values()));
+const allWorkUnitList = computed(() => Array.from(workareaStore.allWorkUnitList.values()).flat());
+const uniqueChildren = (values: (string | number)[]) => [...new Set(values.filter(value => value !== '' && value !== null && value !== undefined))]
+  .map(value => ({ id: String(value), name: String(value) }));
 
-const searchSelectData = ref<ISearchItem[]>([
+const operatorChildren = ref<{ id: string; name: string }[]>([]);
+const searchSelectData = computed<ISearchItem[]>(() => [
   {
     name: t('topoManager.record.searchItems.workareaName'),
     id: 'workareaName',
-    multiple: false,
+    multiple: true,
+    children: uniqueChildren(allWorkareaList.value.map(item => item.bk_networkarea_name)),
   },
   {
     name: t('topoManager.record.searchItems.workareaId'),
@@ -166,7 +180,8 @@ const searchSelectData = ref<ISearchItem[]>([
   {
     name: t('topoManager.record.searchItems.workUnit'),
     id: 'workUnit',
-    multiple: false,
+    multiple: true,
+    children: uniqueChildren(allWorkUnitList.value.map(item => item.bk_networkunit_name)),
   },
   {
     name: t('topoManager.record.searchItems.type'),
@@ -178,8 +193,63 @@ const searchSelectData = ref<ISearchItem[]>([
     name: t('topoManager.record.searchItems.operator'),
     id: 'actionPerson',
     multiple: true,
+    children: operatorChildren.value,
   },
 ]);
+
+const filterOptionSource = reactive({
+  workareaName: { list: uniqueChildren(allWorkareaList.value.map(item => item.bk_networkarea_name)).map(({ id, name }) => ({ value: id, text: name })), checked: [] as string[], filterScope: 'all' },
+  workareaId: { list: uniqueChildren(allWorkareaList.value.map(item => item.bk_networkarea_id)).map(({ id, name }) => ({ value: id, text: name })), checked: [] as string[], filterScope: 'all' },
+  workUnit: { list: uniqueChildren(allWorkUnitList.value.map(item => item.bk_networkunit_name)).map(({ id, name }) => ({ value: id, text: name })), checked: [] as string[], filterScope: 'all' },
+  type: {
+    list: Object.entries(typeMap.value).map(([value, text]) => ({ value, text })),
+    checked: [] as string[],
+    filterScope: 'all',
+  },
+  operator: { list: [] as { value: string; text: string }[], checked: [] as string[], filterScope: 'all' },
+});
+
+watch([allWorkareaList, allWorkUnitList], () => {
+  filterOptionSource.workareaName.list = uniqueChildren(
+    allWorkareaList.value.map(item => item.bk_networkarea_name),
+  ).map(({ id, name }) => ({ value: id, text: name }));
+  filterOptionSource.workareaId.list = uniqueChildren(
+    allWorkareaList.value.map(item => item.bk_networkarea_id),
+  ).map(({ id, name }) => ({ value: id, text: name }));
+  filterOptionSource.workUnit.list = uniqueChildren(
+    allWorkUnitList.value.map(item => item.bk_networkunit_name),
+  ).map(({ id, name }) => ({ value: id, text: name }));
+});
+
+const handleSearchSelectChange = (data: ISearchValue[]) => {
+  Object.keys(filterOptionSource).forEach((key) => {
+    filterOptionSource[key as keyof typeof filterOptionSource].checked = [];
+  });
+  data.forEach((item) => {
+    const key = (item.id === 'actionPerson' ? 'operator' : item.id) as keyof typeof filterOptionSource;
+    if (filterOptionSource[key]) {
+      filterOptionSource[key].checked = item.values?.map(value => value.id) || [];
+    }
+  });
+};
+
+const handleFilter = ({ checked, field }: { checked: string[]; field: string }) => {
+  const searchId = ({ bk_networkarea_name: 'workareaName', bk_networkarea_id: 'workareaId', bk_networkunit_name: 'workUnit', operator: 'actionPerson' } as Record<string, string>)[field] || field;
+  const index = searchSelectValue.value.findIndex(item => item.id === searchId);
+  if (index > -1) searchSelectValue.value.splice(index, 1);
+  if (checked.length) {
+    const filter = searchSelectData.value.find(item => item.id === searchId);
+    searchSelectValue.value.push({
+      id: searchId,
+      name: filter?.name || field,
+      values: checked.map(id => ({
+        id,
+        name: filter?.children?.find(item => item.id === id)?.name || id,
+      })),
+    });
+  }
+  handleSearchSelectChange(searchSelectValue.value);
+};
 
 // 待优化 各影响table最大高度的元素的高度
 const tableOffset = 200;
@@ -233,10 +303,10 @@ const fuzzyData = computed(() => {
   for (const item of searchSelectValue.value) {
     switch (item.id) {
       case 'workareaName':
-        fuzzy_include_conditions.bk_networkarea_name.push(item?.values?.[0]?.name || '');
+        fuzzy_include_conditions.bk_networkarea_name = item.values?.map(value => value.name) || [];
         break;
       case 'workUnit':
-        fuzzy_include_conditions.bk_networkunit_name.push(item?.values?.[0]?.name || '');
+        fuzzy_include_conditions.bk_networkunit_name = item.values?.map(value => value.name) || [];
         break;
     }
   }
@@ -273,6 +343,23 @@ const fetchRecordList = async () => {
     console.error(err);
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchOperatorDistinct = async () => {
+  const res = await TopoService.EventDistinct({
+    exact_include_conditions: exactData.value,
+    fuzzy_include_conditions: fuzzyData.value,
+    operate_time_range: operateTimeRange.value,
+  }).catch(() => null);
+  if (!res) return;
+
+  const operator = searchSelectData.value.find(item => item.id === 'actionPerson');
+  if (operator) {
+    const children = (res.operator || []).filter(Boolean).map(name => ({ id: name, name }));
+    await translateOperatorItems(children);
+    operatorChildren.value = children;
+    filterOptionSource.operator.list = children.map(item => ({ value: item.id, text: item.name }));
   }
 };
 
@@ -316,6 +403,7 @@ const fetchRecordList = async () => {
 // };
 
 watch([exactData, fuzzyData, operateTime], () => {
+  pagination.current = 1;
   if (hasViewAuth.value) fetchRecordList();
 });
 
@@ -325,7 +413,11 @@ onMounted(async () => {
   await authStore.fetchAuthorized(pageItems, 'page:record').catch(() => {});
   // 拉取全部管控区域：搜索下拉数据源 + 无权限时申请查看权限所需的资源实例列表
   await handleFetchAllWorkarea().catch(() => {});
-  if (hasViewAuth.value) fetchRecordList();
+  await handleFetchAllWorkUnit().catch(() => {});
+  if (hasViewAuth.value) {
+    fetchRecordList();
+    fetchOperatorDistinct();
+  }
 });
 
 </script>

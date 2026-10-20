@@ -530,6 +530,6 @@ func releaseEvent(nCtx contextx.IContext, name string, releaseType types.Release
 		CPUArch:     cpuArch,
 		Version:     version,
 		OperateTime: time.Now(),
-		Operator:    nCtx.LoginName(),
+		Operator:    nCtx.BKUsername(),
 	}
 }
