@@ -19,9 +19,11 @@
 package plugin
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/compatibility"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -64,6 +66,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	if err := h.ensurePluginV2(rCtx, req, hostTopoMapping, policy); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to ensure plugin v2")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -82,6 +85,11 @@ func (h *handler) installPlugin(
 
 	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
 	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
+	if err := h.preparePluginDeploymentParams(rCtx, pluginDeploymentParam...); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to prepare plugin installation")
+		return "", err
+	}
+
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.PluginDeploymentTransferOptionsAll(), pluginDeploymentParam...)
 	if err != nil {
@@ -112,6 +120,12 @@ func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.Plu
 	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
 		return !item.EnableCompatibilityMode
 	})
+	if err := h.preparePluginDeploymentParams(rCtx, pluginDeploymentParam...); err != nil {
+		return err
+	}
+	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(param *types.PluginDeploymentParam) bool {
+		return !param.EnableCompatibilityMode
+	})
 
 	if len(pluginDeploymentParam) == 0 {
 		logger.G.Biz(rCtx).Info("no plugin deployment need to ensure plugin v2.")
@@ -135,6 +149,43 @@ func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.Plu
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to ensure plugin v2.")
 		return err
+	}
+
+	return nil
+}
+
+func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params ...*types.PluginDeploymentParam) error {
+	for _, param := range params {
+		host, err := h.daoHost.GetHostByID(rCtx, param.HostID)
+		if err != nil {
+			return fmt.Errorf("failed to get plugin host, host-id(%d): %w", param.HostID, err)
+		}
+		if host.Dynamic == nil {
+			return fmt.Errorf("plugin host dynamic info is empty, host-id(%d)", param.HostID)
+		}
+		plugin, err := h.daoPlugin.GetPlugin(rCtx, param.PluginName)
+		if err != nil {
+			return fmt.Errorf("failed to get plugin, plugin-name(%s): %w", param.PluginName, err)
+		}
+		pluginPlatform := platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
+		version := param.Version
+		if version == "" {
+			version, err = h.fileHandler.GetReleasePluginDefaultVersion(rCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
+			if err != nil {
+				return fmt.Errorf("failed to get default plugin version, plugin-pkg-name(%s): %w", plugin.PkgName, err)
+			}
+		}
+		release, err := h.fileHandler.GetReleasePlugin(rCtx, types.ReleasePluginKey{
+			Generation: host.Dynamic.NodeGeneration,
+			Platform:   pluginPlatform,
+			Version:    version,
+			Name:       plugin.PkgName,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w", plugin.PkgName, version, err)
+		}
+		param.Version = version
+		param.EnableCompatibilityMode = param.EnableCompatibilityMode && !release.LegacyConflict
 	}
 
 	return nil

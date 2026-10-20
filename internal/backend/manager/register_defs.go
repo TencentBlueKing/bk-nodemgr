@@ -296,6 +296,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionPrepareDebugProcess(pluginCap),
 		plugin.NewActionRunDebugPlugin(pluginCap),
 		plugin.NewActionCleanDebugPlugin(pluginCap),
+		plugin.NewActionCheckV2PluginNoAlive(pluginCap),
 	); err != nil {
 		return err
 	}

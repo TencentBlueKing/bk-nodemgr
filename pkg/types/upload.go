@@ -215,6 +215,7 @@ type OriginPluginV3PkgDetail struct {
 	LaunchNode       string
 	TemplateRenderer TemplateRendererType
 	InstallCPULimit  float64
+	LegacyConflict   bool
 
 	// key: platform.String()
 	BindAddressAllocated map[string]BindAddressAllocated

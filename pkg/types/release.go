@@ -266,6 +266,7 @@ type ReleaseAdditionInfoPlugin struct {
 	ScenarioEn           string
 	BindAddressAllocated BindAddressAllocated
 	InstallCPULimit      float64
+	LegacyConflict       bool
 }
 
 // BindAddressAllocated defines the bind address allocation settings of a plugin release.

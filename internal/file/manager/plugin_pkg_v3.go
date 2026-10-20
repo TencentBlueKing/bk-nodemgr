@@ -169,6 +169,7 @@ type PluginV3Project struct {
 	LaunchNode       string  `yaml:"launchNode"`
 	TemplateRenderer string  `yaml:"templateRenderer"`
 	InstallCPULimit  float64 `yaml:"installCpuLimit"`
+	LegacyConflict   bool    `yaml:"legacyConflict"`
 }
 
 // Validate validates the project.yaml installer CPU limit.
@@ -277,6 +278,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				detail.LaunchNode = pluginProject.LaunchNode
 				detail.TemplateRenderer = types.TemplateRendererType(pluginProject.TemplateRenderer)
 				detail.InstallCPULimit = pluginProject.InstallCPULimit
+				detail.LegacyConflict = pluginProject.LegacyConflict
 
 				return nil
 			},
@@ -669,6 +671,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					ScenarioEn:           detail.ScenarioEn,
 					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
 					InstallCPULimit:      detail.InstallCPULimit,
+					LegacyConflict:       detail.LegacyConflict,
 				},
 			}
 

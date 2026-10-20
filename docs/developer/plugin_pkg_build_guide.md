@@ -2,7 +2,7 @@
 
 ## 目录结构
 
-``` shell
+```shell
 {{plugin_name}}-{{plugin_version}}.tgz
 .
 └──{{plugin_name}}
@@ -43,75 +43,75 @@
 
 ```yaml
 PluginInfo:
-    Name: 插件的二进制文件名称, 与project.yaml文件中的name字段一致
-    LogPath: 插件日志路径
-    DataPath: 插件数据路径
-    PidPath: 插件PID文件路径
-    SetupPath: 插件安装路径
-    ConfigPath: 插件配置路径
-    HostIDPath: 主机ID文件路径
-    PluginIPC: PluginIPC路径，windows为端口号，linux为文件路径
-    DataIPC: DataIPC路径，windows为端口号，linux为文件路径
-    AgentDir: Agent安装路径
-    GroupID: 插件所属的Group ID
-    IsMultiTenant: 是否为多租户插件，true或false
-    BindIP: 插件监听的绑定IP
-    BindPort: 插件监听的绑定端口
-    PortRange: 插件监听的端口范围
+  Name: 插件的二进制文件名称, 与project.yaml文件中的name字段一致
+  LogPath: 插件日志路径
+  DataPath: 插件数据路径
+  PidPath: 插件PID文件路径
+  SetupPath: 插件安装路径
+  ConfigPath: 插件配置路径
+  HostIDPath: 主机ID文件路径
+  PluginIPC: PluginIPC路径，windows为端口号，linux为文件路径
+  DataIPC: DataIPC路径，windows为端口号，linux为文件路径
+  AgentDir: Agent安装路径
+  GroupID: 插件所属的Group ID
+  IsMultiTenant: 是否为多租户插件，true或false
+  BindIP: 插件监听的绑定IP
+  BindPort: 插件监听的绑定端口
+  PortRange: 插件监听的端口范围
 NodeInfo:
-    HostID: 主机ID
-    TenantID: 租户ID
-    Static:
-        BizID: 业务ID
-        NetworkAreaID: 管控区域ID
-        InnerIPList: 内网IP列表
-        InnerIPV6List: 内网IPv6列表
-        OuterIPList: 外网IP列表
-        OuterIPV6List: 外网IPv6列表
-        Mac: MAC地址
-        Addressing: 寻址方式
-        OSType: 操作系统类型
-        OSTypeCCID: 操作系统类型(CMDB中存储的操作系统类型ID)
-        Arch: 操作系统架构
-        CPUNum: CPU核数
-        MemCap: 内存容量
-        HostName: 主机名称
-        DeptName: 部门名称
-        Operator: 操作人
-        ZoneID: 所属可用区ID（来源于CMDB bk_idc_area_id）
-        CityID: 所属城市ID
-    Dynamic:
-        AgentID: 获取自GSE Agent的实际Agent ID
-        AdvertiseIP: 节点使用的实际网卡的IP
-        AdvertiseIPV6: 节点使用的实际网卡的IPv6
-        ExportIP: 节点的出口IPv4地址
-        ExportIPV6: 节点的出口IPv6地址
-        NetworkUnitID: 管控单元ID
-        NodeOsType: 节点操作系统类型
-        NodeCPUArch: 节点CPU架构
-        NodeVersion: 节点Agent的版本
-        NodeRole: 节点角色，如agent、proxy等
-        NodeGeneration: 节点Agent的版本代数, 1对应1.x版本的Agent, 2对应2.x版本的Agent
-        NodeStatus: 节点状态
-        LoginUser: 登录用户
-        RelayDownloadPort: relay的下载端口
-        RelayCallbackPort: relay的回调端口
-        ProxyClusterPort: Proxy的gse_agent监听的端口
-        ProxyFilePort: Proxy的gse_file_proxy监听的端口
-        ProxyDataPort: Proxy的gse_data_proxy监听的端口
-        ProxyAccessDisabled: 此节点是否建立新的代理访问连接
-        ProxyInstallOriginUnitID: 代理安装时所在的管控单元ID
-        ProxyTags: Proxy节点的标签列表
+  HostID: 主机ID
+  TenantID: 租户ID
+  Static:
+    BizID: 业务ID
+    NetworkAreaID: 管控区域ID
+    InnerIPList: 内网IP列表
+    InnerIPV6List: 内网IPv6列表
+    OuterIPList: 外网IP列表
+    OuterIPV6List: 外网IPv6列表
+    Mac: MAC地址
+    Addressing: 寻址方式
+    OSType: 操作系统类型
+    OSTypeCCID: 操作系统类型(CMDB中存储的操作系统类型ID)
+    Arch: 操作系统架构
+    CPUNum: CPU核数
+    MemCap: 内存容量
+    HostName: 主机名称
+    DeptName: 部门名称
+    Operator: 操作人
+    ZoneID: 所属可用区ID（来源于CMDB bk_idc_area_id）
+    CityID: 所属城市ID
+  Dynamic:
+    AgentID: 获取自GSE Agent的实际Agent ID
+    AdvertiseIP: 节点使用的实际网卡的IP
+    AdvertiseIPV6: 节点使用的实际网卡的IPv6
+    ExportIP: 节点的出口IPv4地址
+    ExportIPV6: 节点的出口IPv6地址
+    NetworkUnitID: 管控单元ID
+    NodeOsType: 节点操作系统类型
+    NodeCPUArch: 节点CPU架构
+    NodeVersion: 节点Agent的版本
+    NodeRole: 节点角色，如agent、proxy等
+    NodeGeneration: 节点Agent的版本代数, 1对应1.x版本的Agent, 2对应2.x版本的Agent
+    NodeStatus: 节点状态
+    LoginUser: 登录用户
+    RelayDownloadPort: relay的下载端口
+    RelayCallbackPort: relay的回调端口
+    ProxyClusterPort: Proxy的gse_agent监听的端口
+    ProxyFilePort: Proxy的gse_file_proxy监听的端口
+    ProxyDataPort: Proxy的gse_data_proxy监听的端口
+    ProxyAccessDisabled: 此节点是否建立新的代理访问连接
+    ProxyInstallOriginUnitID: 代理安装时所在的管控单元ID
+    ProxyTags: Proxy节点的标签列表
 CustomContext:
-    # 自定义变量，安装时由用户在请求参数中提供，请规范使用驼峰命名法定义变量名称
-    # variables的配置内容也会出现在这里
+  # 自定义变量，安装时由用户在请求参数中提供，请规范使用驼峰命名法定义变量名称
+  # variables的配置内容也会出现在这里
 ```
 
 ## 示例
 
 以`bk-nodemgr-relay`插件为例，插件包结构如下：
 
-``` shell
+```shell
 bk-nodemgr-relay-1.0.0.tgz
 .
 └─bk-nodemgr-relay
@@ -127,7 +127,7 @@ bk-nodemgr-relay-1.0.0.tgz
 
 `project.yaml`文件内容如下：
 
-``` yaml
+```yaml
 title: bk-nodemgr-relay
 version: 1.0.0
 description: 蓝鲸节点管理中继模块
@@ -137,6 +137,7 @@ scenarioEn: BlueKing Node Management Relay Module, used for forwarding operation
 launchNode: proxy
 templateRenderer: go-template
 installCpuLimit: 0.5
+legacyConflict: false
 ```
 
 - name：插件名称
@@ -148,6 +149,16 @@ installCpuLimit: 0.5
 - launchNode：插件启动节点类型, 支持 proxy（Proxy节点）、agent（Agent节点）、all（所有节点）
 - templateRenderer：配置模板渲染器类型, 支持 go-template（Go模板，推荐）、 jinja2（Jinja2模板，不推荐）
 - installCpuLimit：V3 插件安装和升级时，installer 处理 tgz 包的 CPU 限制比例。取值范围为 0 到 1；未配置、0 或 1 表示不限速，只有 0 到 1 之间的值会注入 installer 的 `--cpu-limit` 参数。该配置只影响 installer 包处理阶段，不影响插件运行时 CPU 限制。
+- legacyConflict：插件 Install API 的旧版冲突声明，bool 类型，可选，缺省为 `false`。设为 `true` 时，仅支持当前系统部署。
+
+> **legacyConflict 注意事项**
+>
+> 以下兼容判定与 V2 ensure 过滤适用于插件 Install API（`POST /api/v3/plugin/install`），不覆盖节点预置、部署策略、升级或调试入口的兼容判定。
+>
+> - `true` 优先于全局兼容策略，即使插件命中 `enabled_plugins` 等兼容列表，也不会启用兼容模式或启动 V2 ensure 部署。
+> - 安装前会检查 `nodeman` 旧版运行空间中的同名插件实例；旧实例仍在运行或状态查询失败时，部署会被阻断。旧实例运行时，需先自行停止并确认其不再运行。
+> - 该字段不会自动停止旧实例，也不是持续锁：不会持续监控或阻止旧实例在检查后再次启动。
+> - `false` 或未配置时仍按原有兼容规则处理，并不强制使用 `nodeman`。
 
 > **注意**
 > 配置模板渲染器请选择 go-template，因为 jinja2 模板渲染器已不推荐使用，未来版本可能会移除对 jinja2 模板的支持
@@ -158,7 +169,7 @@ installCpuLimit: 0.5
 
 `definition.yaml`文件内容如下：
 
-``` yaml
+```yaml
 configTemplates:
   - name: bk-nodemgr-relay.conf
     isMainConfig: true
