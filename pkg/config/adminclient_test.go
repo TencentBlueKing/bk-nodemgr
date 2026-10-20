@@ -88,3 +88,35 @@ func TestAdminClientDatabase_LoadFromFileKMSMissingSecretFile(t *testing.T) {
 	err := conf.LoadFromFile(configPath)
 	require.ErrorContains(t, err, "globalSecretFile is empty")
 }
+
+func TestAdminClientBKApp_LoadFromFile(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "backend_conf.yaml")
+	configContent := []byte(`# unrelated fields may contain unreplaced rendering placeholders.
+advertiseIPV4: "__ADVERTISE_IPV4__"
+kms:
+  enabled: true
+  globalSecretFile: /bk-nodemgr/secret/kms-global-envelope
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	conf := &AdminClientBKApp{}
+	// LoadFromFile decrypts inline; the missing envelope file surfaces its parsed path,
+	// which also proves the kms section yaml fields were loaded.
+	err := conf.LoadFromFile(configPath)
+	require.ErrorContains(t, err, "/bk-nodemgr/secret/kms-global-envelope")
+
+	assert.True(t, conf.KMS.Enabled)
+	assert.Equal(t, "/bk-nodemgr/secret/kms-global-envelope", conf.KMS.GlobalSecretFile)
+}
+
+func TestAdminClientBKApp_LoadFromFileKMSDisabled(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "backend_conf.yaml")
+	configContent := []byte(`kms:
+  enabled: false
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	conf := &AdminClientBKApp{}
+	err := conf.LoadFromFile(configPath)
+	require.ErrorContains(t, err, "kms is not enabled")
+}

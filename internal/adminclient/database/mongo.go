@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/spf13/cobra"
 )
@@ -49,7 +50,7 @@ try {
 
 // newMongoCMD creates the mongodb command proxying to the mongo shell with connection
 // parameters from the service config file. "mongo" is kept as an alias.
-func newMongoCMD(flags *configFlags) *cobra.Command {
+func newMongoCMD(flags *configfile.Flags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "mongodb [-f config] [login|status]",
 		Aliases: []string{"mongo"},
@@ -64,7 +65,7 @@ func newMongoCMD(flags *configFlags) *cobra.Command {
 				return fmt.Errorf("unknown command '%s', available commands: login, status", command)
 			}
 
-			conf, path, err := loadConfig(flags.path, flags.confDir, sectionMongoDB)
+			conf, path, err := loadConfig(flags, sectionMongoDB)
 			if err != nil {
 				return err
 			}

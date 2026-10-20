@@ -25,6 +25,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/spf13/cobra"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -46,7 +47,7 @@ const (
 // newCheckCMD creates the check command for database connectivity checks.
 // Each check is a single attempt: success exits 0, failure exits non-zero.
 // Retry is left to the caller (e.g. the retry loop in the k8s initContainer).
-func newCheckCMD(flags *configFlags) *cobra.Command {
+func newCheckCMD(flags *configfile.Flags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
 		Short: "check database connectivity (single attempt, non-zero exit on failure)",
@@ -66,7 +67,7 @@ func newCheckCMD(flags *configFlags) *cobra.Command {
 		// Argument and flag validation still report errors before running the check.
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			conf, path, err := loadConfig(flags.path, flags.confDir, sectionEtcd)
+			conf, path, err := loadConfig(flags, sectionEtcd)
 			if err != nil {
 				return err
 			}
@@ -86,7 +87,7 @@ func newCheckCMD(flags *configFlags) *cobra.Command {
 		// Argument and flag validation still report errors before running the check.
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			conf, path, err := loadConfig(flags.path, flags.confDir, sectionRedis)
+			conf, path, err := loadConfig(flags, sectionRedis)
 			if err != nil {
 				return err
 			}
@@ -106,7 +107,7 @@ func newCheckCMD(flags *configFlags) *cobra.Command {
 		// Argument and flag validation still report errors before running the check.
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			conf, path, err := loadConfig(flags.path, flags.confDir, sectionMongoDB)
+			conf, path, err := loadConfig(flags, sectionMongoDB)
 			if err != nil {
 				return err
 			}

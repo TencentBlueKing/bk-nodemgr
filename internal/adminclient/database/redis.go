@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/spf13/cobra"
 )
@@ -41,7 +42,7 @@ const (
 
 // newRedisCMD creates the redis command proxying to redis-cli with connection
 // parameters from the service config file.
-func newRedisCMD(flags *configFlags) *cobra.Command {
+func newRedisCMD(flags *configfile.Flags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "redis [-f config] [login|status]",
 		Short: "connect to redis via redis-cli (supported types: standalone, cluster, sentinel)",
@@ -55,7 +56,7 @@ func newRedisCMD(flags *configFlags) *cobra.Command {
 				return fmt.Errorf("unknown command '%s', available commands: login, status", command)
 			}
 
-			conf, path, err := loadConfig(flags.path, flags.confDir, sectionRedis)
+			conf, path, err := loadConfig(flags, sectionRedis)
 			if err != nil {
 				return err
 			}

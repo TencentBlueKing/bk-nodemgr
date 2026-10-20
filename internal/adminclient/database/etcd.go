@@ -22,13 +22,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/spf13/cobra"
 )
 
 // newEtcdCMD creates the etcd command proxying to etcdctl with connection
 // parameters from the service config file.
-func newEtcdCMD(flags *configFlags) *cobra.Command {
+func newEtcdCMD(flags *configfile.Flags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "etcd [-f config] -- <etcdctl-subcommand> [args...]",
 		Short: "proxy etcdctl with connection parameters from config",
@@ -42,7 +43,7 @@ func newEtcdCMD(flags *configFlags) *cobra.Command {
 				return cmd.Help()
 			}
 
-			conf, path, err := loadConfig(flags.path, flags.confDir, sectionEtcd)
+			conf, path, err := loadConfig(flags, sectionEtcd)
 			if err != nil {
 				return err
 			}

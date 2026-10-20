@@ -40,6 +40,49 @@ type AdminClientDatabase struct {
 // Validation is left to callers: each command validates only the database section it uses,
 // because the raw config file may contain unreplaced rendering placeholders in unrelated fields.
 func (conf *AdminClientDatabase) LoadFromFile(path string) error {
+	if err := loadYAMLFile(path, conf); err != nil {
+		return err
+	}
+
+	// load kms secret.
+	if conf.KMS.Enabled {
+		if err := conf.KMS.ParseAdminClientDatabase(conf); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AdminClientBKApp the minimal config for the adminclient bkapp command: only the kms
+// section is needed, since the bk app code/secret lives in the kms global envelope.
+type AdminClientBKApp struct {
+	KMS KMS `yaml:"kms" usage:"kms secret config"`
+
+	// AppCode/AppSecret hold the decrypted bk app credentials, populated by LoadFromFile.
+	AppCode   string `yaml:"-"`
+	AppSecret string `yaml:"-"`
+}
+
+// LoadFromFile loads the kms section from a service config file and decrypts the bk app
+// code/secret from the kms global envelope into AppCode/AppSecret. Unlike the database
+// commands, kms is mandatory here: plaintext deployments read app credentials from values
+// directly and never call this command, so a disabled kms section is an error.
+func (conf *AdminClientBKApp) LoadFromFile(path string) error {
+	if err := loadYAMLFile(path, conf); err != nil {
+		return err
+	}
+
+	// load kms secret.
+	if err := conf.KMS.ParseAdminClientBKApp(conf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// loadYAMLFile reads a yaml config file into v.
+func loadYAMLFile(path string, v any) error {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return err
@@ -51,16 +94,5 @@ func (conf *AdminClientDatabase) LoadFromFile(path string) error {
 		return err
 	}
 
-	if err = yaml.Unmarshal(configContent, conf); err != nil {
-		return err
-	}
-
-	// load kms secret.
-	if conf.KMS.Enabled {
-		if err = conf.KMS.ParseAdminClientDatabase(conf); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return yaml.Unmarshal(configContent, v)
 }

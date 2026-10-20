@@ -24,24 +24,16 @@ package database
 import (
 	"crypto/tls"
 	"fmt"
-	"os"
-	"path/filepath"
-	"regexp"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/spf13/cobra"
 )
 
-// configFlags carries the config flags shared by all database subcommands.
-type configFlags struct {
-	path    string
-	confDir string
-}
-
 // NewDatabaseCMD creates the db command grouping database connectivity checks
 // and client proxies.
 func NewDatabaseCMD() *cobra.Command {
-	flags := &configFlags{}
+	flags := &configfile.Flags{}
 
 	cmd := &cobra.Command{
 		Use:     "database",
@@ -52,10 +44,7 @@ func NewDatabaseCMD() *cobra.Command {
 			return cmd.Help()
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&flags.path, "file", "f", "",
-		"path of service config file (default: auto-discover in --conf-dir)")
-	cmd.PersistentFlags().StringVar(&flags.confDir, "conf-dir", defaultConfDir,
-		"directory of service config files for auto-discovery")
+	configfile.AddPersistentFlags(cmd, flags)
 
 	cmd.AddCommand(newCheckCMD(flags))
 	cmd.AddCommand(newEtcdCMD(flags))
@@ -65,30 +54,19 @@ func NewDatabaseCMD() *cobra.Command {
 	return cmd
 }
 
-// storage section names in service config files.
+// database section names in service config files.
 const (
 	sectionEtcd    = "etcd"
 	sectionRedis   = "redis"
 	sectionMongoDB = "mongodb"
 )
 
-const (
-	// defaultConfDir is the default directory of service config files.
-	defaultConfDir = "/bk-nodemgr/etc"
-	// confFileSuffix is the file name suffix of service config files.
-	confFileSuffix = "_conf.yaml"
-)
-
 // loadConfig resolves the config path (flag value or auto-discovery) and loads the database config.
 // It returns the loaded config and the resolved path for user-facing messages.
-func loadConfig(configPath, confDir, section string) (*config.AdminClientDatabase, string, error) {
-	path := configPath
-	if path == "" {
-		discovered, err := discoverConfig(confDir, section)
-		if err != nil {
-			return nil, "", err
-		}
-		path = discovered
+func loadConfig(flags *configfile.Flags, section string) (*config.AdminClientDatabase, string, error) {
+	path, err := configfile.Resolve(flags.Path, flags.Dir, section)
+	if err != nil {
+		return nil, "", err
 	}
 
 	conf := &config.AdminClientDatabase{}
@@ -99,29 +77,7 @@ func loadConfig(configPath, confDir, section string) (*config.AdminClientDatabas
 	return conf, path, nil
 }
 
-// discoverConfig finds the first conf file containing the target section.
-func discoverConfig(confDir, section string) (string, error) {
-	matches, err := filepath.Glob(filepath.Join(confDir, "*"+confFileSuffix))
-	if err != nil {
-		return "", fmt.Errorf("failed to glob config files in %s: %w", confDir, err)
-	}
-
-	sectionPattern := regexp.MustCompile(`(?m)^` + section + `:`)
-	for _, file := range matches {
-		content, err := os.ReadFile(file) // nolint: gosec
-		if err != nil {
-			// an unreadable file is treated as not containing the section.
-			continue
-		}
-		if sectionPattern.Match(content) {
-			return file, nil
-		}
-	}
-
-	return "", fmt.Errorf("no config file containing '%s:' found in %s/, use -f to specify manually", section, confDir)
-}
-
-// newClientTLSConf builds client side tls config from a storage tls section.
+// newClientTLSConf builds client side tls config from a database tls section.
 // TLS is enabled only when ca/cert/key are all set, mirroring the service side behavior
 // (pkg/discover/etcddiscover initTLS, backend service mongo client construction).
 func newClientTLSConf(conf config.TLSConfig) (*tls.Config, error) {
