@@ -124,3 +124,65 @@ func narrowReleaseCondition(
 
 	return condition
 }
+
+// narrowAuthorizedPackageNamesForHistory returns the fixed package types and plugin names the user is authorized to view history for.
+func (h *handler) narrowAuthorizedPackageNamesForHistory(
+	rCtx restserver.IContext,
+) ([]types.ReleaseType, []string, bool, error) {
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPackageHistoryView, types.AuthResourceTypePackage)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	narrowedNames, scopeIsAny, _, err := auth.ResolveAuthorizedResourceIDsString(
+		scope, nil, types.AuthResourceTypePackage,
+	)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	fixedTypes := make([]types.ReleaseType, 0, len(narrowedNames))
+	pluginNames := make([]string, 0, len(narrowedNames))
+	for _, name := range narrowedNames {
+		releaseType := types.ReleaseType(name)
+		if isFixedType(releaseType) {
+			fixedTypes = append(fixedTypes, releaseType)
+			continue
+		}
+		pluginNames = append(pluginNames, name)
+	}
+
+	return fixedTypes, pluginNames, scopeIsAny, nil
+}
+
+// narrowPackageEventCondition restricts the package event condition to authorized package types and plugin names.
+// The authorization groups are ANDed with the requested conditions, so requested release types only narrow the result.
+func narrowPackageEventCondition(
+	condition *types.PackageEventCondition, fixedTypes []types.ReleaseType, pluginNames []string, scopeIsAny bool,
+) (*types.PackageEventCondition, bool) {
+	if scopeIsAny {
+		return condition, true
+	}
+	if len(fixedTypes) == 0 && len(pluginNames) == 0 {
+		return condition, false
+	}
+
+	if condition == nil {
+		condition = &types.PackageEventCondition{}
+	}
+	if len(fixedTypes) > 0 {
+		condition.AnyOf = append(condition.AnyOf, &types.PackageEventCondition{
+			ExactInclude: &types.PackageEventExactFields{ReleaseType: fixedTypes},
+		})
+	}
+	if len(pluginNames) > 0 {
+		condition.AnyOf = append(condition.AnyOf, &types.PackageEventCondition{
+			ExactInclude: &types.PackageEventExactFields{
+				ReleaseType: []types.ReleaseType{types.ReleaseTypePlugin, types.ReleaseTypePluginBinTool},
+				Name:        pluginNames,
+			},
+		})
+	}
+
+	return condition, true
+}

@@ -42,12 +42,24 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	fixedTypes, pluginNames, scopeIsAny, authErr := h.narrowAuthorizedPackageNamesForHistory(rCtx)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list event, permission denied")
+
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	conditions, hasAuthorizedPackages := narrowPackageEventCondition(conditions, fixedTypes, pluginNames, scopeIsAny)
+
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.fileHandler.CountPackageEvent(
-			rCtx,
-			conditions,
-		)
+		if !hasAuthorizedPackages {
+			resp := new(protoBackend.PackageEventListResp)
+			resp.ConvertPackageEventsFromTypes(0, nil)
+
+			return resp.GetData(), nil
+		}
+
+		num, err := h.fileHandler.CountPackageEvent(rCtx, conditions)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, failed to count event")
 
@@ -65,6 +77,13 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, invalid page info")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if !hasAuthorizedPackages {
+		resp := new(protoBackend.PackageEventListResp)
+		resp.ConvertPackageEventsFromTypes(0, nil)
+
+		return resp.GetData(), nil
 	}
 
 	events, num, err := h.fileHandler.ListPackageEvent(rCtx, page, conditions)
