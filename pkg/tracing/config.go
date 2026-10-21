@@ -100,7 +100,7 @@ type ExporterConfig struct {
 // Validate validates ExporterConfig.
 func (conf *ExporterConfig) Validate() error {
 	if err := conf.ExporterType.Validate(); err != nil {
-		return fmt.Errorf("exporter type is required")
+		return fmt.Errorf("failed to validate exporter type: %w", err)
 	}
 
 	if conf.ExporterType == ExporterTypeOTLP && conf.OTLPConfig == nil {
