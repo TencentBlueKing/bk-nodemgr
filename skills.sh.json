@@ -1,0 +1,13 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Business Skills",
+      "description": "Skills for deploying and operating BlueKing Node Manager.",
+      "skills": [
+        "bk-nodemgr-deploy"
+      ]
+    }
+  ]
+}
