@@ -22,6 +22,13 @@ clang-format = "latest"
 "npm:bash-language-server" = "latest"
 "npm:pyright" = "latest"
 
+[tasks.install-skills]
+description = "Install business skills from the upstream master branch"
+tools = { "npm:skills" = "latest" }
+raw = true
+raw_args = true
+run = "skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills"
+
 [tasks.setup-go-sdk]
 description = "Link mise Go installations into ~/sdk for the Makefile Go launchers"
 run = '''
