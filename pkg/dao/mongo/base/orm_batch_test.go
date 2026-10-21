@@ -32,6 +32,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
 func TestOrm_UpdateFieldBatchingOptIn(t *testing.T) {
@@ -81,11 +85,17 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock).
 		ClientOptions(mongoOptions.Client().SetMonitor(monitor)))
 	mt.Run("late arrivals and canceled callers", func(mt *mtest.T) {
+		recorder := tracetest.NewSpanRecorder()
+		provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+		defer func() { require.NoError(mt, provider.Shutdown(context.Background())) }()
+		tracer := provider.Tracer("batch-test")
 		orm := NewOrm[*TestData](&TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}, WithUpdateFieldBatching())
 		mt.AddMockResponses(mtest.CreateSuccessResponse(), mtest.CreateSuccessResponse())
 		first := make(chan error, 1)
 		go func() {
-			first <- orm.UpdateField(contextx.Background(), AliveFilter(), FieldKeyTestDataValue, 0)
+			ctx, span := tracer.Start(context.Background(), "first")
+			defer span.End()
+			first <- orm.UpdateField(contextx.FromContext(ctx), AliveFilter(), FieldKeyTestDataValue, 0)
 		}()
 		select {
 		case <-started:
@@ -97,7 +107,9 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 		results := make(chan error, callers)
 		for value := range callers {
 			go func() {
-				results <- orm.UpdateField(contextx.Background(), AliveFilter(), FieldKeyTestDataValue, value+1)
+				ctx, span := tracer.Start(context.Background(), "caller")
+				defer span.End()
+				results <- orm.UpdateField(contextx.FromContext(ctx), AliveFilter(), FieldKeyTestDataValue, value+1)
 			}()
 		}
 		canceledCtx, cancel := contextx.WithCancel(contextx.Background())
@@ -144,7 +156,84 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 		}
 		require.Len(mt, values, callers)
 		require.Nil(mt, mt.GetStartedEvent())
+		calls := make(map[string]sdktrace.ReadOnlySpan)
+		var flushes []sdktrace.ReadOnlySpan
+		for _, span := range recorder.Ended() {
+			switch span.Name() {
+			case "mongo.batch.update_many":
+				calls[span.SpanContext().SpanID().String()] = span
+			case "mongo.batch.flush":
+				flushes = append(flushes, span)
+			}
+		}
+		require.Len(mt, calls, callers+1)
+		require.Len(mt, flushes, 2)
+		for _, flush := range flushes {
+			require.Contains(mt, flush.Attributes(), attribute.Int("batch.size", len(flush.Links())))
+			for _, link := range flush.Links() {
+				call, ok := calls[link.SpanContext.SpanID().String()]
+				require.True(mt, ok, "every participating caller must be linked to its send")
+				require.Equal(mt, call.SpanContext(), link.SpanContext)
+				require.Contains(mt, call.Attributes(), attribute.Int("batch.size", len(flush.Links())))
+				delete(calls, link.SpanContext.SpanID().String())
+			}
+		}
+		require.Empty(mt, calls, "no caller may be omitted from its send's links")
 	})
+}
+
+func TestOrm_UpdateFieldBatchingSpans(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	for _, scenario := range []string{"immediate", "batch", "error", "session"} {
+		mt.Run(scenario, func(mt *mtest.T) {
+			recorder := tracetest.NewSpanRecorder()
+			provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+			defer func() { require.NoError(mt, provider.Shutdown(context.Background())) }()
+			ctx, parent := provider.Tracer("batch-test").Start(context.Background(), "caller")
+			defer parent.End()
+			nCtx := contextx.FromContext(ctx)
+			dao := &TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}
+			orm := NewOrm[*TestData](dao, WithUpdateFieldBatching())
+			if scenario == "immediate" {
+				orm = NewOrm[*TestData](dao)
+			}
+			if scenario == "session" {
+				session, err := mt.Client.StartSession()
+				require.NoError(mt, err)
+				defer session.EndSession(context.Background())
+				nCtx = contextx.FromContext(mongo.NewSessionContext(nCtx, session))
+			}
+			response := mtest.CreateSuccessResponse()
+			if scenario == "error" {
+				response = mtest.CreateCommandErrorResponse(mtest.CommandError{Code: 2, Message: "invalid query"})
+			}
+			mt.AddMockResponses(response)
+			err := orm.UpdateField(nCtx, AliveFilter(), FieldKeyTestDataValue, 1)
+			if scenario == "error" {
+				require.ErrorContains(mt, err, "invalid query")
+			} else {
+				require.NoError(mt, err)
+			}
+			spans := recorder.Ended()
+			if scenario == "immediate" || scenario == "session" {
+				require.Empty(mt, spans, "direct writes must not be marked as batched")
+				return
+			}
+			require.Len(mt, spans, 2)
+			require.Equal(mt, "mongo.batch.flush", spans[0].Name())
+			require.Equal(mt, "mongo.batch.update_many", spans[1].Name())
+			require.Equal(mt, parent.SpanContext().SpanID(), spans[1].Parent().SpanID())
+			require.Equal(mt, spans[1].SpanContext().SpanID(), spans[0].Parent().SpanID())
+			for _, span := range spans {
+				require.Contains(mt, span.Attributes(), attribute.String("db.mongodb.collection", dao.tableName))
+				require.Contains(mt, span.Attributes(), attribute.Int("batch.size", 1))
+				if scenario == "error" {
+					require.Equal(mt, codes.Error, span.Status().Code)
+					require.NotEmpty(mt, span.Events())
+				}
+			}
+		})
+	}
 }
 
 func TestUpdateFieldBatchErrors(t *testing.T) {

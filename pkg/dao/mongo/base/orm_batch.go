@@ -27,9 +27,13 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daomongo "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -44,9 +48,8 @@ type ormOptions struct {
 	updateFieldBatching bool
 }
 
-// A nil result means that only batch-level counts are available, not zero matches.
 type updateExecutor interface {
-	UpdateMany(nCtx contextx.IContext, filter bson.D, update bson.D) (*mongo.UpdateResult, error)
+	UpdateMany(nCtx contextx.IContext, filter bson.D, update bson.D) error
 }
 
 type immediateUpdateExecutor struct {
@@ -55,9 +58,24 @@ type immediateUpdateExecutor struct {
 
 func (executor *immediateUpdateExecutor) UpdateMany(
 	nCtx contextx.IContext, filter bson.D, update bson.D,
-) (*mongo.UpdateResult, error) {
+) error {
 
-	return executor.dao.GetClient().UpdateMany(nCtx, filter, update)
+	metric := newMetricData(executor.dao.GetTableName()).start(daomongo.MetricOperationUpdateMany, len(filter))
+	result, err := executor.dao.GetClient().UpdateMany(nCtx, filter, update)
+	modified := 0
+	if result != nil {
+		modified = int(result.ModifiedCount)
+	}
+	metric.end(err, modified)
+	if err != nil {
+		return err
+	}
+
+	logger.G.Sys().Ctx(nCtx).
+		With("table", executor.dao.GetTableName(), "matched-count", result.MatchedCount, "modified-count", result.ModifiedCount).
+		Debug("updated documents")
+
+	return nil
 }
 
 // OrmOption configures optional ORM behavior at construction time.
@@ -94,22 +112,40 @@ type updateFieldBatcher struct {
 
 func (batcher *updateFieldBatcher) UpdateMany(
 	nCtx contextx.IContext, filter bson.D, update bson.D,
-) (*mongo.UpdateResult, error) {
+) error {
 
 	if mongo.SessionFromContext(nCtx) != nil {
 		return batcher.immediate.UpdateMany(nCtx, filter, update)
 	}
+	tracer := trace.SpanFromContext(nCtx).TracerProvider().Tracer("dao.mongo.base")
+	ctx, span := tracer.Start(nCtx, "mongo.batch.update_many", trace.WithAttributes(
+		attribute.String("db.mongodb.collection", batcher.dao.GetTableName()),
+	))
+	defer span.End()
+	err := batcher.updateMany(contextx.FromContext(ctx), filter, update)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+	}
+
+	return err
+}
+
+func (batcher *updateFieldBatcher) updateMany(
+	nCtx contextx.IContext, filter bson.D, update bson.D,
+) error {
+
 	if err := nCtx.Err(); err != nil {
-		return nil, err
+		return err
 	}
 	// Encode before admission so a caller's invalid value cannot fail its peers.
 	encodedFilter, err := bson.Marshal(filter)
 	if err != nil {
-		return nil, fmt.Errorf("encode batched update filter: %w", err)
+		return fmt.Errorf("encode batched update filter: %w", err)
 	}
 	encodedUpdate, err := bson.Marshal(update)
 	if err != nil {
-		return nil, fmt.Errorf("encode batched update fields: %w", err)
+		return fmt.Errorf("encode batched update fields: %w", err)
 	}
 	item := &pendingFieldUpdate{
 		ctx: nCtx,
@@ -124,7 +160,7 @@ func (batcher *updateFieldBatcher) UpdateMany(
 	for {
 		select {
 		case <-item.done:
-			return nil, item.err // nolint: nilnil // BulkWrite has no per-command counts.
+			return item.err
 		default:
 		}
 		// Joining a flight does not mean this item was in its drained batch.
@@ -136,7 +172,7 @@ func (batcher *updateFieldBatcher) UpdateMany(
 		})
 		select {
 		case <-item.done:
-			return nil, item.err // nolint: nilnil // BulkWrite has no per-command counts.
+			return item.err
 		case <-nCtx.Done():
 			batcher.mu.Lock()
 			if !item.dispatched {
@@ -144,15 +180,15 @@ func (batcher *updateFieldBatcher) UpdateMany(
 				batcher.pending = slices.Delete(batcher.pending, index, index+1)
 				batcher.mu.Unlock()
 
-				return nil, nCtx.Err()
+				return nCtx.Err()
 			}
 			batcher.mu.Unlock()
 			<-item.done
 
-			return nil, item.err // nolint: nilnil // BulkWrite has no per-command counts.
+			return item.err
 		case result := <-resultCh:
 			if result.Err != nil {
-				return nil, result.Err
+				return result.Err
 			}
 		}
 	}
@@ -170,6 +206,7 @@ func (batcher *updateFieldBatcher) flush() {
 
 	items := make([]*pendingFieldUpdate, 0, len(batch))
 	models := make([]mongo.WriteModel, 0, len(batch))
+	links := make([]trace.Link, 0, len(batch))
 	for _, item := range batch {
 		if err := item.ctx.Err(); err != nil {
 			item.err = err
@@ -179,6 +216,8 @@ func (batcher *updateFieldBatcher) flush() {
 		}
 		items = append(items, item)
 		models = append(models, item.model)
+		span := trace.SpanFromContext(item.ctx)
+		links = append(links, trace.Link{SpanContext: span.SpanContext()})
 	}
 	if len(items) == 0 {
 		return
@@ -186,6 +225,12 @@ func (batcher *updateFieldBatcher) flush() {
 
 	nCtx, cancel := contextx.WithTimeout(contextx.WithoutCancel(items[0].ctx), updateFieldBatchTimeout)
 	defer cancel()
+	tracer := trace.SpanFromContext(nCtx).TracerProvider().Tracer("dao.mongo.base")
+	ctx, span := tracer.Start(nCtx, "mongo.batch.flush", trace.WithLinks(links...), trace.WithAttributes(
+		attribute.String("db.mongodb.collection", batcher.dao.GetTableName()),
+		attribute.Int("batch.size", len(models)),
+	))
+	nCtx = contextx.FromContext(ctx)
 	metric := newMetricData(batcher.dao.GetTableName()).start(daomongo.MetricOperationBulkWrite, len(models))
 	result, err := batcher.dao.GetClient().BulkWrite(nCtx, models, mongoOptions.BulkWrite().SetOrdered(false))
 	modified := 0
@@ -193,7 +238,13 @@ func (batcher *updateFieldBatcher) flush() {
 		modified = int(result.ModifiedCount)
 	}
 	metric.end(err, modified)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+	}
+	span.End()
 	for index, item := range items {
+		trace.SpanFromContext(item.ctx).SetAttributes(attribute.Int("batch.size", len(models)))
 		item.err = fieldUpdateBatchError(err, index)
 		close(item.done)
 	}

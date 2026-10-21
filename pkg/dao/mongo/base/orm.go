@@ -481,20 +481,9 @@ func (orm *Orm[P, T]) EnsureIndexes() (err error) {
 
 // UpdateField this is a common operation for mongo db.
 func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field string, value any) (err error) {
-	var result *mongo.UpdateResult
-
-	// record metric.
-	metric := orm.metric().start(daomongo.MetricOperationUpdateMany, len(filter))
+	start := time.Now()
 	defer func() {
-		metric.end(err, func() int {
-			if result == nil {
-				return 0
-			}
-
-			return int(result.ModifiedCount)
-		}())
-
-		duration := time.Since(metric.startTime)
+		duration := time.Since(start)
 		if duration < daomongo.DefaultSlowTime {
 			return
 		}
@@ -522,33 +511,12 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 				attribute.String(attrKeyORMOperation, "update_field"),
 				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
 				attribute.Int(attrKeyORMFilterSize, len(filter)),
-				attribute.Int(attrKeyORMResultCount, func() int {
-					if result == nil {
-						return 0
-					}
-
-					return int(result.ModifiedCount)
-				}()),
 			),
 			trace.WithAttributes(filterAttrs...),
 		)
 	}()
 
-	// update field.
-	if result, err = orm.updateExecutor.UpdateMany(nCtx, filter, buildUpdateField(field, value)); err != nil {
-		return err
-	}
-
-	// BulkWrite only reports aggregate counts; do not attribute them to this call.
-	if result == nil {
-		return nil
-	}
-
-	logger.G.Sys().Ctx(nCtx).
-		With("table", orm.dao.GetTableName(), "field", field, "matched-count", result.MatchedCount, "modified-count", result.ModifiedCount).
-		Debug("updated field")
-
-	return nil
+	return orm.updateExecutor.UpdateMany(nCtx, filter, buildUpdateField(field, value))
 }
 
 // Count this is a common operation for mongo db.
