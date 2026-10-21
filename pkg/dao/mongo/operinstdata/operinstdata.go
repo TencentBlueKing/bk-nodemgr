@@ -35,7 +35,9 @@ func newDao(client *mongo.Database) *dao {
 		client:    client.Collection(TableName),
 		tableName: TableName,
 	}
-	d.IOrm = base.NewOrm[*OperInstData, OperInstData](d)
+	// Workflow state transitions and the timeout scan issue many concurrent single-document
+	// UpdateField calls; batching lets overlapping calls share one BulkWrite round trip.
+	d.IOrm = base.NewOrm[*OperInstData, OperInstData](d, base.WithUpdateFieldBatching())
 
 	return d
 }
