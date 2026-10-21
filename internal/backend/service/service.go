@@ -192,7 +192,11 @@ func (svc *Service) initialStaticsConfigs() error {
 			BaseWorkDir:       svc.conf.GSEDeployConfs[idx].BaseWorkDir,
 			HTTPProxyOverride: svc.conf.GSEDeployConfs[idx].HTTPProxy.Override,
 			HTTPProxyAddress:  svc.conf.GSEDeployConfs[idx].HTTPProxy.Address,
-			ManualScriptPath:  svc.conf.GSEDeployConfs[idx].ManualScriptPath,
+			Firewall: types.DeploymentFirewall{
+				RemoteIPs: svc.conf.GSEDeployConfs[idx].Firewall.RemoteIPs,
+				Features:  svc.conf.GSEDeployConfs[idx].Firewall.Features,
+			},
+			ManualScriptPath: svc.conf.GSEDeployConfs[idx].ManualScriptPath,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
 			return fmt.Errorf("failed to set deploy conf: %w", err)
