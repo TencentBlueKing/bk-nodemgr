@@ -35,7 +35,7 @@ func (x *TopoNetworkUnitCreateReq) Validate() error {
 	}
 
 	if x.GetBkNetworkareaId() < 0 {
-		return errors.New("bk_networkarea_id is required")
+		return errors.New("bk_networkarea_id is invalid")
 	}
 
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
