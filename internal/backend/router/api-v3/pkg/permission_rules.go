@@ -129,7 +129,13 @@ func narrowReleaseCondition(
 // narrowAuthorizedPackageNamesForHistory returns the fixed package types and plugin names the user is authorized to view history for.
 func (h *handler) narrowAuthorizedPackageNamesForHistory(
 	rCtx restserver.IContext,
-) ([]types.ReleaseType, []string, bool, error) {
+) (
+	[]types.ReleaseType,
+	[]string,
+	bool,
+	error,
+) {
+
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPackageHistoryView, types.AuthResourceTypePackage)
 	if err != nil {
 		return nil, nil, false, err
@@ -159,11 +165,17 @@ func (h *handler) narrowAuthorizedPackageNamesForHistory(
 // narrowPackageEventConditions creates normal package event conditions for authorized fixed and plugin packages.
 func narrowPackageEventConditions(
 	condition *types.PackageEventCondition, fixedTypes []types.ReleaseType, pluginNames []string, scopeIsAny bool,
-) (*types.PackageEventCondition, *types.PackageEventCondition, bool) {
+) (
+	*types.PackageEventCondition,
+	*types.PackageEventCondition,
+	bool,
+) {
+
 	if scopeIsAny {
 		if condition == nil {
 			condition = &types.PackageEventCondition{}
 		}
+
 		return condition, nil, true
 	}
 	if len(fixedTypes) == 0 && len(pluginNames) == 0 {
@@ -216,5 +228,6 @@ func clonePackageEventCondition(condition *types.PackageEventCondition) *types.P
 		fields = *condition.ExactInclude
 	}
 	clone.ExactInclude = &fields
+
 	return &clone
 }

@@ -107,7 +107,11 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 
 func (h *handler) countAuthorizedPackageEvents(
 	rCtx restserver.IContext, fixedCondition, pluginCondition *types.PackageEventCondition,
-) (int64, error) {
+) (
+	int64,
+	error,
+) {
+
 	var total int64
 	for _, condition := range []*types.PackageEventCondition{fixedCondition, pluginCondition} {
 		if condition == nil {
@@ -125,7 +129,12 @@ func (h *handler) countAuthorizedPackageEvents(
 
 func (h *handler) listAuthorizedPackageEvents(
 	rCtx restserver.IContext, page types.Page, fixedCondition, pluginCondition *types.PackageEventCondition,
-) ([]*types.PackageEvent, int64, error) {
+) (
+	[]*types.PackageEvent,
+	int64,
+	error,
+) {
+
 	if fixedCondition == nil {
 		return h.fileHandler.ListPackageEvent(rCtx, page, pluginCondition)
 	}

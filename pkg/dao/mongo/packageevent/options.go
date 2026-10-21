@@ -20,6 +20,7 @@ package packageevent
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -79,22 +80,30 @@ func WithoutVersion(version ...string) OptFn {
 
 // WithCPUArch provides filtering by cpu arch.
 func WithCPUArch(cpuArch ...criteria.CPUArch) OptFn {
-	return base.WithValues(FieldKeyCPUArch, criteria.CPUArchListToStringList(cpuArch)...)
+	return base.WithValues(FieldKeyCPUArch, conv.SliceToSlice(cpuArch, func(arch criteria.CPUArch) string {
+		return string(arch)
+	})...)
 }
 
 // WithoutCPUArch provides filtering by cpu arch.
 func WithoutCPUArch(cpuArch ...criteria.CPUArch) OptFn {
-	return base.WithoutValues(FieldKeyCPUArch, criteria.CPUArchListToStringList(cpuArch)...)
+	return base.WithoutValues(FieldKeyCPUArch, conv.SliceToSlice(cpuArch, func(arch criteria.CPUArch) string {
+		return string(arch)
+	})...)
 }
 
 // WithOSType provides filtering by os type.
 func WithOSType(osType ...criteria.OSType) OptFn {
-	return base.WithValues(FieldKeyOSType, criteria.OSTypeListToStringList(osType)...)
+	return base.WithValues(FieldKeyOSType, conv.SliceToSlice(osType, func(ostype criteria.OSType) string {
+		return string(ostype)
+	})...)
 }
 
 // WithoutOSType provides filtering by os type.
 func WithoutOSType(osType ...criteria.OSType) OptFn {
-	return base.WithoutValues(FieldKeyOSType, criteria.OSTypeListToStringList(osType)...)
+	return base.WithoutValues(FieldKeyOSType, conv.SliceToSlice(osType, func(ostype criteria.OSType) string {
+		return string(ostype)
+	})...)
 }
 
 // WithOperator filters by operator.
