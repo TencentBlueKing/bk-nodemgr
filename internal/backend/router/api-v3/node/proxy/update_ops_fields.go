@@ -88,8 +88,7 @@ func (h *handler) ProxyUpdateOpsFields(rCtx restserver.IContext) (interface{}, e
 func (h *handler) getUpdateOpsFieldsNodeBizs(rCtx restserver.IContext, hostIDs ...int64) ([]int64, error) {
 	hostIDs = conv.SliceUnique(hostIDs)
 	cond := &types.HostCondition{
-		StaticExactInclude:  &types.HostStaticExactFields{HostID: hostIDs},
-		DynamicExactInclude: &types.HostDynamicExactFields{NodeRole: []types.NodeRole{types.NodeRoleProxy}},
+		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	}
 	selection := &types.HostFieldSelection{BizID: true}
 	hosts, _, err := h.storageHost.ListHostWithFields(rCtx, types.UnlimitedPage(), selection, cond)
@@ -123,9 +122,9 @@ func (h *handler) getUpdateOpsFieldsNodeBizs(rCtx restserver.IContext, hostIDs .
 			With("host-ids", hostIDs).
 			With("fetched-hosts", dbHostIDs).
 			With("missing-hosts", diffResult).
-			Error("some hosts not found or not proxy role when fetching hosts for updating ops fields")
+			Error("some hosts not found when fetching hosts for updating ops fields")
 
-		return nil, fmt.Errorf("some hosts not found or not proxy role when fetching hosts for updating ops fields, "+
+		return nil, fmt.Errorf("some hosts not found when fetching hosts for updating ops fields, "+
 			"hostIDs: %v, dbHostIDs: %v, missingIDs: %v", hostIDs, dbHostIDs, diffResult)
 	}
 
