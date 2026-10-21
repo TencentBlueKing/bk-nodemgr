@@ -575,7 +575,7 @@ func convDeployPolicyMetaToTypes(deployPolicyMeta *DeployPolicyMeta) types.Deplo
 func convScopeToTypes(scope *Scope) (*types.Scope, error) {
 	scopeType := types.ScopeType(scope.GetType())
 	if err := scopeType.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid spec type(%s): %w", scope.GetType(), err)
+		return nil, fmt.Errorf("invalid scope type(%s): %w", scope.GetType(), err)
 	}
 
 	// Get scope as structpb.Struct
