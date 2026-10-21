@@ -19,27 +19,29 @@
 package base
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daomongo "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/combine"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"golang.org/x/sync/singleflight"
 )
 
 const (
-	// Bound each send without adding a timer or a background worker.
+	// Bound each MongoDB send; combine's limit is a launch threshold, not a cap.
 	updateFieldBatchLimit = 128
+	// Allow overlapping calls to collect without CMDB's longer batching window.
+	updateFieldBatchGap = time.Millisecond
 	// A shared send must not inherit one caller's cancellation or run indefinitely.
 	updateFieldBatchTimeout = 30 * time.Second
 )
@@ -86,8 +88,8 @@ type OrmOption func(*ormOptions)
 // Concurrent writes are unordered; sequential calls remain sequential. Sessions
 // bypass batching. Cancellation before dispatch skips the write; after dispatch,
 // callers wait for the shared send (bounded by 30 seconds), which may still commit.
-// Sends use short-lived singleflight goroutines, not a background service. No
-// retries, field merging, or cross-instance batching is used.
+// combine launches batches by size or a 1ms interval; independent batches may
+// overlap. No retries, field merging, or cross-instance batching is used.
 func WithUpdateFieldBatching() OrmOption {
 	return func(options *ormOptions) {
 		options.updateFieldBatching = true
@@ -97,17 +99,21 @@ func WithUpdateFieldBatching() OrmOption {
 type pendingFieldUpdate struct {
 	ctx        contextx.IContext
 	model      mongo.WriteModel
-	done       chan struct{}
-	err        error // Published by closing done; read only after receiving from done.
-	dispatched bool  // Protected by updateFieldBatcher.mu.
+	mu         sync.Mutex
+	dispatched bool // Protected by mu, together with the cancellation decision.
 }
 
 type updateFieldBatcher struct {
 	dao       IDao
 	immediate updateExecutor
-	mu        sync.Mutex
-	pending   []*pendingFieldUpdate
-	sends     singleflight.Group
+	combined  combine.IHandler[*pendingFieldUpdate, []error]
+}
+
+func newUpdateFieldBatcher(dao IDao, immediate updateExecutor) *updateFieldBatcher {
+	batcher := &updateFieldBatcher{dao: dao, immediate: immediate}
+	batcher.combined = combine.New(updateFieldBatchLimit, updateFieldBatchGap, batcher.send)
+
+	return batcher
 }
 
 func (batcher *updateFieldBatcher) UpdateMany(
@@ -151,76 +157,65 @@ func (batcher *updateFieldBatcher) updateMany(
 		ctx: nCtx,
 		model: mongo.NewUpdateManyModel().SetFilter(bson.Raw(encodedFilter)).
 			SetUpdate(bson.Raw(encodedUpdate)).SetUpsert(false),
-		done: make(chan struct{}),
 	}
-	batcher.mu.Lock()
-	batcher.pending = append(batcher.pending, item)
-	batcher.mu.Unlock()
-
-	for {
-		select {
-		case <-item.done:
-			return item.err
-		default:
+	// combine owns admission and result delivery. Only queued calls can abandon
+	// waiting; once dispatched, a caller must observe its actual write result.
+	waitCtx, cancel := context.WithCancel(contextx.WithoutCancel(nCtx))
+	defer cancel()
+	stop := context.AfterFunc(nCtx, func() {
+		item.mu.Lock()
+		defer item.mu.Unlock()
+		if !item.dispatched {
+			cancel()
 		}
-		// Joining a flight does not mean this item was in its drained batch.
-		// Recheck item.done and participate in another send when necessary.
-		resultCh := batcher.sends.DoChan("update_field", func() (any, error) {
-			batcher.flush()
-
-			return nil, nil // nolint: nilnil // Results belong to individual items, not the flight.
-		})
-		select {
-		case <-item.done:
-			return item.err
-		case <-nCtx.Done():
-			batcher.mu.Lock()
-			if !item.dispatched {
-				index := slices.Index(batcher.pending, item)
-				batcher.pending = slices.Delete(batcher.pending, index, index+1)
-				batcher.mu.Unlock()
-
-				return nCtx.Err()
-			}
-			batcher.mu.Unlock()
-			<-item.done
-
-			return item.err
-		case result := <-resultCh:
-			if result.Err != nil {
-				return result.Err
-			}
+	})
+	defer stop()
+	results, index, err := batcher.combined.Call(waitCtx, item)
+	if err != nil {
+		if ctxErr := nCtx.Err(); ctxErr != nil {
+			return ctxErr
 		}
+
+		return err
 	}
+
+	return results[index]
 }
 
-func (batcher *updateFieldBatcher) flush() {
-	batcher.mu.Lock()
-	count := min(len(batcher.pending), updateFieldBatchLimit)
-	batch := batcher.pending[:count:count]
-	batcher.pending = batcher.pending[count:]
-	for _, item := range batch {
-		item.dispatched = true
+func (batcher *updateFieldBatcher) send(_ string, batch []*pendingFieldUpdate) ([]error, error) {
+	results := make([]error, len(batch))
+	for offset := 0; offset < len(batch); offset += updateFieldBatchLimit {
+		end := min(offset+updateFieldBatchLimit, len(batch))
+		copy(results[offset:end], batcher.flush(batch[offset:end]))
 	}
-	batcher.mu.Unlock()
 
+	return results, nil
+}
+
+func (batcher *updateFieldBatcher) flush(batch []*pendingFieldUpdate) []error {
+	results := make([]error, len(batch))
 	items := make([]*pendingFieldUpdate, 0, len(batch))
+	indexes := make([]int, 0, len(batch))
 	models := make([]mongo.WriteModel, 0, len(batch))
 	links := make([]trace.Link, 0, len(batch))
-	for _, item := range batch {
-		if err := item.ctx.Err(); err != nil {
-			item.err = err
-			close(item.done)
+	for index, item := range batch {
+		item.mu.Lock()
+		err := item.ctx.Err()
+		item.dispatched = true
+		item.mu.Unlock()
+		if err != nil {
+			results[index] = err
 
 			continue
 		}
 		items = append(items, item)
+		indexes = append(indexes, index)
 		models = append(models, item.model)
 		span := trace.SpanFromContext(item.ctx)
 		links = append(links, trace.Link{SpanContext: span.SpanContext()})
 	}
 	if len(items) == 0 {
-		return
+		return results
 	}
 
 	nCtx, cancel := contextx.WithTimeout(contextx.WithoutCancel(items[0].ctx), updateFieldBatchTimeout)
@@ -245,9 +240,10 @@ func (batcher *updateFieldBatcher) flush() {
 	span.End()
 	for index, item := range items {
 		trace.SpanFromContext(item.ctx).SetAttributes(attribute.Int("batch.size", len(models)))
-		item.err = fieldUpdateBatchError(err, index)
-		close(item.done)
+		results[indexes[index]] = fieldUpdateBatchError(err, index)
 	}
+
+	return results
 }
 
 func fieldUpdateBatchError(err error, index int) error {

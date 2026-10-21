@@ -22,10 +22,12 @@ import (
 	"context"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/combine"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/event"
@@ -69,27 +71,49 @@ func TestOrm_UpdateFieldBatchingOptIn(t *testing.T) {
 // Hold the first send open while independent callers arrive, then verify that
 // later callers are sent in a second batch rather than sharing the first result.
 func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
-	started := make(chan struct{})
+	started := make(chan struct{}, 2)
 	release := make(chan struct{})
-	var once sync.Once
+	releaseSecond := make(chan struct{})
+	completed := make(chan struct{}, 2)
+	var sends atomic.Int32
 	var releaseOnce sync.Once
-	t.Cleanup(func() { releaseOnce.Do(func() { close(release) }) })
-	monitor := &event.CommandMonitor{Started: func(_ context.Context, evt *event.CommandStartedEvent) {
-		if evt.CommandName == "update" {
-			once.Do(func() {
-				close(started)
+	t.Cleanup(func() {
+		releaseOnce.Do(func() {
+			close(release)
+			close(releaseSecond)
+		})
+	})
+	monitor := &event.CommandMonitor{
+		Started: func(_ context.Context, evt *event.CommandStartedEvent) {
+			if evt.CommandName != "update" {
+				return
+			}
+			index := sends.Add(1)
+			started <- struct{}{}
+			if index == 1 {
 				<-release
-			})
-		}
-	}}
+				return
+			}
+			<-releaseSecond
+		},
+		Succeeded: func(_ context.Context, evt *event.CommandSucceededEvent) {
+			if evt.CommandName == "update" {
+				completed <- struct{}{}
+			}
+		},
+	}
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock).
 		ClientOptions(mongoOptions.Client().SetMonitor(monitor)))
-	mt.Run("late arrivals and canceled callers", func(mt *mtest.T) {
+	mt.Run("independent batches may overlap without early completion", func(mt *mtest.T) {
 		recorder := tracetest.NewSpanRecorder()
 		provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 		defer func() { require.NoError(mt, provider.Shutdown(context.Background())) }()
 		tracer := provider.Tracer("batch-test")
 		orm := NewOrm[*TestData](&TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}, WithUpdateFieldBatching())
+		const callers = 2
+		batcher := orm.updateExecutor.(*updateFieldBatcher)
+		// Use the size trigger so this test does not depend on scheduler timing.
+		batcher.combined = combine.New(callers, time.Hour, batcher.send)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(), mtest.CreateSuccessResponse())
 		first := make(chan error, 1)
 		go func() {
@@ -103,7 +127,6 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 			mt.Fatal("first send did not start")
 		}
 
-		const callers = 12
 		results := make(chan error, callers)
 		for value := range callers {
 			go func() {
@@ -112,32 +135,23 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 				results <- orm.UpdateField(contextx.FromContext(ctx), AliveFilter(), FieldKeyTestDataValue, value+1)
 			}()
 		}
-		canceledCtx, cancel := contextx.WithCancel(contextx.Background())
-		defer cancel()
-		canceled := make(chan error, 1)
-		go func() {
-			canceled <- orm.UpdateField(canceledCtx, AliveFilter(), FieldKeyTestDataName, "canceled")
-		}()
-		require.Eventually(mt, func() bool {
-			batcher := orm.updateExecutor.(*updateFieldBatcher)
-			batcher.mu.Lock()
-			defer batcher.mu.Unlock()
-
-			return len(batcher.pending) == callers+1
-		}, 5*time.Second, time.Millisecond)
-		cancel()
 		select {
-		case err := <-canceled:
-			require.ErrorIs(mt, err, context.Canceled)
+		case <-started:
 		case <-time.After(5 * time.Second):
-			mt.Fatal("queued cancellation waited for an unrelated send")
+			mt.Fatal("independent second batch waited for the first batch")
 		}
 		select {
 		case err := <-results:
-			mt.Fatalf("a queued write returned before being sent: %v", err)
+			mt.Fatalf("a write returned before its batch completed: %v", err)
 		default:
 		}
-		releaseOnce.Do(func() { close(release) })
+		// The mock deployment has one unsynchronized response queue. Both sends
+		// have started, but only one may consume a mock response at a time.
+		releaseOnce.Do(func() {
+			close(release)
+			<-completed
+			close(releaseSecond)
+		})
 		require.NoError(mt, <-first)
 		for range callers {
 			require.NoError(mt, <-results)
@@ -239,24 +253,25 @@ func TestOrm_UpdateFieldBatchingSpans(t *testing.T) {
 func TestUpdateFieldBatchErrors(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	mt.Run("indexed write error", func(mt *mtest.T) {
-		batcher := &updateFieldBatcher{
-			dao:       &TestDao{collection: mt.Coll, tableName: mt.Coll.Name()},
-			immediate: &immediateUpdateExecutor{dao: &TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}},
-		}
-		for range 3 {
-			batcher.pending = append(batcher.pending, &pendingFieldUpdate{
-				ctx: contextx.Background(), done: make(chan struct{}),
-				model: mongo.NewUpdateManyModel().SetFilter(AliveFilter()).
-					SetUpdate(buildUpdateField(FieldKeyTestDataValue, 1)),
-			})
-		}
-		items := append([]*pendingFieldUpdate(nil), batcher.pending...)
+		batcher := newUpdateFieldBatcher(
+			&TestDao{collection: mt.Coll, tableName: mt.Coll.Name()},
+			&immediateUpdateExecutor{dao: &TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}},
+		)
 		mt.AddMockResponses(mtest.CreateWriteErrorsResponse(mtest.WriteError{Index: 1, Code: 121, Message: "invalid field"}))
-		batcher.flush()
-		require.NoError(mt, items[0].err)
-		require.NoError(mt, items[2].err)
+		items := make([]*pendingFieldUpdate, 3)
+		for index := range items {
+			items[index] = &pendingFieldUpdate{
+				ctx: contextx.Background(),
+				model: mongo.NewUpdateManyModel().SetFilter(AliveFilter()).
+					SetUpdate(buildUpdateField(FieldKeyTestDataValue, index)),
+			}
+		}
+		results, err := batcher.send("", items)
+		require.NoError(mt, err)
+		require.NoError(mt, results[0])
+		require.NoError(mt, results[2])
 		var writeErr mongo.WriteException
-		require.ErrorAs(mt, items[1].err, &writeErr)
+		require.ErrorAs(mt, results[1], &writeErr)
 		require.Len(mt, writeErr.WriteErrors, 1)
 		require.Equal(mt, 121, writeErr.WriteErrors[0].Code)
 		require.Equal(mt, 0, writeErr.WriteErrors[0].Index)
@@ -264,8 +279,6 @@ func TestUpdateFieldBatchErrors(t *testing.T) {
 	mt.Run("invalid encoding does not enter queue", func(mt *mtest.T) {
 		orm := NewOrm[*TestData](&TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}, WithUpdateFieldBatching())
 		require.Error(mt, orm.UpdateField(contextx.Background(), AliveFilter(), FieldKeyTestDataValue, make(chan int)))
-		batcher := orm.updateExecutor.(*updateFieldBatcher)
-		require.Empty(mt, batcher.pending)
 		require.Nil(mt, mt.GetStartedEvent())
 	})
 	mt.Run("command and write concern errors affect every caller", func(mt *mtest.T) {
@@ -277,6 +290,34 @@ func TestUpdateFieldBatchErrors(t *testing.T) {
 				require.Error(mt, fieldUpdateBatchError(err, index))
 			}
 		}
+	})
+}
+
+func TestOrm_UpdateFieldBatchingQueuedCancellation(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("skip canceled write and preserve result indexes", func(mt *mtest.T) {
+		orm := NewOrm[*TestData](&TestDao{collection: mt.Coll, tableName: mt.Coll.Name()}, WithUpdateFieldBatching())
+		batcher := orm.updateExecutor.(*updateFieldBatcher)
+		batcher.combined = combine.New(2, time.Hour, batcher.send)
+		mt.AddMockResponses(mtest.CreateSuccessResponse(),
+			mtest.CreateWriteErrorsResponse(mtest.WriteError{Index: 0, Code: 121, Message: "live write failed"}))
+		// The first call starts immediately. Subsequent calls wait for the size
+		// threshold, letting cancellation happen before the next send.
+		require.NoError(mt, orm.UpdateField(contextx.Background(), AliveFilter(), FieldKeyTestDataValue, 0))
+		nCtx, cancel := contextx.WithTimeout(contextx.Background(), 10*time.Millisecond)
+		defer cancel()
+		require.ErrorIs(mt, orm.UpdateField(nCtx, AliveFilter(), FieldKeyTestDataValue, 1), context.DeadlineExceeded)
+		require.ErrorContains(mt, orm.UpdateField(contextx.Background(), AliveFilter(), FieldKeyTestDataValue, 2),
+			"live write failed")
+		require.NotNil(mt, mt.GetStartedEvent())
+		batch := mt.GetStartedEvent()
+		require.NotNil(mt, batch)
+		updates, err := batch.Command.Lookup("updates").Array().Values()
+		require.NoError(mt, err)
+		require.Len(mt, updates, 1, "canceled write must not be sent")
+		require.Equal(mt, int32(2), updates[0].Document().Lookup("u").Document().Lookup("$set").Document().
+			Lookup(FieldKeyTestDataValue).Int32())
+		require.Nil(mt, mt.GetStartedEvent())
 	})
 }
 
@@ -315,7 +356,5 @@ func TestOrm_UpdateFieldBatchingSessionBypass(t *testing.T) {
 		evt := mt.GetStartedEvent()
 		require.NotNil(mt, evt)
 		require.True(mt, evt.Command.Lookup("ordered").Boolean())
-		batcher := orm.updateExecutor.(*updateFieldBatcher)
-		require.Empty(mt, batcher.pending)
 	})
 }

@@ -61,7 +61,7 @@ func NewOrm[P DataPoint[T], T any](dao IDao, opts ...OrmOption) *Orm[P, T] {
 		updateExecutor: &immediateUpdateExecutor{dao: dao},
 	}
 	if options.updateFieldBatching {
-		orm.updateExecutor = &updateFieldBatcher{dao: dao, immediate: orm.updateExecutor}
+		orm.updateExecutor = newUpdateFieldBatcher(dao, orm.updateExecutor)
 	}
 
 	return orm
