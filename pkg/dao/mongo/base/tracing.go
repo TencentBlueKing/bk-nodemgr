@@ -30,4 +30,8 @@ const (
 	attrKeyORMFilterSize  = "orm.filter_size"  // nolint:unused
 	attrKeyORMResultCount = "orm.result_count" // nolint:unused
 	attrKeyORMFilter      = "orm.filter"
+
+	// Span attribute keys for batched ORM operations.
+	attrKeyMongoCollection = "db.mongodb.collection"
+	attrKeyBatchSize       = "batch.size"
 )

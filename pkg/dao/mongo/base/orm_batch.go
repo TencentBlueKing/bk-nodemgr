@@ -125,7 +125,7 @@ func (batcher *updateFieldBatcher) UpdateMany(
 	}
 	tracer := trace.SpanFromContext(nCtx).TracerProvider().Tracer("dao.mongo.base")
 	ctx, span := tracer.Start(nCtx, "mongo.batch.update_many", trace.WithAttributes(
-		attribute.String("db.mongodb.collection", batcher.dao.GetTableName()),
+		attribute.String(attrKeyMongoCollection, batcher.dao.GetTableName()),
 	))
 	defer span.End()
 	err := batcher.updateMany(contextx.FromContext(ctx), filter, update)
@@ -222,8 +222,8 @@ func (batcher *updateFieldBatcher) flush(batch []*pendingFieldUpdate) []error {
 	defer cancel()
 	tracer := trace.SpanFromContext(nCtx).TracerProvider().Tracer("dao.mongo.base")
 	ctx, span := tracer.Start(nCtx, "mongo.batch.flush", trace.WithLinks(links...), trace.WithAttributes(
-		attribute.String("db.mongodb.collection", batcher.dao.GetTableName()),
-		attribute.Int("batch.size", len(models)),
+		attribute.String(attrKeyMongoCollection, batcher.dao.GetTableName()),
+		attribute.Int(attrKeyBatchSize, len(models)),
 	))
 	nCtx = contextx.FromContext(ctx)
 	metric := newMetricData(batcher.dao.GetTableName()).start(daomongo.MetricOperationBulkWrite, len(models))
@@ -239,7 +239,7 @@ func (batcher *updateFieldBatcher) flush(batch []*pendingFieldUpdate) []error {
 	}
 	span.End()
 	for index, item := range items {
-		trace.SpanFromContext(item.ctx).SetAttributes(attribute.Int("batch.size", len(models)))
+		trace.SpanFromContext(item.ctx).SetAttributes(attribute.Int(attrKeyBatchSize, len(models)))
 		results[indexes[index]] = fieldUpdateBatchError(err, index)
 	}
 

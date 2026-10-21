@@ -183,12 +183,12 @@ func TestOrm_UpdateFieldBatchingConcurrentCalls(t *testing.T) {
 		require.Len(mt, calls, callers+1)
 		require.Len(mt, flushes, 2)
 		for _, flush := range flushes {
-			require.Contains(mt, flush.Attributes(), attribute.Int("batch.size", len(flush.Links())))
+			require.Contains(mt, flush.Attributes(), attribute.Int(attrKeyBatchSize, len(flush.Links())))
 			for _, link := range flush.Links() {
 				call, ok := calls[link.SpanContext.SpanID().String()]
 				require.True(mt, ok, "every participating caller must be linked to its send")
 				require.Equal(mt, call.SpanContext(), link.SpanContext)
-				require.Contains(mt, call.Attributes(), attribute.Int("batch.size", len(flush.Links())))
+				require.Contains(mt, call.Attributes(), attribute.Int(attrKeyBatchSize, len(flush.Links())))
 				delete(calls, link.SpanContext.SpanID().String())
 			}
 		}
@@ -239,8 +239,8 @@ func TestOrm_UpdateFieldBatchingSpans(t *testing.T) {
 			require.Equal(mt, parent.SpanContext().SpanID(), spans[1].Parent().SpanID())
 			require.Equal(mt, spans[1].SpanContext().SpanID(), spans[0].Parent().SpanID())
 			for _, span := range spans {
-				require.Contains(mt, span.Attributes(), attribute.String("db.mongodb.collection", dao.tableName))
-				require.Contains(mt, span.Attributes(), attribute.Int("batch.size", 1))
+				require.Contains(mt, span.Attributes(), attribute.String(attrKeyMongoCollection, dao.tableName))
+				require.Contains(mt, span.Attributes(), attribute.Int(attrKeyBatchSize, 1))
 				if scenario == "error" {
 					require.Equal(mt, codes.Error, span.Status().Code)
 					require.NotEmpty(mt, span.Events())
