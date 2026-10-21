@@ -370,7 +370,7 @@ func (svc *FileService) Validate() error {
 	}
 
 	if err := svc.DownloadServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate node service config: %w", err)
+		return fmt.Errorf("failed to validate download service config: %w", err)
 	}
 
 	if err := svc.ExportServer.Validate(); err != nil {
