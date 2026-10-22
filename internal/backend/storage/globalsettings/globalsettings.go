@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/sync/singleflight"
 )
 
 const (
@@ -76,6 +77,7 @@ type Storage struct {
 	basestorage.Storage
 
 	daoGlobalSettings globalsettings.IHandler
+	sg                singleflight.Group
 }
 
 func (s *Storage) initDao() error {
@@ -141,19 +143,31 @@ func (s *Storage) ExistGlobalSettings(nCtx contextx.IContext, key string) (bool,
 
 // GetGlobalSetting gets a global settings by setting name.
 func (s *Storage) GetGlobalSetting(nCtx contextx.IContext, name string) (string, error) {
-	var setting *types.GlobalSettings
+	var value string
 
 	err := s.WrapFn(nCtx, metricOperationGetGlobalSettings, func(nCtx contextx.IContext) error {
-		var err error
-		setting, err = s.daoGlobalSettings.Get(nCtx, name)
+		// The first caller's context controls the shared query.
+		result, err, _ := s.sg.Do(name, func() (interface{}, error) {
+			setting, err := s.daoGlobalSettings.Get(nCtx, name)
+			if err != nil {
+				return "", err
+			}
 
-		return err
+			return setting.Value, nil
+		})
+		if err != nil {
+			return err
+		}
+
+		value = result.(string) // nolint: forcetypeassert
+
+		return nil
 	})
 	if err != nil {
 		return "", err
 	}
 
-	return setting.Value, nil
+	return value, nil
 }
 
 // UpsertGlobalSettings upserts many global settings.
