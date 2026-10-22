@@ -4,12 +4,7 @@ description: Writes standardized Markdown reference documentation for bk-nodemgr
 allowed-tools:
   # MCP 工具（优先使用）
   - mcp__sequential-thinking__sequentialthinking # 结构化思考
-  - mcp__serena__find_symbol # 查找符号定义
-  - mcp__serena__search_for_pattern # 搜索代码模式
-  - mcp__serena__get_symbols_overview # 获取文件符号概览
-  - mcp__serena__find_referencing_symbols # 查找引用
-  - mcp__serena__read_memory # 读取项目记忆
-  - mcp__serena__list_memories # 列出可用记忆
+  - mcp__codegraph__codegraph_explore # 代码结构、符号和调用路径调查
   # 传统工具（补充）
   - Read # 读取文件
   - Glob # 文件查找
@@ -29,8 +24,7 @@ allowed-tools:
 
 优先使用 MCP 工具：
 
-- **serena 工具族**: 符号级代码分析（`find_symbol`、`search_for_pattern`）
-- **read_memory**: 读取项目记忆
+- **Codegraph**: 代码结构、符号和调用路径分析（`codegraph_explore`），`projectPath` 使用目标项目的绝对路径。
 
 传统工具（Read/Glob/Grep/Write）作为补充。
 
@@ -39,11 +33,11 @@ allowed-tools:
 执行 7 步流程：
 
 1. **确定范围** - 使用 `sequential-thinking` 明确要编写的 API 和模板类型
-2. **收集资料** - 使用 Serena 理解代码结构, 阅读 proto、类型定义、概念文档
+2. **收集资料** - 使用 Codegraph 理解代码结构, 阅读 proto、类型定义、概念文档
 3. **选择模板** - 根据 API 类型选择合适模板
 4. **编写文档** - 按模板结构填写内容
-5. **补充信息** - 使用 Serena 添加概述、场景、FAQ（可选）
-6. **交叉验证** - 使用 Serena 验证字段语义（**关键**）
+5. **补充信息** - 使用 Codegraph 添加概述、场景、FAQ（可选）
+6. **交叉验证** - 使用 Codegraph 验证字段语义（**关键**）
 7. **审查检查** - 使用 `sequential-thinking` 验证准确性和完整性
 
 **详细流程**: [references/workflow.md](references/workflow.md)
@@ -123,13 +117,13 @@ allowed-tools:
 
 ## 交叉验证（关键）
 
-**Proto 只是起点，不是终点。** 必须用 Serena 验证字段语义。
+**Proto 只是起点，不是终点。** 必须用 Codegraph 验证字段语义。
 
-| 字段类型                 | 风险             | 验证方法                          |
-| ------------------------ | ---------------- | --------------------------------- |
-| `repeated string`        | 可能是预定义枚举 | `search_for_pattern` 查找 Go 类型 |
-| `string` 枚举            | 枚举值可能不完整 | 在 `pkg/types/` 查找 `const`      |
-| `google.protobuf.Struct` | 多态结构         | 找实际 Go 类型定义                |
+| 字段类型                 | 风险             | 验证方法                         |
+| ------------------------ | ---------------- | -------------------------------- |
+| `repeated string`        | 可能是预定义枚举 | `codegraph_explore` 查找 Go 类型 |
+| `string` 枚举            | 枚举值可能不完整 | 在 `pkg/types/` 查找 `const`     |
+| `google.protobuf.Struct` | 多态结构         | 找实际 Go 类型定义               |
 
 **典型案例**: `proxy_tags` 在 Proto 中看似自定义标签，实际是只有 4 个有效值的预定义枚举。
 

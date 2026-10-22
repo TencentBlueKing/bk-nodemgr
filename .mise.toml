@@ -16,6 +16,7 @@ clang-format = "latest"
 "go:google.golang.org/protobuf/cmd/protoc-gen-go" = "v1.36.5"
 
 # nodejs tools
+"npm:@colbymchenry/codegraph" = "latest"
 "npm:@vtsls/language-server" = "latest"
 "npm:@vue/language-server" = "latest"
 "npm:yaml-language-server" = "latest"

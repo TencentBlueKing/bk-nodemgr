@@ -119,6 +119,21 @@ pnpm setup
 pnpm --version
 ```
 
+### Codegraph
+
+用于 AI Agent调查代码结构、符号、调用路径和影响范围：
+
+```bash
+npm install -g @colbymchenry/codegraph@latest
+codegraph --version
+```
+
+安装完成后都需要在仓库根目录执行初始化：
+
+```bash
+codegraph init
+```
+
 ### UPX v5.1.0（可选，用于二进制压缩）
 
 构建 tools 时启用 `UPX_ENABLED=1` 需要安装 UPX。
@@ -347,6 +362,9 @@ clang-format --version
 # 验证前端工具
 node --version
 pnpm --version
+
+# 验证代码调查工具
+codegraph --version
 
 # 验证 LSP 服务器
 gopls version

@@ -202,7 +202,7 @@ AGENTS.md 是项目铁律。以下检查项在步骤 2（Design 审查）和步�
 
 ### 3B.1 DRY — 不要重复
 > 0.1 已作为 AGENTS.md 强约束前置检查了 helper/proto 转换的重复。本项是更广义的 DRY 审视。
-- [ ] **无功能重叠**：新增代码未与已有代码重复实现相同逻辑（用 `serena.find_symbol` 搜索验证）
+- [ ] **无功能重叠**：新增代码未与已有代码重复实现相同逻辑（用 `codegraph_explore` 搜索验证）
 
 ### 3B.2 正交性
 - [ ] **无不必要的全局变量**：未引入包级全局变量（除非有充分理由）
@@ -268,16 +268,14 @@ AGENTS.md 是项目铁律。以下检查项在步骤 2（Design 审查）和步�
 
 ### 工具使用
 
-MCP 工具优先，传统工具作为降级方案：
+MCP 工具优先，传统工具作为补充和降级方案：
 
 - **编译/静态分析**：使用 Shell 工具执行 `go build` 和 `go vet`（无可替代）
 - **Linter 检查**：使用 ReadLints 工具（无可替代）
-- **代码结构**：优先 `serena.get_symbols_overview`，降级使用 Read
-- **符号查找**：优先 `serena.find_symbol`，降级使用 Grep
-- **模式搜索**：优先 `serena.search_for_pattern`，降级使用 Grep
-- **依赖分析**：`serena.find_referencing_symbols`（无可替代）
+- **代码调查**：优先 `codegraph_explore` 调查结构、符号、相关模式、调用路径和影响摘要；不代表完整引用集。Read 补充完整文件，Grep 补充正则匹配，工具无法满足时降级使用
 - **结构化思考**：`sequential-thinking`（规划策略和生成报告时必用）
 
+实际参数和无索引时的降级说明参见 [tools-usage.md](tools-usage.md)。
 ### 问题优先级
 - **阻塞性问题**（AGENTS.md Anti-patterns 违反、语法检查未通过）：❌ 必须修复
 - **重要问题**（AGENTS.md Conventions 违反、规范一致性问题）：⚠️ 强烈建议修复

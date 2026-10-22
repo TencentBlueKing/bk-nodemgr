@@ -22,12 +22,13 @@ description: Use when user asks to review code, check for errors, audit commits,
 
 优先使用 MCP 工具进行代码分析：
 
-| 优先级 | 工具 | 用途 |
-|--------|------|------|
-| 1 | sequential-thinking | 结构化思考、问题分析 |
-| 2 | serena 工具族 | 符号级代码分析（`get_symbols_overview`、`find_symbol`、`find_referencing_symbols`、`search_for_pattern`） |
-| 3 | context7 | 文档查询、规范验证 |
-| 降级 | Read/Grep/Glob | 仅在 MCP 工具不可用时使用 |
+| 优先级    | 工具                | 用途                                                          |
+| --------- | ------------------- | ------------------------------------------------------------- |
+| 1         | sequential-thinking | 结构化思考、问题分析                                          |
+| 2         | codegraph           | 代码结构、符号、调用路径和影响范围分析（`codegraph_explore`） |
+| 3         | context7            | 文档查询、规范验证                                            |
+| 补充/降级 | Read/Grep/Glob      | 补充核实或在 MCP 工具不可用时使用                             |
+`codegraph_explore({query: string, projectPath: string, maxFiles?: number})` 的 `projectPath` 使用目标项目绝对路径。返回相关符号的带行号源码、调用路径和影响摘要，不是完整引用索引；按需用 Read/Grep/Glob 补充核实。工具不可用或项目无索引时说明限制并降级，不自行初始化索引。
 
 详细工具选择策略参见：[references/tools-usage.md](references/tools-usage.md)
 
@@ -73,12 +74,13 @@ git worktree add .worktrees/"$BRANCH" "$BRANCH"
 
 执行 7 步审查流程：
 
-1. **🔍 确定范围** - 使用 `🧠 sequential-thinking` 分析策略，用 `🔍 serena.get_symbols_overview` 识别文件和模块类型
-2. **🏗️ Design 审查 + AGENTS.md 门禁**（阻塞性）- 读取 `AGENTS.md`，用 `🧠 sequential-thinking` 评估设计合理性和 AGENTS.md Anti-patterns 合规性，用 `🔍 serena.get_symbols_overview` 检查代码放置位置和依赖方向。违反 Anti-patterns 或设计问题 → 生成早期报告，提示用户是否终止
+1. **🔍 确定范围** - 使用 `🧠 sequential-thinking` 分析策略，用 `🔍 codegraph_explore` 识别文件和模块类型
+2. **🏗️ Design 审查 + AGENTS.md 门禁**（阻塞性）- 读取 `AGENTS.md`，用 `🧠 sequential-thinking` 评估设计合理性和 AGENTS.md Anti-patterns 合规性，用 `🔍 codegraph_explore` 检查代码放置位置和依赖方向。违反 Anti-patterns 或设计问题 → 生成早期报告，提示用户是否终止
 3. **⚠️ 语法检查**（阻塞性门禁）- 使用 `make lint`（最高优先级，阻塞性错误）
-4. **📋 规范检查 + AGENTS.md Conventions** - 检查 AGENTS.md Conventions 合规性，使用 `🔍 serena.find_symbol` 精确定位，用 `📚 context7` 查询规范（可选）
-5. **🔗 一致性检查** - 使用 `🔍 serena.find_symbol` 和 `find_referencing_symbols` 查找并对比相似代码；参考 `cases/` 案例库和 [architecture-principles.md](references/architecture-principles.md)
-6. **💡 质量检查** - 使用 `🧠 sequential-thinking` 分析架构原则和质量问题，用 `🔍 serena.search_for_pattern` 查找特定模式
+4. **📋 规范检查 + AGENTS.md Conventions** - 检查 AGENTS.md Conventions 合规性，使用 `🔍 codegraph_explore` 定位符号，用 `📚 context7` 查询规范（可选）
+5. **🔗 一致性检查** - 使用 `🔍 codegraph_explore` 查找并对比相似代码及调用路径；参考 `cases/`
+   案例库和 [architecture-principles.md](references/architecture-principles.md)
+6. **💡 质量检查** - 使用 `🧠 sequential-thinking` 分析架构原则和质量问题，用 `🔍 codegraph_explore` 调查相关代码模式（正则匹配用 Grep 补充）
 7. **📄 生成报告** - 使用 `🧠 sequential-thinking` 分类问题，按优先级生成结构化报告
 
 **详细流程和工具使用**：参见 [references/workflow-guide.md](references/workflow-guide.md)
@@ -146,7 +148,7 @@ When a diff affects architecture boundaries, dependency direction, shared contra
 **如何使用 Patterns**：
 1. 识别被修改的文件属于哪个模块
 2. 读取对应的 pattern 文档
-3. 使用 `serena.find_symbol` 查找同系列的其他函数
+3. 使用 `codegraph_explore` 查找同系列的其他函数
 4. 检查一致性：函数签名、错误处理、日志格式、数据结构
 
 **当前支持的模块**：
@@ -166,25 +168,25 @@ When a diff affects architecture boundaries, dependency direction, shared contra
 
 ## Common Mistakes
 
-| 错误 | 后果 | 修复 |
-|------|------|------|
-| 直接使用 Read/Grep 而跳过 serena | Token 浪费 4-5x，结构理解不准确 | 总是先尝试 `serena.get_symbols_overview` 或 `find_symbol` |
-| 不限制搜索路径 | 全库扫描，速度慢且结果噪声大 | 所有 serena/Grep 调用必须指定 `relative_path` |
-| 跳过 sequential-thinking 直接开始审查 | 遗漏重要检查项，审查不系统 | 审查开始和报告生成时必用 sequential-thinking |
-| 不先运行 lint/build 就深入逻辑审查 | 在有语法错误的代码上浪费时间 | 步骤 3（语法检查）必须先于后续所有步骤 |
-| 审查时不创建 worktree | 污染当前工作区 | 遵循 `using-git-worktrees` sub-skill |
+| 错误                                  | 后果                         | 修复                                                                                     |
+| ------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------- |
+| 直接使用 Read/Grep 而跳过 codegraph   | 缺少符号和调用路径分析       | 优先使用 `codegraph_explore`，按需补充核实或降级                                         |
+| 不限制搜索范围                        | 全库扫描，速度慢且结果噪声大 | codegraph 的 `query` 提供相关模块/符号，`projectPath` 使用项目绝对路径；Grep 指定 `path` |
+| 跳过 sequential-thinking 直接开始审查 | 遗漏重要检查项，审查不系统   | 审查开始和报告生成时必用 sequential-thinking                                             |
+| 不先运行 lint/build 就深入逻辑审查    | 在有语法错误的代码上浪费时间 | 步骤 3（语法检查）必须先于后续所有步骤                                                   |
+| 审查时不创建 worktree                 | 污染当前工作区               | 遵循 `using-git-worktrees` sub-skill                                                     |
 
 ## 参考索引
 
-| 类别 | 文档 |
-|------|------|
-| 工作流 | [workflow-guide.md](references/workflow-guide.md)、[quick-reference.md](references/quick-reference.md) |
-| 工具 | [tools-usage.md](references/tools-usage.md) |
-| 检查 | [checklist.md](references/checklist.md)、[file-type-mapping.md](references/file-type-mapping.md) |
-| 架构原则 | [architecture-principles.md](references/architecture-principles.md) |
-| 架构判断 | `bk-nodemgr-architecture-judgment` |
-| 报告 | [report-template.md](references/report-template.md) |
-| Go 规范 | [go-standards.md](references/go-standards.md) |
-| 模块 Pattern | [patterns/README.md](patterns/README.md)、[dpmgr-executor.md](patterns/dpmgr-executor.md) |
-| Review 案例 | [cases/README.md](cases/README.md) |
-| 项目规范 | `AGENTS.md`（**强制**）、`docs/api/API接口开发流程.md`、`.golangci.yml` |
+| 类别         | 文档                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
+| 工作流       | [workflow-guide.md](references/workflow-guide.md)、[quick-reference.md](references/quick-reference.md) |
+| 工具         | [tools-usage.md](references/tools-usage.md)                                                            |
+| 检查         | [checklist.md](references/checklist.md)、[file-type-mapping.md](references/file-type-mapping.md)       |
+| 架构原则     | [architecture-principles.md](references/architecture-principles.md)                                    |
+| 架构判断     | `bk-nodemgr-architecture-judgment`                                                                     |
+| 报告         | [report-template.md](references/report-template.md)                                                    |
+| Go 规范      | [go-standards.md](references/go-standards.md)                                                          |
+| 模块 Pattern | [patterns/README.md](patterns/README.md)、[dpmgr-executor.md](patterns/dpmgr-executor.md)              |
+| Review 案例  | [cases/README.md](cases/README.md)                                                                     |
+| 项目规范     | `AGENTS.md`（**强制**）、`docs/api/API接口开发流程.md`、`.golangci.yml`                                |
