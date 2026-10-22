@@ -92,6 +92,12 @@ const (
 	// RenewGSETask defines the renew GSE task flag.
 	RenewGSETask = "renew_gse_task"
 
+	// FirewallFeatures defines the firewall features flag.
+	FirewallFeatures = "firewall_features"
+
+	// FirewallRemoteIPs defines the firewall remote IPs flag.
+	FirewallRemoteIPs = "firewall_remote_ips"
+
 	// HTTPProxy defines the flag to override the HTTP proxy for all http requests.
 	HTTPProxy = "http_proxy"
 )
