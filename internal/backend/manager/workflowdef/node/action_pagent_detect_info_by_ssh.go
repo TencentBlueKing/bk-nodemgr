@@ -48,9 +48,6 @@ const (
 
 	// queryClientTimeout defines the query client timeout.
 	queryClientTimeout = 30 * time.Second
-
-	// actionRetryDelay defines the delay before retrying the action when it fails.
-	actionRetryDelay = 5 * time.Second
 )
 
 // NewActionPagentDetectInfoBySSH get a new action.
@@ -127,10 +124,8 @@ func (act *actionPagentDetectInfoBySSH) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionPagentDetectInfoBySSH) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(actionRetryDelay)
-	}
+func (act *actionPagentDetectInfoBySSH) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.

@@ -120,10 +120,8 @@ func (act *actionInstallProxyBySSH) MaxRetryCount() uint {
 }
 
 // DelayFn defines how long to wait before retrying after failure.
-func (act *actionInstallProxyBySSH) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(5 * time.Second) // nolint: mnd
-	}
+func (act *actionInstallProxyBySSH) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do installs proxy by SSH-only mode for cross-unit installs or relay-assisted SSH for same-unit indirect installs.
