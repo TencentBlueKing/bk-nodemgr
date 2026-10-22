@@ -64,6 +64,36 @@ const (
 	// OperSyncHostMaxConcurrencyNumDefault defines the default max concurrency for sync host operations.
 	OperSyncHostMaxConcurrencyNumDefault = "100"
 
+	// OperNodeInstallMaxConcurrencyNum defines the max concurrency setting for node install operations.
+	OperNodeInstallMaxConcurrencyNum = "oper_node_install_max_concurrency_num"
+	// OperNodeInstallMaxConcurrencyNumDefault defines the default max concurrency for node install operations.
+	OperNodeInstallMaxConcurrencyNumDefault = "200"
+
+	// OperNodeUpgradeMaxConcurrencyNum defines the max concurrency setting for node upgrade operations.
+	OperNodeUpgradeMaxConcurrencyNum = "oper_node_upgrade_max_concurrency_num"
+	// OperNodeUpgradeMaxConcurrencyNumDefault defines the default max concurrency for node upgrade operations.
+	OperNodeUpgradeMaxConcurrencyNumDefault = "200"
+
+	// OperNodeReconfigMaxConcurrencyNum defines the max concurrency setting for node reconfig operations.
+	OperNodeReconfigMaxConcurrencyNum = "oper_node_reconfig_max_concurrency_num"
+	// OperNodeReconfigMaxConcurrencyNumDefault defines the default max concurrency for node reconfig operations.
+	OperNodeReconfigMaxConcurrencyNumDefault = "200"
+
+	// OperNodeRestartMaxConcurrencyNum defines the max concurrency setting for node restart operations.
+	OperNodeRestartMaxConcurrencyNum = "oper_node_restart_max_concurrency_num"
+	// OperNodeRestartMaxConcurrencyNumDefault defines the default max concurrency for node restart operations.
+	OperNodeRestartMaxConcurrencyNumDefault = "200"
+
+	// OperNodeUninstallMaxConcurrencyNum defines the max concurrency setting for node uninstall operations.
+	OperNodeUninstallMaxConcurrencyNum = "oper_node_uninstall_max_concurrency_num"
+	// OperNodeUninstallMaxConcurrencyNumDefault defines the default max concurrency for node uninstall operations.
+	OperNodeUninstallMaxConcurrencyNumDefault = "200"
+
+	// OperNodeAssignProxyUnitMaxConcurrencyNum defines the max concurrency setting for node proxy unit assignment operations.
+	OperNodeAssignProxyUnitMaxConcurrencyNum = "oper_node_assign_proxy_unit_max_concurrency_num"
+	// OperNodeAssignProxyUnitMaxConcurrencyNumDefault defines the default max concurrency for node proxy unit assignment operations.
+	OperNodeAssignProxyUnitMaxConcurrencyNumDefault = "200"
+
 	// OperPluginInstallMaxConcurrencyNum defines the max concurrency setting for plugin install operations.
 	OperPluginInstallMaxConcurrencyNum = "oper_plugin_install_max_concurrency_num"
 	// OperPluginInstallMaxConcurrencyNumDefault defines the default max concurrency for plugin install operations.
@@ -149,6 +179,30 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: OperSyncHostMaxConcurrencyNum,
 			Value:       OperSyncHostMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperNodeInstallMaxConcurrencyNum,
+			Value:       OperNodeInstallMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperNodeUpgradeMaxConcurrencyNum,
+			Value:       OperNodeUpgradeMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperNodeReconfigMaxConcurrencyNum,
+			Value:       OperNodeReconfigMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperNodeRestartMaxConcurrencyNum,
+			Value:       OperNodeRestartMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperNodeUninstallMaxConcurrencyNum,
+			Value:       OperNodeUninstallMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperNodeAssignProxyUnitMaxConcurrencyNum,
+			Value:       OperNodeAssignProxyUnitMaxConcurrencyNumDefault,
 		},
 		{
 			SettingName: OperPluginInstallMaxConcurrencyNum,
