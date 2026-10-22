@@ -24,7 +24,7 @@ POST /api/v3/plugin/start
 **Parameter Notes**:
 
 - `plugin`: At least one item must be provided, otherwise request validation fails.
-- `bk_host_id`: Host ID must not be negative. Use a valid host ID in practice.
+- `bk_host_id`: Provide a valid positive host ID. Omitting it or passing `0` or a negative value fails.
 - `plugin_name`: Must not be empty.
 
 ### Request Example

@@ -2,17 +2,17 @@
 
 - 该接口提供版本：v3.0.1-alpha.22+。
 - 该接口所需权限：plugin_operate（操作插件）。
-- 该接口功能描述：批量重启指定主机上的插件进程。
+- 该接口功能描述：批量停止指定主机上的插件进程。
 
 ### URL
 
-POST /api/v3/plugin/restart
+POST /api/v3/plugin/stop
 
 ### 输入参数
 
 | 参数名称 | 参数类型     | 必选 | 描述                             |
 | -------- | ------------ | ---- | -------------------------------- |
-| plugin   | object array | 是   | 待重启插件列表，至少包含一个元素 |
+| plugin   | object array | 是   | 待停止插件列表，至少包含一个元素 |
 
 #### plugin[n]
 
@@ -24,7 +24,7 @@ POST /api/v3/plugin/restart
 **参数说明**：
 
 - `plugin`：至少需要传入一个待处理对象，否则请求会校验失败。
-- `bk_host_id`：主机ID 不能为负数，建议传入有效主机ID。
+- `bk_host_id`：必须传入有效的正整数主机ID；省略或传入 `0`、负数会失败。
 - `plugin_name`：不能为空。
 
 ### 调用示例
@@ -50,10 +50,10 @@ POST /api/v3/plugin/restart
 {
   "code": 0,
   "message": "ok",
-  "request_id": "req-20260508-000002",
+  "request_id": "req-20260508-000001",
   "error": null,
   "data": {
-    "workflow_id": "plugin-restart-workflow-123456"
+    "workflow_id": "plugin-stop-workflow-123456"
   }
 }
 ```
@@ -73,7 +73,7 @@ POST /api/v3/plugin/restart
 
 | 参数名称    | 参数类型 | 描述                                 |
 | ----------- | -------- | ------------------------------------ |
-| workflow_id | string   | 工作流ID，可用于查询插件重启任务状态 |
+| workflow_id | string   | 工作流ID，可用于查询插件停止任务状态 |
 
 #### error
 

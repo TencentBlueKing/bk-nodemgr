@@ -1,7 +1,7 @@
 ### 描述
 
 - 该接口提供版本：v3.0.1-alpha.72+。
-- 该接口所需权限：⚠️ 待确认（接口尚未实现 handler，权限待补充）。
+- 该接口所需权限：plugin_operate（操作插件）。
 - 该接口功能描述：启动一个插件的一次性调试工作流。调试单元包含目标范围（主机或服务实例）、插件、版本、配置模板及自定义配置上下文。
 
 ### URL
@@ -32,6 +32,10 @@ POST /api/v3/plugin/start_debug
 | bk_biz_id    | int64       | 是   | 业务ID                                                                             |
 | filter       | object      | 否   | 目标过滤条件（当前为占位结构，预留）                                               |
 | instance_ids | int64 array | 是   | 目标实例ID列表；granularity 为 host 时为主机ID，为 service_instance 时为服务实例ID |
+
+**处理规则**：
+
+- 接口成功表示调试任务已提交，不表示调试已完成；使用 `workflow_id` 查询插件任务流及操作状态，或请求停止调试。
 
 ### 调用示例
 

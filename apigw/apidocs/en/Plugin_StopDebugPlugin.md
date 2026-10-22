@@ -1,8 +1,8 @@
 ### Description
 
 - API version: v3.0.1-alpha.72+.
-- Required permission: ⚠️ To be confirmed (handler not yet implemented).
-- Description: Stops a running plugin debug workflow.
+- Required permission: plugin_operate (Operate Plugin).
+- Description: Requests that a running plugin debug workflow stop.
 
 ### URL
 
@@ -13,6 +13,12 @@ POST /api/v3/plugin/stop_debug
 | Parameter   | Type   | Required | Description                                                |
 | ----------- | ------ | -------- | ---------------------------------------------------------- |
 | workflow_id | string | Yes      | Debug workflow ID to stop, returned by the start debug API |
+
+**Processing Rules**:
+
+- Permission is checked against the businesses associated with the debug workflow.
+- `workflow_id` must identify a debug workflow that has not finished. Non-debug or finished workflows return an error.
+- A successful response means the stop signal has been recorded, not that the debug process has exited. Continue querying task status with the original `workflow_id`.
 
 ### Request Example
 

@@ -1,7 +1,7 @@
 ### Description
 
 - API version: v3.0.1-alpha.72+.
-- Required permission: ⚠️ To be confirmed (handler not yet implemented).
+- Required permission: plugin_operate (Operate Plugin).
 - Description: Starts a one-shot plugin debug workflow. The debug unit contains a target scope (host or service instance), plugin, version, config templates, and a custom config context.
 
 ### URL
@@ -32,6 +32,10 @@ POST /api/v3/plugin/start_debug
 | bk_biz_id    | int64       | Yes      | Business ID                                                                                                       |
 | filter       | object      | No       | Target filter condition (placeholder structure for now)                                                           |
 | instance_ids | int64 array | Yes      | Target instance IDs; host IDs when granularity is host, service instance IDs when granularity is service_instance |
+
+**Processing Rules**:
+
+- A successful response means the debug task has been submitted, not completed. Use `workflow_id` to query the plugin workflow and operation status, or request that debugging stop.
 
 ### Request Example
 

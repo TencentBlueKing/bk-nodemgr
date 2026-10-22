@@ -1,8 +1,8 @@
 ### Description
 
 - API Version: v3.0.1-alpha.1+.
-- Version Changes: `v3.0.1-alpha.13+` added instance-level extra execution logs and the permission response field; `v3.0.1-alpha.19+` added `plugin_operate` authorization.
-- Required Permission: plugin_operate (Operate Plugin).
+- Version Changes: `v3.0.1-alpha.13+` added instance-level extra execution logs and the permission response field; `v3.0.1-alpha.19+` added `plugin_operate` authorization; `v3.0.1-alpha.83+` changed authorization to `plugin_history_view`.
+- Required Permission: plugin_history_view (View Plugin History).
 - Function: Get plugin workflow operation instance logs by operation instance ID, including per-action lifecycle, log messages, sub-workflow references, and extra execution logs at the instance level.
 
 ### URL
@@ -11,9 +11,9 @@ POST /api/v3/plugin/workflow/operation/instance/log/get
 
 ### Request Parameters
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| oper_inst_id | string | Yes | Operation instance ID; cannot be empty |
+| Parameter    | Type   | Required | Description                            |
+| ------------ | ------ | -------- | -------------------------------------- |
+| oper_inst_id | string | Yes      | Operation instance ID; cannot be empty |
 
 ### Request Example
 
@@ -75,84 +75,84 @@ POST /api/v3/plugin/workflow/operation/instance/log/get
 
 ### Response Parameters
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| code | int32 | Status code; `0` means success |
-| message | string | Request message |
-| request_id | string | Request ID |
-| error | object | Error information, usually empty on success |
-| permission | object | Permission information |
-| data | object | Response data |
+| Parameter  | Type   | Description                                 |
+| ---------- | ------ | ------------------------------------------- |
+| code       | int32  | Status code; `0` means success              |
+| message    | string | Request message                             |
+| request_id | string | Request ID                                  |
+| error      | object | Error information, usually empty on success |
+| permission | object | Permission information                      |
+| data       | object | Response data                               |
 
 #### data
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| oper_inst_logs | object | Map from action ID to action execution logs |
+| Parameter            | Type   | Description                                          |
+| -------------------- | ------ | ---------------------------------------------------- |
+| oper_inst_logs       | object | Map from action ID to action execution logs          |
 | extra_execution_logs | object | Extra execution logs at the operation instance level |
 
 #### data.oper_inst_logs.{action_id}
 
 `action_id` is a dynamic action identifier, and each value contains execution data for that action.
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| life_cycle | object | Action lifecycle information |
-| message | object | Action log messages |
-| display_name_zh | string | Chinese display name of the action |
-| display_name_en | string | English display name of the action |
-| sub_workflow_refs | array | Related sub-workflow references |
+| Parameter         | Type   | Description                        |
+| ----------------- | ------ | ---------------------------------- |
+| life_cycle        | object | Action lifecycle information       |
+| message           | object | Action log messages                |
+| display_name_zh   | string | Chinese display name of the action |
+| display_name_en   | string | English display name of the action |
+| sub_workflow_refs | array  | Related sub-workflow references    |
 
 #### data.oper_inst_logs.{action_id}.life_cycle
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| state | string | Action state |
-| create_time | int64 | Creation time as a Unix timestamp in milliseconds |
-| start_time | int64 | Start time as a Unix timestamp in milliseconds |
-| end_time | int64 | End time as a Unix timestamp in milliseconds |
-| stop_time | int64 | Stop time as a Unix timestamp in milliseconds; declared in the protocol but not populated by the current backend converter |
+| Parameter   | Type   | Description                                                                                                                |
+| ----------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| state       | string | Action state                                                                                                               |
+| create_time | int64  | Creation time as a Unix timestamp in milliseconds                                                                          |
+| start_time  | int64  | Start time as a Unix timestamp in milliseconds                                                                             |
+| end_time    | int64  | End time as a Unix timestamp in milliseconds                                                                               |
+| stop_time   | int64  | Stop time as a Unix timestamp in milliseconds; declared in the protocol but not populated by the current backend converter |
 
 #### data.oper_inst_logs.{action_id}.message
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| logs | array | Action log entries |
+| Parameter | Type  | Description        |
+| --------- | ----- | ------------------ |
+| logs      | array | Action log entries |
 
 #### data.oper_inst_logs.{action_id}.message.logs[n]
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| time | int64 | Log time as a Unix timestamp in milliseconds |
-| level | string | Log level |
-| text_zh | string | Chinese log content |
-| text_en | string | English log content |
+| Parameter | Type   | Description                                  |
+| --------- | ------ | -------------------------------------------- |
+| time      | int64  | Log time as a Unix timestamp in milliseconds |
+| level     | string | Log level                                    |
+| text_zh   | string | Chinese log content                          |
+| text_en   | string | English log content                          |
 
 #### data.oper_inst_logs.{action_id}.sub_workflow_refs[n]
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| workflow_id | string | Sub-workflow ID |
+| Parameter       | Type   | Description         |
+| --------------- | ------ | ------------------- |
+| workflow_id     | string | Sub-workflow ID     |
 | workflow_domain | string | Sub-workflow domain |
 
 #### data.extra_execution_logs
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| logs | array | Extra execution log entries at the operation instance level |
+| Parameter | Type  | Description                                                 |
+| --------- | ----- | ----------------------------------------------------------- |
+| logs      | array | Extra execution log entries at the operation instance level |
 
 #### data.extra_execution_logs.logs[n]
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| time | int64 | Log time as a Unix timestamp in milliseconds |
-| level | string | Log level |
-| text_zh | string | Chinese log content |
-| text_en | string | English log content |
+| Parameter | Type   | Description                                  |
+| --------- | ------ | -------------------------------------------- |
+| time      | int64  | Log time as a Unix timestamp in milliseconds |
+| level     | string | Log level                                    |
+| text_zh   | string | Chinese log content                          |
+| text_en   | string | English log content                          |
 
 ### Processing Rules
 
-- The backend first locates the operation instance and its owning workflow by `oper_inst_id`, then checks `plugin_operate` permission.
+- The backend first locates the operation instance and its owning workflow by `oper_inst_id`, then checks `plugin_history_view` permission.
 - Keys in `oper_inst_logs` are dynamic action IDs; an empty object is returned when there are no action logs.
 - `extra_execution_logs.logs` is an empty array when there are no extra logs.
 - `life_cycle.stop_time` for an action is declared in the shared Proto but is not set by the current response converter, so it is omitted from the success example.

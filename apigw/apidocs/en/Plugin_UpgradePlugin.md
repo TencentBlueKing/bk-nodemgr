@@ -1,43 +1,39 @@
 ### Description
 
-- API Version: v3.0.1+。
-  resolution).
-- Required Permission: .
-- Function: Batch install plugins on specified hosts, with optional sub-config selection and custom render context.
+- API Version: v3.0.1+.
+- Required Permission: plugin_operate (Operate Plugin).
+- Function: Batch upgrade plugins on specified hosts, with target version, optional sub-config selection, and custom render context.
 
 ### URL
 
-POST /api/v3/plugin/install
+POST /api/v3/plugin/upgrade
 
 ### Input Parameters
 
-| Parameter Name | Parameter Type | Required | Description                                                |
-| -------------- | -------------- | -------- | ---------------------------------------------------------- |
-| plugin         | object array   | Yes      | Plugin installation targets; at least one item is required |
+| Parameter Name | Parameter Type | Required | Description                                           |
+| -------------- | -------------- | -------- | ----------------------------------------------------- |
+| plugin         | object array   | Yes      | Plugin upgrade targets; at least one item is required |
 
 #### plugin[n]
 
 | Parameter Name        | Parameter Type | Required | Description                                                                                                        |
 | --------------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| bk_host_id            | int64          | No       | Target host ID; defaults to -1 when omitted                                                                        |
+| bk_host_id            | int64          | Yes      | Target host ID; must be a positive integer                                                                         |
 | plugin_name           | string         | Yes      | Plugin name                                                                                                        |
-| version               | string         | No       | Plugin version to install; when omitted or empty, the plugin's current default release version is used             |
+| version               | string         | Yes      | Target plugin version                                                                                              |
 | config_template_name  | string array   | No       | Sub-configuration file names to apply; values come from config template names in the target plugin release package |
 | custom_config_context | object         | No       | Custom configuration render context; free-form object with reserved top-level keys forbidden                       |
 
 **Parameter Notes**:
 
-- `plugin`: At least one plugin item must be provided, otherwise request validation fails.
-- `bk_host_id`: When omitted, the server auto-fills `-1`; negative values fail validation.
-- `config_template_name`: This is not a fixed enum. Valid values depend on the configuration template names shipped in the target
-  plugin release package. When omitted, the main configuration is used by default.
-- `custom_config_context`: Custom variables for template rendering. Reserved top-level keys are forbidden, including
-  `PluginInfo`, `NodeInfo`, `PreDefinitionConstants`, `CustomContext`, `plugin_path`, `nodeman`, `cmdb_instance`,
-  `target`, and `control_info`.
+- `plugin`: At least one item must be provided, otherwise request validation fails.
+- `bk_host_id`: Provide a valid positive host ID. Omitting it or passing `0` or a negative value fails.
+- `version`: Must not be empty and specifies the target plugin version.
+- `config_template_name`: This is not a fixed enum. Valid values depend on configuration template names in the target plugin release package.
+- `custom_config_context`: Custom variables for template rendering. Reserved top-level keys are forbidden, including `PluginInfo`, `NodeInfo`, `PreDefinitionConstants`, `CustomContext`, `plugin_path`, `nodeman`, `cmdb_instance`, `target`, and `control_info`.
+- A successful response means the upgrade task has been submitted, not completed. Use `workflow_id` to query the plugin workflow and operation status. Template names and reserved keys are checked during workflow execution; inspect task status and logs for related errors.
 
 ### Request Example
-
-Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config and custom render variables.
 
 ```json
 {
@@ -45,20 +41,11 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
     {
       "bk_host_id": 1001,
       "plugin_name": "bk-monitor-agent",
-      "version": "2.4.0",
+      "version": "2.5.0",
       "config_template_name": ["bkmonitoragent.conf"],
       "custom_config_context": {
-        "cluster_id": "prod-ap-guangzhou",
-        "labels": {
-          "env": "prod",
-          "region": "ap-guangzhou"
-        }
+        "cluster_id": "prod-ap-guangzhou"
       }
-    },
-    {
-      "bk_host_id": 1002,
-      "plugin_name": "bk-monitor-agent",
-      "version": "2.4.0"
     }
   ]
 }
@@ -70,10 +57,10 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
 {
   "code": 0,
   "message": "ok",
-  "request_id": "req-20260324-000001",
+  "request_id": "req-20260324-000006",
   "error": null,
   "data": {
-    "workflow_id": "plugin-install-workflow-123456"
+    "workflow_id": "plugin-upgrade-workflow-123456"
   }
 }
 ```
@@ -90,9 +77,9 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
 
 #### data
 
-| Parameter Name | Parameter Type | Description                                           |
-| -------------- | -------------- | ----------------------------------------------------- |
-| workflow_id    | string         | Workflow ID for tracking the plugin installation task |
+| Parameter Name | Parameter Type | Description                                      |
+| -------------- | -------------- | ------------------------------------------------ |
+| workflow_id    | string         | Workflow ID for tracking the plugin upgrade task |
 
 #### error
 
