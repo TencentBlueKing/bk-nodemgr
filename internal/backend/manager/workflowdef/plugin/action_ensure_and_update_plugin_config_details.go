@@ -187,11 +187,11 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *pluginUtils.PluginActionStandarder, pluginRelease *types.ReleasePlugin,
 	pluginConf *types.PluginDeploymentPluginConf) error {
 
-	templateMap := make(map[string]types.PluginPkgConfigTemplate, len(pluginRelease.ConfigTemplates))
+	templateMap := make(map[types.PluginPkgConfigTemplateKey]types.PluginPkgConfigTemplate, len(pluginRelease.ConfigTemplates))
 	var mainTemplate *types.PluginConfigDetail
 
 	for _, tpl := range pluginRelease.ConfigTemplates {
-		templateMap[tpl.Name] = tpl
+		templateMap[tpl.GetUniqueKey()] = tpl
 
 		if tpl.IsMainConfig && mainTemplate == nil {
 			mainTemplate = &types.PluginConfigDetail{
@@ -205,7 +205,10 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *plug
 	}
 
 	for idx, detail := range pluginConf.ConfigFilesDetail {
-		tpl, ok := templateMap[detail.TemplateName]
+		tpl, ok := templateMap[types.PluginPkgConfigTemplateKey{
+			Name:         detail.TemplateName,
+			IsMainConfig: detail.IsMainConfig,
+		}]
 		if !ok {
 			std.InstanceData().Log().Zh("未匹配到模板, template-name(%s), plugin-name(%s)", detail.TemplateName, pluginRelease.Name).
 				En("no matched template, template-name(%s), plugin-name(%s)", detail.TemplateName, pluginRelease.Name).

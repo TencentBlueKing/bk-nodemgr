@@ -24,6 +24,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func Test_convProcessConfigCustomConfigContext(t *testing.T) {
@@ -61,6 +63,32 @@ func Test_convProcessConfigCustomConfigContext(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got.CustomConfigContext, want) {
 		t.Fatalf("convProcessConfigToTypes() CustomConfigContext = %v, want %v", got.CustomConfigContext, want)
+	}
+}
+
+func TestProcessConfigIdentityIncludesType(t *testing.T) {
+	main := &ProcessConfig{Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: true}
+	sub := &ProcessConfig{Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: false}
+	if main.UniqueKey() == sub.UniqueKey() {
+		t.Fatal("main and sub configs must have different unique keys")
+	}
+	wantFields := []string{FieldKeyName, FieldKeyProcessName, FieldKeyHostID, FieldKeyIsMainConfig}
+	if !reflect.DeepEqual(main.UniqueFields(), wantFields) {
+		t.Fatalf("unique fields = %v, want %v", main.UniqueFields(), wantFields)
+	}
+	for idx, model := range buildUpsertManyParams(main, sub) {
+		update, ok := model.(*mongo.UpdateOneModel)
+		if !ok {
+			t.Fatalf("unexpected write model %T", model)
+		}
+		filter, ok := update.Filter.(bson.D)
+		if !ok {
+			t.Fatalf("unexpected filter %T", update.Filter)
+		}
+		wantType := idx == 0
+		if got := filter.Map()[FieldKeyIsMainConfig]; got != wantType {
+			t.Fatalf("upsert type filter = %v, want %t", got, wantType)
+		}
 	}
 }
 
