@@ -4998,6 +4998,9 @@ paths:
                             type: string
                           firewall:
                             type: object
+                            description: |-
+                              Unset inherits deployment defaults; an empty object disables firewall
+                              setup.
                             properties:
                               remote_ips:
                                 type: array
@@ -5337,6 +5340,9 @@ paths:
                                   type: string
                                 firewall:
                                   type: object
+                                  description: |-
+                                    Unset inherits deployment defaults; an empty object disables firewall
+                                    setup.
                                   properties:
                                     remote_ips:
                                       type: array
@@ -5611,6 +5617,9 @@ paths:
                                         type: string
                                       firewall:
                                         type: object
+                                        description: |-
+                                          Unset inherits deployment defaults; an empty object disables firewall
+                                          setup.
                                         properties:
                                           remote_ips:
                                             type: array
@@ -6053,6 +6062,9 @@ paths:
                                 type: string
                               firewall:
                                 type: object
+                                description: |-
+                                  Unset inherits deployment defaults; an empty object disables firewall
+                                  setup.
                                 properties:
                                   remote_ips:
                                     type: array
@@ -23704,6 +23716,9 @@ paths:
                                 type: string
                               firewall:
                                 type: object
+                                description: |-
+                                  Unset inherits deployment defaults; an empty object disables firewall
+                                  setup.
                                 properties:
                                   remote_ips:
                                     type: array
