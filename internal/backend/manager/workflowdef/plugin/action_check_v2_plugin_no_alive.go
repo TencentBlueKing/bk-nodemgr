@@ -95,10 +95,8 @@ func (act *actionCheckV2PluginNoAlive) MaxRetryCount() uint {
 }
 
 // DelayFn returns the delay between failed attempts.
-func (act *actionCheckV2PluginNoAlive) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionCheckV2PluginNoAlive) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do checks whether the V2 plugin is running when the selected release conflicts with it.

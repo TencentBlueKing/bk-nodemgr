@@ -79,8 +79,8 @@ func (act *actCleanDebugPlugin) Tags() []action.Tag { return []action.Tag{} }
 func (act *actCleanDebugPlugin) MaxRetryCount() uint { return 3 } // nolint: mnd
 
 // DelayFn returns the retry delay function.
-func (act *actCleanDebugPlugin) DelayFn(_ int) func() {
-	return func() { time.Sleep(time.Second) }
+func (act *actCleanDebugPlugin) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do removes the debug plugin directory through the installer.
