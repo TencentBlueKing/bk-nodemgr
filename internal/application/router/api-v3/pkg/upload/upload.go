@@ -21,6 +21,7 @@ package upload
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -63,6 +64,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 // UploadOriginAgent upload origin agent.
 func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeAgent); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginAgentReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -95,6 +100,10 @@ func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (interface{}, erro
 
 // UploadOriginServer upload origin server.
 func (h *handler) UploadOriginServer(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeProxy); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginServerReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -127,6 +136,10 @@ func (h *handler) UploadOriginServer(rCtx restserver.IContext) (interface{}, err
 
 // UploadOriginProxy upload origin proxy.
 func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeProxy); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginProxyReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -158,6 +171,10 @@ func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (interface{}, erro
 
 // UploadOriginCert upload origin cert.
 func (h *handler) UploadOriginCert(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeCert); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginCertReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -190,6 +207,10 @@ func (h *handler) UploadOriginCert(rCtx restserver.IContext) (interface{}, error
 
 // UploadOriginBinTool upload origin bin tool.
 func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeBinTool); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginBinToolReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -222,6 +243,10 @@ func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (interface{}, er
 
 // UploadOriginPluginV2 upload origin plugin v2.
 func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePlugin); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginPluginV2Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -254,6 +279,10 @@ func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (interface{}, e
 
 // UploadOriginExternalPluginV2 upload origin external plugin v2.
 func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePlugin); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginExternalPluginV2Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -286,6 +315,10 @@ func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (interf
 
 // UploadOriginPluginV3 upload origin plugin v3.
 func (h *handler) UploadOriginPluginV3(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePlugin); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginPluginV3Req)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
@@ -317,6 +350,10 @@ func (h *handler) UploadOriginPluginV3(rCtx restserver.IContext) (interface{}, e
 }
 
 func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePluginBinTool); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageUploadOriginPluginBinToolReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
