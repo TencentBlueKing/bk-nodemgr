@@ -272,6 +272,7 @@ type ContextPluginInfo struct {
 	PidPath       string `json:"PidPath"`
 	SetupPath     string `json:"SetupPath"`
 	ConfigPath    string `json:"ConfigPath"`
+	SubConfigPath string `json:"SubConfigPath"`
 	HostIDPath    string `json:"HostIDPath"`
 	PluginIPC     string `json:"PluginIPC"`
 	DataIPC       string `json:"DataIPC"`
@@ -425,6 +426,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemCon
 		PidPath:       std.DeployInfo().BaseRuntime.RunDir,
 		SetupPath:     std.DeployInfo().BaseRuntime.PluginHomeDir,
 		ConfigPath:    std.DeployInfo().BaseRuntime.ConfigDir,
+		SubConfigPath: std.DeployInfo().BaseRuntime.SubConfigDir,
 		HostIDPath:    std.DeployInfo().BaseRuntime.HostIDPath,
 		PluginIPC:     std.DeployInfo().BaseRuntime.PluginIPC,
 		DataIPC:       std.DeployInfo().BaseRuntime.DataIPC,

@@ -438,6 +438,14 @@ func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) (
 			return nil, fmt.Errorf("failed to parseExternalPluginPkgConfigTemplateFromProject is_main_config: %w", err)
 		}
 
+		expectedPath := pluginV2PkgDirNameEtc
+		if !isMainConfig {
+			expectedPath += "/" + pluginProject.Name
+		}
+		if configTemplate.FilePath != expectedPath {
+			return nil, fmt.Errorf("config template(%s) file_path(%s) must equal %s", configTemplate.Name, configTemplate.FilePath, expectedPath)
+		}
+
 		pkgConfigTemplates[idx] = types.PluginPkgConfigTemplate{
 			Name:         configTemplate.Name,
 			FilePath:     configTemplate.FilePath,
