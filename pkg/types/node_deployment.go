@@ -89,6 +89,7 @@ type DeploymentInstallerRuntime struct {
 	// HTTPProxyAddress is the proxy URL applied when HTTPProxyOverride is true.
 	// Empty address means explicitly skipping the proxy.
 	HTTPProxyAddress string
+	Firewall         *DeploymentFirewall
 }
 
 // DeploymentBaseRuntime  this is the base runtime for deployment.

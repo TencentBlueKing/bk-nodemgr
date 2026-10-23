@@ -24,6 +24,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -35,9 +36,26 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
+// createOrderedNodeTrigger creates an ordered trigger whose max concurrency is read from the given global setting.
+func (mgr *Manager) createOrderedNodeTrigger(nCtx contextx.IContext, settingName string, settingDefault string) (workflow.ITriggerCtl, error) {
+	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(nCtx, settingName, settingDefault))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", settingName, err)
+	}
+	if maxConcurrencyNum <= 0 {
+		return nil, fmt.Errorf("%s must be positive, got %d", settingName, maxConcurrencyNum)
+	}
+
+	return mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOrdered, trigger.NewMetadataOrdered(int(maxConcurrencyNum)))
+}
+
 // LaunchInstallNode launch a task to install node.
 func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.InstallNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedNodeTrigger(
+		nCtx,
+		globalsettings.OperNodeInstallMaxConcurrencyNum,
+		globalsettings.OperNodeInstallMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -448,7 +466,11 @@ func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
 func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.UpgradeNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedNodeTrigger(
+		nCtx,
+		globalsettings.OperNodeUpgradeMaxConcurrencyNum,
+		globalsettings.OperNodeUpgradeMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -585,7 +607,11 @@ func enablePagentInstaller(deploy *types.NodeDeployment) {
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
 func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.ReconfigNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedNodeTrigger(
+		nCtx,
+		globalsettings.OperNodeReconfigMaxConcurrencyNum,
+		globalsettings.OperNodeReconfigMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -683,7 +709,11 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.Recon
 
 // LaunchRestartNode launch a task to restart node. returns the workflow-id.
 func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.RestartNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedNodeTrigger(
+		nCtx,
+		globalsettings.OperNodeRestartMaxConcurrencyNum,
+		globalsettings.OperNodeRestartMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -784,7 +814,11 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.Restar
 
 // LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
 func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.UninstallNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedNodeTrigger(
+		nCtx,
+		globalsettings.OperNodeUninstallMaxConcurrencyNum,
+		globalsettings.OperNodeUninstallMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -883,7 +917,11 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 
 // LaunchAssignProxyUnit launch a task to assign proxy unit. returns the workflow-id.
 func (mgr *Manager) LaunchAssignProxyUnit(nCtx contextx.IContext, param types.AssignProxyUnitParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	triggerCtl, err := mgr.createOrderedNodeTrigger(
+		nCtx,
+		globalsettings.OperNodeAssignProxyUnitMaxConcurrencyNum,
+		globalsettings.OperNodeAssignProxyUnitMaxConcurrencyNumDefault,
+	)
 	if err != nil {
 		return "", err
 	}

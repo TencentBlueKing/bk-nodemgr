@@ -226,6 +226,8 @@ type TopoConstant struct {
 // InstallerRuntime defines the installer runtime.
 type InstallerRuntime struct {
 	BaseWorkDir string
+	// Firewall is nil to inherit deployment defaults; an empty value disables firewall setup.
+	Firewall *DeploymentFirewall
 }
 
 // NodeRuntime defines the node runtime.

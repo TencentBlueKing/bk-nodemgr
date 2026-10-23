@@ -513,8 +513,8 @@ func (h *Handler) UpdateHostOpsFields(nCtx contextx.IContext, hosts ...*types.Ho
 		item.Properties.OpsConsoleHostID = &host.Dynamic.OpsConsoleHostID
 		item.Properties.OpsOutBandType = &host.Dynamic.OpsOutBandType
 		item.Properties.OpsOutBandProtocol = &host.Dynamic.OpsOutBandProtocol
-		item.Properties.OpsBMCIP = &host.Dynamic.OpsBMCIP
-		item.Properties.OpsBMCPort = &host.Dynamic.OpsBMCPort
+		item.Properties.OpsOutBandIP = &host.Dynamic.OpsOutBandIP
+		item.Properties.OpsOutBandPort = &host.Dynamic.OpsOutBandPort
 		updates = append(updates, item)
 	}
 
@@ -786,8 +786,8 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 			SyncedOpsConsoleHostID:   hostInfo.OpsConsoleHostID,
 			SyncedOpsOutBandType:     hostInfo.OpsOutBandType,
 			SyncedOpsOutBandProtocol: hostInfo.OpsOutBandProtocol,
-			SyncedOpsBMCIP:           hostInfo.OpsBMCIP,
-			SyncedOpsBMCPort:         hostInfo.OpsBMCPort,
+			SyncedOpsOutBandIP:       hostInfo.OpsOutBandIP,
+			SyncedOpsOutBandPort:     hostInfo.OpsOutBandPort,
 		},
 		Dynamic: types.NewBlankNodeDynamic(),
 	}

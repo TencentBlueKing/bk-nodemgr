@@ -811,7 +811,7 @@ const (
 func checkServerBinaryPlatform(r io.Reader) (*platfmt.Platform, error) {
 	// read the ELF header.
 	buf := make([]byte, 20) // nolint:mnd
-	if _, err := r.Read(buf); err != nil {
+	if _, err := io.ReadFull(r, buf); err != nil {
 		return nil, err
 	}
 

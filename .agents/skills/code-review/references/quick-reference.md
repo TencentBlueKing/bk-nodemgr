@@ -15,36 +15,24 @@
 
 **优势**：结构化思考、可追溯的推理过程
 
-### serena 工具命令速查
+### Codegraph 工具命令速查
 
-#### serena.get_symbols_overview
+#### codegraph_explore
 ```
-用途：快速了解文件结构，避免全文读取
-时机：审查开始时，需要了解文件整体结构
-替代：Read（在已知需要完整内容时才用）
-```
-
-#### serena.find_symbol
-```
-用途：精确查找函数/类/方法定义
-时机：需要查找特定符号的实现
-替代：Grep（语义级搜索更准确）
-参数：使用 depth 参数获取子符号（如类的方法）
+用途：调查代码结构、符号定义、调用路径和影响范围
+时机：了解文件结构、查找特定符号、对比相似代码或分析变更影响
+补充/降级：Read/Glob/Grep
+参数：query（符号名、文件名或短代码术语）、projectPath（项目绝对路径）、maxFiles（可选，返回源码的文件数上限）
 ```
 
-#### serena.find_referencing_symbols
-```
-用途：理解代码依赖关系和影响范围
-时机：需要分析代码修改的影响范围
-替代：无（传统工具无法提供此能力）
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr executor.go CreateDeployment",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
 
-#### serena.search_for_pattern
-```
-用途：语义级模式搜索
-时机：需要查找特定的代码模式
-替代：Grep（在 serena 无法满足时降级使用）
-```
+替换为实际审查项目的绝对路径。返回相关符号的带行号源码、调用路径和影响摘要，不是完整引用索引，也不提供正则搜索 API；按需用 Read/Glob/Grep 补充核实。不可用或无索引时说明限制并降级，不自行初始化。详细场景见 [tools-usage.md](tools-usage.md)。
 
 ### context7
 
@@ -105,18 +93,11 @@ Grep pattern="logger\\.G\\.Sys\\(\\)\\.With"
 - **Shell: go build** - 编译检查
 - **Shell: go vet** - 静态分析
 
-### 代码理解
-- **serena.get_symbols_overview** - 快速了解文件结构（优先）
-- **serena.find_symbol** - 精确查找符号定义（优先）
-- **Read** - 读取完整文件内容（降级方案）
+### 代码调查
 
-### 代码搜索
-- **serena.find_symbol** - 语义级符号搜索（优先）
-- **serena.search_for_pattern** - 语义级模式搜索（优先）
-- **Grep** - 文本级模式搜索（降级方案）
-
-### 依赖分析
-- **serena.find_referencing_symbols** - 查找符号引用和依赖（无可替代）
+- **codegraph_explore** - 优先调查文件结构、符号定义、相关代码、调用路径和影响摘要；按需补充核实，不保证引用完整
+- **Read** - 读取完整文件内容（补充/降级方案）
+- **Grep** - 文本级模式搜索（补充/降级方案）
 
 ### 文档查询
 - **context7** - 第三方文档和最佳实践（优先）
@@ -130,9 +111,9 @@ Grep pattern="logger\\.G\\.Sys\\(\\)\\.With"
 ### 基础审查（单文件小修改）
 ```
 1. sequential-thinking - 规划审查策略
-2. serena.get_symbols_overview - 了解文件结构
+2. codegraph_explore - 了解文件结构
 3. ReadLints + Shell - 语法检查
-4. serena.find_symbol - 查找相似代码，检查一致性
+4. codegraph_explore - 查找相似代码，检查一致性
 5. sequential-thinking - 生成报告
 ```
 
@@ -140,12 +121,11 @@ Grep pattern="logger\\.G\\.Sys\\(\\)\\.With"
 ```
 1. sequential-thinking - 分析变更范围和策略
 2. Shell: git diff - 了解变更文件
-3. serena.get_symbols_overview - 批量了解文件结构
+3. codegraph_explore - 了解变更文件相关结构
 4. ReadLints + Shell - 语法检查
-5. serena.find_symbol - 查找需要审查的符号
-6. serena.find_referencing_symbols - 理解影响范围
-7. context7（可选）- 查阅相关规范
-8. sequential-thinking - 生成详细报告
+5. codegraph_explore - 查找需要审查的符号，理解影响范围
+6. context7（可选）- 查阅相关规范
+7. sequential-thinking - 生成详细报告
 ```
 
 ### Commit/PR 审查
@@ -167,22 +147,22 @@ Grep pattern="logger\\.G\\.Sys\\(\\)\\.With"
     │
     ├─ 需要理解代码结构？
     │   └─ 是 → sequential-thinking（规划）
-    │           → serena.get_symbols_overview（结构）
+    │           → codegraph_explore（结构）
     │
     ├─ 需要查找特定符号？
-    │   └─ 是 → serena.find_symbol
-    │           （如果失败 → 降级到 Grep）
+    │   └─ 是 → codegraph_explore
+    │           （如果无法满足 → 降级到 Grep）
     │
     ├─ 需要理解依赖关系？
-    │   └─ 是 → serena.find_referencing_symbols
+    │   └─ 是 → codegraph_explore
     │
     ├─ 需要查阅规范文档？
     │   └─ 是 → context7（第三方文档）
     │           → Read（项目内规范）
     │
     ├─ 需要模式搜索？
-    │   └─ 是 → serena.search_for_pattern
-    │           （如果失败 → 降级到 Grep）
+    │   └─ 是 → codegraph_explore（相关代码调查）
+    │           （正则匹配 → Grep 补充）
     │
     └─ 需要完整文件内容？
         └─ 是 → Read
@@ -190,19 +170,19 @@ Grep pattern="logger\\.G\\.Sys\\(\\)\\.With"
 
 ## 优先级原则
 
-1. **MCP 工具优先**：优先使用 sequential-thinking 和 serena 工具族
-2. **语义理解优先**：使用语义级工具（serena）而非文本级工具（Grep）
-3. **效率优先**：使用 get_symbols_overview 而非全文 Read
+1. **MCP 工具优先**：优先使用 sequential-thinking 和 codegraph
+2. **语义理解优先**：使用语义级工具（codegraph）而非仅依赖文本级工具（Grep）
+3. **效率优先**：使用 codegraph_explore 调查相关符号，避免无目标全文 Read
 4. **降级策略**：当 MCP 工具无法满足时，降级到传统工具
 5. **实用主义**：保持工具选择的灵活性，根据实际需求调整
 
 ## 常见问题
 
-### Q: 什么时候使用 Read 而不是 serena.get_symbols_overview？
-A: 当你需要查看完整的文件内容，包括注释、导入语句、完整的代码实现时使用 Read。get_symbols_overview 只提供结构概览。
+### Q: 什么时候使用 Read 而不是 codegraph_explore？
 
-### Q: 什么时候使用 Grep 而不是 serena.search_for_pattern？
-A: 当你需要进行简单的文本模式匹配，或者 serena 无法理解你的查询意图时，降级使用 Grep。
+A: 当你需要查看完整的文件内容，包括注释、导入语句、完整的代码实现时使用 Read。codegraph_explore 返回的是与查询相关的符号源码和调用路径，不代表完整文件。
+### Q: 什么时候使用 Grep 而不是 codegraph_explore？
+A: 当你需要进行简单的文本模式匹配或正则搜索，或者 codegraph 无法满足查询需求时，补充或降级使用 Grep。
 
 ### Q: 如何决定是否使用 context7？
 A: 当你需要验证第三方库的 API 使用、查阅最新的框架文档、或者需要确认某个实践是否符合最新标准时，使用 context7。

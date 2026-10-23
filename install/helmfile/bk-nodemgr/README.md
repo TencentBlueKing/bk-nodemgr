@@ -51,6 +51,7 @@ flowchart LR
 - `backend.config`：Backend 需要用户显式确认的业务字段。
 - `application.config`：Application 需要用户显式确认的业务字段。
 - `file.config`：File 需要用户显式确认的业务字段。
+- `kms`：KMS 凭证集成（ESO），默认关闭；开启后各模块 release 渲染 SecretStore + ExternalSecret。
 
 ## 用户必须确认的字段
 
@@ -105,6 +106,13 @@ flowchart LR
 
 - `file.config.repo.endpoint`、`projectID`、`repoName`、`accessKey`、`secretKey`：BKRepo 直连配置。该配置不走 API Gateway，必须显式填写。
 - `file.config.gse.pluginSlotID`、`file.config.gse.pluginSlotToken`：GSE plugin slot 信息。
+
+### kms
+
+- `kms.enabled`：是否启用 KMS 凭证集成（ESO），默认关闭。
+- `kms.server`：KMS/Vault server 地址；`kms.tls`：到 KMS 的单向/mTLS 配置。
+- `kms.modules.{global,application,backend,file}`：各凭证的 `path`、`role`、`credential`，由 KMS 注册凭证时生成。
+- 注意：ESO 使用各模块 release namespace 下的 ServiceAccount 做 KMS Kubernetes auth（chart 默认 `serviceAccount.create=false`，即 `default` SA），KMS 侧 role 需按 namespace 绑定对应 SA。
 
 ## 内置依赖与 external 覆盖
 

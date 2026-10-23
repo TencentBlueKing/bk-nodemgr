@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -198,6 +199,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			WorkDir:           info.InstallerRuntime.WorkDir,
 			HTTPProxyOverride: info.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  info.InstallerRuntime.HTTPProxyAddress,
+			Firewall:          info.InstallerRuntime.Firewall.convertToTypes(),
 		},
 		BaseRuntime: types.DeploymentBaseRuntime{
 			BaseDeployDir:     info.BaseRuntime.BaseDeployDir,
@@ -408,6 +410,32 @@ func (h *Handler) UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string,
 	return nil
 }
 
+func convertFirewallFromTypes(firewall *types.DeploymentFirewall) *Firewall {
+	if firewall == nil {
+		return nil
+	}
+
+	return &Firewall{
+		RemoteIPs: firewall.RemoteIPs,
+		Features: conv.SliceToSlice(firewall.Features, func(feature types.FirewallFeature) string {
+			return string(feature)
+		}),
+	}
+}
+
+func (firewall *Firewall) convertToTypes() *types.DeploymentFirewall {
+	if firewall == nil {
+		return nil
+	}
+
+	return &types.DeploymentFirewall{
+		RemoteIPs: firewall.RemoteIPs,
+		Features: conv.SliceToSlice(firewall.Features, func(feature string) types.FirewallFeature {
+			return types.FirewallFeature(feature)
+		}),
+	}
+}
+
 func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 	if info == nil {
 		return nil, errors.New("info is nil")
@@ -457,6 +485,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			WorkDir:           info.InstallerRuntime.WorkDir,
 			HTTPProxyOverride: info.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  info.InstallerRuntime.HTTPProxyAddress,
+			Firewall:          convertFirewallFromTypes(info.InstallerRuntime.Firewall),
 		},
 		BaseRuntime: BaseRuntime{
 			BaseDeployDir:     info.BaseRuntime.BaseDeployDir,

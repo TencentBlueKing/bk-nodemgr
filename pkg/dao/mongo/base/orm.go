@@ -51,10 +51,20 @@ type IDao interface {
 }
 
 // NewOrm this is a common orm to operate mongo db.
-func NewOrm[P DataPoint[T], T any](dao IDao) *Orm[P, T] {
-	return &Orm[P, T]{
-		dao: dao,
+func NewOrm[P DataPoint[T], T any](dao IDao, opts ...OrmOption) *Orm[P, T] {
+	var options ormOptions
+	for _, opt := range opts {
+		opt(&options)
 	}
+	orm := &Orm[P, T]{
+		dao:            dao,
+		updateExecutor: &immediateUpdateExecutor{dao: dao},
+	}
+	if options.updateFieldBatching {
+		orm.updateExecutor = newUpdateFieldBatcher(dao, orm.updateExecutor)
+	}
+
+	return orm
 }
 
 // IOrm this defines the orm interface.
@@ -126,7 +136,8 @@ type IOrm[P DataPoint[T], T any] interface {
 
 // Orm this is a common orm to operate mongo db.
 type Orm[P DataPoint[T], T any] struct {
-	dao IDao
+	dao            IDao
+	updateExecutor updateExecutor
 }
 
 // DataPoint is a pointer.
@@ -470,20 +481,9 @@ func (orm *Orm[P, T]) EnsureIndexes() (err error) {
 
 // UpdateField this is a common operation for mongo db.
 func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field string, value any) (err error) {
-	var result *mongo.UpdateResult
-
-	// record metric.
-	metric := orm.metric().start(daomongo.MetricOperationUpdateMany, len(filter))
+	start := time.Now()
 	defer func() {
-		metric.end(err, func() int {
-			if result == nil {
-				return 0
-			}
-
-			return int(result.ModifiedCount)
-		}())
-
-		duration := time.Since(metric.startTime)
+		duration := time.Since(start)
 		if duration < daomongo.DefaultSlowTime {
 			return
 		}
@@ -511,28 +511,12 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 				attribute.String(attrKeyORMOperation, "update_field"),
 				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
 				attribute.Int(attrKeyORMFilterSize, len(filter)),
-				attribute.Int(attrKeyORMResultCount, func() int {
-					if result == nil {
-						return 0
-					}
-
-					return int(result.ModifiedCount)
-				}()),
 			),
 			trace.WithAttributes(filterAttrs...),
 		)
 	}()
 
-	// update field.
-	if result, err = orm.dao.GetClient().UpdateMany(nCtx, filter, buildUpdateField(field, value)); err != nil {
-		return err
-	}
-
-	logger.G.Sys().Ctx(nCtx).
-		With("table", orm.dao.GetTableName(), "field", field, "matched-count", result.MatchedCount, "modified-count", result.ModifiedCount).
-		Debug("updated field")
-
-	return nil
+	return orm.updateExecutor.UpdateMany(nCtx, filter, buildUpdateField(field, value))
 }
 
 // Count this is a common operation for mongo db.

@@ -1,0 +1,53 @@
+{
+  "skill_name": "bk-nodemgr-create-github-pr",
+  "evals": [
+    {
+      "id": 1,
+      "name": "daily-ci-issue-reuse",
+      "prompt": "bk-nodemgr 的当前分支只修改了 .github/workflows/pr-auto-labeler.yml，属于日常 CI 维护。请准备 PR，已有长期 [DAILY] CI 日常跟进 Issue，请先查找并复用它，不要新建 Issue，也不要关闭它。",
+      "expected_output": "复用匹配的长期 Issue，PR 标题满足英文 subject 和 --issue=#N，正文使用 refs 而不是 closes，并说明 workflow 触发范围、权限和验证。",
+      "expectations": [
+        "将 .github/workflows/** 识别为 kind/ci 并说明 workflow 影响",
+        "优先查找和复用已有 DAILY/长期 Issue，不创建重复 Issue",
+        "对长期 Issue 使用 refs 或 related to，不使用 closes/fixes/resolves",
+        "PR 正文使用当前双语模板并记录真实测试结果或未测试原因"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "replacement-pr-current-template",
+      "prompt": "请准备一个替代旧 PR 的 bk-nodemgr PR。旧 PR body 使用 Summary/Changes/Motivation，旧 PR 中提到的测试没有在当前 HEAD 重跑，需要保留原 Issue、风险和 Replaces #old-pr 上下文。",
+      "expected_output": "把旧事实迁移到当前 PULL_REQUEST_TEMPLATE.md 五段结构，明确当前 HEAD 未重跑测试，不冒充通过，并保留 replacement 关系。",
+      "expectations": [
+        "重新读取并遵循当前 .github/PULL_REQUEST_TEMPLATE.md，而不是照搬旧 body",
+        "未在当前 HEAD 重跑测试时勾选 Not tested 并说明原因",
+        "保留原 Issue、风险、回滚和 Replaces #old-pr 信息",
+        "不把历史 PR/commit/CI 结果声称为当前验证通过"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "cross-layer-verification-matrix",
+      "prompt": "bk-nodemgr 的一个改动同时涉及 proto/**、pkg/proto/**、backend API route 和 front/src/api。请准备 PR 草稿，列出完整影响范围和必须执行的验证，不要只写文件摘要。",
+      "expected_output": "沿 proto source -> generated target -> converter -> backend route/service -> frontend API/UI 分析，填写 affected areas，并按实际范围列出 proto regen、Go 和 frontend 命令。",
+      "expectations": [
+        "明确说明 proto、generated code、converter、backend route/service、frontend API/UI 的链路",
+        "填写当前模板的 affected areas 和 impact notes",
+        "包含 cd proto && make clean && make all 以及适用的 Go/frontend checks",
+        "不把未执行的命令标记为 passed，并说明未执行原因"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "draft-only-no-remote-write",
+      "prompt": "我只想让你帮我准备 PR 草稿，整理标题、Issue 关系、正文、风险和验证矩阵；现在不要 push，也不要创建或编辑任何 GitHub Issue/PR。",
+      "expected_output": "进入 preflight/draft-only 模式，只读本地信息并输出完整草稿，明确没有执行 GitHub 写操作。",
+      "expectations": [
+        "默认进入 preflight/draft-only 模式",
+        "不执行 git push、gh issue create/edit、gh pr create/edit 或其他远程写操作",
+        "输出完整 PR 模板、标题、Issue 关系、风险和验证矩阵",
+        "明确写出 No GitHub writes performed 和后续需要单独授权的动作"
+      ]
+    }
+  ]
+}

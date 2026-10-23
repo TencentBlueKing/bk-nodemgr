@@ -98,10 +98,8 @@ func (act *actionAssignProxyInfo) MaxRetryCount() uint {
 }
 
 // DelayFn defines the delay before retrying on failure.
-func (act *actionAssignProxyInfo) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionAssignProxyInfo) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do executes the action.

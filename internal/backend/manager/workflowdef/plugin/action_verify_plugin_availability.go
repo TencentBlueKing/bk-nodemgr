@@ -91,10 +91,8 @@ func (act *actionVerifyPluginAvailability) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionVerifyPluginAvailability) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionVerifyPluginAvailability) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.
@@ -129,14 +127,19 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) (err 
 		return err
 	}
 
+	pluginPlatform := platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
 	version := deployInfo.InstallOptions.Version
 	if version == "" {
-		version = deployInfo.Process.Info.Version
+		version, err = act.fileHandler.GetReleasePluginDefaultVersion(
+			nCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
+		if err != nil {
+			return fmt.Errorf("failed to get default plugin version, plugin-name(%s): %w", plugin.Name, err)
+		}
 	}
 
 	pluginPkg, err := act.fileHandler.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: host.Dynamic.NodeGeneration,
-		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
+		Platform:   pluginPlatform,
 		Version:    version,
 		Name:       plugin.PkgName,
 	})
@@ -188,8 +191,9 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) (err 
 	std.DeployInfo().Process.PluginName = plugin.Name
 	std.DeployInfo().Process.PluginGroup = plugin.Group
 	std.DeployInfo().Process.PluginPkgName = plugin.PkgName
+	std.DeployInfo().Process.Info.Version = version
 	std.DeployInfo().Process.Generation = pluginPkg.Generation
-	std.DeployInfo().Process.Platform = platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
+	std.DeployInfo().Process.Platform = pluginPlatform
 
 	std.InstanceData().Log().
 		Zh("更新插件信息成功, plugin-name(%s), plugin-group(%s), plugin-pkg-name(%s), version(%s), generation(%d), platform(%s)",

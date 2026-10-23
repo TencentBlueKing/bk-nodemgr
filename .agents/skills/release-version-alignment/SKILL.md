@@ -383,4 +383,4 @@ Read these as needed:
 - `.github/workflows/pr-title-lint.yml` - PR title regex and English-subject requirement
 - `.github/labeler.yml` - auto-label expectations for `install/**/*`
 - `references/tag-workflow.md` - tag timing, landing order, and tag-move caution
-- `create-github-pr/SKILL.md` - broader PR workflow when the fast path no longer fits
+- `bk-nodemgr-create-github-pr/SKILL.md` - broader PR workflow when the fast path no longer fits

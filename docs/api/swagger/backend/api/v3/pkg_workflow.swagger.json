@@ -446,6 +446,10 @@
         },
         "md5": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean",
+          "description": "Only system tenant requests can enable sharing; ignored for other tenants."
         }
       },
       "description": "PackageImportExternalPluginV2PkgReq describes the HTTP request body when\nimport external plugin v2 package in package service."
@@ -494,6 +498,10 @@
         },
         "md5": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean",
+          "description": "Only system tenant requests can enable sharing; ignored for other tenants."
         }
       },
       "description": "PackageImportPluginV2PkgReq describes the HTTP request body when import\nplugin v2 package in package service."
@@ -542,6 +550,10 @@
         },
         "md5": {
           "type": "string"
+        },
+        "is_shared": {
+          "type": "boolean",
+          "description": "Only system tenant requests can enable sharing; ignored for other tenants."
         }
       },
       "description": "PackageImportPluginV3PkgReq describes the HTTP request body when import\nplugin package in package service."

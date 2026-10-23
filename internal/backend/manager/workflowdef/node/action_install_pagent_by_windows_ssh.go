@@ -124,10 +124,8 @@ func (act *actionInstallPagentByWindowsSSH) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallPagentByWindowsSSH) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(5 * time.Second) // nolint: mnd
-	}
+func (act *actionInstallPagentByWindowsSSH) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.

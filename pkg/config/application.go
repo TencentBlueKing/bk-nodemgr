@@ -131,6 +131,7 @@ func (n *Notice) Validate() error {
 type ApplicationService struct {
 	RunMode            RunMode            `yaml:"runMode" usage:"run mode of service"`
 	TenantMode         tenant.Mode        `yaml:"tenantMode" usage:"tenant mode of service"`
+	KMS                KMS                `yaml:"kms" usage:"kms secret config of application service"`
 	BKSaas             BKSaas             `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	BKPaas             BKPaaS             `yaml:"bkPaaS" usage:"bk paas config of application service"`
 	Front              Front              `yaml:"front" usage:"front config of application service"`
@@ -312,6 +313,13 @@ func (svc *ApplicationService) LoadFromFile(path string) error {
 
 	if err = yaml.Unmarshal(configContent, svc); err != nil {
 		return err
+	}
+
+	// load kms secret.
+	if svc.KMS.Enabled {
+		if err := svc.KMS.ParseApplicationServiceConfig(svc); err != nil {
+			return err
+		}
 	}
 
 	return nil

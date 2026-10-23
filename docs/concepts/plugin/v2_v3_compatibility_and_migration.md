@@ -24,14 +24,14 @@ bk-nodemgr 的"插件"是运行在被管控主机上的采集/执行进程（典
 
 仓库中的术语与外部说法存在差异，先做映射以免歧义：
 
-| 外部说法 / 通俗叫法 | 仓库内实际术语 | 出处 |
-|---|---|---|
-| V2 / V3 部署模式 | 插件格式代次（V2 / V3） | `pkg/types/release.go:33-40` |
-| Agent V2 / V3 | `NodeGeneration`（1=Agent 1.x 已不支持，2=Agent 2.x） | `pkg/types/generation.go`；`docs/developer/plugin_pkg_build_guide.md:91` |
-| 官方进程 / 托管进程 | GSE 托管进程（trusteeship），GSE Agent 充当 supervisor | `internal/backend/manager/workflowdef/plugin/action_trusteeship_process_to_gse.go` |
-| 子插件 | 子配置（subconfig / sub_config） | `docs/developer/plugin_pkg_build_guide.md:36,40`；`pkg/deployconstant/plugin_deploy_constant.go:145` |
-| 基础数据上报 | `dataid` 配置项（dataid=-1 即不上报） | `internal/backend/manager/workflowdef/plugin/action_overwrite_plugin_config_for_compatibility.go:32,158` |
-| 共存 | 兼容模式（compatibility mode） | `pkg/globalsettings/definition.go:27` |
+| 外部说法 / 通俗叫法 | 仓库内实际术语                                         | 出处                                                                                                     |
+| ------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| V2 / V3 部署模式    | 插件格式代次（V2 / V3）                                | `pkg/types/release.go:33-40`                                                                             |
+| Agent V2 / V3       | `NodeGeneration`（1=Agent 1.x 已不支持，2=Agent 2.x）  | `pkg/types/generation.go`；`docs/developer/plugin_pkg_build_guide.md:91`                                 |
+| 官方进程 / 托管进程 | GSE 托管进程（trusteeship），GSE Agent 充当 supervisor | `internal/backend/manager/workflowdef/plugin/action_trusteeship_process_to_gse.go`                       |
+| 子插件              | 子配置（subconfig / sub_config）                       | `docs/developer/plugin_pkg_build_guide.md:36,40`；`pkg/deployconstant/plugin_deploy_constant.go:145`     |
+| 基础数据上报        | `dataid` 配置项（dataid=-1 即不上报）                  | `internal/backend/manager/workflowdef/plugin/action_overwrite_plugin_config_for_compatibility.go:32,158` |
+| 共存                | 兼容模式（compatibility mode）                         | `pkg/globalsettings/definition.go:27`                                                                    |
 
 > 注意：仓库内**没有** "coexist / 共存 / sidecar / operator / basereport / 官方进程" 等字面术语。"共存"是兼容模式的运行时效果，"基础数据上报"由 `dataid` 配置项控制，"子插件"在仓库里叫"子配置"。
 
@@ -129,7 +129,7 @@ TransferPluginPkgToNodeV2 → InstallPluginV2 → WaitPluginInstallerCompleteV2 
 `oper_install_plugin.go:46-62`，action 链：
 
 ```
-TryStopProcess → UpsertProcess → VerifyPluginAvailability → InjectPluginCustomDeployConfig →
+CheckV2PluginNoAlive → TryStopProcess → UpsertProcess → VerifyPluginAvailability → InjectPluginCustomDeployConfig →
 RenderPluginDeployment → EnsureAndUpdatePluginConfigDetails → RenderPluginConfig →
 OverwritePluginConfigForCompatibility → TransferPluginPkgToNode → InstallPlugin →
 WaitPluginInstallerComplete → StartProcess → UpdateProcess
@@ -149,17 +149,17 @@ WaitPluginInstallerComplete → StartProcess → UpdateProcess
 
 ### 6.1 差异
 
-| 维度 | V2 | V3 | 出处 |
-|------|-----|-----|------|
-| 部署目录 | `plugins/`（复数） | `plugin/`（单数） | `action_inject_plugin_base_runtime_v2.go:215` vs `pkg/deployconstant/plugin_deploy_constant.go:26` |
-| GSE namespace | `nodeman` | `bk-nodemgr` | `pluginv2/pluginv2.go:48` vs `pkg/thirdparty/gse/handler_proc.go:67` |
-| GSE 进程 key | `agentID:nodeman:procName` | `agentID:bk-nodemgr:procName` | `pkg/thirdparty/gse/handler_proc.go:145` |
-| 子配置路径变量 | 提供 `subconfig_path`（固定） | 不提供，改用 `filePath` 显式声明 | `action_ensure_and_update_plugin_config_details_v2.go:538` vs `docs/developer/plugin_pkg_build_guide.md:36` |
-| 模板渲染器 | Jinja2 为主 | go-template（推荐） | `docs/developer/plugin_pkg_build_guide.md:145-149` |
-| 渲染上下文命名 | — | PascalCase | `action_ensure_and_update_plugin_config_details.go:237-252` |
-| 安装入口 | `LaunchPluginEnsurePluginV2` | `LaunchInstallPlugin` | `plugin_v2_manager.go` vs `plugin_manager.go` |
-| 兼容模式 hook | 无 | `OverwritePluginConfigForCompatibility` | `oper_install_plugin.go:55` |
-| 工作流类型常量 | `PluginWorkflowTypePluginEnsureV2` 等 | `PluginWorkflowTypeInstall` 等 | `pkg/types/plugin_workflow.go` |
+| 维度           | V2                                    | V3                                      | 出处                                                                                                        |
+| -------------- | ------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 部署目录       | `plugins/`（复数）                    | `plugin/`（单数）                       | `action_inject_plugin_base_runtime_v2.go:215` vs `pkg/deployconstant/plugin_deploy_constant.go:26`          |
+| GSE namespace  | `nodeman`                             | `bk-nodemgr`                            | `pluginv2/pluginv2.go:48` vs `pkg/thirdparty/gse/handler_proc.go:67`                                        |
+| GSE 进程 key   | `agentID:nodeman:procName`            | `agentID:bk-nodemgr:procName`           | `pkg/thirdparty/gse/handler_proc.go:145`                                                                    |
+| 子配置路径变量 | 提供 `subconfig_path`（固定）         | 不提供，改用 `filePath` 显式声明        | `action_ensure_and_update_plugin_config_details_v2.go:538` vs `docs/developer/plugin_pkg_build_guide.md:36` |
+| 模板渲染器     | Jinja2 为主                           | go-template（推荐）                     | `docs/developer/plugin_pkg_build_guide.md:145-149`                                                          |
+| 渲染上下文命名 | —                                     | PascalCase                              | `action_ensure_and_update_plugin_config_details.go:237-252`                                                 |
+| 安装入口       | `LaunchPluginEnsurePluginV2`          | `LaunchInstallPlugin`                   | `plugin_v2_manager.go` vs `plugin_manager.go`                                                               |
+| 兼容模式 hook  | 无                                    | `OverwritePluginConfigForCompatibility` | `oper_install_plugin.go:55`                                                                                 |
+| 工作流类型常量 | `PluginWorkflowTypePluginEnsureV2` 等 | `PluginWorkflowTypeInstall` 等          | `pkg/types/plugin_workflow.go`                                                                              |
 
 ### 6.2 共同点（复用组件）
 
@@ -220,7 +220,7 @@ if !deployInfo.InstallOptions.EnableCompatibilityMode || !deployInfo.InstallOpti
 1. `installPlugin`（:53）→ `LaunchInstallPlugin` 安装 V3；
 2. `ensurePluginV2`（:58）→ `LaunchPluginEnsurePluginV2` 安装 V2。
 
-V2 安装过滤（:104-106）：只保留 `EnableCompatibilityMode == true` 的插件才装 V2：
+V2 安装过滤：先按全局策略保留 `EnableCompatibilityMode == true` 的插件，再根据所选版本的包元数据排除 `legacyConflict: true` 的插件；没有剩余插件时不启动 V2 ensure 部署：
 
 ```go
 pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
@@ -230,11 +230,19 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 
 ### 7.3 兼容模式何时被判定
 
-`EnableCompatibilityMode` 字段并非由客户端传入（proto 中无 `compatibility` 字段，grep 0 命中），而是由服务端根据全局策略解析：
+`EnableCompatibilityMode` 字段并非由客户端传入（proto 中无 `compatibility` 字段，grep 0 命中），而是由服务端根据全局策略解析；插件 Install API 还会根据所选插件包的 `legacyConflict` 覆盖最终兼容结果（见 §7.4）：
 
 - Agent 安装：`internal/backend/router/api-v3/node/agent/install.go:141` 读取策略，:219-224 对 `bkmonitorbeat` 调 `DecideCompatibilityMode` 设置 `EnableCompatibilityMode`。
 - Proxy 安装：`internal/backend/router/api-v3/node/proxy/install.go:98,147,243-246`。
 - 插件 Install / Upgrade / ApplySubConfig：`install.go:51,76,103,135-160` 中 `resolvePluginCompatibilityModePolicy` + `applyPluginCompatibilityModePolicy`。
+
+### 7.4 包级旧版冲突声明：legacyConflict
+
+V3 插件包作者可在 `project.yaml` 中配置可选 bool 字段 `legacyConflict`，缺省为 `false`，示例与字段说明见 [V3 插件包规范](../../developer/plugin_pkg_build_guide.md)。以下兼容判定与 V2 ensure 过滤仅适用于插件 Install API（`POST /api/v3/plugin/install`），不覆盖节点预置、部署策略、升级或调试入口的兼容判定。
+
+- `true`：该 API 仅部署到 nodemgr 新版运行空间（GSE namespace=`bk-nodemgr`），优先于全局兼容策略及 `enabled_plugins` 列表，不启用兼容模式，也不启动 V2 ensure 部署。依据：`internal/backend/router/api-v3/plugin/install.go`。
+- 安装前检查 `nodeman` 空间中的同名旧实例，仍在运行或状态查询失败时阻断部署；需先自行停止仍在运行的旧实例。该检查不会自动停旧实例，也不是持续锁，不能阻止旧实例在检查后再次启动。依据：`internal/backend/manager/workflowdef/plugin/action_check_v2_plugin_no_alive.go` 及 `oper_install_plugin.go`。
+- `false` 或未配置：仍按原有兼容规则处理，并非强制选择 `nodeman` 运行空间。
 
 ## 8. 如何保证只有一台 bkm 上报基础数据
 
@@ -275,6 +283,7 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
   ```
 
   把 `dataid:` 的值替换为 `-1`，保留行尾注释。
+
 - **落库**（:130-148）：覆写后的内容写回 `PluginDeploymentPluginConf` 与 `ProcessConfig`，确保下发的配置就是 `-1`。
 
 ### 8.3 注册位置
@@ -289,10 +298,10 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 
 兼容模式开启时：
 
-| 进程 | dataid | 上报行为 |
-|------|--------|---------|
-| V2 `bkmonitorbeat`（namespace=`nodeman`） | 原 dataid | 正常上报基础数据 |
-| V3 `bkmonitorbeat`（namespace=`bk-nodemgr`） | `-1` | 静默，不上报基础数据 |
+| 进程                                         | dataid    | 上报行为             |
+| -------------------------------------------- | --------- | -------------------- |
+| V2 `bkmonitorbeat`（namespace=`nodeman`）    | 原 dataid | 正常上报基础数据     |
+| V3 `bkmonitorbeat`（namespace=`bk-nodemgr`） | `-1`      | 静默，不上报基础数据 |
 
 两个进程物理共存（GSE key 不同），但数据流只有 V2 一条活跃。V3 仍可承载子插件逻辑（子配置可正常下发），只是不上报到监控平台。
 
@@ -339,6 +348,7 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
    - `action_stop_plugin_v2_process.go:154-181` 中构造 `StopProcessParam{Type: PluginWorkflowTypeStopV2, ...}`，调用 `pluginMgrIface.LaunchStopPluginV2` 启动子工作流；
    - 子工作流定义：`pluginv2/oper_stop_plugin_v2.go:46-53`，链路 `InjectPluginBaseRuntimeV2 → FinishIfPluginProcessV2NotAlive → FetchPluginProcessV2 → StopProcessV2`；
    - 主工作流轮询等待子工作流完成（`action_stop_plugin_v2_process.go:199-239`）。
+
 3. **步骤 9 `RestartProcess`**：重启 V3 进程，使其加载新配置并开始上报（此时 V2 已下线，V3 接管）。
 
 > 注意：迁移工作流**不会重新传输插件包**。`migrate_from_v2.go:49` 使用 `PluginDeploymentTransferOptionsOnlyTransferInstaller()`（定义于 `pkg/types/plugin_deployment.go:221-226`），因为 V3 插件包在 install 阶段已经传输到位，迁移只需更新配置与进程状态。
@@ -381,6 +391,7 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 **唯一能停 V2 的途径**：`POST /api/v3/plugin/migrate_from_v2`（`migrate_from_v2.go:55`），它通过 `StopPluginV2Process` 子工作流停掉 V2 进程并清除 GSE 托管（namespace=`nodeman` 的 key），但**不清理 V2 文件**（二进制、配置、`plugins/` 目录残留）。
 
 **运营缺口**：若需在迁移后彻底卸载 V2 文件，当前无 API 可用。可选方案：
+
 1. 后续为 `LaunchUninstallPluginV2` 补一个 API handler（实现已就绪，只缺路由暴露）；
 2. 或手动通过 GSE / 脚本清理 `plugins/` 目录下 V2 残留。
 
@@ -391,16 +402,19 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 **接口**：`POST /api/v3/plugin/upgrade`（`internal/backend/router/api-v3/plugin/upgrade.go:23`）
 
 **为什么是 upgrade**：
+
 - upgrade handler（`upgrade.go:48`）调 `resolvePluginCompatibilityModePolicy` + `applyPluginCompatibilityModePolicy`，按全局策略设置 `EnableCompatibilityMode`；
 - upgrade 工作流（`oper_upgrade_plugin.go:46-64`）含完整渲染链：`EnsureAndUpdatePluginConfigDetails`（:54，重载模板原文）→ `RenderPluginConfig`（:55，渲染）→ `OverwritePluginConfigForCompatibility`（:56，兼容模式关则跳过覆写）；
 - 当 `EnableCompatibilityMode == false` 时，`OverwritePluginConfigForCompatibility` 在 `action_overwrite_plugin_config_for_compatibility.go:107-114` 直接 return，不把 dataid 改为 -1；
 - 于是渲染后的正常 dataid 被保留并下发。
 
 **同等可行的接口**：
+
 - `POST /api/v3/plugin/apply_subconfig`（`apply_subconfig.go:48`）：同样走兼容策略 + 含 `OverwritePluginConfigForCompatibility`（`oper_apply_plugin_subconfig.go:56`），适合子配置变更场景顺带恢复 dataid。
 - `POST /api/v3/plugin/install`（`install.go:53`）：重装即重新渲染，但语义偏重。
 
 **不可行**：
+
 - `POST /api/v3/plugin/restart`（`oper_restart_process.go:46-53`）：工作流只有 `FetchPluginProcess → RestartProcess → CheckPluginProcessAlive → UpdateProcess`，**不重新渲染配置**，无法改变 dataid。
 
 ### 10.3 推荐运营流程
@@ -457,6 +471,7 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 按主题分组，便于精读：
 
 ### 兼容模式与 dataid 覆写
+
 - `pkg/globalsettings/definition.go:27,58-59` — 全局策略键与默认值
 - `internal/backend/manager/compatibility/policy.go:4-21` — Policy 结构与默认策略
 - `internal/backend/manager/compatibility/decision.go:6-32` — 决策逻辑
@@ -464,12 +479,14 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 - `internal/backend/manager/workflowdef/plugin/action_overwrite_plugin_config_for_compatibility.go:32,107-160` — dataid 覆写核心
 
 ### 双安装触发点
+
 - `internal/backend/manager/workflowdef/node/action_install_pre_ordered_plugins.go:125-195,303-308,311-323,402-407` — Agent/Proxy 预置插件双装
 - `internal/backend/router/api-v3/plugin/install.go:28-69,99-133` — 插件 Install API 双装
 - `internal/backend/router/api-v3/node/agent/install.go:141,219-224` — Agent 安装时兼容模式判定
 - `internal/backend/router/api-v3/node/proxy/install.go:98,147,243-246` — Proxy 安装时兼容模式判定
 
 ### V2 工作流
+
 - `internal/backend/manager/plugin_v2_manager.go:128-129,216-217` — V2 Manager 入口（`LaunchUninstallPluginV2` / `LaunchStopPluginV2`，已实现但 uninstall 无 API 调用方）
 - `internal/backend/manager/iface/iface.go:89-99` — V2 子接口定义
 - `internal/backend/manager/workflowdef/pluginv2/pluginv2.go:11,48` — V2 包注释与 namespace
@@ -478,6 +495,7 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 - `internal/backend/manager/workflowdef/pluginv2/action_ensure_and_update_plugin_config_details_v2.go:429,538` — V2 subconfig_path
 
 ### V3 工作流与配置渲染
+
 - `internal/backend/manager/plugin_manager.go:476-519` — V3 Manager 入口（含 `LaunchMigrateFromV2`）
 - `internal/backend/manager/workflowdef/plugin/oper_install_plugin.go:46-62` — V3 install 工作流
 - `internal/backend/manager/workflowdef/plugin/oper_upgrade_plugin.go:46-64` — V3 upgrade 工作流（恢复 dataid 的入口）
@@ -489,6 +507,7 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 - `pkg/thirdparty/gse/handler_proc.go:67,145` — GSE namespace 常量与进程 key 格式
 
 ### 迁移工作流
+
 - `internal/backend/manager/workflowdef/plugin/oper_migrate_from_plugin_process_v2.go:46-59` — 迁移工作流定义（不含 OverwritePluginConfigForCompatibility）
 - `internal/backend/manager/workflowdef/plugin/action_stop_plugin_v2_process.go:154-239` — 停 V2 子工作流调用与等待
 - `internal/backend/manager/workflowdef/pluginv2/oper_stop_plugin_v2.go:46-53` — V2 stop 子工作流
@@ -497,6 +516,7 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 - `pkg/types/manager.go:128-135` — `MigrateFromV2Param`
 
 ### 运营接口（卸载 V2 / 恢复 dataid / 迁移）
+
 - `internal/backend/router/api-v3/plugin/plugin.go:56-65` — plugin 路由注册（install/upgrade/uninstall/apply_subconfig/restart/migrate_from_v2/stop）
 - `internal/backend/router/api-v3/plugin/migrate_from_v2.go:24-74` — 迁移 API handler（唯一能停 V2 的入口，不含兼容策略解析）
 - `internal/backend/router/api-v3/plugin/upgrade.go:23-75` — upgrade handler（恢复 dataid 的主入口，走兼容策略）
@@ -505,10 +525,12 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 - `internal/backend/router/api-v3/plugin/uninstall.go:23-73` — uninstall handler（仅 V3）
 
 ### Admin API
+
 - `internal/backend/router/admin/globalsettings/globalsettings.go:48-49` — 路由注册
 - `internal/backend/router/admin/globalsettings/plugin_compatibility_mode_policy.go:67,87` — Handler
 
 ### 类型与常量
+
 - `pkg/types/release.go:33-40` — ReleaseType（V2/V3 包类型）
 - `pkg/types/plugin_deployment.go:22-26,221-226` — PluginDeployment 类型与 TransferOptions
 - `pkg/types/plugin_workflow.go:21-33` — PluginWorkflow 类型
@@ -516,5 +538,6 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 - `docs/developer/plugin_pkg_build_guide.md` — V3 插件包规范（唯一权威文档）
 
 ### Changelog
+
 - `support-files/changelog/zh/v3.0.1-alpha.23_2026-05-11.md:9,16,17` — 兼容模式与配置覆写引入
 - `support-files/changelog/zh/v3.0.1-alpha.32_2026-05-28.md:8,11` — 迁移 API 与 stop plugin v2 引入

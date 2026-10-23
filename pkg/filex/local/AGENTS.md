@@ -1,5 +1,5 @@
 |IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning
-|Required Tools:serena (semantic code ops)|context7 (3rd-party docs)|sequential-thinking (decisions)
+|Required Tools:codegraph (code structure, call paths, impact)|context7 (3rd-party docs)|sequential-thinking (decisions)
 |Language Policy:Chinese for Q&A and README|English for code and agent guidance
 |Compression Rule:pipe-index format; concise; no prose/code blocks|Reference:.agents/skills/scoped-agentsmd/references/AGENTS-compression-guide.md
 |Scope:pkg/filex/local

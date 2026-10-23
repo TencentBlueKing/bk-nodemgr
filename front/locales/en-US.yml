@@ -59,8 +59,8 @@ platform:
       opsConsoleHostId: Console Host ID
       opsOutBandType: Device Type
       opsOutBandProtocol: Device Protocol
-      opsBMCIP: Management IP
-      opsBMCPort: Management Port
+      opsOutBandIP: Out-of-band IP
+      opsOutBandPort: Out-of-band Port
       batchFill: Batch Fill
       opsSettingBatchFillDone: Batch fill completed
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
@@ -202,6 +202,8 @@ platform:
     uninstall: Uninstall
     bussinessTopology: Business Topology
     agentSearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
+    invalidSearchValue: "Search value {values} does not meet the required format"
+    unmatchedSearchValue: "Search value {values} does not match any search condition"
     proxySearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
     historySearchPlaceholder: Enter IP or execution status for quick search
     inner_ip: Private IPv4

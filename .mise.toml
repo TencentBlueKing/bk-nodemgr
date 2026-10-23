@@ -16,11 +16,19 @@ clang-format = "latest"
 "go:google.golang.org/protobuf/cmd/protoc-gen-go" = "v1.36.5"
 
 # nodejs tools
+"npm:@colbymchenry/codegraph" = "latest"
 "npm:@vtsls/language-server" = "latest"
 "npm:@vue/language-server" = "latest"
 "npm:yaml-language-server" = "latest"
 "npm:bash-language-server" = "latest"
 "npm:pyright" = "latest"
+
+[tasks.install-skills]
+description = "Install business skills from the upstream master branch"
+tools = { "npm:skills" = "latest" }
+raw = true
+raw_args = true
+run = "skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills"
 
 [tasks.setup-go-sdk]
 description = "Link mise Go installations into ~/sdk for the Makefile Go launchers"

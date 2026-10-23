@@ -256,7 +256,7 @@ func (svc *RelayService) Validate() error {
 		return fmt.Errorf("failed to validate admin service config: %w", err)
 	}
 	if err := svc.DownloadServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate node service config: %w", err)
+		return fmt.Errorf("failed to validate download service config: %w", err)
 	}
 	if err := svc.CallbackServer.Validate(); err != nil {
 		return fmt.Errorf("failed to validate callback service config: %w", err)

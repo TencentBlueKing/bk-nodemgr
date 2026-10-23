@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -32,14 +33,16 @@ const (
 // NewActionPackagePublishPluginV3Pkg creates a publish action for package import.
 func NewActionPackagePublishPluginV3Pkg(capability *Capability) action.Definition {
 	return &actionPackagePublishPluginV3Pkg{
-		fileHandler:    capability.FileHandler,
-		storagePackage: capability.StoragePackage,
+		fileHandler:        capability.FileHandler,
+		storagePackage:     capability.StoragePackage,
+		managerRoleGranter: capability.ManagerRoleGranter,
 	}
 }
 
 type actionPackagePublishPluginV3Pkg struct {
-	fileHandler    file.IHandler
-	storagePackage pkgStg.IStorage
+	fileHandler        file.IHandler
+	storagePackage     pkgStg.IStorage
+	managerRoleGranter auth.IManagerRoleGranter
 }
 
 // ActionParamImportPackagePublish defines the publish action's param.
@@ -114,7 +117,7 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 		En("publish plugin v3 package, upload-id: %s", uploadInfo.UploadID).
 		Info()
 
-	if err := act.fileHandler.PublishReleasePluginV3(nCtx, uploadInfo.UploadID, false); err != nil {
+	if err := act.fileHandler.PublishReleasePluginV3(nCtx, uploadInfo.UploadID, info.ImportPluginPkgOptions.IsShared); err != nil {
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("upload-id", uploadInfo.UploadID).Error("failed to publish release plugin v3 package")
 
 		return fmt.Errorf("failed to publish release plugin package: %w", err)
@@ -164,6 +167,12 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 	}
 
 	logger.G.Sys().Ctx(nCtx).With("upload-id", uploadInfo.UploadID, "plugin-name", uploadInfo.Name).Info("published release plugin v3 package")
+
+	resource := auth.BuildPackageResources(info.Release[0].Name)[0]
+	if err := act.managerRoleGranter.GrantManagerRole(nCtx, nCtx.BKUsername(), resource); err != nil {
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("resource-type", resource.Type,
+			"resource-id", resource.ID, "creator", nCtx.BKUsername()).Error("failed to grant package creator permissions")
+	}
 
 	std.InstanceData().Log().
 		Zh("发布安装包成功，上传ID: %s，插件包: %s，版本: %s", uploadInfo.UploadID, uploadInfo.Name, uploadInfo.Version).

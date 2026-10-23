@@ -112,41 +112,41 @@
                             </template>
                         </VxeColumn>
                         <VxeColumn
-                            field="ops_bmc_ip"
-                            :title="$t('platform.nodeMan.agentNodeStatus.opsBMCIP')"
+                            field="ops_out_band_ip"
+                            :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandIP')"
                             :min-width="140"
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsBMCIP') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsBMCIP')" type="input"
-                                    @confirm="(value: string) => handleBatchEdit('ops_bmc_ip', value)" />
+                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandIP') }}</span>
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandIP')" type="input"
+                                    @confirm="(value: string) => handleBatchEdit('ops_out_band_ip', value)" />
                             </template>
                             <template #default="{ row }">
-                                <span v-if="row.ops_bmc_ip">{{ row.ops_bmc_ip }}</span>
+                                <span v-if="row.ops_out_band_ip">{{ row.ops_out_band_ip }}</span>
                                 <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
                             </template>
                             <template #edit="{ row }">
-                                <Input v-model.trim="row.ops_bmc_ip" />
+                                <Input v-model.trim="row.ops_out_band_ip" />
                             </template>
                         </VxeColumn>
                         <VxeColumn
-                            field="ops_bmc_port"
-                            :title="$t('platform.nodeMan.agentNodeStatus.opsBMCPort')"
+                            field="ops_out_band_port"
+                            :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandPort')"
                             :min-width="140"
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsBMCPort') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsBMCPort')" type="input"
-                                    @confirm="(value: string) => handleBatchEdit('ops_bmc_port', value)" />
+                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandPort') }}</span>
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandPort')" type="input"
+                                    @confirm="(value: string) => handleBatchEdit('ops_out_band_port', value)" />
                             </template>
                             <template #default="{ row }">
-                                <span v-if="row.ops_bmc_port">{{ row.ops_bmc_port }}</span>
+                                <span v-if="row.ops_out_band_port">{{ row.ops_out_band_port }}</span>
                                 <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
                             </template>
                             <template #edit="{ row }">
-                                <Input v-model.trim="row.ops_bmc_port" />
+                                <Input v-model.trim="row.ops_out_band_port" />
                             </template>
                         </VxeColumn>
                     </VxeColgroup>
@@ -223,8 +223,8 @@ const handleConfirm = async () => {
                 ops_console_host_id: Number(row.ops_console_host_id) || 0,
                 ops_out_band_type: String(row.ops_out_band_type ?? ''),
                 ops_out_band_protocol: String(row.ops_out_band_protocol ?? ''),
-                ops_bmc_ip: String(row.ops_bmc_ip ?? ''),
-                ops_bmc_port: Number(row.ops_bmc_port) || 0,
+                ops_out_band_ip: String(row.ops_out_band_ip ?? ''),
+                ops_out_band_port: Number(row.ops_out_band_port) || 0,
             }));
 
         if (nodeType.value === 'proxy') {
@@ -314,8 +314,8 @@ function formatHostData(hosts: any[]): any[] {
             ops_console_host_id: item.ops_console_host_id ?? info.ops_console_host_id ?? undefined,
             ops_out_band_type: item.ops_out_band_type ?? info.ops_out_band_type ?? undefined,
             ops_out_band_protocol: item.ops_out_band_protocol ?? info.ops_out_band_protocol ?? undefined,
-            ops_bmc_ip: item.ops_bmc_ip ?? info.ops_bmc_ip ?? undefined,
-            ops_bmc_port: item.ops_bmc_port ?? info.ops_bmc_port ?? undefined,
+            ops_out_band_ip: item.ops_out_band_ip ?? info.ops_out_band_ip ?? undefined,
+            ops_out_band_port: item.ops_out_band_port ?? info.ops_out_band_port ?? undefined,
         };
     });
 }

@@ -16,6 +16,13 @@ data:
 
     tenantMode: {{ .Values.backend.config.tenantMode }}
 
+    kms:
+      enabled: {{ .Values.kms.enabled }}
+      {{- if .Values.kms.enabled }}
+      globalSecretFile: {{ .Values.common.secretPath }}/kms-global-envelope
+      moduleSecretFile: {{ .Values.common.secretPath }}/kms-backend-envelope
+      {{- end }}
+
     system: {{ .Values.backend.config.system | toYaml | nindent 6 }}
 
     encryptKey: {{ .Values.backend.config.encryptKey | quote }}

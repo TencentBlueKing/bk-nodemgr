@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.74+
+- 该接口提供版本：v3.0.1-alpha.98+
 - 该接口所需权限：无。
 - 该接口功能描述：通过下载地址导入插件V2资源包（官方插件V2包）。接口会异步执行导入工作流（下载并上传插件V2包、发布资源包、更新资源包可见性），并返回工作流ID，可通过 PackageImportResult 接口查询导入结果。
 
@@ -15,6 +15,7 @@ POST /api/v3/package/workflow/import/v2/plugin
 | filename     | string   | 是   | 插件V2包文件名        |
 | download_url | string   | 是   | 插件V2包下载地址      |
 | md5          | string   | 是   | 插件V2包文件MD5校验值 |
+| is_shared    | bool     | 否   | 是否发布为共享包，默认 `false`。仅 `system` 租户请求生效，非 `system` 租户忽略此参数 |
 
 ### 调用示例
 
@@ -22,7 +23,8 @@ POST /api/v3/package/workflow/import/v2/plugin
 {
   "filename": "gse_agent-2.0.0.tgz",
   "download_url": "https://example.com/packages/gse_agent-2.0.0.tgz",
-  "md5": "5d41402abc4b2a76b9719d911017c592"
+  "md5": "5d41402abc4b2a76b9719d911017c592",
+  "is_shared": false
 }
 ```
 

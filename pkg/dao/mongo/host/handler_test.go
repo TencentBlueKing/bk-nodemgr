@@ -412,8 +412,8 @@ func Test_handler_UpdateStaticFields(t *testing.T) {
 		SyncedOpsConsoleHostID:   6001,
 		SyncedOpsOutBandType:     "bmc",
 		SyncedOpsOutBandProtocol: "ipmi",
-		SyncedOpsBMCIP:           "127.0.0.4",
-		SyncedOpsBMCPort:         623,
+		SyncedOpsOutBandIP:       "127.0.0.4",
+		SyncedOpsOutBandPort:     623,
 	}
 
 	fields := types.HostStaticFields{
@@ -440,8 +440,8 @@ func Test_handler_UpdateStaticFields(t *testing.T) {
 		SyncedOpsConsoleHostID:   true,
 		SyncedOpsOutBandType:     true,
 		SyncedOpsOutBandProtocol: true,
-		SyncedOpsBMCIP:           true,
-		SyncedOpsBMCPort:         true,
+		SyncedOpsOutBandIP:       true,
+		SyncedOpsOutBandPort:     true,
 	}
 
 	if err := h.UpdateStaticFields(

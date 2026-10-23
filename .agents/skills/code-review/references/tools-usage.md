@@ -11,7 +11,7 @@
 ```
 优先级 1：核心 MCP 工具（sequential-thinking）
     ↓
-优先级 2：语义分析工具（serena 工具族）
+优先级 2：语义分析工具（codegraph）
     ↓
 优先级 3：文档工具（context7）
     ↓
@@ -20,7 +20,7 @@
 
 **核心理念**：
 - ✅ 优先使用语义级工具而非文本级工具
-- ✅ 优先使用结构化概览而非全文读取
+- ✅ 优先调查相关符号和结构，避免无目标全文读取
 - ✅ 优先使用 MCP 工具，传统工具作为补充
 - ✅ 保持灵活性，根据实际需求选择最合适的工具
 
@@ -106,35 +106,36 @@
 
 ---
 
-### 2. serena 工具族 - 语义级代码分析
+### 2. Codegraph - 语义级代码分析
 
-serena 提供了一套强大的语义级代码分析工具，能够理解代码结构和符号关系，显著提高审查效率。
+codegraph 通过 `codegraph_explore` 调查代码结构、符号和调用路径，返回相关符号的带行号源码及影响摘要。
 
-#### 2.1 serena.get_symbols_overview - 快速结构概览
+**调用签名**：`codegraph_explore({query: string, projectPath: string, maxFiles?: number})`
 
-**用途**：快速了解文件的符号结构，避免全文读取
+| 参数        | 说明                                  | 建议                                                  |
+| ----------- | ------------------------------------- | ----------------------------------------------------- |
+| query       | 符号名、文件名、短代码术语或调查问题  | 提供相关模块和符号，围绕当前审查问题查询              |
+| projectPath | 目标项目绝对路径                      | 使用实际审查目录；worktree 中使用 worktree 的绝对路径 |
+| maxFiles    | 返回源码的文件数上限（可选，默认 12） | 按需调整，不代表引用数量或完整性                      |
 
-**替代工具**：Read（仅在需要完整内容时才使用）
+以下示例中的路径和符号应替换为实际值。codegraph 不是完整引用索引，不保证列出全部方法、调用者或接口实现，也不提供正则搜索 API；按需用 Read/Glob/Grep 补充核实。工具不可用或项目无索引时，说明限制并降级，不自行运行 `codegraph init`。可纠正的调用错误按实际签名和报错调整后重试。
+#### 2.1 codegraph_explore - 文件结构调查
+**用途**：了解与变更相关的文件和符号结构，避免无目标全文读取
+**替代工具**：Read（需要完整内容或图中信息不足时使用）
 
 **使用场景**：
 
 **场景 1：审查开始时快速了解文件结构**
 
+目标：了解文件中与变更相关的函数、类型和方法。
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr/executor.go 文件结构 函数 类型 方法",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：在不读取完整文件的情况下，了解文件定义了哪些类、函数、方法
 
-示例调用：
-serena.get_symbols_overview(
-    relative_path="internal/backend/dpmgr/executor.go",
-    depth=1  # 包含顶层符号的子符号
-)
-
-返回信息：
-- 所有顶层函数的名称和签名
-- 所有类/结构体的名称和字段
-- 所有方法的名称（如果 depth=1）
-- 符号位置（行号）
-```
+返回相关符号的带行号源码及调用路径，不等同于完整文件符号列表。
 
 **场景 2：批量了解多个文件的结构**
 
@@ -143,295 +144,206 @@ serena.get_symbols_overview(
 
 流程：
 1. 使用 git diff 获取变更文件列表
-2. 对每个文件调用 get_symbols_overview
+2. 使用 codegraph_explore 查询相关文件和符号
 3. 识别主要的新增/修改符号
 4. 确定需要深入审查的部分
 ```
 
-**优势对比**：
-
-| 维度 | serena.get_symbols_overview | Read |
-|------|----------------------------|------|
-| Token 消耗 | ~500 tokens/文件 | ~2,000 tokens/文件 |
-| 获取信息 | 结构化符号列表 | 完整文本内容 |
-| 适用场景 | 快速了解结构 | 需要查看实现细节 |
-| 推荐优先级 | ✅ 优先使用 | ⚠️ 降级方案 |
-
 **最佳实践**：
-1. 总是先使用 get_symbols_overview，再决定是否需要 Read
-2. 使用 depth 参数控制返回详细程度（0=顶层，1=包含子符号）
-3. 结合 find_symbol 深入查看特定符号的实现
+
+1. 优先使用 codegraph_explore，再决定是否需要 Read
+2. 在 query 中提供文件名或相关符号，围绕变更调查
+3. 需要深入时，查询具体符号及调用路径
 
 **何时降级到 Read**：
 - 需要查看完整的注释和文档
 - 需要理解导入依赖关系
 - 需要查看符号之间的完整上下文
-- get_symbols_overview 返回的信息不足以做出判断
+- codegraph_explore 返回的信息不足以做出判断
 
 ---
 
-#### 2.2 serena.find_symbol - 精确符号查找
+#### 2.2 codegraph_explore - 符号查找
 
-**用途**：基于符号名称精确查找函数、类、方法的定义
+**用途**：基于符号名称调查函数、类、方法的定义和相关代码
 
-**替代工具**：Grep（语义级搜索更准确，Grep 作为降级方案）
+**替代工具**：Grep（作为补充或降级方案）
 
 **使用场景**：
 
 **场景 1：查找特定函数的实现**
 
-```
-目标：找到某个函数的完整定义，包括签名和实现
+目标：找到某个函数的定义，包括签名和实现。
 
-示例调用：
-serena.find_symbol(
-    name_path_pattern="CreateDeployment",
-    relative_path="internal/backend/dpmgr/",
-    include_body=true,  # 包含函数体
-    depth=0  # 只返回函数本身
-)
-
-返回信息：
-- 函数的完整定义（包括签名和函数体）
-- 函数的位置（文件和行号）
-- 函数的文档注释
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr CreateDeployment 实现",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
 
 **场景 2：查找相似函数进行一致性检查**
 
+目标：查找同模块中的相似函数，对比实现模式。
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr CreateDeployment 相似创建函数",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：查找同模块中的相似函数，对比实现模式
-
-示例调用：
-serena.find_symbol(
-    name_path_pattern="Create",
-    substring_matching=true,  # 匹配所有以 Create 开头的函数
-    relative_path="internal/backend/dpmgr/",
-    include_body=true
-)
 
 用途：
 - 对比错误处理模式
 - 对比日志记录格式
 - 对比函数签名设计
 - 对比数据结构构建方式
+  **场景 3：查找类的方法**
+  目标：了解某个类的方法及其实现。
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr DeploymentManager 方法",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
 
-**场景 3：查找类的所有方法**
-
-```
-目标：了解某个类的完整方法列表
-
-示例调用：
-serena.find_symbol(
-    name_path_pattern="DeploymentManager",
-    relative_path="internal/backend/dpmgr/",
-    depth=1,  # 包含所有方法
-    include_body=false  # 只要方法签名，不要实现
-)
-
-返回信息：
-- 类的定义
-- 所有方法的名称和签名
-- 方法的文档注释
-```
-
-**参数说明**：
-
-| 参数 | 说明 | 建议 |
-|------|------|------|
-| name_path_pattern | 符号名称或路径模式 | 使用简单名称即可，如 "CreateDeployment" |
-| relative_path | 限制搜索范围 | 总是指定，提高搜索速度 |
-| include_body | 是否包含完整实现 | 一致性检查时使用 true，快速了解时使用 false |
-| depth | 子符号深度 | 0=只返回符号本身，1=包含子符号（如方法） |
-| substring_matching | 子串匹配 | 查找相似函数时使用 true |
-
-**优势对比**：
-
-| 维度 | serena.find_symbol | Grep |
-|------|-------------------|------|
-| 搜索精度 | 语义级，精确匹配符号 | 文本级，可能误匹配注释或字符串 |
-| 结果结构 | 结构化符号信息 | 文本行 |
-| 上下文理解 | 理解符号作用域和层次 | 仅匹配文本模式 |
-| Token 消耗 | ~300 tokens/查询 | ~500 tokens/查询 |
-| 推荐优先级 | ✅ 优先使用 | ⚠️ 降级方案 |
+结合返回的相关源码调查方法，不将结果当作完整方法列表。
 
 **最佳实践**：
-1. 总是指定 relative_path 限制搜索范围
-2. 使用 substring_matching=true 查找相似函数系列
-3. 一致性检查时使用 include_body=true，快速浏览时使用 false
-4. 结合 depth 参数控制返回详细程度
+1. 指定实际项目的绝对 projectPath
+2. 在 query 中提供模块和函数系列，调查相似实现
+3. 一致性检查时对比职责、签名和实现，而非只对比名称
+4. 需要更多源码文件时按需调整 maxFiles
 
 **何时降级到 Grep**：
-- 需要搜索跨语言的模式（serena 主要支持主流语言）
+- 图中未覆盖所需代码
 - 需要搜索注释或文档字符串中的内容
 - 需要使用复杂的正则表达式
-- serena 无法理解你的查询意图
+- codegraph 无法满足查询需求
 
 ---
 
-#### 2.3 serena.find_referencing_symbols - 依赖关系分析
+#### 2.3 codegraph_explore - 依赖关系分析
 
-**用途**：查找引用某个符号的所有位置，理解依赖关系和影响范围
+**用途**：调查符号的调用路径和影响摘要，理解依赖关系和影响范围
 
-**替代工具**：无（传统工具无法提供此能力）
+**补充工具**：Read/Glob/Grep（核实图中未覆盖的定义和引用）
 
 **使用场景**：
 
 **场景 1：分析函数修改的影响范围**
 
+目标：了解修改某个函数会影响哪些调用方。
+```javascript
+codegraph_explore({
+  query:
+    "internal/backend/dpmgr/executor.go CreateDeployment 调用路径 影响范围",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：了解修改某个函数会影响哪些调用方
 
-示例调用：
-serena.find_referencing_symbols(
-    name_path="CreateDeployment",
-    relative_path="internal/backend/dpmgr/executor.go"
-)
-
-返回信息：
-- 所有调用该函数的位置
-- 调用方的函数名称和上下文
-- 调用代码片段
-```
+返回相关符号源码、调用路径及影响摘要，不保证全部调用位置。
 
 **场景 2：理解数据结构的使用模式**
 
+目标：了解某个结构体在代码库中如何被使用。
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr/types.go DeploymentConfig 使用 构建",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：了解某个结构体在代码库中如何被使用
-
-示例调用：
-serena.find_referencing_symbols(
-    name_path="DeploymentConfig",
-    relative_path="internal/backend/dpmgr/types.go"
-)
 
 用途：
-- 发现所有构建该结构体的位置
+- 调查构建该结构体的位置
 - 验证字段使用的一致性
 - 评估结构体修改的影响
-```
 
 **场景 3：检查接口实现**
 
+目标：调查实现某个接口的类型。
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr/interface.go Executor 接口实现",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：查找实现某个接口的所有类型
-
-示例调用：
-serena.find_referencing_symbols(
-    name_path="Executor",
-    relative_path="internal/backend/dpmgr/interface.go"
-)
 
 用途：
-- 验证所有实现的一致性
+- 验证实现的一致性
 - 评估接口修改的影响范围
-```
 
 **最佳实践**：
 1. 修改函数签名前，先使用此工具了解影响范围
-2. 重构代码时，使用此工具确保所有引用都已更新
-3. 结合 include_info=true 获取引用位置的详细上下文
+2. 重构代码时，使用调用路径和影响摘要辅助核实引用是否已更新
+3. 结果不代表完整引用集；需要完整性判断时补充核实并说明未覆盖项
 
 **独特价值**：
-- ✅ 无可替代：传统工具无法提供语义级的引用分析
-- ✅ 精确度高：理解代码结构，避免误报
-- ✅ 影响分析：评估代码修改的波及范围
+- ✅ 语义分析：结合代码符号和调用路径理解依赖
+- ✅ 源码上下文：返回相关符号的带行号源码
+- ✅ 影响分析：辅助评估代码修改的波及范围
 
 ---
 
-#### 2.4 serena.search_for_pattern - 语义级模式搜索
+#### 2.4 codegraph_explore - 相关代码模式调查
 
-**用途**：基于正则表达式进行语义级的代码模式搜索
+**用途**：通过符号和代码术语调查相关实现；正则模式匹配用 Grep 补充，不向 codegraph 传入正则专用参数
 
-**替代工具**：Grep（在 serena 无法满足时降级使用）
+**替代工具**：Grep（文本匹配或 codegraph 无法满足时使用）
 
 **使用场景**：
 
 **场景 1：查找特定的代码模式**
 
+目标：查找错误包装和特定 API 的使用方式。
+```javascript
+codegraph_explore({
+  query: "internal/backend/dpmgr fmt.Errorf 错误包装",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：查找所有使用特定模式的代码片段
-
-示例调用：
-serena.search_for_pattern(
-    substring_pattern="fmt\\.Errorf.*%w",
-    relative_path="internal/backend/dpmgr/",
-    restrict_search_to_code_files=true
-)
 
 用途：
 - 检查错误包装模式的一致性
 - 查找特定 API 的使用方式
-```
 
 **场景 2：查找日志记录模式**
 
+目标：验证日志记录的一致性。
+```javascript
+codegraph_explore({
+  query: "internal logger G Sys With 日志记录",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：验证日志记录的一致性
-
-示例调用：
-serena.search_for_pattern(
-    substring_pattern="logger\\.G\\.Sys\\(\\)\\.With",
-    relative_path="internal/",
-    context_lines_after=2  # 显示后续 2 行
-)
 
 用途：
 - 检查日志格式一致性
 - 验证结构化字段使用
-```
 
 **场景 3：查找安全相关模式**
 
+目标：查找可能的安全问题。
+```javascript
+codegraph_explore({
+  query: "exec.Command 命令执行 输入验证",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
-目标：查找可能的安全问题
-
-示例调用：
-serena.search_for_pattern(
-    substring_pattern="exec\\.Command|os\\.Exec",
-    relative_path=".",
-    context_lines_before=1,
-    context_lines_after=3
-)
 
 用途：
 - 发现潜在的命令注入风险
 - 检查输入验证
-```
-
-**参数说明**：
-
-| 参数 | 说明 | 建议 |
-|------|------|------|
-| substring_pattern | 正则表达式模式 | 使用 Python re 模块语法 |
-| relative_path | 搜索路径 | 总是指定，避免全局搜索 |
-| restrict_search_to_code_files | 只搜索代码文件 | 通常使用 true |
-| context_lines_before/after | 上下文行数 | 根据需要调整，默认 0 |
-| paths_include_glob | 包含文件模式 | 进一步限制搜索范围 |
-| paths_exclude_glob | 排除文件模式 | 排除测试文件等 |
-
-**优势对比**：
-
-| 维度 | serena.search_for_pattern | Grep |
-|------|--------------------------|------|
-| 搜索范围 | 可灵活限制（代码文件、glob） | 基于路径和文件类型 |
-| 模式匹配 | 支持正则表达式 | 支持正则表达式 |
-| 结果结构 | 结构化输出 | 文本行 |
-| 上下文控制 | 精确控制上下文行数 | 使用 -A/-B/-C 参数 |
-| 推荐优先级 | ✅ 优先使用 | ⚠️ 降级方案 |
 
 **最佳实践**：
-1. 总是使用 relative_path 限制搜索范围
-2. 使用 restrict_search_to_code_files=true 避免搜索非代码文件
-3. 使用 paths_exclude_glob 排除测试文件（如 "*_test.go"）
-4. 根据需要调整上下文行数
+1. 在 query 中提供相关模块、API 和业务语义
+2. 不将语义调查结果当作全库正则匹配结果
+3. 按需用 Grep 核实文本模式和未覆盖代码
 
 **何时降级到 Grep**：
-- 需要更灵活的输出格式控制
+- 需要精确的文本或正则匹配
 - 需要搜索非代码文件（如文档、配置）
-- 需要使用 Grep 特有的功能（如 -o 只输出匹配部分）
-- serena 的性能不满足需求
+- 需要使用 Grep 特有的功能
+- codegraph 返回的信息不足
 
 ---
 
@@ -576,26 +488,22 @@ git log --oneline -10
 
 **用途**：读取文件的完整内容
 
-**特点**：⚠️ 降级方案，优先使用 serena.get_symbols_overview
+**特点**：⚠️ 补充/降级方案，优先使用 codegraph_explore
 
 **何时使用**：
 - ✅ 需要查看完整的注释和文档
 - ✅ 需要理解导入依赖关系
 - ✅ 需要查看文件的完整上下文
-- ✅ serena.get_symbols_overview 返回的信息不足
+- ✅ codegraph_explore 返回的信息不足
 
 **何时避免**：
-- ❌ 只是想快速了解文件结构（使用 serena.get_symbols_overview）
-- ❌ 只是想查找特定符号（使用 serena.find_symbol）
-- ❌ 文件很大但只关心部分内容（使用 serena 工具）
 
-**Token 消耗对比**：
-- Read 全文：~2,000 tokens/文件
-- serena.get_symbols_overview：~500 tokens/文件
-- **节省：75%**
+- ❌ 只是想了解变更相关结构（优先使用 codegraph_explore）
+- ❌ 只是想查找特定符号（优先使用 codegraph_explore）
+- ❌ 文件很大但只关心部分内容（优先调查相关符号）
 
 **最佳实践**：
-1. 先使用 serena.get_symbols_overview，再决定是否需要 Read
+1. 先使用 codegraph_explore，再决定是否需要 Read
 2. 如果文件很大，考虑使用 offset 和 limit 参数分段读取
 3. 只读取确实需要审查的文件
 
@@ -610,17 +518,17 @@ Read file_path=/path/to/file.go
 
 **用途**：在代码库中搜索文本模式
 
-**特点**：⚠️ 降级方案，优先使用 serena.find_symbol 或 serena.search_for_pattern
+**特点**：⚠️ 补充/降级方案，符号和相关代码调查优先使用 codegraph_explore
 
 **何时使用**：
 - ✅ 需要搜索注释或文档字符串
 - ✅ 需要使用复杂的正则表达式
-- ✅ serena 工具无法满足需求
+- ✅ codegraph 无法满足需求
 - ✅ 需要 Grep 特有的功能
 
 **何时避免**：
-- ❌ 查找特定函数或类（使用 serena.find_symbol）
-- ❌ 查找代码模式（使用 serena.search_for_pattern）
+- ❌ 只用文本命中判断特定函数或类的语义（优先使用 codegraph_explore）
+- ❌ 跳过 MCP 工具直接进行相关代码调查
 
 **最佳实践**：
 1. 总是指定 path 参数限制搜索范围
@@ -684,22 +592,22 @@ Glob pattern="**/*_test.go" path=internal/backend/dpmgr/
     │   └─ 是 → ReadLints + Shell (go build/vet)
     │
     ├─ 需要理解代码结构？
-    │   └─ 是 → serena.get_symbols_overview
+    │   └─ 是 → codegraph_explore
     │           （如果信息不足 → 降级到 Read）
     │
     ├─ 需要查找特定符号？
-    │   └─ 是 → serena.find_symbol
-    │           （如果失败 → 降级到 Grep）
+    │   └─ 是 → codegraph_explore
+    │           （如果无法满足 → 降级到 Grep）
     │
     ├─ 需要理解依赖关系？
-    │   └─ 是 → serena.find_referencing_symbols
+    │   └─ 是 → codegraph_explore
     │
     ├─ 需要查阅第三方文档？
     │   └─ 是 → context7
     │
     ├─ 需要模式搜索？
-    │   └─ 是 → serena.search_for_pattern
-    │           （如果失败 → 降级到 Grep）
+    │   └─ 是 → codegraph_explore（相关代码调查）
+    │           （正则匹配 → Grep 补充）
     │
     ├─ 需要完整文件内容？
     │   └─ 是 → Read
@@ -714,32 +622,32 @@ Glob pattern="**/*_test.go" path=internal/backend/dpmgr/
 
 #### 场景 1：基础审查（单文件小修改）
 
-**目标**：快速检查，10分钟内完成
+**目标**：快速检查
 
 **工具组合**：
 ```
-1. sequential-thinking（30秒）
+1. sequential-thinking
    - 快速规划审查策略
 
-2. serena.get_symbols_overview（30秒）
+2. codegraph_explore
    - 了解文件结构
 
-3. ReadLints + Shell（2分钟）
+3. ReadLints + Shell
    - 语法检查
 
-4. serena.find_symbol（3分钟）
+4. codegraph_explore
    - 查找相似代码，检查一致性
 
-5. sequential-thinking（3分钟）
+5. sequential-thinking
    - 生成简洁报告
 ```
 
 **预期 Token 消耗**：~5,000 tokens
 
 **效率优化**：
-- ✅ 使用 serena.get_symbols_overview 而非 Read
-- ✅ 使用 serena.find_symbol 精确查找
-- ✅ 避免全局搜索，总是指定路径
+
+- ✅ 使用 codegraph_explore 调查相关结构和具体符号，避免无目标 Read
+- ✅ 避免全局搜索，在 query 中提供相关模块
 
 ---
 
@@ -755,21 +663,17 @@ Glob pattern="**/*_test.go" path=internal/backend/dpmgr/
 2. Shell: git diff（1分钟）
    - 了解变更文件
 
-3. serena.get_symbols_overview（5分钟）
-   - 批量了解文件结构
+3. codegraph_explore（5分钟）
+   - 了解变更文件相关结构
 
-4. ReadLints + Shell（5分钟）
+4. ReadLints + Shell
    - 语法检查
 
-5. serena.find_symbol（10分钟）
-   - 查找需要审查的符号
-   - 深度分析实现
+5. codegraph_explore（10分钟）
+   - 查找需要审查的符号，深度分析实现
+   - 理解影响范围，检查依赖关系
 
-6. serena.find_referencing_symbols（10分钟）
-   - 理解影响范围
-   - 检查依赖关系
-
-7. context7（5分钟，可选）
+6. context7（5分钟，可选）
    - 查阅相关规范
 
 8. sequential-thinking（10分钟）
@@ -780,7 +684,7 @@ Glob pattern="**/*_test.go" path=internal/backend/dpmgr/
 
 **效率优化**：
 - ✅ 并行执行语法检查
-- ✅ 使用 serena 工具避免全文读取
+- ✅ 使用 codegraph 调查相关符号，避免无目标全文读取
 - ✅ 渐进式审查，先快速检查再深入
 
 ---
@@ -825,40 +729,38 @@ Glob pattern="**/*_test.go" path=internal/backend/dpmgr/
 - ReadLints file3.go
 
 同时执行：
-- serena.get_symbols_overview file1.go
-- serena.get_symbols_overview file2.go
+- codegraph_explore({query: "file1.go", projectPath: "/absolute/path/to/bk-nodemgr"})
+- codegraph_explore({query: "file2.go", projectPath: "/absolute/path/to/bk-nodemgr"})
 ```
 
 #### 优化 2：限制搜索范围
 
-总是尽可能限制工具的搜索范围：
+总是尽可能限定调查目标；query 中的模块名帮助聚焦，不是严格路径过滤器：
 
-```
-✅ 推荐：
-serena.find_symbol(
-    name_path_pattern="CreateDeployment",
-    relative_path="internal/backend/dpmgr/"
-)
+```javascript
+// 推荐：提供相关模块及具体符号
+codegraph_explore({
+  query: "internal/backend/dpmgr CreateDeployment",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 
-❌ 避免：
-serena.find_symbol(
-    name_path_pattern="CreateDeployment",
-    relative_path="."
-)
+// 避免：查询过于宽泛，缺少调查目标
+codegraph_explore({
+  query: "创建",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
 
 #### 优化 3：渐进式审查
 
-从快到慢，从全局到局部：
+先快速检查，再从全局到局部深入：
 
 ```
-1. ReadLints (最快) - 发现明显问题
-2. go build (快) - 编译检查
-3. go vet (快) - 静态分析
-4. serena.get_symbols_overview (快) - 结构概览
-5. serena.find_symbol (中速) - 符号查找
-6. serena.search_for_pattern (中速) - 模式搜索
-7. Read (慢) - 全文读取（降级方案）
+1. ReadLints - 发现明显问题
+2. go build - 编译检查
+3. go vet - 静态分析
+4. codegraph_explore - 从结构到符号、相关模式逐步调查（正则匹配用 Grep 补充）
+5. Read - 全文读取（补充/降级方案）
 ```
 
 #### 优化 4：智能降级
@@ -866,11 +768,11 @@ serena.find_symbol(
 MCP 工具无法满足时才降级：
 
 ```
-serena.find_symbol
-    ↓ 失败
+codegraph_explore（符号查找）
+    ↓ 无法满足
 Grep（降级方案）
 
-serena.get_symbols_overview
+codegraph_explore（结构调查）
     ↓ 信息不足
 Read（降级方案）
 ```
@@ -884,8 +786,8 @@ Read（降级方案）
 **问题**：读取大量不相关的文件，浪费 Token
 
 **解决**：
-- ✅ 优先使用 serena.get_symbols_overview 了解结构
-- ✅ 使用 serena.find_symbol 精确查找
+- ✅ 优先使用 codegraph_explore 了解相关结构
+- ✅ 使用 codegraph_explore 查询具体符号
 - ✅ 只在确实需要完整内容时才使用 Read
 
 **对比**：
@@ -894,14 +796,11 @@ Read（降级方案）
 Read file1.go
 Read file2.go
 Read file3.go
-总 Token：~6,000
+（未明确调查目标就读取全文）
 
 ✅ 正确做法：
-serena.get_symbols_overview file1.go
-serena.get_symbols_overview file2.go
-serena.get_symbols_overview file3.go
-总 Token：~1,500
-节省：75%
+codegraph_explore({query: "file1.go file2.go file3.go 变更相关符号", projectPath: "/absolute/path/to/bk-nodemgr"})
+（按需读取完整上下文）
 ```
 
 ---
@@ -911,22 +810,20 @@ serena.get_symbols_overview file3.go
 **问题**：在整个代码库搜索，浪费时间和资源
 
 **解决**：
-- ✅ 总是指定 relative_path 参数
-- ✅ 根据 git diff 确定相关路径
-- ✅ 使用 paths_include_glob 进一步限制
+- ✅ 总是指定实际项目绝对路径 projectPath
+- ✅ 根据 git diff 确定相关模块和符号，写入 query
+- ✅ 使用 Grep 补充时通过 path 限定路径
 
 **对比**：
-```
-❌ 错误做法：
-serena.find_symbol(
-    name_path_pattern="CreateDeployment"
-)
 
-✅ 正确做法：
-serena.find_symbol(
-    name_path_pattern="CreateDeployment",
-    relative_path="internal/backend/dpmgr/"
-)
+```javascript
+// 错误做法：项目路径不正确，调查目标过于宽泛
+codegraph_explore({ query: "创建", projectPath: "." });
+// 正确做法：指定实际项目和具体调查目标
+codegraph_explore({
+  query: "internal/backend/dpmgr CreateDeployment",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
 
 ---
@@ -936,7 +833,7 @@ serena.find_symbol(
 **问题**：直接使用传统工具，错过 MCP 工具的优势
 
 **解决**：
-- ✅ 记住工具优先级：sequential-thinking > serena > context7 > 传统工具
+- ✅ 记住工具优先级：sequential-thinking > codegraph > context7 > 传统工具
 - ✅ 只在 MCP 工具无法满足时才降级
 - ✅ 定期回顾 MCP 工具的使用方式
 
@@ -946,8 +843,8 @@ serena.find_symbol(
 直接使用 Grep 查找函数
 
 ✅ 正确做法：
-先尝试 serena.find_symbol
-如果失败，再降级到 Grep
+先尝试 codegraph_explore
+如果无法满足，再降级到 Grep
 ```
 
 ---
@@ -968,7 +865,7 @@ serena.find_symbol(
 **问题**：无法判断代码是否符合项目模式
 
 **解决**：
-- ✅ 使用 serena.find_symbol 查找相似函数
+- ✅ 使用 codegraph_explore 查找相似函数
 - ✅ 对比实现方式、错误处理、日志格式
 - ✅ 确保新代码与现有代码一致
 
@@ -976,19 +873,16 @@ serena.find_symbol(
 
 ## 工具速查表
 
-| 工具 | 优先级 | 速度 | 用途 | 何时使用 | 替代/降级 |
-|------|-------|------|------|---------|-----------|
-| sequential-thinking | ⭐⭐⭐ | 快 | 结构化思考 | 规划、分析、报告 | 无 |
-| serena.get_symbols_overview | ⭐⭐⭐ | 快 | 结构概览 | 了解文件结构 | Read |
-| serena.find_symbol | ⭐⭐⭐ | 中 | 符号查找 | 查找函数/类/方法 | Grep |
-| serena.find_referencing_symbols | ⭐⭐⭐ | 中 | 依赖分析 | 理解影响范围 | 无 |
-| serena.search_for_pattern | ⭐⭐⭐ | 中 | 模式搜索 | 查找代码模式 | Grep |
-| context7 | ⭐⭐ | 中 | 文档查询 | 查阅第三方文档 | Read |
-| ReadLints | ⭐ | 快 | Linter 检查 | 审查开始时 | 无 |
-| Shell | ⭐ | 快 | 命令执行 | 编译/测试/Git | 无 |
-| Read | 降级 | 中 | 读取文件 | 需要完整内容时 | - |
-| Grep | 降级 | 中 | 文本搜索 | MCP 工具无法满足时 | - |
-| Glob | 补充 | 中 | 文件查找 | 查找文件 | - |
+| 工具                        | 优先级    | 用途                           | 何时使用                      | 替代/降级      |
+| --------------------------- | --------- | ------------------------------ | ----------------------------- | -------------- |
+| sequential-thinking         | ⭐⭐⭐    | 结构化思考                     | 规划、分析、报告              | 无             |
+| codegraph_explore | ⭐⭐⭐    | 结构、符号、调用路径和影响调查 | 了解代码结构和变更影响        | Read/Glob/Grep |
+| context7                    | ⭐⭐      | 文档查询                       | 查阅第三方文档                | Read           |
+| ReadLints                   | ⭐        | Linter 检查                    | 审查开始时                    | 无             |
+| Shell                       | ⭐        | 命令执行                       | 编译/测试/Git                 | 无             |
+| Read                        | 补充/降级 | 读取文件                       | 需要完整内容时                | -              |
+| Grep                        | 补充/降级 | 文本搜索                       | 正则匹配或 MCP 工具无法满足时 | -              |
+| Glob                        | 补充      | 文件查找                       | 查找文件                      | -              |
 
 **优先级说明**：
 - ⭐⭐⭐：优先使用（MCP 工具）
@@ -1004,22 +898,22 @@ serena.find_symbol(
 **高效审查的关键原则**：
 
 1. **MCP 工具优先**
-   - 优先使用 sequential-thinking、serena、context7
+   - 优先使用 sequential-thinking、codegraph、context7
    - 传统工具作为补充和降级方案
 
 2. **语义级理解优先**
-   - 使用 serena 工具进行语义级分析
+   - 使用 codegraph 进行语义级分析
    - 避免过度依赖文本级工具
 
 3. **效率优先**
-   - 使用 get_symbols_overview 而非全文 Read
-   - 使用 find_symbol 而非 Grep
-   - 总是限制搜索范围
+   - 使用 codegraph_explore 调查相关结构，避免无目标全文 Read
+   - 符号调查优先使用 codegraph_explore 而非 Grep
+   - 总是限定调查目标和项目路径
 
 4. **渐进式审查**
    - 先快速检查（linter、编译）
-   - 再语义分析（serena 工具）
-   - 最后深入理解（Read 降级方案）
+   - 再语义分析（codegraph）
+   - 最后深入理解（Read 补充/降级方案）
 
 5. **结构化思考**
    - 审查开始使用 sequential-thinking 规划

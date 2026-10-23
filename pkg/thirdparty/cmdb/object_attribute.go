@@ -60,14 +60,14 @@ func GetOpsFieldDefs() []ObjectAttributeInfo {
 		},
 		{
 			BKObjID:        TopoNodeObjIDHost,
-			BKPropertyID:   string(ccFieldOpsBMCIP),
+			BKPropertyID:   string(ccFieldOpsOutBandIP),
 			BKPropertyName: "带外管理IP",
 			BKPropertyType: propertyTypeSingleChar,
 			Editable:       true,
 		},
 		{
 			BKObjID:        TopoNodeObjIDHost,
-			BKPropertyID:   string(ccFieldOpsBMCPort),
+			BKPropertyID:   string(ccFieldOpsOutBandPort),
 			BKPropertyName: "带外管理端口",
 			BKPropertyType: propertyTypeInt,
 			Editable:       true,

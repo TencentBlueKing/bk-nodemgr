@@ -104,6 +104,18 @@ spec:
           env:
             - name: NODEMAN-MODULE
               value: application
+            {{- if .Values.kms.enabled }}
+            - name: BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "bk-nodemgr.fullname" . }}-global-kms-secret
+                  key: privateKey
+            - name: BK_NODEMGR_KMS_PRIVATE_KEY_MODULE_APPLICATION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "bk-nodemgr.fullname" . }}-application-kms-secret
+                  key: privateKey
+            {{- end }}
           ports:
             - name: info-http
               containerPort: {{ .Values.application.config.infoServer.port }}
@@ -140,6 +152,11 @@ spec:
               mountPath: {{ .Values.common.certPath }}
             - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
+            {{- if .Values.kms.enabled }}
+            - name: kms-envelope
+              mountPath: {{ .Values.common.secretPath }}
+              readOnly: true
+            {{- end }}
             {{- if .Values.application.config.configPolicyOption.agentOption }}
             - name: {{ template "bk-nodemgr.fullname" . }}-application-config
               mountPath: {{ printf "%s/%s" .Values.application.config.configPolicyOption.filePath "agent_option.json" | quote }}
@@ -162,45 +179,8 @@ spec:
           {{- end }}
 
       initContainers:
-        - name: {{ template "bk-nodemgr.fullname" . }}-application-check-mongodb
-          {{- if len .Values.application.image.tag }}
-          {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
-          {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
-          {{- end }}
-          {{- else }}
-          image: {{ template "bk-nodemgr.image" . }}
-          {{- end }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          command: ["sh", "-c"]
-          args:
-          - |
-            /bin/sh <<'EOF'
-
-            mongobin="mongo"
-
-            # check mongodb.
-            try_times=1
-            ret=1
-            sleep_time=1
-            while [ ${ret} -ne 0 ]
-            do
-                {{- if .Values.mongodb.enabled }}
-                ${mongobin} mongodb://{{ template "bk-nodemgr.fullname" . }}-mongodb-headless:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.database }} -u {{ .Values.mongodb.auth.username }} -p {{ .Values.mongodb.auth.password }} --eval "db.runCommand({ping: 1})"
-                {{- else }}
-                ${mongobin} mongodb://{{ join "," .Values.externalMongodb.hosts }}/{{ .Values.externalMongodb.database }} --authenticationDatabase {{ .Values.externalMongodb.authSource }} -u {{ .Values.externalMongodb.username }} -p {{ .Values.externalMongodb.password }} --eval "db.runCommand({ping: 1})"
-                {{- end }}
-
-                ret=$?
-                echo try to check ${try_times} times
-                try_times=$((try_times+1))
-                sleep ${sleep_time}
-            done
-
-            echo "check mongodb done"
-            EOF
-          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
+        {{- include "bk-nodemgr.storageCheckInitContainer" (dict "root" . "module" "application" "moduleValues" .Values.application "component" "etcd") | nindent 8 }}
+        {{- include "bk-nodemgr.storageCheckInitContainer" (dict "root" . "module" "application" "moduleValues" .Values.application "component" "mongodb") | nindent 8 }}
         - name: {{ template "bk-nodemgr.fullname" . }}-application-init
           {{- if len .Values.application.image.tag }}
           {{- if len .Values.global.imageRegistry }}
@@ -280,4 +260,19 @@ spec:
           name: {{ template "bk-nodemgr.fullname" . }}-application-config
       - name: nodemgr-etc
         emptyDir: {}
+      {{- if .Values.kms.enabled }}
+      - name: kms-envelope
+        projected:
+          sources:
+            - secret:
+                name: {{ template "bk-nodemgr.fullname" . }}-global-kms-secret
+                items:
+                  - key: envelope
+                    path: kms-global-envelope
+            - secret:
+                name: {{ template "bk-nodemgr.fullname" . }}-application-kms-secret
+                items:
+                  - key: envelope
+                    path: kms-application-envelope
+      {{- end }}
 {{- end }}

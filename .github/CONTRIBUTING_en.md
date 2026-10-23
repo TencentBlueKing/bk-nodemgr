@@ -45,6 +45,8 @@ Do not disclose security vulnerability details in public issues. Until a reporti
 
 ## Submit a Pull Request
 
+See [`docs/developer/git-contribution.md`](../docs/developer/git-contribution.md) for detailed branch, commit, Issue relationship, PR title, PR body, and verification requirements.
+
 Before opening a pull request:
 
 1. Start from the latest target branch.

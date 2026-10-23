@@ -192,7 +192,11 @@ func (svc *Service) initialStaticsConfigs() error {
 			BaseWorkDir:       svc.conf.GSEDeployConfs[idx].BaseWorkDir,
 			HTTPProxyOverride: svc.conf.GSEDeployConfs[idx].HTTPProxy.Override,
 			HTTPProxyAddress:  svc.conf.GSEDeployConfs[idx].HTTPProxy.Address,
-			ManualScriptPath:  svc.conf.GSEDeployConfs[idx].ManualScriptPath,
+			Firewall: types.DeploymentFirewall{
+				RemoteIPs: svc.conf.GSEDeployConfs[idx].Firewall.RemoteIPs,
+				Features:  svc.conf.GSEDeployConfs[idx].Firewall.Features,
+			},
+			ManualScriptPath: svc.conf.GSEDeployConfs[idx].ManualScriptPath,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
 			return fmt.Errorf("failed to set deploy conf: %w", err)
@@ -329,11 +333,6 @@ func (svc *Service) initialCapability() error {
 	// initial locker factory.
 	svc.Cap.LockerFactory = redsync.New(svc.Cap.RedisClient)
 
-	// initial manager.
-	if err = svc.initialManager(); err != nil {
-		return fmt.Errorf("failed to initial manager: %w", err)
-	}
-
 	// initial period task.
 	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
 		Locker:      svc.Cap.LockerFactory,
@@ -348,6 +347,11 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.Authorizer, err = svc.newAuthorizer()
 	if err != nil {
 		return fmt.Errorf("failed to create authorizer: %w", err)
+	}
+
+	// initial manager after the authorizer wires the manager role granter.
+	if err = svc.initialManager(); err != nil {
+		return fmt.Errorf("failed to initial manager: %w", err)
 	}
 
 	return nil
@@ -625,15 +629,12 @@ func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
 
 func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
 	var tlsConfig *tls.Config
-	if svc.conf.Redis.TLS.CAFile != "" && svc.conf.Redis.TLS.CertFile != "" && svc.conf.Redis.TLS.KeyFile != "" {
-		sslConf := &ssl.TLSConfig{
-			CAFile:   svc.conf.Redis.TLS.CAFile,
-			CertFile: svc.conf.Redis.TLS.CertFile,
-			KeyFile:  svc.conf.Redis.TLS.KeyFile,
-			Password: svc.conf.Redis.TLS.Password,
+	if svc.conf.Redis.TLS.IsEnabled() {
+		sslConf, err := svc.conf.Redis.TLS.ToSSLConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve redis tls config: %w", err)
 		}
 
-		var err error
 		tlsConfig, err = sslConf.NewClientTLSConf()
 		if err != nil {
 			return nil, fmt.Errorf("failed to create tls config: %w", err)
@@ -687,15 +688,12 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	}
 
 	var tlsConfig *tls.Config
-	if svc.conf.MongoDB.TLS.CAFile != "" && svc.conf.MongoDB.TLS.CertFile != "" && svc.conf.MongoDB.TLS.KeyFile != "" {
-		sslConf := &ssl.TLSConfig{
-			CAFile:   svc.conf.MongoDB.TLS.CAFile,
-			CertFile: svc.conf.MongoDB.TLS.CertFile,
-			KeyFile:  svc.conf.MongoDB.TLS.KeyFile,
-			Password: svc.conf.MongoDB.TLS.Password,
+	if svc.conf.MongoDB.TLS.IsEnabled() {
+		sslConf, err := svc.conf.MongoDB.TLS.ToSSLConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve mongodb tls config: %w", err)
 		}
 
-		var err error
 		tlsConfig, err = sslConf.NewClientTLSConf()
 		if err != nil {
 			return nil, fmt.Errorf("failed to create tls config: %w", err)
@@ -915,6 +913,7 @@ func (svc *Service) initialManager() error {
 	}
 
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
+		ManagerRoleGranter:        svc.Cap.ManagerRoleGranter,
 		CmdbHandler:               svc.Cap.CmdbHandler,
 		GSEHandler:                svc.Cap.GSEHandler,
 		FileHandler:               svc.Cap.FileHandler,
@@ -1249,13 +1248,12 @@ func newIEGTJJHandler(conf config.IEGTJJ) (iegtjj.IHandler, error) {
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
 func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
-		CertFile:           conf.TLS.CertFile,
-		KeyFile:            conf.TLS.KeyFile,
-		CAFile:             conf.TLS.CAFile,
-		Password:           conf.TLS.Password,
-	})
+	sslConf, err := conf.TLS.ToSSLConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve client tls config: %w", err)
+	}
+
+	httpClient, err := restclient.NewHTTPClient(sslConf)
 	if err != nil {
 		return nil, err
 	}

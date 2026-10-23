@@ -103,7 +103,7 @@
                   </ul>
                 </template>
               </bk-popover> -->
-              <BkLoginUserinfo :userinfo="userinfo">
+              <BkLoginUserinfo :userinfo="userinfo" :class="{ 'notice-show-userinfo': noticeShow }">
                 <template #default>
                   <div class="flex items-center gap-[5px] cursor-pointer">
                     <UserNameDisplay :name="bkUserName" />
@@ -626,6 +626,10 @@ watch(
     z-index: 9999;
     position: fixed !important;
   }
+}
+/* 公告条(40px)出现时，面板随导航整体下移 */
+:deep(.bk-login-userinfo.notice-show-userinfo) .bk-login-userinfo-panel {
+  top: 100px !important;
 }
 </style>
 <style lang="postcss">

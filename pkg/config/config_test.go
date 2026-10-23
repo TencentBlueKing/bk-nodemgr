@@ -19,6 +19,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"os"
 	"path/filepath"
 	"testing"
@@ -210,9 +211,10 @@ func TestRedisType_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "empty type defaults to standalone",
+			name:    "empty type",
 			t:       "",
-			wantErr: false,
+			wantErr: true,
+			errMsg:  "invalid redis type",
 		},
 		{
 			name:    "invalid type",
@@ -235,41 +237,6 @@ func TestRedisType_Validate(t *testing.T) {
 	}
 }
 
-func TestRedis_GetType(t *testing.T) {
-	tests := []struct {
-		name     string
-		config   Redis
-		expected RedisType
-	}{
-		{
-			name:     "empty type returns standalone",
-			config:   Redis{Type: ""},
-			expected: RedisTypeStandalone,
-		},
-		{
-			name:     "explicit standalone",
-			config:   Redis{Type: RedisTypeStandalone},
-			expected: RedisTypeStandalone,
-		},
-		{
-			name:     "explicit sentinel",
-			config:   Redis{Type: RedisTypeSentinel},
-			expected: RedisTypeSentinel,
-		},
-		{
-			name:     "explicit cluster",
-			config:   Redis{Type: RedisTypeCluster},
-			expected: RedisTypeCluster,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, tt.config.GetType())
-		})
-	}
-}
-
 func TestRedis_Validate_StandaloneMode(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -288,13 +255,14 @@ func TestRedis_Validate_StandaloneMode(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "valid standalone config with empty type",
+			name: "empty type is rejected",
 			config: Redis{
 				Addrs:    []string{"127.0.0.1:6379"},
 				Password: "password",
 				DB:       0,
 			},
-			wantErr: false,
+			wantErr: true,
+			errMsg:  "invalid redis type",
 		},
 		{
 			name: "missing addrs in standalone mode",
@@ -532,4 +500,201 @@ func TestDownloader_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTLSConfig_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  TLSConfig
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "empty config",
+			config:  TLSConfig{},
+			wantErr: false,
+		},
+		{
+			name: "paired inline cert and key",
+			config: TLSConfig{
+				Cert: "cert-content",
+				Key:  "key-content",
+			},
+			wantErr: false,
+		},
+		{
+			name: "paired cert and key files",
+			config: TLSConfig{
+				CertFile: "/tmp/cert.pem",
+				KeyFile:  "/tmp/key.pem",
+			},
+			wantErr: false,
+		},
+		{
+			name: "cert without key",
+			config: TLSConfig{
+				Cert: "cert-content",
+			},
+			wantErr: true,
+			errMsg:  "cert and key must be both provided or both empty",
+		},
+		{
+			name: "key file without cert",
+			config: TLSConfig{
+				KeyFile: "/tmp/key.pem",
+			},
+			wantErr: true,
+			errMsg:  "cert and key must be both provided or both empty",
+		},
+		{
+			name: "password without key",
+			config: TLSConfig{
+				Password: "secret",
+			},
+			wantErr: true,
+			errMsg:  "password provided but no key specified",
+		},
+		{
+			name: "password with key",
+			config: TLSConfig{
+				Cert:     "cert-content",
+				Key:      "key-content",
+				Password: "secret",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.Validate()
+			if tt.wantErr {
+				assert.ErrorContains(t, err, tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestTLSConfig_ToSSLConfigPrefersInlineOverFile(t *testing.T) {
+	conf := TLSConfig{
+		CA:       "inline-ca",
+		Cert:     "inline-cert",
+		Key:      "inline-key",
+		CAFile:   "/nonexistent/ca.pem",
+		CertFile: "/nonexistent/cert.pem",
+		KeyFile:  "/nonexistent/key.pem",
+	}
+
+	sslConf, err := conf.ToSSLConfig()
+
+	require.NoError(t, err)
+	assert.Equal(t, []byte("inline-ca"), sslConf.CA)
+	assert.Equal(t, []byte("inline-cert"), sslConf.Cert)
+	assert.Equal(t, []byte("inline-key"), sslConf.Key)
+}
+
+func TestTLSConfig_ToSSLConfigReadsFromFiles(t *testing.T) {
+	dir := t.TempDir()
+	caFile := filepath.Join(dir, "ca.pem")
+	certFile := filepath.Join(dir, "cert.pem")
+	keyFile := filepath.Join(dir, "key.pem")
+	require.NoError(t, os.WriteFile(caFile, []byte("file-ca"), 0o600))
+	require.NoError(t, os.WriteFile(certFile, []byte("file-cert"), 0o600))
+	require.NoError(t, os.WriteFile(keyFile, []byte("file-key"), 0o600))
+
+	conf := TLSConfig{
+		CAFile:   caFile,
+		CertFile: certFile,
+		KeyFile:  keyFile,
+		Password: "secret",
+	}
+
+	sslConf, err := conf.ToSSLConfig()
+
+	require.NoError(t, err)
+	assert.Equal(t, []byte("file-ca"), sslConf.CA)
+	assert.Equal(t, []byte("file-cert"), sslConf.Cert)
+	assert.Equal(t, []byte("file-key"), sslConf.Key)
+	assert.Equal(t, "secret", sslConf.Password)
+}
+
+func TestTLSConfig_ToSSLConfigFileErrors(t *testing.T) {
+	dir := t.TempDir()
+	caFile := filepath.Join(dir, "ca.pem")
+	keyFile := filepath.Join(dir, "key.pem")
+	require.NoError(t, os.WriteFile(caFile, []byte("file-ca"), 0o600))
+	require.NoError(t, os.WriteFile(keyFile, []byte("file-key"), 0o600))
+
+	t.Run("missing cert file", func(t *testing.T) {
+		conf := TLSConfig{
+			CAFile:   caFile,
+			CertFile: filepath.Join(dir, "missing.pem"),
+			KeyFile:  keyFile,
+		}
+
+		_, err := conf.ToSSLConfig()
+		assert.ErrorContains(t, err, "failed to read file")
+	})
+
+	t.Run("empty cert file", func(t *testing.T) {
+		emptyFile := filepath.Join(dir, "empty.pem")
+		require.NoError(t, os.WriteFile(emptyFile, nil, 0o600))
+		conf := TLSConfig{
+			CAFile:   caFile,
+			CertFile: emptyFile,
+			KeyFile:  keyFile,
+		}
+
+		_, err := conf.ToSSLConfig()
+		assert.ErrorContains(t, err, "is empty")
+	})
+}
+
+func TestTLSConfig_ToSSLConfigIgnoresResidualSourcesWhenDisabled(t *testing.T) {
+	// CA is missing, so TLS is not enabled; residual cert/key files must not
+	// be read, keeping backward compatibility with stale configs.
+	conf := TLSConfig{
+		InsecureSkipVerify: true,
+		CertFile:           "/nonexistent/cert.pem",
+		KeyFile:            "/nonexistent/key.pem",
+	}
+
+	sslConf, err := conf.ToSSLConfig()
+
+	require.NoError(t, err)
+	assert.False(t, sslConf.IsEnabled())
+	assert.True(t, sslConf.InsecureSkipVerify)
+	assert.Empty(t, sslConf.CA)
+	assert.Empty(t, sslConf.Cert)
+	assert.Empty(t, sslConf.Key)
+}
+
+func TestParseTLSConfigFromBase64(t *testing.T) {
+	t.Run("valid base64", func(t *testing.T) {
+		conf, err := parseTLSConfigFromBase64(
+			base64.StdEncoding.EncodeToString([]byte("ca-content")),
+			base64.StdEncoding.EncodeToString([]byte("cert-content")),
+			base64.StdEncoding.EncodeToString([]byte("key-content")),
+			"secret",
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, "ca-content", conf.CA)
+		assert.Equal(t, "cert-content", conf.Cert)
+		assert.Equal(t, "key-content", conf.Key)
+		assert.Equal(t, "secret", conf.Password)
+	})
+
+	t.Run("invalid base64", func(t *testing.T) {
+		_, err := parseTLSConfigFromBase64(
+			"not-valid-base64!!!",
+			base64.StdEncoding.EncodeToString([]byte("cert-content")),
+			base64.StdEncoding.EncodeToString([]byte("key-content")),
+			"",
+		)
+
+		assert.ErrorContains(t, err, "failed to decode tls ca")
+	})
 }

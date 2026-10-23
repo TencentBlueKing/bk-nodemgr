@@ -16,6 +16,13 @@ data:
 
     tenantMode: {{ .Values.file.config.tenantMode }}
 
+    kms:
+      enabled: {{ .Values.kms.enabled }}
+      {{- if .Values.kms.enabled }}
+      globalSecretFile: {{ .Values.common.secretPath }}/kms-global-envelope
+      moduleSecretFile: {{ .Values.common.secretPath }}/kms-file-envelope
+      {{- end }}
+
     infoServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.file.config.infoServer "terminationGracePeriodSeconds" (.Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__

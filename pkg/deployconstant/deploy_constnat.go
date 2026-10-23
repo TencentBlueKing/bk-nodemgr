@@ -43,6 +43,8 @@ type DeployConf struct {
 	// Empty address means explicitly skipping the proxy.
 	HTTPProxyAddress string
 
+	Firewall types.DeploymentFirewall
+
 	ManualScriptPath string
 }
 

@@ -208,6 +208,7 @@ func convertInfoFromTypes(info *types.PackageDeploymentInfo) (*Info, error) {
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
 			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
+			IsShared:       info.ImportPluginPkgOptions.IsShared,
 		},
 		ExportPluginPkgOptions: exportPluginPkgOptions{
 			PluginPkgName:    info.ExportPluginPkgOptions.PluginPkgName,
@@ -229,6 +230,7 @@ func convertInfoToTypes(info *Info) (*types.PackageDeploymentInfo, error) {
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
 			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
+			IsShared:       info.ImportPluginPkgOptions.IsShared,
 		},
 		ExportPluginPkgOptions: types.PackageExportPluginPkgOptions{
 			PluginPkgName:    info.ExportPluginPkgOptions.PluginPkgName,

@@ -76,6 +76,34 @@ function formatResourceInstance(instance: {
   return instance.type_name;
 }
 
+// 后端会把「父资源 → 子资源」的层级实例路径拍平成节点数组（如 管控区域→管控单元）：
+// 相邻同类型节点属于并列实例，用「、」分隔；类型切换表示上下级，用「/」拼接
+function formatInstancePaths(
+  instances: NonNullable<PermissionAction['related_resource_types'][number]['instances']>,
+): string[] {
+  const paths: string[] = [];
+  let current = '';
+  let prevType = '';
+
+  for (const instance of instances) {
+    const rendered = formatResourceInstance(instance);
+    if (instance.type === prevType) {
+      if (current) {
+        paths.push(current);
+      }
+      current = rendered;
+    } else {
+      current = current ? `${current}/${rendered}` : rendered;
+    }
+    prevType = instance.type;
+  }
+
+  if (current) {
+    paths.push(current);
+  }
+  return paths;
+}
+
 function formatRelatedResources(data: PermissionAction): string {
   const relatedResourceTypes = data?.related_resource_types;
   if (!relatedResourceTypes?.length) {
@@ -88,7 +116,7 @@ function formatRelatedResources(data: PermissionAction): string {
       return resource.type_name;
     }
 
-    const renderedInstances = instances.map(formatResourceInstance).join('、');
+    const renderedInstances = formatInstancePaths(instances).join('、');
     return `${resource.type_name}: ${renderedInstances}`;
   }).join('；');
 }

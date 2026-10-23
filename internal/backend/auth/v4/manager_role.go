@@ -34,6 +34,7 @@ const managerGrantLifetime = 365 * 24 * time.Hour
 const (
 	roleNetworkAreaManager = "networkarea_manager"
 	roleNetworkUnitManager = "networkunit_manager"
+	rolePackageManager     = "package_manager"
 )
 
 type managerRoleGranter struct {
@@ -55,6 +56,8 @@ func (granter *managerRoleGranter) GrantManagerRole(ctx contextx.IContext, usern
 		roleID = roleNetworkAreaManager
 	case types.AuthResourceTypeNetworkUnit:
 		roleID = roleNetworkUnitManager
+	case types.AuthResourceTypePackage:
+		roleID = rolePackageManager
 	default:
 		return fmt.Errorf("unsupported management grant resource type %q", resource.Type)
 	}

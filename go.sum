@@ -40,6 +40,8 @@ github.com/RichardKnop/machinery/v2 v2.0.16 h1:CXMNQHgcQla3D4JpRjK8jYZvd9Pk8B4rO
 github.com/RichardKnop/machinery/v2 v2.0.16/go.mod h1:LPnvwtB0xEfhmOEI9zVPmHij7AyReyXUtLPIn9u3VG4=
 github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1 h1:bAaOTEo0jjcgjKmzHJa+Tjil60Do2zNOG9iS+mqFJm4=
 github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1/go.mod h1:ocsvsjRwMLhVJlfty5Xwuywg8z6o1lfvzXgll9IlDS0=
+github.com/TencentBlueKing/bk-kms-sdk/go v1.0.0 h1:IQ4TjcstagXxHRsiU/isdOmSi9gVt44IRsqbvkywu+8=
+github.com/TencentBlueKing/bk-kms-sdk/go v1.0.0/go.mod h1:KnMcaPsydcio/pzuazMSUNcYkctkBbbujpn6av8wHtY=
 github.com/TencentBlueKing/iam-go-sdk v1.0.1 h1:3sOtorCwAVlQJymf8zvw/g4++EvKlAnl2nZmHZ3ksHQ=
 github.com/TencentBlueKing/iam-go-sdk v1.0.1/go.mod h1:a1ksCPyWkrR1C8QmNfcn9RmrmGAUqxCnwv/olxnF6gc=
 github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b h1:mimo19zliBX/vSQ6PWWSL9lK8qwHozUj03+zLoEB8O0=
@@ -136,6 +138,8 @@ github.com/docker/go-units v0.5.0 h1:69rxXcBk27SvSaaxTtLh/8llcHD8vYHT7WSdRZ/jvr4
 github.com/docker/go-units v0.5.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/ebitengine/purego v0.10.0 h1:QIw4xfpWT6GWTzaW5XEKy3HXoqrJGx1ijYHzTF0/ISU=
 github.com/ebitengine/purego v0.10.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
+github.com/emmansun/gmsm v0.41.1 h1:mD1MqmaXTEqt+9UVmDpRYvcEMIa5vuslFEnw7IWp6/w=
+github.com/emmansun/gmsm v0.41.1/go.mod h1:FD1EQk4XcSMkahZFzNwFoI/uXzAlODB9JVsJ9G5N7Do=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

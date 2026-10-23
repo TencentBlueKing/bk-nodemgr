@@ -258,6 +258,7 @@ type FileServiceTempFile struct {
 type FileService struct {
 	RunMode            RunMode              `yaml:"runMode" usage:"run mode of service"`
 	TenantMode         tenant.Mode          `yaml:"tenantMode" usage:"tenant mode of service"`
+	KMS                KMS                  `yaml:"kms" usage:"kms secret of file service"`
 	Etcd               Etcd                 `yaml:"etcd" usage:"etcd config of file service"`
 	GSE                GSE                  `yaml:"gse" usage:"gse config of file service"`
 	InfoServer         HTTPServer           `yaml:"infoServer" usage:"info server config of file service"`
@@ -308,7 +309,7 @@ func (svc *ExportServer) ToURL() (*url.URL, error) {
 }
 
 func exportServerURLScheme(svc *ExportServer) string {
-	if svc.TLSConfig.CertFile != "" && svc.TLSConfig.KeyFile != "" {
+	if svc.TLSConfig.IsEnabled() {
 		return exportServerHTTPS
 	}
 
@@ -330,6 +331,13 @@ func (svc *FileService) LoadFromFile(path string) error {
 
 	if err = yaml.Unmarshal(configContent, svc); err != nil {
 		return err
+	}
+
+	// load kms secret.
+	if svc.KMS.Enabled {
+		if err = svc.KMS.ParseFileServiceConfig(svc); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -362,7 +370,7 @@ func (svc *FileService) Validate() error {
 	}
 
 	if err := svc.DownloadServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate node service config: %w", err)
+		return fmt.Errorf("failed to validate download service config: %w", err)
 	}
 
 	if err := svc.ExportServer.Validate(); err != nil {

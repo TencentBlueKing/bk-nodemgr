@@ -35,7 +35,6 @@ import (
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 )
@@ -276,7 +275,7 @@ func (svr *Server) startToListenIPV4() error {
 	addr := fmt.Sprintf("%s:%d", svr.opts.IP, svr.opts.Port)
 
 	// tls server.
-	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
+	if svr.opts.TLSConfig.IsEnabled() {
 		return svr.startWithTLS(criteria.NetTypeTCP4, addr)
 	}
 
@@ -287,7 +286,7 @@ func (svr *Server) startToListenIPV6() error {
 	addr := fmt.Sprintf("[%s]:%d", svr.opts.IPV6, svr.opts.Port)
 
 	// tls server.
-	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
+	if svr.opts.TLSConfig.IsEnabled() {
 		return svr.startWithTLS(criteria.NetTypeTCP6, addr)
 	}
 
@@ -311,14 +310,11 @@ func (svr *Server) startWithoutTLS(network criteria.NetType, addr string) error 
 }
 
 func (svr *Server) startWithTLS(network criteria.NetType, addr string) error {
-	conf := &ssl.TLSConfig{
-		InsecureSkipVerify: svr.opts.TLSConfig.InsecureSkipVerify,
-		VerifyClient:       svr.opts.TLSConfig.VerifyClient,
-		CertFile:           svr.opts.TLSConfig.CertFile,
-		KeyFile:            svr.opts.TLSConfig.KeyFile,
-		CAFile:             svr.opts.TLSConfig.CAFile,
-		Password:           svr.opts.TLSConfig.Password,
+	conf, err := svr.opts.TLSConfig.ToSSLConfig()
+	if err != nil {
+		return fmt.Errorf("failed to resolve server tls config: %w", err)
 	}
+
 	tlsConfig, err := conf.NewServerTLSConf()
 	if err != nil {
 		return fmt.Errorf("failed to create server tls config: %w", err)

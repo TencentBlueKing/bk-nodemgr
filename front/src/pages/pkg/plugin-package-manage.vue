@@ -606,6 +606,8 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
 });
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+// 快捷树（系统名称架构）勾选的精确 os+arch 组合集合（如 linux_x86_64），空集合表示未启用组合过滤
+const quickOsArchCombos = ref(new Set<string>());
 const booleanFilterFields = new Set(['enabled', 'is_hidden', 'as_default']);
 const normalizeSearchValue = (field: string, value: unknown) => {
   if (booleanFilterFields.has(field) && typeof value === 'string') {
@@ -781,12 +783,16 @@ const handleFilter = ({
   // 当表头筛选版本和系统架构时，快捷筛选选择全部
   if (field === 'os_type' || field === 'cpu_arch') {
     selectDimensionOptional(null, 'os_cpu_arch');
+    // 表头筛选表达的是独立字段语义，退出组合精确匹配
+    quickOsArchCombos.value = new Set();
   }
 };
 // 搜索
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
   if (data.findIndex(item => item.id === 'os_type') === -1 || data.findIndex(item => item.id === 'cpu_arch') === -1) {
     selectDimensionOptional('all', 'os_cpu_arch');
+    // 搜索框手动调整 os/arch 时退出组合精确匹配
+    quickOsArchCombos.value = new Set();
   }
 };
 // 维度nav click 可以多选, 如果选择非all，则all取消选中状态，如果空了则选择all
@@ -830,6 +836,10 @@ const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
     index > -1 && searchSelectValue.value.splice(index, 1);
     const index2 = searchSelectValue.value.findIndex((item: any) => item.id === 'cpu_arch');
     index2 > -1 && searchSelectValue.value.splice(index2, 1);
+    // 记录快捷树勾选的精确 os+arch 组合（all 时清空）：
+    // 拆成 os_type/cpu_arch 两个独立维度过滤会产生笛卡尔积（如勾选 linux_x86_64 + windows_arm64
+    // 会多命中 linux_arm64、windows_x86_64），过滤时需按组合精确匹配
+    quickOsArchCombos.value = ids.has('all') ? new Set() : new Set(ids);
   } else {
     const index = searchSelectValue.value.findIndex((item: any) => item.id === dimension);
     index > -1 && searchSelectValue.value.splice(index, 1);
@@ -954,15 +964,23 @@ watch(
     originPackageList,
   ],
   () => {
+    // 快捷树勾选了具体 os+arch 组合时，按组合精确匹配（跳过拆开的 os_type/cpu_arch 条件）；
+    // 否则按各搜索字段独立 AND 过滤
+    const hasComboFilter = quickOsArchCombos.value.size > 0;
     packageList.value = originPackageList.value
-      .filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
-        const { id: searchField, values } = searchItem;
-        const searchIds = values?.map((value: {id: string}) => normalizeSearchValue(searchField, value.id));
-        if (isArray(row[searchField])) {
-          return !!row[searchField].find((el: string) => searchIds.includes(el));
-        }
-        return searchIds.includes(row[searchField]);
-      }));
+      .filter((row: Release) => {
+        if (hasComboFilter && !quickOsArchCombos.value.has(row.os_cpu_arch)) return false;
+        return searchSelectValue.value
+          .filter((searchItem: any) => !(hasComboFilter && ['os_type', 'cpu_arch'].includes(searchItem.id)))
+          .every((searchItem: any) => {
+            const { id: searchField, values } = searchItem;
+            const searchIds = values?.map((value: {id: string}) => normalizeSearchValue(searchField, value.id));
+            if (isArray(row[searchField])) {
+              return !!row[searchField].find((el: string) => searchIds.includes(el));
+            }
+            return searchIds.includes(row[searchField]);
+          });
+      });
   },
   { immediate: true, deep: true },
 );

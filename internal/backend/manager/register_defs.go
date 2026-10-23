@@ -64,8 +64,9 @@ func (mgr *Manager) registerDefinitions() error {
 
 func (mgr *Manager) registerDefPackage() error {
 	capability := &pkg.Capability{
-		FileHandler:    mgr.conf.FileHandler,
-		StoragePackage: mgr.conf.StoragePackage,
+		FileHandler:        mgr.conf.FileHandler,
+		StoragePackage:     mgr.conf.StoragePackage,
+		ManagerRoleGranter: mgr.conf.ManagerRoleGranter,
 	}
 
 	return mgr.workflowMgr.RegisterActions(
@@ -295,6 +296,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionPrepareDebugProcess(pluginCap),
 		plugin.NewActionRunDebugPlugin(pluginCap),
 		plugin.NewActionCleanDebugPlugin(pluginCap),
+		plugin.NewActionCheckV2PluginNoAlive(pluginCap),
 	); err != nil {
 		return err
 	}

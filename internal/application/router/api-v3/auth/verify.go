@@ -23,7 +23,28 @@ import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
+
+// CheckPackageTypeUpload checks package upload permission through the backend auth API.
+func CheckPackageTypeUpload(rCtx restserver.IContext, backendHandler backend.IHandlerAuth, releaseType types.ReleaseType) error {
+	_, err := backendHandler.VerifyAuth(rCtx, []*types.AuthVerifyItem{{
+		Action: "package_type_upload",
+		Resources: []types.AuthResource{{
+			SystemID: types.SystemIDNodeMgr,
+			Type:     types.AuthResourceTypePackageType,
+			ID:       string(releaseType),
+		}},
+	}})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("release-type", releaseType).Error("failed to verify package upload permission")
+
+		return resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return nil
+}
 
 func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.AuthVerifyReq)

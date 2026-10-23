@@ -21,12 +21,14 @@ package publish
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -61,6 +63,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 // PublishReleaseAgent publish release agent.
 func (h *handler) PublishReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeAgent); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleaseAgentReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release agent, failed to decode request body")
@@ -84,6 +90,10 @@ func (h *handler) PublishReleaseAgent(rCtx restserver.IContext) (interface{}, er
 
 // PublishReleaseProxy publish release agent.
 func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeProxy); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleaseProxyReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release proxy, failed to decode request body")
@@ -108,6 +118,10 @@ func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, er
 
 // PublishReleaseCert publish release cert.
 func (h *handler) PublishReleaseCert(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeCert); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleaseCertReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release cert, failed to decode request body")
@@ -131,6 +145,10 @@ func (h *handler) PublishReleaseCert(rCtx restserver.IContext) (interface{}, err
 
 // PublishReleaseBinTool publish release bintool.
 func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypeBinTool); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleaseBinToolReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release bintool, failed to decode request body")
@@ -154,6 +172,10 @@ func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, 
 
 // PublishReleasePluginV2 publish release plugin v2.
 func (h *handler) PublishReleasePluginV2(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePlugin); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleasePluginV2Req)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v2, failed to decode request body")
@@ -177,6 +199,10 @@ func (h *handler) PublishReleasePluginV2(rCtx restserver.IContext) (interface{},
 
 // PublishReleaseExternalPluginV2 publish release external plugin v2.
 func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePlugin); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleaseExternalPluginV2Req)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release external plugin v2, failed to decode request body")
@@ -200,6 +226,10 @@ func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (inte
 
 // PublishReleasePluginV3 publish release plugin v3.
 func (h *handler) PublishReleasePluginV3(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePlugin); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleasePluginV3Req)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v3, failed to decode request body")
@@ -223,6 +253,10 @@ func (h *handler) PublishReleasePluginV3(rCtx restserver.IContext) (interface{},
 
 // PublishReleasePluginBinTool publish release plugin bintool.
 func (h *handler) PublishReleasePluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	if err := auth.CheckPackageTypeUpload(rCtx, h.backendHandler, types.ReleaseTypePluginBinTool); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackagePublishReleasePluginBinToolReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to decode request body")

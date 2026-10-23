@@ -460,7 +460,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { Button, Checkbox, Dropdown, InfoBox, Loading, SearchSelect } from 'bkui-vue';
+import { Button, Checkbox, Dropdown, InfoBox, Loading, Message, SearchSelect } from 'bkui-vue';
 import { debounce } from 'lodash';
 import { computed, nextTick, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -895,6 +895,10 @@ const getParams = () => {
           ipv4List.push(ip);
         } else if (IPV6_REG.test(ip)) {
           ipv6List.push(ip);
+        } else {
+          // 非标准格式（如 00000）同样下发查询：由后端匹配并返回空结果，
+          // 避免前端静默丢弃导致条件不生效、用户误以为已按条件过滤
+          (ip.includes(':') ? ipv6List : ipv4List).push(ip);
         }
       });
       
@@ -927,6 +931,9 @@ const getParams = () => {
             ipv4List.push(ip);
           } else if (IPV6_REG.test(ip)) {
             ipv6List.push(ip);
+          } else {
+            // 同上：非标准 IP 也下发查询，由后端返回空结果
+            (ip.includes(':') ? ipv6List : ipv4List).push(ip);
           }
         }
       });
@@ -1296,10 +1303,35 @@ const handleNativePaste = (event: ClipboardEvent) => {
 };
 
 /**
- * 处理粘贴/快速输入的逻辑
+ * 未匹配项移除会改动 searchSelectValue，从而触发其 watch（deep）再次发起搜索，
+ * 此处置位让 watch 跳过一次
  */
-const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
-  if (data.length === 0) return;
+let skipSearchOnWatch = false;
+
+/**
+ * 未匹配任何搜索条件项的原始输入（如直接回车输入的 000000）：
+ * 移除该原始输入项并提示；返回 true 表示本次不应触发搜索
+ * （若列表中还保留其他有效条件，调用方仍会正常搜索）
+ */
+const handleUnmatchedRawInput = (rawIds: string[]) => {
+  if (rawIds.length === 0) return false;
+  skipSearchOnWatch = true;
+  // 取消此前已排队的防抖请求，避免旧输入触发一次无效搜索
+  (debouncedGetAgentList as unknown as { cancel?: () => void }).cancel?.();
+  searchSelectValue.value = searchSelectValue.value.filter((item: any) => !rawIds.includes(item.id));
+  Message({
+    theme: 'warning',
+    message: t('platform.nodeMan.unmatchedSearchValue', { values: rawIds.join(', ') }),
+  });
+  return true;
+};
+
+/**
+ * 处理粘贴/快速输入的逻辑
+ * @returns 是否拦截本次搜索（原始输入未匹配到任何搜索条件项时返回 true）
+ */
+const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]): boolean => {
+  if (data.length === 0) return false;
 
   const lastItem = data[data.length - 1];
   
@@ -1318,7 +1350,7 @@ const handleInputPaste = (data: { id: string; name: string; values: { id: string
     if (uniqueItems.length > 0) {
       // 替换为解析后的列表
       lastItem.values = uniqueItems.map(item => ({ id: item, name: item }));
-      return;
+      return false;
     }
   }
 
@@ -1337,11 +1369,11 @@ const handleInputPaste = (data: { id: string; name: string; values: { id: string
     : [lastItem.id])
     .flatMap(text => parseMultiDelimiterInput(text));
   const uniqueParsedItems = Array.from(new Set(parsedItems));
-  if (uniqueParsedItems.length === 0) return;
+  if (uniqueParsedItems.length === 0) return handleUnmatchedRawInput(tailRawInputIds);
   
   // 智能识别第一个项的类型
   const firstDetection = detectInputType(uniqueParsedItems[0]);
-  if (!firstDetection.type) return;
+  if (!firstDetection.type) return handleUnmatchedRawInput(tailRawInputIds);
 
   // 验证所有项是否为同一类型
   const allSameType = uniqueParsedItems.every(item => {
@@ -1350,8 +1382,8 @@ const handleInputPaste = (data: { id: string; name: string; values: { id: string
   });
 
   if (!allSameType) {
-    // 类型不一致，不自动识别
-    return;
+    // 类型不一致，无法归入任一搜索条件项
+    return handleUnmatchedRawInput(tailRawInputIds);
   }
 
   // 构造目标字段
@@ -1387,19 +1419,50 @@ const handleInputPaste = (data: { id: string; name: string; values: { id: string
       values: uniqueParsedItems.map(item => ({ id: item, name: item })),
     });
   }
+  return false;
 };
+/**
+ * IP 类搜索值（ip / area_ip）格式校验：非标准格式的值仍会下发查询（由后端匹配、通常无结果），
+ * 此处仅提示用户输入不符合 IP 格式，避免误以为已按条件过滤
+ */
+const isStandardIpValue = (id: string, value: string) => {
+  if (id === 'ip') {
+    return IPV4_REG.test(value) || IPV6_REG.test(value);
+  }
+  // area_ip 格式为「管控区域ID:IP」
+  const match = value.match(AREA_IP_REG);
+  return !!match && (IPV4_REG.test(match[2]) || IPV6_REG.test(match[2]));
+};
+
 const handleSearchSelectChange = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
-  handleInputPaste(data);
+  data.forEach((item) => {
+    if (['ip', 'area_ip'].includes(item.id) && item.values?.length) {
+      const invalidValues = item.values
+        .map((value: { id: string }) => value.id)
+        .filter((value: string) => !isStandardIpValue(item.id, value));
+      if (invalidValues.length > 0) {
+        Message({
+          theme: 'warning',
+          message: t('platform.nodeMan.invalidSearchValue', { values: invalidValues.join(', ') }),
+        });
+      }
+    }
+  });
+  const intercepted = handleInputPaste(data);
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
   });
-  data.forEach((item) => {
+  // 使用最新值同步列头筛选（handleInputPaste 可能已移除未匹配的原始输入项）
+  searchSelectValue.value.forEach((item) => {
     if (filterOptionSource[item.id]) {
       filterOptionSource[item.id].checked = item.values.map((value: any) => value.id);
     }
   });
-  // 【优化点2】使用防抖后的函数
-  debouncedGetAgentList();
+  // 未匹配搜索条件项的输入不触发搜索；若列表中还保留其他有效条件则照常搜索
+  if (!intercepted || searchSelectValue.value.length > 0) {
+    // 【优化点2】使用防抖后的函数
+    debouncedGetAgentList();
+  }
 };
 
 const handleFilter = ({ checked, field }: { checked: string[]; field: string }) => {
@@ -1798,6 +1861,11 @@ watch(
 watch(
   searchSelectValue,
   () => {
+    // 移除未匹配搜索条件项引起的变更：跳过本次搜索
+    if (skipSearchOnWatch) {
+      skipSearchOnWatch = false;
+      return;
+    }
     if (isInitialDataLoaded.value && !isInitialLoading.value) {
       pagination.current = 1;
       debouncedGetAgentList();

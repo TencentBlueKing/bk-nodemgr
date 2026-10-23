@@ -30,6 +30,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,6 +46,7 @@ type handler struct {
 	pluginMgrIface        managerIface.IPluginManager
 	authorizer            auth.IAuthorizer
 	cmdbHandler           cmdb.IHandler
+	fileHandler           file.IReleasePluginHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -61,6 +63,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		pluginMgrIface:        capability.Manager,
 		authorizer:            capability.Authorizer,
 		cmdbHandler:           capability.CmdbHandler,
+		fileHandler:           capability.FileHandler,
 	}
 }
 

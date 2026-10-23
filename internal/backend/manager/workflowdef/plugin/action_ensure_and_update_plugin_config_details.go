@@ -98,10 +98,8 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionEnsureAndUpdatePluginConfigDetails) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionEnsureAndUpdatePluginConfigDetails) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.
@@ -594,7 +592,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 			keyOuterIP:  runtimeHostRenderData.outerIP,
 			keyLoginIP:  runtimeHostInfo.Dynamic.LoginIP,
 		},
-		keyIsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
+		keyIsMultiTenant: conv.ToStringDefault(tenant.GetMode() == tenant.ModeMultiple, "false"),
 		keyConstants:     constants,
 	}
 

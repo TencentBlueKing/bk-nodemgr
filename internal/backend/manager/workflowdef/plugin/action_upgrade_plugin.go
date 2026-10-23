@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -56,6 +57,7 @@ func NewActionUpgradePlugin(capability *Capability) action.Definition {
 		provider:              capability.DiscoverProvider,
 		gseHandler:            capability.GSEHandler,
 		storageActionInstance: capability.StorageWorkflow,
+		fileHandler:           capability.FileHandler,
 	}
 }
 
@@ -73,6 +75,7 @@ type actionUpgradePlugin struct {
 	daoProcess            pluginStg.IDaoProcess
 	provider              discover.Discover
 	gseHandler            gse.IHandler
+	fileHandler           file.IReleasePluginHandler
 	storageActionInstance workflow.IStorageActionInstance
 }
 
@@ -107,10 +110,8 @@ func (act *actionUpgradePlugin) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionUpgradePlugin) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionUpgradePlugin) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.
@@ -258,6 +259,18 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}
+	pluginRelease, err := act.fileHandler.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
+		Generation: std.DeployInfo().Process.Generation,
+		Platform:   std.DeployInfo().Process.Platform,
+		Version:    std.DeployInfo().Process.Info.Version,
+		Name:       targetPlugin.PkgName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w",
+			targetPlugin.PkgName, std.DeployInfo().Process.Info.Version, err)
+	}
+	params.InstallCPULimit = pluginRelease.InstallCPULimit
+	params.InstallDiskIOLimit = pluginRelease.InstallDiskIOLimit
 
 	return params, nil
 }

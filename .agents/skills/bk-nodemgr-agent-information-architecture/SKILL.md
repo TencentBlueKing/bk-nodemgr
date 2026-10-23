@@ -118,7 +118,7 @@ Rules:
 This skill decides placement and synchronization boundaries. When actual writing is needed, load the narrow skill that owns the target:
 
 - scoped `AGENTS.md`: `.agents/skills/scoped-agentsmd/SKILL.md`
-- README or logic-first docs: `.agents/skills/readme-logic-first/SKILL.md`
+- Code-directory README: `.agents/skills/bk-nodemgr-code-readme/SKILL.md`
 - Proto API Gateway reference docs: `.agents/skills/api-doc/SKILL.md`
 - changelog or release notes: `.agents/skills/changelog-doc/SKILL.md`
 - release version alignment: `.agents/skills/release-version-alignment/SKILL.md`

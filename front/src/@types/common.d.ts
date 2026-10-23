@@ -514,7 +514,6 @@ interface HostOpsInfo {
   ops_console_host_id: number;
   ops_out_band_type: string;
   ops_out_band_protocol: string;
-  ops_bmc_ip: string;
-  ops_bmc_port: number;
+  ops_out_band_ip: string;
+  ops_out_band_port: number;
 }
-

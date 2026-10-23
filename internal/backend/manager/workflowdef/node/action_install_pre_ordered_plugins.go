@@ -120,10 +120,8 @@ func (act *actionInstallPreOrderedPlugins) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallPreOrderedPlugins) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(30 * time.Second) // nolint: mnd
-	}
+func (act *actionInstallPreOrderedPlugins) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.
@@ -148,15 +146,16 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 		}
 	}()
 
+	expectedWorkflowCount := act.expectedWorkflowCount(std)
 	gp := gopool.NewPool()
 	subWorkflowRefChan := make(chan types.SubWorkflowRef, 2) // nolint: mnd
 	gp.Go(func() error {
-		execute, workflowID, err := act.installPreOrderedPlugin(std)
+		workflowID, err := act.installPreOrderedPlugin(std)
 		if err != nil {
 			return err
 		}
 
-		if execute {
+		if workflowID != "" {
 			subWorkflowRefChan <- types.SubWorkflowRef{
 				WorkflowID:     workflowID,
 				WorkflowDomain: types.WorkflowDomainPlugin,
@@ -167,12 +166,12 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 	})
 
 	gp.Go(func() error {
-		execute, workflowID, err := act.installPreOrderedPluginV2(std)
+		workflowID, err := act.installPreOrderedPluginV2(std)
 		if err != nil {
 			return err
 		}
 
-		if execute {
+		if workflowID != "" {
 			subWorkflowRefChan <- types.SubWorkflowRef{
 				WorkflowID:     workflowID,
 				WorkflowDomain: types.WorkflowDomainPlugin,
@@ -195,14 +194,45 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 		subWorkflowRefs = append(subWorkflowRefs, subWorkflowRef)
 	}
 
-	if err := act.waitWorkflow(std, subWorkflowRefs); err != nil {
-		return err
+	successWorkflowCount, waitErr := act.waitWorkflow(std, subWorkflowRefs)
+	if waitErr != nil {
+		return fmt.Errorf(
+			"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d): %w",
+			expectedWorkflowCount,
+			successWorkflowCount,
+			waitErr,
+		)
+	}
+	if successWorkflowCount != expectedWorkflowCount {
+		return fmt.Errorf(
+			"failed to install all pre-ordered plugins, expected workflow count(%d), successful workflow count(%d)",
+			expectedWorkflowCount,
+			successWorkflowCount,
+		)
 	}
 
 	return nil
 }
 
-func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtils.NodeActionStandarder) (bool, string, error) {
+func (act *actionInstallPreOrderedPlugins) expectedWorkflowCount(std *nodeUtils.NodeActionStandarder) int {
+	deployInfo := std.DeployInfo()
+	if !deployInfo.InstallOptions.InstallPreOrderedPlugins {
+		return 0
+	}
+
+	workflowCount := 0
+	if len(getPreOrderedPlugins()[deployInfo.Host.Dynamic.NodeRole]) > 0 {
+		workflowCount++
+	}
+	if deployInfo.InstallOptions.EnableCompatibilityMode &&
+		len(getPreOrderedPluginV2s(deployInfo.Host.Dynamic.NodeRole)) > 0 {
+		workflowCount++
+	}
+
+	return workflowCount
+}
+
+func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtils.NodeActionStandarder) (string, error) {
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
 
@@ -213,20 +243,19 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 			En("install pre-ordered plugins is disabled, skip this action").
 			Info()
 
-		return false, "", nil
+		return "", nil
 	}
 
-	preOrderedPlugins := getPreOrderedPlugins()
-	if len(preOrderedPlugins) == 0 {
+	preOrderedPluginsName := getPreOrderedPlugins()[deployInfo.Host.Dynamic.NodeRole]
+	if len(preOrderedPluginsName) == 0 {
 		std.InstanceData().Log().
 			Zh("无预置插件需要安装, 跳过此操作").
 			En("no pre-ordered plugins to install, skip this action").
 			Info()
 
-		return false, "", nil
+		return "", nil
 	}
 
-	preOrderedPluginsName := preOrderedPlugins[deployInfo.Host.Dynamic.NodeRole]
 	std.InstanceData().Log().
 		Zh("开始安装预置插件(%v)", preOrderedPluginsName).
 		En("start to install pre-ordered plugins(%v)", preOrderedPluginsName).
@@ -239,9 +268,10 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 			Info()
 	}
 
-	deployParams := make([]*types.PluginDeploymentParam, 0, len(preOrderedPluginsName))
+	deployParams := make([]*types.PluginDeploymentParam, len(preOrderedPluginsName))
 	gp := gopool.NewPool()
-	for _, pluginName := range preOrderedPluginsName {
+	for idx, pluginName := range preOrderedPluginsName {
+		idx, pluginName := idx, pluginName
 		name := pluginName
 		gp.Go(func() error {
 			version, err := act.fileHandler.GetReleasePluginDefaultVersion(
@@ -254,20 +284,20 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 				return fmt.Errorf("failed to get default version for plugin, plugin-name(%s): %w", name, err)
 			}
 
-			deployParams = append(deployParams, &types.PluginDeploymentParam{
+			deployParams[idx] = &types.PluginDeploymentParam{
 				HostID:                  deployInfo.Host.HostID,
 				BizID:                   deployInfo.Host.Static.BizID,
 				PluginName:              name,
 				Version:                 version,
 				IsOffline:               deployInfo.InstallOptions.IsOffline,
 				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
-			})
+			}
 
 			return nil
 		})
 	}
 	if err := gp.Wait(); err != nil {
-		return false, "", err
+		return "", err
 	}
 
 	// if in offline mode or indirect unit or proxy install, disable select downloads.
@@ -276,7 +306,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 	// create plugin deployments.
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(nCtx.TenantID(), pluginTransferOpts, deployParams...)
 	if err != nil {
-		return false, "", fmt.Errorf("failed to create plugin deployments by params: %w", err)
+		return "", fmt.Errorf("failed to create plugin deployments by params: %w", err)
 	}
 
 	workflowID, err := act.pluginMgrIface.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
@@ -287,10 +317,10 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 		Operator:          nCtx.BKUsername(),
 	})
 	if err != nil {
-		return false, "", fmt.Errorf("failed to launch install pre-ordered plugins workflow: %w", err)
+		return "", fmt.Errorf("failed to launch install pre-ordered plugins workflow: %w", err)
 	}
 
-	return true, workflowID, nil
+	return workflowID, nil
 }
 
 func (act *actionInstallPreOrderedPlugins) saveSubWorkflowRefs(
@@ -317,7 +347,7 @@ func getPreOrderedPlugins() map[types.NodeRole][]string {
 	}
 }
 
-func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUtils.NodeActionStandarder) (bool, string, error) {
+func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUtils.NodeActionStandarder) (string, error) {
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
 
@@ -329,7 +359,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 			En("install pre-ordered v2 plugins is disabled, skip this action").
 			Info()
 
-		return false, "", nil
+		return "", nil
 	}
 
 	preOrderedPluginV2s := getPreOrderedPluginV2s(deployInfo.Host.Dynamic.NodeRole)
@@ -339,7 +369,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 			En("no pre-ordered v2 plugins to install, skip this action").
 			Info()
 
-		return false, "", nil
+		return "", nil
 	}
 
 	std.InstanceData().Log().
@@ -354,9 +384,10 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 			Info()
 	}
 
-	deployParams := make([]*types.PluginDeploymentParam, 0, len(preOrderedPluginV2s))
+	deployParams := make([]*types.PluginDeploymentParam, len(preOrderedPluginV2s))
 	gp := gopool.NewPool()
-	for _, pluginName := range preOrderedPluginV2s {
+	for idx, pluginName := range preOrderedPluginV2s {
+		idx, pluginName := idx, pluginName
 		name := pluginName
 		gp.Go(func() error {
 			version, err := act.fileHandler.GetReleasePluginDefaultVersion(
@@ -369,20 +400,20 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 				return fmt.Errorf("failed to get default version for plugin, plugin-name(%s): %w", name, err)
 			}
 
-			deployParams = append(deployParams, &types.PluginDeploymentParam{
+			deployParams[idx] = &types.PluginDeploymentParam{
 				HostID:                  deployInfo.Host.HostID,
 				BizID:                   deployInfo.Host.Static.BizID,
 				PluginName:              name,
 				Version:                 version,
 				IsOffline:               deployInfo.InstallOptions.IsOffline,
 				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
-			})
+			}
 
 			return nil
 		})
 	}
 	if err := gp.Wait(); err != nil {
-		return false, "", err
+		return "", err
 	}
 
 	// if in offline mode or indirect unit or proxy install, disable select downloads.
@@ -392,7 +423,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(nCtx.TenantID(),
 		pluginTransferOpts, deployParams...)
 	if err != nil {
-		return false, "", fmt.Errorf("failed to create plugin deployments by params: %w", err)
+		return "", fmt.Errorf("failed to create plugin deployments by params: %w", err)
 	}
 
 	workflowID, err := act.pluginMgrIface.LaunchPluginEnsurePluginV2(nCtx, types.InstallPluginParam{
@@ -403,10 +434,10 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 		Operator:          nCtx.BKUsername(),
 	})
 	if err != nil {
-		return false, "", fmt.Errorf("failed to launch ensure plugin v2 workflow for pre-ordered plugins: %w", err)
+		return "", fmt.Errorf("failed to launch ensure plugin v2 workflow for pre-ordered plugins: %w", err)
 	}
 
-	return true, workflowID, nil
+	return workflowID, nil
 }
 
 func getPreOrderedPluginV2s(nodeRole types.NodeRole) []string {
@@ -425,12 +456,12 @@ func getPreOrderedPluginV2s(nodeRole types.NodeRole) []string {
 }
 
 func (act *actionInstallPreOrderedPlugins) waitWorkflow(std *nodeUtils.NodeActionStandarder,
-	subWorkflowRefs []types.SubWorkflowRef) error {
+	subWorkflowRefs []types.SubWorkflowRef) (int, error) {
 
 	nCtx := std.Context()
 	serializedSubWorkflowRefs, err := types.SerializeSubWorkflowRefs(subWorkflowRefs)
 	if err != nil {
-		return fmt.Errorf("failed to serialize sub workflow refs: %w", err)
+		return 0, fmt.Errorf("failed to serialize sub workflow refs: %w", err)
 	}
 
 	std.InstanceData().PrivateData[types.PDKeySubWorkflowRefs] = serializedSubWorkflowRefs
@@ -439,31 +470,39 @@ func (act *actionInstallPreOrderedPlugins) waitWorkflow(std *nodeUtils.NodeActio
 		std.InstanceData().OperationInstanceID,
 		serializedSubWorkflowRefs,
 	); err != nil {
-		return fmt.Errorf("failed to save sub workflow refs to private data: %w", err)
+		return 0, fmt.Errorf("failed to save sub workflow refs to private data: %w", err)
 	}
 
-	std.InstanceData().Log().
-		Zh("成功启动预置插件安装工作流, workflow(%+v)", subWorkflowRefs).
-		En("succeed to launch install pre-ordered plugins workflow, workflow(%+v)", subWorkflowRefs).
-		Info()
+	if len(subWorkflowRefs) > 0 {
+		std.InstanceData().Log().
+			Zh("成功启动预置插件安装工作流, workflow(%+v)", subWorkflowRefs).
+			En("succeed to launch install pre-ordered plugins workflow, workflow(%+v)", subWorkflowRefs).
+			Info()
 
-	std.InstanceData().Log().
-		Zh("等待工作流完成").
-		En("wait workflow finish").
-		Info()
+		std.InstanceData().Log().
+			Zh("等待工作流完成").
+			En("wait workflow finish").
+			Info()
+	}
 
 	gp := gopool.NewPool()
+	successCountChan := make(chan struct{}, len(subWorkflowRefs))
 	for idx := range subWorkflowRefs {
 		subWorkflowRef := subWorkflowRefs[idx]
 		gp.Go(func() error {
-			return act.checkPluginWorkflowStatus(std, subWorkflowRef)
+			if err := act.checkPluginWorkflowStatus(std, subWorkflowRef); err != nil {
+				return err
+			}
+
+			successCountChan <- struct{}{}
+			return nil
 		})
 	}
 	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("failed to wait workflow: %w", err)
+		return len(successCountChan), fmt.Errorf("failed to wait workflow: %w", err)
 	}
 
-	return nil
+	return len(successCountChan), nil
 }
 
 func (act *actionInstallPreOrderedPlugins) checkPluginWorkflowStatus(

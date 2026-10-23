@@ -24,7 +24,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"os"
 )
 
 // TLSConfig is inner tls config.
@@ -41,41 +40,32 @@ type TLSConfig struct {
 	// If TLSConfig is used in client side, this field is ignored.
 	VerifyClient bool
 
-	// CertFile authentication certificate file.
-	CertFile string
+	// CA authentication root certificate content.
+	CA []byte
 
-	// KeyFile authentication key file.
-	KeyFile string
+	// Cert authentication certificate content.
+	Cert []byte
 
-	// CAFile authentication root certificate file.
-	CAFile string
+	// Key authentication key content.
+	Key []byte
 
 	// Password authentication key file password.
 	Password string
 }
 
-// Validate validates the config.
-func (c TLSConfig) Validate() error {
-	if len(c.CertFile) == 0 &&
-		len(c.KeyFile) == 0 &&
-		len(c.CAFile) == 0 {
-		return nil
-	}
-
-	// TODO: add tls config validate.
-
-	return nil
-
+// IsEnabled checks if ssl is enabled.
+func (c TLSConfig) IsEnabled() bool {
+	return len(c.CA) != 0 && len(c.Cert) != 0 && len(c.Key) != 0
 }
 
 // NewClientTLSConf load and verify CA/CERT/KEY files of ssl as client side.
 func (c TLSConfig) NewClientTLSConf() (*tls.Config, error) {
-	caPool, err := loadCa(c.CAFile)
+	caPool, err := loadCa(c.CA)
 	if err != nil {
 		return nil, err
 	}
 
-	cert, err := loadCertificates(c.CertFile, c.KeyFile, c.Password)
+	cert, err := loadCertificates(c.Cert, c.Key, c.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -91,12 +81,12 @@ func (c TLSConfig) NewClientTLSConf() (*tls.Config, error) {
 
 // NewServerTLSConf load and verify CA/CERT/KEY files of ssl as server side.
 func (c TLSConfig) NewServerTLSConf() (*tls.Config, error) {
-	caPool, err := loadCa(c.CAFile)
+	caPool, err := loadCa(c.CA)
 	if err != nil {
 		return nil, err
 	}
 
-	cert, err := loadCertificates(c.CertFile, c.KeyFile, c.Password)
+	cert, err := loadCertificates(c.Cert, c.Key, c.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -114,28 +104,18 @@ func (c TLSConfig) NewServerTLSConf() (*tls.Config, error) {
 	return conf, nil
 }
 
-func loadCa(caFile string) (*x509.CertPool, error) {
-	ca, err := os.ReadFile(caFile)
-	if err != nil {
-		return nil, err
-	}
-
+func loadCa(ca []byte) (*x509.CertPool, error) {
 	caPool := x509.NewCertPool()
-	if ok := caPool.AppendCertsFromPEM(ca); ok != true {
+	if ok := caPool.AppendCertsFromPEM(ca); !ok {
 		return nil, fmt.Errorf("append ca cert failed")
 	}
 
 	return caPool, nil
 }
 
-func loadCertificates(certFile, keyFile, passwd string) (*tls.Certificate, error) {
-	priKey, err := os.ReadFile(keyFile)
-	if err != nil {
-		return nil, err
-	}
-
-	if passwd != "" {
-		priPem, _ := pem.Decode(priKey)
+func loadCertificates(cert, key []byte, passwd string) (*tls.Certificate, error) {
+	if len(passwd) != 0 {
+		priPem, _ := pem.Decode(key)
 		if priPem == nil {
 			return nil, fmt.Errorf("decode private key failed")
 		}
@@ -145,18 +125,13 @@ func loadCertificates(certFile, keyFile, passwd string) (*tls.Certificate, error
 			return nil, decErr
 		}
 
-		priKey = pem.EncodeToMemory(&pem.Block{
+		key = pem.EncodeToMemory(&pem.Block{
 			Type:  "RSA PRIVATE KEY",
 			Bytes: priDecrPem,
 		})
 	}
 
-	certData, err := os.ReadFile(certFile)
-	if err != nil {
-		return nil, err
-	}
-
-	tlsCert, err := tls.X509KeyPair(certData, priKey)
+	tlsCert, err := tls.X509KeyPair(cert, key)
 	if err != nil {
 		return nil, err
 	}

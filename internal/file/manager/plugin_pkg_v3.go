@@ -22,7 +22,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -158,14 +160,32 @@ func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.Rea
 
 // PluginV3Project represents the project.yaml file.
 type PluginV3Project struct {
-	Name             string `yaml:"name"`
-	Version          string `yaml:"version"`
-	Description      string `yaml:"description"`
-	DescriptionEn    string `yaml:"descriptionEn"`
-	Scenario         string `yaml:"scenario"`
-	ScenarioEn       string `yaml:"scenarioEn"`
-	LaunchNode       string `yaml:"launchNode"`
-	TemplateRenderer string `yaml:"templateRenderer"`
+	Name               string  `yaml:"name"`
+	Version            string  `yaml:"version"`
+	Description        string  `yaml:"description"`
+	DescriptionEn      string  `yaml:"descriptionEn"`
+	Scenario           string  `yaml:"scenario"`
+	ScenarioEn         string  `yaml:"scenarioEn"`
+	LaunchNode         string  `yaml:"launchNode"`
+	TemplateRenderer   string  `yaml:"templateRenderer"`
+	InstallCPULimit    float64 `yaml:"installCpuLimit"`
+	InstallDiskIOLimit float64 `yaml:"installDiskIoLimit"`
+	LegacyConflict     bool    `yaml:"legacyConflict"`
+}
+
+// Validate validates the project.yaml installer CPU and disk IO limits.
+func (project *PluginV3Project) Validate() error {
+	cpuLimit := project.InstallCPULimit
+	if math.IsNaN(cpuLimit) || math.IsInf(cpuLimit, 0) || cpuLimit < 0 || cpuLimit > 1 {
+		return fmt.Errorf("invalid installCpuLimit(%v), must be between 0 and 1", cpuLimit)
+	}
+
+	diskIOLimit := project.InstallDiskIOLimit
+	if math.IsNaN(diskIOLimit) || math.IsInf(diskIOLimit, 0) || diskIOLimit < 0 {
+		return fmt.Errorf("invalid installDiskIoLimit(%v), must be a non-negative number", diskIOLimit)
+	}
+
+	return nil
 }
 
 // PluginV3Definition represents the definition.yaml file's definition field.
@@ -238,17 +258,22 @@ type PluginV3Property struct {
 func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail, error) {
 	detail := types.NewOriginPluginV3PkgDetail()
 	multiPlatConfigTplSourceContent := make(map[string]map[string]string)
+	var project *PluginV3Project
+	definitions := make(map[string]*PluginV3Definition)
+	payloads := make(map[string]bool)
+	payloadFiles := make(map[string]struct{})
 
 	tgzReadRules := []tgzReadRule{
 		{
 			filePathRegex: []string{
 				".*",
 				buildFullMatchRegex(originalPluginPkgV3FileNameProject)},
-			callback: func(_ []string, projectFile io.Reader) error {
-				pluginProject := new(PluginV3Project)
-				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
-					return fmt.Errorf("failed to decode project.yaml")
+			callback: func(path []string, projectFile io.Reader) error {
+				pluginProject, err := readOriginPluginV3Project(path, projectFile, project)
+				if err != nil {
+					return err
 				}
+				project = pluginProject
 
 				detail.PluginPkgName = pluginProject.Name
 				detail.Version = pluginProject.Version
@@ -258,6 +283,9 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				detail.ScenarioEn = pluginProject.ScenarioEn
 				detail.LaunchNode = pluginProject.LaunchNode
 				detail.TemplateRenderer = types.TemplateRendererType(pluginProject.TemplateRenderer)
+				detail.InstallCPULimit = pluginProject.InstallCPULimit
+				detail.InstallDiskIOLimit = pluginProject.InstallDiskIOLimit
+				detail.LegacyConflict = pluginProject.LegacyConflict
 
 				return nil
 			},
@@ -268,26 +296,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				buildPrefixMatchRegex(originalPluginPkgV3DirNamePlatPrefix),
 				buildFullMatchRegex(originalPluginPkgV3FileNameDefinition)},
 			callback: func(path []string, definitionFile io.Reader) error {
-				plat := convPluginV3DirNameToPlat(path[1])
-
-				pluginDefinition := new(PluginV3Definition)
-				if err := yaml.NewDecoder(definitionFile).Decode(pluginDefinition); err != nil {
-					return fmt.Errorf("failed to decode definition.yaml for platform(%s): %w", plat.String(), err)
-				}
-				bindAddressAllocated := pluginDefinition.BindAddressAllocated
-				if bindAddressAllocated.Enable && bindAddressAllocated.BindPortAvailableRange == "" {
-					return fmt.Errorf("bindPortAvailableRange is required for platform(%s)", plat.String())
-				}
-				if err := validateOptionalPluginPkgPortRange(bindAddressAllocated.BindPortAvailableRange); err != nil {
-					return fmt.Errorf("invalid bindPortAvailableRange for platform(%s): %w", plat.String(), err)
-				}
-
-				detail.Platforms = append(detail.Platforms, plat)
-				detail.BindAddressAllocated[plat.String()] = buildPluginV3PkgBindAddressAllocated(bindAddressAllocated)
-				detail.ConfigTemplates[plat.String()] = parsePluginV3PkgConfigTemplateFromDefinition(pluginDefinition)
-				detail.Controller[plat.String()] = buildPluginV3PkgController(plat, pluginDefinition)
-
-				return nil
+				return readOriginPluginV3Definition(path, definitionFile, detail, definitions)
 			},
 		},
 		{
@@ -318,8 +327,17 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 		},
 	}
 
+	tgzReadRules = append(tgzReadRules, tgzReadRule{
+		filePathRegex: []string{".*", buildPrefixMatchRegex(originalPluginPkgV3DirNamePlatPrefix)},
+		callback: func(path []string, r io.Reader) error {
+			return readOriginPluginV3Payload(path, r, payloads, payloadFiles)
+		},
+	})
 	err := checkTgz(file, tgzReadRules)
 	if err != nil {
+		return nil, err
+	}
+	if err := checkOriginPluginV3Contents(project, definitions, payloads); err != nil {
 		return nil, err
 	}
 
@@ -334,6 +352,114 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 	}
 
 	return detail, nil
+}
+
+const (
+	originPluginV3ProjectPathDepth    = 2
+	originPluginV3DefinitionPathDepth = 3
+	originPluginV3PayloadPathDepth    = 4
+)
+
+func readOriginPluginV3Project(path []string, projectFile io.Reader, previous *PluginV3Project) (*PluginV3Project, error) {
+	if len(path) != originPluginV3ProjectPathDepth {
+		return nil, fmt.Errorf("invalid project.yaml path(%s)", strings.Join(path, "/"))
+	}
+	project := new(PluginV3Project)
+	if err := yaml.NewDecoder(projectFile).Decode(project); err != nil {
+		return nil, fmt.Errorf("failed to decode project.yaml: %w", err)
+	}
+	if err := project.Validate(); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(project.Name) == "" || strings.TrimSpace(project.Version) == "" || project.Name != path[0] {
+		return nil, fmt.Errorf("invalid plugin name or version in project.yaml(%s)", strings.Join(path, "/"))
+	}
+	if previous != nil && !reflect.DeepEqual(previous, project) {
+		return nil, fmt.Errorf("conflicting project.yaml in plugin package")
+	}
+
+	return project, nil
+}
+
+func readOriginPluginV3Definition(path []string, definitionFile io.Reader,
+	detail *types.OriginPluginV3PkgDetail, definitions map[string]*PluginV3Definition,
+) error {
+
+	if len(path) != originPluginV3DefinitionPathDepth {
+		return fmt.Errorf("invalid definition.yaml path(%s)", strings.Join(path, "/"))
+	}
+	plat := convPluginV3DirNameToPlat(path[1])
+	definition := new(PluginV3Definition)
+	if err := yaml.NewDecoder(definitionFile).Decode(definition); err != nil {
+		return fmt.Errorf("failed to decode definition.yaml for platform(%s): %w", plat.String(), err)
+	}
+	bindAddressAllocated := definition.BindAddressAllocated
+	if bindAddressAllocated.Enable && bindAddressAllocated.BindPortAvailableRange == "" {
+		return fmt.Errorf("bindPortAvailableRange is required for platform(%s)", plat.String())
+	}
+	if err := validateOptionalPluginPkgPortRange(bindAddressAllocated.BindPortAvailableRange); err != nil {
+		return fmt.Errorf("invalid bindPortAvailableRange for platform(%s): %w", plat.String(), err)
+	}
+	root := strings.Join(path[:originPluginV3ProjectPathDepth], "/")
+	if previous, ok := definitions[root]; ok {
+		if !reflect.DeepEqual(previous, definition) {
+			return fmt.Errorf("conflicting definition.yaml for platform(%s)", root)
+		}
+
+		return nil
+	}
+	definitions[root] = definition
+	detail.Platforms = append(detail.Platforms, plat)
+	detail.BindAddressAllocated[plat.String()] = buildPluginV3PkgBindAddressAllocated(bindAddressAllocated)
+	detail.ConfigTemplates[plat.String()] = parsePluginV3PkgConfigTemplateFromDefinition(definition)
+	detail.Controller[plat.String()] = buildPluginV3PkgController(plat, definition)
+
+	return nil
+}
+
+func readOriginPluginV3Payload(path []string, r io.Reader, payloads map[string]bool, payloadFiles map[string]struct{}) error {
+	plat := convPluginV3DirNameToPlat(path[1])
+	if !plat.Validate() || plat.OS == criteria.OSUnknown || plat.Arch == criteria.CPUArchUnknown ||
+		path[1] != convPlatToPluginV3DirName(plat) {
+
+		return fmt.Errorf("invalid plugin platform directory(%s)", path[1])
+	}
+	root := strings.Join(path[:originPluginV3ProjectPathDepth], "/")
+	if _, ok := payloads[root]; !ok {
+		payloads[root] = false
+	}
+	if len(path) != originPluginV3PayloadPathDepth || path[2] != originalPluginPkgV3DirNameBin || path[3] == "" {
+		return nil
+	}
+	filePath := strings.Join(path, "/")
+	if _, exists := payloadFiles[filePath]; exists {
+		return fmt.Errorf("duplicate plugin payload(%s)", filePath)
+	}
+	payloadFiles[filePath] = struct{}{}
+	size, err := io.Copy(io.Discard, r)
+	if err != nil {
+		return fmt.Errorf("failed to read plugin payload(%s): %w", strings.Join(path, "/"), err)
+	}
+	payloads[root] = payloads[root] || size > 0
+
+	return nil
+}
+
+func checkOriginPluginV3Contents(project *PluginV3Project, definitions map[string]*PluginV3Definition,
+	payloads map[string]bool,
+) error {
+
+	if project == nil || len(definitions) == 0 {
+		return errors.New("plugin package requires project.yaml and platform definition.yaml")
+	}
+	for root, hasPayload := range payloads {
+		name, _, _ := strings.Cut(root, "/")
+		if name != project.Name || definitions[root] == nil || !hasPayload {
+			return fmt.Errorf("plugin platform(%s) requires matching project.yaml, definition.yaml and non-empty bin payload", root)
+		}
+	}
+
+	return nil
 }
 
 func parsePluginV3PkgConfigTemplateFromDefinition(pluginDefinition *PluginV3Definition) []types.PluginPkgConfigTemplate {
@@ -551,6 +677,9 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					Scenario:             detail.Scenario,
 					ScenarioEn:           detail.ScenarioEn,
 					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
+					InstallCPULimit:      detail.InstallCPULimit,
+					InstallDiskIOLimit:   detail.InstallDiskIOLimit,
+					LegacyConflict:       detail.LegacyConflict,
 				},
 			}
 

@@ -64,11 +64,25 @@ spec:
             - name: apigw-sync-config
               mountPath: "/data/definition.yaml"
               subPath: definition.yaml
+            {{- include "bk-nodemgr.bkappVolumeMounts" . | nindent 12 }}
           command:
             - bash
+            - -c
           args:
-            - bin/sync-apigateway.sh
+            - |
+              set -e
+              {{- if .Values.kms.enabled }}
+              # the apigw-sync image carries bk-nodemgr-adminclient at /usr/local/bin
+              # (not common.binPath); resolve the app credentials from the kms global
+              # envelope on the command line, then export for sync-apigateway.sh.
+              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "binPath" "/usr/local/bin" "exportBKApp" true) | nindent 14 }}
+              {{- end }}
+              exec bash bin/sync-apigateway.sh
           env:
+          {{- if .Values.kms.enabled }}
+          # the BK_APP_CODE/BK_APP_SECRET entries below are placeholders; the
+          # command line above exports the resolved values.
+          {{- end }}
           {{- $extraEnvVars := list }}
           {{- range .Values.apigwSync.extraEnvVars }}
           {{- if ne .name "BK_APP_TENANT_ID" }}
@@ -80,10 +94,12 @@ spec:
           {{- end }}
             - name: BK_APP_TENANT_ID
               value: {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
+            {{- include "bk-nodemgr.bkappKMSEnv" . | nindent 12 }}
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       volumes:
       - name: apigw-sync-config
         configMap:
           name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync-definition
+      {{- include "bk-nodemgr.bkappVolumes" . | nindent 6 }}
       restartPolicy: Never
 {{- end }}

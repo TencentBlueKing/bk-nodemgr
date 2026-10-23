@@ -325,3 +325,151 @@ Render an HTTP server config and inject gracefulShutdownTimeoutSec from terminat
 {{- end -}}
 {{- $config | toYaml -}}
 {{- end -}}
+
+{{/*
+Render a storage check init container polling bk-nodemgr-adminclient database check.
+Credentials come from the module config file, with kms secret override when kms.enabled.
+Each check is a single attempt; the container retries in a loop until the storage is ready,
+so a slow first-install storage does not surface as Init:CrashLoopBackOff backoff.
+Params: dict "root" . "module" (backend|application|file) "moduleValues" <module values> "component" (etcd|redis|mongodb)
+*/}}
+{{- define "bk-nodemgr.storageCheckInitContainer" -}}
+{{- $root := .root -}}
+{{- $module := .module -}}
+{{- $moduleValues := .moduleValues -}}
+- name: {{ template "bk-nodemgr.fullname" $root }}-{{ $module }}-check-{{ .component }}
+  {{- if len $moduleValues.image.tag }}
+  {{- if len $root.Values.global.imageRegistry }}
+  image: {{ $root.Values.global.imageRegistry }}/{{ $root.Values.image.repository }}:{{ $moduleValues.image.tag }}
+  {{- else }}
+  image: {{ $root.Values.image.registry }}/{{ $root.Values.image.repository }}:{{ $moduleValues.image.tag }}
+  {{- end }}
+  {{- else }}
+  image: {{ template "bk-nodemgr.image" $root }}
+  {{- end }}
+  imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
+  command: ["sh", "-c"]
+  args:
+  - |
+    try_times=1
+    until "{{ $root.Values.common.binPath }}/bk-nodemgr-adminclient" database check {{ .component }} -f "/tmp/nodemgr-config/{{ $module }}_conf.yaml"; do
+        echo "check {{ .component }} failed, retried ${try_times} times"
+        try_times=$((try_times+1))
+        sleep 1
+    done
+    echo "check {{ .component }} done"
+  {{- if $root.Values.kms.enabled }}
+  env:
+    - name: BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL
+      valueFrom:
+        secretKeyRef:
+          name: {{ template "bk-nodemgr.fullname" $root }}-global-kms-secret
+          key: privateKey
+  {{- end }}
+  volumeMounts:
+    - name: {{ template "bk-nodemgr.fullname" $root }}-{{ $module }}-config
+      mountPath: /tmp/nodemgr-config
+      readOnly: true
+    # storage tls files referenced by the config live under certPath.
+    - name: nodemgr-cert
+      mountPath: {{ $root.Values.common.certPath }}
+      readOnly: true
+  {{- if $root.Values.kms.enabled }}
+    - name: kms-envelope
+      # least privilege: storage credentials all live in the global envelope,
+      # mount only the global item, not the module envelope.
+      mountPath: {{ $root.Values.common.secretPath }}/kms-global-envelope
+      subPath: kms-global-envelope
+      readOnly: true
+  {{- end }}
+  resources: {{- toYaml $root.Values.initContainerResources | nindent 4 }}
+{{- end -}}
+
+{{/*
+Config file location shared by bk-nodemgr.bkappResolveScript and
+bk-nodemgr.bkappVolumeMounts: the backend config is mounted at
+bk-nodemgr.bkappConfigDir, and bkapp reads <dir>/backend_conf.yaml from it.
+*/}}
+{{- define "bk-nodemgr.bkappConfigDir" -}}/tmp/nodemgr-config{{- end -}}
+{{- define "bk-nodemgr.bkappConfigFile" -}}{{ include "bk-nodemgr.bkappConfigDir" . }}/backend_conf.yaml{{- end -}}
+
+{{/*
+Resolve bk app code/secret into the APP_CODE/APP_SECRET shell variables.
+Under kms.enabled they are decrypted from the kms global envelope via
+bk-nodemgr-adminclient bkapp; otherwise the values-rendered appCode/appSecret
+are used. Requires bk-nodemgr.bkappVolumeMounts (+ bkappKMSEnv) on the pod; the
+pod's own retry (job backoffLimit / initContainer restart) covers first-install
+timing where the ESO-synced kms secret is not ready yet.
+Note: assignments must stay un-exported so `set -e` still aborts the script
+when adminclient fails; pass "exportBKApp" true to additionally export them as
+BK_APP_CODE/BK_APP_SECRET for a child process.
+Params: dict "root" . "appCode" <values appCode> "appSecret" <values appSecret>
+        "binPath" <dir of bk-nodemgr-adminclient> (default: common.binPath;
+        images not based on bk-nodemgr-server, e.g. apigw-sync, override this)
+        "exportBKApp" <bool> (default false)
+*/}}
+{{- define "bk-nodemgr.bkappResolveScript" -}}
+{{- $binPath := .binPath | default .root.Values.common.binPath }}
+{{- if .root.Values.kms.enabled }}
+{{- if not .root.Values.backend.enabled }}
+{{- fail "kms.enabled requires backend.enabled: bkapp credentials are resolved from the kms section of the backend config" }}
+{{- end }}
+APP_CODE="$({{ $binPath }}/bk-nodemgr-adminclient bkapp code -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
+APP_SECRET="$({{ $binPath }}/bk-nodemgr-adminclient bkapp secret -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
+{{- else }}
+# single quotes keep $ and backticks in the values literal.
+APP_CODE={{ .appCode | squote }}
+APP_SECRET={{ .appSecret | squote }}
+{{- end }}
+{{- if .exportBKApp }}
+export BK_APP_CODE="${APP_CODE}"
+export BK_APP_SECRET="${APP_SECRET}"
+{{- end }}
+{{- end -}}
+
+{{/*
+Env entries for bkapp resolution: the global envelope private key from the
+ESO-synced kms secret. Rendered only when kms.enabled.
+*/}}
+{{- define "bk-nodemgr.bkappKMSEnv" -}}
+{{- if .Values.kms.enabled }}
+- name: BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL
+  valueFrom:
+    secretKeyRef:
+      name: {{ template "bk-nodemgr.fullname" . }}-global-kms-secret
+      key: privateKey
+{{- end }}
+{{- end -}}
+
+{{/*
+Volume mounts for bkapp resolution: the backend config (bkapp reads its kms
+section) and, when kms.enabled, only the global envelope item (least privilege).
+*/}}
+{{- define "bk-nodemgr.bkappVolumeMounts" -}}
+{{- if .Values.kms.enabled }}
+- name: {{ template "bk-nodemgr.fullname" . }}-backend-config
+  mountPath: {{ include "bk-nodemgr.bkappConfigDir" . }}
+  readOnly: true
+- name: kms-envelope
+  mountPath: {{ .Values.common.secretPath }}/kms-global-envelope
+  subPath: kms-global-envelope
+  readOnly: true
+{{- end }}
+{{- end -}}
+
+{{/*
+Volumes backing bk-nodemgr.bkappVolumeMounts.
+*/}}
+{{- define "bk-nodemgr.bkappVolumes" -}}
+{{- if .Values.kms.enabled }}
+- name: {{ template "bk-nodemgr.fullname" . }}-backend-config
+  configMap:
+    name: {{ template "bk-nodemgr.fullname" . }}-backend-config
+- name: kms-envelope
+  secret:
+    secretName: {{ template "bk-nodemgr.fullname" . }}-global-kms-secret
+    items:
+      - key: envelope
+        path: kms-global-envelope
+{{- end }}
+{{- end -}}

@@ -49,7 +49,7 @@
     {
       "id": 10,
       "prompt": "我要重写某个模块 README，目标是中文主述、English technical terms、logic-first、不要废话。这个 placement skill 要直接写吗？",
-      "expected_output": "Makes placement decision for README when appropriate, then hands actual README writing to .agents/skills/readme-logic-first/SKILL.md rather than expanding the placement skill into a writing skill."
+      "expected_output": "Makes placement decision for a code-directory README when appropriate, then hands actual README writing to .agents/skills/bk-nodemgr-code-readme/SKILL.md rather than expanding the placement skill into a writing skill."
     }
   ]
 }

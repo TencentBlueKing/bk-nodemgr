@@ -191,6 +191,7 @@ import { TopoService } from '@/api/modules/topo';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 import { useAuthStore } from '@/stores/auth';
+import { usePermissionStore } from '@/stores/permission';
 
 const props = defineProps({
   active: {
@@ -203,6 +204,7 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
 const nodeManageStore = useNodeManageStore();
 
 const isProxyStatus = computed(() => route.name === 'proxy');
@@ -726,6 +728,30 @@ const fetchProxyStatusCount = async () => {
 };
 const debouncedFetchProxyStatusCount = debounce(fetchProxyStatusCount, 300);
 watch(() => [mainStore.selectedBusinessId, isProxyStatus.value, searchKey.value], () => { if (isProxyStatus.value) debouncedFetchProxyStatusCount(); }, { immediate: true, deep: true });
+
+// 页内切换业务（如新增勾选其他业务）时重新校验 proxy_view 权限：
+// 路由守卫只覆盖路由切换场景，覆盖不到停留在 proxy 页时换业务的场景，
+// 无权限时弹出权限申请弹窗
+watch(() => mainStore.selectedBusinessId, async (bizIds) => {
+  if (!isProxyStatus.value || !bizIds?.length) return;
+
+  const bizScope = bizIds.map(id => String(id));
+  if (
+    authStore.hasPermissionCache('proxy_view', bizScope)
+    && !authStore.isPermissionCacheExpired('proxy_view', bizScope)
+  ) {
+    return;
+  }
+
+  await authStore.batchVerify(
+    [{ id: 'proxy_view', action: 'proxy_view', resourceType: 'biz', routes: [] }],
+    bizScope,
+  );
+  const detail = authStore.permissionDetail;
+  if (detail) {
+    permissionStore.showDialog(detail);
+  }
+}, { deep: true });
 
 // Listen for assign unit success event to refresh list
 const handleAssignUnitSuccess = () => {

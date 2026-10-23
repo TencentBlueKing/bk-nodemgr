@@ -57,7 +57,7 @@ Avoid README content that is:
 - low-level implementation call chains when the reader needs behavior
 - detailed API Gateway reference material
 
-When actually writing README content, hand off to `.agents/skills/readme-logic-first/SKILL.md`.
+When writing a README inside a code directory, hand off to `.agents/skills/bk-nodemgr-code-readme/SKILL.md`.
 
 ## docs/**
 

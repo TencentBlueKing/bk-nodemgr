@@ -30,6 +30,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 )
 
@@ -84,13 +85,13 @@ func (d *HTTPDownloader) Download(ctx context.Context, config Config) error {
 	// set up the HTTP client.
 	client := &http.Client{
 		Timeout: config.Timeout,
-		Transport: &http.Transport{
+		Transport: tracing.NewTransport(&http.Transport{
 			Proxy:                 http.ProxyFromEnvironment,
 			MaxIdleConns:          10,               // nolint: mnd
 			IdleConnTimeout:       30 * time.Second, // nolint: mnd
 			TLSHandshakeTimeout:   10 * time.Second, // nolint: mnd
 			ExpectContinueTimeout: 1 * time.Second,  // nolint: mnd
-		},
+		}),
 	}
 
 	var reqBody io.Reader

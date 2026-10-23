@@ -71,3 +71,10 @@ backend:
 {{- $_ := set $file "config" $config }}
 file:
 {{ toYaml $file | nindent 2 }}
+
+{{- $kms := deepCopy (dig "kms" dict .Values) }}
+{{- if not (hasKey $kms "enabled") }}
+{{- $_ := set $kms "enabled" false }}
+{{- end }}
+kms:
+{{ toYaml $kms | nindent 2 }}

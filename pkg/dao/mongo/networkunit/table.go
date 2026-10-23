@@ -85,7 +85,14 @@ type Endpoints struct {
 
 // InstallerRuntime defines the installer runtime.
 type InstallerRuntime struct {
-	BaseWorkDir string `json:"base_work_dir" bson:"base_work_dir"`
+	BaseWorkDir string    `json:"base_work_dir" bson:"base_work_dir"`
+	Firewall    *Firewall `json:"firewall,omitempty" bson:"firewall,omitempty"`
+}
+
+// Firewall stores a unit's explicit local firewall configuration.
+type Firewall struct {
+	RemoteIPs []string `json:"remote_ips" bson:"remote_ips"`
+	Features  []string `json:"features" bson:"features"`
 }
 
 // NodeRuntime defines the node runtime.

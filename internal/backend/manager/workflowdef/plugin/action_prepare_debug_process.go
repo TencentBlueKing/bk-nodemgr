@@ -91,10 +91,8 @@ func (act *actPrepareDebugProcess) MaxRetryCount() uint {
 }
 
 // DelayFn returns the retry delay function.
-func (act *actPrepareDebugProcess) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(time.Second)
-	}
+func (act *actPrepareDebugProcess) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do prepares the debug process.

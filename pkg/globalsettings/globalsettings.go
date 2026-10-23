@@ -75,15 +75,6 @@ func (h *Handler) Get(nCtx contextx.IContext, name, defaultValue string) string 
 		return defaultValue
 	}
 
-	exist, err := h.stg.ExistGlobalSettings(nCtx, name)
-	if err != nil {
-		return defaultValue
-	}
-
-	if !exist {
-		return defaultValue
-	}
-
 	value, err := h.stg.GetGlobalSetting(nCtx, name)
 	if err != nil {
 		return defaultValue

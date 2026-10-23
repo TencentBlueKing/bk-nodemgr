@@ -23,6 +23,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -52,6 +53,9 @@ import (
 
 // Config defines the config of Manager.
 type Config struct {
+	// ManagerRoleGranter grants resource management permissions to users.
+	ManagerRoleGranter auth.IManagerRoleGranter
+
 	// thridparty handler.
 	CmdbHandler        cmdb.IHandler
 	GSEHandler         gse.IHandler

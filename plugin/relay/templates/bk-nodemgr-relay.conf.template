@@ -79,11 +79,18 @@ log:
   alsoToStderr: {{ .CustomContext.Log.LogAlsoToStderr | default false }}
 
 tracing:
-  exporterType: stdout
-  otlpEndpoint: ""
-  otlpProtocol: "grpc"
-  otlpInsecure: false
+  exporterType: {{ .CustomContext.Tracing.ExporterType | default "stdout" }}
+  otlpEndpoint: {{ .CustomContext.Tracing.OtlpEndpoint | default "" | toJson }}
+  otlpProtocol: {{ .CustomContext.Tracing.OtlpProtocol | default "grpc" | toJson }}
+  otlpInsecure: {{ .CustomContext.Tracing.OtlpInsecure | default false }}
+  {{- if .CustomContext.Tracing.OtlpHeaders }}
+  otlpHeaders:
+    {{- range .CustomContext.Tracing.OtlpHeaders }}
+    {{ .Key | toJson }}: {{ .Value | toJson }}
+    {{- end }}
+  {{- else }}
   otlpHeaders: {}
+  {{- end }}
   globalService:
-    traceServiceName: relay
-    traceSampleRate: 0
+    traceServiceName: {{ .CustomContext.Tracing.GlobalService.TraceServiceName | default "relay" }}
+    traceSampleRate: {{ .CustomContext.Tracing.GlobalService.TraceSampleRate | default 0 }}

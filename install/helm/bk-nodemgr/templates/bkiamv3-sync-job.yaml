@@ -114,13 +114,16 @@ spec:
               
               # Extract the first endpoint (remove trailing slash if present)
               IAM_ENDPOINT="{{ index .Values.backend.config.iamV3.endpoints 0 }}"
-              
+
+              # Resolve app credentials: from the kms global envelope when kms.enabled, else from values.
+              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "appCode" .Values.backend.config.iamV3.appCode "appSecret" .Values.backend.config.iamV3.appSecret) | nindent 14 }}
+
               # Execute migration
               python3 "${BKIAMV3_DIR}/do_migrate.py" \
                 -t "${IAM_ENDPOINT}" \
                 -d "${OUTPUT_DIR}" \
-                -a "{{ .Values.backend.config.iamV3.appCode }}" \
-                -s "{{ .Values.backend.config.iamV3.appSecret }}" \
+                -a "${APP_CODE}" \
+                -s "${APP_SECRET}" \
                 --bk_tenant_id {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
               
               echo "=========================================="
@@ -130,10 +133,16 @@ spec:
             - name: bkiamv3-vars
               mountPath: /bk-nodemgr/support-files/bkiamv3/vars.yaml
               subPath: vars.yaml
+            {{- include "bk-nodemgr.bkappVolumeMounts" . | nindent 12 }}
+          {{- if .Values.kms.enabled }}
+          env:
+            {{- include "bk-nodemgr.bkappKMSEnv" . | nindent 12 }}
+          {{- end }}
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       volumes:
         - name: bkiamv3-vars
           configMap:
             name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-vars
+        {{- include "bk-nodemgr.bkappVolumes" . | nindent 8 }}
       restartPolicy: Never
 {{- end }}

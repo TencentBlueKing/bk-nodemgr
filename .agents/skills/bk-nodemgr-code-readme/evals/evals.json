@@ -1,0 +1,61 @@
+{
+  "skill_name": "bk-nodemgr-code-readme",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "把 internal/backend/auth 的 README 重写成\"逻辑导向\"，重点解释 scope 收缩，不要按文件结构展开。",
+      "expected_output": "Documents auth responsibilities and stable module contract without making caller endpoint decisions part of auth README; avoids file-by-file narration.",
+      "files": [
+        "internal/backend/auth/README.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我只要\"无授权实例\"和\"请求无交集\"的返回策略说明，给我一版能直接放 README 的决策规则。",
+      "expected_output": "Explains only behavior owned by the auth module; does not infer endpoint-specific response policy unless that policy is part of the auth contract.",
+      "files": [
+        "internal/backend/auth/README.md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "重写 internal/backend/auth/README.md，说明 auth 模块职责和稳定边界。不要把 endpoint 调用方的业务策略写成 auth 的保证；如果职责或依赖方向从现有资料无法判断，先调用 bk-nodemgr-architecture-judgment。",
+      "expected_output": "Keeps README within auth-owned responsibilities and invokes bk-nodemgr-architecture-judgment for unresolved ownership or dependency direction rather than inventing a directory-based rule.",
+      "files": [
+        "internal/backend/auth/README.md"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "给维护者写可选 ORM batching 的 README，不按源码目录展开。已核实：UpdateField 默认同步直接写入；仅 WithUpdateFieldBatching 启用同实例组批；每批最多 128 个独立更新，不合并或去重；只有批处理路径使用各调用自己的 done signal；发送后取消不保证未写入；业务 DAO 尚未启用，没有性能测量。解释业务动机和行为边界，不是权限模块。不要修改文件。",
+      "expected_output": "Explains optional activation and per-call completion without importing the permission model, assigning batching done signals to direct writes, equating writes with operation completion, or claiming business enablement or measured gains. Any diagram preserves the same conditions as the prose.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "写一段简短 README 说明固定插件包版本选择：存在请求的精确版本就返回它，不存在就返回 not-found；没有 fallback 或 latest 猜测。信息只有这些，不需要扩展功能。不要修改文件。",
+      "expected_output": "Answers directly with short prose or a list, without a mandatory diagram, permission model, invented fallback, or unrelated sections.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "我要编写 docs/concepts 下的一般流程说明和 docs/api 下的 API reference，这个 code README skill 是否适用？只说明范围，不生成文档或修改文件。",
+      "expected_output": "Declines docs/** README and general logic-doc scope; routes API reference to api-doc, and does not impose a code README template.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "重写 pkg/wmix/README.md。已知它是 Linux 到 Windows 的共享远程执行组件，封装 WMI/DCOM 命令执行和 SMB 文件传输；只要包级概览，不要函数列表、代码示例、调用方安装 workflow 或详细取消语义。",
+      "expected_output": "Produces a concise package overview centered on wmix responsibility, non-responsibility, and stable platform prerequisites; does not import upper-layer installation workflow or method-level API details.",
+      "files": [
+        "pkg/wmix/README.md"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "为 pkg/transport/README.md 写模块说明。调用方是节点安装 workflow，但 README 属于 transport 包。架构资料显示 transport 提供文件传输契约，workflow 自己决定何时重试。哪些内容可以写？",
+      "expected_output": "Describes transport-owned file-transfer contract and does not describe caller retry policy as transport behavior; uses architecture evidence rather than filesystem depth to establish ownership.",
+      "files": []
+    }
+  ]
+}

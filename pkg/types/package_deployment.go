@@ -93,6 +93,8 @@ type PackageImportPluginPkgOptions struct {
 	FileSource     string
 	FileName       string
 	MD5            string
+	// IsShared defaults to false and can only be enabled by the system tenant.
+	IsShared bool
 }
 
 // PackageExportPluginPkgOptions represents the options of exporting a plugin package.

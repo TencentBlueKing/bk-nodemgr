@@ -125,10 +125,8 @@ func (act *actionEnsurePkgToRelay) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionEnsurePkgToRelay) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(5 * time.Second) // nolint: mnd
-	}
+func (act *actionEnsurePkgToRelay) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.

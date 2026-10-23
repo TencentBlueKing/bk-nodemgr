@@ -97,8 +97,13 @@ export const useAuthStore = defineStore('auth', () => {
         { irrevocable: true, interceptorErr: false, validateCode: false, needRes: true, ...options },
       ) as unknown as AuthVerifyResp;
 
-      // 过期响应：期间已发起更新的 verify（如任务历史切 tab），本次结果直接丢弃
-      if (seq !== verifySeq) return true;
+      // 过期响应：期间已发起更新的 verify（如任务历史切 tab），本次结果直接丢弃。
+      // 同步清空 permissionDetail，避免调用方在丢弃后读到上一次 verify 的残留明细
+      // （否则会把旧资源的申请弹窗误当成本次结果再次弹出）
+      if (seq !== verifySeq) {
+        permissionDetail.value = null;
+        return true;
+      }
 
       const data = (resp as any)?.data ?? resp;
       const now = Date.now();
@@ -115,8 +120,11 @@ export const useAuthStore = defineStore('auth', () => {
       needRefresh.value = false;
       return true;
     } catch (error) {
-      // 过期响应：期间已发起更新的 verify，本次结果直接丢弃
-      if (seq !== verifySeq) return true;
+      // 过期响应：期间已发起更新的 verify，本次结果直接丢弃（同上：清空残留明细防止误弹旧申请）
+      if (seq !== verifySeq) {
+        permissionDetail.value = null;
+        return true;
+      }
       if (isPermissionDeniedResponse(error)) {
         const denied = authItems.map(item => item.action);
         const now = Date.now();

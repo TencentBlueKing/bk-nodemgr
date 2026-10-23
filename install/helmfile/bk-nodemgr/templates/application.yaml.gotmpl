@@ -114,3 +114,10 @@ backend:
   enabled: false
 file:
   enabled: false
+
+{{- $kms := deepCopy (dig "kms" dict .Values) }}
+{{- if not (hasKey $kms "enabled") }}
+{{- $_ := set $kms "enabled" false }}
+{{- end }}
+kms:
+{{ toYaml $kms | nindent 2 }}

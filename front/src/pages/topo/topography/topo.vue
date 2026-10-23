@@ -14,9 +14,9 @@
     </bk-exception>
     <!-- 有权限：正常 topo 图 -->
     <div v-else :class="[mainStore.noticeShow ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-104px)]', 'relative']">
-      <!-- 下拉选择器 -->
+      <!-- 下拉选择器（公告条出现时整体下移 40px） -->
       <Select
-        class="w-[240px] fixed top-[128px] left-[280px] z-[2]"
+        :class="[mainStore.noticeShow ? 'top-[168px]' : 'top-[128px]', 'w-[240px] fixed left-[280px] z-[2]']"
         v-model="regionList"
         :clearable="false"
         all-option-id="all"
@@ -92,8 +92,8 @@
         </Select.Group>
       </Select>
 
-      <!-- 【新增】收起/展开无关联区域按钮 -->
-      <div class="fixed top-[128px] right-[80px] z-[2]">
+      <!-- 【新增】收起/展开无关联区域按钮（公告条出现时整体下移 40px） -->
+      <div :class="[mainStore.noticeShow ? 'top-[168px]' : 'top-[128px]', 'fixed right-[80px] z-[2]']">
         <Button
           theme="primary"
           :outline="true"

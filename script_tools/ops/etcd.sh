@@ -1,5 +1,7 @@
 #!/bin/sh
-# Ops helper: auto-discover etcd config and proxy etcdctl commands.
+# Ops helper: proxy etcdctl commands via bk-nodemgr-adminclient.
+# Config loading (including kms secret override) and connection parameters
+# are handled by adminclient.
 # Usage: etcd.sh [-c config] [-h] <etcdctl-subcommand> [args...]
 # Example: etcd.sh member list
 #          etcd.sh endpoint health
@@ -17,8 +19,9 @@ usage() {
     cat <<EOF
 Usage: $(basename "$0") [-c config_file] [-h] <etcdctl-subcommand> [args...]
 
-Auto-discover etcd configuration from ${CONF_DIR}/*_conf.yaml and
-proxy commands to etcdctl with the correct connection parameters.
+Proxy etcdctl commands via bk-nodemgr-adminclient with connection parameters
+from the service config file in ${CONF_DIR} (kms secret override applied when
+kms is enabled in the config).
 
 Options:
   -c CONFIG  Specify config file path (default: auto-discover)
@@ -58,50 +61,18 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-# --- Discover or validate config file ---
-if [ -z "$CONFIG_FILE" ]; then
-    CONFIG_FILE="$(discover_config "etcd")" || {
-        echo "Error: no config file containing 'etcd:' found in ${CONF_DIR}/" >&2
-        echo "Use -c <config_file> to specify manually." >&2
-        exit 1
-    }
-fi
-
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Error: config file not found: ${CONFIG_FILE}" >&2
+ADMINCLIENT="$(find_adminclient)" || {
+    echo "Error: bk-nodemgr-adminclient not found" >&2
     exit 1
+}
+
+# --- Translate to adminclient args: database etcd [--conf-dir dir] [-f config] -- <etcdctl args> ---
+if [ -n "$CONFIG_FILE" ]; then
+    [ -f "$CONFIG_FILE" ] || { echo "Error: config file not found: ${CONFIG_FILE}" >&2; exit 1; }
+    set -- -f "$CONFIG_FILE" -- "$@"
+else
+    set -- -- "$@"
 fi
+set -- --conf-dir "$CONF_DIR" "$@"
 
-echo "Using config: ${CONFIG_FILE}" >&2
-
-# --- Parse etcd configuration ---
-ENDPOINTS=""
-_eps=$(parse_yaml_array "$CONFIG_FILE" "etcd" "endpoints")
-if [ -n "$_eps" ]; then
-    while IFS= read -r ep; do
-        [ -n "$ep" ] || continue
-        [ -n "$ENDPOINTS" ] && ENDPOINTS="${ENDPOINTS},"
-        ENDPOINTS="${ENDPOINTS}${ep}"
-    done <<EOF
-$_eps
-EOF
-fi
-
-USERNAME="$(parse_yaml_value "$CONFIG_FILE" "etcd" "username")"
-PASSWORD="$(parse_yaml_value "$CONFIG_FILE" "etcd" "password")"
-CA_FILE="$(parse_yaml_nested_value "$CONFIG_FILE" "etcd" "tls" "caFile")"
-CERT_FILE="$(parse_yaml_nested_value "$CONFIG_FILE" "etcd" "tls" "certFile")"
-KEY_FILE="$(parse_yaml_nested_value "$CONFIG_FILE" "etcd" "tls" "keyFile")"
-
-# --- Build etcdctl command via set -- (prepend flags before user args) ---
-[ -n "$KEY_FILE" ] && [ -f "$KEY_FILE" ] && set -- "--key=$KEY_FILE" "$@"
-[ -n "$CERT_FILE" ] && [ -f "$CERT_FILE" ] && set -- "--cert=$CERT_FILE" "$@"
-[ -n "$CA_FILE" ] && [ -f "$CA_FILE" ] && set -- "--cacert=$CA_FILE" "$@"
-[ -n "$USERNAME" ] && [ -n "$PASSWORD" ] && set -- "--user=${USERNAME}:${PASSWORD}" "$@"
-[ -n "$ENDPOINTS" ] && set -- "--endpoints=$ENDPOINTS" "$@"
-set -- etcdctl "$@"
-
-# --- Execute with masked debug output ---
-SAFE_CMD=$(echo "$*" | sed 's/--user=[^ ]*/--user=***:***/')
-echo "Executing: ${SAFE_CMD}" >&2
-exec "$@"
+exec "$ADMINCLIENT" database etcd "$@"

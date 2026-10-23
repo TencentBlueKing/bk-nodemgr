@@ -7,7 +7,7 @@ description: Use when writing or reviewing bk-nodemgr reader-facing artifacts, i
 
 ## Scope
 
-Use this skill for bk-nodemgr artifacts with intended human readers. It defines project-specific readers, source anchors, and handoff boundaries; it does not replace `changelog-doc`, `api-doc`, `readme-logic-first`, Issue/PR templates, or their document formats. Do not use it to turn temporary agent status into permanent documentation.
+Use this skill for bk-nodemgr artifacts with intended human readers. It defines project-specific readers, source anchors, and handoff boundaries; it does not replace `changelog-doc`, `api-doc`, `bk-nodemgr-code-readme`, Issue/PR templates, or their document formats. Do not use it to turn temporary agent status into permanent documentation.
 
 ## Reader-Facing Artifact Gate
 

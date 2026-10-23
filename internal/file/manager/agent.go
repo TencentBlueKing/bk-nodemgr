@@ -165,17 +165,30 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	plats := make(map[string]platfmt.Platform)
+	agentDirs := make(map[string]bool)
+	packageRoots := make(map[string]struct{})
+	var seenVersion bool
 	detail := types.NewOriginPkgDetail()
 	if err := checkTgz(file, []tgzReadRule{
 		{
 			filePathRegex: []string{".*", buildFullMatchRegex(originalAgentFileNameVersion)},
-			callback: func(_ []string, r io.Reader) error {
+			callback: func(path []string, r io.Reader) error {
+				if len(path) != originAgentVersionPathDepth { // VERSION is directly under the package root.
+					return nil
+				}
+
 				content, err := io.ReadAll(r)
 				if err != nil {
 					return fmt.Errorf("failed to read version file: %w", err)
 				}
 
-				detail.Version = strings.Trim(string(content), "\n\r\t ")
+				version := strings.TrimSpace(string(content))
+				if seenVersion && detail.Version != version {
+					return fmt.Errorf("conflicting agent package versions: %q and %q", detail.Version, version)
+				}
+				seenVersion = true
+				detail.Version = version
+				packageRoots[path[0]] = struct{}{}
 
 				return nil
 			},
@@ -246,14 +259,43 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePathRegex: []string{".*", ".*", buildFullMatchRegex(originalAgentDirNameBin), ".*"},
+			filePathRegex: []string{".*", buildPrefixMatchRegex(originalAgentDirNamePlatPrefix)},
 			callback: func(path []string, _ io.Reader) error {
 				plat := convAgentDirNameToPlat(path[1])
-
-				//  only has agent file to be considered a valid agent package.
-				if path[3] == platfmt.FormatBinaryFileName(agentPkgFileNameAgent, plat.OS) {
-					plats[plat.String()] = plat
+				if plat == platfmt.UnknownPlatform() || !plat.Validate() || convPlatToAgentDirName(plat) != path[1] {
+					return fmt.Errorf("invalid agent platform directory: %s", path[1])
 				}
+
+				packageRoots[path[0]] = struct{}{}
+				if _, ok := agentDirs[path[1]]; !ok {
+					agentDirs[path[1]] = false // The platform is incomplete until its nonempty agent binary is read.
+				}
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", ".*", buildFullMatchRegex(originalAgentDirNameBin), ".*"},
+			callback: func(path []string, r io.Reader) error {
+				if len(path) != originAgentBinaryPathDepth || !strings.HasPrefix(path[1], originalAgentDirNamePlatPrefix) {
+					return nil
+				}
+
+				plat := convAgentDirNameToPlat(path[1])
+				if path[3] != platfmt.FormatBinaryFileName(agentPkgFileNameAgent, plat.OS) {
+					return nil
+				}
+
+				size, err := io.Copy(io.Discard, r)
+				if err != nil {
+					return fmt.Errorf("failed to read agent binary(%s): %w", strings.Join(path, "/"), err)
+				}
+				if size == 0 {
+					return fmt.Errorf("empty agent binary: %s", strings.Join(path, "/"))
+				}
+
+				agentDirs[path[1]] = true
+				plats[plat.String()] = plat
 
 				return nil
 			},
@@ -262,10 +304,25 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 		return nil, fmt.Errorf("failed to check origin agent package: %w", err)
 	}
 
+	if detail.Version == "" || len(plats) == 0 || len(packageRoots) != 1 {
+		return nil, fmt.Errorf("invalid origin agent package. version(%s) platform(%v) roots(%v)",
+			detail.Version, plats, packageRoots)
+	}
+	for dir, seenAgent := range agentDirs {
+		if !seenAgent {
+			return nil, fmt.Errorf("missing agent binary in platform directory: %s", dir)
+		}
+	}
+
 	detail.Platforms = conv.MapValueToSlice(plats)
 
 	return detail, nil
 }
+
+const (
+	originAgentVersionPathDepth = 2
+	originAgentBinaryPathDepth  = 4
+)
 
 // PublishReleaseAgent generates release agent packages by upload-id and is-shared.
 // nolint:funlen,gocognit,gocyclo,cyclop

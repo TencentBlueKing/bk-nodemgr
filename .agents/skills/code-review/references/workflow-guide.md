@@ -62,12 +62,12 @@ Started: 2026-03-02T10:30:00Z
 
 审查开始时检查 `.review/` 是否存在：
 
-| 场景 | 行为 |
-|------|------|
-| `.review/` 不存在 | 创建 `checklist.md` 和 `meta.json`，从步骤 1 开始 |
-| branch 名不匹配 | 清空 `.review/` 重新开始 |
-| branch + commit 均匹配 | 提示"检测到上次审查进度，是否从步骤 N 继续？" |
-| branch 匹配但 commit 变化 | 提示"commit 已变更，是否继续还是重新开始？" |
+| 场景                      | 行为                                              |
+| ------------------------- | ------------------------------------------------- |
+| `.review/` 不存在         | 创建 `checklist.md` 和 `meta.json`，从步骤 1 开始 |
+| branch 名不匹配           | 清空 `.review/` 重新开始                          |
+| branch + commit 均匹配    | 提示"检测到上次审查进度，是否从步骤 N 继续？"     |
+| branch 匹配但 commit 变化 | 提示"commit 已变更，是否继续还是重新开始？"       |
 
 ### 门禁终止时的记录
 
@@ -109,16 +109,16 @@ git status -uno  # 查看已暂存的提交文件
 
 **使用工具：**
 - `🧠 sequential-thinking` — 结构化评估设计合理性，逐项分析代码放置、依赖方向、抽象层级
-- `🔍 serena.get_symbols_overview` — 查看变更文件的符号结构，判断代码是否放在了正确的模块
-- `🔍 serena.find_referencing_symbols` — 检查新增代码的依赖方向，确认无反向依赖（`pkg` 不应依赖 `internal`）
+- `🔍 codegraph_explore` — 调查变更文件的符号结构、调用路径和依赖方向，检查模块归属及反向依赖（`pkg` 不应依赖 `internal`）
 - `Read AGENTS.md` — 必须读取项目根目录 AGENTS.md，获取最新的 Anti-patterns 和 Where to look 约定
+  `codegraph_explore({query: string, projectPath: string, maxFiles?: number})` 使用实际审查项目的绝对路径，返回相关符号源码、调用路径和影响摘要，不是完整引用索引。按需用 Read/Glob/Grep 补充核实；不可用或无索引时说明限制并降级，不自行初始化。具体示例见 [tools-usage.md](tools-usage.md)。
 
 **检查内容：**
 
 **A. AGENTS.md Anti-patterns（违反即阻塞 ❌）：**
 - 是否手动修改了 `*.pb.go` 文件？
 - proto struct 是否直接用于业务逻辑而未通过 `pkg/proto/*` 转换？
-- 是否引入了 duplicate helper / parallel conversion logic？（用 `serena.find_symbol` 搜索同名或功能相似的函数）
+- 是否引入了 duplicate helper / parallel conversion logic？（用 `codegraph_explore` 搜索同名或功能相似的函数）
 - service-specific 逻辑是否错误地放在了 `pkg/` 而非 `internal/<service>/`？
 
 **B. 代码放置位置（基于 AGENTS.md Where to look）：**
@@ -219,10 +219,9 @@ go vet ./path/to/package/...
 - 如有匹配案例，在报告中引用：`参见案例 cases/XXX.md`
 
 **如何进行一致性检查：**
-1. 使用 `serena.find_symbol`（substring_matching=true）查找相似函数，降级时用 Grep
-2. 使用 `serena.search_for_pattern` 查找相关模式，降级时用 Grep
-3. 比对函数签名、错误处理、日志格式
-4. 检查数据结构构建模式
+1. 使用 `codegraph_explore` 查询相关模块、相似函数和代码模式；正则匹配或工具无法满足时使用 Grep
+2. 比对函数签名、错误处理、日志格式
+3. 检查数据结构构建模式
 
 ### 步骤 6: 代码质量检查
 
@@ -312,16 +311,14 @@ go vet ./path/to/package/...
 
 ### 高效使用工具
 
-MCP 工具优先，传统工具作为降级方案：
+MCP 工具优先，传统工具作为补充和降级方案：
 
 - **sequential-thinking**: 规划审查策略、分析复杂问题、生成结构化报告（每次审查开始和结束必用）
-- **serena.get_symbols_overview**: 快速了解文件结构，替代全文 Read（节省 75% token）
-- **serena.find_symbol**: 精确查找函数/类/方法定义，替代 Grep
-- **serena.find_referencing_symbols**: 分析代码依赖和影响范围（无可替代）
-- **serena.search_for_pattern**: 语义级模式搜索，替代 Grep
+- **codegraph_explore**: 调查文件结构、符号定义、相似代码、调用路径和影响范围
 - **ReadLints**: 优先检查 linter 错误，无可替代
 - **Shell**: 编译检查和 Git 操作，无可替代
-- **Grep / Read**: 降级方案，仅在 serena 无法满足时使用
+- **Grep / Read**: 补充核实或在 codegraph 无法满足时降级使用
+  实际参数和调用示例见 [tools-usage.md](tools-usage.md)。
 
 ### 审查优先级
 

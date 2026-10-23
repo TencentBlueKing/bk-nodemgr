@@ -98,10 +98,8 @@ func (act *actionInjectNodeCustomDeployConfig) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInjectNodeCustomDeployConfig) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionInjectNodeCustomDeployConfig) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.
@@ -161,6 +159,12 @@ func (act *actionInjectNodeCustomDeployConfig) Do(ctx *action.InstanceContext) (
 	std.DeployInfo().InstallerRuntime.HTTPProxyOverride = deployConstant.HTTPProxyOverride
 	std.DeployInfo().InstallerRuntime.HTTPProxyAddress = deployConstant.HTTPProxyAddress
 
+	firewall, err := effectiveFirewall(deployConstant.Firewall, customDeployConfig)
+	if err != nil {
+		return fmt.Errorf("failed to resolve firewall config: %w", err)
+	}
+	std.DeployInfo().InstallerRuntime.Firewall = firewall
+
 	std.DeployInfo().BaseRuntime = types.DeploymentBaseRuntime{
 		BaseDeployDir:     deployConstant.BaseDeployDir,
 		DeployDir:         deployConstant.GenerateDeployDir(),
@@ -180,4 +184,23 @@ func (act *actionInjectNodeCustomDeployConfig) Do(ctx *action.InstanceContext) (
 		Info()
 
 	return nil
+}
+
+// effectiveFirewall resolves the firewall snapshot of a deployment: a unit firewall, including an explicit
+// empty one that disables firewall setup, replaces the deployment default as a whole.
+func effectiveFirewall(
+	deployDefault types.DeploymentFirewall, customDeployConfig *types.CustomDeployConfig,
+) (*types.DeploymentFirewall, error) {
+
+	firewall := deployDefault
+	if customDeployConfig != nil && customDeployConfig.InstallerRuntime.Firewall != nil {
+		firewall = *customDeployConfig.InstallerRuntime.Firewall
+	}
+
+	normalized, err := firewall.Normalize()
+	if err != nil {
+		return nil, err
+	}
+
+	return &normalized, nil
 }

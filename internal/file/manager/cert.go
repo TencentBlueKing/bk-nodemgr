@@ -19,10 +19,12 @@
 package manager
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -158,6 +160,8 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
  * gse_agent.key
  * gse_server.crt
  * gse_server.key
+ * gse_api_client.crt
+ * gse_api_client.key
  * cert_encrypt.key
  * others can be ignored.
  */
@@ -167,11 +171,12 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
 func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) {
 	detail := new(types.OriginCertPkgDetail)
 	certFileNames := originCertFileNames()
+	seenFiles := make(map[string]struct{}, len(certFileNames))
 	var hasRootFiles, hasDirFiles bool
 	if err := checkTgz(file, []tgzReadRule{
 		{
 			filePathRegex: []string{".*"},
-			callback: func(paths []string, _ io.Reader) error {
+			callback: func(paths []string, r io.Reader) error {
 				if len(paths) > 2 {
 					return nil
 				}
@@ -189,7 +194,9 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 				if hasRootFiles && hasDirFiles {
 					return errors.New("cert package must not mix certificate files at root and under cert/")
 				}
-
+				if err := readOriginCertFile(fileName, r, seenFiles); err != nil {
+					return err
+				}
 				detail.CertFiles = append(detail.CertFiles, fileName)
 
 				return nil
@@ -199,7 +206,33 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 		return nil, err
 	}
 
+	missingFiles := make([]string, 0, len(certFileNames))
+	for _, fileName := range certFileNames {
+		if _, ok := seenFiles[fileName]; !ok && fileName != certFileNameCertEncryptKey {
+			missingFiles = append(missingFiles, fileName)
+		}
+	}
+	if len(missingFiles) > 0 {
+		return nil, fmt.Errorf("missing cert files: %s", strings.Join(missingFiles, ", "))
+	}
+
 	return detail, nil
+}
+
+func readOriginCertFile(fileName string, r io.Reader, seenFiles map[string]struct{}) error {
+	if _, exists := seenFiles[fileName]; exists {
+		return fmt.Errorf("duplicate cert file %s", fileName)
+	}
+	content, err := io.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("failed to read cert file %s: %w", fileName, err)
+	}
+	if len(bytes.TrimSpace(content)) == 0 {
+		return fmt.Errorf("cert file %s is empty", fileName)
+	}
+	seenFiles[fileName] = struct{}{}
+
+	return nil
 }
 
 const (
@@ -264,8 +297,23 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string, is
 		}
 	}()
 
+	if _, err := checkOriginCertPkg(content); err != nil {
+		return fmt.Errorf("failed to check origin cert package before publishing: %w", err)
+	}
+
+	// The parser consumes its stream; reopen the origin before generating the release.
+	releaseContent, err := file.Content(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to reopen origin cert content: %w", err)
+	}
+	defer func() {
+		if errClose := releaseContent.Close(); errClose != nil {
+			retErr = errors.Join(retErr, errClose)
+		}
+	}()
+
 	// generate release file.
-	generatedFile, err := m.generateCertPkg(nCtx, content)
+	generatedFile, err := m.generateCertPkg(nCtx, releaseContent)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to generate cert pkg")
 

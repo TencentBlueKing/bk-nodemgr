@@ -147,18 +147,17 @@ Proto 定义 → Go 类型定义 → 使用场景分析 → 验证文档描述
 - 嵌套的 object 字段
 - 任何使用 `google.protobuf.Struct` 的字段
 
-**步骤 2: 使用 Serena 深入代码**
+**步骤 2: 使用 Codegraph 深入代码**
 
-```python
-# 搜索字段在代码中的所有使用
-serena.search_for_pattern("字段名|FieldName", restrict_search_to_code_files=True)
-
-# 查找类型定义
-serena.find_symbol("TypeName", relative_path="pkg/types", include_body=True, depth=1)
-
-# 查看验证逻辑
-serena.search_for_pattern("Validate.*FieldName|FieldName.*Validate", relative_path="pkg/types")
+```javascript
+// 调查字段使用、类型定义和验证逻辑
+codegraph_explore({
+  query: "字段名 FieldName TypeName Validate",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
+
+将查询中的字段、类型和项目绝对路径替换为实际值；使用 Read/Glob/Grep 补充核实图中未覆盖的定义和引用。
 
 **步骤 3: 验证文档描述**
 
@@ -198,10 +197,13 @@ repeated string proxy_tags = 19;  // 看起来像自定义标签
 示例: `["region-beijing", "env-prod"]`
 ```
 
-**Serena 验证**:
+**Codegraph 验证**:
 
-```python
-serena.search_for_pattern("proxy_tags|ProxyTag", restrict_search_to_code_files=True)
+```javascript
+codegraph_explore({
+  query: "proxy_tags ProxyTag Validate ProxySupport",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
 
 **发现的 Go 类型定义**:
@@ -255,14 +257,15 @@ message DeploySpec {
 
 **验证步骤**:
 
-```python
-# 搜索所有 spec type 的定义
-serena.search_for_pattern("SpecType.*=|type.*Spec", relative_path="pkg/types")
-
-# 查找每种 type 对应的 param 结构
-serena.find_symbol("SpecifyAgentParam", relative_path="pkg/types", include_body=True)
-serena.find_symbol("SpecifyPluginParam", relative_path="pkg/types", include_body=True)
+```javascript
+// 调查 spec type 定义及每种 type 对应的 param 结构
+codegraph_explore({
+  query: "DeploySpec DeploySpecType SpecifyAgentParam SpecifyPluginParam",
+  projectPath: "/absolute/path/to/bk-nodemgr",
+});
 ```
+
+核实全部 Spec 变体及其验证、转换和调用方，不要把示例中的两个 param 类型当作全部变体。
 
 ### 验证检查清单
 
@@ -365,7 +368,7 @@ serena.find_symbol("SpecifyPluginParam", relative_path="pkg/types", include_body
 ✅ 使用合理真实的示例数据
 ✅ 保持术语和命名的一致性
 ✅ **对 `repeated string` 字段进行交叉验证** - 检查是否为预定义枚举
-✅ **使用 Serena 工具验证字段语义** - 而非仅依赖 Proto 注释
+✅ **使用 Codegraph 工具验证字段语义** - 而非仅依赖 Proto 注释
 
 ### DON'T (不应该做)
 

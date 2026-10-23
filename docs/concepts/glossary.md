@@ -141,6 +141,7 @@ Glossary 的目标不是翻译所有词，而是减少同一概念多种叫法�
 | `Accepted` | Plugin Package | 全局共享的静态插件资源集合，可有多个版本，本身没有运行生命周期。                                | `Plugin Package`、插件包、Package | Plugin                  | `Plugin` 是租户内业务对象；`Process` 是主机上的运行实例。   | release/package model                 | `docs/concepts/plugin/README.md`、`pkg/types/release.go`                                      |
 | `Accepted` | Plugin         | 租户范围内的插件业务对象，本身不携带版本，也没有运行生命周期。                                  | `Plugin`、插件                    | Plugin Package、Process | Plugin Package 是静态资源；Process 是每台主机上的运行实例。 | `pkg/types.Plugin`、plugin APIs       | `docs/concepts/plugin/README.md`、`pkg/types/plugin.go`                                       |
 | `Accepted` | Process        | 主机上某个 plugin 的运行实例，有版本和生命周期；每台主机上同一插件只能有一个 process instance。 | `Process`、进程                   | Plugin                  | Plugin 是业务对象；Process 是运行实例。                     | process fields/types、GSE trusteeship | `docs/concepts/plugin/README.md`、`docs/concepts/plugin/v2_v3_compatibility_and_migration.md` |
+| `Accepted` | Plugin V3 / Plugin V2 | 插件包格式与部署的两个代次：V3（标准插件）是当前方案；V2（V2 官方插件）是旧版，仅为存量兼容保留。不存在 V1 插件。 | `V3 插件`、标准插件、`旧版 V2 插件` | V1 插件、Plugin V1、v1 路径；把 V3 写成 V2 | Agent 侧的 `NodeGeneration` 才有 1（Agent 1.x，已不支持），与插件代次无关。 | `ReleaseTypeOriginPluginV3`、`ReleaseTypeOriginPluginV2`、`workflowdef/plugin`（V3）、`workflowdef/pluginv2`（V2） | `pkg/types/release.go`、`front/locales/zh-CN.yml`、`docs/concepts/plugin/v2_v3_compatibility_and_migration.md` |
 
 ### Ownership
 

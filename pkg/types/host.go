@@ -169,8 +169,8 @@ type HostDynamic struct {
 	OpsConsoleHostID   int64
 	OpsOutBandType     string
 	OpsOutBandProtocol string
-	OpsBMCIP           string
-	OpsBMCPort         int64
+	OpsOutBandIP       string
+	OpsOutBandPort     int64
 }
 
 // ProxySupportInstaller returns whether this node support installer.
@@ -254,8 +254,8 @@ type HostDynamicFields struct {
 	OpsConsoleHostID   bool
 	OpsOutBandType     bool
 	OpsOutBandProtocol bool
-	OpsBMCIP           bool
-	OpsBMCPort         bool
+	OpsOutBandIP       bool
+	OpsOutBandPort     bool
 }
 
 // ProxyTag represents a proxy tag.
@@ -377,8 +377,8 @@ type HostStatic struct {
 	SyncedOpsConsoleHostID   int64
 	SyncedOpsOutBandType     string
 	SyncedOpsOutBandProtocol string
-	SyncedOpsBMCIP           string
-	SyncedOpsBMCPort         int64
+	SyncedOpsOutBandIP       string
+	SyncedOpsOutBandPort     int64
 }
 
 // GetInnerIPList returns a list of inner ip.
@@ -416,8 +416,8 @@ type HostStaticFields struct {
 	SyncedOpsConsoleHostID   bool
 	SyncedOpsOutBandType     bool
 	SyncedOpsOutBandProtocol bool
-	SyncedOpsBMCIP           bool
-	SyncedOpsBMCPort         bool
+	SyncedOpsOutBandIP       bool
+	SyncedOpsOutBandPort     bool
 }
 
 // UpdateAllHostStaticFields returns a HostStaticFields with all fields set to true.
@@ -446,8 +446,8 @@ func UpdateAllHostStaticFields() HostStaticFields {
 		SyncedOpsConsoleHostID:   true,
 		SyncedOpsOutBandType:     true,
 		SyncedOpsOutBandProtocol: true,
-		SyncedOpsBMCIP:           true,
-		SyncedOpsBMCPort:         true,
+		SyncedOpsOutBandIP:       true,
+		SyncedOpsOutBandPort:     true,
 	}
 }
 

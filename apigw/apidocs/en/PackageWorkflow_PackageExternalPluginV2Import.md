@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.74+
+- API Version: v3.0.1-alpha.98+
 - Required Permission: None.
 - Function: Import an external plugin V2 package from a download URL. The interface launches an asynchronous import workflow (download and upload the external V2 package, publish the package, update package visibility) and returns a workflow ID, which can be used to query the import result via the PackageImportResult API.
 
@@ -15,6 +15,7 @@ POST /api/v3/package/workflow/import/v2/external_plugin
 | filename     | string | Yes      | External plugin V2 package file name                |
 | download_url | string | Yes      | External plugin V2 package download URL             |
 | md5          | string | Yes      | MD5 checksum of the external plugin V2 package file |
+| is_shared    | bool   | No       | Whether to publish the package as shared. Defaults to `false`. Only takes effect for requests from the `system` tenant; ignored for other tenants. |
 
 ### Request Example
 
@@ -22,7 +23,8 @@ POST /api/v3/package/workflow/import/v2/external_plugin
 {
   "filename": "external_plugin-1.0.0.tgz",
   "download_url": "https://example.com/packages/external_plugin-1.0.0.tgz",
-  "md5": "5d41402abc4b2a76b9719d911017c592"
+  "md5": "5d41402abc4b2a76b9719d911017c592",
+  "is_shared": false
 }
 ```
 

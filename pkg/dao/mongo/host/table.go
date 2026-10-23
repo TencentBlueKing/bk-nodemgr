@@ -59,8 +59,8 @@ type HostStatic struct {
 	SyncedOpsConsoleHostID   int64  `json:"synced_ops_console_host_id" bson:"synced_ops_console_host_id"`
 	SyncedOpsOutBandType     string `json:"synced_ops_out_band_type" bson:"synced_ops_out_band_type"`
 	SyncedOpsOutBandProtocol string `json:"synced_ops_out_band_protocol" bson:"synced_ops_out_band_protocol"`
-	SyncedOpsBMCIP           string `json:"synced_ops_bmc_ip" bson:"synced_ops_bmc_ip"`
-	SyncedOpsBMCPort         int64  `json:"synced_ops_bmc_port" bson:"synced_ops_bmc_port"`
+	SyncedOpsOutBandIP       string `json:"synced_ops_out_band_ip" bson:"synced_ops_out_band_ip"`
+	SyncedOpsOutBandPort     int64  `json:"synced_ops_out_band_port" bson:"synced_ops_out_band_port"`
 }
 
 // HostTopo represents a host topo relation in CMDB.
@@ -105,8 +105,8 @@ type HostDynamic struct {
 	OpsConsoleHostID   int64  `json:"ops_console_host_id" bson:"ops_console_host_id"`
 	OpsOutBandType     string `json:"ops_out_band_type" bson:"ops_out_band_type"`
 	OpsOutBandProtocol string `json:"ops_out_band_protocol" bson:"ops_out_band_protocol"`
-	OpsBMCIP           string `json:"ops_bmc_ip" bson:"ops_bmc_ip"`
-	OpsBMCPort         int64  `json:"ops_bmc_port" bson:"ops_bmc_port"`
+	OpsOutBandIP       string `json:"ops_out_band_ip" bson:"ops_out_band_ip"`
+	OpsOutBandPort     int64  `json:"ops_out_band_port" bson:"ops_out_band_port"`
 }
 
 var _ base.IData = &Host{}

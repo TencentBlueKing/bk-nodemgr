@@ -22,8 +22,8 @@ POST /api/v3/node/proxy/update_ops_fields
 | ops_console_host_id | int64 | 否 | 带外管理控制台主机 ID |
 | ops_out_band_type | string | 否 | 带外管理类型 |
 | ops_out_band_protocol | string | 否 | 带外管理协议 |
-| ops_bmc_ip | string | 否 | BMC IP 地址 |
-| ops_bmc_port | int64 | 否 | BMC 端口 |
+| ops_out_band_ip | string | 否 | 带外 IP 地址 |
+| ops_out_band_port | int64 | 否 | 带外端口 |
 
 ### 调用示例
 
@@ -35,8 +35,8 @@ POST /api/v3/node/proxy/update_ops_fields
       "ops_console_host_id": 1,
       "ops_out_band_type": "string",
       "ops_out_band_protocol": "string",
-      "ops_bmc_ip": "10.0.0.1",
-      "ops_bmc_port": 22
+      "ops_out_band_ip": "10.0.0.1",
+      "ops_out_band_port": 22
     }
   ]
 }

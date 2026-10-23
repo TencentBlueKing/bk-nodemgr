@@ -6,6 +6,7 @@ require (
 	github.com/RichardKnop/logging v0.0.0-20190827224416-1a693bdd4fae
 	github.com/RichardKnop/machinery/v2 v2.0.16
 	github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1
+	github.com/TencentBlueKing/bk-kms-sdk/go v1.0.0
 	github.com/TencentBlueKing/iam-go-sdk v1.0.1
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/containerd/errdefs v1.0.0
@@ -96,6 +97,7 @@ require (
 	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
+	github.com/emmansun/gmsm v0.41.1 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect

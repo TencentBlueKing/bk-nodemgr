@@ -20,12 +20,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/tracing"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/throttle"
 	"github.com/spf13/cobra"
 )
 
@@ -46,6 +49,12 @@ var (
 )
 
 func main() {
+	tracing.Init()
+	defer func() {
+		_ = tracing.Shutdown(context.Background())
+	}()
+	fmt.Printf("trace-id: %s\n", tracing.TraceID())
+
 	if err := NewRootCommand().Execute(); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
@@ -68,6 +77,12 @@ func NewRootCommand() *cobra.Command {
 			return cmd.Help()
 		},
 	}
+
+	// global flags.
+	rootCmd.PersistentFlags().Float64Var(&throttle.CPULimit, "cpu-limit", 0,
+		"CPU usage limit ratio (0.0~1.0), 0 means unlimited")
+	rootCmd.PersistentFlags().Float64Var(&throttle.DiskIOLimit, "diskio-limit", 0,
+		"disk IO rate limit in MB/s for package content copy, 0 means unlimited")
 
 	// sub commands.
 	rootCmd.AddCommand(node.NewNodeCommand())

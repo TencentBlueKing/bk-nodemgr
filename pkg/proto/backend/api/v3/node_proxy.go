@@ -987,8 +987,8 @@ func (x *NodeProxyUpdateOpsFieldsReq) ConvertParamFromTypes(hosts []*types.Host)
 				item.OpsConsoleHostId = host.Dynamic.OpsConsoleHostID
 				item.OpsOutBandType = host.Dynamic.OpsOutBandType
 				item.OpsOutBandProtocol = host.Dynamic.OpsOutBandProtocol
-				item.OpsBmcIp = host.Dynamic.OpsBMCIP
-				item.OpsBmcPort = host.Dynamic.OpsBMCPort
+				item.OpsOutBandIp = host.Dynamic.OpsOutBandIP
+				item.OpsOutBandPort = host.Dynamic.OpsOutBandPort
 			}
 		}
 		items[idx] = item
@@ -1007,8 +1007,8 @@ func (x *NodeProxyUpdateOpsFieldsReq) ConvertHostToTypes() []*types.Host {
 				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
 				OpsOutBandType:     host.GetOpsOutBandType(),
 				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
-				OpsBMCIP:           host.GetOpsBmcIp(),
-				OpsBMCPort:         host.GetOpsBmcPort(),
+				OpsOutBandIP:       host.GetOpsOutBandIp(),
+				OpsOutBandPort:     host.GetOpsOutBandPort(),
 			},
 		}
 

@@ -40,7 +40,7 @@ Do not update the router only because a new skill exists.
 When placement selects a target owned by a narrower skill, this skill should stop at placement and synchronization boundaries, then hand off actual writing:
 
 - scoped `AGENTS.md`: `.agents/skills/scoped-agentsmd/SKILL.md`
-- README or logic-first docs: `.agents/skills/readme-logic-first/SKILL.md`
+- Code-directory README: `.agents/skills/bk-nodemgr-code-readme/SKILL.md`
 - Proto API Gateway reference docs: `.agents/skills/api-doc/SKILL.md`
 - changelog or release notes: `.agents/skills/changelog-doc/SKILL.md`
 - release version alignment: `.agents/skills/release-version-alignment/SKILL.md`

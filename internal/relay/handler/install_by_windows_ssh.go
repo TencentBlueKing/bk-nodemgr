@@ -84,7 +84,7 @@ func (h *handler) InstallPagentByWindowsSSH(nCtx contextx.IContext, payload []by
 		types.LoginMode(event.LoginMode),
 	)
 	if err != nil {
-		errMsg = "failed to create windows ssh client"
+		errMsg = fmt.Sprintf("failed to create windows ssh client: %v", err)
 		logger.G.Biz(nCtx).WithErr(err).With("ip", event.IP, "port", event.Port, "user", event.User).Error(errMsg)
 
 		return
@@ -168,7 +168,7 @@ func detectWindowsSSHProfile(runner windowsSSHCommandRunner) (string, string, er
 	nativeStdout, nativeStderr, nativeErr := runner.RunCommand(windowsNativeProfileCommand)
 	output += buildLogOutput("validate", "windows ssh native profile", nativeStdout, nativeStderr)
 	if nativeErr != nil {
-		return "", output, errors.New("failed to detect windows ssh native profile")
+		return "", output, fmt.Errorf("failed to detect windows ssh native profile: %w", nativeErr)
 	}
 
 	return windowsSSHProfileNative, output, nil

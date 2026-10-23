@@ -94,10 +94,8 @@ func (act *actionAllocatePluginBindAddress) MaxRetryCount() uint {
 }
 
 // DelayFn returns the retry delay function.
-func (act *actionAllocatePluginBindAddress) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(time.Second)
-	}
+func (act *actionAllocatePluginBindAddress) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do allocates the first unused TCP port allowed by the plugin release.

@@ -48,9 +48,9 @@ Never guess silently.
 
 Use retrieval-led reasoning. Prefer tools over memory.
 
-- Use `serena_find_file` to discover existing `AGENTS.md` files.
-- Use `serena_list_dir` to understand local directory layout.
-- Use `serena_search_for_pattern` to map natural language → directory candidates (search for key path fragments like `router/api-v3`, `pkg/rest`, `dao/mongo`, etc.).
+- Use Glob to discover existing `AGENTS.md` files.
+- Use Read on directories to understand local directory layout.
+- Use Codegraph to map natural language → code scope candidates: `codegraph_explore({query: "<scope files or symbols>", projectPath: "<absolute project path>"})`. Use Glob/Grep to supplement path fragments such as `router/api-v3`, `pkg/rest`, and `dao/mongo`.
 
 Avoid reading large files unless necessary.
 
@@ -97,7 +97,7 @@ Use short categories. Keep it scannable.
 Always include these near the top (exact content can be copied verbatim):
 
 |IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning
-|Required Tools:serena (semantic code ops)|context7 (3rd-party docs)|sequential-thinking (decisions)
+|Required Tools:codegraph (code structure, call paths, impact)|context7 (3rd-party docs)|sequential-thinking (decisions)
 |Language Policy:Chinese for Q&A|English for code/docs/tech discussions
 |Compression Rule:Follow references/AGENTS-compression-guide.md (pipe-index format, concise, no prose/code blocks)
 

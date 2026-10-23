@@ -466,10 +466,10 @@
         "ops_out_band_protocol": {
           "type": "string"
         },
-        "ops_bmc_ip": {
+        "ops_out_band_ip": {
           "type": "string"
         },
-        "ops_bmc_port": {
+        "ops_out_band_port": {
           "type": "integer",
           "format": "int64"
         }
