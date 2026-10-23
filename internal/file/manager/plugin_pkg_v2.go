@@ -452,6 +452,12 @@ func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) (
 		}
 	}
 
+	if _, err := conv.SliceToMap(pkgConfigTemplates, func(template types.PluginPkgConfigTemplate) types.PluginPkgConfigTemplateKey {
+		return template.GetUniqueKey()
+	}); err != nil {
+		return nil, fmt.Errorf("invalid config templates: %w", err)
+	}
+
 	return pkgConfigTemplates, nil
 }
 

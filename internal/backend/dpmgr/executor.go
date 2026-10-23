@@ -763,7 +763,7 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfigRecord(nCtx co
 			HostID: task.Target.Host.HostID,
 			Name:   param.PluginName,
 		}
-		if err := executor.daoProcessConfig.DeleteProcessConfigs(nCtx, processUniqueKey, configNames...); err != nil {
+		if err := executor.daoProcessConfig.DeleteProcessConfigs(nCtx, processUniqueKey, false, configNames...); err != nil {
 			return fmt.Errorf("failed to execute change action plugin delete sub config record: %w", err)
 		}
 	}

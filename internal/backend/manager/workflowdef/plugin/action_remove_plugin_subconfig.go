@@ -139,9 +139,10 @@ func (act *actionRemovePluginSubConfig) Do(ctx *action.InstanceContext) (err err
 
 	configs, _, err := act.daoProcessConfig.ListProcessConfigs(nCtx, types.UnlimitedPage(), &types.ProcessConfigCondition{
 		ExactInclude: &types.ProcessConfigExactFields{
-			HostID:      []int64{deployInfo.Process.HostID},
-			ProcessName: []string{deployInfo.Process.PluginName},
-			Name:        pluginConf.RemoveConfigFileName,
+			HostID:       []int64{deployInfo.Process.HostID},
+			ProcessName:  []string{deployInfo.Process.PluginName},
+			Name:         pluginConf.RemoveConfigFileName,
+			IsMainConfig: []bool{false},
 		},
 	})
 	if err != nil {
