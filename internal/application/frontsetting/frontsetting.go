@@ -80,6 +80,9 @@ type IFrontSetting interface {
 	// UnixSSHPortDefault the front setting field.
 	UnixSSHPortDefault() int
 
+	// OpsOutBandProtocols returns the JSON-encoded list of out-of-band device protocols.
+	OpsOutBandProtocols() string
+
 	// UnassignedNetworkAreaID returns the CMDB network-area ID used for unassigned hosts.
 	UnassignedNetworkAreaID() int64
 
@@ -115,6 +118,7 @@ type FrontSetting struct {
 	windowsWMIPortDefault   int
 	windowsSSHPortDefault   int
 	unixSSHPortDefault      int
+	opsOutBandProtocols     string
 	unassignedNetworkAreaID int64
 
 	enableNotice bool
@@ -159,6 +163,9 @@ type Option struct {
 
 	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
 	UnixSSHPortDefault int
+
+	// OpsOutBandProtocols is the JSON-encoded list of out-of-band device protocols.
+	OpsOutBandProtocols string
 
 	// UnassignedNetworkAreaID is the CMDB network-area ID used for unassigned hosts.
 	UnassignedNetworkAreaID int64
@@ -207,6 +214,7 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		windowsWMIPortDefault:   opt.WindowsWMIPortDefault,
 		windowsSSHPortDefault:   opt.WindowsSSHPortDefault,
 		unixSSHPortDefault:      opt.UnixSSHPortDefault,
+		opsOutBandProtocols:     opt.OpsOutBandProtocols,
 		unassignedNetworkAreaID: opt.UnassignedNetworkAreaID,
 		enableNotice:            opt.EnableNotice,
 		bkIamSystemIDBKNodemgr:  opt.BKIamSystemIDBKNodemgr,
@@ -340,6 +348,11 @@ func (setting *FrontSetting) WindowsSSHPortDefault() int {
 // UnixSSHPortDefault get Unix-like OS SSH port default.
 func (setting *FrontSetting) UnixSSHPortDefault() int {
 	return setting.unixSSHPortDefault
+}
+
+// OpsOutBandProtocols returns the JSON-encoded list of out-of-band device protocols.
+func (setting *FrontSetting) OpsOutBandProtocols() string {
+	return setting.opsOutBandProtocols
 }
 
 // UnassignedNetworkAreaID returns the CMDB network-area ID used for unassigned hosts.

@@ -231,6 +231,7 @@ func (svc *Service) initialCapability() error {
 			WindowsWMIPortDefault:   svc.conf.Front.WindowsWMIPortDefault,
 			WindowsSSHPortDefault:   svc.conf.Front.WindowsSSHPortDefault,
 			UnixSSHPortDefault:      svc.conf.Front.UnixSSHPortDefault,
+			OpsOutBandProtocols:     svc.conf.Front.OpsOutBandProtocols,
 			UnassignedNetworkAreaID: svc.conf.Front.UnassignedNetworkAreaID,
 			EnableNotice:            svc.conf.Notice.Enabled,
 			BKIamSystemIDBKNodemgr:  svc.conf.IAMV3.SystemID,

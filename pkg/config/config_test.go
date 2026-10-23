@@ -46,6 +46,7 @@ access:
 	assert.Equal(t, "<script>window.bkAnalytics=true</script>", svc.BKPaas.AnalysisScript)
 	assert.Equal(t, "bk-nodemgr-app", svc.Access.VirtualUser)
 	assert.Equal(t, int64(-1), svc.Front.UnassignedNetworkAreaID)
+	assert.Equal(t, "[]", svc.Front.OpsOutBandProtocols)
 }
 
 func TestApplicationService_LoadFromFileReadsUnassignedNetworkAreaID(t *testing.T) {

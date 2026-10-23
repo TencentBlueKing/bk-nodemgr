@@ -100,15 +100,32 @@
                         >
                             <template #header>
                                 <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol')" type="input"
-                                    @confirm="(value: string) => handleBatchEdit('ops_out_band_protocol', value)" />
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol')" type="select"
+                                    :options="opsOutBandProtocolOptions" allow-create
+                                    @confirm="handleBatchProtocolEdit" />
                             </template>
                             <template #default="{ row }">
                                 <span v-if="row.ops_out_band_protocol">{{ row.ops_out_band_protocol }}</span>
                                 <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
                             </template>
                             <template #edit="{ row }">
-                                <Input v-model.trim="row.ops_out_band_protocol" />
+                                <Select
+                                    v-model="row.ops_out_band_protocol"
+                                    filterable
+                                    allow-create
+                                    :popover-options="{ boundary: 'parent' }"
+                                    @change="(value: string) => handleProtocolChange(row, value)"
+                                >
+                                    <Select.Option
+                                        v-for="item in opsOutBandProtocols"
+                                        :id="item.name"
+                                        :key="item.name"
+                                        :name="item.name"
+                                        :title="item.description"
+                                    >
+                                        {{ item.name }} ({{ item.port }})
+                                    </Select.Option>
+                                </Select>
                             </template>
                         </VxeColumn>
                         <VxeColumn
@@ -188,6 +205,26 @@ const mainStore = useMainStore();
 
 const businessList = computed(() => mainStore.businessList);
 
+interface OpsOutBandProtocol {
+    name: string;
+    port: number;
+    description: string;
+}
+
+const opsOutBandProtocols = (() => {
+    try {
+        const protocols = JSON.parse(window.PROJECT_CONFIG.OPS_OUT_BAND_PROTOCOLS || '[]');
+        if (!Array.isArray(protocols)) return [];
+        return protocols.filter((item): item is OpsOutBandProtocol => (
+            item && typeof item.name === 'string' && item.name.trim()
+            && Number.isInteger(item.port) && item.port > 0 && item.port <= 65535
+        ));
+    } catch {
+        return [];
+    }
+})();
+const opsOutBandProtocolOptions = opsOutBandProtocols.map(item => ({ id: item.name, name: item.name }));
+
 const tableData = ref<any[]>([]);
 const loading = ref(false);
 const submitting = ref(false);
@@ -209,6 +246,20 @@ const handleCancel = () => {
 const handleBatchEdit = (field: string, value: string) => {
     for (const row of tableData.value) {
         row[field] = value;
+    }
+};
+
+const handleProtocolChange = (row: any, value: string) => {
+    row.ops_out_band_protocol = String(value ?? '').trim();
+    const protocol = opsOutBandProtocols.find(item => item.name === row.ops_out_band_protocol);
+    if (protocol) {
+        row.ops_out_band_port = protocol.port;
+    }
+};
+
+const handleBatchProtocolEdit = (value: string) => {
+    for (const row of tableData.value) {
+        handleProtocolChange(row, value);
     }
 };
 

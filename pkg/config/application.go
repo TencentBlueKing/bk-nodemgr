@@ -44,6 +44,7 @@ const (
 	defaultApplicationFrontWindowsWMIPortDefault         = 135
 	defaultApplicationFrontWindowsSSHPortDefault         = 22
 	defaultApplicationFrontUnixSSHPortDefault            = 22
+	defaultApplicationFrontOpsOutBandProtocols           = "[]"
 	defaultApplicationFrontUnassignedNetworkAreaID int64 = -1
 
 	defaultApplicationBackendTraceServiceName     = "application-client-backend"
@@ -182,6 +183,7 @@ func NewApplicationService() *ApplicationService {
 			WindowsWMIPortDefault:   defaultApplicationFrontWindowsWMIPortDefault,
 			WindowsSSHPortDefault:   defaultApplicationFrontWindowsSSHPortDefault,
 			UnixSSHPortDefault:      defaultApplicationFrontUnixSSHPortDefault,
+			OpsOutBandProtocols:     defaultApplicationFrontOpsOutBandProtocols,
 			UnassignedNetworkAreaID: defaultApplicationFrontUnassignedNetworkAreaID,
 		},
 		Backend: Backend{

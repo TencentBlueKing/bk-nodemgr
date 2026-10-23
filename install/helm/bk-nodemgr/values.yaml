@@ -1236,6 +1236,8 @@ application:
       windowsSSHPortDefault: 22
       ## unixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection, default is 22.
       unixSSHPortDefault: 22
+      ## opsOutBandProtocols is the JSON-encoded list of out-of-band device protocols.
+      opsOutBandProtocols: '[]'
       ## unassignedNetworkAreaID is the CMDB network-area ID used for unassigned hosts, default is -1.
       unassignedNetworkAreaID: -1
       ## bkIAMSaasHost is the BK IAM saas host, default is empty.

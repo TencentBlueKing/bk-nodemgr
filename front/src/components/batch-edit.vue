@@ -19,6 +19,8 @@
         :popover-options="{
           boundary: 'parent'
         }"
+        :allow-create="allowCreate"
+        :filterable="allowCreate"
       >
         <Select.Option
           v-for="item in options"
@@ -83,11 +85,13 @@ interface IProps {
   title: string
   disabled?: boolean
   disabledTip?: string
+  allowCreate?: boolean
 }
 
 const props = withDefaults(defineProps<IProps>(), {
   disabled: false,
   disabledTip: '',
+  allowCreate: false,
 });
 
 const emit = defineEmits(['confirm']);

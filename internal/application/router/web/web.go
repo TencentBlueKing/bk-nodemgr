@@ -129,6 +129,7 @@ func (h *handler) Index(ctx *gin.Context) {
 		"WINDOWS_WMI_PORT_DEFAULT":    h.frontSetting.WindowsWMIPortDefault(),
 		"WINDOWS_SSH_PORT_DEFAULT":    h.frontSetting.WindowsSSHPortDefault(),
 		"UNIX_SSH_PORT_DEFAULT":       h.frontSetting.UnixSSHPortDefault(),
+		"OPS_OUT_BAND_PROTOCOLS":      h.frontSetting.OpsOutBandProtocols(),
 		"UNASSIGNED_NETWORK_AREA_ID":  h.frontSetting.UnassignedNetworkAreaID(),
 		"ENABLE_NOTICE":               h.frontSetting.EnableNotice(),
 		"APP_VERSION":                 version.VERSION,

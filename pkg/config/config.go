@@ -786,6 +786,9 @@ type Front struct {
 	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
 	UnixSSHPortDefault int `yaml:"unixSSHPortDefault" usage:"default port for Unix-like OS SSH connection"`
 
+	// OpsOutBandProtocols is the JSON-encoded list of out-of-band device protocols.
+	OpsOutBandProtocols string `yaml:"opsOutBandProtocols" usage:"JSON-encoded out-of-band device protocols"`
+
 	// UnassignedNetworkAreaID is the CMDB network-area ID used for unassigned hosts.
 	UnassignedNetworkAreaID int64 `yaml:"unassignedNetworkAreaID" usage:"unassigned network-area ID"`
 
