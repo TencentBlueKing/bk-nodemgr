@@ -155,70 +155,67 @@ func (s *Storage) getConfigPolicy(nCtx contextx.IContext, configPolicyID int64) 
 }
 
 // createConfigPolicy creates the config policy.
-func (s *Storage) createConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
+func (s *Storage) createConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (*types.ConfigPolicy, error) {
 	configPolicy.UpdatedAt = time.Now()
 
-	configPolicyID, err := s.daoConfigPolicy.Create(nCtx, configPolicy)
+	policy, err := s.daoConfigPolicy.Create(nCtx, configPolicy)
 	if err != nil {
-		return -1, err
+		return nil, fmt.Errorf("failed to create config policy: %w", err)
 	}
 
-	return configPolicyID, nil
+	return policy, nil
 }
 
 // updateConfigPolicy updates the config policy.
-func (s *Storage) updateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) error {
-	var err error
+func (s *Storage) updateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) (
+	[]*types.ConfigPolicy, error) {
 
-	if err = s.daoConfigPolicy.UpdateMany(nCtx, fields, configPolicy); err != nil {
-		return err
+	policies, err := s.daoConfigPolicy.UpdateMany(nCtx, fields, configPolicy)
+	if err != nil {
+		return policies, fmt.Errorf("failed to update config policy: %w", err)
 	}
 
-	return nil
+	return policies, nil
 }
 
 // deleteManyConfigPolicy deletes the config policies.
-func (s *Storage) deleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	var err error
-
-	if err = s.daoConfigPolicy.DeleteMany(nCtx, configPolicyIDs...); err != nil {
-		return err
+func (s *Storage) deleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
+	policies, err := s.daoConfigPolicy.DeleteMany(nCtx, configPolicyIDs...)
+	if err != nil {
+		return policies, fmt.Errorf("failed to delete config policies: %w", err)
 	}
 
-	return nil
+	return policies, nil
 }
 
 // enableManyConfigPolicy enables the config policies and reassigns global priorities.
-func (s *Storage) enableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	var err error
-
-	if err = s.daoConfigPolicy.EnableMany(nCtx, configPolicyIDs...); err != nil {
-		return err
+func (s *Storage) enableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
+	policies, err := s.daoConfigPolicy.EnableMany(nCtx, configPolicyIDs...)
+	if err != nil {
+		return policies, fmt.Errorf("failed to enable config policies: %w", err)
 	}
 
-	return nil
+	return policies, nil
 }
 
 // disableManyConfigPolicy disables the config policies and clears their priorities.
-func (s *Storage) disableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	var err error
-
-	if err = s.daoConfigPolicy.DisableMany(nCtx, configPolicyIDs...); err != nil {
-		return err
+func (s *Storage) disableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
+	policies, err := s.daoConfigPolicy.DisableMany(nCtx, configPolicyIDs...)
+	if err != nil {
+		return policies, fmt.Errorf("failed to disable config policies: %w", err)
 	}
 
-	return nil
+	return policies, nil
 }
 
 // updatePriorityManyConfigPolicy batch-updates the priority field for the given policy IDs.
-func (s *Storage) updatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) error {
-	var err error
-
-	if err = s.daoConfigPolicy.UpdatePriorityMany(nCtx, priorities); err != nil {
-		return err
+func (s *Storage) updatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) ([]*types.ConfigPolicy, error) {
+	policies, err := s.daoConfigPolicy.UpdatePriorityMany(nCtx, priorities)
+	if err != nil {
+		return policies, fmt.Errorf("failed to update config policy priorities: %w", err)
 	}
 
-	return nil
+	return policies, nil
 }
 
 func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCondition) ([]configpolicy.OptFn, error) {

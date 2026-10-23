@@ -130,16 +130,16 @@ func prepareData(t *testing.T, nCtx contextx.IContext) (IHandler, []int64, []int
 	preparedConfigPolicyIDs := make([]int64, 0)
 	otherTenantConfigPolicyIDs := make([]int64, 0)
 	for _, tt := range tests {
-		configPolicyID, err := h.Create(tt.nCtx, tt.configPolicy)
+		configPolicy, err := h.Create(tt.nCtx, tt.configPolicy)
 		if err != nil {
-			t.Errorf("prepareData() error = %v", err)
+			t.Fatalf("prepareData() error = %v", err)
 		}
 		if tt.otherTenant {
-			otherTenantConfigPolicyIDs = append(otherTenantConfigPolicyIDs, configPolicyID)
+			otherTenantConfigPolicyIDs = append(otherTenantConfigPolicyIDs, configPolicy.ID)
 			continue
 		}
 
-		preparedConfigPolicyIDs = append(preparedConfigPolicyIDs, configPolicyID)
+		preparedConfigPolicyIDs = append(preparedConfigPolicyIDs, configPolicy.ID)
 	}
 
 	return h, preparedConfigPolicyIDs, otherTenantConfigPolicyIDs
@@ -377,13 +377,16 @@ func Test_Create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, err := h.Create(tt.args.nCtx, tt.args.configPolicy)
+			configPolicy, err := h.Create(tt.args.nCtx, tt.args.configPolicy)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if err == nil && id < 0 {
-				t.Errorf("Create() return invalid configpolicy id: %d", id)
+			if err != nil {
+				return
+			}
+			if configPolicy.ID < 0 {
+				t.Errorf("Create() return invalid configpolicy id: %d", configPolicy.ID)
 			}
 		})
 	}
@@ -449,7 +452,7 @@ func Test_UpdateMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := h.UpdateMany(tt.args.nCtx, types.UpdateAllConfigPolicyFields(), tt.args.configPolicys...)
+			_, err := h.UpdateMany(tt.args.nCtx, types.UpdateAllConfigPolicyFields(), tt.args.configPolicys...)
 			if err != nil {
 				t.Logf("UpdateMany() error = %v", err)
 			}
@@ -488,7 +491,7 @@ func Test_EnableMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := h.EnableMany(nCtx, tt.id)
+			_, err := h.EnableMany(nCtx, tt.id)
 			if err != nil {
 				t.Logf("EnableMany() error = %v", err)
 			}
@@ -542,7 +545,7 @@ func Test_DisableMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := h.DisableMany(nCtx, tt.id)
+			_, err := h.DisableMany(nCtx, tt.id)
 			if err != nil {
 				t.Logf("DisableMany() error = %v", err)
 			}
@@ -578,7 +581,7 @@ func Test_EnableMany_ReassignsPriority(t *testing.T) {
 	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 	id0, id1 := preparedConfigPolicyIDs[0], preparedConfigPolicyIDs[1]
 
-	if err := h.EnableMany(nCtx, id0, id1); err != nil {
+	if _, err := h.EnableMany(nCtx, id0, id1); err != nil {
 		t.Fatalf("EnableMany() error = %v", err)
 	}
 
@@ -612,7 +615,7 @@ func Test_UpdatePriorityMany(t *testing.T) {
 
 	priorities := map[int64]int64{id1: 1, id0: 2}
 
-	if err := h.UpdatePriorityMany(nCtx, priorities); err != nil {
+	if _, err := h.UpdatePriorityMany(nCtx, priorities); err != nil {
 		t.Fatalf("UpdatePriorityMany() error = %v", err)
 	}
 
@@ -662,7 +665,7 @@ func Test_DeleteMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := h.DeleteMany(nCtx, tt.id)
+			_, err := h.DeleteMany(nCtx, tt.id)
 			if err != nil {
 				t.Logf("DeleteMany() error = %v", err)
 			}

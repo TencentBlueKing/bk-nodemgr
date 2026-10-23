@@ -43,23 +43,23 @@ type IHandler interface {
 	// Get gets config policy.
 	Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error)
 
-	// Create creates config policy.
-	Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
+	// Create creates config policy and returns its inserted snapshot.
+	Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (*types.ConfigPolicy, error)
 
-	// UpdateMany updates selected config policy fields.
-	UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicies ...*types.ConfigPolicy) error
+	// UpdateMany returns post-update snapshots, including successful mutations before an error.
+	UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicies ...*types.ConfigPolicy) ([]*types.ConfigPolicy, error)
 
-	// DeleteMany deletes config policies by ids.
-	DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
+	// DeleteMany soft-deletes policies and returns pre-delete snapshots, including successes before an error.
+	DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error)
 
-	// EnableMany enables config policies by ids.
-	EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
+	// EnableMany returns post-enable snapshots, including successful mutations before an error.
+	EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error)
 
-	// DisableMany disables config policies by ids.
-	DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
+	// DisableMany returns post-disable snapshots, including successful mutations before an error.
+	DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error)
 
-	// UpdatePriorityMany batch-updates the priority field for the given policy IDs.
-	UpdatePriorityMany(nCtx contextx.IContext, priorities map[int64]int64) error
+	// UpdatePriorityMany returns post-update snapshots, including successful mutations before an error.
+	UpdatePriorityMany(nCtx contextx.IContext, priorities map[int64]int64) ([]*types.ConfigPolicy, error)
 }
 
 type handler struct {
@@ -162,56 +162,63 @@ func (h *handler) Get(nCtx contextx.IContext, configPolicyID int64) (*types.Conf
 	return convertConfigPolicyToTypes(data), nil
 }
 
-// Create creates config policy.
-func (h *handler) Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
+// Create creates config policy and returns its inserted snapshot.
+func (h *handler) Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (*types.ConfigPolicy, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
-		return -1, err
+		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
 
 	if configPolicy == nil {
-		return -1, base.ErrEmptyParamData()
+		return nil, base.ErrEmptyParamData()
 	}
 
 	if err := base.CheckTenantIDMatched(tenantID, configPolicy.TenantID); err != nil {
-		return -1, err
+		return nil, err
 	}
 
 	if configPolicy.Name == "" {
-		return -1, errors.New("config policy name is empty")
+		return nil, errors.New("config policy name is empty")
 	}
 
 	data := convertConfigPolicyFromTypes(configPolicy)
 	data.Version = 1
 
-	return h.tenantDao(tenantID).create(nCtx, data)
+	data, err := h.tenantDao(tenantID).create(nCtx, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return convertConfigPolicyToTypes(data), nil
 }
 
-// UpdateMany updates selected config policy fields.
-func (h *handler) UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicies ...*types.ConfigPolicy) error {
+// UpdateMany updates selected fields and returns snapshots of successful mutations, even on error.
+func (h *handler) UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicies ...*types.ConfigPolicy) (
+	[]*types.ConfigPolicy, error) {
+
 	if err := nCtx.CheckTenantID(); err != nil {
-		return err
+		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
 
 	if len(configPolicies) == 0 {
-		return base.ErrEmptyParamData()
+		return nil, base.ErrEmptyParamData()
 	}
 
 	docs := make([]*base.DocumentFieldUpdate, 0, len(configPolicies))
 	for _, configPolicy := range configPolicies {
 		if configPolicy == nil {
-			return base.ErrInvalidItemInParamList()
+			return nil, base.ErrInvalidItemInParamList()
 		}
 
 		if fields.Name && configPolicy.Name == "" {
-			return errors.New("config policy name is empty")
+			return nil, errors.New("config policy name is empty")
 		}
 
 		if err := base.CheckTenantIDMatched(tenantID, configPolicy.TenantID); err != nil {
-			return err
+			return nil, err
 		}
 
 		filter := append(base.AliveFilter(),
@@ -221,7 +228,7 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFi
 
 		updateFields := generateConfigPolicyUpdates(fields, configPolicy)
 		if len(updateFields) == 0 {
-			return base.ErrInvalidParam(
+			return nil, base.ErrInvalidParam(
 				fmt.Errorf("at least one field must be set to update， policy-id(%d), policy-name(%s)", configPolicy.ID, configPolicy.Name))
 		}
 
@@ -231,7 +238,9 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFi
 		})
 	}
 
-	return h.tenantDao(tenantID).updateMany(nCtx, docs)
+	data, err := h.tenantDao(tenantID).updateMany(nCtx, docs)
+
+	return convertConfigPoliciesToTypes(data), err
 }
 
 func generateConfigPolicyUpdates(fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) map[string]any {
@@ -268,61 +277,78 @@ func generateConfigPolicyUpdates(fields types.ConfigPolicyFields, configPolicy *
 	return updates
 }
 
-// DeleteMany deletes config policies by ids.
-func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
+// DeleteMany soft-deletes policies and returns successful pre-delete snapshots, even on error.
+func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
-		return err
+		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
 
 	if len(configPolicyIDs) == 0 {
-		return base.ErrEmptyParamData()
+		return nil, base.ErrEmptyParamData()
 	}
 
-	return h.tenantDao(tenantID).deleteMany(nCtx, tenantID, configPolicyIDs...)
+	data, err := h.tenantDao(tenantID).deleteMany(nCtx, tenantID, configPolicyIDs...)
+
+	return convertConfigPoliciesToTypes(data), err
 }
 
 // EnableMany enables config policies by ids and reassigns global priorities.
-func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
+func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(configPolicyIDs) == 0 {
-		return base.ErrEmptyParamData()
+		return nil, base.ErrEmptyParamData()
 	}
 
 	tenantID := nCtx.TenantID()
 
-	return h.tenantDao(tenantID).enableMany(nCtx, tenantID, configPolicyIDs...)
+	data, err := h.tenantDao(tenantID).enableMany(nCtx, tenantID, configPolicyIDs...)
+
+	return convertConfigPoliciesToTypes(data), err
 }
 
 // DisableMany disables config policies by ids and sets their priorities to disabled.
-func (h *handler) DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
+func (h *handler) DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(configPolicyIDs) == 0 {
-		return base.ErrEmptyParamData()
+		return nil, base.ErrEmptyParamData()
 	}
 
 	tenantID := nCtx.TenantID()
 
-	return h.tenantDao(tenantID).disableMany(nCtx, tenantID, types.ConfigPolicyPriorityDisabled, configPolicyIDs...)
+	data, err := h.tenantDao(tenantID).disableMany(nCtx, tenantID, types.ConfigPolicyPriorityDisabled, configPolicyIDs...)
+
+	return convertConfigPoliciesToTypes(data), err
 }
 
 // UpdatePriorityMany batch-updates the priority field for the given policy IDs.
-func (h *handler) UpdatePriorityMany(nCtx contextx.IContext, priorities map[int64]int64) error {
+func (h *handler) UpdatePriorityMany(nCtx contextx.IContext, priorities map[int64]int64) ([]*types.ConfigPolicy, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
-		return err
+		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
 	d := h.tenantDao(tenantID)
 
-	return d.updatePriorityMany(nCtx, tenantID, priorities)
+	data, err := d.updatePriorityMany(nCtx, tenantID, priorities)
+
+	return convertConfigPoliciesToTypes(data), err
+}
+
+func convertConfigPoliciesToTypes(data []*ConfigPolicy) []*types.ConfigPolicy {
+	policies := make([]*types.ConfigPolicy, len(data))
+	for idx, policy := range data {
+		policies[idx] = convertConfigPolicyToTypes(policy)
+	}
+
+	return policies
 }
 
 func convertConfigPolicyToTypes(cp *ConfigPolicy) *types.ConfigPolicy {

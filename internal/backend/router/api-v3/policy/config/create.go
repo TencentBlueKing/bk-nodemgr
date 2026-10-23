@@ -47,7 +47,7 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	configPolicy := req.ConvertConfigPolicyToTypes()
 	configPolicy.TenantID = rCtx.TenantID()
 	configPolicy.Version = initVersion
-	configPolicyID, err := h.storageConfigPolicy.CreateConfigPolicy(rCtx, configPolicy)
+	createdPolicy, err := h.storageConfigPolicy.CreateConfigPolicy(rCtx, configPolicy)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create config policy")
 
@@ -55,11 +55,10 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// record event.
-	configPolicy.ID = configPolicyID
-	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeCreate, configPolicy)
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeCreate, createdPolicy)
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
-	resp.ConvertConfigPolicyID(configPolicyID)
+	resp.ConvertConfigPolicyID(createdPolicy.ID)
 
 	return resp.GetData(), nil
 }

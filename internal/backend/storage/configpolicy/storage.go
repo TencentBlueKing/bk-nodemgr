@@ -187,53 +187,85 @@ func (s *Storage) GetConfigPolicy(nCtx contextx.IContext, configPolicyID int64) 
 	return configPolicy, err
 }
 
-// CreateConfigPolicy creates the config policy.
-func (s *Storage) CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
-	var configPolicyID int64
+// CreateConfigPolicy creates the policy and returns its inserted snapshot.
+func (s *Storage) CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (*types.ConfigPolicy, error) {
+	var policy *types.ConfigPolicy
 
 	err := s.WrapFn(nCtx, metricOperationCreateConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
-		configPolicyID, err = s.createConfigPolicy(nCtx, configPolicy)
+		policy, err = s.createConfigPolicy(nCtx, configPolicy)
 
 		return err
 	})
 
-	return configPolicyID, err
+	return policy, err
 }
 
-// UpdateConfigPolicy updates the config policy.
-func (s *Storage) UpdateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) error {
-	return s.WrapFn(nCtx, metricOperationUpdateConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.updateConfigPolicy(nCtx, fields, configPolicy)
+// UpdateConfigPolicy updates the policy and returns snapshots of matched mutations.
+func (s *Storage) UpdateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) (
+	[]*types.ConfigPolicy, error) {
+
+	var policies []*types.ConfigPolicy
+	err := s.WrapFn(nCtx, metricOperationUpdateConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		policies, err = s.updateConfigPolicy(nCtx, fields, configPolicy)
+
+		return err
 	})
+
+	return policies, err
 }
 
-// DeleteManyConfigPolicy deletes the config policies.
-func (s *Storage) DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	return s.WrapFn(nCtx, metricOperationDeleteManyConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.deleteManyConfigPolicy(nCtx, configPolicyIDs...)
+// DeleteManyConfigPolicy returns successful pre-delete snapshots, even on error.
+func (s *Storage) DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
+	var policies []*types.ConfigPolicy
+	err := s.WrapFn(nCtx, metricOperationDeleteManyConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		policies, err = s.deleteManyConfigPolicy(nCtx, configPolicyIDs...)
+
+		return err
 	})
+
+	return policies, err
 }
 
-// EnableManyConfigPolicy enables the config policies.
-func (s *Storage) EnableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	return s.WrapFn(nCtx, metricOperationEnableManyConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.enableManyConfigPolicy(nCtx, configPolicyIDs...)
+// EnableManyConfigPolicy returns successful post-enable snapshots, even on error.
+func (s *Storage) EnableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
+	var policies []*types.ConfigPolicy
+	err := s.WrapFn(nCtx, metricOperationEnableManyConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		policies, err = s.enableManyConfigPolicy(nCtx, configPolicyIDs...)
+
+		return err
 	})
+
+	return policies, err
 }
 
-// DisableManyConfigPolicy disables the config policies.
-func (s *Storage) DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	return s.WrapFn(nCtx, metricOperationDisableManyConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.disableManyConfigPolicy(nCtx, configPolicyIDs...)
+// DisableManyConfigPolicy returns successful post-disable snapshots, even on error.
+func (s *Storage) DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error) {
+	var policies []*types.ConfigPolicy
+	err := s.WrapFn(nCtx, metricOperationDisableManyConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		policies, err = s.disableManyConfigPolicy(nCtx, configPolicyIDs...)
+
+		return err
 	})
+
+	return policies, err
 }
 
-// UpdatePriorityManyConfigPolicy batch-updates the priority field for the given policy IDs.
-func (s *Storage) UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) error {
-	return s.WrapFn(nCtx, metricOperationReorderPrioritiesConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.updatePriorityManyConfigPolicy(nCtx, priorities)
+// UpdatePriorityManyConfigPolicy returns successful post-update snapshots, even on error.
+func (s *Storage) UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) ([]*types.ConfigPolicy, error) {
+	var policies []*types.ConfigPolicy
+	err := s.WrapFn(nCtx, metricOperationReorderPrioritiesConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		policies, err = s.updatePriorityManyConfigPolicy(nCtx, priorities)
+
+		return err
 	})
+
+	return policies, err
 }
 
 // PreviewConfigPolicy previews the merged config for each host.

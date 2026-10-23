@@ -77,14 +77,14 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 	priorities := assignPolicyPriorities(sortedIDs)
 
 	// update priorities.
-	if err := h.storageConfigPolicy.UpdatePriorityManyConfigPolicy(rCtx, priorities); err != nil {
+	reorderedPolicies, err := h.storageConfigPolicy.UpdatePriorityManyConfigPolicy(rCtx, priorities)
+	// Record each successful priority write, including successes before an error.
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeReorderPriorities, reorderedPolicies...)
+	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
-
-	// Record one event per affected policy so the event contains its name and version.
-	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeReorderPriorities, all...)
 
 	resp := new(protoBackend.ConfigPolicyPriorityReorderResp)
 

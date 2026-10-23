@@ -28,18 +28,23 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// recordConfigPolicyEventsByPolicies builds events from policies and records them via the goasync pool.
+// recordConfigPolicyEventsByPolicies snapshots successful mutations before asynchronous persistence.
 func (h *handler) recordConfigPolicyEventsByPolicies(
 	rCtx restserver.IContext,
 	eventType types.ConfigPolicyEventType,
 	policies ...*types.ConfigPolicy,
 ) {
 
+	if len(policies) == 0 {
+		return
+	}
+
 	operator := rCtx.BKUsername()
+	operateTime := time.Now()
 	events := make([]*types.ConfigPolicyEvent, len(policies))
 	for i, cp := range policies {
 		events[i] = &types.ConfigPolicyEvent{
-			TenantID:         rCtx.TenantID(),
+			TenantID:         cp.TenantID,
 			BizID:            cp.BizID,
 			Type:             eventType,
 			ConfigPolicyID:   cp.ID,
@@ -47,25 +52,10 @@ func (h *handler) recordConfigPolicyEventsByPolicies(
 			ConfigPolicyType: cp.Type,
 			Version:          int64(cp.Version),
 			Operator:         operator,
-			OperateTime:      time.Now(),
+			OperateTime:      operateTime,
 		}
 	}
-	h.recordConfigPolicyEvents(rCtx, events...)
-}
 
-// recordConfigPolicyEventsByPolicyIDs queries policies and builds event snapshots before recording them asynchronously.
-func (h *handler) recordConfigPolicyEventsByPolicyIDs(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, policyIDs ...int64) {
-	policies, err := h.getConfigPolicy(rCtx, policyIDs)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get config policy for event recording")
-
-		return
-	}
-
-	h.recordConfigPolicyEventsByPolicies(rCtx, eventType, policies...)
-}
-
-func (h *handler) recordConfigPolicyEvents(rCtx restserver.IContext, events ...*types.ConfigPolicyEvent) {
 	err := h.goAsyncPool.Run(
 		rCtx,
 		func(nCtx contextx.IContext) error {

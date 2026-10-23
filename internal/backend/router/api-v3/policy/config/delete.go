@@ -55,14 +55,14 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// delete the config policy.
-	if err := h.storageConfigPolicy.DeleteManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
+	deletedPolicies, err := h.storageConfigPolicy.DeleteManyConfigPolicy(rCtx, req.GetConfigpolicyId()...)
+	// Record successful deletions even if a later policy failed.
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeDelete, deletedPolicies...)
+	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
-
-	// record event.
-	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeDelete, configpolicy...)
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
 

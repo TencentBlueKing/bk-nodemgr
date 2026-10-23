@@ -45,23 +45,23 @@ type IDaoConfigPolicy interface {
 	// GetConfigPolicy gets the config policy.
 	GetConfigPolicy(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error)
 
-	// CreateConfigPolicy creates the config policy.
-	CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
+	// CreateConfigPolicy creates the policy and returns its inserted snapshot.
+	CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (*types.ConfigPolicy, error)
 
-	// UpdateConfigPolicy updates the config policy.
-	UpdateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) error
+	// UpdateConfigPolicy returns post-update snapshots of matched policies.
+	UpdateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) ([]*types.ConfigPolicy, error)
 
-	// DeleteManyConfigPolicy deletes the config policies.
-	DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
+	// DeleteManyConfigPolicy returns pre-delete snapshots, including successful mutations before an error.
+	DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error)
 
-	// EnableManyConfigPolicy enables the config policies.
-	EnableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
+	// EnableManyConfigPolicy returns post-enable snapshots, including successful mutations before an error.
+	EnableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error)
 
-	// DisableManyConfigPolicy disables the config policies.
-	DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
+	// DisableManyConfigPolicy returns post-disable snapshots, including successful mutations before an error.
+	DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) ([]*types.ConfigPolicy, error)
 
-	// UpdatePriorityManyConfigPolicy batch-updates the priority field for the given policy IDs.
-	UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) error
+	// UpdatePriorityManyConfigPolicy returns post-update snapshots, including successful mutations before an error.
+	UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) ([]*types.ConfigPolicy, error)
 }
 
 // IDaoConfigPolicyNode defines the interface for config policy node.

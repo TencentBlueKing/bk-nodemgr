@@ -20,6 +20,8 @@
 package configpolicy
 
 import (
+	"errors"
+	"fmt"
 	"maps"
 	"time"
 
@@ -78,28 +80,28 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	}
 }
 
-func (d *dao) create(nCtx contextx.IContext, configPolicy *ConfigPolicy) (int64, error) {
+func (d *dao) create(nCtx contextx.IContext, configPolicy *ConfigPolicy) (*ConfigPolicy, error) {
 	newSequence, err := d.counter.Generate(nCtx, tableNamePrefix)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	prioritySeq, err := d.counter.Generate(nCtx, counterKeyPriority)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	configPolicy.Raw.ConfigPolicyID = newSequence
 	configPolicy.Raw.Priority = prioritySeq + 1
 	if err := d.Create(nCtx, configPolicy); err != nil {
-		return -1, err
+		return nil, err
 	}
 
-	return newSequence, nil
+	return configPolicy, nil
 }
 
-func (d *dao) updateMany(nCtx contextx.IContext, updates []*base.DocumentFieldUpdate) error {
-	models := make([]mongo.WriteModel, 0, len(updates))
+func (d *dao) updateMany(nCtx contextx.IContext, updates []*base.DocumentFieldUpdate) ([]*ConfigPolicy, error) {
+	policies := make([]*ConfigPolicy, 0, len(updates))
 	for _, update := range updates {
 		nowTime := time.Now()
 		setFields := bson.M{
@@ -115,139 +117,137 @@ func (d *dao) updateMany(nCtx contextx.IContext, updates []*base.DocumentFieldUp
 			{Key: "$set", Value: setFields},
 			{Key: "$inc", Value: bson.M{FieldKeyVersion: 1}},
 		}
-		models = append(models, mongo.NewUpdateOneModel().
-			SetFilter(update.Filter).
-			SetUpdate(updateDoc).
-			SetUpsert(false))
+		policy, err := d.updateWithSnapshot(nCtx, update.Filter, updateDoc, options.After)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			continue
+		}
+		if err != nil {
+			return policies, err
+		}
+		policies = append(policies, policy)
 	}
 
-	result, err := d.client.BulkWrite(nCtx, models)
-	if err != nil {
-		return err
+	if len(policies) > 0 {
+		logger.G.Sys().With("matched-count", len(policies)).Info("updated config policies")
 	}
 
-	if result.MatchedCount > 0 {
-		logger.G.Sys().With("matched-count", result.MatchedCount).Info("updated config policies")
-	}
-
-	return nil
+	return policies, nil
 }
 
-func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, configPolicyIDs ...int64) error {
-	models := buildDeleteManyParams(tenantID, configPolicyIDs...)
-
-	result, err := d.client.BulkWrite(nCtx, models)
-	if err != nil {
-		return err
+func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, configPolicyIDs ...int64) ([]*ConfigPolicy, error) {
+	policies := make([]*ConfigPolicy, 0, len(configPolicyIDs))
+	for _, id := range configPolicyIDs {
+		filter := configPolicyMutationFilter(tenantID, id)
+		// Preserve soft deletion and return the policy immediately before it is deleted.
+		policy, err := d.updateWithSnapshot(nCtx, filter, base.BuildDeleteParam(), options.Before)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			continue
+		}
+		if err != nil {
+			return policies, err
+		}
+		policies = append(policies, policy)
 	}
 
-	if result.MatchedCount > 0 {
-		logger.G.Sys().With("deleted-count", result.MatchedCount).Info("deleted config policies")
+	if len(policies) > 0 {
+		logger.G.Sys().With("deleted-count", len(policies)).Info("deleted config policies")
 	}
 
-	return nil
+	return policies, nil
 }
 
-func (d *dao) enableMany(nCtx contextx.IContext, tenantID string, configPolicyIDs ...int64) error {
+func (d *dao) enableMany(nCtx contextx.IContext, tenantID string, configPolicyIDs ...int64) ([]*ConfigPolicy, error) {
 	n := int64(len(configPolicyIDs))
 	seqBase, err := d.counter.GenerateN(nCtx, counterKeyPriority, n)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	models := buildEnableManyParams(tenantID, seqBase, configPolicyIDs...)
+	policies := make([]*ConfigPolicy, 0, len(configPolicyIDs))
+	for i, id := range configPolicyIDs {
+		update := bson.D{{Key: "$set", Value: bson.M{
+			base.FieldKeyIsDeleted: false,
+			base.FieldKeyUpdatedAt: time.Now(),
+			FieldKeyEnabled:        true,
+			FieldKeyPriority:       seqBase + int64(i) + 1,
+		}}}
+		policy, err := d.updateWithSnapshot(nCtx, configPolicyMutationFilter(tenantID, id), update, options.After)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			continue
+		}
+		if err != nil {
+			return policies, err
+		}
+		policies = append(policies, policy)
+	}
 
-	_, err = d.client.BulkWrite(nCtx, models)
-
-	return err
+	return policies, nil
 }
 
-func (d *dao) disableMany(nCtx contextx.IContext, tenantID string, priorityDisabled int64, configPolicyIDs ...int64) error {
-	filter := append(base.AliveFilter(),
-		bson.E{Key: FieldKeyConfigPolicyID, Value: bson.D{{Key: "$in", Value: configPolicyIDs}}},
-		bson.E{Key: FieldKeyTenantID, Value: tenantID},
-	)
-
-	nowTime := time.Now()
-	update := bson.D{
-		{Key: "$set", Value: bson.M{
+func (d *dao) disableMany(nCtx contextx.IContext, tenantID string, priorityDisabled int64, configPolicyIDs ...int64) ([]*ConfigPolicy, error) {
+	policies := make([]*ConfigPolicy, 0, len(configPolicyIDs))
+	for _, id := range configPolicyIDs {
+		update := bson.D{{Key: "$set", Value: bson.M{
 			base.FieldKeyIsDeleted: false,
-			base.FieldKeyUpdatedAt: nowTime,
+			base.FieldKeyUpdatedAt: time.Now(),
 			FieldKeyEnabled:        false,
 			FieldKeyPriority:       priorityDisabled,
-		}},
-	}
-
-	_, err := d.client.UpdateMany(nCtx, filter, update)
-
-	return err
-}
-
-func (d *dao) updatePriorityMany(nCtx contextx.IContext, tenantID string, priorities map[int64]int64) error {
-	if len(priorities) == 0 {
-		return nil
-	}
-
-	models := buildUpdatePriorityManyParams(tenantID, priorities)
-
-	_, err := d.client.BulkWrite(nCtx, models)
-
-	return err
-}
-
-func buildEnableManyParams(tenantID string, seqBase int64, configPolicyIDs ...int64) []mongo.WriteModel {
-	models := make([]mongo.WriteModel, 0, len(configPolicyIDs))
-
-	for i, id := range configPolicyIDs {
-		filter := append(base.AliveFilter(),
-			bson.E{Key: FieldKeyConfigPolicyID, Value: id},
-			bson.E{Key: FieldKeyTenantID, Value: tenantID})
-
-		nowTime := time.Now()
-		update := bson.D{
-			{Key: "$set", Value: bson.M{
-				base.FieldKeyIsDeleted: false,
-				base.FieldKeyUpdatedAt: nowTime,
-				FieldKeyEnabled:        true,
-				FieldKeyPriority:       seqBase + int64(i) + 1,
-			}},
+		}}}
+		policy, err := d.updateWithSnapshot(nCtx, configPolicyMutationFilter(tenantID, id), update, options.After)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			continue
 		}
-
-		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
+		if err != nil {
+			return policies, err
+		}
+		policies = append(policies, policy)
 	}
 
-	return models
+	return policies, nil
 }
-func buildUpdatePriorityManyParams(tenantID string, priorities map[int64]int64) []mongo.WriteModel {
-	models := make([]mongo.WriteModel, 0, len(priorities))
 
+func (d *dao) updatePriorityMany(nCtx contextx.IContext, tenantID string, priorities map[int64]int64) ([]*ConfigPolicy, error) {
+	policies := make([]*ConfigPolicy, 0, len(priorities))
 	for id, priority := range priorities {
-		filter := append(base.AliveFilter(),
-			bson.E{Key: FieldKeyConfigPolicyID, Value: id},
-			bson.E{Key: FieldKeyTenantID, Value: tenantID})
-
-		nowTime := time.Now()
-		update := bson.D{
-			{Key: "$set", Value: bson.M{
-				base.FieldKeyIsDeleted: false,
-				base.FieldKeyUpdatedAt: nowTime,
-				FieldKeyPriority:       priority,
-			}},
+		update := bson.D{{Key: "$set", Value: bson.M{
+			base.FieldKeyIsDeleted: false,
+			base.FieldKeyUpdatedAt: time.Now(),
+			FieldKeyPriority:       priority,
+		}}}
+		policy, err := d.updateWithSnapshot(nCtx, configPolicyMutationFilter(tenantID, id), update, options.After)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			continue
 		}
-
-		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
+		if err != nil {
+			return policies, err
+		}
+		policies = append(policies, policy)
 	}
 
-	return models
+	return policies, nil
 }
 
-// buildDeleteManyParams build delete many params.
-func buildDeleteManyParams(tenantID string, configPolicyIDs ...int64) []mongo.WriteModel {
-	filter := bson.D{
-		bson.E{Key: FieldKeyConfigPolicyID, Value: bson.D{bson.E{Key: "$in", Value: configPolicyIDs}}},
-		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
+func configPolicyMutationFilter(tenantID string, id int64) bson.D {
+	return append(base.AliveFilter(),
+		bson.E{Key: FieldKeyConfigPolicyID, Value: id},
+		bson.E{Key: FieldKeyTenantID, Value: tenantID})
+}
 
-	update := base.BuildDeleteParam()
+// updateWithSnapshot preserves ErrNoDocuments so batch callers can skip unmatched policies.
+func (d *dao) updateWithSnapshot(nCtx contextx.IContext, filter, update bson.D, returnDocument options.ReturnDocument) (*ConfigPolicy, error) {
+	result := d.client.FindOneAndUpdate(nCtx, filter, update,
+		options.FindOneAndUpdate().SetReturnDocument(returnDocument).SetUpsert(false))
+	if err := result.Err(); err != nil {
+		return nil, fmt.Errorf("failed to mutate config policy: %w", err)
+	}
 
-	return []mongo.WriteModel{mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(false)}
+	table := new(TableConfigPolicy)
+	if err := result.Decode(table); err != nil {
+		return nil, fmt.Errorf("failed to decode config policy snapshot: %w", err)
+	}
+	if table.Data == nil {
+		return nil, errors.New("config policy snapshot is missing data")
+	}
+
+	return table.Data, nil
 }

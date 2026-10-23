@@ -52,14 +52,14 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
 	}
 
-	if err := h.storageConfigPolicy.EnableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
+	enabledPolicies, err := h.storageConfigPolicy.EnableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...)
+	// Record successful mutations even if a later policy failed.
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeEnable, enabledPolicies...)
+	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
-
-	// record event.
-	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeEnable, policies...)
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
 
