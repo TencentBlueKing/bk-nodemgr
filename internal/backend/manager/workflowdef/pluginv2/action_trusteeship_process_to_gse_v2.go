@@ -87,10 +87,8 @@ func (act *actionTrusteeshipProcessV2) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionTrusteeshipProcessV2) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionTrusteeshipProcessV2) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do this func define what the action will do.
