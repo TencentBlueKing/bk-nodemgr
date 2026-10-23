@@ -86,7 +86,7 @@ func (c *Client) Head() *restclient.Request {
 
 func (c *Client) getCommonHeader() http.Header {
 	apigwHeader := http.Header{}
-	apigwHeader.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
+	apigwHeader.Set(apigwheader.BKClientRIDKey, identifier.GenRequestID())
 
 	return apigwHeader
 }

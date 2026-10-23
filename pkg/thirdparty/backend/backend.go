@@ -76,7 +76,7 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 func (c *cli) getHeader(nCtx contextx.IContext) http.Header {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
-	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
+	header.Set(apigwheader.BKClientRIDKey, identifier.GenRequestID())
 	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWAppConfig.GetAuthHeaderWithBKUsername(nCtx.BKUsername()))
 
 	return header

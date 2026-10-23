@@ -75,7 +75,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get gse common header.
 func (c *cli) getCommonHeader() http.Header {
 	header := http.Header{}
-	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
+	header.Set(apigwheader.BKGWServerRIDKey, identifier.GenRequestID())
 	if tenant.GetMode() == tenant.ModeMultiple {
 		header.Set(restheader.BKTenantIDKey, tenant.SystemTenantID)
 	}

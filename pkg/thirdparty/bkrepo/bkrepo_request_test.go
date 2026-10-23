@@ -96,7 +96,7 @@ func assertObservedRequests(
 		assert.Equal(t, expected.query, got.query)
 		assert.Equal(t, expected.body, got.body)
 		assert.Equal(t, expectedAuthHeader(), got.header.Get(HeaderKeyAuth))
-		assert.NotEmpty(t, got.header.Get(apigwheader.BKGWRIDKey))
+		assert.NotEmpty(t, got.header.Get(apigwheader.BKGWServerRIDKey))
 
 		if wantTenantID == "" {
 			assert.Empty(t, got.header.Values(restheader.BKTenantIDKey))

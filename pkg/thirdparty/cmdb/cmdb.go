@@ -26,7 +26,6 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
@@ -91,7 +90,6 @@ func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
 	header.Set(HeaderKeyLanguage, HeaderValueLanguage)
-	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
 	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
 
 	return header, nil
