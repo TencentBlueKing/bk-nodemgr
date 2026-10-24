@@ -52,6 +52,9 @@ data:
             plugin_configs: {{ .plugin_configs | toYaml | nindent 14 }}
             {{- end }}
         {{- end }}
+        {{- if .mcp_servers }}
+        mcp_servers: {{ .mcp_servers | toYaml | nindent 10 }}
+        {{- end }}
     {{- end }}
 
     resource_docs:
