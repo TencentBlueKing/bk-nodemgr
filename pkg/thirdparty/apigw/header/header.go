@@ -40,8 +40,8 @@ const (
 	BKGWTenantIDKey = "X-Bk-Tenant-Id"
 )
 
-// BKRIDGetter request id value.
-func BKRIDGetter(req *http.Request) string {
+// BKGWServerRIDGetter gets the gateway-generated request ID received by the server.
+func BKGWServerRIDGetter(req *http.Request) string {
 	id := req.Header.Get(BKGWServerRIDKey)
 
 	return id
