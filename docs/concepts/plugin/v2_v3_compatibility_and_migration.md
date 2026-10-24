@@ -49,7 +49,7 @@ V2 存在若干历史包袱：
 V3 重新设计：
 
 - 目录改为 `plugin/` (`pkg/deployconstant/plugin_deploy_constant.go:26`)，单数。
-- 移除 `subconfig_path` 变量，子配置路径由 `definition.yaml` 中各子配置的 `filePath` 显式声明 (`docs/developer/plugin_pkg_build_guide.md:36-42`)，更安全（可防路径遍历）也更灵活。
+- V3 通过 `PluginInfo.SubConfigPath` 提供固定子配置目录；`definition.yaml` 中子配置的 `filePath` 必须为 `etc/<plugin_name>`，导入时校验，与渲染、下发和删除目录保持一致（`docs/developer/plugin_pkg_build_guide.md`）。
 - 模板渲染推荐 `go-template`，渲染上下文使用 PascalCase (`internal/backend/manager/workflowdef/plugin/action_ensure_and_update_plugin_config_details.go:237-252`)。
 - GSE namespace 改为 `bk-nodemgr` (`pkg/thirdparty/gse/handler_proc.go:67`)。
 
@@ -139,7 +139,7 @@ WaitPluginInstallerComplete → StartProcess → UpdateProcess
 
 ### 5.4 V3 子配置（子插件）管理
 
-- 子配置路径由 `definition.yaml` 中各子配置的 `filePath` 声明：`docs/developer/plugin_pkg_build_guide.md:39-42`。
+- 配置目录固定：主配置的 `filePath` 为 `etc`，子配置为 `etc/<plugin_name>`；模板通过 `PluginInfo.SubConfigPath` 获取子配置绝对目录（`docs/developer/plugin_pkg_build_guide.md`）。
 - `FetchProcessSubConfigIntoDeployment`：查询 `IsMainConfig: false` 的 ProcessConfig 并注入 deployment（`action_fetch_process_config_into_deployment.go`）。
 - ApplyPluginSubConfig 工作流：`oper_apply_plugin_subconfig.go`，含 `OverwritePluginConfigForCompatibility` + `ReloadProcess`。
 - API 路由：`internal/backend/router/api-v3/plugin/apply_subconfig.go:23` (`ApplySubConfig` handler)。
@@ -154,7 +154,7 @@ WaitPluginInstallerComplete → StartProcess → UpdateProcess
 | 部署目录       | `plugins/`（复数）                    | `plugin/`（单数）                       | `action_inject_plugin_base_runtime_v2.go:215` vs `pkg/deployconstant/plugin_deploy_constant.go:26`          |
 | GSE namespace  | `nodeman`                             | `bk-nodemgr`                            | `pluginv2/pluginv2.go:48` vs `pkg/thirdparty/gse/handler_proc.go:67`                                        |
 | GSE 进程 key   | `agentID:nodeman:procName`            | `agentID:bk-nodemgr:procName`           | `pkg/thirdparty/gse/handler_proc.go:145`                                                                    |
-| 子配置路径变量 | 提供 `subconfig_path`（固定）         | 不提供，改用 `filePath` 显式声明        | `action_ensure_and_update_plugin_config_details_v2.go:538` vs `docs/developer/plugin_pkg_build_guide.md:36` |
+| 子配置路径变量 | 提供 `subconfig_path`（固定） | 提供 `PluginInfo.SubConfigPath`（固定） | `pkg/deployconstant/plugin_deploy_constant.go`、`docs/developer/plugin_pkg_build_guide.md` |
 | 模板渲染器     | Jinja2 为主                           | go-template（推荐）                     | `docs/developer/plugin_pkg_build_guide.md:145-149`                                                          |
 | 渲染上下文命名 | —                                     | PascalCase                              | `action_ensure_and_update_plugin_config_details.go:237-252`                                                 |
 | 安装入口       | `LaunchPluginEnsurePluginV2`          | `LaunchInstallPlugin`                   | `plugin_v2_manager.go` vs `plugin_manager.go`                                                               |

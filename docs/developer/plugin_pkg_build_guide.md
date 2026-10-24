@@ -33,13 +33,13 @@
 
 在插件配置模板文件中，可以使用以下变量进行渲染：
 
-> v3 插件中不再提供 `子配置路径` 变量，请自行使用插件安装路径或插件配置路径等变量自行组合拼接
+> 主配置固定下发到 `<PluginHomeDir>/etc/<name>`，子配置固定下发到 `<PluginHomeDir>/etc/<plugin_name>/<name>`。
 >
-> nodemgr 在下发主配置文件时默认会将配置文件下发到插件配置路径下
+> `name` 表示生成文件名；`filePath` 表示相对于插件部署目录 `PluginHomeDir` 的放置目录，不包含文件名。
 >
-> nodemgr 在下发子配置文件时，会严格按照插件包的 `definition.yaml` 文件中各子配置的 `filePath` 路径进行下发
+> 导入时，主配置的 `filePath` 必须为 `etc`，子配置必须为 `etc/<plugin_name>`，不一致则拒绝导入。
 >
-> 请确保插件包中 `definition.yaml` 文件内各子配置的 `filePath` 路径安全合法，避免出现路径遍历等安全问题
+> V3 模板通过 `.PluginInfo.SubConfigPath` 获取子配置绝对目录；渲染、下发和删除均使用这一固定目录。
 
 ```yaml
 PluginInfo:
@@ -48,7 +48,8 @@ PluginInfo:
   DataPath: 插件数据路径
   PidPath: 插件PID文件路径
   SetupPath: 插件安装路径
-  ConfigPath: 插件配置路径
+  ConfigPath: 插件主配置目录，即 <PluginHomeDir>/etc
+  SubConfigPath: 插件子配置目录，即 <PluginHomeDir>/etc/<plugin_name>
   HostIDPath: 主机ID文件路径
   PluginIPC: PluginIPC路径，windows为端口号，linux为文件路径
   DataIPC: DataIPC路径，windows为端口号，linux为文件路径
@@ -283,8 +284,8 @@ bindAddressAllocated:
 > control中必须提供start、stop、restart、reload和version命令，其他命令可选
 
 - configTemplates：插件配置模板列表，描述插件支持的配置模板信息。
-  - name：配置文件名称
-  - filePath：配置模板文件存放路径
+  - name：生成的配置文件名称
+  - filePath：生成文件相对于 `PluginHomeDir` 的放置目录；主配置必须为 `etc`，子配置必须为 `etc/<plugin_name>`，不包含文件名
   - isMainConfig：是否为主配置文件, 支持 true（是）、 false（否），只能有一个主配置文件
   - sourcePath：配置模板文件在插件包中的相对路径, 相对于插件包内的`plugins_{{os_type}}_{{arch}}`目录, 以`/`分隔符分隔
   - variables：提供给页面配置的变量列表
