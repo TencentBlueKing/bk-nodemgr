@@ -75,10 +75,8 @@ func (act *actionPackageReleasePluginEnable) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
-func (act *actionPackageReleasePluginEnable) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionPackageReleasePluginEnable) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 func (act *actionPackageReleasePluginEnable) Tags() []action.Tag {

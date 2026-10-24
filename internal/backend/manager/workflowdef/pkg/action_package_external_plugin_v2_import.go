@@ -76,10 +76,8 @@ func (act *actionPackageImportExternalPluginV2PkgFetchAndUpload) MaxRetryCount()
 	return 3 // nolint: mnd
 }
 
-func (act *actionPackageImportExternalPluginV2PkgFetchAndUpload) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionPackageImportExternalPluginV2PkgFetchAndUpload) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 func (act *actionPackageImportExternalPluginV2PkgFetchAndUpload) Tags() []action.Tag {
