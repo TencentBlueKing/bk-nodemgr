@@ -54,7 +54,7 @@ POST /api/v3/node/proxy/install_check
     "message": "ok",
     "request_id": "abc123",
     "data": {
-        "result": [
+        "results": [
             {
                 "bk_host_id": 1001,
                 "status": "normal_install",
@@ -89,9 +89,9 @@ POST /api/v3/node/proxy/install_check
 
 | 参数名称 | 参数类型 | 描述 |
 |---------|---------|------|
-| result | array | 检查结果列表，与请求 host 列表顺序对应 |
+| results | array | 检查结果列表，与请求 host 列表顺序对应 |
 
-**data.result[n]**
+**data.results[n]**
 
 | 参数名称 | 参数类型 | 描述 |
 |---------|---------|------|
@@ -99,20 +99,23 @@ POST /api/v3/node/proxy/install_check
 | status | string | 检查状态，详见下方状态说明 |
 | matched | object | 匹配到的已有主机信息，无匹配时为 null |
 
-**data.result[n].status 取值说明**
+**data.results[n].status 取值说明**
 
 | 取值 | 描述 |
 |------|------|
 | register_to_cmdb_and_install | 需先注册至CMDB再安装 |
 | normal_install | 可直接安装 |
 | host_not_found | 主机不存在 |
-| network_unit_not_found | 网络单元不存在 |
+| networkunit_not_found | 网络单元不存在 |
 | duplicated_inner_ip | 内网IPv4地址重复 |
-| duplicated_inner_ip_v6 | 内网IPv6地址重复 |
+| duplicated_inner_ipv6 | 内网IPv6地址重复 |
 | mismatched_inner_ip | 内网IPv4地址不匹配 |
-| mismatched_inner_ip_v6 | 内网IPv6地址不匹配 |
+| mismatched_inner_ipv6 | 内网IPv6地址不匹配 |
+| mismatched_biz_id | 业务ID不匹配 |
+| mismatched_networkarea_id | 网络区域ID不匹配 |
+| invalid_node_role | 节点角色不允许安装Proxy |
 
-**data.result[n].matched**
+**data.results[n].matched**
 
 | 参数名称 | 参数类型 | 描述 |
 |---------|---------|------|

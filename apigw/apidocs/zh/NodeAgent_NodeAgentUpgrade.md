@@ -20,6 +20,8 @@ POST /api/v3/node/agent/upgrade
 |---------|----------|------|------|
 | bk_host_id | int64 | 是 | 主机ID |
 | target_version | string | 是 | 目标Agent版本号 |
+| bk_networkunit_id | int64 | 否 | 目标网络单元ID；未指定时保留当前网络单元 |
+| cpu_arch | string | 否 | CPU架构 |
 | force | bool | 否 | 是否强制重启，默认false。设为true时跳过优雅重启流程直接强制重启 |
 | graceful_restart_timeout_sec | int64 | 否 | 优雅重启超时时间（秒），超时后将强制重启。默认0表示使用系统默认超时 |
 

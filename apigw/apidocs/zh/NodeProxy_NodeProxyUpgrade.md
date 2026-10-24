@@ -13,23 +13,18 @@ POST /api/v3/node/proxy/upgrade
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|---------|------|------|
 | host | array | 是 | 主机列表，详见下方 host 参数说明 |
-| target_version | array | 否 | 目标版本列表，详见下方 target_version 参数说明 |
 
 **host[n]**
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|---------|------|------|
 | bk_host_id | int64 | 是 | 主机ID |
+| target_version | string | 是 | 目标Proxy版本号 |
+| bk_networkunit_id | int64 | 否 | 目标网络单元ID；未指定时保留当前网络单元 |
+| cpu_arch | string | 否 | CPU架构 |
 | force | bool | 否 | 是否强制升级，默认 false |
-| graceful_restart_timeout_sec | int64 | 否 | 优雅重启超时时间（秒） |
+| graceful_restart_timeout_sec | int64 | 否 | 优雅重启超时时间（秒）；`force=false` 时必须大于 0 |
 
-**target_version[n]**
-
-| 参数名称 | 参数类型 | 必选 | 描述 |
-|---------|---------|------|------|
-| version | string | 是 | 版本号 |
-| cpu_arch | string | 是 | CPU架构：386 / arm / arm64 / amd64 |
-| os_type | string | 是 | 操作系统类型：linux / windows / darwin |
 
 ### 调用示例
 
@@ -38,15 +33,10 @@ POST /api/v3/node/proxy/upgrade
     "host": [
         {
             "bk_host_id": 1001,
+            "target_version": "2.1.0",
+            "cpu_arch": "amd64",
             "force": false,
             "graceful_restart_timeout_sec": 60
-        }
-    ],
-    "target_version": [
-        {
-            "version": "2.1.0",
-            "cpu_arch": "amd64",
-            "os_type": "linux"
         }
     ]
 }

@@ -54,7 +54,7 @@ POST /api/v3/node/proxy/install_check
     "message": "ok",
     "request_id": "abc123",
     "data": {
-        "result": [
+        "results": [
             {
                 "bk_host_id": 1001,
                 "status": "normal_install",
@@ -89,9 +89,9 @@ POST /api/v3/node/proxy/install_check
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| result | array | Check results, in the same order as the request host list |
+| results | array | Check results, in the same order as the request host list |
 
-**data.result[n]**
+**data.results[n]**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -99,20 +99,23 @@ POST /api/v3/node/proxy/install_check
 | status | string | Check status, see status values below |
 | matched | object | Matched existing host info, null if no match |
 
-**data.result[n].status values**
+**data.results[n].status values**
 
 | Value | Description |
 |-------|-------------|
 | register_to_cmdb_and_install | Must register to CMDB before installation |
 | normal_install | Ready for direct installation |
 | host_not_found | Host does not exist |
-| network_unit_not_found | Network unit does not exist |
+| networkunit_not_found | Network unit does not exist |
 | duplicated_inner_ip | Inner IPv4 address already in use |
-| duplicated_inner_ip_v6 | Inner IPv6 address already in use |
+| duplicated_inner_ipv6 | Inner IPv6 address already in use |
 | mismatched_inner_ip | Inner IPv4 address does not match |
-| mismatched_inner_ip_v6 | Inner IPv6 address does not match |
+| mismatched_inner_ipv6 | Inner IPv6 address does not match |
+| mismatched_biz_id | Business ID does not match |
+| mismatched_networkarea_id | Network area ID does not match |
+| invalid_node_role | Node role is not allowed to install Proxy |
 
-**data.result[n].matched**
+**data.results[n].matched**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|

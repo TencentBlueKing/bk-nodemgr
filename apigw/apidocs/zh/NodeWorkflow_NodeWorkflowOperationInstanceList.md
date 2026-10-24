@@ -1,7 +1,7 @@
 ### 描述
 
 - 该接口提供版本：v3.0.1-alpha.18+。
-- 该接口所需权限：agent_operate（操作Agent）、proxy_operate（操作Proxy）。
+- 该接口所需权限：agent_history_view（查看 Agent 历史）、proxy_history_view（查看 Proxy 历史）。
   - 权限说明：根据任务流涉及的节点角色动态收敛。若任务流仅涉及 Agent 节点，则只需 agent_operate；若仅涉及 Proxy 节点，则只需
     proxy_operate；若涉及两者或角色未知，则需要两者。
 - 该接口功能描述：按操作 ID 或操作实例 ID 查询节点任务流操作实例列表，支持仅返回总数。

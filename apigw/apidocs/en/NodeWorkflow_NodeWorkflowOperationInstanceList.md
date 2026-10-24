@@ -1,8 +1,8 @@
 ### Description
 
 - API Version: v3.0.1-alpha.18+.
-- Required Permission: agent_operate (Operate Agent), proxy_operate (Operate Proxy).
-  - Permission Note: Dynamically narrowed based on node roles in the workflow. If the workflow only involves Agent nodes, only agent_operate is required; if only Proxy nodes, only proxy_operate is required; if both or unknown roles, both are required.
+- Required Permission: agent_history_view (View Agent History), proxy_history_view (View Proxy History).
+  - Permission Note: Dynamically narrowed based on node roles in the workflow. If the workflow only involves Agent nodes, only agent_history_view is required; if only Proxy nodes, only proxy_history_view is required; if both or unknown roles, both are required.
 - Function: Query node workflow operation instances by operation IDs or operation instance IDs, with support for count-only mode.
 
 ### URL

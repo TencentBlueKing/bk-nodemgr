@@ -20,7 +20,7 @@ POST /api/v3/node/proxy/restart
 |---------|---------|------|------|
 | bk_host_id | int64 | 是 | 主机ID |
 | force | bool | 否 | 是否强制重启，默认 false |
-| graceful_restart_timeout_sec | int64 | 否 | 优雅重启超时时间（秒） |
+| graceful_restart_timeout_sec | int64 | 否 | 优雅重启超时时间（秒）；`force=false` 时必须大于 0 |
 
 ### 调用示例
 

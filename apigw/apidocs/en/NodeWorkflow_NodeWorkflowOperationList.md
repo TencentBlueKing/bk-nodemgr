@@ -1,8 +1,8 @@
 ### Description
 
 - API Version: v3.0.1-alpha.18+.
-- Required Permission: agent_operate (Operate Agent), proxy_operate (Operate Proxy).
-  - Permission Note: Dynamically narrowed based on node roles in the workflow. If the workflow only involves Agent nodes, only agent_operate is required; if only Proxy nodes, only proxy_operate is required; if both or unknown roles, both are required.
+- Required Permission: agent_history_view (View Agent History), proxy_history_view (View Proxy History).
+  - Permission Note: Dynamically narrowed based on node roles in the workflow. If the workflow only involves Agent nodes, only agent_history_view is required; if only Proxy nodes, only proxy_history_view is required; if both or unknown roles, both are required.
 - Function: Query operation list under a specific node workflow, with pagination, exact filters on deployment dimensions, and operation state filters.
 
 ### URL
@@ -14,7 +14,7 @@ POST /api/v3/node/workflow/operation/list
 | Parameter                | Type   | Required | Description                                                   |
 | ------------------------ | ------ | -------- | ------------------------------------------------------------- |
 | only_count               | bool   | No       | Whether to return only total count, without detail records    |
-| page                     | object | No       | Pagination configuration                                      |
+| page                     | object | No       | Pagination configuration; required when `only_count=false`   |
 | workflow_id              | string | Yes      | Node workflow ID                                              |
 | exact_include_conditions | object | No       | Exact match include conditions                                |
 | fuzzy_include_conditions | object | No       | Fuzzy match include conditions, currently no available fields |
@@ -24,7 +24,7 @@ POST /api/v3/node/workflow/operation/list
 | Parameter | Type  | Required | Description                                  |
 | --------- | ----- | -------- | -------------------------------------------- |
 | offset    | int32 | No       | Pagination start position, starting from `0` |
-| limit     | int32 | No       | Records per page                             |
+| limit     | int32 | No       | Records per page; required when `page` is provided, `1`~`500` |
 
 #### exact_include_conditions
 
@@ -41,6 +41,8 @@ POST /api/v3/node/workflow/operation/list
 #### fuzzy_include_conditions
 
 The object is currently empty, pass `{}` or omit it.
+
+When `only_count=true`, `page` may be omitted; otherwise `page.limit` must be between `1` and `500`.
 
 ### Request Example
 

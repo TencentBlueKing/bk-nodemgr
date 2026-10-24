@@ -20,7 +20,7 @@ POST /api/v3/node/proxy/reconfig
 |-----------|------|----------|-------------|
 | bk_host_id | int64 | Yes | Host ID |
 | force | bool | No | Force reconfigure, default false |
-| graceful_restart_timeout_sec | int64 | No | Graceful restart timeout in seconds |
+| graceful_restart_timeout_sec | int64 | No | Graceful restart timeout in seconds; must be greater than 0 when `force=false` |
 
 ### Call Example
 

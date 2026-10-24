@@ -1,7 +1,7 @@
 ### 描述
 
 - 该接口提供版本：v3.0.1-alpha.18+。
-- 该接口所需权限：agent_view（查看 Agent）、proxy_view（查看 Proxy）。
+- 该接口所需权限：agent_history_view（查看 Agent 历史）、proxy_history_view（查看 Proxy 历史）。
 - 该接口功能描述：查询节点任务流列表，支持分页、按精确条件过滤和按操作时间范围过滤。
 
 ### URL
@@ -12,7 +12,7 @@ POST /api/v3/node/workflow/list
 
 | 参数名称                     | 参数类型   | 必选 | 描述               |
 |--------------------------|--------|----|------------------|
-| page                     | object | 否  | 分页配置             |
+| page                     | object | 否  | 分页配置；`only_count=false` 时必填 |
 | only_count               | bool   | 否  | 是否只返回总数，不返回详情    |
 | exact_include_conditions | object | 否  | 精确匹配包含条件         |
 | fuzzy_include_conditions | object | 否  | 模糊匹配包含条件，当前无可用字段 |
@@ -23,7 +23,7 @@ POST /api/v3/node/workflow/list
 | 参数名称   | 参数类型  | 必选 | 描述              |
 |--------|-------|----|-----------------|
 | offset | int32 | 否  | 分页起始位置，起始值为 `0` |
-| limit  | int32 | 否  | 每页条数            |
+| limit  | int32 | 否  | 每页条数；传入 `page` 时必填，取值范围为 `1`~`500` |
 
 #### exact_include_conditions
 
@@ -51,8 +51,9 @@ POST /api/v3/node/workflow/list
 
 **权限说明**：
 
-- 当未传 `node_role` 时，后端按安全策略同时校验 `agent_view` 和 `proxy_view`。
-- 当传入 `node_role` 时，后端会按角色收敛需要的权限动作。
+- 当未传 `node_role` 时，后端按安全策略同时校验 `agent_history_view` 和 `proxy_history_view`。
+- 当传入 `node_role` 时，后端会按角色收敛需要的历史查看权限动作。
+- 当 `only_count=true` 时可以省略 `page`；否则 `page.limit` 必须为 `1`~`500`。
 
 ### 调用示例
 

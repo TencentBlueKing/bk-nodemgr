@@ -1,7 +1,7 @@
 ### 描述
 
 - 该接口提供版本：v3.0.1-alpha.18+。
-- 该接口所需权限：agent_view（查看 Agent）、proxy_view（查看 Proxy）。
+- 该接口所需权限：agent_history_view（查看 Agent 历史）、proxy_history_view（查看 Proxy 历史）。
 - 该接口功能描述：按任务流 ID 维度返回节点任务流的操作实例状态统计结果。
 
 ### URL
@@ -16,7 +16,7 @@ POST /api/v3/node/workflow/statistics
 
 **权限说明**：
 
-- 接口请求不包含 `node_role` 过滤条件，后端按安全策略同时校验 `agent_view` 和 `proxy_view`。
+- 接口请求不包含 `node_role` 过滤条件，后端按安全策略同时校验 `agent_history_view` 和 `proxy_history_view`。
 
 ### 调用示例
 
