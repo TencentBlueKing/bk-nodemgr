@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.1-alpha.18+.
-- Required Permission: agent_view (View Agent), proxy_view (View Proxy).
+- Required Permission: agent_history_view (View Agent History), proxy_history_view (View Proxy History).
 - Function: Return operation instance status statistics grouped by workflow ID.
 
 ### URL
@@ -16,7 +16,7 @@ POST /api/v3/node/workflow/statistics
 
 **Permission Notes**:
 
-- The request does not include a `node_role` filter, backend checks both `agent_view` and `proxy_view` by default for safety.
+- The request does not include a `node_role` filter, backend checks both `agent_history_view` and `proxy_history_view` by default for safety.
 
 ### Request Example
 

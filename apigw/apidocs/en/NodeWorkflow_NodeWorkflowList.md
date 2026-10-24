@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.1-alpha.18+.
-- Required Permission: agent_view (View Agent), proxy_view (View Proxy).
+- Required Permission: agent_history_view (View Agent History), proxy_history_view (View Proxy History).
 - Function: Query node workflow list, with pagination, exact filtering, and operation time range filtering support.
 
 ### URL
@@ -12,7 +12,7 @@ POST /api/v3/node/workflow/list
 
 | Parameter                | Type   | Required | Description                                                   |
 | ------------------------ | ------ | -------- | ------------------------------------------------------------- |
-| page                     | object | No       | Pagination configuration                                      |
+| page                     | object | No       | Pagination configuration; required when `only_count=false`   |
 | only_count               | bool   | No       | Whether to return only the total count, without item details  |
 | exact_include_conditions | object | No       | Exact match include conditions                                |
 | fuzzy_include_conditions | object | No       | Fuzzy match include conditions, currently no available fields |
@@ -23,7 +23,7 @@ POST /api/v3/node/workflow/list
 | Parameter | Type  | Required | Description                                  |
 | --------- | ----- | -------- | -------------------------------------------- |
 | offset    | int32 | No       | Pagination start position, starting from `0` |
-| limit     | int32 | No       | Records per page                             |
+| limit     | int32 | No       | Records per page; required when `page` is provided, `1`~`500` |
 
 #### exact_include_conditions
 
@@ -51,8 +51,9 @@ The object is currently empty, pass `{}` or omit it.
 
 **Permission Notes**:
 
-- When `node_role` is not provided, backend checks both `agent_view` and `proxy_view` by default for safety.
-- When `node_role` is provided, backend narrows required permission actions by role.
+- When `node_role` is not provided, backend checks both `agent_history_view` and `proxy_history_view` by default for safety.
+- When `node_role` is provided, backend narrows the required history-view permissions by role.
+- When `only_count=true`, `page` may be omitted; otherwise `page.limit` must be between `1` and `500`.
 
 ### Request Example
 

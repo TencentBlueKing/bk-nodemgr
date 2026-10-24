@@ -13,23 +13,18 @@ POST /api/v3/node/proxy/upgrade
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | host | array | Yes | Host list, see host parameters below |
-| target_version | array | No | Target version list, see target_version parameters below |
 
 **host[n]**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | bk_host_id | int64 | Yes | Host ID |
+| target_version | string | Yes | Target Proxy version |
+| bk_networkunit_id | int64 | No | Target network unit ID; when omitted, the current network unit is retained |
+| cpu_arch | string | No | CPU architecture |
 | force | bool | No | Force upgrade, default false |
-| graceful_restart_timeout_sec | int64 | No | Graceful restart timeout in seconds |
+| graceful_restart_timeout_sec | int64 | No | Graceful restart timeout in seconds; must be greater than 0 when `force=false` |
 
-**target_version[n]**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| version | string | Yes | Version string |
-| cpu_arch | string | Yes | CPU architecture: 386 / arm / arm64 / amd64 |
-| os_type | string | Yes | OS type: linux / windows / darwin |
 
 ### Call Example
 
@@ -38,15 +33,10 @@ POST /api/v3/node/proxy/upgrade
     "host": [
         {
             "bk_host_id": 1001,
+            "target_version": "2.1.0",
+            "cpu_arch": "amd64",
             "force": false,
             "graceful_restart_timeout_sec": 60
-        }
-    ],
-    "target_version": [
-        {
-            "version": "2.1.0",
-            "cpu_arch": "amd64",
-            "os_type": "linux"
         }
     ]
 }

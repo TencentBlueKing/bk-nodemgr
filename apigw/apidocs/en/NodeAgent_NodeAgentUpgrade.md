@@ -20,6 +20,8 @@ POST /api/v3/node/agent/upgrade
 |---------------|----------------|----------|-------------|
 | bk_host_id | int64 | Yes | Host ID |
 | target_version | string | Yes | Target agent version number |
+| bk_networkunit_id | int64 | No | Target network unit ID; when omitted, the current network unit is retained |
+| cpu_arch | string | No | CPU architecture |
 | force | bool | No | Whether to force restart, default is false. When set to true, skips graceful restart and forces an immediate restart |
 | graceful_restart_timeout_sec | int64 | No | Graceful restart timeout in seconds. The agent will be forcefully restarted after this timeout. Default 0 uses the system default timeout |
 

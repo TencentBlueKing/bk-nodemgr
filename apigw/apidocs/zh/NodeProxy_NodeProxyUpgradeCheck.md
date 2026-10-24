@@ -64,7 +64,7 @@ POST /api/v3/node/proxy/upgrade_check
   "data": {
     "results": [
       {
-        "status": "running",
+        "status": "normal_upgrade",
         "matched": {
           "bk_host_id": 1,
           "bk_biz_id": 1,
@@ -106,5 +106,9 @@ POST /api/v3/node/proxy/upgrade_check
 
 | 参数名称 | 参数类型 | 描述 |
 |---------|----------|------|
-| status | string | 状态 |
+| status | string | 状态，枚举值见下方说明 |
 | matched | object | 匹配到的主机信息 |
+
+**status 枚举说明**：
+
+`host_not_found`、`networkunit_not_found`、`networkunit_mismatch`、`version_not_found`、`node_status_not_allowed`、`networkunit_changed`、`normal_upgrade`、`cpu_arch_missing`。

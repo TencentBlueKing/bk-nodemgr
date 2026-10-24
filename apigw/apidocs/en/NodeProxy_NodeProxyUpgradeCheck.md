@@ -64,7 +64,7 @@ POST /api/v3/node/proxy/upgrade_check
   "data": {
     "results": [
       {
-        "status": "running",
+        "status": "normal_upgrade",
         "matched": {
           "bk_host_id": 1,
           "bk_biz_id": 1,
@@ -106,5 +106,7 @@ POST /api/v3/node/proxy/upgrade_check
 
 | Parameter Name | Parameter Type | Description |
 |---------------|----------------|-------------|
-| status | string | Status |
+| status | string | Status; see the values below |
 | matched | object | Matched host information |
+
+**Status values**: `host_not_found`, `networkunit_not_found`, `networkunit_mismatch`, `version_not_found`, `node_status_not_allowed`, `networkunit_changed`, `normal_upgrade`, `cpu_arch_missing`.
