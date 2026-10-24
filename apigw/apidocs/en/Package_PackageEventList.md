@@ -1,8 +1,8 @@
 ### Description
 
 - API Version: v3.0.1-alpha.13+.
-- Required Permission: None.
-- Function: Query package operation events with pagination.
+- Required Permission: package_history_view (View Package History).
+- Function: Query package operation events with pagination. Results are limited to package histories authorized for the current user; an empty result is returned when the user has no authorized resources.
 
 ### URL
 
