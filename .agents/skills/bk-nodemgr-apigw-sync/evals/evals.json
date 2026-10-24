@@ -1,0 +1,40 @@
+{
+  "skill_name": "bk-nodemgr-apigw-sync",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "把 bk-nodemgr 的 apigw-sync 基础镜像从 apigw-manager:4.1.0 调整到 5.0.3。请先告诉我需要看哪些本地文件，并结合官方同步文档判断是否需要调整同步脚本；不要执行 Docker、同步 Job 或网关发布。",
+      "expected_output": "定位 apigw-sync 的 Dockerfile、构建/部署引用和同步脚本，按需查询两份官方文档，给出最小调整范围；不把任务扩展成全仓库一致性审计，也不执行远程操作。",
+      "files": [],
+      "expectations": [
+        "以当前仓库文件为第一依据，并定位 apigw-sync 镜像、脚本和部署引用",
+        "使用或指出两份 bkpaas-python-sdk 官方同步文档作为按需参考",
+        "明确不执行 Docker、同步 Job 或网关发布",
+        "不把请求扩展为全链路审计或固定维护报告"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我要给 apigw-sync 增加一个 API 的中英文资源文档。请帮我梳理 resources.yaml、apidocs/zh、apidocs/en 和 api-doc skill 的衔接，告诉我应该先查什么、哪些内容由哪个 skill 负责。",
+      "expected_output": "说明 resources.yaml 与双语 apidocs 的关系，并把 API 文档编写交接给 api-doc，不复制其完整流程。",
+      "files": [],
+      "expectations": [
+        "指出 apidocs 按 operationId 维护 zh/en 文档",
+        "说明 resources.yaml 还包含网关资源策略，不只是 OpenAPI schema",
+        "明确将 endpoint 文档编写交给 api-doc",
+        "保持任务聚焦于 apigw-sync 资料调整"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "准备 v3.0.1-alpha.102 发布，需要把 apigw/definition.yaml 的 release.version 和 Helm 里的 apigwSync release 配置一起更新。请帮我处理。",
+      "expected_output": "识别这是 release version alignment 任务，交给 release-version-alignment，不在 apigw-sync skill 中复制完整发版流程。",
+      "files": [],
+      "expectations": [
+        "识别并交接给 release-version-alignment",
+        "不把 release version alignment 当作普通 apigw-sync 资料修改流程",
+        "不执行网关同步或发布"
+      ]
+    }
+  ]
+}
