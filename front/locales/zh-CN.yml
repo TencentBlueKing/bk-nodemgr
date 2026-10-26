@@ -61,6 +61,11 @@ platform:
       opsOutBandProtocol: 设备协议
       opsOutBandIP: 带外 IP
       opsOutBandPort: 带外端口
+      opsConsoleHostIdTooltip: CMDB上的主机IP。负责执行带外操作脚本，需安装蓝鲸GSE agent
+      opsOutBandTypeTooltip: 带外设备类型。使用目标主机板载带外管理时填 onboard；使用外接 NanoKVM 设备时填 nanokvm
+      opsOutBandProtocolTooltip: 带外操作使用的协议。ipmi 或 nanokvm-gpio
+      opsOutBandIPTooltip: 带外管理地址。主控机通过该 IP 连接对应的带外控制端
+      opsOutBandPortTooltip: 带外管理地址端口
       batchFill: 批量填写
       opsSettingBatchFillDone: 批量填写完成
       operateDisabledNotRunning: 选中主机中包含 Agent 状态异常的节点，请先排查修复后再操作

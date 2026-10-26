@@ -57,20 +57,36 @@
                         <VxeColumn
                             field="ops_console_host_id"
                             :title="$t('platform.nodeMan.agentNodeStatus.opsConsoleHostId')"
-                            :min-width="140"
-                            :edit-render="{ name: 'VxeInput' }"
+                            :min-width="200"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsConsoleHostId') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsConsoleHostId')" type="input"
-                                    @confirm="(value: string) => handleBatchEdit('ops_console_host_id', value)" />
+                                <Popover
+                                    theme="light"
+                                    trigger="hover"
+                                    placement="top"
+                                    :arrow="true"
+                                    :max-width="300"
+                                    :offset="8"
+                                    :popover-delay="[0, 100]"
+                                    :component-event-delay="0"
+                                >
+                                    <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                                        {{ $t('platform.nodeMan.agentNodeStatus.opsConsoleHostId') }}
+                                    </span>
+                                    <template #content>
+                                        <div class="text-[12px] leading-[20px]">
+                                            <p>{{ $t('platform.nodeMan.agentNodeStatus.opsConsoleHostIdTooltip') }}</p>
+                                        </div>
+                                    </template>
+                                </Popover>
                             </template>
                             <template #default="{ row }">
-                                <span v-if="row.ops_console_host_id">{{ row.ops_console_host_id }}</span>
-                                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
-                            </template>
-                            <template #edit="{ row }">
-                                <Input v-model.trim="row.ops_console_host_id" />
+                                <!-- 主控机通过 IP 选择器选取：表格回显 IP，实际提交 host-id -->
+                                <div class="ops-console-host-cell" @click="handleOpenOpsConsoleHostSelector(row)">
+                                    <span v-if="row.ops_console_host_ip">{{ row.ops_console_host_ip }}</span>
+                                    <span v-else-if="row.ops_console_host_id">{{ row.ops_console_host_id }}</span>
+                                    <span v-else class="cell-placeholder">{{ $t('components.installTable.selectPlaceholder') }}</span>
+                                </div>
                             </template>
                         </VxeColumn>
                         <VxeColumn
@@ -80,7 +96,25 @@
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandType') }}</span>
+                                <Popover
+                                    theme="light"
+                                    trigger="hover"
+                                    placement="top"
+                                    :arrow="true"
+                                    :max-width="300"
+                                    :offset="8"
+                                    :popover-delay="[0, 100]"
+                                    :component-event-delay="0"
+                                >
+                                    <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                                        {{ $t('platform.nodeMan.agentNodeStatus.opsOutBandType') }}
+                                    </span>
+                                    <template #content>
+                                        <div class="text-[12px] leading-[20px]">
+                                            <p>{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandTypeTooltip') }}</p>
+                                        </div>
+                                    </template>
+                                </Popover>
                                 <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandType')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_out_band_type', value)" />
                             </template>
@@ -99,7 +133,25 @@
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol') }}</span>
+                                <Popover
+                                    theme="light"
+                                    trigger="hover"
+                                    placement="top"
+                                    :arrow="true"
+                                    :max-width="300"
+                                    :offset="8"
+                                    :popover-delay="[0, 100]"
+                                    :component-event-delay="0"
+                                >
+                                    <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                                        {{ $t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol') }}
+                                    </span>
+                                    <template #content>
+                                        <div class="text-[12px] leading-[20px]">
+                                            <p>{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandProtocolTooltip') }}</p>
+                                        </div>
+                                    </template>
+                                </Popover>
                                 <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol')" type="select"
                                     :options="opsOutBandProtocolOptions" allow-create
                                     @confirm="handleBatchProtocolEdit" />
@@ -113,8 +165,9 @@
                                     v-model="row.ops_out_band_protocol"
                                     filterable
                                     allow-create
-                                    :popover-options="{ boundary: 'parent' }"
+                                    :popover-options="{ extCls: 'vxe-table--ignore-clear' }"
                                     @change="(value: string) => handleProtocolChange(row, value)"
+                                    @focusout="handleProtocolFocusout(row, $event)"
                                 >
                                     <Select.Option
                                         v-for="item in opsOutBandProtocols"
@@ -135,7 +188,25 @@
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandIP') }}</span>
+                                <Popover
+                                    theme="light"
+                                    trigger="hover"
+                                    placement="top"
+                                    :arrow="true"
+                                    :max-width="300"
+                                    :offset="8"
+                                    :popover-delay="[0, 100]"
+                                    :component-event-delay="0"
+                                >
+                                    <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                                        {{ $t('platform.nodeMan.agentNodeStatus.opsOutBandIP') }}
+                                    </span>
+                                    <template #content>
+                                        <div class="text-[12px] leading-[20px]">
+                                            <p>{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandIPTooltip') }}</p>
+                                        </div>
+                                    </template>
+                                </Popover>
                                 <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandIP')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_out_band_ip', value)" />
                             </template>
@@ -154,7 +225,25 @@
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandPort') }}</span>
+                                <Popover
+                                    theme="light"
+                                    trigger="hover"
+                                    placement="top"
+                                    :arrow="true"
+                                    :max-width="300"
+                                    :offset="8"
+                                    :popover-delay="[0, 100]"
+                                    :component-event-delay="0"
+                                >
+                                    <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                                        {{ $t('platform.nodeMan.agentNodeStatus.opsOutBandPort') }}
+                                    </span>
+                                    <template #content>
+                                        <div class="text-[12px] leading-[20px]">
+                                            <p>{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandPortTooltip') }}</p>
+                                        </div>
+                                    </template>
+                                </Popover>
                                 <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandPort')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_out_band_port', value)" />
                             </template>
@@ -171,6 +260,17 @@
             </Loading>
         </div>
 
+        <!-- 主控机 IP 选择器 -->
+        <IpSelector
+            mode="dialog"
+            :show-dialog="isShowOpsConsoleHostSelector"
+            :value="opsConsoleHostSelectorValue"
+            :keep-host-field-output="true"
+            @change="handleOpsConsoleHostSelectorChange"
+            @panel-change="handleIpSelectorPanelChange"
+            @close-dialog="isShowOpsConsoleHostSelector = false"
+        />
+
         <!-- 底部提交栏 -->
         <div :class="['h-[48px] w-full flex items-center pl-[24px]', { 'fixed bottom-[0] bg-[#fff] z-[100]': isAtBottom }]"
             ref="footerRef">
@@ -183,7 +283,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Input, Loading, Message, Select } from 'bkui-vue';
+import { Button, Input, Loading, Message, Popover, Select } from 'bkui-vue';
 import { debounce } from 'lodash';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -192,9 +292,11 @@ import { useRouter } from 'vue-router';
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 
 import BatchEdit from '@/components/batch-edit.vue';
+import IpSelector from '@/components/IpSelector';
 import { NodeAgentService } from '@/api/modules/node_agent';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { TopoService } from '@/api/modules/topo';
+import * as IpSelectorService from '@/services/ip-selector';
 import { useNodeManageStore } from '@/stores/node-manage';
 import { useMainStore } from '@/stores/main';
 
@@ -257,9 +359,64 @@ const handleProtocolChange = (row: any, value: string) => {
     }
 };
 
+// allow-create 仅回车确认，失焦时编辑单元格会被销毁导致输入丢失，这里在失焦时把输入文本确认为值
+const handleProtocolFocusout = (row: any, event: FocusEvent) => {
+    const text = event.target instanceof HTMLInputElement ? event.target.value.trim() : '';
+    if (!text || text === row.ops_out_band_protocol) return;
+    handleProtocolChange(row, text);
+};
+
 const handleBatchProtocolEdit = (value: string) => {
     for (const row of tableData.value) {
         handleProtocolChange(row, value);
+    }
+};
+
+// ======== 主控机 IP 选择器（表格回显 IP，提交转 host-id，不预设 node role 限制） ========
+const isShowOpsConsoleHostSelector = ref(false);
+const opsConsoleHostSelectorValue = ref({
+    hostList: [] as any[],
+    nodeList: [] as any[],
+    dynamicGroupList: [] as any[],
+    serviceTemplateList: [] as any[],
+    setTemplateList: [] as any[],
+});
+const opsConsoleHostEditingRow = ref<any>(null);
+
+const handleIpSelectorPanelChange = (panel: string) => {
+    IpSelectorService.setActiveIpsPanel(panel);
+};
+
+const handleOpenOpsConsoleHostSelector = (row: any) => {
+    opsConsoleHostEditingRow.value = row;
+    // 不预设 node role 限制：清空策略类型与业务限定（含策略页可能残留的 strategyBizId），
+    // 拓扑树展示全部业务、主机查询不带 node_role 过滤
+    IpSelectorService.setStrategyBizId(undefined);
+    IpSelectorService.setBizId([]);
+    opsConsoleHostSelectorValue.value = {
+        hostList: row.ops_console_host_id ? [{ hostId: row.ops_console_host_id }] : [],
+        nodeList: [],
+        dynamicGroupList: [],
+        serviceTemplateList: [],
+        setTemplateList: [],
+    };
+    isShowOpsConsoleHostSelector.value = true;
+};
+
+const handleOpsConsoleHostSelectorChange = (value: any) => {
+    opsConsoleHostSelectorValue.value = value;
+    const row = opsConsoleHostEditingRow.value;
+    if (!row) return;
+    // 主控机为单选：仅保留最后一次选择的主机
+    const host = value?.hostList?.length ? value.hostList[value.hostList.length - 1] : null;
+    if (host) {
+        const hostId = host.hostId ?? host.host_id ?? host.bk_host_id ?? host.id;
+        const ip = host.ip || host.ipv6 || '';
+        row.ops_console_host_id = hostId;
+        row.ops_console_host_ip = ip;
+    } else {
+        row.ops_console_host_id = undefined;
+        row.ops_console_host_ip = undefined;
     }
 };
 
@@ -363,6 +520,7 @@ function formatHostData(hosts: any[]): any[] {
             bk_host_innerip_v6: info.bk_host_innerip_v6_list?.join(',') ?? item.bk_host_innerip_v6 ?? '',
             // Ops 字段：优先取已有值，否则初始化为空
             ops_console_host_id: item.ops_console_host_id ?? info.ops_console_host_id ?? undefined,
+            ops_console_host_ip: item.ops_console_host_ip ?? info.ops_console_host_ip ?? undefined,
             ops_out_band_type: item.ops_out_band_type ?? info.ops_out_band_type ?? undefined,
             ops_out_band_protocol: item.ops_out_band_protocol ?? info.ops_out_band_protocol ?? undefined,
             ops_out_band_ip: item.ops_out_band_ip ?? info.ops_out_band_ip ?? undefined,
@@ -390,5 +548,18 @@ onUnmounted(() => {
 }
 .cell-placeholder {
     color: #c4c6cc;
+}
+.ops-console-host-cell {
+    cursor: pointer;
+    width: 100%;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    border-radius: 2px;
+    padding: 0 4px;
+    transition: background-color .2s;
+}
+.ops-console-host-cell:hover {
+    background-color: #f0f1f5;
 }
 </style>

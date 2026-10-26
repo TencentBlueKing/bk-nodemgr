@@ -44,6 +44,9 @@ interface Endpoints {
 // InstallerRuntime describes the installer runtime config.
 interface InstallerRuntime {
   base_work_dir: string;
+  // Unset inherits deployment defaults; an empty object disables firewall
+  // setup.
+  firewall: Firewall;
 }
 
 // NodeRuntime describes the node runtime config.
@@ -516,4 +519,10 @@ interface HostOpsInfo {
   ops_out_band_protocol: string;
   ops_out_band_ip: string;
   ops_out_band_port: number;
+}
+
+// Firewall describes the local firewall setup before installation.
+interface Firewall {
+  remote_ips: string[];
+  features: string[];
 }

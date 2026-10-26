@@ -52,15 +52,20 @@ platform:
       stopping: Stopping
       uninit: Uninitialized
       unknown: Not Installed
-      opsSetting: OOB Management
+      opsSetting: Out-of-band Management
       opsSettingPageDesc: Configure out-of-band management info for selected hosts, including console host, device type, device protocol, management IP and management port
       opsSettingBatchSet: Batch Set
-      opsSettingSuccess: OOB management settings saved successfully
+      opsSettingSuccess: Out-of-band management settings saved successfully
       opsConsoleHostId: Console Host ID
       opsOutBandType: Device Type
       opsOutBandProtocol: Device Protocol
       opsOutBandIP: Out-of-band IP
       opsOutBandPort: Out-of-band Port
+      opsConsoleHostIdTooltip: The host IP in CMDB. It executes out-of-band scripts and requires the BlueKing GSE agent installed
+      opsOutBandTypeTooltip: Out-of-band device type. Use onboard for the onboard management of the target host; use nanokvm for an external NanoKVM device
+      opsOutBandProtocolTooltip: The protocol used for out-of-band operations. ipmi or nanokvm-gpio
+      opsOutBandIPTooltip: The out-of-band management address, which the console host uses to connect to the out-of-band controller
+      opsOutBandPortTooltip: The port of the out-of-band management address.
       batchFill: Batch Fill
       opsSettingBatchFillDone: Batch fill completed
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
@@ -1386,7 +1391,7 @@ route:
   installAgent: Install Agent
   installReinstallAgent: Install/Reinstall Agent
   assignUnit: Assign Network Unit
-  opsSetting: OOB Management
+  opsSetting: Out-of-band Management
   plugin: Plugin
   taskHistory: Task History
   workarea: Network Area
