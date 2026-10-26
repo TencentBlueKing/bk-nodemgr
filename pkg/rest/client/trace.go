@@ -18,10 +18,32 @@
 
 package client
 
+import (
+	"net/http"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+)
+
 const (
 	attributeHTTPRequestBaseURL = "http.request.base_url"
 	attributeHTTPRequestBoby    = "http.request.body"
 	attributeHTTPRequestHeader  = "http.request.header"
 
-	attributeHTTPResponseStatusCode = "http.response.status_code"
+	attributeHTTPResponseStatusCode      = "http.response.status_code"
+	attributeHTTPResponseHeaderRequestID = "http.response.header.x_bkapi_request_id"
+	responseHeaderRequestID              = "X-Bkapi-Request-Id"
 )
+
+func recordResponseTrace(span trace.Span, resp *http.Response) {
+	if resp == nil {
+		return
+	}
+
+	requestID := resp.Header.Get(responseHeaderRequestID)
+	if requestID == "" {
+		return
+	}
+
+	span.SetAttributes(attribute.String(attributeHTTPResponseHeaderRequestID, requestID))
+}

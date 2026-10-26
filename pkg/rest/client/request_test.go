@@ -31,7 +31,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
 
@@ -39,9 +42,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 )
 
-type requestTestTraceService struct{}
+type requestTestTraceService struct {
+	tracerProvider trace.TracerProvider
+}
 
-func (requestTestTraceService) TracerProvider() trace.TracerProvider {
+func (s requestTestTraceService) TracerProvider() trace.TracerProvider {
+	if s.tracerProvider != nil {
+		return s.tracerProvider
+	}
+
 	return noop.NewTracerProvider()
 }
 
@@ -213,6 +222,48 @@ func TestRequest_WithURL(t *testing.T) {
 
 		assert.Equal(t, int64(0), discovery.calls.Load())
 	})
+}
+
+func TestRequest_DoRecordsResponseRequestIDOnSpan(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+		rw.Header().Set("X-Bkapi-Request-Id", "response-request-id")
+		_, err := rw.Write([]byte("ok"))
+		require.NoError(t, err)
+	}))
+	defer server.Close()
+
+	httpClient, err := NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
+	require.NoError(t, err)
+
+	recorder := tracetest.NewSpanRecorder()
+	provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+	defer func() { require.NoError(t, provider.Shutdown(context.Background())) }()
+
+	client, err := NewClient(&Capability{
+		Name:                 "rest-client-request-test",
+		HTTPClient:           httpClient,
+		ToleranceLatencyTime: ToleranceLatencyTimeDefault,
+		MetricOpts:           MetricOption{},
+		TraceSvc:             requestTestTraceService{tracerProvider: provider},
+	}, "/")
+	require.NoError(t, err)
+
+	targetURL, err := url.Parse(server.URL)
+	require.NoError(t, err)
+
+	result := client.Get().WithURL(targetURL).Do()
+	_, err = result.RawData()
+	require.NoError(t, err)
+
+	spans := recorder.Ended()
+	require.Len(t, spans, 1)
+	var requestID string
+	for _, attr := range spans[0].Attributes() {
+		if attr.Key == attribute.Key(attributeHTTPResponseHeaderRequestID) {
+			requestID = attr.Value.AsString()
+		}
+	}
+	assert.Equal(t, "response-request-id", requestID)
 }
 
 func TestResultIntoReturnsErrorForEmptyServerError(t *testing.T) {
