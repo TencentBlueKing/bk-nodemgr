@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -161,19 +162,35 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 
 // PluginV2Project represents the project.yml file.
 type PluginV2Project struct {
-	Name          string `yaml:"name"`
-	Version       string `yaml:"version"`
-	Description   string `yaml:"description"`
-	DescriptionEn string `yaml:"description_en"`
-	Scenario      string `yaml:"scenario"`
-	ScenarioEn    string `yaml:"scenario_en"`
-	ConfigFile    string `yaml:"config_file"`
-	ConfigFormat  string `yaml:"config_format"`
-	LaunchNode    string `yaml:"launch_node"`
+	Name               string  `yaml:"name"`
+	Version            string  `yaml:"version"`
+	Description        string  `yaml:"description"`
+	DescriptionEn      string  `yaml:"description_en"`
+	Scenario           string  `yaml:"scenario"`
+	ScenarioEn         string  `yaml:"scenario_en"`
+	ConfigFile         string  `yaml:"config_file"`
+	ConfigFormat       string  `yaml:"config_format"`
+	LaunchNode         string  `yaml:"launch_node"`
+	InstallCPULimit    float64 `yaml:"install_cpu_limit"`
+	InstallDiskIOLimit float64 `yaml:"install_disk_io_limit"`
 
 	PortRange       types.PluginPkgAvailablePortRange `yaml:"port_range"`
 	Control         PluginV2Control                   `yaml:"control"`
 	ConfigTemplates []PluginV2ConfigTemplate          `yaml:"config_templates"`
+}
+
+// Validate validates the project.yaml installer limits.
+func (project *PluginV2Project) Validate() error {
+	if math.IsNaN(project.InstallCPULimit) || math.IsInf(project.InstallCPULimit, 0) ||
+		project.InstallCPULimit < 0 || project.InstallCPULimit > 1 {
+		return fmt.Errorf("invalid install_cpu_limit(%v), must be between 0 and 1", project.InstallCPULimit)
+	}
+	if math.IsNaN(project.InstallDiskIOLimit) || math.IsInf(project.InstallDiskIOLimit, 0) ||
+		project.InstallDiskIOLimit < 0 {
+		return fmt.Errorf("invalid install_disk_io_limit(%v), must be a non-negative number", project.InstallDiskIOLimit)
+	}
+
+	return nil
 }
 
 func validateOptionalPluginPkgPortRange(portRange types.PluginPkgAvailablePortRange) error {
@@ -329,6 +346,9 @@ func readOriginPluginV2Project(path []string, projectFile io.Reader,
 	if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
 		return fmt.Errorf("failed to decode project.yaml: %w", err)
 	}
+	if err := pluginProject.Validate(); err != nil {
+		return err
+	}
 	if strings.TrimSpace(pluginProject.Name) == "" || strings.TrimSpace(pluginProject.Version) == "" ||
 		pluginProject.Name != path[1] {
 
@@ -360,6 +380,8 @@ func readOriginPluginV2Project(path []string, projectFile io.Reader,
 	detail.ConfigFile = pluginProject.ConfigFile
 	detail.ConfigFormat = pluginProject.ConfigFormat
 	detail.LaunchNode = pluginProject.LaunchNode
+	detail.InstallCPULimit = pluginProject.InstallCPULimit
+	detail.InstallDiskIOLimit = pluginProject.InstallDiskIOLimit
 	detail.BindAddressAllocated[plat.String()] = buildPluginV2PkgBindAddressAllocated(pluginProject.PortRange)
 
 	pkgConfigTemplates, err := parsePluginV2PkgConfigTemplateFromProject(pluginProject)
@@ -659,6 +681,8 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 					Scenario:             detail.Scenario,
 					ScenarioEn:           detail.ScenarioEn,
 					BindAddressAllocated: detail.BindAddressAllocated[pkg.platform.String()],
+					InstallCPULimit:      detail.InstallCPULimit,
+					InstallDiskIOLimit:   detail.InstallDiskIOLimit,
 				},
 			}
 
