@@ -1,0 +1,155 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// NodeOpsHistoryInfo describes one batch of out-of-band settings.
+message NodeOpsHistoryInfo {
+  optional string operate_id = 1;
+  optional string operator = 2;
+  optional int64 operate_time = 3;
+}
+
+// NodeOpsHistoryExactConditions describes the exact conditions of the history
+// list request.
+// Values within a field are ORed; different fields are ANDed.
+// Empty fields do not restrict the query.
+message NodeOpsHistoryExactConditions {
+  repeated string operate_id = 1;
+  repeated string operator = 2;
+}
+
+// NodeOpsHistoryFuzzyConditions describes the fuzzy conditions of the history
+// list request.
+message NodeOpsHistoryFuzzyConditions {}
+
+// NodeOpsHistoryListReq describes the history list request for all node roles.
+message NodeOpsHistoryListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  NodeOpsHistoryExactConditions exact_include_conditions = 3;
+  NodeOpsHistoryFuzzyConditions fuzzy_include_conditions = 4;
+  TimeRange operate_time_range = 5;
+}
+
+// NodeOpsHistoryListResp describes the operation history list response.
+message NodeOpsHistoryListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // Number of matching operations, not hosts.
+    int64 total = 1;
+    repeated NodeOpsHistoryInfo items = 2;
+  }
+  Data data = 5;
+}
+
+// NodeOpsHistoryHostSnapshot preserves host information and submitted settings.
+message NodeOpsHistoryHostSnapshot {
+  optional string operate_id = 1;
+  optional int64 bk_host_id = 2;
+  repeated string bk_host_innerip_list = 3;
+  repeated string bk_host_innerip_v6_list = 4;
+  optional int64 bk_biz_id = 5;
+  optional string bk_biz_name = 6;
+  optional int64 bk_networkarea_id = 7;
+  optional string bk_networkarea_name = 8;
+  optional int64 bk_networkunit_id = 9;
+  optional string bk_networkunit_name = 10;
+  optional int64 ops_console_host_id = 11;
+  repeated string ops_console_host_innerip_list = 12;
+  repeated string ops_console_host_innerip_v6_list = 13;
+  optional string ops_out_band_ip = 14;
+  optional int64 ops_out_band_port = 15;
+  optional string ops_out_band_protocol = 16;
+  optional string ops_out_band_type = 17;
+}
+
+// NodeAgentOpsHistoryDetailReq describes the snapshot retrieval request.
+// The operation must belong to the agent role.
+message NodeAgentOpsHistoryDetailReq {
+  // Required operation ID. Returns all host snapshots without pagination.
+  string operate_id = 1;
+}
+
+// NodeAgentOpsHistoryDetailResp describes the read-only snapshot retrieval
+// response.
+message NodeAgentOpsHistoryDetailResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // Number of accessible host snapshots for this operation.
+    int64 total = 1;
+    repeated NodeOpsHistoryHostSnapshot items = 2;
+  }
+  Data data = 5;
+}
+
+// NodeProxyOpsHistoryDetailReq describes the proxy snapshot retrieval request.
+// The operation must belong to the proxy role.
+message NodeProxyOpsHistoryDetailReq {
+  // Required operation ID. Returns all host snapshots without pagination.
+  string operate_id = 1;
+}
+
+// NodeProxyOpsHistoryDetailResp describes the read-only proxy snapshot
+// response.
+message NodeProxyOpsHistoryDetailResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // Number of accessible host snapshots for this operation.
+    int64 total = 1;
+    repeated NodeOpsHistoryHostSnapshot items = 2;
+  }
+  Data data = 5;
+}
+
+// Ops provides read-only out-of-band operation history.
+service Ops {
+  // NodeOpsHistoryList lists operations across agent and proxy roles within
+  // the caller's permission scope.
+  rpc NodeOpsHistoryList(NodeOpsHistoryListReq)
+      returns (NodeOpsHistoryListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/ops/history/list"
+      body : "*"
+    };
+  }
+
+  // NodeAgentOpsHistoryDetail retrieves all archived snapshots for an agent
+  // operation.
+  rpc NodeAgentOpsHistoryDetail(NodeAgentOpsHistoryDetailReq)
+      returns (NodeAgentOpsHistoryDetailResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/ops/agent/history/detail"
+      body : "*"
+    };
+  }
+
+  // NodeProxyOpsHistoryDetail retrieves all archived snapshots for a proxy
+  // operation.
+  rpc NodeProxyOpsHistoryDetail(NodeProxyOpsHistoryDetailReq)
+      returns (NodeProxyOpsHistoryDetailResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/ops/proxy/history/detail"
+      body : "*"
+    };
+  }
+}

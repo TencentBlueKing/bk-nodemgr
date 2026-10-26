@@ -1,0 +1,569 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "ops.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Ops"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/node/ops/agent/history/detail": {
+      "post": {
+        "summary": "NodeAgentOpsHistoryDetail retrieves all archived snapshots for an agent\noperation.",
+        "operationId": "Ops_NodeAgentOpsHistoryDetail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentOpsHistoryDetailResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentOpsHistoryDetailReq describes the snapshot retrieval request.\nThe operation must belong to the agent role.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentOpsHistoryDetailReq"
+            }
+          }
+        ],
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v3/node/ops/history/list": {
+      "post": {
+        "summary": "NodeOpsHistoryList lists operations across agent and proxy roles within\nthe caller's permission scope.",
+        "operationId": "Ops_NodeOpsHistoryList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsHistoryListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeOpsHistoryListReq describes the history list request for all node roles.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsHistoryListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v3/node/ops/proxy/history/detail": {
+      "post": {
+        "summary": "NodeProxyOpsHistoryDetail retrieves all archived snapshots for a proxy\noperation.",
+        "operationId": "Ops_NodeProxyOpsHistoryDetail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyOpsHistoryDetailResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyOpsHistoryDetailReq describes the proxy snapshot retrieval request.\nThe operation must belong to the proxy role.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyOpsHistoryDetailReq"
+            }
+          }
+        ],
+        "tags": [
+          "Ops"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeAgentOpsHistoryDetailReq": {
+      "type": "object",
+      "properties": {
+        "operate_id": {
+          "type": "string",
+          "description": "Required operation ID. Returns all host snapshots without pagination."
+        }
+      },
+      "description": "NodeAgentOpsHistoryDetailReq describes the snapshot retrieval request.\nThe operation must belong to the agent role."
+    },
+    "v3NodeAgentOpsHistoryDetailResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentOpsHistoryDetailRespData"
+        }
+      },
+      "description": "NodeAgentOpsHistoryDetailResp describes the read-only snapshot retrieval\nresponse."
+    },
+    "v3NodeAgentOpsHistoryDetailRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Number of accessible host snapshots for this operation."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeOpsHistoryHostSnapshot"
+          }
+        }
+      }
+    },
+    "v3NodeOpsHistoryExactConditions": {
+      "type": "object",
+      "properties": {
+        "operate_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeOpsHistoryExactConditions describes the exact conditions of the history\nlist request.\nValues within a field are ORed; different fields are ANDed.\nEmpty fields do not restrict the query."
+    },
+    "v3NodeOpsHistoryFuzzyConditions": {
+      "type": "object",
+      "description": "NodeOpsHistoryFuzzyConditions describes the fuzzy conditions of the history\nlist request."
+    },
+    "v3NodeOpsHistoryHostSnapshot": {
+      "type": "object",
+      "properties": {
+        "operate_id": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_name": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "ops_console_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ops_console_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ops_console_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ops_out_band_ip": {
+          "type": "string"
+        },
+        "ops_out_band_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ops_out_band_protocol": {
+          "type": "string"
+        },
+        "ops_out_band_type": {
+          "type": "string"
+        }
+      },
+      "description": "NodeOpsHistoryHostSnapshot preserves host information and submitted settings."
+    },
+    "v3NodeOpsHistoryInfo": {
+      "type": "object",
+      "properties": {
+        "operate_id": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "NodeOpsHistoryInfo describes one batch of out-of-band settings."
+    },
+    "v3NodeOpsHistoryListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3NodeOpsHistoryExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3NodeOpsHistoryFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "NodeOpsHistoryListReq describes the history list request for all node roles."
+    },
+    "v3NodeOpsHistoryListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeOpsHistoryListRespData"
+        }
+      },
+      "description": "NodeOpsHistoryListResp describes the operation history list response."
+    },
+    "v3NodeOpsHistoryListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Number of matching operations, not hosts."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeOpsHistoryInfo"
+          }
+        }
+      }
+    },
+    "v3NodeProxyOpsHistoryDetailReq": {
+      "type": "object",
+      "properties": {
+        "operate_id": {
+          "type": "string",
+          "description": "Required operation ID. Returns all host snapshots without pagination."
+        }
+      },
+      "description": "NodeProxyOpsHistoryDetailReq describes the proxy snapshot retrieval request.\nThe operation must belong to the proxy role."
+    },
+    "v3NodeProxyOpsHistoryDetailResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyOpsHistoryDetailRespData"
+        }
+      },
+      "description": "NodeProxyOpsHistoryDetailResp describes the read-only proxy snapshot\nresponse."
+    },
+    "v3NodeProxyOpsHistoryDetailRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Number of accessible host snapshots for this operation."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeOpsHistoryHostSnapshot"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
+    }
+  }
+}
