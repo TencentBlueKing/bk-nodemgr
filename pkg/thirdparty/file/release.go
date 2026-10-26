@@ -583,7 +583,12 @@ func (h *handler) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePlug
 		return nil, err
 	}
 
-	return decodeReleasePlugin(data)
+	result, err := decodeReleasePlugin(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // GetReleasePluginDefaultVersion queries plugin release metadata.
