@@ -15025,58 +15025,6 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Query node workflow list, with pagination, exact filtering, and operation time range filtering support.
-  /api/v3/node/workflow/statistics:
-    post:
-      operationId: NodeWorkflow_NodeWorkflowStatistics
-      description: 按任务流 ID 维度返回节点任务流的操作实例状态统计结果。
-      tags:
-        - NodeWorkflow
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                  message:
-                    type: string
-                  request_id:
-                    type: string
-                  permission:
-                    type: object
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                workflow_id:
-                  type: array
-                  items:
-                    type: string
-        required: true
-      x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: false
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/node/workflow/statistics
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: false
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn: Return operation instance status statistics grouped by workflow ID.
   /api/v3/node/workflow/operation/instance/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
@@ -16120,58 +16068,6 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get manual handling information for a specified operation, including network policies and manual commands.
-  /api/v3/node/workflow/operation/manual/solution/get:
-    post:
-      operationId: NodeWorkflow_NodeWorkflowOperationManualSolutionGet
-      description: 根据任务流 ID 和操作 ID 获取手动处理方案。
-      tags:
-        - NodeWorkflow
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                  message:
-                    type: string
-                  request_id:
-                    type: string
-                  permission:
-                    type: object
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                workflow_id:
-                  type: string
-                operation_id:
-                  type: string
-        required: true
-      x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/node/workflow/operation/manual/solution/get
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: false
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn: Get the manual handling solution for a specified workflow operation.
   /api/v3/node/workflow/operation/retry:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
@@ -23109,45 +23005,6 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get installation script, configs, precheck, and package information for an offline Proxy installation operation.
-  /api/v3/node/workflow/operation/offline/download:
-    post:
-      operationId: NodeWorkflow_NodeWorkflowOperationOfflinePackageDownload
-      description: 按操作 ID 下载离线安装包。
-      tags:
-        - NodeWorkflow
-      responses:
-        '200':
-          content:
-            application/gzip:
-              schema:
-                type: string
-                format: binary
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                operation_id:
-                  type: string
-        required: true
-      x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/node/workflow/operation/offline/download
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: false
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn: Download the offline installation package for an operation.
   /api/v3/node/workflow/operation/offline/result:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit
