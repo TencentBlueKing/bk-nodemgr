@@ -134,15 +134,17 @@ type OriginPluginV2PkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	PluginPkgName string
-	Version       string
-	Description   string
-	DescriptionEn string
-	Scenario      string
-	ScenarioEn    string
-	ConfigFile    string
-	ConfigFormat  string
-	LaunchNode    string
+	PluginPkgName      string
+	Version            string
+	Description        string
+	DescriptionEn      string
+	Scenario           string
+	ScenarioEn         string
+	ConfigFile         string
+	ConfigFormat       string
+	LaunchNode         string
+	InstallCPULimit    float64
+	InstallDiskIOLimit float64
 
 	// key: platform.String()
 	BindAddressAllocated map[string]BindAddressAllocated
