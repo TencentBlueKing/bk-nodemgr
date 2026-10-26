@@ -30,8 +30,10 @@ import (
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"golang.org/x/sync/singleflight"
 )
 
 // IHandler is interface for file handler.
@@ -218,8 +220,14 @@ const (
 	transferQueryContinuesFailedTimes = 5
 )
 
+const releaseCacheExpiration = time.Minute
+
 type handler struct {
 	cli *cli
+
+	releaseCache     cache.ICache
+	releaseCacheKeys cache.IKeyGenerator
+	releaseGroup     singleflight.Group
 }
 
 // New initialize a new nodeman backend handler.
@@ -229,7 +237,11 @@ func New(c *restclient.Capability, conf *Config) (IHandler, error) {
 		return nil, err
 	}
 
-	return &handler{cli: cli}, nil
+	return &handler{
+		cli:              cli,
+		releaseCache:     cache.NewMemoryCache(releaseCacheExpiration),
+		releaseCacheKeys: cache.NewDefaultKeyGenerator("file:release"),
+	}, nil
 }
 
 // UploadOriginAgent upload origin agent.

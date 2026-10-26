@@ -19,6 +19,10 @@
 package file
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
@@ -558,12 +562,137 @@ func (h *handler) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePlug
 
 	req := new(protoFile.ReleasePluginGetReq)
 	req.ConvertFromTypes(key)
-	data, err := h.cli.getReleasePlugin(nCtx, nCtx.TenantID(), req)
+	cacheKey, err := h.generateReleaseCacheKey("plugin", nCtx.TenantID(), key)
 	if err != nil {
 		return nil, err
 	}
 
-	return data.ConvertToTypes()
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeReleasePlugin(data)
+}
+
+// GetReleasePluginDefaultVersion queries plugin release metadata.
+func (h *handler) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return "", err
+	}
+
+	req := new(protoFile.ReleasePluginGetDefaultVersionReq)
+	req.ConvertFromTypes(name, gen, plat)
+	cacheKey, err := h.generateReleaseCacheKey("plugin-default-version", nCtx.TenantID(), struct {
+		Name       string
+		Generation types.Generation
+		Platform   platfmt.Platform
+	}{Name: name, Generation: gen, Platform: plat})
+	if err != nil {
+		return "", err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleasePluginDefaultVersion(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response.ConvertToTypes())
+	})
+	if err != nil {
+		return "", err
+	}
+
+	var version string
+	if err := json.Unmarshal(data, &version); err != nil {
+		return "", fmt.Errorf("failed to unmarshal plugin default version: %w", err)
+	}
+
+	return version, nil
+}
+
+func (h *handler) generateReleaseCacheKey(prefix, tenantID string, query any) (string, error) {
+	data, err := json.Marshal(query)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal release cache key: %w", err)
+	}
+
+	return h.releaseCacheKeys.Generate(prefix, tenantID, base64.RawURLEncoding.EncodeToString(data)), nil
+}
+
+func (h *handler) queryReleaseCache(
+	nCtx contextx.IContext, key string, fetch func(contextx.IContext) ([]byte, error),
+) ([]byte, error) {
+
+	if err := nCtx.Err(); err != nil {
+		return nil, err
+	}
+
+	if data, found := h.getReleaseCache(nCtx, key); found {
+		return data, nil
+	}
+
+	resultCh := h.releaseGroup.DoChan(key, func() (any, error) {
+		if data, found := h.getReleaseCache(nCtx, key); found {
+			return data, nil
+		}
+
+		data, err := fetch(nCtx)
+		if err != nil {
+			return nil, err
+		}
+		if err := h.releaseCache.SetWithExpiration(nCtx, key, data, releaseCacheExpiration); err != nil {
+			return nil, fmt.Errorf("failed to cache release data: %w", err)
+		}
+
+		return data, nil
+	})
+
+	select {
+	case <-nCtx.Done():
+		return nil, nCtx.Err()
+	case result := <-resultCh:
+		if result.Err != nil {
+			return nil, result.Err
+		}
+
+		data, ok := result.Val.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("invalid release cache result type")
+		}
+
+		return data, nil
+	}
+}
+
+func (h *handler) getReleaseCache(nCtx contextx.IContext, key string) ([]byte, bool) {
+	data, err := h.releaseCache.Get(nCtx, key)
+	if err != nil {
+		return nil, false
+	}
+
+	return data, true
+}
+
+func decodeReleasePlugin(data []byte) (*types.ReleasePlugin, error) {
+	response := new(protoFile.ReleasePluginGetResp_Data)
+	if err := json.Unmarshal(data, response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plugin release: %w", err)
+	}
+
+	return response.ConvertToTypes()
 }
 
 // DistinctReleasePlugin queries plugin release metadata.
@@ -598,22 +727,6 @@ func (h *handler) ExistReleasePlugin(nCtx contextx.IContext, key types.ReleasePl
 	data, err := h.cli.existReleasePlugin(nCtx, nCtx.TenantID(), req)
 	if err != nil {
 		return false, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
-// GetReleasePluginDefaultVersion queries plugin release metadata.
-func (h *handler) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return "", err
-	}
-
-	req := new(protoFile.ReleasePluginGetDefaultVersionReq)
-	req.ConvertFromTypes(name, gen, plat)
-	data, err := h.cli.getReleasePluginDefaultVersion(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return "", err
 	}
 
 	return data.ConvertToTypes(), nil
