@@ -112,7 +112,7 @@ func (c *cli) uploadOriginAgent(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -154,7 +154,7 @@ func (c *cli) uploadOriginServer(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -196,7 +196,7 @@ func (c *cli) uploadOriginProxy(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -238,7 +238,7 @@ func (c *cli) uploadOriginCert(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -280,7 +280,7 @@ func (c *cli) uploadOriginBinTool(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -353,7 +353,7 @@ func (c *cli) publishReleaseAgent(nCtx contextx.IContext, tenantID string, req *
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -587,7 +587,7 @@ func (c *cli) publishReleaseProxy(nCtx contextx.IContext, tenantID string, req *
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -615,7 +615,7 @@ func (c *cli) publishReleaseCert(nCtx contextx.IContext, tenantID string, req *p
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -643,7 +643,7 @@ func (c *cli) publishReleaseBinTool(nCtx contextx.IContext, tenantID string, req
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -671,7 +671,7 @@ func (c *cli) launchTransferNode(nCtx contextx.IContext, tenantID string, req *p
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -703,7 +703,7 @@ func (c *cli) launchTransferPlugin(nCtx contextx.IContext, tenantID string, req 
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -735,7 +735,7 @@ func (c *cli) launchTransferInstaller(nCtx contextx.IContext, tenantID string, r
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -767,7 +767,7 @@ func (c *cli) queryTransfer(nCtx contextx.IContext, tenantID string, req *protoF
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -807,7 +807,7 @@ func (c *cli) uploadOriginPluginV2(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -849,7 +849,7 @@ func (c *cli) uploadOriginExternalPluginV2(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -891,7 +891,7 @@ func (c *cli) uploadOriginPluginV3(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -925,7 +925,7 @@ func (c *cli) publishReleasePluginV2(nCtx contextx.IContext, tenantID string, re
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -953,7 +953,7 @@ func (c *cli) publishReleaseExternalPluginV2(nCtx contextx.IContext, tenantID st
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -981,7 +981,7 @@ func (c *cli) publishReleasePluginV3(nCtx contextx.IContext, tenantID string, re
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1017,7 +1017,7 @@ func (c *cli) uploadOriginPluginBinTool(
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1051,7 +1051,7 @@ func (c *cli) publishReleasePluginBinTool(nCtx contextx.IContext, tenantID strin
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1073,12 +1073,13 @@ func (c *cli) infoReleaseAgent(nCtx contextx.IContext, tenantID string, req *pro
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/info/agent").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1105,12 +1106,13 @@ func (c *cli) infoReleaseProxy(nCtx contextx.IContext, tenantID string, req *pro
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/info/proxy").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1137,12 +1139,13 @@ func (c *cli) infoReleasePlugin(nCtx contextx.IContext, tenantID string, req *pr
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/info/plugin").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1169,12 +1172,13 @@ func (c *cli) infoReleaseCert(nCtx contextx.IContext, tenantID string, req *prot
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/info/cert").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1201,12 +1205,13 @@ func (c *cli) infoReleaseBinTool(nCtx contextx.IContext, tenantID string, req *p
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/info/bintool").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1233,12 +1238,13 @@ func (c *cli) infoReleasePluginBinTool(nCtx contextx.IContext, tenantID string, 
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/info/plugin_bintool").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1265,12 +1271,13 @@ func (c *cli) infoInstaller(nCtx contextx.IContext, tenantID string, req *protoF
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/info/installer").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1297,12 +1304,13 @@ func (c *cli) exportPrepareOriginPluginPackage(nCtx contextx.IContext, tenantID 
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/export/prepare/origin_plugin_package").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1328,12 +1336,13 @@ func (c *cli) exportGetOriginPluginPackageDownloadAddress(
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/export/get_address/origin_plugin_package").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1362,12 +1371,13 @@ func (c *cli) listReleaseAgent(nCtx contextx.IContext, tenantID string, req *pro
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/agent/list").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1392,12 +1402,13 @@ func (c *cli) countReleaseAgent(nCtx contextx.IContext, tenantID string, req *pr
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/agent/count").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1422,12 +1433,13 @@ func (c *cli) getReleaseAgent(nCtx contextx.IContext, tenantID string, req *prot
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/agent/get").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1452,12 +1464,13 @@ func (c *cli) distinctReleaseAgent(nCtx contextx.IContext, tenantID string, req 
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/agent/distinct").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1486,7 +1499,7 @@ func (c *cli) enableReleaseAgent(nCtx contextx.IContext, tenantID string, req *p
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1512,7 +1525,7 @@ func (c *cli) disableReleaseAgent(nCtx contextx.IContext, tenantID string, req *
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1538,7 +1551,7 @@ func (c *cli) setAsDefaultReleaseAgent(nCtx contextx.IContext, tenantID string, 
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1564,7 +1577,7 @@ func (c *cli) cancelAsDefaultReleaseAgent(nCtx contextx.IContext, tenantID strin
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1590,7 +1603,7 @@ func (c *cli) deleteReleaseAgent(nCtx contextx.IContext, tenantID string, req *p
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1616,7 +1629,7 @@ func (c *cli) setReleaseAgentLabelsMany(nCtx contextx.IContext, tenantID string,
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1642,12 +1655,13 @@ func (c *cli) listReleaseProxy(nCtx contextx.IContext, tenantID string, req *pro
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/proxy/list").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1672,12 +1686,13 @@ func (c *cli) countReleaseProxy(nCtx contextx.IContext, tenantID string, req *pr
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/proxy/count").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1702,12 +1717,13 @@ func (c *cli) getReleaseProxy(nCtx contextx.IContext, tenantID string, req *prot
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/proxy/get").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1732,12 +1748,13 @@ func (c *cli) distinctReleaseProxy(nCtx contextx.IContext, tenantID string, req 
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/proxy/distinct").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1766,7 +1783,7 @@ func (c *cli) enableReleaseProxy(nCtx contextx.IContext, tenantID string, req *p
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1792,7 +1809,7 @@ func (c *cli) disableReleaseProxy(nCtx contextx.IContext, tenantID string, req *
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1818,7 +1835,7 @@ func (c *cli) setAsDefaultReleaseProxy(nCtx contextx.IContext, tenantID string, 
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1844,7 +1861,7 @@ func (c *cli) cancelAsDefaultReleaseProxy(nCtx contextx.IContext, tenantID strin
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1870,7 +1887,7 @@ func (c *cli) deleteReleaseProxy(nCtx contextx.IContext, tenantID string, req *p
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1896,7 +1913,7 @@ func (c *cli) setReleaseProxyLabelsMany(nCtx contextx.IContext, tenantID string,
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -1922,12 +1939,13 @@ func (c *cli) listReleasePlugin(nCtx contextx.IContext, tenantID string, req *pr
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin/list").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1952,12 +1970,13 @@ func (c *cli) countReleasePlugin(nCtx contextx.IContext, tenantID string, req *p
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin/count").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -1982,12 +2001,13 @@ func (c *cli) getReleasePlugin(nCtx contextx.IContext, tenantID string, req *pro
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin/get").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2012,12 +2032,13 @@ func (c *cli) distinctReleasePlugin(nCtx contextx.IContext, tenantID string, req
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin/distinct").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2042,12 +2063,13 @@ func (c *cli) existReleasePlugin(nCtx contextx.IContext, tenantID string, req *p
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin/exist").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2072,12 +2094,13 @@ func (c *cli) getReleasePluginDefaultVersion(nCtx contextx.IContext, tenantID st
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin/default_version").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2102,12 +2125,13 @@ func (c *cli) distinctNameReleasePlugin(nCtx contextx.IContext, tenantID string,
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin/distinct_name").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2136,7 +2160,7 @@ func (c *cli) enableReleasePlugin(nCtx contextx.IContext, tenantID string, req *
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2162,7 +2186,7 @@ func (c *cli) disableReleasePlugin(nCtx contextx.IContext, tenantID string, req 
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2188,7 +2212,7 @@ func (c *cli) setAsDefaultReleasePlugin(nCtx contextx.IContext, tenantID string,
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2214,7 +2238,7 @@ func (c *cli) cancelAsDefaultReleasePlugin(nCtx contextx.IContext, tenantID stri
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2240,7 +2264,7 @@ func (c *cli) deleteReleasePlugin(nCtx contextx.IContext, tenantID string, req *
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2266,7 +2290,7 @@ func (c *cli) setHiddenReleasePlugin(nCtx contextx.IContext, tenantID string, re
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2292,7 +2316,7 @@ func (c *cli) cancelHiddenReleasePlugin(nCtx contextx.IContext, tenantID string,
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2318,12 +2342,13 @@ func (c *cli) listReleaseCert(nCtx contextx.IContext, tenantID string, req *prot
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/cert/list").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2352,7 +2377,7 @@ func (c *cli) deleteReleaseCert(nCtx contextx.IContext, tenantID string, req *pr
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2378,12 +2403,13 @@ func (c *cli) listReleaseBinTool(nCtx contextx.IContext, tenantID string, req *p
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/bintool/list").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2412,7 +2438,7 @@ func (c *cli) deleteReleaseBinTool(nCtx contextx.IContext, tenantID string, req 
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2438,12 +2464,13 @@ func (c *cli) listReleasePluginBinTool(nCtx contextx.IContext, tenantID string, 
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin_bintool/list").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2468,12 +2495,13 @@ func (c *cli) distinctNameReleasePluginBinTool(nCtx contextx.IContext, tenantID 
 		return nil, err
 	}
 
-	if err = c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/release/plugin_bintool/distinct_name").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp); err != nil {
+		EnableLogResponse().Do().Into(resp)
+	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
 
@@ -2502,7 +2530,7 @@ func (c *cli) deleteReleasePluginBinTool(nCtx contextx.IContext, tenantID string
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2533,7 +2561,7 @@ func (c *cli) listPackageEvent(nCtx contextx.IContext, tenantID string, req *pro
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
@@ -2563,7 +2591,7 @@ func (c *cli) distinctPackageEvent(nCtx contextx.IContext, tenantID string, req 
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
 	}
