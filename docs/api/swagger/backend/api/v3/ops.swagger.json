@@ -16,15 +16,15 @@
     "application/json"
   ],
   "paths": {
-    "/api/v3/node/ops/agent/history/detail": {
+    "/api/v3/node/ops/history/detail": {
       "post": {
-        "summary": "NodeAgentOpsHistoryDetail retrieves all archived snapshots for an agent\noperation.",
-        "operationId": "Ops_NodeAgentOpsHistoryDetail",
+        "summary": "NodeOpsHistoryDetail retrieves all archived snapshots for an operation\nwithin the caller's permission scope.",
+        "operationId": "Ops_NodeOpsHistoryDetail",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeAgentOpsHistoryDetailResp"
+              "$ref": "#/definitions/v3NodeOpsHistoryDetailResp"
             }
           },
           "default": {
@@ -37,11 +37,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentOpsHistoryDetailReq describes the snapshot retrieval request.\nThe operation must belong to the agent role.",
+            "description": "NodeOpsHistoryDetailReq describes the snapshot retrieval request for all node\nroles.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeAgentOpsHistoryDetailReq"
+              "$ref": "#/definitions/v3NodeOpsHistoryDetailReq"
             }
           }
         ],
@@ -76,40 +76,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3NodeOpsHistoryListReq"
-            }
-          }
-        ],
-        "tags": [
-          "Ops"
-        ]
-      }
-    },
-    "/api/v3/node/ops/proxy/history/detail": {
-      "post": {
-        "summary": "NodeProxyOpsHistoryDetail retrieves all archived snapshots for a proxy\noperation.",
-        "operationId": "Ops_NodeProxyOpsHistoryDetail",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyOpsHistoryDetailResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "NodeProxyOpsHistoryDetailReq describes the proxy snapshot retrieval request.\nThe operation must belong to the proxy role.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyOpsHistoryDetailReq"
             }
           }
         ],
@@ -195,7 +161,7 @@
         }
       }
     },
-    "v3NodeAgentOpsHistoryDetailReq": {
+    "v3NodeOpsHistoryDetailReq": {
       "type": "object",
       "properties": {
         "operate_id": {
@@ -203,9 +169,9 @@
           "description": "Required operation ID. Returns all host snapshots without pagination."
         }
       },
-      "description": "NodeAgentOpsHistoryDetailReq describes the snapshot retrieval request.\nThe operation must belong to the agent role."
+      "description": "NodeOpsHistoryDetailReq describes the snapshot retrieval request for all node\nroles."
     },
-    "v3NodeAgentOpsHistoryDetailResp": {
+    "v3NodeOpsHistoryDetailResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -225,12 +191,12 @@
           "$ref": "#/definitions/v3Permission"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeAgentOpsHistoryDetailRespData"
+          "$ref": "#/definitions/v3NodeOpsHistoryDetailRespData"
         }
       },
-      "description": "NodeAgentOpsHistoryDetailResp describes the read-only snapshot retrieval\nresponse."
+      "description": "NodeOpsHistoryDetailResp describes the read-only snapshot retrieval response."
     },
-    "v3NodeAgentOpsHistoryDetailRespData": {
+    "v3NodeOpsHistoryDetailRespData": {
       "type": "object",
       "properties": {
         "total": {
@@ -257,6 +223,12 @@
           }
         },
         "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_role": {
           "type": "array",
           "items": {
             "type": "string"
@@ -356,6 +328,9 @@
         "operate_time": {
           "type": "integer",
           "format": "int64"
+        },
+        "node_role": {
+          "type": "string"
         }
       },
       "description": "NodeOpsHistoryInfo describes one batch of out-of-band settings."
@@ -419,58 +394,6 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3NodeOpsHistoryInfo"
-          }
-        }
-      }
-    },
-    "v3NodeProxyOpsHistoryDetailReq": {
-      "type": "object",
-      "properties": {
-        "operate_id": {
-          "type": "string",
-          "description": "Required operation ID. Returns all host snapshots without pagination."
-        }
-      },
-      "description": "NodeProxyOpsHistoryDetailReq describes the proxy snapshot retrieval request.\nThe operation must belong to the proxy role."
-    },
-    "v3NodeProxyOpsHistoryDetailResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeProxyOpsHistoryDetailRespData"
-        }
-      },
-      "description": "NodeProxyOpsHistoryDetailResp describes the read-only proxy snapshot\nresponse."
-    },
-    "v3NodeProxyOpsHistoryDetailRespData": {
-      "type": "object",
-      "properties": {
-        "total": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Number of accessible host snapshots for this operation."
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeOpsHistoryHostSnapshot"
           }
         }
       }

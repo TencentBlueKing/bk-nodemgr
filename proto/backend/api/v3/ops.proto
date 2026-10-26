@@ -11,6 +11,7 @@ message NodeOpsHistoryInfo {
   optional string operate_id = 1;
   optional string operator = 2;
   optional int64 operate_time = 3;
+  optional string node_role = 4;
 }
 
 // NodeOpsHistoryExactConditions describes the exact conditions of the history
@@ -20,6 +21,7 @@ message NodeOpsHistoryInfo {
 message NodeOpsHistoryExactConditions {
   repeated string operate_id = 1;
   repeated string operator = 2;
+  repeated string node_role = 3;
 }
 
 // NodeOpsHistoryFuzzyConditions describes the fuzzy conditions of the history
@@ -73,40 +75,15 @@ message NodeOpsHistoryHostSnapshot {
   optional string ops_out_band_type = 17;
 }
 
-// NodeAgentOpsHistoryDetailReq describes the snapshot retrieval request.
-// The operation must belong to the agent role.
-message NodeAgentOpsHistoryDetailReq {
+// NodeOpsHistoryDetailReq describes the snapshot retrieval request for all node
+// roles.
+message NodeOpsHistoryDetailReq {
   // Required operation ID. Returns all host snapshots without pagination.
   string operate_id = 1;
 }
 
-// NodeAgentOpsHistoryDetailResp describes the read-only snapshot retrieval
-// response.
-message NodeAgentOpsHistoryDetailResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {
-    // Number of accessible host snapshots for this operation.
-    int64 total = 1;
-    repeated NodeOpsHistoryHostSnapshot items = 2;
-  }
-  Data data = 5;
-}
-
-// NodeProxyOpsHistoryDetailReq describes the proxy snapshot retrieval request.
-// The operation must belong to the proxy role.
-message NodeProxyOpsHistoryDetailReq {
-  // Required operation ID. Returns all host snapshots without pagination.
-  string operate_id = 1;
-}
-
-// NodeProxyOpsHistoryDetailResp describes the read-only proxy snapshot
-// response.
-message NodeProxyOpsHistoryDetailResp {
+// NodeOpsHistoryDetailResp describes the read-only snapshot retrieval response.
+message NodeOpsHistoryDetailResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -133,22 +110,12 @@ service Ops {
     };
   }
 
-  // NodeAgentOpsHistoryDetail retrieves all archived snapshots for an agent
-  // operation.
-  rpc NodeAgentOpsHistoryDetail(NodeAgentOpsHistoryDetailReq)
-      returns (NodeAgentOpsHistoryDetailResp) {
+  // NodeOpsHistoryDetail retrieves all archived snapshots for an operation
+  // within the caller's permission scope.
+  rpc NodeOpsHistoryDetail(NodeOpsHistoryDetailReq)
+      returns (NodeOpsHistoryDetailResp) {
     option (google.api.http) = {
-      post : "/api/v3/node/ops/agent/history/detail"
-      body : "*"
-    };
-  }
-
-  // NodeProxyOpsHistoryDetail retrieves all archived snapshots for a proxy
-  // operation.
-  rpc NodeProxyOpsHistoryDetail(NodeProxyOpsHistoryDetailReq)
-      returns (NodeProxyOpsHistoryDetailResp) {
-    option (google.api.http) = {
-      post : "/api/v3/node/ops/proxy/history/detail"
+      post : "/api/v3/node/ops/history/detail"
       body : "*"
     };
   }
