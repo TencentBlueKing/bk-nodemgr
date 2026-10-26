@@ -21,6 +21,7 @@ package v3
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -1216,6 +1217,24 @@ func (x *ReleasePluginCancelHiddenReq) ConvertFromTypes(key types.ReleasePluginK
 	x.Name, x.Generation, x.Platform, x.Version = key.Name, int64(key.Generation), ConvertPlatformFromTypes(key.Platform), key.Version
 }
 
+func convertReleasePluginFromTypes(item *types.ReleasePlugin) (*ReleaseInfo, error) {
+	if item == nil {
+		return nil, nil
+	}
+
+	additionInfo, err := conv.StructToMap(item.ReleaseAdditionInfoPlugin)
+	if err != nil {
+		return nil, fmt.Errorf("convert plugin addition info: %w", err)
+	}
+
+	merged := make(map[string]any, len(item.Release.AdditionInfo)+len(additionInfo))
+	maps.Copy(merged, item.Release.AdditionInfo)
+	maps.Copy(merged, additionInfo)
+	release := item.Release
+	release.AdditionInfo = merged
+	return convertReleaseFromTypes(&release)
+}
+
 func convertReleasePluginToTypes(item *ReleaseInfo) (*types.ReleasePlugin, error) {
 	if item == nil {
 		return nil, nil
@@ -1430,7 +1449,7 @@ func (x *ReleasePluginListResp) ConvertFromTypes(total int64, items []*types.Rel
 		if item == nil {
 			continue
 		}
-		converted, err := convertReleaseFromTypes(&item.Release)
+		converted, err := convertReleasePluginFromTypes(item)
 		if err != nil {
 			return err
 		}
@@ -1475,7 +1494,7 @@ func (x *ReleasePluginGetResp) ConvertFromTypes(item *types.ReleasePlugin) error
 		x.Data = &ReleasePluginGetResp_Data{}
 		return nil
 	}
-	converted, err := convertReleaseFromTypes(&item.Release)
+	converted, err := convertReleasePluginFromTypes(item)
 	if err != nil {
 		return err
 	}
