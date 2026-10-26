@@ -92,6 +92,18 @@
         </div>
       </div>
     </template>
+    <template v-if="currentType === 'plugin' && hasInstallLimit">
+      <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px]">
+        {{ t('pkgUpload.installLimit') }}
+      </div>
+      <div
+        class="w-full bg-[#FAFBFD] min-h-[60px] border border-[#DCDEE5]
+          text-[#4D4F56] text-[12px] px-[10px] py-[10px] flex flex-col gap-[8px]"
+      >
+        <span>{{ t('pkgUpload.installCpuLimit', { limit: installCpuLimit }) }}</span>
+        <span>{{ t('pkgUpload.installDiskIoLimit', { limit: installDiskIoLimit }) }}</span>
+      </div>
+    </template>
   </div>
 </template>
 <script lang="ts" setup>
@@ -121,6 +133,16 @@ const props = defineProps({
   },
 });
 const isV3Plugin = computed(() => props.pluginUploadType === 'v3/plugin');
+const hasInstallLimit = computed(() => props.data?.install_cpu_limit !== undefined
+  || props.data?.install_disk_io_limit !== undefined);
+const installCpuLimit = computed(() => {
+  const limit = props.data?.install_cpu_limit;
+  return limit === undefined || limit === 0 || limit === 1 ? t('pkgUpload.unlimited') : `${limit * 100}%`;
+});
+const installDiskIoLimit = computed(() => {
+  const limit = props.data?.install_disk_io_limit;
+  return limit === undefined || limit === 0 ? t('pkgUpload.unlimited') : `${limit} MB/s`;
+});
 const route = useRoute();
 const packageStore = usePackageStore();
 const tagList = computed(() => packageStore.tagList.map((tag: string) => ({

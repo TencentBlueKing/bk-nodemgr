@@ -1055,6 +1055,10 @@ pkgUpload:
   configFile: "Config: {file}"
   configFormat: "Format: {format}"
   launchNode: "Node Type: {node}"
+  installLimit: Installation Resource Limits
+  installCpuLimit: "Installation CPU limit: {limit}"
+  installDiskIoLimit: "Installation disk IO limit: {limit}"
+  unlimited: Unlimited
   proxyPkgTypeOriginServer: Server Package
   proxyPkgTypeOriginProxy: Proxy Package
   proxyPkgTypeOriginServerTip: Contains GSE Server package, which will be automatically merged with the matching Agent package of the same version into a Proxy package

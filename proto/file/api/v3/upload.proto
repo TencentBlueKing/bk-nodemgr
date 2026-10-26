@@ -186,6 +186,8 @@ message UploadOriginPluginV2Resp {
     optional string launch_node = 14;
     repeated Platform platforms = 15;
     optional string plugin_pkg_name = 16;
+    optional double install_cpu_limit = 17;
+    optional double install_disk_io_limit = 18;
   }
   Data data = 4;
 }
@@ -249,6 +251,8 @@ message UploadOriginPluginV3Resp {
     optional string launch_node = 13;
     optional string template_renderer = 14;
     repeated Platform platforms = 15;
+    optional double install_cpu_limit = 16;
+    optional double install_disk_io_limit = 17;
   }
   Data data = 4;
 }

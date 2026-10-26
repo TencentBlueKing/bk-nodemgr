@@ -1058,6 +1058,10 @@ pkgUpload:
   configFile: "配置文件：{file}"
   configFormat: "配置格式：{format}"
   launchNode: "运行节点类型：{node}"
+  installLimit: 安装资源限制
+  installCpuLimit: "安装 CPU 限制：{limit}"
+  installDiskIoLimit: "安装磁盘 IO 限制：{limit}"
+  unlimited: 不限制
   proxyPkgTypeOriginServer: Server包
   proxyPkgTypeOriginProxy: Proxy包
   proxyPkgTypeOriginServerTip: 包含GSE Server包，将会匹配同版本的Agent包自动合并为Proxy包

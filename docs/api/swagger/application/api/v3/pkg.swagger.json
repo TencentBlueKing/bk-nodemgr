@@ -5171,6 +5171,14 @@
             "type": "object",
             "$ref": "#/definitions/v3Platform"
           }
+        },
+        "install_cpu_limit": {
+          "type": "number",
+          "format": "double"
+        },
+        "install_disk_io_limit": {
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -5257,6 +5265,14 @@
             "type": "object",
             "$ref": "#/definitions/v3Platform"
           }
+        },
+        "install_cpu_limit": {
+          "type": "number",
+          "format": "double"
+        },
+        "install_disk_io_limit": {
+          "type": "number",
+          "format": "double"
         }
       }
     },
