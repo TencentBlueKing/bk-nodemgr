@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -55,6 +56,7 @@ func NewActionInstallPluginV2(capability *Capability) action.Definition {
 		daoProcess:            capability.StoragePlugin,
 		provider:              capability.DiscoverProvider,
 		gseHandler:            capability.GSEHandler,
+		fileHandler:           capability.FileHandler,
 		storageActionInstance: capability.StorageWorkflow,
 	}
 }
@@ -73,6 +75,7 @@ type actionInstallPluginV2 struct {
 	daoProcess            pluginStg.IDaoProcess
 	provider              discover.Discover
 	gseHandler            gse.IHandler
+	fileHandler           file.IReleasePluginHandler
 	storageActionInstance workflow.IStorageActionInstance
 }
 
@@ -259,6 +262,18 @@ func (act *actionInstallPluginV2) buildInstallParams(
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}
+	pluginRelease, err := act.fileHandler.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
+		Generation: std.DeployInfo().Process.Generation,
+		Platform:   std.DeployInfo().Process.Platform,
+		Version:    std.DeployInfo().Process.Info.Version,
+		Name:       targetPlugin.PkgName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w",
+			targetPlugin.PkgName, std.DeployInfo().Process.Info.Version, err)
+	}
+	params.InstallCPULimit = pluginRelease.InstallCPULimit
+	params.InstallDiskIOLimit = pluginRelease.InstallDiskIOLimit
 
 	return params, nil
 }

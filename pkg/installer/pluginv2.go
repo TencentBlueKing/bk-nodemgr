@@ -149,11 +149,22 @@ type PluginV2InstallParams struct {
 
 	SkipCallback bool
 	SkipDownload bool
+
+	// InstallCPULimit is the installer CPU usage ratio limit, 0 and 1 mean unlimited.
+	InstallCPULimit float64
+	// InstallDiskIOLimit is the installer disk IO rate limit in MB/s, 0 means unlimited.
+	InstallDiskIOLimit float64
 }
 
 // Validate validates the install params.
 func (params *PluginV2InstallParams) Validate() error {
 	if err := params.PluginV2CommonParams.Validate(); err != nil {
+		return err
+	}
+	if err := validateInstallCPULimit(params.InstallCPULimit); err != nil {
+		return err
+	}
+	if err := validateInstallDiskIOLimit(params.InstallDiskIOLimit); err != nil {
 		return err
 	}
 
@@ -226,6 +237,8 @@ func (params *PluginV2InstallParams) buildArgs() []string {
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginV2FlagHTTPProxy, params.HTTPProxyAddress))
 	}
+	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
+	args = appendInstallDiskIOLimitArg(args, params.InstallDiskIOLimit)
 
 	return args
 }
@@ -284,11 +297,22 @@ type PluginV2UpgradeParams struct {
 
 	DeployToken string
 	OperInstID  string
+
+	// InstallCPULimit is the installer CPU usage ratio limit, 0 and 1 mean unlimited.
+	InstallCPULimit float64
+	// InstallDiskIOLimit is the installer disk IO rate limit in MB/s, 0 means unlimited.
+	InstallDiskIOLimit float64
 }
 
 // Validate validates the upgrade params.
 func (params *PluginV2UpgradeParams) Validate() error {
 	if err := params.PluginV2CommonParams.Validate(); err != nil {
+		return err
+	}
+	if err := validateInstallCPULimit(params.InstallCPULimit); err != nil {
+		return err
+	}
+	if err := validateInstallDiskIOLimit(params.InstallDiskIOLimit); err != nil {
 		return err
 	}
 
@@ -345,6 +369,8 @@ func (params *PluginV2UpgradeParams) buildArgs() []string {
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginV2FlagHTTPProxy, params.HTTPProxyAddress))
 	}
+	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
+	args = appendInstallDiskIOLimitArg(args, params.InstallDiskIOLimit)
 
 	return args
 }
