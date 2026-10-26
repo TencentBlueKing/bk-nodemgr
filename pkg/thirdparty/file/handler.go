@@ -19,6 +19,8 @@
 package file
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -571,6 +573,117 @@ func (h *handler) DownloadInstaller(nCtx contextx.IContext, osType criteria.OSTy
 	}
 
 	return resp, nil
+}
+
+func (h *handler) getReleasePluginData(nCtx contextx.IContext, key types.ReleasePluginKey) ([]byte, error) {
+	req := new(protoFile.ReleasePluginGetReq)
+	req.ConvertFromTypes(key)
+	cacheKey, err := h.generateReleaseCacheKey("plugin", nCtx.TenantID(), key)
+	if err != nil {
+		return nil, err
+	}
+
+	return h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+}
+
+func (h *handler) getReleasePluginDefaultVersionData(
+	nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform,
+) ([]byte, error) {
+
+	req := new(protoFile.ReleasePluginGetDefaultVersionReq)
+	req.ConvertFromTypes(name, gen, plat)
+	cacheKey, err := h.generateReleaseCacheKey("plugin-default-version", nCtx.TenantID(), struct {
+		Name       string
+		Generation types.Generation
+		Platform   platfmt.Platform
+	}{Name: name, Generation: gen, Platform: plat})
+	if err != nil {
+		return nil, err
+	}
+
+	return h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleasePluginDefaultVersion(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		version := response.ConvertToTypes()
+		return json.Marshal(version)
+	})
+}
+
+func (h *handler) generateReleaseCacheKey(prefix, tenantID string, query any) (string, error) {
+	data, err := json.Marshal(query)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal release cache key: %w", err)
+	}
+
+	return h.releaseCacheKeys.Generate(prefix, tenantID, base64.RawURLEncoding.EncodeToString(data)), nil
+}
+
+func (h *handler) queryReleaseCache(
+	nCtx contextx.IContext, key string, fetch func(contextx.IContext) ([]byte, error),
+) ([]byte, error) {
+
+	if err := nCtx.Err(); err != nil {
+		return nil, err
+	}
+
+	if data, found := h.getReleaseCache(nCtx, key); found {
+		return data, nil
+	}
+
+	resultCh := h.releaseGroup.DoChan(key, func() (any, error) {
+		if data, found := h.getReleaseCache(nCtx, key); found {
+			return data, nil
+		}
+
+		data, err := fetch(nCtx)
+		if err != nil {
+			return nil, err
+		}
+		if err := h.releaseCache.SetWithExpiration(nCtx, key, data, releaseCacheExpiration); err != nil {
+			return nil, fmt.Errorf("failed to cache release data: %w", err)
+		}
+
+		return data, nil
+	})
+
+	select {
+	case <-nCtx.Done():
+		return nil, nCtx.Err()
+	case result := <-resultCh:
+		if result.Err != nil {
+			return nil, result.Err
+		}
+
+		data, ok := result.Val.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("invalid release cache result type")
+		}
+
+		return data, nil
+	}
+}
+
+func (h *handler) getReleaseCache(nCtx contextx.IContext, key string) ([]byte, bool) {
+	data, err := h.releaseCache.Get(nCtx, key)
+	if err != nil {
+		return nil, false
+	}
+
+	return data, true
 }
 
 // DownloadRemoteFile downloads a verified remote file.
