@@ -1012,7 +1012,7 @@ func (svc *Service) registerInfoServer() error {
 	return nil
 }
 
-func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
+func newSystemAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
 	switch conf.AuthIdentity {
 	case config.AuthIdentityNone:
 		return restserver.NewNoneAuthIdentity(), nil
@@ -1033,6 +1033,27 @@ func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
 	}
 }
 
+func newOpenAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
+	switch conf.AuthIdentity {
+	case config.AuthIdentityNone:
+		return restserver.NewNoneAuthIdentity(), nil
+
+	case config.AuthIdentityAPIGW:
+		publickeyPem, err := base64.StdEncoding.DecodeString(conf.JWTServerConfig.PublicKeyPem)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode publickey: %w", err)
+		}
+
+		return apigwserver.NewBKGWJWTAuthIdentityUserState(publickeyPem), nil
+
+	case config.AuthIdentityRestServer:
+		return restserver.NewRestServerAuthIdentity(conf.JWTServerConfig.SymmetricKey), nil
+
+	default:
+		return nil, fmt.Errorf("no support this auth identity, auth-identity(%s)", conf.AuthIdentity)
+	}
+}
+
 func (svc *Service) registerAdminServer() error {
 	if svc.conf.AdminServer.AuthIdentity != config.AuthIdentityNone &&
 		svc.conf.AdminServer.AuthIdentity != config.AuthIdentityRestServer {
@@ -1041,7 +1062,7 @@ func (svc *Service) registerAdminServer() error {
 			svc.conf.AdminServer.AuthIdentity, config.AuthIdentityNone, config.AuthIdentityRestServer)
 	}
 
-	authIdentity, err := newAuthIdentity(svc.conf.AdminServer)
+	authIdentity, err := newSystemAuthIdentity(svc.conf.AdminServer)
 	if err != nil {
 		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
@@ -1085,9 +1106,14 @@ func (svc *Service) registerBasicServer() error {
 			svc.conf.BasicServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
 	}
 
-	authIdentity, err := newAuthIdentity(svc.conf.BasicServer)
+	systemAuthIdentity, err := newSystemAuthIdentity(svc.conf.BasicServer)
 	if err != nil {
-		return fmt.Errorf("failed to new auth identity: %w", err)
+		return fmt.Errorf("failed to new system auth identity: %w", err)
+	}
+
+	openAuthIdentity, err := newOpenAuthIdentity(svc.conf.BasicServer)
+	if err != nil {
+		return fmt.Errorf("failed to new open auth identity: %w", err)
 	}
 
 	server, err := restserver.NewServer(
@@ -1104,8 +1130,12 @@ func (svc *Service) registerBasicServer() error {
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withAPIV3Basic(svc.Cap,
-			restserver.MiddlewareAuth(authIdentity, restserver.WithSkipPathPrefixes("/api/v3/iam"))),
+		withAPIV3BasicSystem(svc.Cap,
+			restserver.MiddlewareAuth(systemAuthIdentity, restserver.WithSkipPathPrefixes("/api/v3/iam")),
+		),
+		withAPIV3BasicOpen(svc.Cap,
+			restserver.MiddlewareAuth(openAuthIdentity),
+		),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register basic server: %w", err)
@@ -1199,10 +1229,17 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 	}
 }
 
-// withAPIV3Basic load api v3 basic.
-func withAPIV3Basic(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+// withAPIV3BasicSystem load api v3 basic.
+func withAPIV3BasicSystem(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		backendapiv3.LoadBasicAPIs(rg, capability, middleware...)
+		backendapiv3.LoadBasicSystemAPIs(rg, capability, middleware...)
+	}
+}
+
+// withAPIV3BasicOpen load api v3 basic.
+func withAPIV3BasicOpen(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		backendapiv3.LoadBasicOpenAPIs(rg, capability, middleware...)
 	}
 }
 
