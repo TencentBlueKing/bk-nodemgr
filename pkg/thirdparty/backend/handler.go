@@ -29,6 +29,7 @@ type IHandler interface {
 	IHandlerHost
 	IHandlerNodeAgent
 	IHandlerNodeProxy
+	IHandlerNodeOps
 	IHandlerNodeWorkflow
 	IHandlerNodeConstant
 	IHandlerRelease

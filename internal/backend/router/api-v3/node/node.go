@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/agent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/ops"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/workflow"
 	"github.com/gin-gonic/gin"
@@ -47,4 +48,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	agent.Load(h.rg, capability)
 	proxy.Load(h.rg, capability)
 	constant.Load(h.rg, capability)
+	ops.Load(h.rg, capability)
 }
