@@ -176,7 +176,7 @@
                                         :name="item.name"
                                         :title="item.description"
                                     >
-                                        {{ item.name }} ({{ item.port }})
+                                        {{ item.name }}
                                     </Select.Option>
                                 </Select>
                             </template>
