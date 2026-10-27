@@ -252,19 +252,23 @@ platform:
         agentHistory: Agent 历史
         proxyHistory: Proxy 历史
         pluginHistory: 插件历史
+        opsHistory: 带外管理操作历史
       subtitle:
-        agent: 查看 Agent 安装、升级、卸载等节点操作任务历史
+        agent: 查看 Agent 安装、升级、卸载等节点操作任务历史及带外管理操作历史
         proxy: 查看 Proxy 安装、升级、卸载等节点操作任务历史
         plugin: 查看插件安装、升级、启动、停止、卸载等任务历史
+        ops: 查看带外管理设置的操作历史
       shortcut:
         today: 今天
         last7Days: 近7天
         last15Days: 近15天
         last30Days: 近30天
       title:
-        mainTitle: 任务历史
+        mainTitle: 历史记录
       label:
         taskID: 任务ID
+        operateId: 操作ID
+        nodeRole: 节点角色
         taskType: 任务类型
         business: 业务
         operator: 执行人
@@ -1401,7 +1405,8 @@ route:
   assignUnit: 分配管控单元
   opsSetting: 带外管理
   plugin: 插件
-  taskHistory: 任务历史
+  taskHistory: 历史记录
+  opsHistoryDetail: 带外管理操作详情
   workarea: 管控区域
   workareaSubtitle: 管控区域包含了在同一个IP池中的一组服务器单元，如企业内的局域网、公有云VPC（虚拟私有网络）
   workareaDetail: 管控区域详情

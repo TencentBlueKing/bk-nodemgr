@@ -21,6 +21,7 @@ import AgentManager from '@/pages/node/agent/list.vue';
 import AgentSetup from '@/pages/node/agent/setup.vue';
 import TaskHistory from '@/pages/node/history/history.vue';
 import Log from '@/pages/node/history/log.vue';
+import OpsHistoryDetail from '@/pages/node/history/ops-detail.vue';
 import TaskDetail from '@/pages/node/history/task-detail.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin/plugin.vue';
@@ -166,6 +167,15 @@ const routes = setupLayouts([
             name: 'log',
             path: 'history/detail/:taskId/log/:hostId',
             component: Log,
+            meta: {
+              mainMenu: 'nodeManager',
+              parentName: 'history',
+            },
+          },
+          {
+            name: 'opsHistoryDetail',
+            path: 'history/ops-detail/:operateId',
+            component: OpsHistoryDetail,
             meta: {
               mainMenu: 'nodeManager',
               parentName: 'history',

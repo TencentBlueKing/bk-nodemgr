@@ -63,6 +63,29 @@
         @page-value-change="pageValueChange"
       >
         <TableColumn
+          v-if="isOps"
+          field="operate_id"
+          :title="t('platform.nodeMan.taskHistory.label.operateId')"
+          min-width="180"
+          fixed="left"
+        >
+          <template #default="{ row }">
+            <Button
+              text
+              theme="primary"
+              :title="row.operate_id"
+              @click="opsDetailHandle(row)"
+            >{{ "#" + String(row.operate_id || '').slice(-4) }}</Button>
+          </template>
+        </TableColumn>
+        <TableColumn
+          v-if="isOps"
+          field="node_role"
+          :title="t('platform.nodeMan.taskHistory.label.nodeRole')"
+          min-width="120"
+        />
+        <TableColumn
+          v-else
           field="workflow_id"
           :title="t('platform.nodeMan.taskHistory.label.taskID')"
           min-width="100"
@@ -78,6 +101,7 @@
           </template>
         </TableColumn>
         <TableColumn
+          v-if="!isOps"
           field="type"
           :title="t('platform.nodeMan.taskHistory.label.taskType')"
           :filter="filterOptionSource.type"
@@ -114,6 +138,7 @@
           </template>
         </TableColumn>
         <TableColumn
+          v-if="!isOps"
           field="cost_time"
           :title="t('platform.nodeMan.taskHistory.label.costTime')"
           min-width="100"
@@ -123,6 +148,7 @@
           </template>
         </TableColumn>
         <TableColumn
+          v-if="!isOps"
           field="status"
           :title="t('platform.nodeMan.taskHistory.label.status')"
           min-width="150"
@@ -150,6 +176,7 @@
           </template>
         </TableColumn>
         <TableColumn
+          v-if="!isOps"
           field="count"
           :title="t('platform.nodeMan.taskHistory.label.count')"
           min-width="150"
@@ -201,7 +228,9 @@ import { type LocationQuery, useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import type { NodeWorkflowDistinctRespData, NodeWorkflowInfo } from '@/@types/node_workflow';
+import type { NodeOpsHistoryInfo, NodeOpsHistoryListReq } from '@/@types/ops';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import { OpsService } from '@/api/modules/ops';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import { formatTimeByTimezone } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
@@ -230,9 +259,9 @@ type taskType =
   | 'assign_proxy_unit'
   | 'remove_plugin_subconfig';
 type filterProp = 'type' | 'operator' | 'status';
-type HistoryTab = 'agent' | 'proxy' | 'plugin';
+type HistoryTab = 'agent' | 'proxy' | 'plugin' | 'ops';
 
-const historyTabs: HistoryTab[] = ['agent', 'proxy', 'plugin'];
+const historyTabs: HistoryTab[] = ['agent', 'proxy', 'plugin', 'ops'];
 const normalizeHistoryTab = (tab: unknown): HistoryTab => (
   historyTabs.includes(tab as HistoryTab) ? tab as HistoryTab : 'agent'
 );
@@ -241,6 +270,7 @@ const historySubtitleMap: Record<HistoryTab, string> = {
   agent: 'platform.nodeMan.taskHistory.subtitle.agent',
   proxy: 'platform.nodeMan.taskHistory.subtitle.proxy',
   plugin: 'platform.nodeMan.taskHistory.subtitle.plugin',
+  ops: 'platform.nodeMan.taskHistory.subtitle.ops',
 };
 
 const { t } = useI18n();
@@ -250,7 +280,9 @@ const mainStore = useMainStore();
 const authStore = useAuthStore();
 const nodeManageStore = useNodeManageStore();
 const routeSubTitle = useRouteSubTitle();
-const tableData = ref<NodeWorkflowInfo[]>([]);
+// ops Tab 的行数据（NodeOpsHistoryInfo）与 workflow 行共用表格，用 Partial 扩展
+type HistoryRow = NodeWorkflowInfo & Partial<NodeOpsHistoryInfo>;
+const tableData = ref<HistoryRow[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
 
 // URL query 与筛选状态同步
@@ -357,6 +389,7 @@ const panels = ref([
   { name: 'agent', label: t('platform.nodeMan.taskHistory.tab.agentHistory') },
   { name: 'proxy', label: t('platform.nodeMan.taskHistory.tab.proxyHistory') },
   { name: 'plugin', label: t('platform.nodeMan.taskHistory.tab.pluginHistory') },
+  { name: 'ops', label: t('platform.nodeMan.taskHistory.tab.opsHistory') },
 ]);
 
 // 分页
@@ -583,7 +616,19 @@ const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
 
-const searchSelectData = computed(() => [
+const searchSelectData = computed(() => {
+  // ops Tab 仅支持操作ID / 执行人筛选（与 NodeOpsHistoryExactConditions 对齐）
+  if (isOps.value) {
+    return [
+      { id: 'operate_id', name: t('platform.nodeMan.taskHistory.label.operateId') },
+      {
+        id: 'operator',
+        name: t('platform.nodeMan.taskHistory.label.operator'),
+        children: translatedOperatorChildren.value,
+      },
+    ];
+  }
+  return [
   { id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID') },
   { id: 'ip', name: 'IP', multiple: true },
   {
@@ -616,7 +661,8 @@ const searchSelectData = computed(() => [
     name: t('platform.nodeMan.taskHistory.label.status'),
     children: getUniqueChildrenFrom('status', statusMap.value),
   },
-]);
+  ];
+});
 const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
@@ -800,12 +846,14 @@ const getTimestampInSeconds = (originalDate: string) => {
   return timestampInSeconds;
 };
 const isNode = computed(() => ['agent', 'proxy'].includes(active.value));
+const isOps = computed(() => active.value === 'ops');
 const agentType = ['install_agent', 'upgrade_agent', 'reconfig_agent', 'restart_agent', 'uninstall_agent'];
 const proxyType = ['install_proxy', 'upgrade_proxy', 'reconfig_proxy', 'restart_proxy', 'uninstall_proxy', 'assign_proxy_unit'];
 const typeListMap = {
   agent: agentType,
   proxy: proxyType,
   plugin: [] as string[],
+  ops: [] as string[],
 };
 const getParams = () => {
   const params = {
@@ -892,6 +940,8 @@ const getParams = () => {
 
 // 获取搜索和筛选条件
 const getWorkflowDistinct = async () => {
+  // ops Tab 的筛选项为静态（操作ID/执行人），无 distinct 接口
+  if (isOps.value) return;
   const params = {
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
@@ -938,6 +988,38 @@ const getTaskList = async () => {
   loading.value = true;
   let res;
   let statistics: any;
+  if (isOps.value) {
+    // 带外管理操作历史：走 Ops 服务，条件仅 operate_id / operator
+    const params: NodeOpsHistoryListReq = {
+      page: {
+        limit: pagination.limit,
+        offset: (pagination.current - 1) * pagination.limit,
+      },
+      only_count: false,
+      exact_include_conditions: { operate_id: [], operator: [], node_role: [] },
+      fuzzy_include_conditions: {},
+      operate_time_range: {
+        start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),
+        end_timestamp_sec: getTimestampInSeconds(dateValue.value[1]),
+      },
+    };
+    searchSelectValue.value.forEach((item: any) => {
+      if (item.id === 'operate_id' && item.values?.length) {
+        params.exact_include_conditions.operate_id = item.values.map((value: any) => value.id);
+      }
+      if (item.id === 'operator' && item.values?.length) {
+        params.exact_include_conditions.operator = item.values.map((value: any) => value.id);
+      }
+    });
+    res = await OpsService.NodeOpsHistoryList(params).catch((err) => {
+      console.log(err);
+      return { total: 0, items: [] as NodeOpsHistoryInfo[] };
+    });
+    pagination.count = res.total;
+    tableData.value = res.items as unknown as HistoryRow[];
+    loading.value = false;
+    return;
+  }
   if (isNode.value) {
     res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
       console.log(err);
@@ -1023,6 +1105,20 @@ const detailHandle = (row: NodeWorkflowInfo, status?: string) => {
     query: {
       active: active.value,
       status,
+    },
+  });
+};
+
+// 跳转带外管理操作详情
+const opsDetailHandle = (row: HistoryRow) => {
+  nodeManageStore.updateCurrentRowData(row);
+  router.push({
+    name: 'opsHistoryDetail',
+    params: {
+      operateId: String(row.operate_id || ''),
+    },
+    query: {
+      active: 'ops',
     },
   });
 };
