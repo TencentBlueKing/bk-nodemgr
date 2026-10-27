@@ -278,13 +278,33 @@ func TestRequest_DoRecordsResponseHeadersOnSpan(t *testing.T) {
 			defer func() { require.NoError(t, result.Body.Close()) }()
 
 			spans := recorder.Ended()
-			require.Len(t, spans, 1)
-			var headers string
-			for _, attr := range spans[0].Attributes() {
-				if attr.Key == attribute.Key("http.response.header") {
-					headers = attr.Value.AsString()
+			require.Len(t, spans, 2)
+			var requestSpan, responseSpan sdktrace.ReadOnlySpan
+			for _, span := range spans {
+				if span.Name() == "HTTP response" {
+					responseSpan = span
+				} else {
+					requestSpan = span
 				}
 			}
+			require.NotNil(t, requestSpan)
+			require.NotNil(t, responseSpan)
+			assert.Equal(t, trace.SpanKindClient, requestSpan.SpanKind())
+			assert.Equal(t, trace.SpanKindInternal, responseSpan.SpanKind())
+			assert.Equal(t, requestSpan.SpanContext().TraceID(), responseSpan.SpanContext().TraceID())
+			assert.Equal(t, requestSpan.SpanContext().SpanID(), responseSpan.Parent().SpanID())
+
+			var headers string
+			var statusCode int64
+			for _, attr := range responseSpan.Attributes() {
+				switch attr.Key {
+				case attribute.Key("http.response.header"):
+					headers = attr.Value.AsString()
+				case attribute.Key("http.response.status_code"):
+					statusCode = attr.Value.AsInt64()
+				}
+			}
+			assert.Equal(t, int64(http.StatusOK), statusCode)
 			assert.Contains(t, headers, "X-Bkapi-Request-Id:[response-request-id]")
 			assert.Contains(t, headers, "X-Upstream:[first second]")
 			if tt.maskHeaders {

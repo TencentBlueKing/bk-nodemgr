@@ -563,7 +563,7 @@ func (r *Request) doWithDiscoveredEndpoints(httpClient HTTPClient) (result *Resu
 			r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
 
 			var isComplete bool
-			result, isComplete = r.doWithEndpoint(httpClient, req, span, try+index, r.subPath)
+			result, isComplete = r.doWithEndpoint(httpClient, req, try+index, r.subPath)
 			if isComplete {
 				return result
 			}
@@ -618,7 +618,7 @@ func (r *Request) doWithTargetURL(httpClient HTTPClient) (result *Result) {
 		req = req.WithContext(traceCtx)
 		r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
 
-		result, isComplete := r.doWithEndpoint(httpClient, req, span, try, requestPath)
+		result, isComplete := r.doWithEndpoint(httpClient, req, try, requestPath)
 		if isComplete {
 			return result
 		}
@@ -633,10 +633,7 @@ func (r *Request) doWithTargetURL(httpClient HTTPClient) (result *Result) {
 const retryDelay = 20 * time.Millisecond
 
 // doWithEndpoint http request do with specific host.
-func (r *Request) doWithEndpoint(
-	client HTTPClient, req *http.Request, span trace.Span, retries int, requestPath string,
-) (*Result, bool) {
-
+func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries int, requestPath string) (*Result, bool) {
 	if retries > 0 {
 		r.tryThrottle(req.URL.String())
 	}
@@ -662,7 +659,12 @@ func (r *Request) doWithEndpoint(
 		return nil, false
 	}
 
-	span.SetAttributes(attribute.String(attributeHTTPResponseHeader, r.maskHeader(resp.Header)))
+	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
+	_, span := tracer.Start(req.Context(), "HTTP response", trace.WithAttributes(
+		attribute.String(attributeHTTPResponseHeader, r.maskHeader(resp.Header)),
+		attribute.Int(attributeHTTPResponseStatusCode, resp.StatusCode),
+	))
+	span.End()
 
 	// collect request metrics.
 	r.client.metrics.HandleClientMetrics(req, resp, requestPath, start)
