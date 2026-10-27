@@ -12,6 +12,7 @@ message NodeOpsHistoryInfo {
   optional string operator = 2;
   optional int64 operate_time = 3;
   optional string node_role = 4;
+  repeated int64 bk_biz_id = 5;
 }
 
 // NodeOpsHistoryExactConditions describes the exact conditions of the history
@@ -22,6 +23,7 @@ message NodeOpsHistoryExactConditions {
   repeated string operate_id = 1;
   repeated string operator = 2;
   repeated string node_role = 3;
+  repeated int64 bk_biz_id = 4;
 }
 
 // NodeOpsHistoryFuzzyConditions describes the fuzzy conditions of the history
@@ -56,23 +58,14 @@ message NodeOpsHistoryListResp {
 
 // NodeOpsHistoryHostSnapshot preserves host information and submitted settings.
 message NodeOpsHistoryHostSnapshot {
-  optional string operate_id = 1;
-  optional int64 bk_host_id = 2;
-  repeated string bk_host_innerip_list = 3;
-  repeated string bk_host_innerip_v6_list = 4;
-  optional int64 bk_biz_id = 5;
-  optional string bk_biz_name = 6;
-  optional int64 bk_networkarea_id = 7;
-  optional string bk_networkarea_name = 8;
-  optional int64 bk_networkunit_id = 9;
-  optional string bk_networkunit_name = 10;
-  optional int64 ops_console_host_id = 11;
-  repeated string ops_console_host_innerip_list = 12;
-  repeated string ops_console_host_innerip_v6_list = 13;
-  optional string ops_out_band_ip = 14;
-  optional int64 ops_out_band_port = 15;
-  optional string ops_out_band_protocol = 16;
-  optional string ops_out_band_type = 17;
+  optional int64 bk_host_id = 1;
+  optional int64 ops_console_host_id = 2;
+  repeated string ops_console_host_innerip_list = 3;
+  repeated string ops_console_host_innerip_v6_list = 4;
+  optional string ops_out_band_ip = 5;
+  optional int64 ops_out_band_port = 6;
+  optional string ops_out_band_protocol = 7;
+  optional string ops_out_band_type = 8;
 }
 
 // NodeOpsHistoryDetailReq describes the snapshot retrieval request for all node

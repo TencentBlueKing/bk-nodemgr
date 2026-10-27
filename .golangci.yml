@@ -322,6 +322,8 @@ linters:
           alias: pkgUtils
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export
           alias: packageexport
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-ops-history
+          alias: daoNodeOpsHistory
       no-unaliased: false
       no-extra-aliases: true
     interfacebloat:

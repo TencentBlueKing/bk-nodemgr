@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
+	daoNodeOpsHistory "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-ops-history"
 	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
 	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -54,12 +55,18 @@ const (
 	metricOperationSetNodeDeploymentNodeConf = "set_node_deployment_node_conf"
 	metricOperationUpdateNodeDeploymentInfo  = "update_node_deployment_info"
 	metricOperationCreateNodeDeployment      = "create_node_deployment"
-	metricOperationListNodeWorkflow          = "list_node_workflow"
-	metricOperationCountNodeWorkflow         = "count_node_workflow"
-	metricOperationDistinctNodeWorkflow      = "distinct_node_workflow"
-	metricOperationGetNodeWorkflow           = "get_node_workflow"
-	metricOperationCreateNodeWorkflow        = "create_node_workflow"
-	metricOperationUpdateNodeWorkflowStatus  = "update_node_workflow_status"
+
+	metricOperationListNodeWorkflow         = "list_node_workflow"
+	metricOperationCountNodeWorkflow        = "count_node_workflow"
+	metricOperationDistinctNodeWorkflow     = "distinct_node_workflow"
+	metricOperationGetNodeWorkflow          = "get_node_workflow"
+	metricOperationCreateNodeWorkflow       = "create_node_workflow"
+	metricOperationUpdateNodeWorkflowStatus = "update_node_workflow_status"
+
+	metricOperationListNodeOpsHistory   = "list_node_ops_history"
+	metricOperationCountNodeOpsHistory  = "count_node_ops_history"
+	metricOperationGetNodeOpsHistory    = "get_node_ops_history"
+	metricOperationCreateNodeOpsHistory = "create_node_ops_history"
 )
 
 // NewStorage creates a new node workflow storage handler.
@@ -103,6 +110,7 @@ type Storage struct {
 	// dao
 	daoNodeDeployment daoNodeDeployment.IHandler
 	daoNodeWorkflow   daoNodeWorkflow.IHandler
+	daoNodeOpsHistory daoNodeOpsHistory.IHandler
 	daoOperation      daoOperation.IHandler
 
 	// key is triggerID, value is the workflow that needs to be monitored.
@@ -114,6 +122,7 @@ func (s *Storage) initDao() error {
 	s.daoNodeWorkflow = daoNodeWorkflow.New(s.Database)
 	s.daoOperation = daoOperation.New(s.Database)
 	s.daoNodeDeployment = daoNodeDeployment.New(s.Database)
+	s.daoNodeOpsHistory = daoNodeOpsHistory.New(s.Database)
 
 	return nil
 }
@@ -384,6 +393,10 @@ func (s *Storage) check() error {
 		return errors.New("dao operation is nil")
 	}
 
+	if s.daoNodeOpsHistory == nil {
+		return errors.New("dao node ops history is nil")
+	}
+
 	return nil
 }
 
@@ -447,6 +460,62 @@ func (s *Storage) UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string,
 func (s *Storage) CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error {
 	return s.WrapFn(nCtx, metricOperationCreateNodeDeployment, func(nCtx contextx.IContext) error {
 		return s.createNodeDeployment(nCtx, nodeDeployment)
+	})
+}
+
+// ListNodeOpsHistory lists selected fields by page and conditions.
+// Nil or an empty selection returns complete records.
+func (s *Storage) ListNodeOpsHistory(
+	nCtx contextx.IContext, page types.Page, selection *types.NodeOpsHistoryFieldSelection,
+	conditions ...*types.NodeOpsHistoryCondition,
+) ([]*types.NodeOpsHistory, int64, error) {
+
+	var results []*types.NodeOpsHistory
+	var total int64
+	err := s.WrapFn(nCtx, metricOperationListNodeOpsHistory, func(nCtx contextx.IContext) error {
+		var err error
+		results, total, err = s.listNodeOpsHistory(nCtx, page, selection, conditions...)
+
+		return err
+	})
+
+	return results, total, err
+}
+
+// CountNodeOpsHistory counts operation history by conditions.
+func (s *Storage) CountNodeOpsHistory(nCtx contextx.IContext, conditions ...*types.NodeOpsHistoryCondition) (int64, error) {
+	var total int64
+	err := s.WrapFn(nCtx, metricOperationCountNodeOpsHistory, func(nCtx contextx.IContext) error {
+		var err error
+		total, err = s.countNodeOpsHistory(nCtx, conditions...)
+
+		return err
+	})
+
+	return total, err
+}
+
+// GetNodeOpsHistory gets selected fields of an operation history by operation ID.
+// Nil or an empty selection returns the complete record.
+func (s *Storage) GetNodeOpsHistory(
+	nCtx contextx.IContext, operateID string, selection *types.NodeOpsHistoryFieldSelection,
+) (*types.NodeOpsHistory, error) {
+
+	var history *types.NodeOpsHistory
+	err := s.WrapFn(nCtx, metricOperationGetNodeOpsHistory, func(nCtx contextx.IContext) error {
+		var err error
+		history, err = s.getNodeOpsHistory(nCtx, operateID, selection)
+
+		return err
+	})
+
+	return history, err
+}
+
+// CreateNodeOpsHistory persists supplied historical snapshots without reading current hosts.
+func (s *Storage) CreateNodeOpsHistory(nCtx contextx.IContext, history *types.NodeOpsHistory) error {
+	return s.WrapFn(nCtx, metricOperationCreateNodeOpsHistory, func(nCtx contextx.IContext) error {
+		return s.createNodeOpsHistory(nCtx, history)
 	})
 }
 
