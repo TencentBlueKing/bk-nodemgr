@@ -19,9 +19,6 @@
 package file
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
@@ -551,53 +548,6 @@ func (h *handler) CountReleasePlugin(nCtx contextx.IContext, conditions ...*type
 	}
 
 	return data.ConvertToTypes(), nil
-}
-
-// GetReleasePlugin queries plugin release metadata.
-func (h *handler) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (*types.ReleasePlugin, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	data, err := h.getReleasePluginData(nCtx, key)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := decodeReleasePlugin(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-// GetReleasePluginDefaultVersion queries plugin release metadata.
-func (h *handler) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return "", err
-	}
-
-	data, err := h.getReleasePluginDefaultVersionData(nCtx, name, gen, plat)
-	if err != nil {
-		return "", err
-	}
-
-	var version string
-	if err := json.Unmarshal(data, &version); err != nil {
-		return "", fmt.Errorf("failed to unmarshal plugin default version: %w", err)
-	}
-
-	return version, nil
-}
-
-func decodeReleasePlugin(data []byte) (*types.ReleasePlugin, error) {
-	response := new(protoFile.ReleasePluginGetResp_Data)
-	if err := json.Unmarshal(data, response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal plugin release: %w", err)
-	}
-
-	return response.ConvertToTypes()
 }
 
 // DistinctReleasePlugin queries plugin release metadata.
