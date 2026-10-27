@@ -22,6 +22,7 @@ package cipher
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher/rsa"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
 )
@@ -44,4 +45,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	rsa.Load(h.rg, capability)
+
+	h.rg.POST("/get_public_key", restserver.Handler(h.GetCurrentPublicKey))
 }

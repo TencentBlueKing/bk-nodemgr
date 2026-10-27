@@ -1655,6 +1655,12 @@ backend:
       # the in-memory index at startup. Defaults to false (cache starts empty).
       restoreOnStart: false
 
+    ## cryptoType: symmetric crypto suite for sensitive data, CLASSIC(AES-CBC) or SHANGMI(SM4-GCM, GM).
+    ## Only one suite is enabled globally; after switching, previously stored temporary
+    ## credentials become invalid and must be re-entered at install time (no migration):
+    ## see docs/developer/credential-encryption-contract.md
+    cryptoType: "CLASSIC"
+
     ## encryptKey: define the key used to encrypt the sensitive data.
     encryptKey: "1234567890abcdef"
 
@@ -1810,6 +1816,11 @@ backend:
         caFile: ""
         # the password to decrypt the certificate.
         password: ""
+        # TLCP (GM TLS, GB/T 38636) encryption certificate pair; when set
+        # together with certFile/keyFile (the signing pair), the GSE
+        # server-api client dials with TLCP.
+        encCertFile: ""
+        encKeyFile: ""
 
     userManager:
       # endpoints is a seed list of host:port addresses of esb nodes.

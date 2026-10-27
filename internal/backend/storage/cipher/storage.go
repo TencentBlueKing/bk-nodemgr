@@ -120,9 +120,9 @@ func (s *Storage) CreateCipher(nCtx contextx.IContext, encryption ...*types.Ciph
 	})
 }
 
-// EnsureDefaultCipher ensures the default RSA cipher.
-func (s *Storage) EnsureDefaultCipher(nCtx contextx.IContext) error {
+// EnsureDefaultCipher ensures the default keypair of the given key type.
+func (s *Storage) EnsureDefaultCipher(nCtx contextx.IContext, keyType types.CipherKeyType) error {
 	return s.WrapFn(nCtx, metricOperationEnsureDefaultCipher, func(ctx contextx.IContext) error {
-		return s.ensureDefaultCipher(ctx)
+		return s.ensureDefaultCipher(ctx, keyType)
 	})
 }

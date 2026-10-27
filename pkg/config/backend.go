@@ -80,6 +80,9 @@ const (
 
 	defaultBackendEncryptKey = "1234567890abcdef"
 
+	// defaultBackendCryptoType defaults to the classic symmetric suite (AES).
+	defaultBackendCryptoType = EncryptCryptoTypeClassic
+
 	defaultBackendSystemEnv     = "dev"
 	defaultBackendSystemEdition = "ce"
 
@@ -133,39 +136,62 @@ const (
 	defaultBackendNetworkUnitDefaultDirectUnitName    = "default"
 )
 
+// EncryptCryptoType defines the symmetric crypto suite for credential encryption.
+type EncryptCryptoType string
+
+const (
+	// EncryptCryptoTypeClassic uses AES-CBC (Go standard library).
+	EncryptCryptoTypeClassic EncryptCryptoType = "CLASSIC"
+	// EncryptCryptoTypeShangmi uses SM4-GCM (emmansun/gmsm, pure Go).
+	EncryptCryptoTypeShangmi EncryptCryptoType = "SHANGMI"
+)
+
+// CredentialKeyType maps the crypto suite to the asymmetric key type used for
+// frontend credential encryption: only one suite is enabled globally, and the
+// ciphertexts of the other suite are rejected.
+func (t EncryptCryptoType) CredentialKeyType() types.CipherKeyType {
+	switch t {
+	case EncryptCryptoTypeShangmi:
+		return types.CipherKeyTypeSM2
+	default:
+		return types.CipherKeyTypeRSA4096
+	}
+}
+
 // BackendService the config of backend service.
 type BackendService struct {
-	RunMode            RunMode          `yaml:"runMode" usage:"run mode of service"`
-	TenantMode         tenant.Mode      `yaml:"tenantMode" usage:"tenant mode of service"`
-	KMS                KMS              `yaml:"kms" usage:"kms secret of backend service"`
-	CMDB               CMDB             `yaml:"cmdb" usage:"cmdb config of backend service"`
-	File               File             `yaml:"file" usage:"file config of backend service"`
-	GSE                GSE              `yaml:"gse" usage:"gse config of backend service"`
-	UserManager        UserManager      `yaml:"userManager" usage:"user manager config of backend service"`
-	IAMV3              IAMV3            `yaml:"iamV3" usage:"IAM v3 gateway config"`
-	IAMV4              IAMV4            `yaml:"iamV4" usage:"IAM v4 gateway config"`
-	Monitor            Monitor          `yaml:"monitor" usage:"monitor gateway config"`
-	NodeEventDataID    NodeEventDataID  `yaml:"nodeEventDataID" usage:"node event data-id config"`
-	Workflow           Workflow         `yaml:"workflow" usage:"workflow config of backend service"`
-	InfoServer         HTTPServer       `yaml:"infoServer" usage:"info server config of backend service"`
-	AdminServer        HTTPServer       `yaml:"adminServer" usage:"admin server config of backend service"`
-	BasicServer        HTTPServer       `yaml:"basicServer" usage:"basic server config of backend service"`
-	CallbackServer     CallbackServer   `yaml:"callbackServer" usage:"callback server config of backend service"`
-	ProxyServer        ProxyServer      `yaml:"proxyServer" usage:"proxy server config of backend service"`
-	Etcd               Etcd             `yaml:"etcd" usage:"etcd config of backend service"`
-	Redis              Redis            `yaml:"redis" usage:"redis config of backend service"`
-	MongoDB            MongoDB          `yaml:"mongodb" usage:"mongodb config of backend service"`
-	Log                Log              `yaml:"log" usage:"log config of backend service"`
-	System             System           `yaml:"system" usage:"system config of backend service"`
-	EncryptKey         string           `yaml:"encryptKey" usage:"encrypt key of backend service"`
-	GSEDeployConfs     []GSEDeployConf  `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
-	InstallerFileGroup FileGroup        `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
-	FileCache          BackendFileCache `yaml:"fileCache" usage:"local file cache config of backend service"`
-	CreditVault        CreditVault      `yaml:"creditVault" usage:"credit vault config of backend service"`
-	Access             Access           `yaml:"access" usage:"access config of backend service"`
-	NetworkUnit        NetworkUnit      `yaml:"networkUnit" usage:"network unit config of backend service"`
-	Tracing            Tracing          `yaml:"tracing" usage:"tracing config of backend service"`
-	Profiling          Profiling        `yaml:"profiling" usage:"profiling config of backend service"`
+	RunMode            RunMode           `yaml:"runMode" usage:"run mode of service"`
+	TenantMode         tenant.Mode       `yaml:"tenantMode" usage:"tenant mode of service"`
+	KMS                KMS               `yaml:"kms" usage:"kms secret of backend service"`
+	CMDB               CMDB              `yaml:"cmdb" usage:"cmdb config of backend service"`
+	File               File              `yaml:"file" usage:"file config of backend service"`
+	GSE                GSE               `yaml:"gse" usage:"gse config of backend service"`
+	UserManager        UserManager       `yaml:"userManager" usage:"user manager config of backend service"`
+	IAMV3              IAMV3             `yaml:"iamV3" usage:"IAM v3 gateway config"`
+	IAMV4              IAMV4             `yaml:"iamV4" usage:"IAM v4 gateway config"`
+	Monitor            Monitor           `yaml:"monitor" usage:"monitor gateway config"`
+	NodeEventDataID    NodeEventDataID   `yaml:"nodeEventDataID" usage:"node event data-id config"`
+	Workflow           Workflow          `yaml:"workflow" usage:"workflow config of backend service"`
+	InfoServer         HTTPServer        `yaml:"infoServer" usage:"info server config of backend service"`
+	AdminServer        HTTPServer        `yaml:"adminServer" usage:"admin server config of backend service"`
+	BasicServer        HTTPServer        `yaml:"basicServer" usage:"basic server config of backend service"`
+	CallbackServer     CallbackServer    `yaml:"callbackServer" usage:"callback server config of backend service"`
+	ProxyServer        ProxyServer       `yaml:"proxyServer" usage:"proxy server config of backend service"`
+	Etcd               Etcd              `yaml:"etcd" usage:"etcd config of backend service"`
+	Redis              Redis             `yaml:"redis" usage:"redis config of backend service"`
+	MongoDB            MongoDB           `yaml:"mongodb" usage:"mongodb config of backend service"`
+	Log                Log               `yaml:"log" usage:"log config of backend service"`
+	System             System            `yaml:"system" usage:"system config of backend service"`
+	CryptoType         EncryptCryptoType `yaml:"cryptoType" usage:"crypto suite of credential encryption, CLASSIC or SHANGMI"`
+	EncryptKey         string            `yaml:"encryptKey" usage:"encrypt key of backend service"`
+	GSEDeployConfs     []GSEDeployConf   `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
+	InstallerFileGroup FileGroup         `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
+	FileCache          BackendFileCache  `yaml:"fileCache" usage:"local file cache config of backend service"`
+	CreditVault        CreditVault       `yaml:"creditVault" usage:"credit vault config of backend service"`
+	Access             Access            `yaml:"access" usage:"access config of backend service"`
+	NetworkUnit        NetworkUnit       `yaml:"networkUnit" usage:"network unit config of backend service"`
+	Tracing            Tracing           `yaml:"tracing" usage:"tracing config of backend service"`
+	Profiling          Profiling         `yaml:"profiling" usage:"profiling config of backend service"`
 }
 
 // BackendFileCache configures the local artifact file cache used by backend SSH install flows.
@@ -345,6 +371,7 @@ func NewBackendService() *BackendService {
 			Env:     defaultBackendSystemEnv,
 			Edition: defaultBackendSystemEdition,
 		},
+		CryptoType: defaultBackendCryptoType,
 		EncryptKey: defaultBackendEncryptKey,
 		GSEDeployConfs: []GSEDeployConf{
 			{
@@ -414,6 +441,12 @@ func (svc *BackendService) LoadFromFile(path string) error {
 
 	if err = yaml.Unmarshal(configContent, svc); err != nil {
 		return err
+	}
+
+	// an explicitly empty cryptoType (e.g. rendered from an unset env
+	// placeholder) falls back to the classic suite.
+	if svc.CryptoType == "" {
+		svc.CryptoType = defaultBackendCryptoType
 	}
 
 	// load kms secret.
@@ -527,6 +560,13 @@ func (svc *BackendService) Validate() error {
 
 	if svc.EncryptKey == "" {
 		return fmt.Errorf("failed to validate encrypt key config: encrypt key is empty")
+	}
+
+	switch svc.CryptoType {
+	case EncryptCryptoTypeClassic, EncryptCryptoTypeShangmi:
+	default:
+		return fmt.Errorf("failed to validate crypto type config: crypto type(%s) must be CLASSIC or SHANGMI",
+			svc.CryptoType)
 	}
 
 	for _, conf := range svc.GSEDeployConfs {
