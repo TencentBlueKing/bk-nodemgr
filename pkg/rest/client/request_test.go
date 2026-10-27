@@ -39,6 +39,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 )
 
@@ -224,46 +225,79 @@ func TestRequest_WithURL(t *testing.T) {
 	})
 }
 
-func TestRequest_DoRecordsResponseRequestIDOnSpan(t *testing.T) {
+func TestRequest_DoRecordsResponseHeadersOnSpan(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
 		rw.Header().Set("X-Bkapi-Request-Id", "response-request-id")
-		_, err := rw.Write([]byte("ok"))
-		require.NoError(t, err)
+		rw.Header().Add("X-Upstream", "first")
+		rw.Header().Add("X-Upstream", "second")
+		rw.Header().Set("Set-Cookie", "session=response-secret")
+		_, _ = rw.Write([]byte("ok"))
 	}))
 	defer server.Close()
 
 	httpClient, err := NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
 	require.NoError(t, err)
-
-	recorder := tracetest.NewSpanRecorder()
-	provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
-	defer func() { require.NoError(t, provider.Shutdown(context.Background())) }()
-
-	client, err := NewClient(&Capability{
-		Name:                 "rest-client-request-test",
-		HTTPClient:           httpClient,
-		ToleranceLatencyTime: ToleranceLatencyTimeDefault,
-		MetricOpts:           MetricOption{},
-		TraceSvc:             requestTestTraceService{tracerProvider: provider},
-	}, "/")
-	require.NoError(t, err)
-
 	targetURL, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
-	result := client.Get().WithURL(targetURL).Do()
-	_, err = result.RawData()
-	require.NoError(t, err)
-
-	spans := recorder.Ended()
-	require.Len(t, spans, 1)
-	var requestID string
-	for _, attr := range spans[0].Attributes() {
-		if attr.Key == attribute.Key(attributeHTTPResponseHeaderRequestID) {
-			requestID = attr.Value.AsString()
-		}
+	tests := []struct {
+		name        string
+		targetURL   bool
+		maskHeaders bool
+	}{
+		{name: "target URL", targetURL: true, maskHeaders: true},
+		{name: "discovered endpoint", maskHeaders: true},
+		{name: "unconfigured headers", targetURL: true},
 	}
-	assert.Equal(t, "response-request-id", requestID)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recorder := tracetest.NewSpanRecorder()
+			provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+			defer func() { require.NoError(t, provider.Shutdown(context.Background())) }()
+
+			var opts []Opt
+			if tt.maskHeaders {
+				opts = append(opts, WithHeaderMasker("Set-Cookie"))
+			}
+			client, err := NewClient(&Capability{
+				Name:                 "rest-client-request-test",
+				HTTPClient:           httpClient,
+				Discover:             restdiscovery.NewDiscovery("test", []string{server.URL}),
+				ToleranceLatencyTime: ToleranceLatencyTimeDefault,
+				MetricOpts:           MetricOption{},
+				TraceSvc:             requestTestTraceService{tracerProvider: provider},
+			}, "/", opts...)
+			require.NoError(t, err)
+
+			request := client.Get().WithContext(contextx.Background())
+			if tt.targetURL {
+				request = request.WithURL(targetURL)
+			}
+			result := request.Do()
+			require.NoError(t, result.Err)
+			defer func() { require.NoError(t, result.Body.Close()) }()
+
+			spans := recorder.Ended()
+			require.Len(t, spans, 1)
+			var headers string
+			for _, attr := range spans[0].Attributes() {
+				if attr.Key == attribute.Key("http.response.header") {
+					headers = attr.Value.AsString()
+				}
+			}
+			assert.Contains(t, headers, "X-Bkapi-Request-Id:[response-request-id]")
+			assert.Contains(t, headers, "X-Upstream:[first second]")
+			if tt.maskHeaders {
+				assert.Contains(t, headers, "Set-Cookie:[ses***ret]")
+				assert.NotContains(t, headers, "session=response-secret")
+			} else {
+				assert.Contains(t, headers, "Set-Cookie:[session=response-secret]")
+			}
+			assert.Equal(t, "session=response-secret", result.Header.Get("Set-Cookie"))
+			_, err = result.RawData()
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestResultIntoReturnsErrorForEmptyServerError(t *testing.T) {

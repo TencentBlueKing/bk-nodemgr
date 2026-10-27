@@ -636,6 +636,7 @@ const retryDelay = 20 * time.Millisecond
 func (r *Request) doWithEndpoint(
 	client HTTPClient, req *http.Request, span trace.Span, retries int, requestPath string,
 ) (*Result, bool) {
+
 	if retries > 0 {
 		r.tryThrottle(req.URL.String())
 	}
@@ -661,7 +662,7 @@ func (r *Request) doWithEndpoint(
 		return nil, false
 	}
 
-	recordResponseTrace(span, resp)
+	span.SetAttributes(attribute.String(attributeHTTPResponseHeader, r.maskHeader(resp.Header)))
 
 	// collect request metrics.
 	r.client.metrics.HandleClientMetrics(req, resp, requestPath, start)
