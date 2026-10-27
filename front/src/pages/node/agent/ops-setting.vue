@@ -162,10 +162,12 @@
                             </template>
                             <template #edit="{ row }">
                                 <Select
+                                    ref="protocolSelectRef"
                                     v-model="row.ops_out_band_protocol"
                                     filterable
                                     allow-create
                                     :popover-options="{ extCls: 'vxe-table--ignore-clear' }"
+                                    @toggle="handleProtocolSelectToggle"
                                     @change="(value: string) => handleProtocolChange(row, value)"
                                     @focusout="handleProtocolFocusout(row, $event)"
                                 >
@@ -178,6 +180,34 @@
                                     >
                                         {{ item.name }}
                                     </Select.Option>
+                                    <template #extension>
+                                        <div class="flex items-center h-[32px] px-[8px]">
+                                            <template v-if="showProtocolEdit">
+                                                <Input
+                                                    v-model.trim="protocolCreateText"
+                                                    size="small"
+                                                    @enter="handleProtocolCreate(row)"
+                                                />
+                                                <Done
+                                                    style="font-size: 22px; color: #2dcb56; cursor: pointer; margin-left: 6px"
+                                                    @click="handleProtocolCreate(row)"
+                                                />
+                                                <Error
+                                                    style="font-size: 16px; color: #c4c6cc; cursor: pointer; margin-left: 2px"
+                                                    @click="handleProtocolCreateCancel"
+                                                />
+                                            </template>
+                                            <template v-else>
+                                                <span
+                                                    class="flex items-center cursor-pointer text-[#63656E] hover:text-[#3A84FF]"
+                                                    @click="handleShowProtocolEdit"
+                                                >
+                                                    <Plus style="font-size: 20px" />
+                                                    <span class="text-[12px] ml-[4px]">{{ $t('action.create') }}</span>
+                                                </span>
+                                            </template>
+                                        </div>
+                                    </template>
                                 </Select>
                             </template>
                         </VxeColumn>
@@ -284,6 +314,7 @@
 
 <script lang="ts" setup>
 import { Button, Input, Loading, Message, Popover, Select } from 'bkui-vue';
+import { Done, Error, Plus } from 'bkui-vue/lib/icon';
 import { debounce } from 'lodash';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -313,7 +344,8 @@ interface OpsOutBandProtocol {
     description: string;
 }
 
-const opsOutBandProtocols = (() => {
+// 协议选项列表（响应式）：预设协议来自平台配置注入，用户新建的自定义协议在会话内追加
+function parseOpsOutBandProtocols(): OpsOutBandProtocol[] {
     try {
         const protocols = JSON.parse(window.PROJECT_CONFIG.OPS_OUT_BAND_PROTOCOLS || '[]');
         if (!Array.isArray(protocols)) return [];
@@ -324,8 +356,9 @@ const opsOutBandProtocols = (() => {
     } catch {
         return [];
     }
-})();
-const opsOutBandProtocolOptions = opsOutBandProtocols.map(item => ({ id: item.name, name: item.name }));
+}
+const opsOutBandProtocols = ref<OpsOutBandProtocol[]>(parseOpsOutBandProtocols());
+const opsOutBandProtocolOptions = computed(() => opsOutBandProtocols.value.map(item => ({ id: item.name, name: item.name })));
 
 const tableData = ref<any[]>([]);
 const loading = ref(false);
@@ -353,8 +386,9 @@ const handleBatchEdit = (field: string, value: string) => {
 
 const handleProtocolChange = (row: any, value: string) => {
     row.ops_out_band_protocol = String(value ?? '').trim();
-    const protocol = opsOutBandProtocols.find(item => item.name === row.ops_out_band_protocol);
-    if (protocol) {
+    const protocol = opsOutBandProtocols.value.find(item => item.name === row.ops_out_band_protocol);
+    // 仅预设协议带默认端口；自定义协议 port 为 0，不覆盖已填写的端口
+    if (protocol && protocol.port > 0) {
         row.ops_out_band_port = protocol.port;
     }
 };
@@ -364,6 +398,42 @@ const handleProtocolFocusout = (row: any, event: FocusEvent) => {
     const text = event.target instanceof HTMLInputElement ? event.target.value.trim() : '';
     if (!text || text === row.ops_out_band_protocol) return;
     handleProtocolChange(row, text);
+};
+
+// 协议下拉"新增"入口：下拉底部固定入口，点击后输入 + 确认/取消（同标签新建交互）
+const protocolSelectRef = ref();
+const showProtocolEdit = ref(false);
+const protocolCreateText = ref('');
+
+// 下拉收起时重置新增编辑态，避免下次打开残留上一次的输入
+const handleProtocolSelectToggle = (show: boolean) => {
+    if (show) return;
+    showProtocolEdit.value = false;
+    protocolCreateText.value = '';
+};
+
+const handleShowProtocolEdit = () => {
+    protocolCreateText.value = '';
+    showProtocolEdit.value = true;
+};
+
+const handleProtocolCreateCancel = () => {
+    showProtocolEdit.value = false;
+    protocolCreateText.value = '';
+};
+
+const handleProtocolCreate = (row: any) => {
+    const text = protocolCreateText.value.trim();
+    showProtocolEdit.value = false;
+    protocolCreateText.value = '';
+    if (!text) return;
+    // 与已有协议同名时等价于选中该选项（预设协议会自动带出默认端口）
+    if (!opsOutBandProtocols.value.some(item => item.name === text)) {
+        // 自定义协议无默认端口，会话内加入选项列表供本次编辑选择
+        opsOutBandProtocols.value.push({ name: text, port: 0, description: '' });
+    }
+    handleProtocolChange(row, text);
+    protocolSelectRef.value?.hidePopover?.();
 };
 
 const handleBatchProtocolEdit = (value: string) => {
