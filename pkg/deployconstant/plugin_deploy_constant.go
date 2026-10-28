@@ -42,7 +42,7 @@ const (
 	pluginWindowsHostIDPathFormat = "C:\\%s\\data\\host\\hostid"
 )
 
-// PluginDeployConf defines the deployment configuration for agent.
+// PluginDeployConf defines the deployment configuration for plugin.
 type PluginDeployConf struct {
 	DeployConf
 
@@ -50,6 +50,10 @@ type PluginDeployConf struct {
 	LogDir          string
 	HostIDPath      string
 	CommonConstants map[string]map[string]any
+
+	// v2 custom.
+	V2RunDir  string
+	V2DataDir string
 }
 
 // Validate checks if the deployment configuration is valid.

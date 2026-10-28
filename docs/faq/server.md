@@ -13,10 +13,10 @@ basicServer:
 
 `bindIP` 只控制 IPv4 listener，`bindIPV6` 只控制 IPv6 listener。默认不会启用 dual-stack；如果只配置其中一个，就只监听对应协议栈。
 
-| 配置方式                       | 监听结果              |
-|----------------------------|-------------------|
-| 只配置 `bindIP`               | 只监听 IPv4。         |
-| 只配置 `bindIPV6`             | 只监听 IPv6。         |
+| 配置方式                        | 监听结果                |
+| ------------------------------- | ----------------------- |
+| 只配置 `bindIP`                 | 只监听 IPv4。           |
+| 只配置 `bindIPV6`               | 只监听 IPv6。           |
 | 同时配置 `bindIP` 和 `bindIPV6` | 同时监听 IPv4 和 IPv6。 |
 
 检查监听状态：
@@ -107,7 +107,67 @@ gseDeployConfs:
 
 这里的 `<env>` 来自 `pkg/system.GetEnv()`。
 
-## 4. 如何做到项目无损升级？
+## 4. 如何修改兼容性安装（插件 V2）的运行目录和数据目录？
+
+这个问题对应的是 backend 配置里的 `gseDeployConfs[*].pluginCustom.v2RunDir` 和 `gseDeployConfs[*].pluginCustom.v2DataDir`。
+
+它的结构位置是：
+
+```yaml
+gseDeployConfs:
+  - generation: 2
+    osType: linux
+    pluginCustom:
+      v2RunDir: "/data/bknm-plugin-v2/run"
+      v2DataDir: "/data/bknm-plugin-v2/data"
+```
+
+### 什么时候生效？
+
+只有插件开启兼容性安装时才会生效。插件安装请求命中兼容性策略（或节点安装携带兼容性安装选项）后，部署参数会带上 `EnableCompatibilityMode=true`，backend 会额外触发 `ensure_plugin_v2` 流程，只有该流程在注入插件 V2 基础运行时时读取这两个字段。
+
+普通的「安装插件」流程（插件 V3）不读取它们，目录仍按 `<baseDeployDir>/<env>/plugin/<plugin_group>/<plugin_name>/run` 和 `.../data` 生成。
+
+### 配置的是最终目录，不是父目录
+
+留空时，兼容性安装使用 `<baseDeployDir>/<env>/plugins/run` 和 `.../data`（Windows 为 `<baseDeployDir>\<env>\plugins\run` 和 `...\data`）。
+
+填入非空值后：
+
+- 该值作为最终目录直接使用，不会再追加 `<env>`、`plugins` 等层级
+- 不再受 `baseDeployDir`、`PluginRuntime.BaseDeployDir` 等部署目录配置影响
+
+因此同一 `generation` + `osType` 下所有兼容性安装会共享同一个 `v2RunDir` 和 `v2DataDir`。`v2RunDir` 中的 pid 文件按插件包名区分（`<plugin_pkg_name>.pid`），不会直接冲突；`v2DataDir` 则完全共享，需要确认插件不会写入同名文件，或迁移目标本身就是统一目录。
+
+### 优先级
+
+这两个字段没有网络单元级别的覆盖项，优先级只有两级：
+
+| 配置项      | 优先级                                                                              |
+| ----------- | ----------------------------------------------------------------------------------- |
+| `v2RunDir`  | 非空的 `pluginCustom.v2RunDir` ＞ `<baseDeployDir>/<env>/plugins/run`               |
+| `v2DataDir` | 非空的 `pluginCustom.v2DataDir` ＞ `<baseDeployDir>/<env>/plugins/data`             |
+| `logDir`    | 网络单元 `PluginRuntime.LogDir` ＞ 非空的 `pluginCustom.logDir` ＞ 内置默认日志目录 |
+
+`logDir` 的适用范围与上面两个字段不同：兼容性安装的日志目录取自节点部署配置，配置 `pluginCustom.logDir` 不会改变兼容性安装的日志路径。
+
+### 一个可直接参考的 demo
+
+```yaml
+gseDeployConfs:
+  - generation: 2
+    osType: linux
+    baseWorkDir: "/tmp/bknm/"
+    baseDeployDir: "/usr/local/"
+    manualScriptPath: "/bk-nodemgr/script/manual/linux/install.sh"
+    pluginCustom:
+      v2RunDir: "/data/bknm-plugin-v2/run"
+      v2DataDir: "/data/bknm-plugin-v2/data"
+```
+
+配置本身不会让插件进入兼容性安装，是否安装插件 V2 仍由兼容性策略决定。改动只影响之后执行的兼容性安装流程；已部署插件记录的目录不会自动迁移。
+
+## 5. 如何做到项目无损升级？
 
 这个问题主要对应 Helm 的 `updateStrategy` 和 Pod 的 `terminationGracePeriodSeconds` 设置。
 
@@ -139,4 +199,3 @@ terminationGracePeriodSeconds: 120
 ```
 
 这个值可以使用全局配置，也可以在 `backend`、`application`、`file` 各模块下单独覆盖。它需要和 [Server Graceful Shutdown](../concepts/server/graceful_shutdown.md) 配合使用，确保旧 Pod 收到退出信号后不再接收新流量，并在宽限期内处理完已有请求或任务。
-

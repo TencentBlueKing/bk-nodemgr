@@ -235,14 +235,14 @@ func (conf pluginV2DeployConf) GeneratePluginV2HomeDir() string {
 	return pluginV2HomeDir
 }
 
-// GeneratePluginV2DataDir generates the run directory.
+// GeneratePluginV2DataDir returns the custom data directory or derives it from the plugin v2 home directory.
 func (conf pluginV2DeployConf) GeneratePluginV2DataDir() string {
-	return tool.JoinPath(conf.OsType, conf.GeneratePluginV2HomeDir(), pluginV2DataDirName)
+	return conv.NonEmptyOr(conf.V2DataDir, tool.JoinPath(conf.OsType, conf.GeneratePluginV2HomeDir(), pluginV2DataDirName))
 }
 
-// GeneratePluginV2RunDir generates the run directory.
+// GeneratePluginV2RunDir returns the custom run directory or derives it from the plugin v2 home directory.
 func (conf pluginV2DeployConf) GeneratePluginV2RunDir() string {
-	return tool.JoinPath(conf.OsType, conf.GeneratePluginV2HomeDir(), pluginV2RunDirName)
+	return conv.NonEmptyOr(conf.V2RunDir, tool.JoinPath(conf.OsType, conf.GeneratePluginV2HomeDir(), pluginV2RunDirName))
 }
 
 // GeneratePluginV2ConfigDir generates the configuration directory.
