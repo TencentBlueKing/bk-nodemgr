@@ -17,4 +17,4 @@
 |Path helper:ConvertAbsPathToAbsDirs replaces backslashes with slashes, splits, and drops empty components|preserves dot/dot-dot and volume text; does not validate, resolve, or enforce containment; leading root separators are not retained
 |Compatibility:before changing shared contracts inspect local and BKRepo implementations and transfer consumers|preserve public signatures, stream ownership, missing-node error matching, and cached metadata semantics
 |Anti-patterns:backend SDK imports or I/O implementation here; service-specific policy in shared interfaces; treating path splitting as sanitization; assuming all backends share native path syntax
-|Commands:focused helper tests:GOTOOLCHAIN=go1.25.12 go test ./pkg/filex/iface
+|Commands:focused helper tests:GOTOOLCHAIN=go1.26.10 go test ./pkg/filex/iface

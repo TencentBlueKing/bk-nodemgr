@@ -27,4 +27,4 @@
 |Platforms:use filepath and existing platform helpers; Unix helpers restore the leading separator while Windows helpers preserve volume components|retain build tags and validate platform-specific behavior when changing path construction
 |Errors:retain wrapped operation errors and destination Close failures in Store; cleanup must run on early returns and panic unwinding|do not restore implicit input closure or bypass shared close-once wrappers
 |Tests:local_file_group_unix_test.go covers FIFOs with Unix build tags|local_file_group_test.go uses t.TempDir for constructor/copy/remove cases; local_file_test.go has environment-backed setup|do not report a selected subset as full-package coverage
-|Commands:environment-independent subset:GOTOOLCHAIN=go1.25.12 go test ./pkg/filex/local -run 'TestNewLocalDir|TestLocalDir'|full package after environment setup:GOTOOLCHAIN=go1.25.12 go test ./pkg/filex/local
+|Commands:environment-independent subset:GOTOOLCHAIN=go1.26.10 go test ./pkg/filex/local -run 'TestNewLocalDir|TestLocalDir'|full package after environment setup:GOTOOLCHAIN=go1.26.10 go test ./pkg/filex/local

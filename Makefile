@@ -20,7 +20,7 @@ LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${
 	-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
 
 # fixed go version.
-GO = go1.25.12
+GO = go1.26.10
 GOLANGCI_LINT_TIMEOUT ?= 2m
 
 # cmd
@@ -40,11 +40,11 @@ default: all
 pre:
 	@$(MKDIR) $(OUTPUT_DIR)
 
-	go get golang.org/dl/go1.25.12@latest
-	go install golang.org/dl/go1.25.12@latest
-	go1.25.12 download
+	go get golang.org/dl/go1.26.10@latest
+	go install golang.org/dl/go1.26.10@latest
+	go1.26.10 download
 
-	go1.25.12 mod tidy
+	go1.26.10 mod tidy
 
 backend: | pre
 	@$(ECHO) "Building backend $(VERSION)..."

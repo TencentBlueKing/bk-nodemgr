@@ -14,7 +14,7 @@
 |Where to look:build/release:./:{Makefile,tools,script_tools,install}:root Makefile drives binaries/frontend/tools/images
 |Where to look:frontend features:front/src:API naming follows backend proto naming
 |Where to look:integration test support:testsuite/support:package-level integration test helpers
-|Conventions:toolchain=go1.25.12|lint=.golangci.yml strict baseline|public Go functions/types require English comments
+|Conventions:toolchain=go1.26.10|lint=.golangci.yml strict baseline|public Go functions/types require English comments
 |Conventions:license header=every new .go file carries the standard header copied verbatim from docs/developer/license_header.md (after any //go:build lines)|exceptions listed there:{glog-derived pkg/logger files,generated `*.pb.go`,pkg/runtime/winpath}
 |Audience Boundary:when writing or reviewing bk-nodemgr reader-facing docs, Issues, PRs, changelogs, API docs, or long-form explanations, identify the final reader and target artifact first|use bk-nodemgr-audience-boundary|follow the target artifact template or project convention before drafting|preserve reader-needed facts, links, limits, risks, compatibility boundaries, and validation expectations|remove author process, low-signal framing, unfinished status, and unrequested implementation plans|when user asks for problem handoff/issue, describe problem facts and decision points instead of assuming a solution
 |Conventions:before coding read relevant module + at least one analogous implementation in same service/layer
