@@ -19,6 +19,8 @@
 package file
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -30,8 +32,10 @@ import (
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"golang.org/x/sync/singleflight"
 )
 
 // IHandler is interface for file handler.
@@ -218,8 +222,14 @@ const (
 	transferQueryContinuesFailedTimes = 5
 )
 
+const releaseCacheExpiration = time.Minute
+
 type handler struct {
 	cli *cli
+
+	releaseCache     cache.ICache
+	releaseCacheKeys cache.IKeyGenerator
+	releaseGroup     singleflight.Group
 }
 
 // New initialize a new nodeman backend handler.
@@ -229,7 +239,11 @@ func New(c *restclient.Capability, conf *Config) (IHandler, error) {
 		return nil, err
 	}
 
-	return &handler{cli: cli}, nil
+	return &handler{
+		cli:              cli,
+		releaseCache:     cache.NewMemoryCache(releaseCacheExpiration),
+		releaseCacheKeys: cache.NewDefaultKeyGenerator("file:release"),
+	}, nil
 }
 
 // UploadOriginAgent upload origin agent.
@@ -559,6 +573,831 @@ func (h *handler) DownloadInstaller(nCtx contextx.IContext, osType criteria.OSTy
 	}
 
 	return resp, nil
+}
+
+// ListReleaseAgent queries agent release metadata.
+func (h *handler) ListReleaseAgent(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseAgent, int64, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	req := new(protoFile.ReleaseAgentListReq)
+	if err := req.ConvertFromTypes(page, conditions...); err != nil {
+		return nil, 0, err
+	}
+	cacheKey, err := h.generateReleaseCacheKey("agent-list", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.listReleaseAgent(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var response *protoFile.ReleaseAgentListResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, 0, fmt.Errorf("failed to unmarshal agent release list: %w", err)
+	}
+
+	total, items, err := response.ConvertToTypes()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// CountReleaseAgent queries agent release metadata.
+func (h *handler) CountReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return 0, err
+	}
+
+	req := new(protoFile.ReleaseAgentCountReq)
+	if err := req.ConvertFromTypes(conditions...); err != nil {
+		return 0, err
+	}
+	cacheKey, err := h.generateReleaseCacheKey("agent-count", nCtx.TenantID(), req)
+	if err != nil {
+		return 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.countReleaseAgent(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	var response *protoFile.ReleaseAgentCountResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return 0, fmt.Errorf("failed to unmarshal agent release count: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// GetReleaseAgent queries agent release metadata.
+func (h *handler) GetReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) (*types.ReleaseAgent, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleaseAgentGetReq)
+	req.ConvertFromTypes(key)
+	cacheKey, err := h.generateReleaseCacheKey("agent", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleaseAgent(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var response *protoFile.ReleaseAgentGetResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal agent release: %w", err)
+	}
+
+	return response.ConvertToTypes()
+}
+
+// DistinctReleaseAgent queries agent release metadata.
+func (h *handler) DistinctReleaseAgent(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleaseAgentDistinctReq)
+	if err := req.ConvertFromTypes(fields, conditions...); err != nil {
+		return nil, err
+	}
+	cacheKey, err := h.generateReleaseCacheKey("agent-distinct", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.distinctReleaseAgent(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var response *protoFile.ReleaseAgentDistinctResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal agent release distinct result: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// ListReleaseProxy queries proxy release metadata.
+func (h *handler) ListReleaseProxy(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseProxy, int64, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	req := new(protoFile.ReleaseProxyListReq)
+	if err := req.ConvertFromTypes(page, conditions...); err != nil {
+		return nil, 0, err
+	}
+	cacheKey, err := h.generateReleaseCacheKey("proxy-list", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.listReleaseProxy(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var response *protoFile.ReleaseProxyListResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, 0, fmt.Errorf("failed to unmarshal proxy release list: %w", err)
+	}
+
+	total, items, err := response.ConvertToTypes()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// CountReleaseProxy queries proxy release metadata.
+func (h *handler) CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return 0, err
+	}
+
+	req := new(protoFile.ReleaseProxyCountReq)
+	if err := req.ConvertFromTypes(conditions...); err != nil {
+		return 0, err
+	}
+	cacheKey, err := h.generateReleaseCacheKey("proxy-count", nCtx.TenantID(), req)
+	if err != nil {
+		return 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.countReleaseProxy(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	var response *protoFile.ReleaseProxyCountResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return 0, fmt.Errorf("failed to unmarshal proxy release count: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// GetReleaseProxy queries proxy release metadata.
+func (h *handler) GetReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) (*types.ReleaseProxy, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleaseProxyGetReq)
+	req.ConvertFromTypes(key)
+	cacheKey, err := h.generateReleaseCacheKey("proxy", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleaseProxy(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var response *protoFile.ReleaseProxyGetResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal proxy release: %w", err)
+	}
+
+	return response.ConvertToTypes()
+}
+
+// DistinctReleaseProxy queries proxy release metadata.
+func (h *handler) DistinctReleaseProxy(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleaseProxyDistinctReq)
+	if err := req.ConvertFromTypes(fields, conditions...); err != nil {
+		return nil, err
+	}
+	cacheKey, err := h.generateReleaseCacheKey("proxy-distinct", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.distinctReleaseProxy(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var response *protoFile.ReleaseProxyDistinctResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal proxy release distinct result: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// GetReleasePlugin queries plugin release metadata.
+func (h *handler) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (*types.ReleasePlugin, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleasePluginGetReq)
+	req.ConvertFromTypes(key)
+	cacheKey, err := h.generateReleaseCacheKey("plugin", nCtx.TenantID(), key)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := decodeReleasePlugin(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// GetReleasePluginDefaultVersion queries plugin release metadata.
+func (h *handler) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return "", err
+	}
+
+	req := new(protoFile.ReleasePluginGetDefaultVersionReq)
+	req.ConvertFromTypes(name, gen, plat)
+	cacheKey, err := h.generateReleaseCacheKey("plugin-default-version", nCtx.TenantID(), struct {
+		Name       string
+		Generation types.Generation
+		Platform   platfmt.Platform
+	}{Name: name, Generation: gen, Platform: plat})
+	if err != nil {
+		return "", err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.getReleasePluginDefaultVersion(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		version := response.ConvertToTypes()
+
+		return json.Marshal(version)
+	})
+	if err != nil {
+		return "", err
+	}
+
+	var version string
+	if err := json.Unmarshal(data, &version); err != nil {
+		return "", fmt.Errorf("failed to unmarshal plugin default version: %w", err)
+	}
+
+	return version, nil
+}
+
+// ListReleasePlugin queries plugin release metadata.
+func (h *handler) ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleasePlugin, int64, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	req := new(protoFile.ReleasePluginListReq)
+	if err := req.ConvertFromTypes(page, conditions...); err != nil {
+		return nil, 0, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("plugin-list", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.listReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var response *protoFile.ReleasePluginListResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, 0, fmt.Errorf("failed to unmarshal plugin release list: %w", err)
+	}
+
+	total, items, err := response.ConvertToTypes()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// CountReleasePlugin queries plugin release metadata.
+func (h *handler) CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return 0, err
+	}
+
+	req := new(protoFile.ReleasePluginCountReq)
+	if err := req.ConvertFromTypes(conditions...); err != nil {
+		return 0, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("plugin-count", nCtx.TenantID(), req)
+	if err != nil {
+		return 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.countReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	var response *protoFile.ReleasePluginCountResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return 0, fmt.Errorf("failed to unmarshal plugin release count: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// DistinctReleasePlugin queries plugin release metadata.
+func (h *handler) DistinctReleasePlugin(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleasePluginDistinctReq)
+	if err := req.ConvertFromTypes(fields, conditions...); err != nil {
+		return nil, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("plugin-distinct", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.distinctReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var response *protoFile.ReleasePluginDistinctResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plugin release distinct result: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// ExistReleasePlugin queries plugin release metadata.
+func (h *handler) ExistReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (bool, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return false, err
+	}
+
+	req := new(protoFile.ReleasePluginExistReq)
+	req.ConvertFromTypes(key)
+	cacheKey, err := h.generateReleaseCacheKey("plugin-exist", nCtx.TenantID(), req)
+	if err != nil {
+		return false, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.existReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return false, err
+	}
+
+	var response *protoFile.ReleasePluginExistResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return false, fmt.Errorf("failed to unmarshal plugin release existence: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// DistinctNameReleasePlugin queries plugin release metadata.
+func (h *handler) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleasePluginDistinctNameReq)
+	if err := req.ConvertFromTypes(conditions...); err != nil {
+		return nil, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("plugin-distinct-name", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.distinctNameReleasePlugin(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var response *protoFile.ReleasePluginDistinctNameResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plugin release distinct names: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+// ListReleaseCert queries cert release metadata.
+func (h *handler) ListReleaseCert(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseCert, int64, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	req := new(protoFile.ReleaseCertListReq)
+	if err := req.ConvertFromTypes(page, conditions...); err != nil {
+		return nil, 0, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("cert-list", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.listReleaseCert(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var response *protoFile.ReleaseCertListResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, 0, fmt.Errorf("failed to unmarshal cert release list: %w", err)
+	}
+
+	total, items, err := response.ConvertToTypes()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// ListReleaseBinTool queries bintool release metadata.
+func (h *handler) ListReleaseBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseBinTool, int64, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	req := new(protoFile.ReleaseBinToolListReq)
+	if err := req.ConvertFromTypes(page, conditions...); err != nil {
+		return nil, 0, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("bintool-list", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.listReleaseBinTool(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var response *protoFile.ReleaseBinToolListResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, 0, fmt.Errorf("failed to unmarshal bintool release list: %w", err)
+	}
+
+	total, items, err := response.ConvertToTypes()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// ListReleasePluginBinTool queries plugin_bintool release metadata.
+func (h *handler) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleasePluginBinTool, int64, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	req := new(protoFile.ReleasePluginBinToolListReq)
+	if err := req.ConvertFromTypes(page, conditions...); err != nil {
+		return nil, 0, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("plugin-bintool-list", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.listReleasePluginBinTool(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, _, err := response.ConvertToTypes(); err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var response *protoFile.ReleasePluginBinToolListResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, 0, fmt.Errorf("failed to unmarshal plugin bintool release list: %w", err)
+	}
+
+	total, items, err := response.ConvertToTypes()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// DistinctNameReleasePluginBinTool queries plugin_bintool release metadata.
+func (h *handler) DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := new(protoFile.ReleasePluginBinToolDistinctNameReq)
+	if err := req.ConvertFromTypes(conditions...); err != nil {
+		return nil, err
+	}
+
+	cacheKey, err := h.generateReleaseCacheKey("plugin-bintool-distinct-name", nCtx.TenantID(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+		response, err := h.cli.distinctNameReleasePluginBinTool(nCtx, nCtx.TenantID(), req)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var response *protoFile.ReleasePluginBinToolDistinctNameResp_Data
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plugin bintool release distinct names: %w", err)
+	}
+
+	return response.ConvertToTypes(), nil
+}
+
+func decodeReleasePlugin(data []byte) (*types.ReleasePlugin, error) {
+	response := new(protoFile.ReleasePluginGetResp_Data)
+	if err := json.Unmarshal(data, response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plugin release: %w", err)
+	}
+
+	return response.ConvertToTypes()
+}
+
+func (h *handler) generateReleaseCacheKey(prefix, tenantID string, query any) (string, error) {
+	data, err := json.Marshal(query)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal release cache key: %w", err)
+	}
+
+	return h.releaseCacheKeys.Generate(prefix, tenantID, base64.RawURLEncoding.EncodeToString(data)), nil
+}
+
+func (h *handler) queryReleaseCache(
+	nCtx contextx.IContext, key string, fetch func(contextx.IContext) ([]byte, error),
+) ([]byte, error) {
+
+	if err := nCtx.Err(); err != nil {
+		return nil, err
+	}
+
+	if data, found := h.getReleaseCache(nCtx, key); found {
+		return data, nil
+	}
+
+	resultCh := h.releaseGroup.DoChan(key, func() (any, error) {
+		if data, found := h.getReleaseCache(nCtx, key); found {
+			return data, nil
+		}
+
+		data, err := fetch(nCtx)
+		if err != nil {
+			return nil, err
+		}
+		if err := h.releaseCache.SetWithExpiration(nCtx, key, data, releaseCacheExpiration); err != nil {
+			return nil, fmt.Errorf("failed to cache release data: %w", err)
+		}
+
+		return data, nil
+	})
+
+	select {
+	case <-nCtx.Done():
+		return nil, nCtx.Err()
+	case result := <-resultCh:
+		if result.Err != nil {
+			return nil, result.Err
+		}
+
+		data, ok := result.Val.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("invalid release cache result type")
+		}
+
+		return data, nil
+	}
+}
+
+func (h *handler) getReleaseCache(nCtx contextx.IContext, key string) ([]byte, bool) {
+	data, err := h.releaseCache.Get(nCtx, key)
+	if err != nil {
+		return nil, false
+	}
+
+	return data, true
 }
 
 // DownloadRemoteFile downloads a verified remote file.
