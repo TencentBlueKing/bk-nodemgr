@@ -49,8 +49,8 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	}
 }
 
-// LoadBasicAPIs register the basic apis.
-func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+// LoadBasicSystemAPIs register the basic apis.
+func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
 
 	// enable middlewares.
@@ -68,6 +68,25 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	cipher.Load(h.rg, capability)
 	auth.Load(h.rg, capability)
 	iam.Load(h.rg, capability)
+}
+
+// LoadBasicOpenAPIs register the basic apis.
+func LoadBasicOpenAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+	h := newHandler(rg, capability)
+
+	h.rg = h.rg.Group("/open")
+
+	// enable middlewares.
+	h.rg.Use(middlewares...)
+
+	node.Load(h.rg, capability)
+	plugin.Load(h.rg, capability)
+	topo.Load(h.rg, capability)
+	pkg.Load(h.rg, capability)
+	policy.Load(h.rg, capability)
+	process.Load(h.rg, capability)
+	cipher.Load(h.rg, capability)
+	auth.Load(h.rg, capability)
 }
 
 // LoadCallbackAPIs register the callback apis.

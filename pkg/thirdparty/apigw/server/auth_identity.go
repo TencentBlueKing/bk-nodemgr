@@ -27,6 +27,8 @@ import (
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
+var _ restserver.IAuthIdentity = (*BKGWJWTAuthIdentityAppState)(nil)
+
 // BKGWJWTAuthIdentityAppState verify the jwt from apigateway.
 type BKGWJWTAuthIdentityAppState struct {
 	pem []byte
@@ -79,6 +81,8 @@ func (identity *BKGWJWTAuthIdentityAppState) Verify(r restserver.IRequest) error
 	return nil
 }
 
+var _ restserver.IAuthIdentity = (*BKGWJWTAuthIdentityUserState)(nil)
+
 // BKGWJWTAuthIdentityUserState verify the jwt from apigateway for user state.
 type BKGWJWTAuthIdentityUserState struct {
 	pem []byte
@@ -92,7 +96,7 @@ func NewBKGWJWTAuthIdentityUserState(pem []byte) *BKGWJWTAuthIdentityUserState {
 }
 
 // Verify the jwt from apigateway.
-func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx restserver.IContext) error {
+func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx restserver.IRequest) error {
 	if rCtx == nil {
 		return errors.New("failed to verify user authentication, rest context is nil")
 	}
