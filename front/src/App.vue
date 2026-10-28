@@ -219,11 +219,13 @@ function getPkgTypeIdFromRoute(): string | undefined {
 import { i18nReady } from '@/modules/i18n';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
+import { useNodeManageStore } from '@/stores/node-manage';
 import useUserStore from '@/stores/user';
 
 const { t } = useI18n();
 const mainStore = useMainStore();
 const authStore = useAuthStore();
+const nodeManageStore = useNodeManageStore();
 // 路由信息
 const route = useRoute();
 const router = useRouter();
@@ -334,7 +336,14 @@ function handleChangeSubMenu(item: Omit<NavItem, 'group'>) {
 
 // 业务选择器
 const bizSelectorRef = ref<InstanceType<typeof BizSelector>>();
-const currentActive = computed(() => route.meta.parentName || route.name);
+// opsSetting 是 agent/proxy 共用的带外管理页，菜单高亮需跟随进入来源（store 中记录的 nodeType），
+// 避免从 proxy 状态页进入时左侧菜单跳到「Agent状态」
+const currentActive = computed(() => {
+  if (route.name === 'opsSetting') {
+    return nodeManageStore.opsFieldsParams.nodeType === 'proxy' ? 'proxy' : 'agent';
+  }
+  return route.meta.parentName || route.name;
+});
 const loading = ref(false);
 const getBusinessList = async () => {
   loading.value = true;

@@ -73,7 +73,7 @@ export interface TopoNodeInfo {
 // instance topology in topo service.
 export interface TopoBusinessInstTopoGetReq {
   bk_biz_id: number;
-  node_role?: string[];
+  node_role: string[];
 }
 
 // TopoBusinessInstTopoGetResp describes the HTTP response body when get

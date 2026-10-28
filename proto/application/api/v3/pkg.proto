@@ -172,6 +172,8 @@ message PackageUploadOriginPluginV2Resp {
     optional string config_format = 13;
     optional string launch_node = 14;
     repeated Platform platforms = 15;
+    optional double install_cpu_limit = 16;
+    optional double install_disk_io_limit = 17;
   }
   Data data = 5;
 }
@@ -235,6 +237,8 @@ message PackageUploadOriginPluginV3Resp {
     optional string launch_node = 12;
     optional string template_renderer = 13;
     repeated Platform platforms = 14;
+    optional double install_cpu_limit = 15;
+    optional double install_disk_io_limit = 16;
   }
   Data data = 5;
 }

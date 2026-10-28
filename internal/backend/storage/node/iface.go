@@ -30,6 +30,7 @@ type IStorage interface {
 
 	IDaoNodeDeployment
 	IDaoNodeWorkflow
+	IDaoNodeOpsHistory
 }
 
 // IDaoNodeDeployment defines the node deployment dao interface.
@@ -76,4 +77,23 @@ type IDaoNodeWorkflow interface {
 
 	// UpdateNodeWorkflowStatus updates the status of a node workflow.
 	UpdateNodeWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.NodeWorkflowStatus) error
+}
+
+// IDaoNodeOpsHistory defines the node ops history dao interface.
+type IDaoNodeOpsHistory interface {
+	// CreateNodeOpsHistory creates an operation history with its snapshots.
+	CreateNodeOpsHistory(nCtx contextx.IContext, history *types.NodeOpsHistory) error
+
+	// ListNodeOpsHistory lists selected fields by page and conditions.
+	// Nil or an empty selection returns complete records.
+	ListNodeOpsHistory(
+		nCtx contextx.IContext, page types.Page, selection *types.NodeOpsHistoryFieldSelection, conditions ...*types.NodeOpsHistoryCondition) (
+		[]*types.NodeOpsHistory, int64, error)
+
+	// CountNodeOpsHistory counts operation history by conditions.
+	CountNodeOpsHistory(nCtx contextx.IContext, conditions ...*types.NodeOpsHistoryCondition) (int64, error)
+
+	// GetNodeOpsHistory gets selected fields of an operation history by operation ID.
+	// Nil or an empty selection returns the complete record.
+	GetNodeOpsHistory(nCtx contextx.IContext, operateID string, selection *types.NodeOpsHistoryFieldSelection) (*types.NodeOpsHistory, error)
 }

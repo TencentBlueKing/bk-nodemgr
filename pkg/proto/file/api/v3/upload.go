@@ -372,21 +372,23 @@ func (x *UploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail
 	}
 
 	data := &UploadOriginPluginV2Resp_Data{
-		UploadId:      new(string),
-		Existed:       new(bool),
-		Generated:     new(bool),
-		Name:          new(string),
-		Size:          new(int64),
-		Md5:           new(string),
-		Version:       new(string),
-		Description:   new(string),
-		DescriptionEn: new(string),
-		Scenario:      new(string),
-		ScenarioEn:    new(string),
-		ConfigFile:    new(string),
-		ConfigFormat:  new(string),
-		LaunchNode:    new(string),
-		PluginPkgName: new(string),
+		UploadId:           new(string),
+		Existed:            new(bool),
+		Generated:          new(bool),
+		Name:               new(string),
+		Size:               new(int64),
+		Md5:                new(string),
+		Version:            new(string),
+		Description:        new(string),
+		DescriptionEn:      new(string),
+		Scenario:           new(string),
+		ScenarioEn:         new(string),
+		ConfigFile:         new(string),
+		ConfigFormat:       new(string),
+		LaunchNode:         new(string),
+		PluginPkgName:      new(string),
+		InstallCpuLimit:    new(float64),
+		InstallDiskIoLimit: new(float64),
 	}
 
 	*data.UploadId = detail.UploadID
@@ -404,6 +406,8 @@ func (x *UploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail
 	*data.ConfigFormat = detail.ConfigFormat
 	*data.LaunchNode = detail.LaunchNode
 	*data.PluginPkgName = detail.PluginPkgName
+	*data.InstallCpuLimit = detail.InstallCPULimit
+	*data.InstallDiskIoLimit = detail.InstallDiskIOLimit
 
 	data.Platforms = plats
 
@@ -514,20 +518,22 @@ func (x *UploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool, detail
 	}
 
 	data := &UploadOriginPluginV3Resp_Data{
-		UploadId:         new(string),
-		Existed:          new(bool),
-		Generated:        new(bool),
-		Name:             new(string),
-		Size:             new(int64),
-		Md5:              new(string),
-		PluginPkgName:    new(string),
-		Version:          new(string),
-		Description:      new(string),
-		DescriptionEn:    new(string),
-		Scenario:         new(string),
-		ScenarioEn:       new(string),
-		LaunchNode:       new(string),
-		TemplateRenderer: new(string),
+		UploadId:           new(string),
+		Existed:            new(bool),
+		Generated:          new(bool),
+		Name:               new(string),
+		Size:               new(int64),
+		Md5:                new(string),
+		PluginPkgName:      new(string),
+		Version:            new(string),
+		Description:        new(string),
+		DescriptionEn:      new(string),
+		Scenario:           new(string),
+		ScenarioEn:         new(string),
+		LaunchNode:         new(string),
+		TemplateRenderer:   new(string),
+		InstallCpuLimit:    new(float64),
+		InstallDiskIoLimit: new(float64),
 	}
 
 	*data.UploadId = detail.UploadID
@@ -544,6 +550,8 @@ func (x *UploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool, detail
 	*data.ScenarioEn = detail.ScenarioEn
 	*data.LaunchNode = detail.LaunchNode
 	*data.TemplateRenderer = string(detail.TemplateRenderer)
+	*data.InstallCpuLimit = detail.InstallCPULimit
+	*data.InstallDiskIoLimit = detail.InstallDiskIOLimit
 
 	data.Platforms = plats
 
