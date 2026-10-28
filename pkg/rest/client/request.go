@@ -516,6 +516,11 @@ func (r *Request) Do() (result *Result) {
 		}
 	}
 
+	if r.client.requestIDHeader != "" && r.nCtx != nil {
+		r.headers = cloneHeader(r.headers)
+		r.headers.Set(r.client.requestIDHeader, r.nCtx.MessageID())
+	}
+
 	httpClient := r.capability.HTTPClient
 	if httpClient == nil {
 		httpClient = http.DefaultClient
