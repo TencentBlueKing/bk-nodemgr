@@ -25,10 +25,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"reflect"
 	"strings"
 	"syscall"
@@ -368,14 +366,6 @@ func (r *Request) requestPath() string {
 	return fmt.Sprintf(r.subPath, r.subPathArgs...)
 }
 
-func (r *Request) requestBaseURL() string {
-	if r.targetURL != nil {
-		return r.targetURL.Scheme + "://" + r.targetURL.Host
-	}
-
-	return r.baseURL
-}
-
 // checkToleranceLatency check request toleranceLatency.
 func (r *Request) checkToleranceLatency(start *time.Time, url string) {
 	if time.Since(*start) < r.capability.ToleranceLatencyTime {
@@ -560,7 +550,6 @@ func (r *Request) doWithDiscoveredEndpoints(httpClient HTTPClient) (result *Resu
 			}
 
 			req = req.WithContext(traceCtx)
-			r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
 
 			var isComplete bool
 			result, isComplete = r.doWithEndpoint(httpClient, req, try+index, r.subPath)
@@ -578,16 +567,35 @@ func (r *Request) doWithDiscoveredEndpoints(httpClient HTTPClient) (result *Resu
 func (r *Request) startTrace() (context.Context, trace.Span) {
 	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
 	return tracer.Start(r.nCtx, fmt.Sprintf("%s %s", r.verb, r.requestPath()),
-		trace.WithSpanKind(trace.SpanKindClient),
-		trace.WithAttributes(
-			attribute.String(attributeHTTPRequestBaseURL, r.requestBaseURL()),
-			attribute.String(attributeHTTPRequestBoby, r.maskRequestBody()),
-			attribute.String(attributeHTTPRequestHeader, r.maskHeader(r.headers)),
-		),
+		trace.WithSpanKind(trace.SpanKindInternal),
 	)
 }
 
+func (r *Request) startRequestTrace(req *http.Request) (context.Context, trace.Span) {
+	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
+	traceCtx, span := tracer.Start(req.Context(), fmt.Sprintf("%s %s", req.Method, req.URL.EscapedPath()),
+		trace.WithSpanKind(trace.SpanKindClient),
+	)
+	r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
+	span.SetAttributes(
+		attribute.String(attributeHTTPRequestBaseURL, req.URL.Scheme+"://"+req.URL.Host),
+		attribute.String(attributeHTTPRequestBoby, r.maskRequestBody()),
+		attribute.String(attributeHTTPRequestHeader, r.maskHeader(req.Header)),
+	)
+
+	return traceCtx, span
+}
+
 func finishTrace(span trace.Span, result *Result) {
+	defer span.End()
+
+	if result.Err != nil {
+		span.RecordError(result.Err)
+		span.SetStatus(codes.Error, result.Err.Error())
+
+		return
+	}
+
 	span.SetAttributes(
 		attribute.Int(attributeHTTPResponseStatusCode, result.StatusCode),
 	)
@@ -597,8 +605,13 @@ func finishTrace(span trace.Span, result *Result) {
 	} else {
 		span.SetStatus(codes.Ok, "")
 	}
+}
 
-	span.End()
+func (r *Request) finishRequestTrace(span trace.Span, result *Result) {
+	if result.Header != nil {
+		span.SetAttributes(attribute.String(attributeHTTPResponseHeader, r.maskHeader(result.Header)))
+	}
+	finishTrace(span, result)
 }
 
 func (r *Request) doWithTargetURL(httpClient HTTPClient) (result *Result) {
@@ -616,7 +629,6 @@ func (r *Request) doWithTargetURL(httpClient HTTPClient) (result *Result) {
 		}
 
 		req = req.WithContext(traceCtx)
-		r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
 
 		result, isComplete := r.doWithEndpoint(httpClient, req, try, requestPath)
 		if isComplete {
@@ -638,6 +650,9 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 		r.tryThrottle(req.URL.String())
 	}
 
+	traceCtx, span := r.startRequestTrace(req)
+	req = req.WithContext(traceCtx)
+
 	logger.G.Biz(r.nCtx).
 		With("method", req.Method, "url", r.maskURL(req.URL.String()), "header", r.maskHeader(req.Header), "body", r.maskRequestBody()).
 		Info("do request")
@@ -645,6 +660,7 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
+		r.finishRequestTrace(span, &Result{Err: err})
 		// "Connection reset by peer" is a special err which in most scenario is a transient error.
 		// Which means that we can retry it. And so does the VerbTypeGET operation.
 		// While the other "write" operation can not simply retry it again, because they are not idempotent.
@@ -658,13 +674,6 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 
 		return nil, false
 	}
-
-	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
-	_, span := tracer.Start(req.Context(), "HTTP response", trace.WithAttributes(
-		attribute.String(attributeHTTPResponseHeader, r.maskHeader(resp.Header)),
-		attribute.Int(attributeHTTPResponseStatusCode, resp.StatusCode),
-	))
-	span.End()
 
 	// collect request metrics.
 	r.client.metrics.HandleClientMetrics(req, resp, requestPath, start)
@@ -681,6 +690,7 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 		enableLogResponse: r.enableLogResponse,
 		urlQueryMasker:    r.urlQueryMasker,
 	}
+	r.finishRequestTrace(span, result)
 
 	logger.G.Biz(r.nCtx).With(
 		"code", result.StatusCode,
@@ -723,27 +733,7 @@ func (r *Request) getRequest(url string) (*http.Request, error) {
 
 // isConnectionReset Returns if the given err is "connection reset by peer" error.
 func isConnectionReset(err error) bool {
-	var urlErr url.Error
-	if errors.Is(err, &urlErr) {
-		return false
-	}
-
-	var opErr net.OpError
-	if errors.Is(err, &opErr) {
-		return false
-	}
-
-	var osErr os.SyscallError
-	if errors.Is(err, &osErr) {
-		return false
-	}
-
-	var errno syscall.Errno
-	if errors.Is(err, errno) && errors.Is(errno, syscall.ECONNRESET) {
-		return true
-	}
-
-	return false
+	return errors.Is(err, syscall.ECONNRESET)
 }
 
 func cloneHeader(src http.Header) http.Header {

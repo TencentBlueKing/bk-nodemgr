@@ -22,16 +22,20 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"sync/atomic"
+	"syscall"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
@@ -279,24 +283,23 @@ func TestRequest_DoRecordsResponseHeadersOnSpan(t *testing.T) {
 
 			spans := recorder.Ended()
 			require.Len(t, spans, 2)
-			var requestSpan, responseSpan sdktrace.ReadOnlySpan
+			var operationSpan, requestSpan sdktrace.ReadOnlySpan
 			for _, span := range spans {
-				if span.Name() == "HTTP response" {
-					responseSpan = span
-				} else {
+				if span.SpanKind() == trace.SpanKindClient {
 					requestSpan = span
+				} else {
+					operationSpan = span
 				}
 			}
+			require.NotNil(t, operationSpan)
 			require.NotNil(t, requestSpan)
-			require.NotNil(t, responseSpan)
-			assert.Equal(t, trace.SpanKindClient, requestSpan.SpanKind())
-			assert.Equal(t, trace.SpanKindInternal, responseSpan.SpanKind())
-			assert.Equal(t, requestSpan.SpanContext().TraceID(), responseSpan.SpanContext().TraceID())
-			assert.Equal(t, requestSpan.SpanContext().SpanID(), responseSpan.Parent().SpanID())
+			assert.Equal(t, trace.SpanKindInternal, operationSpan.SpanKind())
+			assert.Equal(t, operationSpan.SpanContext().TraceID(), requestSpan.SpanContext().TraceID())
+			assert.Equal(t, operationSpan.SpanContext().SpanID(), requestSpan.Parent().SpanID())
 
 			var headers string
 			var statusCode int64
-			for _, attr := range responseSpan.Attributes() {
+			for _, attr := range requestSpan.Attributes() {
 				switch attr.Key {
 				case attribute.Key("http.response.header"):
 					headers = attr.Value.AsString()
@@ -316,6 +319,116 @@ func TestRequest_DoRecordsResponseHeadersOnSpan(t *testing.T) {
 			assert.Equal(t, "session=response-secret", result.Header.Get("Set-Cookie"))
 			_, err = result.RawData()
 			require.NoError(t, err)
+		})
+	}
+}
+
+type requestTestHTTPClient func(*http.Request) (*http.Response, error)
+
+func (do requestTestHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	return do(req)
+}
+
+func TestRequest_DoTracesEachAttempt(t *testing.T) {
+	tests := []struct {
+		name       string
+		discovered bool
+		post       bool
+		failures   int
+		statusCode int
+		wantCalls  int
+		wantError  bool
+	}{
+		{name: "target retry succeeds", failures: 1, statusCode: http.StatusOK, wantCalls: 2},
+		{name: "discovered retry succeeds", discovered: true, failures: 1, statusCode: http.StatusOK, wantCalls: 2},
+		{name: "target retries exhausted", failures: 3, wantCalls: 3, wantError: true},
+		{name: "discovered retries exhausted", discovered: true, failures: 3, wantCalls: 3, wantError: true},
+		{name: "POST does not retry", post: true, failures: 1, wantCalls: 1, wantError: true},
+		{name: "HTTP error response", statusCode: http.StatusInternalServerError, wantCalls: 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recorder := tracetest.NewSpanRecorder()
+			provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+			defer func() { require.NoError(t, provider.Shutdown(context.Background())) }()
+			var contexts []trace.SpanContext
+			propagator := propagation.TraceContext{}
+			httpClient := requestTestHTTPClient(func(req *http.Request) (*http.Response, error) {
+				spanContext := trace.SpanContextFromContext(req.Context())
+				extracted := propagator.Extract(context.Background(), propagation.HeaderCarrier(req.Header))
+				assert.Equal(t, spanContext.SpanID(), trace.SpanContextFromContext(extracted).SpanID())
+				assert.Equal(t, spanContext.TraceID(), trace.SpanContextFromContext(extracted).TraceID())
+				contexts = append(contexts, spanContext)
+				if len(contexts) <= tt.failures {
+					return nil, &url.Error{Op: "Get", URL: req.URL.String(), Err: &net.OpError{
+						Op: "read", Net: "tcp", Err: &os.SyscallError{Syscall: "read", Err: syscall.ECONNRESET},
+					}}
+				}
+
+				return &http.Response{
+					StatusCode: tt.statusCode,
+					Header:     http.Header{"X-Attempt": []string{fmt.Sprint(len(contexts))}},
+					Body:       io.NopCloser(http.NoBody),
+				}, nil
+			})
+			client, err := NewClient(&Capability{
+				Name:                 "rest-client-request-test",
+				HTTPClient:           httpClient,
+				Discover:             restdiscovery.NewDiscovery("test", []string{"http://example.com"}),
+				ToleranceLatencyTime: ToleranceLatencyTimeDefault,
+				TraceSvc:             requestTestTraceService{tracerProvider: provider},
+			}, "/")
+			require.NoError(t, err)
+			request := client.Get()
+			if tt.post {
+				request = client.Post()
+			}
+			request.WithContext(contextx.Background()).WithHeaders(http.Header{"X-Test": []string{"request"}})
+			if !tt.discovered {
+				targetURL, err := url.Parse("http://example.com/items")
+				require.NoError(t, err)
+				request.WithURL(targetURL)
+			}
+			result := request.Do()
+			if tt.wantError {
+				require.Error(t, result.Err)
+			} else {
+				require.NoError(t, result.Err)
+				require.NoError(t, result.Body.Close())
+			}
+			require.Len(t, contexts, tt.wantCalls)
+			spans := recorder.Ended()
+			require.Len(t, spans, tt.wantCalls+1)
+			operation := spans[len(spans)-1]
+			assert.Equal(t, trace.SpanKindInternal, operation.SpanKind())
+			if tt.wantError || tt.statusCode >= http.StatusBadRequest {
+				assert.Equal(t, codes.Error, operation.Status().Code)
+			} else {
+				assert.Equal(t, codes.Ok, operation.Status().Code)
+			}
+			for i, attempt := range spans[:tt.wantCalls] {
+				assert.Equal(t, trace.SpanKindClient, attempt.SpanKind())
+				assert.Equal(t, operation.SpanContext().SpanID(), attempt.Parent().SpanID())
+				assert.Equal(t, contexts[i], attempt.SpanContext())
+				attrs := make(map[attribute.Key]attribute.Value)
+				for _, attr := range attempt.Attributes() {
+					attrs[attr.Key] = attr.Value
+				}
+				assert.Contains(t, attrs[attribute.Key(attributeHTTPRequestHeader)].AsString(), "X-Test:[request]")
+				if i < tt.failures {
+					assert.Equal(t, codes.Error, attempt.Status().Code)
+					require.NotEmpty(t, attempt.Events())
+					assert.Equal(t, "exception", attempt.Events()[0].Name)
+					assert.NotContains(t, attrs, attribute.Key(attributeHTTPResponseHeader))
+				} else {
+					assert.Equal(t, int64(tt.statusCode), attrs[attribute.Key(attributeHTTPResponseStatusCode)].AsInt64())
+					assert.Contains(t, attrs[attribute.Key(attributeHTTPResponseHeader)].AsString(), fmt.Sprintf("X-Attempt:[%d]", i+1))
+				}
+				if i > 0 {
+					assert.NotEqual(t, contexts[i-1].SpanID(), contexts[i].SpanID())
+					assert.False(t, spans[i-1].EndTime().After(attempt.StartTime()))
+				}
+			}
 		})
 	}
 }
