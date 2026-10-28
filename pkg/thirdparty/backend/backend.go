@@ -2127,6 +2127,66 @@ func (c *cli) getDeployConstant(ctx contextx.IContext, req *protoBackend.NodeCon
 }
 
 // ===============================================================================
+// Node Ops Related Interfaces
+// ===============================================================================
+
+func (c *cli) listNodeOpsHistory(ctx contextx.IContext, req *protoBackend.NodeOpsHistoryListReq) (*protoBackend.NodeOpsHistoryListResp, error) {
+	resp := new(protoBackend.NodeOpsHistoryListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/ops/history/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request node ops history list: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list node ops history", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list node ops history failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) getNodeOpsHistory(ctx contextx.IContext, req *protoBackend.NodeOpsHistoryDetailReq) (*protoBackend.NodeOpsHistoryDetailResp, error) {
+	resp := new(protoBackend.NodeOpsHistoryDetailResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/ops/history/detail").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request node ops history detail: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get node ops history", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get node ops history failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+// ===============================================================================
 // Package Release Related Interfaces
 // ===============================================================================
 
