@@ -343,7 +343,7 @@ class FileClient(object):
 
     def _get_common_headers(self):
         headers = {
-            "X-Bknodemgr-Request-Id": generate_id("rid"),
+            "X-Request-Id": generate_id("rid"),
         }
 
         if self.jwt_key:

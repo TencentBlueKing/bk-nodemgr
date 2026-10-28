@@ -38,7 +38,6 @@ type Client struct {
 func NewClient(capability *restclient.Capability, baseURL string, config VirtualUserConfig, opts ...restclient.Opt) (*Client, error) {
 	restOpts := []restclient.Opt{
 		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, AuthHeaderMasker),
-		restclient.WithRequestIDHeader(apigwheader.BKClientRIDKey),
 	}
 	restOpts = append(restOpts, opts...)
 

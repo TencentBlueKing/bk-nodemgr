@@ -91,13 +91,6 @@ func WithCustomURLQueryMasker(query string, queryMasker func(string) string) Opt
 	}
 }
 
-// WithRequestIDHeader sets the header used to propagate the context message ID.
-func WithRequestIDHeader(header string) Opt {
-	return func(client *Client) {
-		client.requestIDHeader = header
-	}
-}
-
 // WithExclusionURL set exclusion url.
 func WithExclusionURL(url ...string) Opt {
 	return func(client *Client) {
@@ -160,9 +153,6 @@ type Client struct {
 
 	// urlQueryMasker will be used to mask url query value.
 	urlQueryMasker map[string]func(string) string
-
-	// requestIDHeader carries the context message ID when configured.
-	requestIDHeader string
 }
 
 // verb get request.

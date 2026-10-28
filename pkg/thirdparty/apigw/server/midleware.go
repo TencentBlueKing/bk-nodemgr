@@ -19,8 +19,8 @@
 package server
 
 import (
+	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 var _ restserver.IRequestIDSetter = &BKAPIRequestIDSetter{}
@@ -32,7 +32,7 @@ type BKAPIRequestIDSetter struct {
 // SetRequestID ...
 func (setter *BKAPIRequestIDSetter) SetRequestID(r restserver.IRequest) error {
 	// note: for thread safety you need to reset it here.
-	r.Data().SetRequestID(r.GetRequestHeader(apigwheader.BKClientRIDKey))
+	r.Data().SetRequestID(restheader.RequestIDGetter(r.GetRequest()))
 
 	return nil
 }

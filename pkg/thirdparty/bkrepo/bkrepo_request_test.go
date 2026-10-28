@@ -29,7 +29,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
-	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 type bkrepoObservedRequest struct {
@@ -96,7 +95,7 @@ func assertObservedRequests(
 		assert.Equal(t, expected.query, got.query)
 		assert.Equal(t, expected.body, got.body)
 		assert.Equal(t, expectedAuthHeader(), got.header.Get(HeaderKeyAuth))
-		assert.NotEmpty(t, got.header.Get(apigwheader.BKClientRIDKey))
+		assert.NotEmpty(t, got.header.Get(restheader.RequestIDKey))
 
 		if wantTenantID == "" {
 			assert.Empty(t, got.header.Values(restheader.BKTenantIDKey))

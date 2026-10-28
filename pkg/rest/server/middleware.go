@@ -229,7 +229,7 @@ type RequestIDSetter struct {
 // SetRequestID ...
 func (setter *RequestIDSetter) SetRequestID(r IRequest) error {
 	// note: for thread safety you need to reset it here.
-	r.Data().SetRequestID(restheader.BKNodemgrRequestIDGetter(r.GetRequest()))
+	r.Data().SetRequestID(restheader.RequestIDGetter(r.GetRequest()))
 
 	if r.Data().GetRequestID() == "" {
 		r.Data().SetRequestID(identifier.GenRequestID())

@@ -67,7 +67,7 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 func (c *cli) getCommonHeader(nCtx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
-	header.Set(restheader.BKNodemgrRequestIDKey, identifier.GenRequestID())
+	header.Set(restheader.RequestIDKey, identifier.GenRequestID())
 
 	authorization, err := c.jwtGenerator.Generate(nCtx.LoginName(), nCtx.BKUsername())
 	if err != nil {

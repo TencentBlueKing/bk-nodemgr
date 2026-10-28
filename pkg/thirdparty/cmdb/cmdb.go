@@ -91,7 +91,7 @@ func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
 	header.Set(HeaderKeyLanguage, HeaderValueLanguage)
-	header.Set(apigwheader.BKClientRIDKey, identifier.GenRequestID())
+	header.Set(restheader.RequestIDKey, identifier.GenRequestID())
 	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
 
 	return header, nil

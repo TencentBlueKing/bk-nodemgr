@@ -34,6 +34,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
@@ -516,9 +517,9 @@ func (r *Request) Do() (result *Result) {
 		}
 	}
 
-	if r.client.requestIDHeader != "" && r.nCtx != nil {
+	if r.nCtx != nil && r.nCtx.MessageID() != "" {
 		r.headers = cloneHeader(r.headers)
-		r.headers.Set(r.client.requestIDHeader, r.nCtx.MessageID())
+		r.headers.Set(restheader.RequestIDKey, r.nCtx.MessageID())
 	}
 
 	httpClient := r.capability.HTTPClient
