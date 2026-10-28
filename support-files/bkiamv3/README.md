@@ -38,11 +38,13 @@ python do_migrate.py \
 
 ## 系统访问权限
 
-`templates/0006_bk_nodemgr_20261028-1609_iam.json.tpl` 在 `0001` 至 `0005` 之后执行，保留历史模板不变：
+`system_access` 直接包含在现有模型模板中，按 `0003`、`0004`、`0005` 的顺序同步：
 
-- 注册无资源绑定的 `system_access`（系统访问），`related_resource_types` 为 `[]`。该权限仅用于系统准入，不替代具体功能和资源权限。
-- 为原有 32 个 Action 增加 `system_access` 依赖，保留已有的 `biz_access` 或 `networkarea_view` 依赖。更新只提交 `id` 和 `related_actions`，不改变原有资源绑定。
-- 在操作分组中增加“系统”，并为全部四个常用操作组合增加 `system_access`。操作分组和常用操作组合按完整配置更新，保留原有成员。
+- `templates/0003_bk_nodemgr_actions.json.tpl` 注册无资源绑定的 `system_access`（系统访问），`related_resource_types` 为 `[]`。该权限仅用于系统准入，不替代具体功能和资源权限。原有 32 个 Action 均增加 `system_access` 依赖，保留已有依赖和资源绑定。
+- `templates/0004_bk_nodemgr_action_groups.json.tpl` 增加“系统”操作分组，保留原有分组及成员。
+- `templates/0005_bk_nodemgr_common_actions.json.tpl` 为全部四个常用操作组合增加 `system_access`，保留原有成员。
+
+已完成历史同步的环境也需重新执行上述模板，使远端模型包含 `system_access` 及其依赖、分组和常用操作配置。
 
 `related_actions` 用于申请权限时同时创建依赖权限，不是运行时自动鉴权，也不会为已有用户自动补授权。常用操作组合是申请权限的快捷配置，不等同于 V4 Role。接入系统访问中间件前，应先确认已有用户获得 `system_access`，避免原有功能权限仍有效但系统准入被拒绝。本迁移不包含中间件或用户授权变更。
 

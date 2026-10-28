@@ -9,6 +9,9 @@
           "name_en": "Agent Manager",
           "actions": [
             {
+              "id": "system_access"
+            },
+            {
               "id": "biz_access"
             },
             {
@@ -38,6 +41,9 @@
           "name": "管控区域管理员",
           "name_en": "Network Area Manager",
           "actions": [
+            {
+              "id": "system_access"
+            },
             {
               "id": "biz_access"
             },
@@ -90,6 +96,9 @@
           "name_en": "Policy Manager",
           "actions": [
             {
+              "id": "system_access"
+            },
+            {
               "id": "biz_access"
             },
             {
@@ -116,6 +125,9 @@
           "name": "资源包管理员",
           "name_en": "Package Manager",
           "actions": [
+            {
+              "id": "system_access"
+            },
             {
               "id": "package_type_upload"
             },

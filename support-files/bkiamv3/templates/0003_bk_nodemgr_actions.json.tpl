@@ -2,6 +2,18 @@
   "system_id": "{{ .system.id }}",
   "operations": [
     {
+      "operation": "upsert_action",
+      "data": {
+        "id": "system_access",
+        "name": "系统访问",
+        "name_en": "System Access",
+        "description": "访问节点管理系统，不替代具体功能和资源权限",
+        "description_en": "Access Node Manager without replacing feature or resource permissions",
+        "type": "view",
+        "related_resource_types": []
+      }
+    },
+    {
        "operation": "upsert_action",
        "data": {
          "id": "biz_access",
@@ -10,6 +22,7 @@
          "description": "访问业务范围下的节点管理功能",
          "description_en": "Access Node Manager capabilities under business scope",
          "type": "view",
+         "related_actions": ["system_access"],
          "related_resource_types": [
            {
              "system_id": "{{ .cmdb.system_id }}",
@@ -34,7 +47,7 @@
         "description": "查看业务下的 Agent 信息",
         "description_en": "View Agent information under business",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -59,7 +72,7 @@
         "description": "安装, 卸载, 升级, 重启等 Agent 操作",
         "description_en": "Install, uninstall, upgrade, restart and other Agent operations",
         "type": "manage",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -84,7 +97,7 @@
         "description": "查看 Agent 操作历史记录",
         "description_en": "View Agent operation history",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -109,7 +122,7 @@
         "description": "查看业务下的 Proxy 信息",
         "description_en": "View Proxy information under business",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -134,7 +147,7 @@
         "description": "安装, 卸载, 升级, 重启等 Proxy 操作",
         "description_en": "Install, uninstall, upgrade, restart and other Proxy operations",
         "type": "manage",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -159,7 +172,7 @@
         "description": "查看 Proxy 操作历史记录",
         "description_en": "View Proxy operation history",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -184,7 +197,7 @@
         "description": "查看业务下的插件信息",
         "description_en": "View Plugin information under business",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -209,7 +222,7 @@
         "description": "安装, 卸载, 升级等插件操作",
         "description_en": "Install, uninstall, upgrade and other Plugin operations",
         "type": "manage",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -234,7 +247,7 @@
         "description": "查看插件操作历史记录",
         "description_en": "View Plugin operation history",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -259,7 +272,7 @@
         "description": "查看业务下的配置策略",
         "description_en": "View config policy under business",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -284,7 +297,7 @@
         "description": "创建, 编辑, 删除配置策略",
         "description_en": "Create, edit, delete config policy",
         "type": "manage",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -309,7 +322,7 @@
         "description": "查看配置策略操作历史",
         "description_en": "View config policy operation history",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -334,7 +347,7 @@
         "description": "查看业务下的部署策略",
         "description_en": "View deploy policy under business",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -359,7 +372,7 @@
         "description": "创建, 编辑, 删除部署策略",
         "description_en": "Create, edit, delete deploy policy",
         "type": "manage",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -384,7 +397,7 @@
         "description": "查看部署策略操作历史",
         "description_en": "View deploy policy operation history",
         "type": "view",
-        "related_actions": ["biz_access"],
+        "related_actions": ["system_access", "biz_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id }}",
@@ -409,6 +422,7 @@
         "description": "查看管控区域信息",
         "description_en": "View network area information",
         "type": "view",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -433,6 +447,7 @@
         "description": "创建新的管控区域",
         "description_en": "Create new network area",
         "type": "create",
+        "related_actions": ["system_access"],
         "related_resource_types": []
       }
     },
@@ -445,6 +460,7 @@
         "description": "编辑管控区域信息",
         "description_en": "Edit network area information",
         "type": "edit",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -469,6 +485,7 @@
         "description": "删除管控区域",
         "description_en": "Delete network area",
         "type": "delete",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -493,6 +510,7 @@
         "description": "查看管控区域操作历史",
         "description_en": "View network area operation history",
         "type": "view",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -517,7 +535,7 @@
         "description": "查看管控单元信息",
         "description_en": "View network unit information",
         "type": "view",
-        "related_actions": ["networkarea_view"],
+        "related_actions": ["system_access", "networkarea_view"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -542,7 +560,7 @@
         "description": "在管控区域下创建管控单元",
         "description_en": "Create network unit under network area",
         "type": "create",
-        "related_actions": ["networkarea_view"],
+        "related_actions": ["system_access", "networkarea_view"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -567,7 +585,7 @@
         "description": "编辑管控单元信息",
         "description_en": "Edit network unit information",
         "type": "edit",
-        "related_actions": ["networkarea_view"],
+        "related_actions": ["system_access", "networkarea_view"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -592,7 +610,7 @@
         "description": "删除管控单元",
         "description_en": "Delete network unit",
         "type": "delete",
-        "related_actions": ["networkarea_view"],
+        "related_actions": ["system_access", "networkarea_view"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -617,7 +635,7 @@
         "description": "使用管控单元部署 Agent",
         "description_en": "Use network unit to deploy Agent",
         "type": "use",
-        "related_actions": ["networkarea_view"],
+        "related_actions": ["system_access", "networkarea_view"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -642,7 +660,7 @@
         "description": "使用管控单元部署 Proxy",
         "description_en": "Use network unit to deploy Proxy",
         "type": "use",
-        "related_actions": ["networkarea_view"],
+        "related_actions": ["system_access", "networkarea_view"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -667,7 +685,7 @@
         "description": "查看管控单元操作历史",
         "description_en": "View network unit operation history",
         "type": "view",
-        "related_actions": ["networkarea_view"],
+        "related_actions": ["system_access", "networkarea_view"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -692,6 +710,7 @@
         "description": "上传资源包",
         "description_en": "Upload package",
         "type": "create",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -716,6 +735,7 @@
         "description": "查看资源包信息",
         "description_en": "View package information",
         "type": "view",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -740,6 +760,7 @@
         "description": "管理资源包（上传, 发布, 删除等）",
         "description_en": "Manage package (upload, publish, delete, etc.)",
         "type": "manage",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
@@ -764,6 +785,7 @@
         "description": "查看资源包操作历史",
         "description_en": "View package operation history",
         "type": "view",
+        "related_actions": ["system_access"],
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
