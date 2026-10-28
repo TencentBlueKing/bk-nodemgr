@@ -62,7 +62,7 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
   { id: 'proxy_view', action: 'proxy_view', resourceType: 'biz', routes: ['proxy'] },
   { id: 'agent_operate', action: 'agent_operate', resourceType: 'biz', routes: ['agentSetup', 'agentEdit', 'assignUnit'] },
   { id: 'plugin_view', action: 'plugin_view', resourceType: 'biz', routes: ['plugin'] },
-  { id: 'agent_history_view', action: 'agent_history_view', resourceType: 'biz', routes: ['history', 'taskDetail', 'log'], activeScopes: ['agent'] },
+  { id: 'agent_history_view', action: 'agent_history_view', resourceType: 'biz', routes: ['history', 'taskDetail', 'log', 'opsHistoryDetail'], activeScopes: ['agent'] },
   { id: 'proxy_history_view', action: 'proxy_history_view', resourceType: 'biz', routes: ['history', 'taskDetail', 'log'], activeScopes: ['proxy'] },
   { id: 'plugin_history_view', action: 'plugin_history_view', resourceType: 'biz', routes: ['history', 'taskDetail', 'log'], activeScopes: ['plugin'] },
 
