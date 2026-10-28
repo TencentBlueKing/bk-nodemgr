@@ -165,10 +165,10 @@ func (h *Handler) UpdateProxy(nCtx contextx.IContext, updateParam *types.NodePro
 
 // UpdateProxyOpsFields update node proxy ops fields.
 func (h *Handler) UpdateProxyOpsFields(nCtx contextx.IContext, hosts []*types.Host) error {
-	req := new(protoBackend.NodeProxyUpdateOpsFieldsReq)
+	req := new(protoBackend.NodeOpsUpdateFieldsProxyReq)
 	req.ConvertParamFromTypes(hosts)
 
-	_, err := h.cli.updateNodeProxyOpsFields(nCtx, req)
+	_, err := h.cli.updateNodeOpsFieldsProxy(nCtx, req)
 	if err != nil {
 		return err
 	}

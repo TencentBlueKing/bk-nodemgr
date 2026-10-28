@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, NodeAgentUpgradeCheckReq, NodeAgentUpgradeCheckResp, UploadAgentInstallTemplateReq, UploadAgentInstallTemplateResp, NodeAgentAssignUnitReq, NodeAgentAssignUnitResp, NodeAgentAssignUnitMultiReq, NodeAgentUpdateOpsFieldsReq, NodeAgentUpdateOpsFieldsResp } from '@/@types/node_agent';
+import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, NodeAgentUpgradeCheckReq, NodeAgentUpgradeCheckResp, UploadAgentInstallTemplateReq, UploadAgentInstallTemplateResp, NodeAgentAssignUnitReq, NodeAgentAssignUnitResp, NodeAgentAssignUnitMultiReq } from '@/@types/node_agent';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -30,7 +30,5 @@ export const NodeAgentService = {
   // NodeAgentAssignUnitMulti batch-assigns multiple network units to agent
   // hosts.
   NodeAgentAssignUnitMulti: async <Request = NodeAgentAssignUnitMultiReq, ResponseData = NodeAgentAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/assign_unit_multi')(params, config),
-  // NodeAgentUpdateOpsFields batch-updates out-of-band (ops) fields.
-  NodeAgentUpdateOpsFields: async <Request = NodeAgentUpdateOpsFieldsReq, ResponseData = NodeAgentUpdateOpsFieldsResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/update_ops_fields')(params, config),
 };
 

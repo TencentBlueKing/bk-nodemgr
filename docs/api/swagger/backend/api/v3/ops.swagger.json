@@ -83,6 +83,74 @@
           "Ops"
         ]
       }
+    },
+    "/api/v3/node/ops/update_fields/agent": {
+      "post": {
+        "summary": "NodeOpsUpdateFieldsAgent batch-updates out-of-band fields for agent hosts.",
+        "operationId": "Ops_NodeOpsUpdateFieldsAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsUpdateFieldsAgentResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeOpsUpdateFieldsAgentReq describes the batch update of agent ops fields.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsUpdateFieldsAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v3/node/ops/update_fields/proxy": {
+      "post": {
+        "summary": "NodeOpsUpdateFieldsProxy batch-updates out-of-band fields for proxy hosts.",
+        "operationId": "Ops_NodeOpsUpdateFieldsProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsUpdateFieldsProxyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeOpsUpdateFieldsProxyReq describes the batch update of proxy ops fields.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsUpdateFieldsProxyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Ops"
+        ]
+      }
     }
   },
   "definitions": {
@@ -375,6 +443,115 @@
           }
         }
       }
+    },
+    "v3NodeOpsInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ops_console_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ops_out_band_type": {
+          "type": "string"
+        },
+        "ops_out_band_protocol": {
+          "type": "string"
+        },
+        "ops_out_band_ip": {
+          "type": "string"
+        },
+        "ops_out_band_port": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "NodeOpsInfo describes the out-of-band (ops) information for a node."
+    },
+    "v3NodeOpsUpdateFieldsAgentReq": {
+      "type": "object",
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeOpsInfo"
+          }
+        }
+      },
+      "description": "NodeOpsUpdateFieldsAgentReq describes the batch update of agent ops fields."
+    },
+    "v3NodeOpsUpdateFieldsAgentResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeOpsUpdateFieldsAgentRespData"
+        }
+      },
+      "description": "NodeOpsUpdateFieldsAgentResp describes the agent ops fields update response."
+    },
+    "v3NodeOpsUpdateFieldsAgentRespData": {
+      "type": "object"
+    },
+    "v3NodeOpsUpdateFieldsProxyReq": {
+      "type": "object",
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeOpsInfo"
+          }
+        }
+      },
+      "description": "NodeOpsUpdateFieldsProxyReq describes the batch update of proxy ops fields."
+    },
+    "v3NodeOpsUpdateFieldsProxyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeOpsUpdateFieldsProxyRespData"
+        }
+      },
+      "description": "NodeOpsUpdateFieldsProxyResp describes the proxy ops fields update response."
+    },
+    "v3NodeOpsUpdateFieldsProxyRespData": {
+      "type": "object"
     },
     "v3Page": {
       "type": "object",

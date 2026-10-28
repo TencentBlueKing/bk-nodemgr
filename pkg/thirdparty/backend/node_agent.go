@@ -184,10 +184,10 @@ func (h *Handler) ReconfigAgent(nCtx contextx.IContext, reconfigParam *types.Nod
 
 // UpdateAgentOpsFields updates node agent ops fields.
 func (h *Handler) UpdateAgentOpsFields(nCtx contextx.IContext, hosts []*types.Host) error {
-	req := new(protoBackend.NodeAgentUpdateOpsFieldsReq)
+	req := new(protoBackend.NodeOpsUpdateFieldsAgentReq)
 	req.ConvertParamFromTypes(hosts)
 
-	_, err := h.cli.updateNodeAgentOpsFields(nCtx, req)
+	_, err := h.cli.updateNodeOpsFieldsAgent(nCtx, req)
 	if err != nil {
 		return err
 	}

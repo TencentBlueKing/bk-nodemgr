@@ -324,8 +324,7 @@ import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 
 import BatchEdit from '@/components/batch-edit.vue';
 import IpSelector from '@/components/IpSelector';
-import { NodeAgentService } from '@/api/modules/node_agent';
-import { NodeProxyService } from '@/api/modules/node_proxy';
+import { OpsService } from '@/api/modules/ops';
 import { TopoService } from '@/api/modules/topo';
 import * as IpSelectorService from '@/services/ip-selector';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -506,9 +505,9 @@ const handleConfirm = async () => {
             }));
 
         if (nodeType.value === 'proxy') {
-            await NodeProxyService.NodeProxyUpdateOpsFields({ hosts });
+            await OpsService.NodeOpsUpdateFieldsProxy({ hosts });
         } else {
-            await NodeAgentService.NodeAgentUpdateOpsFields({ hosts });
+            await OpsService.NodeOpsUpdateFieldsAgent({ hosts });
         }
 
         Message({ theme: 'success', message: t('platform.nodeMan.agentNodeStatus.opsSettingSuccess') });

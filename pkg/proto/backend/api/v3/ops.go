@@ -186,3 +186,155 @@ func (x *NodeOpsHistoryDetailResp) ConvertSnapshotsToTypes() []*types.NodeOpsHis
 		}
 	})
 }
+
+// AutoConvert is a no-op for update ops fields requests.
+func (x *NodeOpsUpdateFieldsAgentReq) AutoConvert() {}
+
+// Validate validates the update ops fields request.
+func (x *NodeOpsUpdateFieldsAgentReq) Validate() error {
+	if len(x.GetHosts()) == 0 {
+		return errors.New("hosts can not be empty")
+	}
+
+	for _, h := range x.GetHosts() {
+		if h.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be greater than 0")
+		}
+	}
+	if hostIDs := x.GetHostIDs(); len(conv.SliceUnique(hostIDs)) != len(hostIDs) {
+		return errors.New("duplicated bk_host_id")
+	}
+
+	return nil
+}
+
+// ConvertHostToTypes converts update ops hosts to types hosts.
+func (x *NodeOpsUpdateFieldsAgentReq) ConvertHostToTypes() []*types.Host {
+	hosts := make([]*types.Host, 0, len(x.GetHosts()))
+	for _, host := range x.GetHosts() {
+		typeHost := &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
+				OpsOutBandType:     host.GetOpsOutBandType(),
+				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
+				OpsOutBandIP:       host.GetOpsOutBandIp(),
+				OpsOutBandPort:     host.GetOpsOutBandPort(),
+			},
+		}
+
+		hosts = append(hosts, typeHost)
+	}
+
+	return hosts
+}
+
+// ConvertParamFromTypes converts update ops fields hosts from types.
+func (x *NodeOpsUpdateFieldsAgentReq) ConvertParamFromTypes(hosts []*types.Host) {
+	if hosts == nil {
+		return
+	}
+
+	items := make([]*NodeOpsInfo, len(hosts))
+	for idx, host := range hosts {
+		item := &NodeOpsInfo{}
+		if host != nil {
+			item.BkHostId = host.HostID
+			if host.Dynamic != nil {
+				item.OpsConsoleHostId = host.Dynamic.OpsConsoleHostID
+				item.OpsOutBandType = host.Dynamic.OpsOutBandType
+				item.OpsOutBandProtocol = host.Dynamic.OpsOutBandProtocol
+				item.OpsOutBandIp = host.Dynamic.OpsOutBandIP
+				item.OpsOutBandPort = host.Dynamic.OpsOutBandPort
+			}
+		}
+		items[idx] = item
+	}
+
+	x.Hosts = items
+}
+
+// GetHostIDs extracts the host IDs from the update ops fields request.
+func (x *NodeOpsUpdateFieldsAgentReq) GetHostIDs() []int64 {
+	hostIDs := conv.SliceToSlice(x.GetHosts(), func(h *NodeOpsInfo) int64 {
+		return h.GetBkHostId()
+	})
+
+	return hostIDs
+}
+
+// AutoConvert auto convert.
+func (x *NodeOpsUpdateFieldsProxyReq) AutoConvert() {}
+
+// Validate validates the update ops fields request.
+func (x *NodeOpsUpdateFieldsProxyReq) Validate() error {
+	if len(x.GetHosts()) == 0 {
+		return errors.New("hosts can not be empty")
+	}
+
+	for _, h := range x.GetHosts() {
+		if h.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be greater than 0")
+		}
+	}
+	if hostIDs := x.GetHostIDs(); len(conv.SliceUnique(hostIDs)) != len(hostIDs) {
+		return errors.New("duplicated bk_host_id")
+	}
+
+	return nil
+}
+
+// ConvertParamFromTypes converts update ops fields hosts from types.
+func (x *NodeOpsUpdateFieldsProxyReq) ConvertParamFromTypes(hosts []*types.Host) {
+	if hosts == nil {
+		return
+	}
+
+	items := make([]*NodeOpsInfo, len(hosts))
+	for idx, host := range hosts {
+		item := &NodeOpsInfo{}
+		if host != nil {
+			item.BkHostId = host.HostID
+			if host.Dynamic != nil {
+				item.OpsConsoleHostId = host.Dynamic.OpsConsoleHostID
+				item.OpsOutBandType = host.Dynamic.OpsOutBandType
+				item.OpsOutBandProtocol = host.Dynamic.OpsOutBandProtocol
+				item.OpsOutBandIp = host.Dynamic.OpsOutBandIP
+				item.OpsOutBandPort = host.Dynamic.OpsOutBandPort
+			}
+		}
+		items[idx] = item
+	}
+
+	x.Hosts = items
+}
+
+// ConvertHostToTypes converts update ops hosts to types hosts.
+func (x *NodeOpsUpdateFieldsProxyReq) ConvertHostToTypes() []*types.Host {
+	hosts := make([]*types.Host, 0, len(x.GetHosts()))
+	for _, host := range x.GetHosts() {
+		typeHost := &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
+				OpsOutBandType:     host.GetOpsOutBandType(),
+				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
+				OpsOutBandIP:       host.GetOpsOutBandIp(),
+				OpsOutBandPort:     host.GetOpsOutBandPort(),
+			},
+		}
+
+		hosts = append(hosts, typeHost)
+	}
+
+	return hosts
+}
+
+// GetHostIDs extracts the host IDs from the update ops fields request.
+func (x *NodeOpsUpdateFieldsProxyReq) GetHostIDs() []int64 {
+	hostIDs := conv.SliceToSlice(x.GetHosts(), func(h *NodeOpsInfo) int64 {
+		return h.GetBkHostId()
+	})
+
+	return hostIDs
+}

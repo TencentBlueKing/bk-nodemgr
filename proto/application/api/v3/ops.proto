@@ -91,7 +91,45 @@ message NodeOpsHistoryDetailResp {
   Data data = 5;
 }
 
-// Ops provides read-only out-of-band operation history.
+// NodeOpsInfo describes the out-of-band (ops) information for a node.
+message NodeOpsInfo {
+  int64 bk_host_id = 1;
+  int64 ops_console_host_id = 2;
+  string ops_out_band_type = 3;
+  string ops_out_band_protocol = 4;
+  string ops_out_band_ip = 5;
+  int64 ops_out_band_port = 6;
+}
+
+// NodeOpsUpdateFieldsAgentReq describes the batch update of agent ops fields.
+message NodeOpsUpdateFieldsAgentReq { repeated NodeOpsInfo hosts = 1; }
+
+// NodeOpsUpdateFieldsAgentResp describes the agent ops fields update response.
+message NodeOpsUpdateFieldsAgentResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  message Data {}
+  Data data = 5;
+}
+
+// NodeOpsUpdateFieldsProxyReq describes the batch update of proxy ops fields.
+message NodeOpsUpdateFieldsProxyReq { repeated NodeOpsInfo hosts = 1; }
+
+// NodeOpsUpdateFieldsProxyResp describes the proxy ops fields update response.
+message NodeOpsUpdateFieldsProxyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  message Data {}
+  Data data = 5;
+}
+
+// Ops provides out-of-band settings and operation history.
 service Ops {
   // NodeOpsHistoryList lists operations across agent and proxy roles within
   // the caller's permission scope.
@@ -109,6 +147,24 @@ service Ops {
       returns (NodeOpsHistoryDetailResp) {
     option (google.api.http) = {
       post : "/api/v3/node/ops/history/detail"
+      body : "*"
+    };
+  }
+
+  // NodeOpsUpdateFieldsAgent batch-updates out-of-band fields for agent hosts.
+  rpc NodeOpsUpdateFieldsAgent(NodeOpsUpdateFieldsAgentReq)
+      returns (NodeOpsUpdateFieldsAgentResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/ops/update_fields/agent"
+      body : "*"
+    };
+  }
+
+  // NodeOpsUpdateFieldsProxy batch-updates out-of-band fields for proxy hosts.
+  rpc NodeOpsUpdateFieldsProxy(NodeOpsUpdateFieldsProxyReq)
+      returns (NodeOpsUpdateFieldsProxyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/ops/update_fields/proxy"
       body : "*"
     };
   }

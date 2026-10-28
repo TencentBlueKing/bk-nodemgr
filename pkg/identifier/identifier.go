@@ -36,6 +36,7 @@ const (
 	tagServiceID           = "svc"
 	tagUploadID            = "up"
 	tagExportID            = "ep"
+	tagOpsOperateID        = "ops-oper"
 )
 
 func generateID(tag string) string {
@@ -90,4 +91,9 @@ func GenUploadID() string {
 // GenExportID generates a export id.
 func GenExportID() string {
 	return generateID(tagExportID)
+}
+
+// GenOpsOperateID generates an ops history operation id.
+func GenOpsOperateID() string {
+	return generateID(tagOpsOperateID)
 }

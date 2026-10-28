@@ -44,4 +44,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/history/list", restserver.Handler(h.HistoryList))
 	h.rg.POST("/history/detail", restserver.Handler(h.HistoryDetail))
+	h.rg.POST("/update_fields/agent", restserver.Handler(h.UpdateFieldsAgent))
+	h.rg.POST("/update_fields/proxy", restserver.Handler(h.UpdateFieldsProxy))
 }
