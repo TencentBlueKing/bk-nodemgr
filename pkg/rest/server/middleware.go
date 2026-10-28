@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -348,21 +349,44 @@ func middlewareReturnedLog(skipConfigs []logSkipConfig) gin.HandlerFunc {
 	}
 }
 
-// MiddlewareTracing tracing.
+// traceSkipConfig defines HTTP server tracing skip rules.
+type traceSkipConfig struct {
+	Path    string   // Exact URL path, or "*" for all paths.
+	Methods []string // Methods to skip. An empty list skips no methods.
+}
+
+// MiddlewareTracing creates tracing middleware without skip rules.
 func MiddlewareTracing(tracerSvc tracing.IService) []gin.HandlerFunc {
-	middlewares := []gin.HandlerFunc{
+	return middlewareTracing(tracerSvc, nil)
+}
+
+func middlewareTracing(tracerSvc tracing.IService, skipConfigs []traceSkipConfig) []gin.HandlerFunc {
+	return []gin.HandlerFunc{
 		otelgin.Middleware(tracerSvc.ServiceName(),
 			otelgin.WithTracerProvider(tracerSvc.TracerProvider()),
 			otelgin.WithPropagators(tracerSvc.TracerPropagator()),
+			otelgin.WithFilter(func(req *http.Request) bool {
+				for _, config := range skipConfigs {
+					if config.Path != "*" && config.Path != req.URL.Path {
+						continue
+					}
+
+					if slices.Contains(config.Methods, req.Method) {
+						return false
+					}
+				}
+
+				return true
+			}),
 		),
 		func(gCtx *gin.Context) {
 			spanContext := trace.SpanContextFromContext(gCtx)
 
-			gCtx.Writer.Header().Set(restheader.TraceID, spanContext.TraceID().String())
+			if spanContext.IsValid() {
+				gCtx.Writer.Header().Set(restheader.TraceID, spanContext.TraceID().String())
+			}
 
 			gCtx.Next()
 		},
 	}
-
-	return middlewares
 }
