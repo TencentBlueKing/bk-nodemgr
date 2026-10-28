@@ -185,88 +185,6 @@ type IReleasePluginBinToolHandler interface {
 // ReleaseAgent Related Interface
 // ===============================================================================
 
-// ListReleaseAgent queries agent release metadata.
-func (h *handler) ListReleaseAgent(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-	[]*types.ReleaseAgent, int64, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, 0, err
-	}
-
-	req := new(protoFile.ReleaseAgentListReq)
-	if err := req.ConvertFromTypes(page, conditions...); err != nil {
-		return nil, 0, err
-	}
-
-	data, err := h.cli.listReleaseAgent(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total, items, err := data.ConvertToTypes()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return items, total, nil
-}
-
-// CountReleaseAgent queries agent release metadata.
-func (h *handler) CountReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return 0, err
-	}
-
-	req := new(protoFile.ReleaseAgentCountReq)
-	if err := req.ConvertFromTypes(conditions...); err != nil {
-		return 0, err
-	}
-
-	data, err := h.cli.countReleaseAgent(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return 0, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
-// GetReleaseAgent queries agent release metadata.
-func (h *handler) GetReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) (*types.ReleaseAgent, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	req := new(protoFile.ReleaseAgentGetReq)
-	req.ConvertFromTypes(key)
-	data, err := h.cli.getReleaseAgent(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.ConvertToTypes()
-}
-
-// DistinctReleaseAgent queries agent release metadata.
-func (h *handler) DistinctReleaseAgent(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
-	*types.ReleaseDistinctResult, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	req := new(protoFile.ReleaseAgentDistinctReq)
-	if err := req.ConvertFromTypes(fields, conditions...); err != nil {
-		return nil, err
-	}
-
-	data, err := h.cli.distinctReleaseAgent(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
 // EnableReleaseAgent enables a release agent package.
 func (h *handler) EnableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -345,88 +263,6 @@ func (h *handler) SetReleaseAgentLabelsMany(nCtx contextx.IContext, labels []str
 // ReleaseProxy Related Interface
 // ===============================================================================
 
-// ListReleaseProxy queries proxy release metadata.
-func (h *handler) ListReleaseProxy(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-	[]*types.ReleaseProxy, int64, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, 0, err
-	}
-
-	req := new(protoFile.ReleaseProxyListReq)
-	if err := req.ConvertFromTypes(page, conditions...); err != nil {
-		return nil, 0, err
-	}
-
-	data, err := h.cli.listReleaseProxy(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total, items, err := data.ConvertToTypes()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return items, total, nil
-}
-
-// CountReleaseProxy queries proxy release metadata.
-func (h *handler) CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return 0, err
-	}
-
-	req := new(protoFile.ReleaseProxyCountReq)
-	if err := req.ConvertFromTypes(conditions...); err != nil {
-		return 0, err
-	}
-
-	data, err := h.cli.countReleaseProxy(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return 0, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
-// GetReleaseProxy queries proxy release metadata.
-func (h *handler) GetReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) (*types.ReleaseProxy, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	req := new(protoFile.ReleaseProxyGetReq)
-	req.ConvertFromTypes(key)
-	data, err := h.cli.getReleaseProxy(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.ConvertToTypes()
-}
-
-// DistinctReleaseProxy queries proxy release metadata.
-func (h *handler) DistinctReleaseProxy(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
-	*types.ReleaseDistinctResult, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	req := new(protoFile.ReleaseProxyDistinctReq)
-	if err := req.ConvertFromTypes(fields, conditions...); err != nil {
-		return nil, err
-	}
-
-	data, err := h.cli.distinctReleaseProxy(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
 // EnableReleaseProxy enables a release proxy package.
 func (h *handler) EnableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -504,107 +340,6 @@ func (h *handler) SetReleaseProxyLabelsMany(nCtx contextx.IContext, labels []str
 // ===============================================================================
 // ReleasePlugin Related Interface
 // ===============================================================================
-
-// ListReleasePlugin queries plugin release metadata.
-func (h *handler) ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-	[]*types.ReleasePlugin, int64, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, 0, err
-	}
-
-	req := new(protoFile.ReleasePluginListReq)
-	if err := req.ConvertFromTypes(page, conditions...); err != nil {
-		return nil, 0, err
-	}
-
-	data, err := h.cli.listReleasePlugin(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total, items, err := data.ConvertToTypes()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return items, total, nil
-}
-
-// CountReleasePlugin queries plugin release metadata.
-func (h *handler) CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return 0, err
-	}
-
-	req := new(protoFile.ReleasePluginCountReq)
-	if err := req.ConvertFromTypes(conditions...); err != nil {
-		return 0, err
-	}
-
-	data, err := h.cli.countReleasePlugin(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return 0, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
-// DistinctReleasePlugin queries plugin release metadata.
-func (h *handler) DistinctReleasePlugin(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
-	*types.ReleaseDistinctResult, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	req := new(protoFile.ReleasePluginDistinctReq)
-	if err := req.ConvertFromTypes(fields, conditions...); err != nil {
-		return nil, err
-	}
-
-	data, err := h.cli.distinctReleasePlugin(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
-// ExistReleasePlugin queries plugin release metadata.
-func (h *handler) ExistReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (bool, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return false, err
-	}
-
-	req := new(protoFile.ReleasePluginExistReq)
-	req.ConvertFromTypes(key)
-	data, err := h.cli.existReleasePlugin(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return false, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
-
-// DistinctNameReleasePlugin queries plugin release metadata.
-func (h *handler) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	req := new(protoFile.ReleasePluginDistinctNameReq)
-	if err := req.ConvertFromTypes(conditions...); err != nil {
-		return nil, err
-	}
-
-	data, err := h.cli.distinctNameReleasePlugin(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
 
 // EnableReleasePlugin enables a release plugin package.
 func (h *handler) EnableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
@@ -694,32 +429,6 @@ func (h *handler) CancelHiddenReleasePlugin(nCtx contextx.IContext, key types.Re
 // ReleaseCert Related Interface
 // ===============================================================================
 
-// ListReleaseCert queries cert release metadata.
-func (h *handler) ListReleaseCert(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-	[]*types.ReleaseCert, int64, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, 0, err
-	}
-
-	req := new(protoFile.ReleaseCertListReq)
-	if err := req.ConvertFromTypes(page, conditions...); err != nil {
-		return nil, 0, err
-	}
-
-	data, err := h.cli.listReleaseCert(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total, items, err := data.ConvertToTypes()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return items, total, nil
-}
-
 // DeleteReleaseCert deletes a release cert package.
 func (h *handler) DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCertKey) error {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -736,32 +445,6 @@ func (h *handler) DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCer
 // ReleaseBinTool Related Interface
 // ===============================================================================
 
-// ListReleaseBinTool queries bintool release metadata.
-func (h *handler) ListReleaseBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-	[]*types.ReleaseBinTool, int64, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, 0, err
-	}
-
-	req := new(protoFile.ReleaseBinToolListReq)
-	if err := req.ConvertFromTypes(page, conditions...); err != nil {
-		return nil, 0, err
-	}
-
-	data, err := h.cli.listReleaseBinTool(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total, items, err := data.ConvertToTypes()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return items, total, nil
-}
-
 // DeleteReleaseBinTool deletes a release bin tool package.
 func (h *handler) DeleteReleaseBinTool(nCtx contextx.IContext, key types.ReleaseBinToolKey) error {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -777,51 +460,6 @@ func (h *handler) DeleteReleaseBinTool(nCtx contextx.IContext, key types.Release
 // ===============================================================================
 // ReleasePluginBinTool Related Interface
 // ===============================================================================
-
-// ListReleasePluginBinTool queries plugin_bintool release metadata.
-func (h *handler) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-	[]*types.ReleasePluginBinTool, int64, error) {
-
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, 0, err
-	}
-
-	req := new(protoFile.ReleasePluginBinToolListReq)
-	if err := req.ConvertFromTypes(page, conditions...); err != nil {
-		return nil, 0, err
-	}
-
-	data, err := h.cli.listReleasePluginBinTool(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total, items, err := data.ConvertToTypes()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return items, total, nil
-}
-
-// DistinctNameReleasePluginBinTool queries plugin_bintool release metadata.
-func (h *handler) DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return nil, err
-	}
-
-	req := new(protoFile.ReleasePluginBinToolDistinctNameReq)
-	if err := req.ConvertFromTypes(conditions...); err != nil {
-		return nil, err
-	}
-
-	data, err := h.cli.distinctNameReleasePluginBinTool(nCtx, nCtx.TenantID(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.ConvertToTypes(), nil
-}
 
 // DeleteReleasePluginBinTool deletes a release plugin bin tool package.
 func (h *handler) DeleteReleasePluginBinTool(nCtx contextx.IContext, key types.ReleasePluginBinToolKey) error {
