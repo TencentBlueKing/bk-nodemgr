@@ -46,6 +46,26 @@ func CheckPackageTypeUpload(rCtx restserver.IContext, backendHandler backend.IHa
 	return nil
 }
 
+// CheckPackageView checks package view permission through the backend auth API.
+// packageID is the release type for fixed packages or the name for plugins.
+func CheckPackageView(rCtx restserver.IContext, backendHandler backend.IHandlerAuth, packageID string) error {
+	_, err := backendHandler.VerifyAuth(rCtx, []*types.AuthVerifyItem{{
+		Action: "package_view",
+		Resources: []types.AuthResource{{
+			SystemID: types.SystemIDNodeMgr,
+			Type:     types.AuthResourceTypePackage,
+			ID:       packageID,
+		}},
+	}})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("package-id", packageID).Error("failed to verify package view permission")
+
+		return resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return nil
+}
+
 func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.AuthVerifyReq)
 	if err := rCtx.BindJSON(req); err != nil {

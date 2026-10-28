@@ -21,6 +21,7 @@ package release
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -514,6 +515,10 @@ func (h *handler) CountDeployedReleaseAgent(rCtx restserver.IContext) (interface
 
 // DownloadReleaseAgent download release agent.
 func (h *handler) DownloadReleaseAgent(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	if err := auth.CheckPackageView(rCtx, h.backendHandler, string(types.ReleaseTypeAgent)); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageReleaseAgentDownloadReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent, failed to decode request body")
@@ -881,6 +886,10 @@ func (h *handler) CountDeployedReleaseProxy(rCtx restserver.IContext) (interface
 
 // DownloadReleaseProxy download release proxy.
 func (h *handler) DownloadReleaseProxy(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	if err := auth.CheckPackageView(rCtx, h.backendHandler, string(types.ReleaseTypeProxy)); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageReleaseProxyDownloadReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release proxy, failed to decode request body")
@@ -1141,6 +1150,10 @@ func (h *handler) DownloadReleasePlugin(rCtx restserver.IContext) (*restserver.S
 	}
 
 	name, plat, version := req.GetIdentifier()
+	if err := auth.CheckPackageView(rCtx, h.backendHandler, name); err != nil {
+		return nil, err
+	}
+
 	resp, err := h.fileHandler.DownloadReleasePlugin(rCtx, name, plat, version)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin")
@@ -1229,6 +1242,10 @@ func (h *handler) DeleteReleaseCert(rCtx restserver.IContext) (interface{}, erro
 
 // DownloadReleaseCert download release cert.
 func (h *handler) DownloadReleaseCert(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	if err := auth.CheckPackageView(rCtx, h.backendHandler, string(types.ReleaseTypeCert)); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageReleaseCertDownloadReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release cert, failed to decode request body")
@@ -1298,6 +1315,10 @@ func (h *handler) DeleteReleaseBinTool(rCtx restserver.IContext) (interface{}, e
 
 // DownloadReleaseBinTool download release bintool.
 func (h *handler) DownloadReleaseBinTool(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	if err := auth.CheckPackageView(rCtx, h.backendHandler, string(types.ReleaseTypeBinTool)); err != nil {
+		return nil, err
+	}
+
 	req := new(protoApplication.PackageReleaseBinToolDownloadReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release bintool, failed to decode request body")
@@ -1376,6 +1397,10 @@ func (h *handler) DownloadReleasePluginBinTool(rCtx restserver.IContext) (*rests
 
 	gen := types.Generation(req.GetGeneration())
 	name := req.GetName()
+	if err := auth.CheckPackageView(rCtx, h.backendHandler, name); err != nil {
+		return nil, err
+	}
+
 	resp, err := h.fileHandler.DownloadReleasePluginBinTool(rCtx, gen, name)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin bintool")

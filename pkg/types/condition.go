@@ -392,6 +392,40 @@ type ConfigPolicyEventCondition struct {
 }
 
 // ===============================================================================
+// Ops Related Conditions
+// ===============================================================================
+
+// NodeOpsHistoryExactFields defines the node ops history exact fields.
+type NodeOpsHistoryExactFields struct {
+	BizID     []int64
+	OperateID []string
+	Operator  []string
+	NodeRole  []string
+}
+
+// NodeOpsHistoryFuzzyFields defines the node ops history fuzzy fields.
+type NodeOpsHistoryFuzzyFields struct {
+}
+
+// NodeOpsHistoryCondition defines the node ops history condition.
+type NodeOpsHistoryCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *NodeOpsHistoryExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *NodeOpsHistoryFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *NodeOpsHistoryExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *NodeOpsHistoryFuzzyFields
+}
+
+// ===============================================================================
 // Workflow Related Conditions
 // ===============================================================================
 

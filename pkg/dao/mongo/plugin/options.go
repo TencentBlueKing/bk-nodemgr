@@ -58,6 +58,9 @@ func WithVisibleBizIDs(bizIDs ...int64) OptFn {
 			{Key: FieldKeyVisibleBizIDs, Value: []int64{}},
 		},
 		bson.D{
+			{Key: FieldKeyVisibleBizIDs, Value: nil},
+		},
+		bson.D{
 			{Key: FieldKeyVisibleBizIDs, Value: bson.D{
 				{Key: "$exists", Value: false},
 			}},

@@ -513,21 +513,23 @@ func (x *PackageUploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool,
 		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 	data := &PackageUploadOriginPluginV2Resp_Data{
-		UploadId:      new(string),
-		Existed:       new(bool),
-		Generated:     new(bool),
-		Name:          new(string),
-		Size:          new(int64),
-		Md5:           new(string),
-		Version:       new(string),
-		Description:   new(string),
-		DescriptionEn: new(string),
-		Scenario:      new(string),
-		ScenarioEn:    new(string),
-		ConfigFile:    new(string),
-		ConfigFormat:  new(string),
-		LaunchNode:    new(string),
-		Platforms:     plats,
+		UploadId:           new(string),
+		Existed:            new(bool),
+		Generated:          new(bool),
+		Name:               new(string),
+		Size:               new(int64),
+		Md5:                new(string),
+		Version:            new(string),
+		Description:        new(string),
+		DescriptionEn:      new(string),
+		Scenario:           new(string),
+		ScenarioEn:         new(string),
+		ConfigFile:         new(string),
+		ConfigFormat:       new(string),
+		LaunchNode:         new(string),
+		InstallCpuLimit:    new(float64),
+		InstallDiskIoLimit: new(float64),
+		Platforms:          plats,
 	}
 	*x = PackageUploadOriginPluginV2Resp{
 		Code:      0,
@@ -550,6 +552,8 @@ func (x *PackageUploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool,
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
 	*data.LaunchNode = detail.LaunchNode
+	*data.InstallCpuLimit = detail.InstallCPULimit
+	*data.InstallDiskIoLimit = detail.InstallDiskIOLimit
 }
 
 // Validate check request body.
@@ -629,20 +633,22 @@ func (x *PackageUploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool,
 		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 	data := &PackageUploadOriginPluginV3Resp_Data{
-		UploadId:         new(string),
-		Existed:          new(bool),
-		Generated:        new(bool),
-		Name:             new(string),
-		Size:             new(int64),
-		Md5:              new(string),
-		Version:          new(string),
-		Description:      new(string),
-		DescriptionEn:    new(string),
-		Scenario:         new(string),
-		ScenarioEn:       new(string),
-		LaunchNode:       new(string),
-		TemplateRenderer: new(string),
-		Platforms:        plats,
+		UploadId:           new(string),
+		Existed:            new(bool),
+		Generated:          new(bool),
+		Name:               new(string),
+		Size:               new(int64),
+		Md5:                new(string),
+		Version:            new(string),
+		Description:        new(string),
+		DescriptionEn:      new(string),
+		Scenario:           new(string),
+		ScenarioEn:         new(string),
+		LaunchNode:         new(string),
+		TemplateRenderer:   new(string),
+		InstallCpuLimit:    new(float64),
+		InstallDiskIoLimit: new(float64),
+		Platforms:          plats,
 	}
 	*x = PackageUploadOriginPluginV3Resp{
 		Code:      0,
@@ -664,6 +670,8 @@ func (x *PackageUploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool,
 	*data.ScenarioEn = detail.ScenarioEn
 	*data.LaunchNode = detail.LaunchNode
 	*data.TemplateRenderer = string(detail.TemplateRenderer)
+	*data.InstallCpuLimit = detail.InstallCPULimit
+	*data.InstallDiskIoLimit = detail.InstallDiskIOLimit
 }
 
 // Validate check request body.

@@ -54,7 +54,9 @@ func (c *cli) syncSharedReleases(nCtx contextx.IContext, tenantID string) error 
 		WithHeaders(header).
 		Body(new(protoFile.SyncSharedReleasesReq)).
 		EnableLogBody().
-		Do().Into(resp)
+		EnableLogResponse().
+		Do().
+		Into(resp)
 	if err != nil {
 		return fmt.Errorf("failed to do post request: %w", err)
 	}

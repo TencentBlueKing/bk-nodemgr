@@ -170,6 +170,8 @@ export interface PackageUploadOriginPluginV2RespData {
   config_format: string;
   launch_node: string;
   platforms: Platform[];
+  install_cpu_limit: number;
+  install_disk_io_limit: number;
 }
 
 // PackageUploadOriginExternalPluginV2Req is the request for upload origin
@@ -237,6 +239,8 @@ export interface PackageUploadOriginPluginV3RespData {
   launch_node: string;
   template_renderer: string;
   platforms: Platform[];
+  install_cpu_limit: number;
+  install_disk_io_limit: number;
 }
 
 // UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool
