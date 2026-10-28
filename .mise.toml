@@ -1,6 +1,6 @@
 [tools]
 # project depand binary
-go = ["1.25.12", "1.20.14"]
+go = ["1.26.10", "1.20.14"]
 node = "24.18.0"
 pnpm = "9.8.0"
 upx = { version = "5.1.0", os = ["linux", "windows"] }
@@ -10,8 +10,8 @@ clang-format = "latest"
 
 # golang tools
 "go:golang.org/x/tools/gopls" = "latest"
-"go:github.com/go-delve/delve/cmd/dlv" = "v1.25.2"
-"go:github.com/golangci/golangci-lint/v2/cmd/golangci-lint" = "v2.4.0"
+"go:github.com/go-delve/delve/cmd/dlv" = "v1.26.3"
+"go:github.com/golangci/golangci-lint/v2/cmd/golangci-lint" = "v2.9.0"
 "go:github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2" = "v2.27.2"
 "go:google.golang.org/protobuf/cmd/protoc-gen-go" = "v1.36.5"
 
@@ -34,9 +34,9 @@ run = "skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skil
 description = "Link mise Go installations into ~/sdk for the Makefile Go launchers"
 run = '''
 set -eu
-mise install go@1.25.12 go@1.20.14
+mise install go@1.26.10 go@1.20.14
 mkdir -p "$HOME/sdk"
-for version in 1.25.12 1.20.14; do
+for version in 1.26.10 1.20.14; do
     target=$(mise where "go@$version")
     sdk="$HOME/sdk/go$version"
     if [ -L "$sdk" ] && [ "$(readlink "$sdk")" = "$target" ]; then

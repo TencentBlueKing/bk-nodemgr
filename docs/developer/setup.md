@@ -6,8 +6,8 @@
 
 在仓库根目录执行以下命令，工具版本由 [`.mise.toml`](../../.mise.toml) 统一管理。根据实际使用的 shell，选择对应的配置和加载命令，再执行 `mise install`。
 
-> 如果使用vscode等工具进行开发时找不到go的二进制可以使用mise全局安装go1.25.12
-> `mise use -g go@1.25.12`
+> 如果使用vscode等工具进行开发时找不到go的二进制可以使用mise全局安装go1.26.10
+> `mise use -g go@1.26.10`
 > 安装完成后重启vscode即可
 
 ```bash
@@ -22,48 +22,48 @@ mise install
 mise run setup-go-sdk
 ```
 
-配置会安装用于后端构建的 Go 1.25.12，以及用于 `tools` 模块的 Go 1.20.14。默认的 `go` 命令仍使用 Go 1.25.12。
+配置会安装用于后端构建的 Go 1.26.10，以及用于 `tools` 模块的 Go 1.20.14。默认的 `go` 命令仍使用 Go 1.26.10。
 
-在 macOS 和 Linux 上，`setup-go-sdk` 会安装缺失的 Go 版本，并创建 `~/sdk/go1.25.12` 和 `~/sdk/go1.20.14` 符号链接，分别指向 mise 管理的对应安装目录。重复执行时会保留正确的链接；如果目标位置已有目录或指向其他位置的链接，任务会报错且不会覆盖。请处理提示的冲突后再执行。
+在 macOS 和 Linux 上，`setup-go-sdk` 会安装缺失的 Go 版本，并创建 `~/sdk/go1.26.10` 和 `~/sdk/go1.20.14` 符号链接，分别指向 mise 管理的对应安装目录。重复执行时会保留正确的链接；如果目标位置已有目录或指向其他位置的链接，任务会报错且不会覆盖。请处理提示的冲突后再执行。
 
-该任务仅创建 SDK 链接。`go1.25.12` 和 `go1.20.14` 启动命令分别由根目录和 `tools/` 下 Makefile 的 `pre` 目标安装。如果需要在构建前直接使用这两个命令，可执行：
+该任务仅创建 SDK 链接。`go1.26.10` 和 `go1.20.14` 启动命令分别由根目录和 `tools/` 下 Makefile 的 `pre` 目标安装。如果需要在构建前直接使用这两个命令，可执行：
 
 ```bash
-go install golang.org/dl/go1.25.12@latest
+go install golang.org/dl/go1.26.10@latest
 go install golang.org/dl/go1.20.14@latest
 export PATH="$(go env GOPATH)/bin:$PATH" # 如果显式配置了 GOBIN，请改用该目录。
-go1.25.12 version
+go1.26.10 version
 go1.20.14 version
 ```
 
 UPX 5.1.0 仅在 Linux 和 Windows 上安装，macOS 会自动跳过。SDK 配置任务依赖 POSIX shell 和 Unix 符号链接，Windows 用户请在 WSL 中执行该任务。
 
-### Go 1.25.12
+### Go 1.26.10
 
 ```bash
-go get golang.org/dl/go1.25.12@latest
-go install golang.org/dl/go1.25.12@latest
-go1.25.12 download
+go get golang.org/dl/go1.26.10@latest
+go install golang.org/dl/go1.26.10@latest
+go1.26.10 download
 ```
 
 ### protoc-gen-go v1.36.5
 
 ```bash
-go1.25.12 install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
+go1.26.10 install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
 protoc-gen-go --version
 ```
 
 ### protoc-gen-openapiv2 v2.27.2
 
 ```bash
-go1.25.12 install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.2
+go1.26.10 install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.2
 protoc-gen-openapiv2 --version
 ```
 
-### golangci-lint v2.4.0
+### golangci-lint v2.9.0
 
 ```bash
-go1.25.12 install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.4.0
+go1.26.10 install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.9.0
 golangci-lint --version
 ```
 
@@ -170,7 +170,7 @@ make tools   # 默认启用 UPX_ENABLED=1
 Go 语言服务器。
 
 ```bash
-go1.25.12 install golang.org/x/tools/gopls@latest
+go1.26.10 install golang.org/x/tools/gopls@latest
 gopls version
 ```
 
@@ -253,7 +253,7 @@ cd install/docker-compose/bk-nodemgr
 git clone https://github.com/TencentBlueKing/bk-nodemgr.git
 cd bk-nodemgr
 
-# 准备构建环境（会自动安装 Go 1.25.12 并执行 go mod tidy）
+# 准备构建环境（会自动安装 Go 1.26.10 并执行 go mod tidy）
 make pre
 ```
 
@@ -323,7 +323,7 @@ pnpm lint
 
 ```bash
 # 后端测试
-go1.25.12 test ./...
+go1.26.10 test ./...
 
 # 前端单元测试
 cd front
@@ -350,7 +350,7 @@ pnpm lint
 
 ```bash
 # 验证 Go 工具链
-go1.25.12 version
+go1.26.10 version
 protoc-gen-go --version
 protoc-gen-openapiv2 --version
 golangci-lint --version

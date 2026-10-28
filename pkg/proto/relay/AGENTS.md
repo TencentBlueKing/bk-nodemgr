@@ -28,4 +28,4 @@
 |Anti-patterns:Do not trust CheckPkgStateReq.FileStorageTmpDir; it is dead (never written, never read) and the staging dir actually flows the other way via reportRelayFileState.StorageTmpDir
 |Anti-patterns:Do not assume event const names match handler names; ServerPushEventTypeInstallBy{SSH,WindowsSSH,WMI} map to InstallPagentBy* handlers
 |Related AGENTS:pkg/AGENTS.md|pkg/relayhandler/AGENTS.md
-|Commands:go1.25.12 build ./pkg/proto/relay
+|Commands:go1.26.10 build ./pkg/proto/relay
