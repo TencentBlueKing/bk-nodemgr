@@ -4,6 +4,14 @@
     {
       "operation": "upsert_action",
       "data": {
+        "id": "system_access",
+        "name": "系统访问",
+        "resource_type_id": ""
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
         "id": "biz_access",
         "name": "业务访问",
         "resource_type_id": "biz"

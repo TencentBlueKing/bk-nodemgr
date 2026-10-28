@@ -190,7 +190,7 @@ flowchart TD
 
 ### Action 更新规则
 
-`0003` 模板保留 V3 中除 `deploy_policy_*` 外的 29 个操作 ID 和名称：13 个业务操作绑定本系统的 `biz`，15 个操作保持其他本地资源绑定，`networkarea_create` 的 `resource_type_id` 为 `""`，表示无资源绑定。`networkunit_create` 仍绑定父资源 `networkarea`，`package_type_upload` 仍绑定 `package_type`。移除模板中的 Action 不会自动删除 IAM 中已注册的 Action。
+`0003` 模板包含 30 个操作：保留 V3 中除 `deploy_policy_*` 外的 29 个操作 ID 和名称，并增加系统访问操作 `system_access`。13 个业务操作绑定本系统的 `biz`，15 个操作保持其他本地资源绑定，`system_access` 和 `networkarea_create` 的 `resource_type_id` 为 `""`，表示无资源绑定。`networkunit_create` 仍绑定父资源 `networkarea`，`package_type_upload` 仍绑定 `package_type`。移除模板中的 Action 不会自动删除 IAM 中已注册的 Action。
 
 `data` 仅接受 `id`、`name`、`resource_type_id`；ID 格式与 ResourceType 一致，显式提供的 `name` 不得为空或仅含空白，所有字段都不接受 `null`。
 
@@ -212,26 +212,26 @@ flowchart TD
 
 ### Role 更新规则
 
-`0004` 在 Action 之后注册以下十四个角色。Agent 和 Proxy 管理人员各自管理对应节点，包含 NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限，不再包含 Plugin 权限；插件权限由独立的插件管理员和插件只读人员提供。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理人员和只读人员分别包含 Config Policy 的管理或只读权限。不自动展开 `related_actions`。
+`0004` 在 Action 之后注册以下十四个角色。所有角色均显式包含无资源绑定的 `system_access`，仅授予系统准入，不替代各功能的 Action 和资源范围校验。Agent 和 Proxy 管理人员各自管理对应节点，包含 NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限，不再包含 Plugin 权限；插件权限由独立的插件管理员和插件只读人员提供。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理人员和只读人员分别包含 Config Policy 的管理或只读权限。不自动展开 `related_actions`。
 
 | Role ID                 | 名称             | Action 数 |
 | ----------------------- | ---------------- | --------- |
-| `plugin_manager`        | 插件管理员       | 4         |
-| `plugin_viewer`         | 插件只读人员     | 3         |
-| `config_policy_viewer`  | 配置策略只读人员 | 3         |
-| `agent_manager`         | Agent 管理人员   | 7         |
-| `proxy_manager`         | Proxy 管理人员   | 7         |
-| `networkarea_creator`   | 管控区域创建者   | 1         |
-| `networkarea_manager`   | 管控区域管理人员 | 5         |
-| `networkunit_manager`   | 管控单元管理人员 | 6         |
-| `config_policy_manager` | 配置策略管理人员 | 4         |
-| `package_manager`       | 资源包管理人员   | 4         |
-| `agent_viewer`          | Agent 只读人员   | 3         |
-| `proxy_viewer`          | Proxy 只读人员   | 3         |
-| `topo_viewer`           | 网络拓扑只读人员 | 4         |
-| `package_viewer`        | 资源包只读人员   | 2         |
+| `plugin_manager`        | 插件管理员       | 5         |
+| `plugin_viewer`         | 插件只读人员     | 4         |
+| `config_policy_viewer`  | 配置策略只读人员 | 4         |
+| `agent_manager`         | Agent 管理人员   | 8         |
+| `proxy_manager`         | Proxy 管理人员   | 8         |
+| `networkarea_creator`   | 管控区域创建者   | 2         |
+| `networkarea_manager`   | 管控区域管理人员 | 6         |
+| `networkunit_manager`   | 管控单元管理人员 | 7         |
+| `config_policy_manager` | 配置策略管理人员 | 5         |
+| `package_manager`       | 资源包管理人员   | 5         |
+| `agent_viewer`          | Agent 只读人员   | 4         |
+| `proxy_viewer`          | Proxy 只读人员   | 4         |
+| `topo_viewer`           | 网络拓扑只读人员 | 5         |
+| `package_viewer`        | 资源包只读人员   | 3         |
 
-**只读角色：** Agent 和 Proxy 只读人员各自仅包含对应节点的查看、历史查看及业务访问权限。`plugin_viewer` 包含插件查看、历史查看及业务访问权限；`config_policy_viewer` 包含配置策略的查看、历史查看及业务访问权限。网络拓扑只读人员包含管控区域和管控单元的查看及历史查看权限；资源包只读人员仅包含资源包查看及历史查看权限。只读角色不包含创建、编辑、删除、操作、管理、上传或使用管控单元部署的权限；Action 资源绑定保持不变，资源范围以授权为准。
+**只读角色：** 除共同的 `system_access` 外，Agent 和 Proxy 只读人员各自仅包含对应节点的查看、历史查看及业务访问权限。`plugin_viewer` 包含插件查看、历史查看及业务访问权限；`config_policy_viewer` 包含配置策略的查看、历史查看及业务访问权限。网络拓扑只读人员包含管控区域和管控单元的查看及历史查看权限；资源包只读人员仅包含资源包查看及历史查看权限。只读角色不包含创建、编辑、删除、操作、管理、上传或使用管控单元部署的权限；Action 资源绑定保持不变，资源范围以授权为准。
 
 **插件与策略角色拆分：** 模板先注册 `plugin_manager`、`plugin_viewer` 和 `config_policy_viewer`，再从 Agent/Proxy 管理角色移除插件权限，从 Agent/Proxy 只读角色移除插件、配置策略和部署策略权限。已有授权不会自动迁移到新角色；仍需这些权限的用户需要另行获得新角色及对应资源范围的授权。成员移除失败时迁移立即停止，已创建的新角色不会回滚。
 
@@ -254,11 +254,13 @@ Role 列表读取全部分页后再决策，异常或不完整响应不会被当
 
 **已有角色调整：** `agent_manager` 保留 ID，更新名称并增加 `networkunit_view`；新增 `proxy_manager` 和 `networkunit_manager`。`networkarea_create` 单独归入 `networkarea_creator`；`networkarea_manager` 保留 Role 本身及区域查看、编辑、删除、历史查看和 `networkunit_create`，不再包含创建管控区域的权限。`config_policy_manager` 使用新 ID 注册，工具不会自动删除模板中已移除的 `policy_manager`，也不会迁移其已有授权。新模型一致后重跑会跳过；成员调整不等于将已有授权迁移至新 Role。
 
-**创建与管理分离：** `networkarea_creator` 仅包含无资源绑定的创建操作。创建管控区域后，运行时创建者授权机制自动授予创建者针对新建资源的 `networkarea_manager` 权限，不授予其他管控区域的管理权限；此授权不由模型迁移工具执行。模板先注册创建角色，再从原管理角色移除创建操作；原角色上的创建权限不会自动转移到新角色，需要另行授权。若成员移除被 IAM 拒绝，迁移立即停止，已注册的新角色不会回滚。
+**创建与管理分离：** `networkarea_creator` 仅包含无资源绑定的系统访问和创建管控区域操作。创建管控区域后，运行时创建者授权机制自动授予创建者针对新建资源的 `networkarea_manager` 权限，不授予其他管控区域的管理权限；此授权不由模型迁移工具执行。模板先注册创建角色，再从原管理角色移除创建操作；原角色上的创建权限不会自动转移到新角色，需要另行授权。若成员移除被 IAM 拒绝，迁移立即停止，已注册的新角色不会回滚。
 
 更新前会检查名称冲突、Action 和资源维度；省略的名称、描述沿用远端值。dry-run 按执行顺序输出 `delete_role_actions`、`add_role_actions`、`update_role` 的组合并更新虚拟状态，不写入远端，也不保证 IAM 会允许删除。**删除某个授权维度下的全部操作时，该维度下不应存在授权**；工具不会自动撤销或迁移授权，也不会回退到删除整个 Role。IAM 拒绝时立即停止。
 
 新增 Action 关联的资源类型已在 Role 中时，IAM 会使已有用户在原授权资源范围内获得该 Action 权限；关联新资源类型时，同样追加模型成员，但用户需要另行申请该资源类型的权限。工具不替用户授权或扩大资源范围。
+
+`system_access` 在 Role 中使用无资源维度 `""`。将其加入角色模型不等于对所有已有用户执行补授权；接入系统访问中间件前，应验证既有授权是否覆盖该无资源操作，必要时另行补授权。本次模型变更不启用中间件，也不改变原有业务 Action 的资源范围。
 
 删除成员、追加成员、更新元数据依次执行，均为独立请求。如果删除成功、追加失败，Role 仍存在，但已删除的成员不会回滚；后续元数据更新不会执行。检查远端后重跑，工具重新计算差异，只提交剩余变化。后续操作可见成功写入或 dry-run 计划中的成员。
 

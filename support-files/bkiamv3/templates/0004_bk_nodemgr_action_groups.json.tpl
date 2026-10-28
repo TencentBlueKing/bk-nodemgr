@@ -5,6 +5,15 @@
       "operation": "upsert_action_groups",
       "data": [
         {
+          "name": "系统",
+          "name_en": "System",
+          "actions": [
+            {
+              "id": "system_access"
+            }
+          ]
+        },
+        {
           "name": "业务",
           "name_en": "Business",
           "actions": [
