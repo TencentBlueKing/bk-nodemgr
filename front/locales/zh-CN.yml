@@ -61,11 +61,11 @@ platform:
       opsOutBandProtocol: 设备协议
       opsOutBandIP: 带外 IP
       opsOutBandPort: 带外端口
-      opsConsoleHostIdTooltip: CMDB上的主机IP。负责执行带外操作脚本，需安装蓝鲸GSE agent
-      opsOutBandTypeTooltip: 带外设备类型。使用目标主机板载带外管理时填 onboard；使用外接 NanoKVM 设备时填 nanokvm
-      opsOutBandProtocolTooltip: 带外操作使用的协议。ipmi 或 nanokvm-gpio
-      opsOutBandIPTooltip: 带外管理地址。主控机通过该 IP 连接对应的带外控制端
-      opsOutBandPortTooltip: 带外管理地址端口
+      opsConsoleHostIdTooltip: 通常为跳板机或运维机，由其对目标主机执行带外操作，请选择已安装蓝鲸 GSE Agent 的主机
+      opsOutBandTypeTooltip: 目标主机的带外管理方式。使用板载带外管理时填 onboard；使用外接带外设备时填写该设备对应类型标识，例如接入 NanoKVM 时填 nanokvm。具体取值以实际接入的设备为准
+      opsOutBandProtocolTooltip: 带外操作使用的通信协议，请依据实际设备类型选择。ipmi 是服务器带外管理的通用标准协议，绝大多数带外设备均支持；nanokvm-gpio 等则是平台针对特定设备额外支持的协议，仅在接入该类设备时选择
+      opsOutBandIPTooltip: 设备的带外管理地址，通常与主机自身 IP 相互独立。主控机通过该地址访问并操作主机的带外管理功能，请确保该地址对主控机可达
+      opsOutBandPortTooltip: 访问并操作设备带外管理功能所使用的端口，通常使用协议默认端口即可。例如 IPMI 一般使用 623（UDP）。若设备侧修改过端口配置，请填写实际端口
       batchFill: 批量填写
       opsSettingBatchFillDone: 批量填写完成
       operateDisabledNotRunning: 选中主机中包含 Agent 状态异常的节点，请先排查修复后再操作
@@ -451,7 +451,7 @@ topoManager:
       edit: 编辑管控区域
       workareaName: 管控区域名称
       vendor: 云服务商
-      tips: 创建完管控区后，仍需安装 Proxy 才能够正常使用
+      tips: 创建完管控区域后，仍需要配置管控单元
       success: 管控区域创建成功
       failed: 管控区域创建失败
     formRule:
@@ -762,6 +762,8 @@ action:
   installProxy: 安装 Proxy
   reinstallProxy: 重装 Proxy
   installLater: 稍后安装
+  configureUnit: 配置管控单元
+  later: 稍后再说
   install: 安装
   unload: 卸载
   tag: 标签

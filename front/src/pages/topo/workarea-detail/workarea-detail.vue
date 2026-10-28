@@ -144,7 +144,7 @@
 import { Button, Divider, Exception, Loading, Tab } from 'bkui-vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import UpsertWorkUnit from '../upsert-workunit/upsert-work-unit.vue';
 
@@ -169,6 +169,7 @@ const workareaStore = useWorkareaStore();
 const { t } = useI18n();
 
 const route = useRoute();
+const router = useRouter();
 const workAreaId = Number(route.params.workarea);
 
 // networkunit permissions (hover lock + click apply)
@@ -224,6 +225,22 @@ const handleCreateWorkUnit = () => {
   isShow.value = true;
   isCreate.value = true;
 };
+
+/**
+ * 从「新建管控区域」引导跳转过来时（createUnit=1）自动打开新建单元抽屉。
+ * 参数消费后立即从 URL 移除，避免刷新/后退时重复弹出；
+ * 无 networkunit_create 权限时不自动打开，交由「新建管控单元」按钮引导申请权限。
+ */
+async function handleCreateUnitQuery() {
+  if (route.query.createUnit !== '1') return;
+
+  const query = { ...route.query };
+  delete query.createUnit;
+  await router.replace({ query }).catch(() => {});
+
+  if (!hasUnitCreateAuth.value) return;
+  handleCreateWorkUnit();
+}
 
 const handleEditWorkUnit = () => {
   isShow.value = true;
@@ -532,6 +549,7 @@ async function refreshPageAuthorized() {
 onMounted(async () => {
   await refreshPageAuthorized();
   await initData();
+  await handleCreateUnitQuery();
 });
 
 </script>

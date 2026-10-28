@@ -68,7 +68,6 @@
       v-model:is-show="showUpsertWorkarea"
       :is-create="isCreate"
       :cur-workarea-data="curWorkareaData"
-      @install-proxy="handleInstallProxy"
       @update="handleUpdate"
     />
     <BatchCreateDefaultWorkUnit
@@ -76,7 +75,6 @@
       :selected-areas="selectedAreas"
       @submitted="handleBatchCreateSubmitted"
     />
-    <InstallProxy v-bind:is-show="isInstallProxyShow" />
   </div>
 </template>
 
@@ -85,8 +83,6 @@ import { Button, Dropdown, Message, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-import InstallProxy from '../install-proxy/install-proxy.vue';
 
 import BatchCreateDefaultWorkUnit from './components/batch-create-default-work-unit.vue';
 import RegionTable from './components/region-table.vue';
@@ -182,11 +178,6 @@ const handleEditWorkarea = (workareaData: NetworkArea) => {
   showUpsertWorkarea.value = true;
 };
 
-// 安装 proxy dialog
-const isInstallProxyShow = ref(false);
-const handleInstallProxy = () => {
-  isInstallProxyShow.value = true;
-};
 // 编辑更新
 const handleUpdate = async () => {
   await Promise.all([

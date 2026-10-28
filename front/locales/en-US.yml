@@ -61,11 +61,11 @@ platform:
       opsOutBandProtocol: Device Protocol
       opsOutBandIP: Out-of-band IP
       opsOutBandPort: Out-of-band Port
-      opsConsoleHostIdTooltip: The host IP in CMDB. It executes out-of-band scripts and requires the BlueKing GSE agent installed
-      opsOutBandTypeTooltip: Out-of-band device type. Use onboard for the onboard management of the target host; use nanokvm for an external NanoKVM device
-      opsOutBandProtocolTooltip: The protocol used for out-of-band operations. ipmi or nanokvm-gpio
-      opsOutBandIPTooltip: The out-of-band management address, which the console host uses to connect to the out-of-band controller
-      opsOutBandPortTooltip: The port of the out-of-band management address.
+      opsConsoleHostIdTooltip: Usually a jump host or an operations host that performs out-of-band operations on target hosts. Select a host with the BlueKing GSE Agent installed
+      opsOutBandTypeTooltip: The out-of-band management method of the target host. Use onboard for onboard out-of-band management; for an external out-of-band device, enter the type identifier of that device, for example nanokvm for a NanoKVM. The actual value depends on the connected device
+      opsOutBandProtocolTooltip: The communication protocol used for out-of-band operations. Select it based on the actual device type. ipmi is the common standard protocol for server out-of-band management and is supported by most out-of-band devices; protocols such as nanokvm-gpio are additionally supported by the platform for specific devices and should be selected only when such a device is connected
+      opsOutBandIPTooltip: The out-of-band management address of the device, which is usually independent of the host's own IP. The console host accesses and operates the out-of-band management function of the host through this address. Make sure the address is reachable from the console host
+      opsOutBandPortTooltip: The port used to access and operate the out-of-band management function of the device. The protocol default port is usually sufficient, for example IPMI typically uses 623 (UDP). If the port has been changed on the device side, enter the actual port
       batchFill: Batch Fill
       opsSettingBatchFillDone: Batch fill completed
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
@@ -451,7 +451,7 @@ topoManager:
       edit: Edit Network Area
       workareaName: Network Area Name
       vendor: Cloud Provider
-      tips: Proxy must be installed after creating a Network Area to function properly.
+      tips: After creating a Network Area, you still need to configure Network Units.
       success: Network Area created successfully
       failed: Failed to create Network Area
     formRule:
@@ -762,6 +762,8 @@ action:
   installProxy: Install Proxy
   reinstallProxy: Reinstall Proxy
   installLater: Install Later
+  configureUnit: Configure Network Unit
+  later: Later
   install: Install
   unload: Uninstall
   tag: Tag

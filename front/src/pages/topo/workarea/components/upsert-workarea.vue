@@ -59,7 +59,7 @@
         <Button @click="isShow = false" class="w-[64px]">{{ $t('action.cancel') }}</Button>
       </template>
     </Dialog>
-    <GuideDialog v-model:is-show="isGuideShow" @confirm="handleInstallProxy"></GuideDialog>
+    <GuideDialog v-model:is-show="isGuideShow" @confirm="handleConfigureUnit"></GuideDialog>
   </div>
 </template>
 
@@ -68,6 +68,7 @@ import { Button, Dialog, Form, Input, Loading, Select } from 'bkui-vue';
 import type { PropType } from 'vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import { vendorMap } from '../vendorMap';
 
@@ -88,9 +89,13 @@ const props = defineProps({
     default: null
   },
 });
-const emit = defineEmits(['install-proxy', 'update']);
+const emit = defineEmits(['update']);
 const { t } = useI18n();
+const router = useRouter();
 const workareaStore = useWorkareaStore();
+
+// 新建成功后的区域 ID，用于引导跳转配置管控单元
+const createdWorkareaID = ref<number | null>(null);
 
 const dialogTitle = computed(() => (props.isCreate ? t('topoManager.workArea.form.create') : t('topoManager.workArea.form.edit')));
 const isGuideShow = ref(false);
@@ -131,8 +136,15 @@ const rules = ref({
   ],
 });
 
-const handleInstallProxy = () => {
-  emit('install-proxy');
+// 新建成功后引导用户去管控区域详情页配置管控单元
+const handleConfigureUnit = () => {
+  if (!createdWorkareaID.value) return;
+  router.push({
+    name: 'workareaDetail',
+    params: { workarea: String(createdWorkareaID.value) },
+    // createUnit=1：详情页挂载后自动打开「新建管控单元」抽屉
+    query: { createUnit: '1' },
+  });
 };
 
 const formRef = ref();
@@ -154,6 +166,7 @@ const handleConfirm = async () => {
     }
     if (res) {
       if (props.isCreate) {
+        createdWorkareaID.value = res.bk_networkarea_id ?? null;
         isGuideShow.value = true;
       }
       emit('update');

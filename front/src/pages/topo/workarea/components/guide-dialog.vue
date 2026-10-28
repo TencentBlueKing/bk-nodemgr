@@ -19,8 +19,8 @@
       </div>
       <!-- footer -->
       <div class="flex justify-center">
-        <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">{{ $t('action.installProxy') }}</Button>
-        <Button class="text-[#63656E]" @click="handleInstallLater">{{ $t('action.installLater') }}</Button>
+        <Button theme="primary" class="mr-[8px]" @click="handleConfigureUnit">{{ $t('action.configureUnit') }}</Button>
+        <Button class="text-[#63656E]" @click="handleLater">{{ $t('action.later') }}</Button>
       </div>
     </div>
     <template #footer></template>
@@ -33,12 +33,12 @@ const isShow = defineModel('isShow', { type: Boolean, default: false });
 
 const emit = defineEmits(['confirm', 'cancel']);
 
-const handleInstallProxy = () => {
+const handleConfigureUnit = () => {
   emit('confirm');
   isShow.value = false;
 };
 
-const handleInstallLater = () => {
+const handleLater = () => {
   emit('cancel');
   isShow.value = false;
 };
