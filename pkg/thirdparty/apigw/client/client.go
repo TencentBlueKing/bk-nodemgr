@@ -20,9 +20,7 @@ package client
 
 import (
 	"fmt"
-	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
@@ -37,13 +35,13 @@ type Client struct {
 
 // NewClient new apigw client.
 // this application will use the special user config to request.
-func NewClient(c *restclient.Capability, baseURL string, config VirtualUserConfig, opts ...restclient.Opt) (*Client, error) {
+func NewClient(capability *restclient.Capability, baseURL string, config VirtualUserConfig, opts ...restclient.Opt) (*Client, error) {
 	restOpts := []restclient.Opt{
 		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, AuthHeaderMasker),
 	}
 	restOpts = append(restOpts, opts...)
 
-	restClient, err := restclient.NewClient(c, baseURL, restOpts...)
+	restClient, err := restclient.NewClient(capability, baseURL, restOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client: %v", err)
 	}
@@ -56,37 +54,30 @@ func NewClient(c *restclient.Capability, baseURL string, config VirtualUserConfi
 
 // Post implement rest.IClient.
 func (c *Client) Post() *restclient.Request {
-	return c.restClient.Post().WithHeaders(c.getCommonHeader())
+	return c.restClient.Post()
 }
 
 // Put implement rest.IClient.
 func (c *Client) Put() *restclient.Request {
-	return c.restClient.Put().WithHeaders(c.getCommonHeader())
+	return c.restClient.Put()
 }
 
 // Get implement rest.IClient.
 func (c *Client) Get() *restclient.Request {
-	return c.restClient.Get().WithHeaders(c.getCommonHeader())
+	return c.restClient.Get()
 }
 
 // Delete implement rest.IClient.
 func (c *Client) Delete() *restclient.Request {
-	return c.restClient.Delete().WithHeaders(c.getCommonHeader())
+	return c.restClient.Delete()
 }
 
 // Patch implement rest.IClient.
 func (c *Client) Patch() *restclient.Request {
-	return c.restClient.Patch().WithHeaders(c.getCommonHeader())
+	return c.restClient.Patch()
 }
 
 // Head implement rest.IClient.
 func (c *Client) Head() *restclient.Request {
-	return c.restClient.Head().WithHeaders(c.getCommonHeader())
-}
-
-func (c *Client) getCommonHeader() http.Header {
-	apigwHeader := http.Header{}
-	apigwHeader.Set(apigwheader.BKClientRIDKey, identifier.GenRequestID())
-
-	return apigwHeader
+	return c.restClient.Head()
 }

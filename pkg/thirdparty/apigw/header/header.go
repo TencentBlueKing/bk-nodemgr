@@ -27,9 +27,6 @@ const (
 	// BKGWServerRIDKey is the gateway-generated request id header received by the server.
 	BKGWServerRIDKey = "X-Bkapi-Request-Id"
 
-	// BKClientRIDKey is the business request id header sent by the client to the gateway.
-	BKClientRIDKey = "X-Request-Id"
-
 	// BKGWJWTTokenKey is blueking api gateway jwt header key.
 	BKGWJWTTokenKey = "X-Bkapi-JWT"
 

@@ -31,7 +31,6 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
-	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 type auth struct {
@@ -75,7 +74,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get gse common header.
 func (c *cli) getCommonHeader() http.Header {
 	header := http.Header{}
-	header.Set(apigwheader.BKClientRIDKey, identifier.GenRequestID())
+	header.Set(restheader.RequestIDKey, identifier.GenRequestID())
 	if tenant.GetMode() == tenant.ModeMultiple {
 		header.Set(restheader.BKTenantIDKey, tenant.SystemTenantID)
 	}

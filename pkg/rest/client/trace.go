@@ -24,4 +24,5 @@ const (
 	attributeHTTPRequestHeader  = "http.request.header"
 
 	attributeHTTPResponseStatusCode = "http.response.status_code"
+	attributeHTTPResponseHeader     = "http.response.header"
 )

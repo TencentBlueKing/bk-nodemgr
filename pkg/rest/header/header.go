@@ -31,8 +31,8 @@ const (
 	// BKTenantIDKey is tenant id header key.
 	BKTenantIDKey = "X-Bk-Tenant-Id"
 
-	// BKNodemgrRequestIDKey is request id header key.
-	BKNodemgrRequestIDKey = "X-Bknodemgr-Request-Id"
+	// RequestIDKey is request id header key.
+	RequestIDKey = "X-Request-Id"
 
 	// TraceID is request id header key.
 	TraceID = "TraceId"
@@ -48,9 +48,9 @@ func BKTenantIDGetter(req *http.Request) string {
 	return id
 }
 
-// BKNodemgrRequestIDGetter get request id value.
-func BKNodemgrRequestIDGetter(req *http.Request) string {
-	id := req.Header.Get(BKNodemgrRequestIDKey)
+// RequestIDGetter get request id value.
+func RequestIDGetter(req *http.Request) string {
+	id := req.Header.Get(RequestIDKey)
 
 	return id
 }
