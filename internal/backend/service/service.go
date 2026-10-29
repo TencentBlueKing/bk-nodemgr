@@ -1132,8 +1132,12 @@ func (svc *Service) registerBasicServer() error {
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withAPIV3BasicSystem(svc.Cap, restserver.MiddlewareAuth(systemAuthIdentity)),
-		withAPIV3BasicOpen(svc.Cap, restserver.MiddlewareAuth(openAuthIdentity)),
+		withAPIV3BasicSystem(svc.Cap,
+			restserver.MiddlewareAuth(systemAuthIdentity, restserver.WithSkipPathPrefixes("/api/v3/iam")),
+		),
+		withAPIV3BasicOpen(svc.Cap,
+			restserver.MiddlewareAuth(openAuthIdentity),
+		),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register basic server: %w", err)
