@@ -19,6 +19,7 @@
 package file
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -35,7 +36,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"golang.org/x/sync/singleflight"
 )
 
 // IHandler is interface for file handler.
@@ -227,9 +227,8 @@ const releaseCacheExpiration = time.Minute
 type handler struct {
 	cli *cli
 
-	releaseCache     cache.ICache
+	releaseCache     *cache.MemoryCache
 	releaseCacheKeys cache.IKeyGenerator
-	releaseGroup     singleflight.Group
 }
 
 // New initialize a new nodeman backend handler.
@@ -592,7 +591,8 @@ func (h *handler) ListReleaseAgent(nCtx contextx.IContext, page types.Page, cond
 		return nil, 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.listReleaseAgent(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -636,7 +636,8 @@ func (h *handler) CountReleaseAgent(nCtx contextx.IContext, conditions ...*types
 		return 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.countReleaseAgent(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -669,7 +670,8 @@ func (h *handler) GetReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgent
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.getReleaseAgent(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -710,7 +712,8 @@ func (h *handler) DistinctReleaseAgent(nCtx contextx.IContext, fields types.Rele
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.distinctReleaseAgent(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -747,7 +750,8 @@ func (h *handler) ListReleaseProxy(nCtx contextx.IContext, page types.Page, cond
 		return nil, 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.listReleaseProxy(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -791,7 +795,8 @@ func (h *handler) CountReleaseProxy(nCtx contextx.IContext, conditions ...*types
 		return 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.countReleaseProxy(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -824,7 +829,8 @@ func (h *handler) GetReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxy
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.getReleaseProxy(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -865,7 +871,8 @@ func (h *handler) DistinctReleaseProxy(nCtx contextx.IContext, fields types.Rele
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.distinctReleaseProxy(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -898,7 +905,8 @@ func (h *handler) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePlug
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.getReleasePlugin(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -939,7 +947,8 @@ func (h *handler) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name st
 		return "", err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.getReleasePluginDefaultVersion(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -979,7 +988,8 @@ func (h *handler) ListReleasePlugin(nCtx contextx.IContext, page types.Page, con
 		return nil, 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.listReleasePlugin(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1024,7 +1034,8 @@ func (h *handler) CountReleasePlugin(nCtx contextx.IContext, conditions ...*type
 		return 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.countReleasePlugin(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1062,7 +1073,8 @@ func (h *handler) DistinctReleasePlugin(nCtx contextx.IContext, fields types.Rel
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.distinctReleasePlugin(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1095,7 +1107,8 @@ func (h *handler) ExistReleasePlugin(nCtx contextx.IContext, key types.ReleasePl
 		return false, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.existReleasePlugin(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1131,7 +1144,8 @@ func (h *handler) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions .
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.distinctNameReleasePlugin(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1169,7 +1183,8 @@ func (h *handler) ListReleaseCert(nCtx contextx.IContext, page types.Page, condi
 		return nil, 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.listReleaseCert(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1216,7 +1231,8 @@ func (h *handler) ListReleaseBinTool(nCtx contextx.IContext, page types.Page, co
 		return nil, 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.listReleaseBinTool(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1263,7 +1279,8 @@ func (h *handler) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Pa
 		return nil, 0, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.listReleasePluginBinTool(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1308,7 +1325,8 @@ func (h *handler) DistinctNameReleasePluginBinTool(nCtx contextx.IContext, condi
 		return nil, err
 	}
 
-	data, err := h.queryReleaseCache(nCtx, cacheKey, func(nCtx contextx.IContext) ([]byte, error) {
+	data, err := h.releaseCache.GetOrLoad(nCtx, cacheKey, func(ctx context.Context) ([]byte, error) {
+		nCtx := contextx.FromContext(ctx)
 		response, err := h.cli.distinctNameReleasePluginBinTool(nCtx, nCtx.TenantID(), req)
 		if err != nil {
 			return nil, err
@@ -1344,60 +1362,6 @@ func (h *handler) generateReleaseCacheKey(prefix, tenantID string, query any) (s
 	}
 
 	return h.releaseCacheKeys.Generate(prefix, tenantID, base64.RawURLEncoding.EncodeToString(data)), nil
-}
-
-func (h *handler) queryReleaseCache(
-	nCtx contextx.IContext, key string, fetch func(contextx.IContext) ([]byte, error),
-) ([]byte, error) {
-
-	if err := nCtx.Err(); err != nil {
-		return nil, err
-	}
-
-	if data, found := h.getReleaseCache(nCtx, key); found {
-		return data, nil
-	}
-
-	resultCh := h.releaseGroup.DoChan(key, func() (any, error) {
-		if data, found := h.getReleaseCache(nCtx, key); found {
-			return data, nil
-		}
-
-		data, err := fetch(nCtx)
-		if err != nil {
-			return nil, err
-		}
-		if err := h.releaseCache.SetWithExpiration(nCtx, key, data, releaseCacheExpiration); err != nil {
-			return nil, fmt.Errorf("failed to cache release data: %w", err)
-		}
-
-		return data, nil
-	})
-
-	select {
-	case <-nCtx.Done():
-		return nil, nCtx.Err()
-	case result := <-resultCh:
-		if result.Err != nil {
-			return nil, result.Err
-		}
-
-		data, ok := result.Val.([]byte)
-		if !ok {
-			return nil, fmt.Errorf("invalid release cache result type")
-		}
-
-		return data, nil
-	}
-}
-
-func (h *handler) getReleaseCache(nCtx contextx.IContext, key string) ([]byte, bool) {
-	data, err := h.releaseCache.Get(nCtx, key)
-	if err != nil {
-		return nil, false
-	}
-
-	return data, true
 }
 
 // DownloadRemoteFile downloads a verified remote file.
