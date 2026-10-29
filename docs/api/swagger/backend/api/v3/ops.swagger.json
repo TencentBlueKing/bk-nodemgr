@@ -84,6 +84,74 @@
         ]
       }
     },
+    "/api/v3/node/ops/list_fields/agent": {
+      "post": {
+        "summary": "NodeOpsFieldsListAgent reads agent out-of-band fields.",
+        "operationId": "Ops_NodeOpsFieldsListAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsFieldsListAgentResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeOpsFieldsListAgentReq reads current settings for selected agent hosts.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsFieldsListAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v3/node/ops/list_fields/proxy": {
+      "post": {
+        "summary": "NodeOpsFieldsListProxy reads proxy out-of-band fields.",
+        "operationId": "Ops_NodeOpsFieldsListProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsFieldsListProxyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeOpsFieldsListProxyReq reads current settings for selected proxy hosts.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOpsFieldsListProxyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
     "/api/v3/node/ops/update_fields/agent": {
       "post": {
         "summary": "NodeOpsUpdateFieldsAgent batch-updates out-of-band fields for agent hosts.",
@@ -225,6 +293,106 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeOpsFieldsListAgentReq": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NodeOpsFieldsListAgentReq reads current settings for selected agent hosts."
+    },
+    "v3NodeOpsFieldsListAgentResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeOpsFieldsListAgentRespData"
+        }
+      },
+      "description": "NodeOpsFieldsListAgentResp returns current settings for selected agent hosts."
+    },
+    "v3NodeOpsFieldsListAgentRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeOpsInfo"
+          }
+        }
+      }
+    },
+    "v3NodeOpsFieldsListProxyReq": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NodeOpsFieldsListProxyReq reads current settings for selected proxy hosts."
+    },
+    "v3NodeOpsFieldsListProxyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeOpsFieldsListProxyRespData"
+        }
+      },
+      "description": "NodeOpsFieldsListProxyResp returns current settings for selected proxy hosts."
+    },
+    "v3NodeOpsFieldsListProxyRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeOpsInfo"
           }
         }
       }

@@ -27,7 +27,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const maxNodeOpsHistoryLimit = 500
+const (
+	maxNodeOpsHistoryLimit    = 500
+	maxNodeOpsFieldsListHosts = 500
+)
 
 // AutoConvert leaves operation history filters unchanged.
 func (x *NodeOpsHistoryListReq) AutoConvert() {
@@ -337,4 +340,121 @@ func (x *NodeOpsUpdateFieldsProxyReq) GetHostIDs() []int64 {
 	})
 
 	return hostIDs
+}
+
+// Validate checks the bounded agent target selection.
+func (x *NodeOpsFieldsListAgentReq) Validate() error {
+	return validateNodeOpsFieldsHostIDs(x.GetBkHostId())
+}
+
+// AutoConvert leaves the explicitly selected targets unchanged.
+func (x *NodeOpsFieldsListAgentReq) AutoConvert() {
+}
+
+// PageLimit returns the backend fields-list request limit.
+func (x *NodeOpsFieldsListAgentReq) PageLimit() int {
+	return maxNodeOpsFieldsListHosts
+}
+
+// PageTimeout returns the timeout for paginated agent fields-list requests.
+func (x *NodeOpsFieldsListAgentReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
+// ConvertHostsFromTypes converts current agent settings to the fields list response.
+func (x *NodeOpsFieldsListAgentResp) ConvertHostsFromTypes(hosts []*types.Host) {
+	x.Data = &NodeOpsFieldsListAgentResp_Data{
+		Items: convNodeOpsInfosFromTypes(hosts),
+	}
+}
+
+// ConvertHostsToTypes converts current agent settings from the fields list response.
+func (x *NodeOpsFieldsListAgentResp) ConvertHostsToTypes() []*types.Host {
+	return convNodeOpsInfosToTypes(x.GetData().GetItems())
+}
+
+// Validate checks the bounded proxy target selection.
+func (x *NodeOpsFieldsListProxyReq) Validate() error {
+	return validateNodeOpsFieldsHostIDs(x.GetBkHostId())
+}
+
+// AutoConvert leaves the explicitly selected targets unchanged.
+func (x *NodeOpsFieldsListProxyReq) AutoConvert() {
+}
+
+// PageLimit returns the backend fields-list request limit.
+func (x *NodeOpsFieldsListProxyReq) PageLimit() int {
+	return maxNodeOpsFieldsListHosts
+}
+
+// PageTimeout returns the timeout for paginated proxy fields-list requests.
+func (x *NodeOpsFieldsListProxyReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
+// ConvertHostsFromTypes converts current proxy settings to the fields list response.
+func (x *NodeOpsFieldsListProxyResp) ConvertHostsFromTypes(hosts []*types.Host) {
+	x.Data = &NodeOpsFieldsListProxyResp_Data{
+		Items: convNodeOpsInfosFromTypes(hosts),
+	}
+}
+
+// ConvertHostsToTypes converts current proxy settings from the fields list response.
+func (x *NodeOpsFieldsListProxyResp) ConvertHostsToTypes() []*types.Host {
+	return convNodeOpsInfosToTypes(x.GetData().GetItems())
+}
+
+// validateNodeOpsFieldsHostIDs checks the required bounded target selection.
+func validateNodeOpsFieldsHostIDs(hostIDs []int64) error {
+	if len(hostIDs) == 0 || len(hostIDs) > maxNodeOpsFieldsListHosts {
+		return fmt.Errorf("bk_host_id must contain between 1 and %d IDs", maxNodeOpsFieldsListHosts)
+	}
+
+	for _, id := range hostIDs {
+		if id <= 0 {
+			return errors.New("bk_host_id must be positive")
+		}
+	}
+
+	return nil
+}
+
+// convNodeOpsInfosFromTypes converts current settings to the ops info wire items.
+func convNodeOpsInfosFromTypes(hosts []*types.Host) []*NodeOpsInfo {
+	items := make([]*NodeOpsInfo, 0, len(hosts))
+	for _, host := range hosts {
+		if host == nil {
+			continue
+		}
+
+		item := &NodeOpsInfo{BkHostId: host.HostID}
+		if host.Dynamic != nil {
+			item.OpsConsoleHostId = host.Dynamic.OpsConsoleHostID
+			item.OpsOutBandType = host.Dynamic.OpsOutBandType
+			item.OpsOutBandProtocol = host.Dynamic.OpsOutBandProtocol
+			item.OpsOutBandIp = host.Dynamic.OpsOutBandIP
+			item.OpsOutBandPort = host.Dynamic.OpsOutBandPort
+		}
+		items = append(items, item)
+	}
+
+	return items
+}
+
+// convNodeOpsInfosToTypes converts the ops info wire items to current settings.
+func convNodeOpsInfosToTypes(items []*NodeOpsInfo) []*types.Host {
+	return conv.SliceToSlice(items, func(item *NodeOpsInfo) *types.Host {
+		return &types.Host{
+			HostID: item.GetBkHostId(),
+			// The fields list contract carries ops settings only; Static stays empty for callers.
+			Static: &types.HostStatic{},
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   item.GetOpsConsoleHostId(),
+				OpsOutBandType:     item.GetOpsOutBandType(),
+				OpsOutBandProtocol: item.GetOpsOutBandProtocol(),
+				OpsOutBandIP:       item.GetOpsOutBandIp(),
+				OpsOutBandPort:     item.GetOpsOutBandPort(),
+			},
+		}
+	})
 }
