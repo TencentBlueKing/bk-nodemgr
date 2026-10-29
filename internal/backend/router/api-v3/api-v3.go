@@ -20,6 +20,7 @@
 package apiv3
 
 import (
+	backendauth "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback"
@@ -39,13 +40,15 @@ import (
 )
 
 type handler struct {
-	rg *gin.RouterGroup
+	rg         *gin.RouterGroup
+	authorizer backendauth.IAuthorizer
 }
 
-func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/api/v3"),
+		rg:         rg.Group("/api/v3"),
+		authorizer: capability.Authorizer,
 	}
 }
 
@@ -58,6 +61,7 @@ func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, mi
 
 	// enable middlewares.
 	h.rg.Use(middlewares...)
+	h.rg.Use(h.middlewareSystemAccess)
 
 	sync.Load(h.rg, capability)
 	node.Load(h.rg, capability)
@@ -80,6 +84,7 @@ func LoadBasicOpenAPIs(rg *gin.RouterGroup, capability *options.Capability, midd
 
 	// enable middlewares.
 	h.rg.Use(middlewares...)
+	h.rg.Use(h.middlewareSystemAccess)
 
 	node.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)

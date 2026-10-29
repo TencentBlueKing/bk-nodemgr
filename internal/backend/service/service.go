@@ -1118,7 +1118,6 @@ func (svc *Service) registerBasicServer() error {
 		return fmt.Errorf("failed to new open auth identity: %w", err)
 	}
 
-	systemAccessMiddleware := backendapiv3.MiddlewareSystemAccess(svc.Cap.Authorizer)
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
@@ -1133,14 +1132,8 @@ func (svc *Service) registerBasicServer() error {
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withAPIV3BasicSystem(svc.Cap,
-			restserver.MiddlewareAuth(systemAuthIdentity),
-			systemAccessMiddleware,
-		),
-		withAPIV3BasicOpen(svc.Cap,
-			restserver.MiddlewareAuth(openAuthIdentity),
-			systemAccessMiddleware,
-		),
+		withAPIV3BasicSystem(svc.Cap, restserver.MiddlewareAuth(systemAuthIdentity)),
+		withAPIV3BasicOpen(svc.Cap, restserver.MiddlewareAuth(openAuthIdentity)),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register basic server: %w", err)
