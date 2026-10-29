@@ -38,14 +38,6 @@ func MiddlewareSystemAccess(authorizer auth.IAuthorizer) gin.HandlerFunc {
 	allowedUsers := gocache.New(systemAccessCacheTTL, systemAccessCacheTTL)
 
 	return func(gCtx *gin.Context) {
-		// IAM callbacks authenticate with Basic Auth and must not depend on user authorization.
-		switch gCtx.FullPath() {
-		case "/api/v3/iam/v3/resource", "/api/v3/iam/v4/resource":
-			gCtx.Next()
-
-			return
-		}
-
 		rCtx, err := restserver.GenRestContext(gCtx)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to build system access context")

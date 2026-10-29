@@ -53,6 +53,9 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
 
+	// IAM callbacks use their own Basic Auth instead of user identity and system access checks.
+	iam.Load(h.rg, capability)
+
 	// enable middlewares.
 	h.rg.Use(middlewares...)
 
@@ -67,7 +70,6 @@ func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, mi
 	deploypolicy.Load(h.rg, capability)
 	cipher.Load(h.rg, capability)
 	auth.Load(h.rg, capability)
-	iam.Load(h.rg, capability)
 }
 
 // LoadBasicOpenAPIs register the basic apis.

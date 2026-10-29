@@ -1134,7 +1134,7 @@ func (svc *Service) registerBasicServer() error {
 		},
 		restserver.WithPing(),
 		withAPIV3BasicSystem(svc.Cap,
-			restserver.MiddlewareAuth(systemAuthIdentity, restserver.WithSkipPathPrefixes("/api/v3/iam")),
+			restserver.MiddlewareAuth(systemAuthIdentity),
 			systemAccessMiddleware,
 		),
 		withAPIV3BasicOpen(svc.Cap,
