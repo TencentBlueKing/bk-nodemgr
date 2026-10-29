@@ -389,6 +389,15 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 
 	if len(resources) == 0 {
 		req := authorizer.newCheckRequest(ctx, action, nil)
+		// System access is cached by the basic API middleware; do not stack TTLs.
+		if action == auth.ActionSystemAccess {
+			allowed, err := authorizer.handler.IsAllowed(ctx, req)
+			if err != nil {
+				return nil, false, err
+			}
+
+			return nil, !allowed, nil
+		}
 		allowed, err := authorizer.handler.IsAllowedWithCache(ctx, req, iamCacheTTL)
 		if err != nil {
 			return nil, false, err
