@@ -1,0 +1,38 @@
+{
+  "skill_name": "bk-nodemgr-proto",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "为一个隔离的 Proto 示例补齐面向 API 调用者的 RPC、Message 和字段注释，返回修改后的片段与必要的核对说明，不写仓库。已确认的夹具契约：按蓝鲸主机 ID 查询该主机节点 Agent 的当前状态；bk_host_id 是蓝鲸主机 ID；status 只取 running 或 stopped。只补注释，不能改变命名、字段、编号或类型。片段：message NodeAgentStatusGetReq { int64 bk_host_id = 1; } message NodeAgentStatusGetResp { string status = 1; } service NodeAgent { rpc NodeAgentStatusGet(NodeAgentStatusGetReq) returns (NodeAgentStatusGetResp) { option (google.api.http) = { post: \"/api/v3/node/agent/status/get\" body: \"*\" }; } }。不需要完整双语 API 文档，也不要为展示额外增加 options。",
+      "expected_output": "提供调用者可读的中文用途和字段语义，不机械复述符号，不编造未提供的行为；保持契约与标识，说明相关 Swagger 内容核对。夹具不是已部署接口。",
+      "files": [],
+      "expectations": [
+        "RPC、Message 和字段注释使用有业务意义的中文，不是英文 lint 占位或名称同义复述",
+        "保持命名、字段、编号和类型，不增加未确认的默认值、权限、必填标记或异步完成承诺",
+        "说明预期 operationId 为 NodeAgent_NodeAgentStatusGet、默认 tag 为 NodeAgent，检查生成内容而非只看成功退出"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "只读审阅一个隔离的 RPC 注释，解释 Proto 到 Swagger 再到 APIGW 资源描述的结果，给出更合适的中文注释，不改实际文件。输入：// 查询节点 Agent 状态。\n//\n// 也支持批量查询。\nrpc NodeAgentStatusList(StatusListReq) returns (StatusListResp) { ... }。已确认夹具业务语义：接口按主机 ID 列表查询节点 Agent 状态。另有两个字段注释：// 蓝鲸主机 ID。 和 // 蓝鲸主机 ID.，分别说明它们在 Schema 的 title/description 位置上是否有差别。不要把未验证的网关版本当成当前部署版本。",
+      "expected_output": "正确解释 RPC 段落、Schema 的 ASCII 句点分支及 APIGW description 优先级；用可独立理解的中文修复表达，区分固定源码版本与目标部署版本。",
+      "files": [],
+      "expectations": [
+        "首段映射 summary、后段映射 description，并说明所引用 APIGW importer 优先非空 description",
+        "给出完整简述或可独立理解的详细说明，不强制所有 RPC 单段、不机械双写",
+        "区分 Schema 的 ASCII 句点规则与 RPC summary 处理，明确中文句号不同，并标注 APIGW 固定提交不等于当前部署版本"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "请只改善 NodeAgentInstall 的 Proto 文档表达，提供修改建议而不写文件。现状：service NodeAgent，RPC NodeAgentInstall，路径 /api/v3/node/agent/install，默认 tag NodeAgent，默认 operationId NodeAgent_NodeAgentInstall，注释为 // NodeAgentInstall installs node agent.。已确认含义为批量安装节点 Agent。不要迁移历史接口，也不要实际操作网关。给出中文注释和最小验证路径，并解释 tag 到网关标签的关系。不要因为现有资料缺少本地 Swagger→resources 转换脚本，就把 resources.yaml 当成独立手写文件：这里实际由人工导入 Swagger 到 APIGW 后导出。",
+      "expected_output": "只改善中文用途说明，保持接口标识和分类；描述标准生成、相关内容核对及人工导入导出链路，不扩大修改或声称已完成线上验证。",
+      "files": [],
+      "expectations": [
+        "提供有意义的中文用途说明，保留 tag、Service/RPC、operationId 和 HTTP path",
+        "不手改 Swagger、pb.go 或 resources.yaml，不增加 tag 覆盖、不自动操作网关、不扩展历史清理",
+        "说明人工导入导出链路与标准 make clean && make all、生成内容核对，不宣称已验证真实 APIGW"
+      ]
+    }
+  ]
+}

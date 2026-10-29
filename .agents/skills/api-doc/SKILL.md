@@ -16,6 +16,8 @@ allowed-tools:
 
 为 bk-nodemgr 项目的 Proto API 生成标准化参考文档。
 
+需要新增、修改或审阅 Proto 注释及其 Swagger/APIGW 投影时，使用 `bk-nodemgr-proto`；本 skill 仍负责完整的双语 API 参考文档，不能以源注释替代字段语义交叉验证。
+
 ## MCP 工具优先原则
 
 必须使用结构化思考
