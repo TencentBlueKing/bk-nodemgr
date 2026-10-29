@@ -355,11 +355,6 @@ type traceSkipConfig struct {
 	Methods []string // Methods to skip. An empty list skips no methods.
 }
 
-// MiddlewareTracing creates tracing middleware without skip rules.
-func MiddlewareTracing(tracerSvc tracing.IService) []gin.HandlerFunc {
-	return middlewareTracing(tracerSvc, nil)
-}
-
 func middlewareTracing(tracerSvc tracing.IService, skipConfigs []traceSkipConfig) []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		otelgin.Middleware(tracerSvc.ServiceName(),
