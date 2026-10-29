@@ -26336,6 +26336,320 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Query the business instance topology by business ID, with aggregated host counts for topology nodes.
+  /api/v3/node/ops/list_fields/agent:
+    post:
+      operationId: Ops_NodeOpsFieldsListAgent
+      description: 批量查询 Agent 主机的带外管理设置当前值。
+      tags:
+        - NodeAgent
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                            ops_console_host_id:
+                              type: integer
+                              format: int64
+                            ops_out_band_type:
+                              type: string
+                            ops_out_band_protocol:
+                              type: string
+                            ops_out_band_ip:
+                              type: string
+                            ops_out_band_port:
+                              type: integer
+                              format: int64
+                          description: NodeOpsInfo describes the out-of-band (ops) information for a node.
+                description: NodeOpsFieldsListAgentResp returns current settings for selected agent hosts.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_host_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: NodeOpsFieldsListAgentReq reads current settings for selected agent hosts.
+        required: true
+        description: NodeOpsFieldsListAgentReq reads current settings for selected agent hosts.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/ops/list_fields/agent
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Batch-query current out-of-band management settings for Agent hosts.
+  /api/v3/node/ops/list_fields/proxy:
+    post:
+      operationId: Ops_NodeOpsFieldsListProxy
+      description: 批量查询 Proxy 主机的带外管理设置当前值。
+      tags:
+        - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                            ops_console_host_id:
+                              type: integer
+                              format: int64
+                            ops_out_band_type:
+                              type: string
+                            ops_out_band_protocol:
+                              type: string
+                            ops_out_band_ip:
+                              type: string
+                            ops_out_band_port:
+                              type: integer
+                              format: int64
+                          description: NodeOpsInfo describes the out-of-band (ops) information for a node.
+                description: NodeOpsFieldsListProxyResp returns current settings for selected proxy hosts.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_host_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: NodeOpsFieldsListProxyReq reads current settings for selected proxy hosts.
+        required: true
+        description: NodeOpsFieldsListProxyReq reads current settings for selected proxy hosts.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/ops/list_fields/proxy
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Batch-query current out-of-band management settings for Proxy hosts.
   /api/v3/node/ops/update_fields/agent:
     post:
       operationId: Ops_NodeOpsUpdateFieldsAgent
