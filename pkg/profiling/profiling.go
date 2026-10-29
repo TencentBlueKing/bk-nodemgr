@@ -112,10 +112,12 @@ func Start(conf config.Profiling, defaults Defaults) (StopFunc, error) {
 
 	var once sync.Once
 	var stopErr error
+
 	return func() error {
 		once.Do(func() {
 			stopErr = profiler.Stop()
 		})
+
 		return stopErr
 	}, nil
 }

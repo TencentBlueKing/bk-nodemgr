@@ -63,11 +63,13 @@ func (h *handler) Init(rCtx restserver.IContext) (any, error) {
 	if targetTenant == nil {
 		err = fmt.Errorf("tenant(%s) does not exist", req.TenantID)
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to init tenant, tenant does not exist")
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	if !targetTenant.Enabled {
 		err = fmt.Errorf("tenant(%s) is disabled", req.TenantID)
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to init tenant, tenant is disabled")
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 

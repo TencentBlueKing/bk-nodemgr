@@ -89,6 +89,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 	}
 
 	value, _ = h.daoMap.LoadOrStore(tenantID, newDaoClient)
+
 	return value.(*dao)
 }
 

@@ -29,6 +29,7 @@ func pluginProgramName(pkgName string, osType criteria.OSType) string {
 	if osType == criteria.OSWindows {
 		return pkgName + ".exe"
 	}
+
 	return pkgName
 }
 
@@ -43,6 +44,7 @@ func buildPluginProcessSpec(process types.Process, host *types.Host, pluginPkg *
 			continue
 		}
 		mainConfigPath = tool.JoinPath(osType, runtime.PluginHomeDir, configTemplate.FilePath, configTemplate.Name)
+
 		break
 	}
 

@@ -106,6 +106,7 @@ func parseFeatures(raw string) ([]string, error) {
 	}
 
 	sort.Strings(features)
+
 	return features, nil
 }
 
@@ -134,6 +135,7 @@ func parseRemoteIPs(raw string) ([]string, error) {
 	}
 
 	sort.Strings(remoteIPs)
+
 	return remoteIPs, nil
 }
 
@@ -184,5 +186,6 @@ func splitRemoteIPs(remoteIPs []string) (ipv4, ipv6 []string) {
 		}
 		ipv6 = append(ipv6, cidr)
 	}
+
 	return ipv4, ipv6
 }

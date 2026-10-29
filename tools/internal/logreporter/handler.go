@@ -96,6 +96,7 @@ func (lh *Handler) Start() error {
 	if len(lh.args.ReportLogURLs) == 0 {
 		logger.Infof(node.StepGeneral, "no report log URLs configured, local-only log mode")
 		lh.watchStopper = func() error { return nil }
+
 		return nil
 	}
 

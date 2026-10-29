@@ -260,6 +260,7 @@ func (b *lazybuf) index(i int) byte {
 	if b.buf != nil {
 		return b.buf[i]
 	}
+
 	return b.path[i]
 }
 
@@ -285,6 +286,7 @@ func (b *lazybuf) string() string {
 	if b.buf == nil {
 		return b.volAndPath[:b.volLen+b.w]
 	}
+
 	return b.volAndPath[:b.volLen] + string(b.buf[:b.w])
 }
 
@@ -324,6 +326,7 @@ func Clean(path string) string {
 			// should be UNC
 			return FromSlash(originalPath)
 		}
+
 		return originalPath + "."
 	}
 	rooted := IsPathSeparator(path[0])
@@ -387,6 +390,7 @@ func Clean(path string) string {
 	}
 
 	postClean(&out) // avoid creating absolute paths on Windows
+
 	return FromSlash(out.string())
 }
 
@@ -450,6 +454,7 @@ func Split(path string) (dir, file string) {
 	for i >= len(vol) && !IsPathSeparator(path[i]) {
 		i--
 	}
+
 	return path[:i+1], path[i+1:]
 }
 
@@ -463,6 +468,7 @@ func Ext(path string) string {
 			return path[i:]
 		}
 	}
+
 	return ""
 }
 
@@ -541,6 +547,7 @@ func Rel(basepath, targpath string) (string, error) {
 			buf[n] = DirSeparator
 			copy(buf[n+1:], targ[t0:])
 		}
+
 		return string(buf), nil
 	}
 

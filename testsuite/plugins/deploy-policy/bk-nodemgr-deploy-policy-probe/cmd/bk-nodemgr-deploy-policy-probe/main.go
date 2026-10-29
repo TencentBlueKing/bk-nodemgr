@@ -75,6 +75,7 @@ func parseArgs(args []string) (string, bool, bool) {
 			fmt.Printf("name=%s\n", name)
 			fmt.Printf("version=%s\n", version)
 			fmt.Println("pid_owner=gse")
+
 			return "", false, true
 		default:
 			usage()
@@ -99,6 +100,7 @@ func run(configPath string, debug bool) {
 			if debug {
 				fmt.Printf("%s debug stopped\n", name)
 			}
+
 			return
 		case syscall.SIGUSR1:
 			recordReload(configPath)

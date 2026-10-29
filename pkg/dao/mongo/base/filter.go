@@ -198,6 +198,7 @@ func WithFuzzyValues(key string, values ...string) OptFn {
 	}
 
 	pattern := fuzzyPattern(values)
+
 	return func(f bson.D) bson.D {
 		return append(f, bson.E{Key: key, Value: bson.M{"$regex": pattern, "$options": "i"}})
 	}
@@ -212,6 +213,7 @@ func WithoutFuzzyValues(key string, values ...string) OptFn {
 	}
 
 	pattern := fuzzyPattern(values)
+
 	return func(f bson.D) bson.D {
 		return append(f, bson.E{Key: key, Value: bson.M{"$not": bson.M{"$regex": pattern, "$options": "i"}}})
 	}

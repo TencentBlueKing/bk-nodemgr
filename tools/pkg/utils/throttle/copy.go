@@ -181,6 +181,7 @@ func ThrottledCopy(dst io.Writer, src io.Reader, cpuLimit float64) (int64, error
 			if readErr == io.EOF {
 				break
 			}
+
 			return written, readErr
 		}
 	}

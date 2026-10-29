@@ -247,16 +247,19 @@ func (executor *Executor) recordWorkflowChild(nCtx contextx.IContext, execution 
 	if len(workflowIDs) == 0 {
 		logger.G.Sys().Ctx(nCtx).With("workflow-id", workflowID).With("workflow-domain", domain).
 			Error("failed to record deploy policy workflow child, deploy policy workflow associations are missing")
+
 		return
 	}
 	if executor.daoDeployPolicyWorkflow == nil {
 		logger.G.Sys().Ctx(nCtx).With("workflow-id", workflowID).With("workflow-domain", domain).
 			Error("failed to record deploy policy workflow child, deploy policy workflow storage is missing")
+
 		return
 	}
 	if workflowID == "" {
 		logger.G.Sys().Ctx(nCtx).With("workflow-domain", domain).
 			Error("failed to record deploy policy workflow child, launched workflow id is empty")
+
 		return
 	}
 
@@ -268,6 +271,7 @@ func (executor *Executor) recordWorkflowChild(nCtx contextx.IContext, execution 
 		logger.G.Sys().Ctx(nCtx).WithErr(err).With("workflow-id", workflowID).
 			With("workflow-domain", domain).With("workflow-count", len(workflowIDs)).
 			Error("failed to record deploy policy workflow child")
+
 		return
 	}
 }
