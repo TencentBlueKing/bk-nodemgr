@@ -458,10 +458,10 @@ const handleIpSelectorPanelChange = (panel: string) => {
 
 const handleOpenOpsConsoleHostSelector = (row: any) => {
     opsConsoleHostEditingRow.value = row;
-    // 不预设 node role 限制：清空策略类型与业务限定（含策略页可能残留的 strategyBizId），
-    // 拓扑树展示全部业务、主机查询不带 node_role 过滤
+    // 业务范围与顶部业务选择器保持一致：拓扑树与主机查询仅覆盖选中业务；
+    // 不预设 node role 限制（主控机不要求安装 Agent）
     IpSelectorService.setStrategyBizId(undefined);
-    IpSelectorService.setBizId([]);
+    IpSelectorService.setBizId([...(mainStore.selectedBusinessId || [])]);
     opsConsoleHostSelectorValue.value = {
         hostList: row.ops_console_host_id ? [{ hostId: row.ops_console_host_id }] : [],
         nodeList: [],
