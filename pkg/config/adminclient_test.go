@@ -121,7 +121,7 @@ func TestAdminClientBKApp_LoadFromFileKMSDisabled(t *testing.T) {
 	require.ErrorContains(t, err, "kms is not enabled")
 }
 
-func TestAdminClientJWT_LoadFromFile(t *testing.T) {
+func TestAdminClientFile_LoadFromFileKMS(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "file_conf.yaml")
 	configContent := []byte(`# unrelated fields may contain unreplaced rendering placeholders.
 advertiseIPV4: "__ADVERTISE_IPV4__"
@@ -131,7 +131,7 @@ kms:
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
 
-	conf := &AdminClientJWT{}
+	conf := &AdminClientFile{}
 	// LoadFromFile decrypts inline; the missing envelope file surfaces its parsed path,
 	// which also proves the kms section yaml fields were loaded.
 	err := conf.LoadFromFile(configPath)
@@ -141,14 +141,68 @@ kms:
 	assert.Equal(t, "/bk-nodemgr/secret/kms-global-envelope", conf.KMS.GlobalSecretFile)
 }
 
-func TestAdminClientJWT_LoadFromFileKMSDisabled(t *testing.T) {
+func TestAdminClientFile_LoadFromFilePlaintext(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "file_conf.yaml")
-	configContent := []byte(`kms:
+	configContent := []byte(`# unrelated fields may contain unreplaced rendering placeholders.
+advertiseIPV4: "__ADVERTISE_IPV4__"
+kms:
   enabled: false
+basicServer:
+  jwtServerConfig:
+    symmetricKey: file-basic-key
+downloadServer:
+  jwtServerConfig:
+    symmetricKey: file-download-key
+exportServer:
+  address: ":28304"
+  jwtServerConfig:
+    symmetricKey: file-export-key
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
 
-	conf := &AdminClientJWT{}
-	err := conf.LoadFromFile(configPath)
-	require.ErrorContains(t, err, "kms is not enabled")
+	conf := &AdminClientFile{}
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.False(t, conf.KMS.Enabled)
+	assert.Equal(t, "file-basic-key", conf.BasicServer.JWTServerConfig.SymmetricKey)
+	assert.Equal(t, "file-download-key", conf.DownloadServer.JWTServerConfig.SymmetricKey)
+	assert.Equal(t, "file-export-key", conf.ExportServer.JWTServerConfig.SymmetricKey)
+}
+
+func TestAdminClientBackend_LoadFromFilePlaintext(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "backend_conf.yaml")
+	configContent := []byte(`kms:
+  enabled: false
+callbackServer:
+  jwtServerConfig:
+    symmetricKey: backend-callback-key
+proxyServer:
+  jwtServerConfig:
+    symmetricKey: backend-proxy-key
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	conf := &AdminClientBackend{}
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.Equal(t, "backend-callback-key", conf.CallbackServer.JWTServerConfig.SymmetricKey)
+	assert.Equal(t, "backend-proxy-key", conf.ProxyServer.JWTServerConfig.SymmetricKey)
+}
+
+func TestAdminClientApplication_LoadFromFilePlaintext(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
+	configContent := []byte(`kms:
+  enabled: false
+front:
+  enableVault: false
+basicServer:
+  jwtServerConfig:
+    symmetricKey: application-basic-key
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	conf := &AdminClientApplication{}
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.Equal(t, "application-basic-key", conf.BasicServer.JWTServerConfig.SymmetricKey)
 }

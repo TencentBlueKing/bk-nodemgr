@@ -81,41 +81,80 @@ func (conf *AdminClientBKApp) LoadFromFile(path string) error {
 	return nil
 }
 
-// AdminClientJWT the minimal config for the adminclient jwt_token command: only the kms
-// section is needed, since the jwt server keys live in the kms global envelope.
-type AdminClientJWT struct {
+// AdminClientApplication mirrors the application service config sections relevant to
+// the adminclient jwt_token command. Plaintext deployments read the jwt keys straight
+// from the yaml server sections; with kms enabled, LoadFromFile overrides
+// JWTServerConfig.SymmetricKey with the keys decrypted from the kms global envelope.
+type AdminClientApplication struct {
 	KMS KMS `yaml:"kms" usage:"kms secret config"`
 
-	// The per-server jwt configs are populated by LoadFromFile from the kms global
-	// envelope; only SymmetricKey is set, because the jwt_token command signs tokens
-	// with the symmetric key verified by the rest-server auth identity.
-	ApplicationInfo  JWTServerConfig `yaml:"-"`
-	ApplicationAdmin JWTServerConfig `yaml:"-"`
-	ApplicationBasic JWTServerConfig `yaml:"-"`
-	BackendInfo      JWTServerConfig `yaml:"-"`
-	BackendAdmin     JWTServerConfig `yaml:"-"`
-	BackendBasic     JWTServerConfig `yaml:"-"`
-	BackendCallback  JWTServerConfig `yaml:"-"`
-	BackendProxy     JWTServerConfig `yaml:"-"`
-	FileInfo         JWTServerConfig `yaml:"-"`
-	FileAdmin        JWTServerConfig `yaml:"-"`
-	FileBasic        JWTServerConfig `yaml:"-"`
-	FileDownload     JWTServerConfig `yaml:"-"`
-	FileExport       JWTServerConfig `yaml:"-"`
+	InfoServer  HTTPServer `yaml:"infoServer"`
+	AdminServer HTTPServer `yaml:"adminServer"`
+	BasicServer HTTPServer `yaml:"basicServer"`
 }
 
-// LoadFromFile loads the kms section from a service config file and decrypts the jwt
-// server keys from the kms global envelope into JWT. Like the bkapp command, kms is
-// mandatory here: plaintext deployments read jwt keys from values and never call this
-// command, so a disabled kms section is an error.
-func (conf *AdminClientJWT) LoadFromFile(path string) error {
+// LoadFromFile loads the application config file and resolves the jwt server keys.
+func (conf *AdminClientApplication) LoadFromFile(path string) error {
 	if err := loadYAMLFile(path, conf); err != nil {
 		return err
 	}
 
-	// load kms secret.
-	if err := conf.KMS.ParseAdminClientJWT(conf); err != nil {
+	if conf.KMS.Enabled {
+		return conf.KMS.ParseAdminClientApplicationJWT(conf)
+	}
+
+	return nil
+}
+
+// AdminClientBackend mirrors the backend service config sections relevant to the
+// adminclient jwt_token command. See AdminClientApplication for the kms semantics.
+type AdminClientBackend struct {
+	KMS KMS `yaml:"kms" usage:"kms secret config"`
+
+	InfoServer  HTTPServer `yaml:"infoServer"`
+	AdminServer HTTPServer `yaml:"adminServer"`
+	BasicServer HTTPServer `yaml:"basicServer"`
+	// CallbackServer/ProxyServer are HTTPServer wrappers in BackendService, so plain
+	// HTTPServer fields decode them compatibly.
+	CallbackServer HTTPServer `yaml:"callbackServer"`
+	ProxyServer    HTTPServer `yaml:"proxyServer"`
+}
+
+// LoadFromFile loads the backend config file and resolves the jwt server keys.
+func (conf *AdminClientBackend) LoadFromFile(path string) error {
+	if err := loadYAMLFile(path, conf); err != nil {
 		return err
+	}
+
+	if conf.KMS.Enabled {
+		return conf.KMS.ParseAdminClientBackendJWT(conf)
+	}
+
+	return nil
+}
+
+// AdminClientFile mirrors the file service config sections relevant to the adminclient
+// jwt_token command. See AdminClientApplication for the kms semantics.
+type AdminClientFile struct {
+	KMS KMS `yaml:"kms" usage:"kms secret config"`
+
+	InfoServer     HTTPServer `yaml:"infoServer"`
+	AdminServer    HTTPServer `yaml:"adminServer"`
+	BasicServer    HTTPServer `yaml:"basicServer"`
+	DownloadServer HTTPServer `yaml:"downloadServer"`
+	// ExportServer is an HTTPServer wrapper in FileService, so a plain HTTPServer
+	// field decodes it compatibly.
+	ExportServer HTTPServer `yaml:"exportServer"`
+}
+
+// LoadFromFile loads the file config file and resolves the jwt server keys.
+func (conf *AdminClientFile) LoadFromFile(path string) error {
+	if err := loadYAMLFile(path, conf); err != nil {
+		return err
+	}
+
+	if conf.KMS.Enabled {
+		return conf.KMS.ParseAdminClientFileJWT(conf)
 	}
 
 	return nil

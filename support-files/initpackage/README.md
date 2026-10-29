@@ -9,7 +9,6 @@
 | 文件              | 说明                 |
 | ----------------- | -------------------- |
 | `init_package.py` | 初始化包功能主脚本   |
-| `jwt_generator/`  | JWT 生成工具源码目录 |
 
 ## init_package.py 参数
 
@@ -20,8 +19,6 @@
 | `--config-file`                 | File YAML 配置路径；默认依次尝试上述两个路径                                                                                                       |
 | `--host`                        | CLI 优先，否则 `localhost`                                                                                                                         |
 | `--port`                        | CLI 优先，否则读取 File 配置 `file.config.basicServer.port`，再回落 `28202`                                                                        |
-| `--jwt-key`                     | CLI 优先；未显式指定时仅在 File 配置 `file.config.basicServer.authIdentity` 不为 `none` 时读取其 `jwtServerConfig.symmetricKey`，未启用 JWT 时为空 |
-| `--expire-hours`                | 仅使用 CLI 显式设置；File 配置没有 JWT 有效期字段，未设置时默认为 `24` 小时                                                                        |
 | `--bk-username`、`--login-name` | CLI 优先，否则 `admin`                                                                                                                             |
 | `--tenant-id`                   | CLI 优先，否则读取 File 配置 `file.config.tenantMode`；`multiple` 使用 `system`，其他情况使用 `default`                                            |
 | `--init-cert`                   | 证书初始化包文件路径，可重复指定                                                                                                                   |
@@ -37,11 +34,13 @@
 | `--overwrite`                   | 是否覆盖已存在的文件                                                                                                                               |
 | `--set-as-default`              | 全部上传和发布结束后，启用各分组最后一个目标包的全部 platform 并设为默认；Helm Job 默认传入                                                        |
 
-单租户下可以只指定包路径；多租户未传 `--tenant-id` 时使用 `system`，其他租户须显式传入。多租户初始化要求 File 的 `config.basicServer.authIdentity` 为 `rest-server`，且 `config.basicServer.jwtServerConfig.symmetricKey` 非空并与生成 JWT 使用的密钥匹配。`authIdentity: none` 会使请求在 `default` tenant 处理，不能作为 `tenantMode: multiple` 的初始化配置。
+File 配置 `basicServer.authIdentity` 不为 `none` 时，脚本调用 `bk-nodemgr-adminclient jwt_token file basic` 签发 JWT（固定 24 小时有效期）；签名密钥来源由 adminclient 按 `kms.enabled` 自行解析，脚本不感知 KMS 是否开启。
+
+单租户下可以只指定包路径；多租户未传 `--tenant-id` 时使用 `system`，其他租户须显式传入。多租户初始化要求 File 的 `config.basicServer.authIdentity` 为 `rest-server`。`authIdentity: none` 会使请求在 `default` tenant 处理，不能作为 `tenantMode: multiple` 的初始化配置。
 
 `--auto-select` 会扫描 `/bk-nodemgr/file/packages`，也可用 `--packages-dir` 覆盖。只处理普通文件，不解压、不检测压缩包、不删除源文件；同一目录中的多个文件按字典序执行。目录映射为：`cert→cert`、`agent→agent`、`proxy→proxy`、`server→server`、`plugin-v2→plugin_v2`、`external-plugin-v2→external_plugin_v2`、`plugin-v3→plugin_v3`；`bintool/` 中 `plugin_bintool*`→`plugin_bintool`，其他普通文件→`bintool`。发现文件会追加到显式包，任务按 cert、bintool、plugin_bintool、agent、proxy、server、plugin_v2、external_plugin_v2、plugin_v3 固定顺序执行，同类型文件分别作为任务处理。
 
-Helm 初始化 Job 会将 File ConfigMap 中的 `file_conf.yaml` 挂载到 `{{ .Values.common.etcPath }}/file_conf.yaml`，并通过 `--config-file` 使用该配置。连接端口、JWT 密钥和 tenant 均从 File 配置读取；JWT 有效期没有 File 配置字段，默认 24 小时，也可由 `--expire-hours` 显式覆盖。Job 仍通过 `--host` 显式使用 File Service DNS 覆盖配置中的 host，因为配置中没有该 Service DNS。File Pod 启动时会替换 `advertise` 和 `tracing` 占位符，因此 Job 挂载的 ConfigMap 内容不是与 File Pod 运行时文件逐字节相同的副本。
+Helm 初始化 Job 会将 File ConfigMap 中的 `file_conf.yaml` 挂载到 `{{ .Values.common.etcPath }}/file_conf.yaml`，并通过 `--config-file` 使用该配置。连接端口和 tenant 从 File 配置读取；启用 JWT 鉴权时 token 由 `bk-nodemgr-adminclient jwt_token` 基于同一配置签发，固定 24 小时有效期。Job 仍通过 `--host` 显式使用 File Service DNS 覆盖配置中的 host，因为配置中没有该 Service DNS。File Pod 启动时会替换 `advertise` 和 `tracing` 占位符，因此 Job 挂载的 ConfigMap 内容不是与 File Pod 运行时文件逐字节相同的副本。
 
 ```bash
 python3 /bk-nodemgr/support-files/initpackage/init_package.py --auto-select
@@ -85,26 +84,14 @@ kubectl exec -it <bk-nodemgr-file-pod> -- \
 
 ## 使用方法
 
-镜像构建后会在/bk-nodemgr/support-files/initpackage/目录下生成 `jwt-generator` 可执行文件和 `init_package.py` 脚本。
+镜像构建后会在/bk-nodemgr/support-files/initpackage/目录下提供 `init_package.py` 脚本。`init_package.py` 通过 `bk-nodemgr-adminclient jwt_token` 自行签发 JWT，无需手动提供密钥；需要手动签发 token 排障时使用 `bk-nodemgr-adminclient jwt_token --jwt-key`（见 docs/operation/adminclient/jwt_token.md）。
 
 ### k8s 部署方式
-
-#### jwt-generator
-
-```bash
-# jwt_key 为{{ .Values.file.config.basicServer.jwtServerConfig.symmetricKey }}的配置
-kubectl exec -it <bk-nodemgr-file-pod> -- /bk-nodemgr/support-files/initpackage/jwt-generator \
-    -k ${jwt_key}\
-    -e 1
-```
 
 #### init_package.py
 
 ```bash
-# jwt_key 为{{ .Values.file.config.basicServer.jwtServerConfig.symmetricKey }}的配置
 kubectl exec -it <bk-nodemgr-file-pod> -- python3 /bk-nodemgr/support-files/initpackage/init_package.py \
-                    --jwt-key "${jwt_key}" \
-                    --expire-hours 1 \
                     --host bk-nodemgr-file \
                     --port {{ .Values.file.config.basicServer.port }} \
                     --tenant-id default \
@@ -115,22 +102,10 @@ kubectl exec -it <bk-nodemgr-file-pod> -- python3 /bk-nodemgr/support-files/init
 
 ### Docker 部署方式
 
-#### jwt-generator
-
-```bash
-# jwt_key 使用 File 配置中 file.config.basicServer.jwtServerConfig.symmetricKey 的值
-docker exec -it <container_name> /bk-nodemgr/support-files/initpackage/jwt-generator \
-    -k ${jwt_key} \
-    -e 1
-```
-
 #### init_package.py
 
 ```bash
-# jwt_key 使用 File 配置中 file.config.basicServer.jwtServerConfig.symmetricKey 的值
 docker exec -it <container_name> python3 /bk-nodemgr/support-files/initpackage/init_package.py \
-                    --jwt-key "${jwt_key}" \
-                    --expire-hours 1 \
                     --host localhost \
                     --port 28202 \
                     --tenant-id default \
@@ -141,25 +116,13 @@ docker exec -it <container_name> python3 /bk-nodemgr/support-files/initpackage/i
 
 ### 本地执行方式
 
-#### jwt-generator
-
-```bash
-# jwt_key 使用 File 配置中 file.config.basicServer.jwtServerConfig.symmetricKey 的值
-# expire_hours 过期时间，单位小时；File 配置没有 JWT 有效期字段，默认 24
-./jwt-generator -k ${jwt_key} -e ${expire_hours}
-```
-
 #### init_package.py
 
 ```bash
-# jwt_key 使用 File 配置中 file.config.basicServer.jwtServerConfig.symmetricKey 的值
-# expire_hours 过期时间，单位小时；File 配置没有 JWT 有效期字段，默认 24
 # host 使用 File Service 的路由地址
 # port 使用 File 配置中 file.config.basicServer.port 的值
 # tenant_id 为租户id
 python3 ./init_package.py \
-        --jwt-key "${jwt_key}" \
-        --expire-hours ${expire_hours} \
         --host ${host} \
         --port ${port} \
         --tenant-id ${tenant_id} \
