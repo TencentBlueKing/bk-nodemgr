@@ -23,6 +23,9 @@ package auth
 type Action string
 
 const (
+	// ActionSystemAccess represents the action to access the system without resource restrictions.
+	ActionSystemAccess Action = "system_access"
+
 	// ActionBizAccess represents the action to access business-scoped capabilities.
 	ActionBizAccess Action = "biz_access"
 
@@ -101,6 +104,8 @@ const (
 // Returns an empty string for unknown actions.
 func ActionDisplayName(a Action) string {
 	switch a {
+	case ActionSystemAccess:
+		return "系统访问"
 	case ActionBizAccess:
 		return "业务访问"
 	case ActionAgentView:
