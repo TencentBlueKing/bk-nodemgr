@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -114,4 +115,100 @@ func (x *NodeOpsHistoryDetailResp) ConvertSnapshotsFromTypes(snapshots []*types.
 		}
 	}
 	x.Data = &NodeOpsHistoryDetailResp_Data{Total: int64(len(items)), Items: items}
+}
+
+// Validate checks the update ops fields request body.
+func (x *NodeOpsUpdateFieldsAgentReq) Validate() error {
+	if len(x.GetHosts()) == 0 {
+		return errors.New("hosts can not be empty")
+	}
+
+	for _, h := range x.GetHosts() {
+		if h.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be greater than 0")
+		}
+	}
+	hostIDs := conv.SliceToSlice(x.GetHosts(), func(host *NodeOpsInfo) int64 {
+		return host.GetBkHostId()
+	})
+	if len(conv.SliceUnique(hostIDs)) != len(hostIDs) {
+		return errors.New("duplicated bk_host_id")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeOpsUpdateFieldsAgentReq) AutoConvert() {}
+
+// ConvertParamToTypes converts update ops fields request to types hosts.
+func (x *NodeOpsUpdateFieldsAgentReq) ConvertParamToTypes() []*types.Host {
+	hosts := x.GetHosts()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
+				OpsOutBandType:     host.GetOpsOutBandType(),
+				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
+				OpsOutBandIP:       host.GetOpsOutBandIp(),
+				OpsOutBandPort:     host.GetOpsOutBandPort(),
+			},
+		}
+	}
+
+	return hostsParam
+}
+
+// Validate checks the update ops fields request body.
+func (x *NodeOpsUpdateFieldsProxyReq) Validate() error {
+	if len(x.GetHosts()) == 0 {
+		return errors.New("hosts can not be empty")
+	}
+
+	for _, h := range x.GetHosts() {
+		if h.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be greater than 0")
+		}
+	}
+	hostIDs := conv.SliceToSlice(x.GetHosts(), func(host *NodeOpsInfo) int64 {
+		return host.GetBkHostId()
+	})
+	if len(conv.SliceUnique(hostIDs)) != len(hostIDs) {
+		return errors.New("duplicated bk_host_id")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeOpsUpdateFieldsProxyReq) AutoConvert() {}
+
+// ConvertParamToTypes converts update ops fields request to types hosts.
+func (x *NodeOpsUpdateFieldsProxyReq) ConvertParamToTypes() []*types.Host {
+	hosts := x.GetHosts()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
+				OpsOutBandType:     host.GetOpsOutBandType(),
+				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
+				OpsOutBandIP:       host.GetOpsOutBandIp(),
+				OpsOutBandPort:     host.GetOpsOutBandPort(),
+			},
+		}
+	}
+
+	return hostsParam
 }

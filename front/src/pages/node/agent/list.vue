@@ -663,7 +663,7 @@ const operate = computed(() => [
   { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: restartDisabledState.value.disabled, tooltip: restartDisabledState.value.tooltip, show: true },
   { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: uninstallDisabledState.value.disabled, tooltip: uninstallDisabledState.value.tooltip, show: true },
   { id: 'assign_unit', name: t('platform.nodeMan.agentStatus.assignUnit'), disabled: assignUnitDisabledState.value.disabled, tooltip: assignUnitDisabledState.value.tooltip, show: true },
-  { id: 'update_ops_fields', name: t('platform.nodeMan.agentNodeStatus.opsSetting'), disabled: false, tooltip: '', show: true },
+  { id: 'ops_update_fields', name: t('platform.nodeMan.agentNodeStatus.opsSetting'), disabled: false, tooltip: '', show: true },
 ]);
 const agentInstallType = [
   { id: 'setup', name: '普通远程安装' },
@@ -1549,9 +1549,9 @@ const handleRowAuthClick = async (row: Host, e?: MouseEvent) => {
   }
 };
 
-/** 获取操作项是否有权限：assign_unit/update_ops_fields 不做前端校验（直接放行），其余用 agent_operate */
+/** 获取操作项是否有权限：assign_unit/ops_update_fields 不做前端校验（直接放行），其余用 agent_operate */
 const getItemHasAuth = (item: any, row: Host): boolean => {
-  if (item.id === 'assign_unit' || item.id === 'update_ops_fields') return true;
+  if (item.id === 'assign_unit' || item.id === 'ops_update_fields') return true;
   return hasAgentOperateAuth(row);
 };
 
@@ -1595,7 +1595,7 @@ const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; too
 const handleOperate = async (type: string, data: Host[], batch = false) => {
   // 如果是跨页全选模式，获取所有数据
   let operateData = data;
-  if (isCrossPageSelection.value && type !== 'reinstall' && type !== 'assign_unit' && type !== 'update_ops_fields') {
+  if (isCrossPageSelection.value && type !== 'reinstall' && type !== 'assign_unit' && type !== 'ops_update_fields') {
     await getCorssPageHostIds();
     operateData = crossPageHostIdData.value.map((item: any) => ({ bk_host_id: item }));
     batch = true; // 强制设置为批量模式
@@ -1619,7 +1619,7 @@ const handleOperate = async (type: string, data: Host[], batch = false) => {
       });
       router.push({ name: 'assignUnit' });
       return;
-    case 'update_ops_fields':
+    case 'ops_update_fields':
       nodeManageStore.updateOpsFieldsParams({
         tableData: operateData.map((item: any) => ({ ...item })),
         isCrossPageSelection: isCrossPageSelection.value,

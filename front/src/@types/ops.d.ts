@@ -5,6 +5,7 @@ export interface NodeOpsHistoryInfo {
   operator: string;
   operate_time: number;
   node_role: string;
+  bk_biz_id: number[];
 }
 
 // NodeOpsHistoryExactConditions describes the exact conditions of the history
@@ -15,6 +16,7 @@ export interface NodeOpsHistoryExactConditions {
   operate_id: string[];
   operator: string[];
   node_role: string[];
+  bk_biz_id: number[];
 }
 
 // NodeOpsHistoryFuzzyConditions describes the fuzzy conditions of the history
@@ -49,16 +51,7 @@ export interface NodeOpsHistoryListRespData {
 
 // NodeOpsHistoryHostSnapshot preserves host information and submitted settings.
 export interface NodeOpsHistoryHostSnapshot {
-  operate_id: string;
   bk_host_id: number;
-  bk_host_innerip_list: string[];
-  bk_host_innerip_v6_list: string[];
-  bk_biz_id: number;
-  bk_biz_name: string;
-  bk_networkarea_id: number;
-  bk_networkarea_name: string;
-  bk_networkunit_id: number;
-  bk_networkunit_name: string;
   ops_console_host_id: number;
   ops_console_host_innerip_list: string[];
   ops_console_host_innerip_v6_list: string[];
@@ -89,5 +82,51 @@ export interface NodeOpsHistoryDetailRespData {
   // Number of accessible host snapshots for this operation.
   total: number;
   items: NodeOpsHistoryHostSnapshot[];
+}
+
+// NodeOpsInfo describes the out-of-band (ops) information for a node.
+export interface NodeOpsInfo {
+  bk_host_id: number;
+  ops_console_host_id: number;
+  ops_out_band_type: string;
+  ops_out_band_protocol: string;
+  ops_out_band_ip: string;
+  ops_out_band_port: number;
+}
+
+// NodeOpsUpdateFieldsAgentReq describes the batch update of agent ops fields.
+export interface NodeOpsUpdateFieldsAgentReq {
+  hosts: NodeOpsInfo[];
+}
+
+// NodeOpsUpdateFieldsAgentResp describes the agent ops fields update response.
+export interface NodeOpsUpdateFieldsAgentResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeOpsUpdateFieldsAgentRespData;
+}
+
+export interface NodeOpsUpdateFieldsAgentRespData {
+}
+
+// NodeOpsUpdateFieldsProxyReq describes the batch update of proxy ops fields.
+export interface NodeOpsUpdateFieldsProxyReq {
+  hosts: NodeOpsInfo[];
+}
+
+// NodeOpsUpdateFieldsProxyResp describes the proxy ops fields update response.
+export interface NodeOpsUpdateFieldsProxyResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeOpsUpdateFieldsProxyRespData;
+}
+
+export interface NodeOpsUpdateFieldsProxyRespData {
 }
 

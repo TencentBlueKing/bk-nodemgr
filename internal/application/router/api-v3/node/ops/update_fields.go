@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package proxy
+package ops
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -25,9 +25,29 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-// ProxyUpdateOpsFields batch-updates out-of-band (ops) fields for proxy hosts.
-func (h *handler) ProxyUpdateOpsFields(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeProxyUpdateOpsFieldsReq)
+// UpdateFieldsAgent batch-updates out-of-band (ops) fields for hosts.
+func (h *handler) UpdateFieldsAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.NodeOpsUpdateFieldsAgentReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update agent ops fields, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if err := h.backendHandler.UpdateAgentOpsFields(rCtx, req.ConvertParamToTypes()); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update agent ops fields, failed to update host")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("count", len(req.GetHosts())).Info("updated agent ops fields")
+
+	resp := new(protoApplication.NodeOpsUpdateFieldsAgentResp)
+
+	return resp.GetData(), nil
+}
+
+// UpdateFieldsProxy batch-updates out-of-band (ops) fields for proxy hosts.
+func (h *handler) UpdateFieldsProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.NodeOpsUpdateFieldsProxyReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update proxy ops fields, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -40,7 +60,7 @@ func (h *handler) ProxyUpdateOpsFields(rCtx restserver.IContext) (interface{}, e
 
 	logger.G.Biz(rCtx).With("count", len(req.GetHosts())).Info("updated proxy ops fields")
 
-	resp := new(protoApplication.NodeProxyUpdateOpsFieldsResp)
+	resp := new(protoApplication.NodeOpsUpdateFieldsProxyResp)
 
 	return resp.GetData(), nil
 }

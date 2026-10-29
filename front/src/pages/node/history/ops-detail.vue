@@ -39,16 +39,6 @@
             fixed="left"
           />
           <TableColumn
-            field="cloud"
-            :title="$t('platform.nodeMan.bk_cloud_name')"
-            min-width="120"
-          />
-          <TableColumn
-            field="unit"
-            :title="$t('platform.nodeMan.bk_cloud_unit')"
-            min-width="140"
-          />
-          <TableColumn
             field="console_host"
             :title="$t('platform.nodeMan.agentNodeStatus.opsConsoleHostId')"
             min-width="140"
@@ -130,8 +120,6 @@ const joinList = (list?: string[]) => (list && list.length > 0 ? list.join(', ')
 const tableData = computed(() => snapshots.value.map(item => ({
   ...item,
   host_id: item.bk_host_id || '--',
-  cloud: item.bk_networkarea_name || '--',
-  unit: item.bk_networkunit_name || '--',
   console_host: joinList(item.ops_console_host_innerip_list),
   out_band_type: item.ops_out_band_type || '--',
   out_band_protocol: item.ops_out_band_protocol || '--',

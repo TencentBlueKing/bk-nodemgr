@@ -511,16 +511,6 @@ interface Permission {
   actions: Action[];
 }
 
-// HostOpsInfo describes the out-of-band (ops) information for a host.
-interface HostOpsInfo {
-  bk_host_id: number;
-  ops_console_host_id: number;
-  ops_out_band_type: string;
-  ops_out_band_protocol: string;
-  ops_out_band_ip: string;
-  ops_out_band_port: number;
-}
-
 // Firewall describes the local firewall setup before installation.
 interface Firewall {
   remote_ips: string[];

@@ -65,6 +65,7 @@
         <TableColumn
           v-if="isOps"
           field="operate_id"
+          :visible="settings.checked.includes('operate_id')"
           :title="t('platform.nodeMan.taskHistory.label.operateId')"
           min-width="180"
           fixed="left"
@@ -81,6 +82,7 @@
         <TableColumn
           v-if="isOps"
           field="node_role"
+          :visible="settings.checked.includes('node_role')"
           :title="t('platform.nodeMan.taskHistory.label.nodeRole')"
           min-width="120"
         />
@@ -989,14 +991,19 @@ const getTaskList = async () => {
   let res;
   let statistics: any;
   if (isOps.value) {
-    // 带外管理操作历史：走 Ops 服务，条件仅 operate_id / operator
+    // Ops history follows the selected businesses and operation ID/operator filters.
     const params: NodeOpsHistoryListReq = {
       page: {
         limit: pagination.limit,
         offset: (pagination.current - 1) * pagination.limit,
       },
       only_count: false,
-      exact_include_conditions: { operate_id: [], operator: [], node_role: [] },
+      exact_include_conditions: {
+        operate_id: [],
+        operator: [],
+        node_role: [],
+        bk_biz_id: mainStore.selectedBusinessId,
+      },
       fuzzy_include_conditions: {},
       operate_time_range: {
         start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),

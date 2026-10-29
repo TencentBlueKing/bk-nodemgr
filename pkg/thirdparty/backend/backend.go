@@ -1788,14 +1788,14 @@ func (c *cli) checkUpgradeAgent(ctx contextx.IContext, req *protoBackend.NodeAge
 	return resp, nil
 }
 
-func (c *cli) updateNodeAgentOpsFields(ctx contextx.IContext, req *protoBackend.NodeAgentUpdateOpsFieldsReq) (
-	*protoBackend.NodeAgentUpdateOpsFieldsResp, error) {
+func (c *cli) updateNodeOpsFieldsAgent(ctx contextx.IContext, req *protoBackend.NodeOpsUpdateFieldsAgentReq) (
+	*protoBackend.NodeOpsUpdateFieldsAgentResp, error) {
 
-	resp := new(protoBackend.NodeAgentUpdateOpsFieldsResp)
+	resp := new(protoBackend.NodeOpsUpdateFieldsAgentResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/node/agent/update_ops_fields").
+		SubResourcef("/node/ops/update_fields/agent").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1972,14 +1972,14 @@ func (c *cli) updateNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxy
 	return resp, nil
 }
 
-func (c *cli) updateNodeProxyOpsFields(ctx contextx.IContext, req *protoBackend.NodeProxyUpdateOpsFieldsReq) (
-	*protoBackend.NodeProxyUpdateOpsFieldsResp, error) {
+func (c *cli) updateNodeOpsFieldsProxy(ctx contextx.IContext, req *protoBackend.NodeOpsUpdateFieldsProxyReq) (
+	*protoBackend.NodeOpsUpdateFieldsProxyResp, error) {
 
-	resp := new(protoBackend.NodeProxyUpdateOpsFieldsResp)
+	resp := new(protoBackend.NodeOpsUpdateFieldsProxyResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/node/proxy/update_ops_fields").
+		SubResourcef("/node/ops/update_fields/proxy").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
