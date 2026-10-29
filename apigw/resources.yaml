@@ -20855,9 +20855,6 @@ paths:
                   data:
                     type: object
                     properties:
-                      key_type:
-                        type: string
-                        description: The asymmetric algorithm of public_key, RSA4096 (CLASSIC suite) or SM2 (SHANGMI suite).
                       public_key:
                         type: string
                   error:
@@ -20975,6 +20972,9 @@ paths:
                   data:
                     type: object
                     properties:
+                      key_type:
+                        type: string
+                        description: The asymmetric algorithm of public_key, RSA4096 (CLASSIC suite) or SM2 (SHANGMI suite).
                       public_key:
                         type: string
                   error:
