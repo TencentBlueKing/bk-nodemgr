@@ -149,6 +149,46 @@ func (k *KMS) ParseAdminClientBKApp(conf *AdminClientBKApp) error {
 	return nil
 }
 
+// ParseAdminClientJWT parses the adminclient jwt_token config.
+// The jwt server keys live only in the global envelope, so only the global private
+// key is required. Like ParseAdminClientBKApp, kms disabled is an error here: plaintext
+// deployments read jwt keys from values and never call the jwt_token command.
+func (k *KMS) ParseAdminClientJWT(conf *AdminClientJWT) error {
+	if !k.Enabled {
+		return fmt.Errorf("kms is not enabled, jwt server keys are only available via kms")
+	}
+
+	if err := k.loadGlobal(); err != nil {
+		return err
+	}
+
+	dataGlobal, err := kms.LoadGlobalEnvelope(k.param)
+	if err != nil {
+		return err
+	}
+
+	// application.
+	conf.ApplicationInfo.SymmetricKey = dataGlobal.JwtServerConfig.ApplicationInfo.SymmetricKey
+	conf.ApplicationAdmin.SymmetricKey = dataGlobal.JwtServerConfig.ApplicationAdmin.SymmetricKey
+	conf.ApplicationBasic.SymmetricKey = dataGlobal.JwtServerConfig.ApplicationBasic.SymmetricKey
+
+	// backend.
+	conf.BackendInfo.SymmetricKey = dataGlobal.JwtServerConfig.BackendInfo.SymmetricKey
+	conf.BackendAdmin.SymmetricKey = dataGlobal.JwtServerConfig.BackendAdmin.SymmetricKey
+	conf.BackendBasic.SymmetricKey = dataGlobal.JwtServerConfig.BackendBasic.SymmetricKey
+	conf.BackendCallback.SymmetricKey = dataGlobal.JwtServerConfig.BackendCallback.SymmetricKey
+	conf.BackendProxy.SymmetricKey = dataGlobal.JwtServerConfig.BackendProxy.SymmetricKey
+
+	// file.
+	conf.FileInfo.SymmetricKey = dataGlobal.JwtServerConfig.FileInfo.SymmetricKey
+	conf.FileAdmin.SymmetricKey = dataGlobal.JwtServerConfig.FileAdmin.SymmetricKey
+	conf.FileBasic.SymmetricKey = dataGlobal.JwtServerConfig.FileBasic.SymmetricKey
+	conf.FileDownload.SymmetricKey = dataGlobal.JwtServerConfig.FileDownload.SymmetricKey
+	conf.FileExport.SymmetricKey = dataGlobal.JwtServerConfig.FileExport.SymmetricKey
+
+	return nil
+}
+
 // ParseApplicationServiceConfig parses the application service config.
 func (k *KMS) ParseApplicationServiceConfig(service *ApplicationService) error {
 	if !k.Enabled {

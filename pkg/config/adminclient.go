@@ -81,6 +81,46 @@ func (conf *AdminClientBKApp) LoadFromFile(path string) error {
 	return nil
 }
 
+// AdminClientJWT the minimal config for the adminclient jwt_token command: only the kms
+// section is needed, since the jwt server keys live in the kms global envelope.
+type AdminClientJWT struct {
+	KMS KMS `yaml:"kms" usage:"kms secret config"`
+
+	// The per-server jwt configs are populated by LoadFromFile from the kms global
+	// envelope; only SymmetricKey is set, because the jwt_token command signs tokens
+	// with the symmetric key verified by the rest-server auth identity.
+	ApplicationInfo  JWTServerConfig `yaml:"-"`
+	ApplicationAdmin JWTServerConfig `yaml:"-"`
+	ApplicationBasic JWTServerConfig `yaml:"-"`
+	BackendInfo      JWTServerConfig `yaml:"-"`
+	BackendAdmin     JWTServerConfig `yaml:"-"`
+	BackendBasic     JWTServerConfig `yaml:"-"`
+	BackendCallback  JWTServerConfig `yaml:"-"`
+	BackendProxy     JWTServerConfig `yaml:"-"`
+	FileInfo         JWTServerConfig `yaml:"-"`
+	FileAdmin        JWTServerConfig `yaml:"-"`
+	FileBasic        JWTServerConfig `yaml:"-"`
+	FileDownload     JWTServerConfig `yaml:"-"`
+	FileExport       JWTServerConfig `yaml:"-"`
+}
+
+// LoadFromFile loads the kms section from a service config file and decrypts the jwt
+// server keys from the kms global envelope into JWT. Like the bkapp command, kms is
+// mandatory here: plaintext deployments read jwt keys from values and never call this
+// command, so a disabled kms section is an error.
+func (conf *AdminClientJWT) LoadFromFile(path string) error {
+	if err := loadYAMLFile(path, conf); err != nil {
+		return err
+	}
+
+	// load kms secret.
+	if err := conf.KMS.ParseAdminClientJWT(conf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // loadYAMLFile reads a yaml config file into v.
 func loadYAMLFile(path string, v any) error {
 	absPath, err := filepath.Abs(path)

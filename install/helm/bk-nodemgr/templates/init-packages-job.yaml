@@ -84,6 +84,7 @@ spec:
               value: {{ .Values.initPackages.gseCert.agent.cert | default "" | quote }}
             - name: GSE_AGENT_KEY_B64
               value: {{ .Values.initPackages.gseCert.agent.key | default "" | quote }}
+            {{- include "bk-nodemgr.bkappKMSEnv" . | nindent 12 }}
           command:
             - /bin/sh
             - -c
@@ -228,9 +229,25 @@ spec:
             - name: {{ template "bk-nodemgr.fullname" . }}-file-config
               mountPath: {{ .Values.common.etcPath }}/file_conf.yaml
               subPath: file_conf.yaml
+            {{- if .Values.kms.enabled }}
+            # jwt_token reads the file basic jwt key from the global envelope only;
+            # the module envelope is not mounted.
+            - name: kms-envelope
+              mountPath: {{ .Values.common.secretPath }}/kms-global-envelope
+              subPath: kms-global-envelope
+              readOnly: true
+            {{- end }}
       volumes:
         - name: {{ template "bk-nodemgr.fullname" . }}-file-config
           configMap:
             name: {{ template "bk-nodemgr.fullname" . }}-file-config
+        {{- if .Values.kms.enabled }}
+        - name: kms-envelope
+          secret:
+            secretName: {{ template "bk-nodemgr.fullname" . }}-global-kms-secret
+            items:
+              - key: envelope
+                path: kms-global-envelope
+        {{- end }}
       restartPolicy: Never
 {{- end }}

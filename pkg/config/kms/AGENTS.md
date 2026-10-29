@@ -8,7 +8,7 @@
 |Where to look:load/decrypt:kms.go:EnvelopeLoadParam;Load{Application,Backend,File}Envelopes;LoadGlobalEnvelope;internal per-envelope decrypt/unmarshal helpers
 |Where to look:typed payloads:envelope/:GlobalEnvelope + {Application,Backend,File}Envelope|Child AGENTS:pkg/config/kms/envelope/AGENTS.md
 |Service flow:pkg/config/kms.go KMS.load(file/env I/O)→EnvelopeLoadParam→Load{Application,Backend,File}Envelopes→shared GlobalEnvelope + service module envelope→pkg/config/kms.go Parse*ServiceConfig
-|Global-only flow:pkg/config/kms.go KMS.loadGlobal(global file/key only)→LoadGlobalEnvelope→KMS.ParseAdminClientDatabase={etcd,redis,mongodb};KMS.ParseAdminClientBKApp={bkapp_id_secret.default app code/secret}
+|Global-only flow:pkg/config/kms.go KMS.loadGlobal(global file/key only)→LoadGlobalEnvelope→KMS.ParseAdminClientDatabase={etcd,redis,mongodb};KMS.ParseAdminClientBKApp={bkapp_id_secret.default app code/secret};KMS.ParseAdminClientJWT={jwt_server_config keys}
 |Conventions:one load entrypoint per service returns shared global + own module type|new service=add entrypoint + module envelope type;do not widen existing signatures (OCP)
 |Conventions:global-only consumers use LoadGlobalEnvelope;do not require module private keys|secret input only via caller-assembled EnvelopeLoadParam;no os.Getenv/os.ReadFile here
 |Conventions:decrypt/unmarshal errors use fmt.Errorf with %w and failed-envelope context|exported symbols require English comments

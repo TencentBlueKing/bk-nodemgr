@@ -17,3 +17,4 @@
 - [backend](backend.md)：Backend 管理操作，目前记录租户初始化。
 - [database](database.md)：存储连通性检查（check）与 etcd/redis/mongodb 客户端代理，支持 KMS 凭据覆盖。
 - [bkapp](bkapp.md)：从 KMS global envelope 输出蓝鲸应用 appCode/appSecret，供安装/升级 Job 使用。
+- [jwt_token](jwt_token.md)：用 KMS global envelope 中的 JWT 密钥为指定服务的 HTTP server 签发 token，供安装/升级脚本调用需要认证的内部 API。

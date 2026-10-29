@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import uuid
@@ -79,8 +80,11 @@ def resolve_runtime_config(args, config):
     """Resolve CLI values, File configuration values, and safe defaults."""
     basic_server = config.get("basicServer", {})
     auth_identity = get_nested_value(basic_server, "authIdentity")
+    # Under kms the jwt key is decrypted by adminclient from the global envelope at
+    # token generation time; the rendered config value is intentionally left empty.
+    kms_jwt = bool(get_nested_value(config, "kms", "enabled")) and auth_identity != "none"
     config_jwt_key = ""
-    if auth_identity != "none":
+    if auth_identity != "none" and not kms_jwt:
         config_jwt_key = (
             get_nested_value(basic_server, "jwtServerConfig", "symmetricKey") or ""
         )
@@ -93,7 +97,9 @@ def resolve_runtime_config(args, config):
             if args.port is not None
             else config_int(get_nested_value(basic_server, "port"), 28202)
         ),
+        # An explicit --jwt-key keeps the highest priority and disables kms lookup.
         "jwt_key": args.jwt_key if args.jwt_key is not None else config_jwt_key,
+        "kms_jwt": kms_jwt and args.jwt_key is None,
         "expire_hours": (
             args.expire_hours
             if args.expire_hours is not None
@@ -199,6 +205,52 @@ def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
         return False, "jwt-generator execution timeout"
     except Exception as e:
         return False, f"failed to execute jwt-generator: {str(e)}"
+
+
+def generate_jwt_token_kms(config_file=None, bk_username=None, login_name=None):
+    """Generate a JWT via adminclient, which signs with the file basic key decrypted
+    from the KMS global envelope. The plaintext key never enters this process."""
+    binary = shutil.which("bk-nodemgr-adminclient")
+    if binary is None:
+        binary = "/bk-nodemgr/bin/bk-nodemgr-adminclient"
+    if not os.path.exists(binary):
+        return False, f"bk-nodemgr-adminclient not found: {binary}"
+
+    command = [
+        binary,
+        "jwt_token",
+        "file",
+        "basic",
+        "--login-name",
+        login_name,
+        "--bk-username",
+        bk_username,
+    ]
+    if config_file:
+        command += ["-f", config_file]
+
+    try:
+        result = subprocess.run(
+            command, capture_output=True, text=True, timeout=10
+        )
+
+        if result.returncode != 0:
+            error_msg = result.stderr.strip() if result.stderr else "unknown error"
+            return False, f"jwt_token failed: {error_msg}"
+
+        token = result.stdout.strip()
+        if not token:
+            return False, "jwt_token returned empty token"
+
+        if token.count(".") != 2:
+            return False, "invalid JWT token format returned by jwt_token"
+
+        return True, token
+
+    except subprocess.TimeoutExpired:
+        return False, "jwt_token execution timeout"
+    except Exception as e:
+        return False, f"failed to execute jwt_token: {str(e)}"
 
 
 # =================== http request ===================
@@ -333,12 +385,20 @@ class FileClient(object):
         tenant_id=None,
         bk_username=None,
         login_name=None,
+        kms_jwt=False,
+        config_file=None,
     ):
         self.jwt_key = jwt_key
         self.expire_hours = expire_hours
         self.tenant_id = tenant_id
         self.bk_username = bk_username
         self.login_name = login_name
+        self.kms_jwt = kms_jwt
+        self.config_file = config_file
+        # The token is signed lazily on first request and cached: signing forks a
+        # subprocess (jwt-generator or adminclient), and the job lifetime is far
+        # shorter than the token validity.
+        self._cached_jwt_token = None
         self.base_url = f"http://{host}:{port}/api/v3"
 
     def _get_common_headers(self):
@@ -346,19 +406,31 @@ class FileClient(object):
             "X-Request-Id": generate_id("rid"),
         }
 
-        if self.jwt_key:
-            ok, jwt_token = generate_jwt_token(
-                self.jwt_key, self.expire_hours, self.bk_username, self.login_name
-            )
-            if not ok:
-                raise Exception(f"Failed to generate JWT token: {jwt_token}")
-
-            headers["X-Bknodemgr-Authorization"] = jwt_token
+        if self.kms_jwt or self.jwt_key:
+            headers["X-Bknodemgr-Authorization"] = self._get_jwt_token()
 
         if self.tenant_id:
             headers["X-Bk-Tenant-Id"] = self.tenant_id
 
         return headers
+
+    def _get_jwt_token(self):
+        if self._cached_jwt_token is not None:
+            return self._cached_jwt_token
+
+        if self.kms_jwt:
+            ok, jwt_token = generate_jwt_token_kms(
+                self.config_file, self.bk_username, self.login_name
+            )
+        else:
+            ok, jwt_token = generate_jwt_token(
+                self.jwt_key, self.expire_hours, self.bk_username, self.login_name
+            )
+        if not ok:
+            raise Exception(f"Failed to generate JWT token: {jwt_token}")
+
+        self._cached_jwt_token = jwt_token
+        return jwt_token
 
     def _call_api(self, method, path, json_data=None, file_path=None, metadata=None):
         url = self.base_url + path
@@ -838,6 +910,8 @@ if __name__ == "__main__":
             tenant_id=runtime_config["tenant_id"],
             bk_username=runtime_config["bk_username"],
             login_name=runtime_config["login_name"],
+            kms_jwt=runtime_config["kms_jwt"],
+            config_file=config_source,
         )
     except Exception as e:
         print(f"failed to create file client: {str(e)}")

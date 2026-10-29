@@ -417,9 +417,10 @@ Params: dict "root" . "appCode" <values appCode> "appSecret" <values appSecret>
 APP_CODE="$({{ $binPath }}/bk-nodemgr-adminclient bkapp code -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
 APP_SECRET="$({{ $binPath }}/bk-nodemgr-adminclient bkapp secret -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
 {{- else }}
-# single quotes keep $ and backticks in the values literal.
-APP_CODE={{ .appCode | squote }}
-APP_SECRET={{ .appSecret | squote }}
+# single quotes keep $ and backticks in the values literal; embedded single
+# quotes are closed, escaped and reopened ('\''), so any byte sequence stays literal.
+APP_CODE='{{ .appCode | replace "'" "'\\''" }}'
+APP_SECRET='{{ .appSecret | replace "'" "'\\''" }}'
 {{- end }}
 {{- if .exportBKApp }}
 export BK_APP_CODE="${APP_CODE}"
@@ -428,8 +429,8 @@ export BK_APP_SECRET="${APP_SECRET}"
 {{- end -}}
 
 {{/*
-Env entries for bkapp resolution: the global envelope private key from the
-ESO-synced kms secret. Rendered only when kms.enabled.
+Env entries for adminclient KMS consumers (bkapp, jwt_token): the global envelope
+private key from the ESO-synced kms secret. Rendered only when kms.enabled.
 */}}
 {{- define "bk-nodemgr.bkappKMSEnv" -}}
 {{- if .Values.kms.enabled }}

@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/bkapp"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/database"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/jwttoken"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
@@ -56,6 +57,7 @@ func main() {
 	rootCMD.AddCommand(backend.NewBackendCMD(newBackendAdminHandler))
 	rootCMD.AddCommand(database.NewDatabaseCMD())
 	rootCMD.AddCommand(bkapp.NewBkappCMD())
+	rootCMD.AddCommand(jwttoken.NewJWTTokenCMD())
 
 	if err := rootCMD.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to execute cmd: %v\n", err)

@@ -21,7 +21,7 @@
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `--host`                        | CLI，否则 `localhost`                                                                                                                 |
 | `--port`                        | CLI，否则读取 File 配置 `file.config.basicServer.port`，再回落 `28202`                                                                |
-| `--jwt-key`                     | CLI，否则仅当 File 配置 `file.config.basicServer.authIdentity` 不为 `none` 时读取其 `jwtServerConfig.symmetricKey`；未启用 JWT 时为空 |
+| `--jwt-key`                     | CLI 显式传入；否则当配置 `kms.enabled: true` 且 `authIdentity` 不为 `none` 时，由 `bk-nodemgr-adminclient jwt_token file basic` 从 KMS 取密签发 token；非 KMS 部署回落到 File 配置 `file.config.basicServer.jwtServerConfig.symmetricKey`；未启用 JWT 时为空 |
 | `--expire-hours`                | 仅使用 CLI 显式设置；File 配置没有 JWT 有效期字段，未设置时默认为 `24` 小时                                                           |
 | `--bk-username`、`--login-name` | CLI，否则 `admin`                                                                                                                     |
 | `--tenant-id`                   | CLI，否则读取 File 配置 `file.config.tenantMode`；`multiple` 使用 `system`，其他情况使用 `default`                                    |
@@ -88,12 +88,11 @@ python3 /bk-nodemgr/support-files/initpackage/init_package.py --init-agent /tmp/
 file:
   enabled: true
   config:
-    # 仅当 File Basic Server 启用 JWT 鉴权时配置
+    # 仅当 File Basic Server 启用 JWT 鉴权时配置 authIdentity
     basicServer:
       authIdentity: rest-server
-      jwtServerConfig:
-        cryptoType: symmetric
-        symmetricKey: "<jwt-symmetric-key>"
+      # kms.enabled=true 时无需填写 jwtServerConfig.symmetricKey：Job 经
+      # bk-nodemgr-adminclient jwt_token 从 KMS 取密签发，密钥不进入 values。
 
 initPackages:
   enabled: true
@@ -105,7 +104,7 @@ initPackages:
   loginName: "admin"
 ```
 
-Job 不再从 Helm values 单独传入端口、JWT 密钥或 tenant；这些值均由挂载的 File 配置读取。JWT 有效期没有 File 配置字段，默认 24 小时，也可通过 `--expire-hours` 显式覆盖。`--host` 仍显式设置为 Job 使用的 File Service DNS。若 `file` Basic Server 启用了 JWT 鉴权，`file.config.basicServer.jwtServerConfig.symmetricKey` 必须与生成 JWT 使用的密钥一致；使用 `authIdentity: none` 时请求会按 `default` tenant 处理，密钥可以留空。File Pod 会在启动时替换配置中的 advertise/tracing 占位符，因此 Job 挂载的 ConfigMap 与 File Pod 的运行时配置文件不是逐字节相同的文件。
+Job 不再从 Helm values 单独传入端口、JWT 密钥或 tenant；这些值均由挂载的 File 配置读取。JWT 有效期没有 File 配置字段，默认 24 小时，也可通过 `--expire-hours` 显式覆盖（KMS 模式由 adminclient 固定签发 24 小时 token，该参数不生效）。`--host` 仍显式设置为 Job 使用的 File Service DNS。若 `file` Basic Server 启用了 JWT 鉴权：KMS 模式（`kms.enabled: true`）下 Job 挂载 global envelope 并注入私钥环境变量，由 `bk-nodemgr-adminclient jwt_token file basic` 解密 `jwt_server_config.file_basic.symmetric_key` 并签发 token，values 中的 `jwtServerConfig.symmetricKey` 留空即可；非 KMS 模式下 `jwtServerConfig.symmetricKey` 必须与生成 JWT 使用的密钥一致。使用 `authIdentity: none` 时请求会按 `default` tenant 处理，密钥可以留空。File Pod 会在启动时替换配置中的 advertise/tracing 占位符，因此 Job 挂载的 ConfigMap 与 File Pod 的运行时配置文件不是逐字节相同的文件。
 
 启用 JWT 鉴权时，应为 `bkUsername` 和 `loginName` 配置非空值。二者会写入 JWT 声明，用于标识本次初始化操作的执行用户。
 
