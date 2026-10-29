@@ -46,12 +46,6 @@ type IHandlerNodeAgent interface {
 	// @return the reconfig workflow-ids and error.
 	ReconfigAgent(nCtx contextx.IContext, reconfigParam *types.NodeAgentReconfigParam) (string, error)
 
-	// UpdateAgentOpsFields updates node agent ops fields.
-	// @param nCtx contextx.IContext, contains tenant-id and username.
-	// @param hosts the host list with ops fields.
-	// @return the error.
-	UpdateAgentOpsFields(nCtx contextx.IContext, hosts []*types.Host) error
-
 	// RestartProxy node agent.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param restartParam the restart param.
@@ -180,19 +174,6 @@ func (h *Handler) ReconfigAgent(nCtx contextx.IContext, reconfigParam *types.Nod
 	}
 
 	return resp.GetWorkflowID(), nil
-}
-
-// UpdateAgentOpsFields updates node agent ops fields.
-func (h *Handler) UpdateAgentOpsFields(nCtx contextx.IContext, hosts []*types.Host) error {
-	req := new(protoBackend.NodeOpsUpdateFieldsAgentReq)
-	req.ConvertParamFromTypes(hosts)
-
-	_, err := h.cli.updateNodeOpsFieldsAgent(nCtx, req)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // UninstallAgent node agent.

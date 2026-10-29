@@ -19,6 +19,8 @@
 package ops
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -30,6 +32,7 @@ import (
 )
 
 // ListFieldsAgent reads current agent settings using the agent operation permission.
+// It fails when any requested host is unmatched instead of returning a partial list.
 func (h *handler) ListFieldsAgent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeOpsFieldsListAgentReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -37,6 +40,8 @@ func (h *handler) ListFieldsAgent(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Deduplicate before counting so duplicated IDs never cause a mismatch below.
+	hostIDs := conv.SliceUnique(req.GetBkHostId())
 	selection := &types.HostFieldSelection{
 		HostID:             true,
 		BizID:              true,
@@ -47,7 +52,7 @@ func (h *handler) ListFieldsAgent(rCtx restserver.IContext) (interface{}, error)
 		OpsOutBandPort:     true,
 	}
 	cond := &types.HostCondition{
-		StaticExactInclude: &types.HostStaticExactFields{HostID: conv.SliceUnique(req.GetBkHostId())},
+		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	}
 	hosts, _, err := h.storageHost.ListHostWithFields(rCtx, types.UnlimitedPage(), selection, cond)
 	if err != nil {
@@ -61,6 +66,24 @@ func (h *handler) ListFieldsAgent(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
+	matched, _ := conv.SliceToMapIgnore(hosts, func(host *types.Host) int64 { return host.HostID })
+	unmatched := make([]int64, 0, len(hostIDs))
+	for _, hostID := range hostIDs {
+		if _, ok := matched[hostID]; !ok {
+			unmatched = append(unmatched, hostID)
+		}
+	}
+
+	if len(unmatched) > 0 {
+		logger.G.Biz(rCtx).
+			With("requested-count", len(hostIDs)).
+			With("matched-count", len(hosts)).
+			With("unmatched-host-ids", unmatched).
+			Error("failed to list node ops fields, requested hosts are not all matched")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("unmatched host IDs: %v", unmatched))
+	}
+
 	resp := new(protoBackend.NodeOpsFieldsListAgentResp)
 	resp.ConvertHostsFromTypes(hosts)
 
@@ -68,6 +91,7 @@ func (h *handler) ListFieldsAgent(rCtx restserver.IContext) (interface{}, error)
 }
 
 // ListFieldsProxy reads current proxy settings using the proxy operation permission.
+// It fails when any requested host is unmatched instead of returning a partial list.
 func (h *handler) ListFieldsProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeOpsFieldsListProxyReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -75,6 +99,8 @@ func (h *handler) ListFieldsProxy(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Deduplicate before counting so duplicated IDs never cause a mismatch below.
+	hostIDs := conv.SliceUnique(req.GetBkHostId())
 	selection := &types.HostFieldSelection{
 		HostID:             true,
 		BizID:              true,
@@ -85,7 +111,7 @@ func (h *handler) ListFieldsProxy(rCtx restserver.IContext) (interface{}, error)
 		OpsOutBandPort:     true,
 	}
 	cond := &types.HostCondition{
-		StaticExactInclude: &types.HostStaticExactFields{HostID: conv.SliceUnique(req.GetBkHostId())},
+		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	}
 	hosts, _, err := h.storageHost.ListHostWithFields(rCtx, types.UnlimitedPage(), selection, cond)
 	if err != nil {
@@ -97,6 +123,24 @@ func (h *handler) ListFieldsProxy(rCtx restserver.IContext) (interface{}, error)
 	if err := h.authorizer.Check(rCtx, auth.ActionProxyView, authRouter.BuildBizResources(bizIDs...)); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node ops fields, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
+	}
+
+	matched, _ := conv.SliceToMapIgnore(hosts, func(host *types.Host) int64 { return host.HostID })
+	unmatched := make([]int64, 0, len(hostIDs))
+	for _, hostID := range hostIDs {
+		if _, ok := matched[hostID]; !ok {
+			unmatched = append(unmatched, hostID)
+		}
+	}
+
+	if len(unmatched) > 0 {
+		logger.G.Biz(rCtx).
+			With("requested-count", len(hostIDs)).
+			With("matched-count", len(hosts)).
+			With("unmatched-host-ids", unmatched).
+			Error("failed to list node ops fields, requested hosts are not all matched")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("unmatched host IDs: %v", unmatched))
 	}
 
 	resp := new(protoBackend.NodeOpsFieldsListProxyResp)

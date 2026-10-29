@@ -16,10 +16,11 @@ POST /api/v3/node/ops/list_fields/agent
 
 **Parameter Notes**:
 
-- Unmatched `bk_host_id` values (non-existent or deleted hosts) are ignored; the request does not return an error because of them.
+- The number of `items` always equals the number of deduplicated `bk_host_id` values in the request, so callers can confirm that every target host was resolved.
+- If any `bk_host_id` is unmatched (non-existent, deleted, or not in the current tenant), the request returns a parameter error instead of a partial result; the error details list all unmatched host IDs.
 - The response contains out-of-band management fields only; host information such as CMDB business, topology, and inner IP must be obtained from other APIs such as the host list.
 - The response order is not guaranteed to match the order of `bk_host_id` in the request.
-- Permission is checked against the CMDB business that the matched hosts belong to: if any business lacks the required permission, the whole request returns a permission denied error.
+- Permission is checked against the CMDB business that the target hosts belong to: if any business lacks the required permission, the whole request returns a permission denied error.
 - This API does not filter results by node role; its response structure is the same as that of `/api/v3/node/ops/list_fields/proxy`, and the only difference is the view permission checked (`agent_view` / `proxy_view`).
 
 ### Request Example
@@ -69,7 +70,7 @@ Query the out-of-band management settings of two hosts.
 
 | Parameter Name | Parameter Type | Description                                                                                       |
 | -------------- | -------------- | ------------------------------------------------------------------------------------------------- |
-| items          | object array   | List of out-of-band management settings for the matched hosts, an empty array when no hosts match |
+| items          | object array   | Out-of-band management settings for the hosts matching the deduplicated `bk_host_id` values |
 
 #### data.items[n]
 
