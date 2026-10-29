@@ -25,6 +25,7 @@ import (
 	"time"
 
 	gocache "github.com/patrickmn/go-cache"
+	"golang.org/x/sync/singleflight"
 )
 
 var _ ICache = (*MemoryCache)(nil)
@@ -34,6 +35,7 @@ var errContextIsNil = errors.New("context is nil")
 // MemoryCache is an in-memory cache implementation.
 type MemoryCache struct {
 	cache *gocache.Cache
+	group singleflight.Group
 }
 
 // NewMemoryCache creates a MemoryCache with the given default expiration.
@@ -49,17 +51,77 @@ func (mc *MemoryCache) Get(ctx context.Context, key string) ([]byte, error) {
 		return nil, errContextIsNil
 	}
 
-	value, ok := mc.cache.Get(key)
-	if !ok {
+	data, found, err := mc.lookup(key)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		return nil, fmt.Errorf("key not found. key(%s)", key)
 	}
 
-	data, ok := value.([]byte)
-	if !ok {
-		return nil, fmt.Errorf("invalid cache value type. key(%s)", key)
+	return data, nil
+}
+
+// GetOrLoad returns a cached value or loads and caches it with the default expiration.
+// Concurrent misses for the same key share one load, using its initiating context.
+// Each waiter can cancel independently. Loaders for the same key must be equivalent.
+// Errors are not cached, and returned bytes are private to each caller.
+func (mc *MemoryCache) GetOrLoad(
+	ctx context.Context, key string, load func(context.Context) ([]byte, error),
+) ([]byte, error) {
+
+	if ctx == nil {
+		return nil, errContextIsNil
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 
-	return cloneBytes(data), nil
+	data, found, err := mc.lookup(key)
+	if err != nil {
+		return nil, err
+	}
+	if found {
+		return data, nil
+	}
+	if load == nil {
+		return nil, errors.New("cache loader is nil")
+	}
+
+	resultCh := mc.group.DoChan(key, func() (any, error) {
+		data, found, err := mc.lookup(key)
+		if err != nil {
+			return nil, err
+		}
+		if found {
+			return data, nil
+		}
+
+		data, err = load(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if err := mc.Set(ctx, key, data); err != nil {
+			return nil, fmt.Errorf("failed to cache loaded value: %w", err)
+		}
+
+		return cloneBytes(data), nil
+	})
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case result := <-resultCh:
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		data, ok := result.Val.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("invalid cache load result type. key(%s)", key)
+		}
+
+		return cloneBytes(data), nil
+	}
 }
 
 // Set stores a value with a key with default expiration.
@@ -129,6 +191,19 @@ func (mc *MemoryCache) Delete(ctx context.Context, key string) (bool, error) {
 	mc.cache.Delete(key)
 
 	return existed, nil
+}
+
+func (mc *MemoryCache) lookup(key string) ([]byte, bool, error) {
+	value, found := mc.cache.Get(key)
+	if !found {
+		return nil, false, nil
+	}
+	data, ok := value.([]byte)
+	if !ok {
+		return nil, false, fmt.Errorf("invalid cache value type. key(%s)", key)
+	}
+
+	return cloneBytes(data), true, nil
 }
 
 func normalizeExpiration(expiration time.Duration) time.Duration {

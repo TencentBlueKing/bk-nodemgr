@@ -20,8 +20,11 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 )
 
@@ -60,6 +63,233 @@ func TestMemoryCache_GetReturnsMissingKeyError(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "key not found. key(missing)") {
 		t.Fatalf("Get() error = %v, want missing key error", err)
 	}
+}
+
+func TestMemoryCache_GetOrLoadSingleflight(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ctx := context.Background()
+		c := NewMemoryCache(time.Minute)
+		release := make(chan struct{})
+		value := []byte("value")
+		var calls atomic.Int32
+		load := func(context.Context) ([]byte, error) {
+			calls.Add(1)
+			<-release
+			return value, nil
+		}
+		type result struct {
+			data []byte
+			err  error
+		}
+		results := make(chan result, 2)
+		for range 2 {
+			go func() {
+				data, err := c.GetOrLoad(ctx, "key", load)
+				results <- result{data: data, err: err}
+			}()
+		}
+
+		synctest.Wait()
+		if got := calls.Load(); got != 1 {
+			t.Errorf("loader calls = %d, want 1 for concurrent misses", got)
+		}
+		close(release)
+		first, second := <-results, <-results
+		for _, got := range []result{first, second} {
+			if got.err != nil {
+				t.Fatalf("GetOrLoad() unexpected error: %v", got.err)
+			}
+			if string(got.data) != "value" {
+				t.Fatalf("GetOrLoad() = %q, want value", got.data)
+			}
+		}
+		first.data[0] = 'x'
+		if string(second.data) != "value" || string(value) != "value" {
+			t.Fatal("GetOrLoad() shared returned bytes with another caller or loader")
+		}
+		value[0] = 'y'
+
+		for range 2 {
+			got, err := c.GetOrLoad(ctx, "key", load)
+			if err != nil {
+				t.Fatalf("GetOrLoad() cache hit unexpected error: %v", err)
+			}
+			if string(got) != "value" {
+				t.Fatalf("GetOrLoad() cache hit = %q, want stored copy", got)
+			}
+			got[0] = 'z'
+		}
+		if got := calls.Load(); got != 1 {
+			t.Fatalf("loader calls = %d, want 1 after cache hits", got)
+		}
+	})
+}
+
+func TestMemoryCache_GetOrLoadContextCancellation(t *testing.T) {
+	c := NewMemoryCache(time.Minute)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := c.GetOrLoad(ctx, "key", func(context.Context) ([]byte, error) {
+		t.Error("loader should not run for a cancelled context")
+		return nil, nil
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("GetOrLoad() error = %v, want context cancellation", err)
+	}
+}
+
+func TestMemoryCache_GetOrLoadDoesNotCacheError(t *testing.T) {
+	ctx := context.Background()
+	c := NewMemoryCache(time.Minute)
+	loadErr := errors.New("temporary failure")
+	var calls atomic.Int32
+	load := func(context.Context) ([]byte, error) {
+		if calls.Add(1) == 1 {
+			return nil, loadErr
+		}
+		return []byte("value"), nil
+	}
+
+	if _, err := c.GetOrLoad(ctx, "key", load); !errors.Is(err, loadErr) {
+		t.Fatalf("GetOrLoad() error = %v, want loader error", err)
+	}
+	for range 2 {
+		got, err := c.GetOrLoad(ctx, "key", load)
+		if err != nil {
+			t.Fatalf("GetOrLoad() after loader error unexpected error: %v", err)
+		}
+		if string(got) != "value" {
+			t.Fatalf("GetOrLoad() = %q, want value", got)
+		}
+	}
+	if got := calls.Load(); got != 2 {
+		t.Fatalf("loader calls = %d, want 2 after retry and cache hit", got)
+	}
+}
+
+func TestMemoryCache_GetOrLoadUsesDefaultExpiration(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ctx := context.Background()
+		c := NewMemoryCache(time.Minute)
+		var calls atomic.Int32
+		load := func(context.Context) ([]byte, error) {
+			if calls.Add(1) == 1 {
+				return []byte("first"), nil
+			}
+			return []byte("second"), nil
+		}
+		for range 2 {
+			got, err := c.GetOrLoad(ctx, "key", load)
+			if err != nil {
+				t.Fatalf("GetOrLoad() before expiration unexpected error: %v", err)
+			}
+			if string(got) != "first" {
+				t.Fatalf("GetOrLoad() before expiration = %q, want first", got)
+			}
+		}
+
+		time.Sleep(time.Minute + time.Nanosecond)
+		got, err := c.GetOrLoad(ctx, "key", load)
+		if err != nil {
+			t.Fatalf("GetOrLoad() after expiration unexpected error: %v", err)
+		}
+		if string(got) != "second" || calls.Load() != 2 {
+			t.Fatalf("GetOrLoad() after expiration = %q, loader calls = %d, want second and 2", got, calls.Load())
+		}
+	})
+}
+
+func TestMemoryCache_GetOrLoadWaiterCancellation(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ctx := context.Background()
+		c := NewMemoryCache(time.Minute)
+		release := make(chan struct{})
+		load := func(ctx context.Context) ([]byte, error) {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-release:
+				return []byte("value"), nil
+			}
+		}
+		type result struct {
+			data []byte
+			err  error
+		}
+		leader := make(chan result, 1)
+		go func() {
+			data, err := c.GetOrLoad(ctx, "key", load)
+			leader <- result{data: data, err: err}
+		}()
+		synctest.Wait()
+
+		waiterCtx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		waiter := make(chan error, 1)
+		go func() {
+			_, err := c.GetOrLoad(waiterCtx, "key", load)
+			waiter <- err
+		}()
+		synctest.Wait()
+		cancel()
+		if err := <-waiter; !errors.Is(err, context.Canceled) {
+			t.Errorf("GetOrLoad() waiter error = %v, want context cancellation", err)
+		}
+		close(release)
+		got := <-leader
+		if got.err != nil {
+			t.Fatalf("GetOrLoad() leader unexpected error: %v", got.err)
+		}
+		if string(got.data) != "value" {
+			t.Fatalf("GetOrLoad() leader = %q, want value", got.data)
+		}
+		cached, err := c.Get(ctx, "key")
+		if err != nil {
+			t.Fatalf("Get() after waiter cancellation unexpected error: %v", err)
+		}
+		if string(cached) != "value" {
+			t.Fatalf("Get() after waiter cancellation = %q, want value", cached)
+		}
+	})
+}
+
+func TestMemoryCache_GetOrLoadDifferentKeys(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ctx := context.Background()
+		c := NewMemoryCache(time.Minute)
+		release := make(chan struct{})
+		first := make(chan error, 1)
+		go func() {
+			got, err := c.GetOrLoad(ctx, "first", func(context.Context) ([]byte, error) {
+				<-release
+				return []byte("first value"), nil
+			})
+			if err != nil {
+				first <- err
+				return
+			}
+			if string(got) != "first value" {
+				t.Errorf("GetOrLoad(first) = %q, want first value", got)
+			}
+			first <- nil
+		}()
+		synctest.Wait()
+
+		got, err := c.GetOrLoad(ctx, "second", func(context.Context) ([]byte, error) {
+			return []byte("second value"), nil
+		})
+		close(release)
+		if err != nil {
+			t.Fatalf("GetOrLoad(second) unexpected error: %v", err)
+		}
+		if string(got) != "second value" {
+			t.Fatalf("GetOrLoad(second) = %q, want second value", got)
+		}
+		if err := <-first; err != nil {
+			t.Fatalf("GetOrLoad(first) unexpected error: %v", err)
+		}
+	})
 }
 
 func TestMemoryCache_SetUsesDefaultExpiration(t *testing.T) {
