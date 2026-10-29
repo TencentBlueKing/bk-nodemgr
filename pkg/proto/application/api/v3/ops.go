@@ -212,3 +212,68 @@ func (x *NodeOpsUpdateFieldsProxyReq) ConvertParamToTypes() []*types.Host {
 
 	return hostsParam
 }
+
+// Validate checks the agent target selection.
+func (x *NodeOpsFieldsListAgentReq) Validate() error {
+	return validateNodeOpsFieldsHostIDs(x.GetBkHostId())
+}
+
+// AutoConvert leaves the explicitly selected targets unchanged.
+func (x *NodeOpsFieldsListAgentReq) AutoConvert() {
+}
+
+// ConvertHostsFromTypes converts current agent settings to the fields list response.
+func (x *NodeOpsFieldsListAgentResp) ConvertHostsFromTypes(hosts []*types.Host) {
+	x.Data = &NodeOpsFieldsListAgentResp_Data{Items: convNodeOpsInfosFromTypes(hosts)}
+}
+
+// Validate checks the proxy target selection.
+func (x *NodeOpsFieldsListProxyReq) Validate() error {
+	return validateNodeOpsFieldsHostIDs(x.GetBkHostId())
+}
+
+// AutoConvert leaves the explicitly selected targets unchanged.
+func (x *NodeOpsFieldsListProxyReq) AutoConvert() {
+}
+
+// ConvertHostsFromTypes converts current proxy settings to the fields list response.
+func (x *NodeOpsFieldsListProxyResp) ConvertHostsFromTypes(hosts []*types.Host) {
+	x.Data = &NodeOpsFieldsListProxyResp_Data{Items: convNodeOpsInfosFromTypes(hosts)}
+}
+
+// validateNodeOpsFieldsHostIDs checks the required target selection.
+// The application does not bound the selection size; the backend handler splits
+// oversized selections into backend-sized batches.
+func validateNodeOpsFieldsHostIDs(hostIDs []int64) error {
+	if len(hostIDs) == 0 {
+		return errors.New("bk_host_id can not be empty")
+	}
+	for _, id := range hostIDs {
+		if id <= 0 {
+			return errors.New("bk_host_id must be positive")
+		}
+	}
+	return nil
+}
+
+// convNodeOpsInfosFromTypes converts current settings to the ops info wire items.
+func convNodeOpsInfosFromTypes(hosts []*types.Host) []*NodeOpsInfo {
+	items := make([]*NodeOpsInfo, 0, len(hosts))
+	for _, host := range hosts {
+		if host == nil {
+			continue
+		}
+
+		item := &NodeOpsInfo{BkHostId: host.HostID}
+		if host.Dynamic != nil {
+			item.OpsConsoleHostId = host.Dynamic.OpsConsoleHostID
+			item.OpsOutBandType = host.Dynamic.OpsOutBandType
+			item.OpsOutBandProtocol = host.Dynamic.OpsOutBandProtocol
+			item.OpsOutBandIp = host.Dynamic.OpsOutBandIP
+			item.OpsOutBandPort = host.Dynamic.OpsOutBandPort
+		}
+		items = append(items, item)
+	}
+
+	return items
+}
