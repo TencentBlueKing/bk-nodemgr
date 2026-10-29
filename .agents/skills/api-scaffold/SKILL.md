@@ -22,6 +22,7 @@ The user then fills in the business logic (service calls, data processing, etc.)
 ## When to Use This Skill
 
 Use this skill when the user:
+
 - Wants to add a new API endpoint to backend/file/relay/application services
 - Says "新增 API", "创建接口", "搭建协议层"
 - Asks to "set up the infrastructure for a new endpoint"
@@ -53,6 +54,7 @@ Before starting, collect these details from the user:
 - **Special requirements**: Any special validation, error handling, or response format needs?
 
 If the user's request is vague, ask clarifying questions. For example:
+
 - "Should this be a batch operation (array input) or single item?"
 - "What fields do you need in the request? Any required validations?"
 - "What should the response contain?"
@@ -66,13 +68,15 @@ Follow these steps in order. Create a task list at the start to track progress.
 Before implementing, create an initial version of the API documentation. This helps clarify the interface contract and serves as a placeholder that will be completed later using the api-doc skill.
 
 **Files**:
+
 - `apigw/apidocs/zh/{OperationId}.md` (Chinese)
 - `apigw/apidocs/en/{OperationId}.md` (English)
 
 **Naming**: Use swagger operationId format (e.g., `NodeAgent_NodeAgentInstall.md`)
 
 **Template** (simplified version, fill only what you know):
-```markdown
+
+````markdown
 ### 描述
 
 - 该接口提供版本：v3.0.0+。
@@ -85,10 +89,10 @@ Before implementing, create an initial version of the API documentation. This he
 
 ### 输入参数
 
-| 参数名称 | 参数类型 | 必选 | 描述 |
-|---------|----------|------|------|
-| param1 | string | 是 | [参数描述] |
-| param2 | int64 | 否 | [参数描述] |
+| 参数名称 | 参数类型 | 必选 | 描述       |
+| -------- | -------- | ---- | ---------- |
+| param1   | string   | 是   | [参数描述] |
+| param2   | int64    | 否   | [参数描述] |
 
 ### 调用示例
 
@@ -114,21 +118,22 @@ Before implementing, create an initial version of the API documentation. This he
 
 ### 响应参数说明
 
-| 参数名称 | 参数类型 | 描述 |
-|---------|----------|------|
-| code | int32 | 状态码，0表示成功 |
-| message | string | 请求信息 |
-| data | object | 响应数据 |
+| 参数名称 | 参数类型 | 描述              |
+| -------- | -------- | ----------------- |
+| code     | int32    | 状态码，0表示成功 |
+| message  | string   | 请求信息          |
+| data     | object   | 响应数据          |
 
 #### data
 
-| 参数名称 | 参数类型 | 描述 |
-|---------|----------|------|
-| field1 | string | [字段描述] |
-| field2 | bool | [字段描述] |
-```
+| 参数名称 | 参数类型 | 描述       |
+| -------- | -------- | ---------- |
+| field1   | string   | [字段描述] |
+| field2   | bool     | [字段描述] |
+````
 
 **Key points**:
+
 - This is an **initial version** - fill only what you know from the user's requirements
 - Use the standard API doc template structure from `docs/developer/api_doc_template.md`
 - Leave placeholders (like permission name) if information is not yet available
@@ -144,9 +149,12 @@ Before implementing, create an initial version of the API documentation. This he
 
 **File**: `proto/{service}/api/v3/{module}.proto`
 
+Use `bk-nodemgr-proto` for caller-facing Chinese comments, naming/tag stability, and the Swagger/APIGW projection. This skill still owns the end-to-end scaffold workflow.
+
 Add the Request, Response, and RPC method definitions. Follow these patterns:
 
 **For batch operations** (array input/output):
+
 ```protobuf
 message AuthorizedReq {
   repeated AuthorizedItem items = 1;
@@ -178,6 +186,7 @@ message AuthorizedResult {
 ```
 
 **For single operations**:
+
 ```protobuf
 message GetNodeReq {
   string node_id = 1;
@@ -197,6 +206,7 @@ message GetNodeResp {
 ```
 
 **Add RPC method to service**:
+
 ```protobuf
 service Auth {
   rpc Verify(AuthVerifyReq) returns (AuthVerifyResp) {}
@@ -205,6 +215,7 @@ service Auth {
 ```
 
 **Key patterns**:
+
 - Response always has the standard structure: code, message, request_id, error, data
 - Data is a nested message containing the actual payload
 - Use `repeated` for arrays
@@ -219,10 +230,11 @@ cd proto && make clean && make all
 ```
 
 This generates:
+
 - `pkg/proto/{service}/api/v3/{module}.pb.go` - Generated proto code
 - `docs/api/swagger/{service}/api/v3/{module}.swagger.json` - Swagger docs
 
-Verify the generation succeeded (exit code 0, no errors).
+Verify the generation succeeded (exit code 0, no errors), then use `bk-nodemgr-proto` to inspect the affected Swagger descriptions, schemas, operationId, and tags; successful generation alone is not sufficient.
 
 ### Step 3: Implement Conversion Layer
 
@@ -231,6 +243,7 @@ Verify the generation succeeded (exit code 0, no errors).
 Implement these methods for the Request:
 
 **Validate()** - Check required fields:
+
 ```go
 func (x *AuthorizedReq) Validate() error {
     for i, item := range x.GetItems() {
@@ -246,6 +259,7 @@ func (x *AuthorizedReq) Validate() error {
 ```
 
 **AutoConvert()** - Usually empty unless there's automatic conversion logic:
+
 ```go
 func (x *AuthorizedReq) AutoConvert() {
     // Usually empty
@@ -253,6 +267,7 @@ func (x *AuthorizedReq) AutoConvert() {
 ```
 
 **Convert methods** - Transform between proto and internal types:
+
 ```go
 // Convert proto request to internal types
 func (x *AuthorizedReq) ConvertItemsToInternal() []InternalType {
@@ -268,6 +283,7 @@ func (x *AuthorizedReq) ConvertItemsToInternal() []InternalType {
 Implement these methods for the Response:
 
 **Convert methods** - Transform internal results to proto:
+
 ```go
 func (x *AuthorizedResp) ConvertResultsFromScopes(scopes []auth.AuthorizedScope, items []*AuthorizedItem) {
     x.Data = &AuthorizedResp_Data{
@@ -286,6 +302,7 @@ func (x *AuthorizedResp) ConvertResultsFromScopes(scopes []auth.AuthorizedScope,
 ```
 
 **Helper functions** - Add any needed conversion helpers:
+
 ```go
 func convertAuthResourceFromTypes(resources []types.AuthResource) []*AuthResource {
 	return conv.SliceToSlice(resources, func(resource types.AuthResource) *AuthResource {
@@ -299,6 +316,7 @@ func convertAuthResourceFromTypes(resources []types.AuthResource) []*AuthResourc
 ```
 
 **Key patterns**:
+
 - Use `conv.SliceToSlice` for array transformations
 - Validate all required fields with descriptive error messages
 - Convert methods should handle nil/empty cases gracefully
@@ -362,6 +380,7 @@ func (h *handler) {EndpointName}(rCtx restserver.IContext) (interface{}, error) 
 ```
 
 **What's included**:
+
 - Package and imports
 - Handler function signature
 - BindJSON with error handling and logging
@@ -370,6 +389,7 @@ func (h *handler) {EndpointName}(rCtx restserver.IContext) (interface{}, error) 
 - Return statement
 
 **What's NOT included (user fills in)**:
+
 - Business logic (service/storage calls)
 - Error handling for business operations
 - Response conversion method call
@@ -377,6 +397,7 @@ func (h *handler) {EndpointName}(rCtx restserver.IContext) (interface{}, error) 
 **IMPORTANT - Scaffold Boundaries**:
 
 This is a SCAFFOLD ONLY. Do NOT implement:
+
 - ❌ Calls to `h.storage*` or `h.service*` methods
 - ❌ Database queries or data processing logic
 - ❌ Business rules or domain logic
@@ -395,6 +416,7 @@ lsp_diagnostics pkg/proto/{service}/api/v3/{module}.go
 ```
 
 Ensure:
+
 - No type errors
 - No undefined references
 - All imports are correct
@@ -403,6 +425,7 @@ Ensure:
 If there are errors, fix them before proceeding.
 
 **Verify scaffold boundaries**:
+
 ```bash
 # Check that handler does NOT call storage/service layers
 grep -n "h\.storage" internal/{service}/router/api-v3/{module}/{endpoint_name}.go
@@ -410,7 +433,6 @@ grep -n "h\.service" internal/{service}/router/api-v3/{module}/{endpoint_name}.g
 ```
 
 These greps should return NO matches. If they do, remove the business logic calls - this is a scaffold only.
-
 
 ### Step 7: Commit Changes
 
@@ -437,6 +459,7 @@ git commit -m "feat({module}): add {endpoint_name} API scaffold
 ### Reusable Proto Messages
 
 Check if these existing messages can be reused:
+
 - `AuthResource` - For IAM resources (system_id, type, id)
 - `PageReq` / `PageResp` - For paginated requests/responses
 - Common error structures
@@ -444,6 +467,7 @@ Check if these existing messages can be reused:
 ### Conversion Utilities
 
 Use these helpers from `pkg/conv`:
+
 - `SliceToSlice` - Transform arrays
 - `PtrTo` - Create pointers
 - `ValueOr` - Handle nil with defaults
@@ -451,6 +475,7 @@ Use these helpers from `pkg/conv`:
 ### Error Codes
 
 Standard error codes from `pkg/rest/errf`:
+
 - `InvalidParameter` (400) - Request validation failed
 - `PermissionDenied` (403) - Authorization failed
 - `BackendOperateFailed` (500) - Internal error
@@ -458,6 +483,7 @@ Standard error codes from `pkg/rest/errf`:
 ### Logging Pattern
 
 Always log errors with context:
+
 ```go
 logger.G.Biz(rCtx).WithErr(err).Error("failed to {operation}, {specific_reason}")
 ```
@@ -467,17 +493,20 @@ logger.G.Biz(rCtx).WithErr(err).Error("failed to {operation}, {specific_reason}"
 ### Batch vs Single Operations
 
 **Batch** (use when user wants to process multiple items):
+
 - Request: `repeated Item items = 1`
 - Response: `repeated Result results = 1`
 - Iterate over items in business logic
 
 **Single** (use for one-item operations):
+
 - Request: Direct fields (no repeated)
 - Response: Single object in data
 
 ### Nested Structures
 
 For complex responses with nested data:
+
 ```protobuf
 message ComplexResp {
   message Data {
@@ -495,6 +524,7 @@ message ComplexResp {
 ### Optional Fields
 
 Use proto3 optional for nullable fields:
+
 ```protobuf
 message MyReq {
   string required_field = 1;
@@ -505,6 +535,7 @@ message MyReq {
 ### Validation Complexity
 
 For complex validation (cross-field, regex, ranges), implement in Validate():
+
 ```go
 func (x *MyReq) Validate() error {
     if x.GetStartTime() > x.GetEndTime() {
@@ -534,6 +565,7 @@ The skill provides a working skeleton that compiles and has proper structure —
 User says: "我要加个查询用户权限的接口，叫 authorized，批量查询，输入是 action 和 resource_type 数组，输出是每个的授权范围"
 
 **Step 1: Gather info**
+
 - Service: backend
 - Module: auth
 - Endpoint: Authorized
@@ -541,6 +573,7 @@ User says: "我要加个查询用户权限的接口，叫 authorized，批量查
 - Response: Array of {action, resource_type, is_any, resources}
 
 **Step 2-7: Execute workflow**
+
 - Modify proto/backend/api/v3/auth.proto
 - Run proto generation
 - Implement conversion in pkg/proto/backend/api/v3/auth.go

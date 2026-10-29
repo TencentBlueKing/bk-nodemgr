@@ -24,7 +24,7 @@ Use the current checkout as the primary source of truth for this project. Start 
 | Helm integration      | `install/helm/bk-nodemgr/values.yaml`, `install/helm/bk-nodemgr/templates/apigw-sync-*`                  | Deployment-time image and definition configuration, mounts, and sync Job wiring                                                |
 | Build entrypoints     | `Makefile`                                                                                               | Image build context and API-doc packaging entrypoints                                                                          |
 
-Read secondary entrypoints only when the task reaches them, such as the Docker Compose template, FAQ, CI, or release files. Do not assume a checked-in Swagger file automatically generates `apigw/resources.yaml`.
+Read secondary entrypoints only when the task reaches them, such as the Docker Compose template, FAQ, CI, or release files. Swagger is manually imported into APIGW, then resource definitions are exported for `apigw/resources.yaml`; there is no implied local automatic conversion step. For Proto comments, naming/tags, and their import/export projection, use `bk-nodemgr-proto`.
 
 ## Upstream reference
 
