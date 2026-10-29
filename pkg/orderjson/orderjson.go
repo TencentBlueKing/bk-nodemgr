@@ -205,6 +205,7 @@ func (o OrderedData) MarshalJSON() ([]byte, error) {
 	}
 
 	b.WriteString("}")
+
 	return []byte(b.String()), nil
 }
 

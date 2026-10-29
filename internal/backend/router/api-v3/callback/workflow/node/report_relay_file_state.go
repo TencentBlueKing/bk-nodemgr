@@ -62,6 +62,7 @@ func (h *handler) RelayReportFileState(gCtx *gin.Context) {
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to report file state, failed to update action private data")
 		gCtx.JSON(http.StatusInternalServerError, err)
+
 		return
 	}
 

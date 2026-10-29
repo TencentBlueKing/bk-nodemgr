@@ -161,6 +161,7 @@ func (a *AES) Decrypt(ciphertext []byte) ([]byte, error) {
 func pkcs7Pad(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+
 	return append(data, padtext...)
 }
 

@@ -87,5 +87,6 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 
 	logger.Info(plugin.StepDebugPlugin, "debug plugin action finished successfully")
+
 	return nil
 }

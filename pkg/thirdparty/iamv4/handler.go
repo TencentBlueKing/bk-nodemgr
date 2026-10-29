@@ -113,6 +113,7 @@ func firstResource(resources []types.IAMResource) *Resource {
 	}
 
 	resource := toResource(resources[0])
+
 	return &resource
 }
 

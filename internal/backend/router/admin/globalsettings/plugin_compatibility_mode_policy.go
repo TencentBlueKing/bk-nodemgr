@@ -78,6 +78,7 @@ func (h *handler) GetPluginCompatibilityModePolicy(rCtx restserver.IContext) (in
 		logger.G.Biz(rCtx).WithErr(err).Error(
 			"failed to get plugin compatibility mode policy, failed to decode request body",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -98,6 +99,7 @@ func (h *handler) UpsertPluginCompatibilityModePolicy(rCtx restserver.IContext) 
 		logger.G.Biz(rCtx).WithErr(err).Error(
 			"failed to upsert plugin compatibility mode policy, failed to decode request body",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -113,6 +115,7 @@ func (h *handler) UpsertPluginCompatibilityModePolicy(rCtx restserver.IContext) 
 		logger.G.Biz(rCtx).WithErr(err).Error(
 			"failed to upsert plugin compatibility mode policy, failed to encode policy",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 

@@ -47,9 +47,11 @@ func (l *FileLock) TryLock() error {
 		if os.IsExist(err) {
 			return errors.New("lock already exists")
 		}
+
 		return fmt.Errorf("failed to create lock: %w", err)
 	}
 	l.file = file
+
 	return nil
 }
 
@@ -59,5 +61,6 @@ func (l *FileLock) Unlock() error {
 		l.file.Close()
 		return os.Remove(l.lockPath)
 	}
+
 	return nil
 }

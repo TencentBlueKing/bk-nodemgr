@@ -18,5 +18,6 @@ import "time"
 func processCPUTime() time.Duration {
 	var usage [2]int64
 	readProcCPU(&usage)
+
 	return time.Duration(usage[0]+usage[1]) * time.Nanosecond
 }

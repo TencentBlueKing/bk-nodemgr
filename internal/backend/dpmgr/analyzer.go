@@ -386,6 +386,7 @@ func collectDeleteSubConfigDetails(
 			for _, config := range currentConfigMap {
 				addDeleteSubConfigDetail(deleteDetailsByHost, seen, hostID, convProcessConfigToPluginConfigDetail(config))
 			}
+
 			continue
 		}
 

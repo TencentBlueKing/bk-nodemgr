@@ -82,6 +82,7 @@ func CalculateExpoDelay(attempt int, opts ExpoBackoffDelayOpts) time.Duration {
 	}
 
 	jitter := delay * rand.Float64() * opts.JitterPercent // nolint: gosec
+
 	return time.Duration(delay + jitter)
 }
 

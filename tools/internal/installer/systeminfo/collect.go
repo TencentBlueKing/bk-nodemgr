@@ -60,5 +60,6 @@ func formatTimezoneOffset(offsetSeconds int) string {
 
 	hours := offsetSeconds / 3600
 	minutes := offsetSeconds % 3600 / 60
+
 	return fmt.Sprintf("%s%02d:%02d", sign, hours, minutes)
 }

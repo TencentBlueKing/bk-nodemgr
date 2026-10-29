@@ -128,6 +128,7 @@ func renderAll(templateDir, outputDir string, vars map[string]any) error {
 	}
 
 	fmt.Fprintf(os.Stderr, "Total: %d files rendered\n", count)
+
 	return nil
 }
 

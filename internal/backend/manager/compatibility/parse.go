@@ -80,6 +80,7 @@ func logParseFallback(nCtx contextx.IContext, reason string, err error) {
 			With("reason", reason).
 			WithErr(err).
 			Warn("compatibility policy parse fallback to default")
+
 		return
 	}
 
