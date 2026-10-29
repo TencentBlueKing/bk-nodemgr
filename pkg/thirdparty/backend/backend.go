@@ -1788,32 +1788,6 @@ func (c *cli) checkUpgradeAgent(ctx contextx.IContext, req *protoBackend.NodeAge
 	return resp, nil
 }
 
-func (c *cli) updateNodeOpsFieldsAgent(ctx contextx.IContext, req *protoBackend.NodeOpsUpdateFieldsAgentReq) (
-	*protoBackend.NodeOpsUpdateFieldsAgentResp, error) {
-
-	resp := new(protoBackend.NodeOpsUpdateFieldsAgentResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/node/ops/update_fields/agent").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update node agent ops fields failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
 // ===============================================================================
 // Node Proxy Related Interfaces
 // ===============================================================================
@@ -1966,32 +1940,6 @@ func (c *cli) updateNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxy
 
 	if code := resp.GetCode(); code != CodeOK {
 		return nil, fmt.Errorf("update node proxy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) updateNodeOpsFieldsProxy(ctx contextx.IContext, req *protoBackend.NodeOpsUpdateFieldsProxyReq) (
-	*protoBackend.NodeOpsUpdateFieldsProxyResp, error) {
-
-	resp := new(protoBackend.NodeOpsUpdateFieldsProxyResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/node/ops/update_fields/proxy").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update node proxy ops fields failed. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
@@ -2180,6 +2128,110 @@ func (c *cli) getNodeOpsHistory(ctx contextx.IContext, req *protoBackend.NodeOps
 
 	if resp.GetData() == nil {
 		return nil, fmt.Errorf("get node ops history failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateNodeOpsFieldsAgent(ctx contextx.IContext, req *protoBackend.NodeOpsUpdateFieldsAgentReq) (
+	*protoBackend.NodeOpsUpdateFieldsAgentResp, error) {
+
+	resp := new(protoBackend.NodeOpsUpdateFieldsAgentResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/ops/update_fields/agent").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update node agent ops fields failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateNodeOpsFieldsProxy(ctx contextx.IContext, req *protoBackend.NodeOpsUpdateFieldsProxyReq) (
+	*protoBackend.NodeOpsUpdateFieldsProxyResp, error) {
+
+	resp := new(protoBackend.NodeOpsUpdateFieldsProxyResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/ops/update_fields/proxy").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update node proxy ops fields failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listNodeOpsFieldsAgent(ctx contextx.IContext, req *protoBackend.NodeOpsFieldsListAgentReq) (
+	*protoBackend.NodeOpsFieldsListAgentResp, error) {
+
+	resp := new(protoBackend.NodeOpsFieldsListAgentResp)
+	err := c.client.Post().
+		SubResourcef("/node/ops/list_fields/agent").
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request agent node ops fields: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list agent node ops fields", resp, resp.GetError())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list agent node ops fields failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listNodeOpsFieldsProxy(ctx contextx.IContext, req *protoBackend.NodeOpsFieldsListProxyReq) (
+	*protoBackend.NodeOpsFieldsListProxyResp, error) {
+
+	resp := new(protoBackend.NodeOpsFieldsListProxyResp)
+	err := c.client.Post().
+		SubResourcef("/node/ops/list_fields/proxy").
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request proxy node ops fields: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list proxy node ops fields", resp, resp.GetError())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list proxy node ops fields failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
