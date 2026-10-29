@@ -129,6 +129,36 @@ message NodeOpsUpdateFieldsProxyResp {
   Data data = 5;
 }
 
+// NodeOpsFieldsListAgentReq reads current settings for selected agent hosts.
+message NodeOpsFieldsListAgentReq { repeated int64 bk_host_id = 1; }
+
+// NodeOpsFieldsListAgentResp returns current settings for selected agent hosts.
+message NodeOpsFieldsListAgentResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated NodeOpsInfo items = 1; }
+  Data data = 5;
+}
+
+// NodeOpsFieldsListProxyReq reads current settings for selected proxy hosts.
+message NodeOpsFieldsListProxyReq { repeated int64 bk_host_id = 1; }
+
+// NodeOpsFieldsListProxyResp returns current settings for selected proxy hosts.
+message NodeOpsFieldsListProxyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated NodeOpsInfo items = 1; }
+  Data data = 5;
+}
+
 // Ops provides out-of-band settings and operation history.
 service Ops {
   // NodeOpsHistoryList lists operations across agent and proxy roles within
@@ -165,6 +195,24 @@ service Ops {
       returns (NodeOpsUpdateFieldsProxyResp) {
     option (google.api.http) = {
       post : "/api/v3/node/ops/update_fields/proxy"
+      body : "*"
+    };
+  }
+
+  // NodeOpsFieldsListAgent reads agent out-of-band fields.
+  rpc NodeOpsFieldsListAgent(NodeOpsFieldsListAgentReq)
+      returns (NodeOpsFieldsListAgentResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/ops/list_fields/agent"
+      body : "*"
+    };
+  }
+
+  // NodeOpsFieldsListProxy reads proxy out-of-band fields.
+  rpc NodeOpsFieldsListProxy(NodeOpsFieldsListProxyReq)
+      returns (NodeOpsFieldsListProxyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/ops/list_fields/proxy"
       body : "*"
     };
   }

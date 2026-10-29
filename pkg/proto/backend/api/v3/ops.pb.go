@@ -949,6 +949,266 @@ func (x *NodeOpsUpdateFieldsProxyResp) GetData() *NodeOpsUpdateFieldsProxyResp_D
 	return nil
 }
 
+// NodeOpsFieldsListAgentReq reads current settings for selected agent hosts.
+type NodeOpsFieldsListAgentReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BkHostId      []int64                `protobuf:"varint,1,rep,packed,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeOpsFieldsListAgentReq) Reset() {
+	*x = NodeOpsFieldsListAgentReq{}
+	mi := &file_ops_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeOpsFieldsListAgentReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeOpsFieldsListAgentReq) ProtoMessage() {}
+
+func (x *NodeOpsFieldsListAgentReq) ProtoReflect() protoreflect.Message {
+	mi := &file_ops_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeOpsFieldsListAgentReq.ProtoReflect.Descriptor instead.
+func (*NodeOpsFieldsListAgentReq) Descriptor() ([]byte, []int) {
+	return file_ops_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *NodeOpsFieldsListAgentReq) GetBkHostId() []int64 {
+	if x != nil {
+		return x.BkHostId
+	}
+	return nil
+}
+
+// NodeOpsFieldsListAgentResp returns current settings for selected agent hosts.
+type NodeOpsFieldsListAgentResp struct {
+	state         protoimpl.MessageState           `protogen:"open.v1"`
+	Code          int32                            `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                           `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                           `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                           `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Permission    *Permission                      `protobuf:"bytes,6,opt,name=permission,proto3" json:"permission"`
+	Data          *NodeOpsFieldsListAgentResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeOpsFieldsListAgentResp) Reset() {
+	*x = NodeOpsFieldsListAgentResp{}
+	mi := &file_ops_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeOpsFieldsListAgentResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeOpsFieldsListAgentResp) ProtoMessage() {}
+
+func (x *NodeOpsFieldsListAgentResp) ProtoReflect() protoreflect.Message {
+	mi := &file_ops_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeOpsFieldsListAgentResp.ProtoReflect.Descriptor instead.
+func (*NodeOpsFieldsListAgentResp) Descriptor() ([]byte, []int) {
+	return file_ops_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *NodeOpsFieldsListAgentResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *NodeOpsFieldsListAgentResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *NodeOpsFieldsListAgentResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *NodeOpsFieldsListAgentResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *NodeOpsFieldsListAgentResp) GetPermission() *Permission {
+	if x != nil {
+		return x.Permission
+	}
+	return nil
+}
+
+func (x *NodeOpsFieldsListAgentResp) GetData() *NodeOpsFieldsListAgentResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// NodeOpsFieldsListProxyReq reads current settings for selected proxy hosts.
+type NodeOpsFieldsListProxyReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BkHostId      []int64                `protobuf:"varint,1,rep,packed,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeOpsFieldsListProxyReq) Reset() {
+	*x = NodeOpsFieldsListProxyReq{}
+	mi := &file_ops_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeOpsFieldsListProxyReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeOpsFieldsListProxyReq) ProtoMessage() {}
+
+func (x *NodeOpsFieldsListProxyReq) ProtoReflect() protoreflect.Message {
+	mi := &file_ops_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeOpsFieldsListProxyReq.ProtoReflect.Descriptor instead.
+func (*NodeOpsFieldsListProxyReq) Descriptor() ([]byte, []int) {
+	return file_ops_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *NodeOpsFieldsListProxyReq) GetBkHostId() []int64 {
+	if x != nil {
+		return x.BkHostId
+	}
+	return nil
+}
+
+// NodeOpsFieldsListProxyResp returns current settings for selected proxy hosts.
+type NodeOpsFieldsListProxyResp struct {
+	state         protoimpl.MessageState           `protogen:"open.v1"`
+	Code          int32                            `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                           `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                           `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                           `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Permission    *Permission                      `protobuf:"bytes,6,opt,name=permission,proto3" json:"permission"`
+	Data          *NodeOpsFieldsListProxyResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeOpsFieldsListProxyResp) Reset() {
+	*x = NodeOpsFieldsListProxyResp{}
+	mi := &file_ops_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeOpsFieldsListProxyResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeOpsFieldsListProxyResp) ProtoMessage() {}
+
+func (x *NodeOpsFieldsListProxyResp) ProtoReflect() protoreflect.Message {
+	mi := &file_ops_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeOpsFieldsListProxyResp.ProtoReflect.Descriptor instead.
+func (*NodeOpsFieldsListProxyResp) Descriptor() ([]byte, []int) {
+	return file_ops_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *NodeOpsFieldsListProxyResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *NodeOpsFieldsListProxyResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *NodeOpsFieldsListProxyResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *NodeOpsFieldsListProxyResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *NodeOpsFieldsListProxyResp) GetPermission() *Permission {
+	if x != nil {
+		return x.Permission
+	}
+	return nil
+}
+
+func (x *NodeOpsFieldsListProxyResp) GetData() *NodeOpsFieldsListProxyResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type NodeOpsHistoryListResp_Data struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Number of matching operations, not hosts.
@@ -960,7 +1220,7 @@ type NodeOpsHistoryListResp_Data struct {
 
 func (x *NodeOpsHistoryListResp_Data) Reset() {
 	*x = NodeOpsHistoryListResp_Data{}
-	mi := &file_ops_proto_msgTypes[13]
+	mi := &file_ops_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -972,7 +1232,7 @@ func (x *NodeOpsHistoryListResp_Data) String() string {
 func (*NodeOpsHistoryListResp_Data) ProtoMessage() {}
 
 func (x *NodeOpsHistoryListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_ops_proto_msgTypes[13]
+	mi := &file_ops_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1013,7 +1273,7 @@ type NodeOpsHistoryDetailResp_Data struct {
 
 func (x *NodeOpsHistoryDetailResp_Data) Reset() {
 	*x = NodeOpsHistoryDetailResp_Data{}
-	mi := &file_ops_proto_msgTypes[14]
+	mi := &file_ops_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1025,7 +1285,7 @@ func (x *NodeOpsHistoryDetailResp_Data) String() string {
 func (*NodeOpsHistoryDetailResp_Data) ProtoMessage() {}
 
 func (x *NodeOpsHistoryDetailResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_ops_proto_msgTypes[14]
+	mi := &file_ops_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1063,7 +1323,7 @@ type NodeOpsUpdateFieldsAgentResp_Data struct {
 
 func (x *NodeOpsUpdateFieldsAgentResp_Data) Reset() {
 	*x = NodeOpsUpdateFieldsAgentResp_Data{}
-	mi := &file_ops_proto_msgTypes[15]
+	mi := &file_ops_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1075,7 +1335,7 @@ func (x *NodeOpsUpdateFieldsAgentResp_Data) String() string {
 func (*NodeOpsUpdateFieldsAgentResp_Data) ProtoMessage() {}
 
 func (x *NodeOpsUpdateFieldsAgentResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_ops_proto_msgTypes[15]
+	mi := &file_ops_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1099,7 +1359,7 @@ type NodeOpsUpdateFieldsProxyResp_Data struct {
 
 func (x *NodeOpsUpdateFieldsProxyResp_Data) Reset() {
 	*x = NodeOpsUpdateFieldsProxyResp_Data{}
-	mi := &file_ops_proto_msgTypes[16]
+	mi := &file_ops_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1111,7 +1371,7 @@ func (x *NodeOpsUpdateFieldsProxyResp_Data) String() string {
 func (*NodeOpsUpdateFieldsProxyResp_Data) ProtoMessage() {}
 
 func (x *NodeOpsUpdateFieldsProxyResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_ops_proto_msgTypes[16]
+	mi := &file_ops_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1125,6 +1385,94 @@ func (x *NodeOpsUpdateFieldsProxyResp_Data) ProtoReflect() protoreflect.Message 
 // Deprecated: Use NodeOpsUpdateFieldsProxyResp_Data.ProtoReflect.Descriptor instead.
 func (*NodeOpsUpdateFieldsProxyResp_Data) Descriptor() ([]byte, []int) {
 	return file_ops_proto_rawDescGZIP(), []int{12, 0}
+}
+
+type NodeOpsFieldsListAgentResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*NodeOpsInfo         `protobuf:"bytes,1,rep,name=items,proto3" json:"items"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeOpsFieldsListAgentResp_Data) Reset() {
+	*x = NodeOpsFieldsListAgentResp_Data{}
+	mi := &file_ops_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeOpsFieldsListAgentResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeOpsFieldsListAgentResp_Data) ProtoMessage() {}
+
+func (x *NodeOpsFieldsListAgentResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_ops_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeOpsFieldsListAgentResp_Data.ProtoReflect.Descriptor instead.
+func (*NodeOpsFieldsListAgentResp_Data) Descriptor() ([]byte, []int) {
+	return file_ops_proto_rawDescGZIP(), []int{14, 0}
+}
+
+func (x *NodeOpsFieldsListAgentResp_Data) GetItems() []*NodeOpsInfo {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type NodeOpsFieldsListProxyResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*NodeOpsInfo         `protobuf:"bytes,1,rep,name=items,proto3" json:"items"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeOpsFieldsListProxyResp_Data) Reset() {
+	*x = NodeOpsFieldsListProxyResp_Data{}
+	mi := &file_ops_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeOpsFieldsListProxyResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeOpsFieldsListProxyResp_Data) ProtoMessage() {}
+
+func (x *NodeOpsFieldsListProxyResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_ops_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeOpsFieldsListProxyResp_Data.ProtoReflect.Descriptor instead.
+func (*NodeOpsFieldsListProxyResp_Data) Descriptor() ([]byte, []int) {
+	return file_ops_proto_rawDescGZIP(), []int{16, 0}
+}
+
+func (x *NodeOpsFieldsListProxyResp_Data) GetItems() []*NodeOpsInfo {
+	if x != nil {
+		return x.Items
+	}
+	return nil
 }
 
 var File_ops_proto protoreflect.FileDescriptor
@@ -1319,7 +1667,51 @@ var file_ops_proto_rawDesc = string([]byte{
 	0x01, 0x28, 0x0b, 0x32, 0x25, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73,
 	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x50, 0x72, 0x6f, 0x78,
 	0x79, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61,
-	0x1a, 0x06, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x32, 0x9d, 0x04, 0x0a, 0x03, 0x4f, 0x70, 0x73,
+	0x1a, 0x06, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0x39, 0x0a, 0x19, 0x4e, 0x6f, 0x64, 0x65,
+	0x4f, 0x70, 0x73, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x67, 0x65,
+	0x6e, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1c, 0x0a, 0x0a, 0x62, 0x6b, 0x5f, 0x68, 0x6f, 0x73, 0x74,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x03, 0x28, 0x03, 0x52, 0x08, 0x62, 0x6b, 0x48, 0x6f, 0x73,
+	0x74, 0x49, 0x64, 0x22, 0xa2, 0x02, 0x0a, 0x1a, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46,
+	0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12,
+	0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09,
+	0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72,
+	0x12, 0x2e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73,
+	0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
+	0x12, 0x37, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23,
+	0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46, 0x69, 0x65, 0x6c, 0x64,
+	0x73, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44,
+	0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x2d, 0x0a, 0x04, 0x44, 0x61, 0x74,
+	0x61, 0x12, 0x25, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x0f, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x49, 0x6e, 0x66,
+	0x6f, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x22, 0x39, 0x0a, 0x19, 0x4e, 0x6f, 0x64, 0x65,
+	0x4f, 0x70, 0x73, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f,
+	0x78, 0x79, 0x52, 0x65, 0x71, 0x12, 0x1c, 0x0a, 0x0a, 0x62, 0x6b, 0x5f, 0x68, 0x6f, 0x73, 0x74,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x03, 0x28, 0x03, 0x52, 0x08, 0x62, 0x6b, 0x48, 0x6f, 0x73,
+	0x74, 0x49, 0x64, 0x22, 0xa2, 0x02, 0x0a, 0x1a, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46,
+	0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x65,
+	0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12,
+	0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09,
+	0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72,
+	0x12, 0x2e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73,
+	0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
+	0x12, 0x37, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23,
+	0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46, 0x69, 0x65, 0x6c, 0x64,
+	0x73, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44,
+	0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x2d, 0x0a, 0x04, 0x44, 0x61, 0x74,
+	0x61, 0x12, 0x25, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x0f, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x49, 0x6e, 0x66,
+	0x6f, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x32, 0xaf, 0x06, 0x0a, 0x03, 0x4f, 0x70, 0x73,
 	0x12, 0x75, 0x0a, 0x12, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x48, 0x69, 0x73, 0x74, 0x6f,
 	0x72, 0x79, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65,
 	0x4f, 0x70, 0x73, 0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65,
@@ -1353,12 +1745,29 @@ var file_ops_proto_rawDesc = string([]byte{
 	0x6f, 0x78, 0x79, 0x52, 0x65, 0x73, 0x70, 0x22, 0x2f, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x29, 0x3a,
 	0x01, 0x2a, 0x22, 0x24, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6e, 0x6f, 0x64, 0x65,
 	0x2f, 0x6f, 0x70, 0x73, 0x2f, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x66, 0x69, 0x65, 0x6c,
-	0x64, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c,
-	0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67,
-	0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62,
-	0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x64, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x12, 0x86, 0x01, 0x0a, 0x16, 0x4e, 0x6f, 0x64,
+	0x65, 0x4f, 0x70, 0x73, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x67,
+	0x65, 0x6e, 0x74, 0x12, 0x1d, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73,
+	0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52,
+	0x65, 0x71, 0x1a, 0x1e, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46,
+	0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x22, 0x2d, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x27, 0x3a, 0x01, 0x2a, 0x22, 0x22, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x6f, 0x70, 0x73, 0x2f,
+	0x6c, 0x69, 0x73, 0x74, 0x5f, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x2f, 0x61, 0x67, 0x65, 0x6e,
+	0x74, 0x12, 0x86, 0x01, 0x0a, 0x16, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46, 0x69, 0x65,
+	0x6c, 0x64, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x12, 0x1d, 0x2e, 0x76,
+	0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c,
+	0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x65, 0x71, 0x1a, 0x1e, 0x2e, 0x76, 0x33,
+	0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x4f, 0x70, 0x73, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x4c, 0x69,
+	0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x65, 0x73, 0x70, 0x22, 0x2d, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x27, 0x3a, 0x01, 0x2a, 0x22, 0x22, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
+	0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x6f, 0x70, 0x73, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x5f, 0x66, 0x69,
+	0x65, 0x6c, 0x64, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69,
+	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74,
+	0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65,
+	0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c,
+	0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -1373,7 +1782,7 @@ func file_ops_proto_rawDescGZIP() []byte {
 	return file_ops_proto_rawDescData
 }
 
-var file_ops_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_ops_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_ops_proto_goTypes = []any{
 	(*NodeOpsHistoryInfo)(nil),                // 0: v3.NodeOpsHistoryInfo
 	(*NodeOpsHistoryExactConditions)(nil),     // 1: v3.NodeOpsHistoryExactConditions
@@ -1388,49 +1797,67 @@ var file_ops_proto_goTypes = []any{
 	(*NodeOpsUpdateFieldsAgentResp)(nil),      // 10: v3.NodeOpsUpdateFieldsAgentResp
 	(*NodeOpsUpdateFieldsProxyReq)(nil),       // 11: v3.NodeOpsUpdateFieldsProxyReq
 	(*NodeOpsUpdateFieldsProxyResp)(nil),      // 12: v3.NodeOpsUpdateFieldsProxyResp
-	(*NodeOpsHistoryListResp_Data)(nil),       // 13: v3.NodeOpsHistoryListResp.Data
-	(*NodeOpsHistoryDetailResp_Data)(nil),     // 14: v3.NodeOpsHistoryDetailResp.Data
-	(*NodeOpsUpdateFieldsAgentResp_Data)(nil), // 15: v3.NodeOpsUpdateFieldsAgentResp.Data
-	(*NodeOpsUpdateFieldsProxyResp_Data)(nil), // 16: v3.NodeOpsUpdateFieldsProxyResp.Data
-	(*Page)(nil),       // 17: v3.Page
-	(*TimeRange)(nil),  // 18: v3.TimeRange
-	(*Error)(nil),      // 19: v3.Error
-	(*Permission)(nil), // 20: v3.Permission
+	(*NodeOpsFieldsListAgentReq)(nil),         // 13: v3.NodeOpsFieldsListAgentReq
+	(*NodeOpsFieldsListAgentResp)(nil),        // 14: v3.NodeOpsFieldsListAgentResp
+	(*NodeOpsFieldsListProxyReq)(nil),         // 15: v3.NodeOpsFieldsListProxyReq
+	(*NodeOpsFieldsListProxyResp)(nil),        // 16: v3.NodeOpsFieldsListProxyResp
+	(*NodeOpsHistoryListResp_Data)(nil),       // 17: v3.NodeOpsHistoryListResp.Data
+	(*NodeOpsHistoryDetailResp_Data)(nil),     // 18: v3.NodeOpsHistoryDetailResp.Data
+	(*NodeOpsUpdateFieldsAgentResp_Data)(nil), // 19: v3.NodeOpsUpdateFieldsAgentResp.Data
+	(*NodeOpsUpdateFieldsProxyResp_Data)(nil), // 20: v3.NodeOpsUpdateFieldsProxyResp.Data
+	(*NodeOpsFieldsListAgentResp_Data)(nil),   // 21: v3.NodeOpsFieldsListAgentResp.Data
+	(*NodeOpsFieldsListProxyResp_Data)(nil),   // 22: v3.NodeOpsFieldsListProxyResp.Data
+	(*Page)(nil),                              // 23: v3.Page
+	(*TimeRange)(nil),                         // 24: v3.TimeRange
+	(*Error)(nil),                             // 25: v3.Error
+	(*Permission)(nil),                        // 26: v3.Permission
 }
 var file_ops_proto_depIdxs = []int32{
-	17, // 0: v3.NodeOpsHistoryListReq.page:type_name -> v3.Page
+	23, // 0: v3.NodeOpsHistoryListReq.page:type_name -> v3.Page
 	1,  // 1: v3.NodeOpsHistoryListReq.exact_include_conditions:type_name -> v3.NodeOpsHistoryExactConditions
 	2,  // 2: v3.NodeOpsHistoryListReq.fuzzy_include_conditions:type_name -> v3.NodeOpsHistoryFuzzyConditions
-	18, // 3: v3.NodeOpsHistoryListReq.operate_time_range:type_name -> v3.TimeRange
-	19, // 4: v3.NodeOpsHistoryListResp.error:type_name -> v3.Error
-	20, // 5: v3.NodeOpsHistoryListResp.permission:type_name -> v3.Permission
-	13, // 6: v3.NodeOpsHistoryListResp.data:type_name -> v3.NodeOpsHistoryListResp.Data
-	19, // 7: v3.NodeOpsHistoryDetailResp.error:type_name -> v3.Error
-	20, // 8: v3.NodeOpsHistoryDetailResp.permission:type_name -> v3.Permission
-	14, // 9: v3.NodeOpsHistoryDetailResp.data:type_name -> v3.NodeOpsHistoryDetailResp.Data
+	24, // 3: v3.NodeOpsHistoryListReq.operate_time_range:type_name -> v3.TimeRange
+	25, // 4: v3.NodeOpsHistoryListResp.error:type_name -> v3.Error
+	26, // 5: v3.NodeOpsHistoryListResp.permission:type_name -> v3.Permission
+	17, // 6: v3.NodeOpsHistoryListResp.data:type_name -> v3.NodeOpsHistoryListResp.Data
+	25, // 7: v3.NodeOpsHistoryDetailResp.error:type_name -> v3.Error
+	26, // 8: v3.NodeOpsHistoryDetailResp.permission:type_name -> v3.Permission
+	18, // 9: v3.NodeOpsHistoryDetailResp.data:type_name -> v3.NodeOpsHistoryDetailResp.Data
 	8,  // 10: v3.NodeOpsUpdateFieldsAgentReq.hosts:type_name -> v3.NodeOpsInfo
-	19, // 11: v3.NodeOpsUpdateFieldsAgentResp.error:type_name -> v3.Error
-	20, // 12: v3.NodeOpsUpdateFieldsAgentResp.permission:type_name -> v3.Permission
-	15, // 13: v3.NodeOpsUpdateFieldsAgentResp.data:type_name -> v3.NodeOpsUpdateFieldsAgentResp.Data
+	25, // 11: v3.NodeOpsUpdateFieldsAgentResp.error:type_name -> v3.Error
+	26, // 12: v3.NodeOpsUpdateFieldsAgentResp.permission:type_name -> v3.Permission
+	19, // 13: v3.NodeOpsUpdateFieldsAgentResp.data:type_name -> v3.NodeOpsUpdateFieldsAgentResp.Data
 	8,  // 14: v3.NodeOpsUpdateFieldsProxyReq.hosts:type_name -> v3.NodeOpsInfo
-	19, // 15: v3.NodeOpsUpdateFieldsProxyResp.error:type_name -> v3.Error
-	20, // 16: v3.NodeOpsUpdateFieldsProxyResp.permission:type_name -> v3.Permission
-	16, // 17: v3.NodeOpsUpdateFieldsProxyResp.data:type_name -> v3.NodeOpsUpdateFieldsProxyResp.Data
-	0,  // 18: v3.NodeOpsHistoryListResp.Data.items:type_name -> v3.NodeOpsHistoryInfo
-	5,  // 19: v3.NodeOpsHistoryDetailResp.Data.items:type_name -> v3.NodeOpsHistoryHostSnapshot
-	3,  // 20: v3.Ops.NodeOpsHistoryList:input_type -> v3.NodeOpsHistoryListReq
-	6,  // 21: v3.Ops.NodeOpsHistoryDetail:input_type -> v3.NodeOpsHistoryDetailReq
-	9,  // 22: v3.Ops.NodeOpsUpdateFieldsAgent:input_type -> v3.NodeOpsUpdateFieldsAgentReq
-	11, // 23: v3.Ops.NodeOpsUpdateFieldsProxy:input_type -> v3.NodeOpsUpdateFieldsProxyReq
-	4,  // 24: v3.Ops.NodeOpsHistoryList:output_type -> v3.NodeOpsHistoryListResp
-	7,  // 25: v3.Ops.NodeOpsHistoryDetail:output_type -> v3.NodeOpsHistoryDetailResp
-	10, // 26: v3.Ops.NodeOpsUpdateFieldsAgent:output_type -> v3.NodeOpsUpdateFieldsAgentResp
-	12, // 27: v3.Ops.NodeOpsUpdateFieldsProxy:output_type -> v3.NodeOpsUpdateFieldsProxyResp
-	24, // [24:28] is the sub-list for method output_type
-	20, // [20:24] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	25, // 15: v3.NodeOpsUpdateFieldsProxyResp.error:type_name -> v3.Error
+	26, // 16: v3.NodeOpsUpdateFieldsProxyResp.permission:type_name -> v3.Permission
+	20, // 17: v3.NodeOpsUpdateFieldsProxyResp.data:type_name -> v3.NodeOpsUpdateFieldsProxyResp.Data
+	25, // 18: v3.NodeOpsFieldsListAgentResp.error:type_name -> v3.Error
+	26, // 19: v3.NodeOpsFieldsListAgentResp.permission:type_name -> v3.Permission
+	21, // 20: v3.NodeOpsFieldsListAgentResp.data:type_name -> v3.NodeOpsFieldsListAgentResp.Data
+	25, // 21: v3.NodeOpsFieldsListProxyResp.error:type_name -> v3.Error
+	26, // 22: v3.NodeOpsFieldsListProxyResp.permission:type_name -> v3.Permission
+	22, // 23: v3.NodeOpsFieldsListProxyResp.data:type_name -> v3.NodeOpsFieldsListProxyResp.Data
+	0,  // 24: v3.NodeOpsHistoryListResp.Data.items:type_name -> v3.NodeOpsHistoryInfo
+	5,  // 25: v3.NodeOpsHistoryDetailResp.Data.items:type_name -> v3.NodeOpsHistoryHostSnapshot
+	8,  // 26: v3.NodeOpsFieldsListAgentResp.Data.items:type_name -> v3.NodeOpsInfo
+	8,  // 27: v3.NodeOpsFieldsListProxyResp.Data.items:type_name -> v3.NodeOpsInfo
+	3,  // 28: v3.Ops.NodeOpsHistoryList:input_type -> v3.NodeOpsHistoryListReq
+	6,  // 29: v3.Ops.NodeOpsHistoryDetail:input_type -> v3.NodeOpsHistoryDetailReq
+	9,  // 30: v3.Ops.NodeOpsUpdateFieldsAgent:input_type -> v3.NodeOpsUpdateFieldsAgentReq
+	11, // 31: v3.Ops.NodeOpsUpdateFieldsProxy:input_type -> v3.NodeOpsUpdateFieldsProxyReq
+	13, // 32: v3.Ops.NodeOpsFieldsListAgent:input_type -> v3.NodeOpsFieldsListAgentReq
+	15, // 33: v3.Ops.NodeOpsFieldsListProxy:input_type -> v3.NodeOpsFieldsListProxyReq
+	4,  // 34: v3.Ops.NodeOpsHistoryList:output_type -> v3.NodeOpsHistoryListResp
+	7,  // 35: v3.Ops.NodeOpsHistoryDetail:output_type -> v3.NodeOpsHistoryDetailResp
+	10, // 36: v3.Ops.NodeOpsUpdateFieldsAgent:output_type -> v3.NodeOpsUpdateFieldsAgentResp
+	12, // 37: v3.Ops.NodeOpsUpdateFieldsProxy:output_type -> v3.NodeOpsUpdateFieldsProxyResp
+	14, // 38: v3.Ops.NodeOpsFieldsListAgent:output_type -> v3.NodeOpsFieldsListAgentResp
+	16, // 39: v3.Ops.NodeOpsFieldsListProxy:output_type -> v3.NodeOpsFieldsListProxyResp
+	34, // [34:40] is the sub-list for method output_type
+	28, // [28:34] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_ops_proto_init() }
@@ -1447,7 +1874,7 @@ func file_ops_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ops_proto_rawDesc), len(file_ops_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -514,6 +514,13 @@ type HostFieldSelection struct {
 	AgentID        bool
 	AdvertiseIP    bool
 	AdvertiseIPV6  bool
+
+	// Ops fields
+	OpsConsoleHostID   bool
+	OpsOutBandType     bool
+	OpsOutBandProtocol bool
+	OpsOutBandIP       bool
+	OpsOutBandPort     bool
 }
 
 // HostTopoRelation represents the relationship between a host and its topology.

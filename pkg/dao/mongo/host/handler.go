@@ -1480,6 +1480,21 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.AdvertiseIPV6 {
 		fields = append(fields, FieldKeyDynamicAdvertiseIPV6)
 	}
+	if selection.OpsConsoleHostID {
+		fields = append(fields, FieldKeyDynamicOpsConsoleHostID)
+	}
+	if selection.OpsOutBandType {
+		fields = append(fields, FieldKeyDynamicOpsOutBandType)
+	}
+	if selection.OpsOutBandProtocol {
+		fields = append(fields, FieldKeyDynamicOpsOutBandProtocol)
+	}
+	if selection.OpsOutBandIP {
+		fields = append(fields, FieldKeyDynamicOpsOutBandIP)
+	}
+	if selection.OpsOutBandPort {
+		fields = append(fields, FieldKeyDynamicOpsOutBandPort)
+	}
 
 	return fields
 }
