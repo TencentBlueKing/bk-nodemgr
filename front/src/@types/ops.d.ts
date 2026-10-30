@@ -130,3 +130,41 @@ export interface NodeOpsUpdateFieldsProxyResp {
 export interface NodeOpsUpdateFieldsProxyRespData {
 }
 
+// NodeOpsFieldsListAgentReq reads current settings for selected agent hosts.
+export interface NodeOpsFieldsListAgentReq {
+  bk_host_id: number[];
+}
+
+// NodeOpsFieldsListAgentResp returns current settings for selected agent hosts.
+export interface NodeOpsFieldsListAgentResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeOpsFieldsListAgentRespData;
+}
+
+export interface NodeOpsFieldsListAgentRespData {
+  items: NodeOpsInfo[];
+}
+
+// NodeOpsFieldsListProxyReq reads current settings for selected proxy hosts.
+export interface NodeOpsFieldsListProxyReq {
+  bk_host_id: number[];
+}
+
+// NodeOpsFieldsListProxyResp returns current settings for selected proxy hosts.
+export interface NodeOpsFieldsListProxyResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeOpsFieldsListProxyRespData;
+}
+
+export interface NodeOpsFieldsListProxyRespData {
+  items: NodeOpsInfo[];
+}
+

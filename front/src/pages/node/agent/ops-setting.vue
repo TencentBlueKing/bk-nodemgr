@@ -322,13 +322,14 @@ import { useRouter } from 'vue-router';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 
-import BatchEdit from '@/components/batch-edit.vue';
-import IpSelector from '@/components/IpSelector';
+import type { NodeOpsInfo } from '@/@types/ops';
 import { OpsService } from '@/api/modules/ops';
 import { TopoService } from '@/api/modules/topo';
+import BatchEdit from '@/components/batch-edit.vue';
+import IpSelector from '@/components/IpSelector';
 import * as IpSelectorService from '@/services/ip-selector';
-import { useNodeManageStore } from '@/stores/node-manage';
 import { useMainStore } from '@/stores/main';
+import { useNodeManageStore } from '@/stores/node-manage';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -451,6 +452,8 @@ const opsConsoleHostSelectorValue = ref({
     setTemplateList: [] as any[],
 });
 const opsConsoleHostEditingRow = ref<any>(null);
+// 主控机回显数据：host-id → IP 选择器主机对象（由带外设置中的主控机 ID 聚合查询得到）
+const opsConsoleHostMap = ref(new Map<number, any>());
 
 const handleIpSelectorPanelChange = (panel: string) => {
     IpSelectorService.setActiveIpsPanel(panel);
@@ -462,8 +465,18 @@ const handleOpenOpsConsoleHostSelector = (row: any) => {
     // 不预设 node role 限制（主控机不要求安装 Agent）
     IpSelectorService.setStrategyBizId(undefined);
     IpSelectorService.setBizId([...(mainStore.selectedBusinessId || [])]);
+    // 回显当前主控机：已聚合到主机详情时传入完整字段，选择器打开即可勾选该主机；
+    // 未查到时退回只传 host-id，由选择器自行补全
+    const consoleHostId = Number(row.ops_console_host_id);
+    const selectedHost = Number.isSafeInteger(consoleHostId) ? opsConsoleHostMap.value.get(consoleHostId) : undefined;
+    let consoleHostSelection: any[] = [];
+    if (selectedHost) {
+        consoleHostSelection = [selectedHost];
+    } else if (consoleHostId > 0) {
+        consoleHostSelection = [{ hostId: consoleHostId }];
+    }
     opsConsoleHostSelectorValue.value = {
-        hostList: row.ops_console_host_id ? [{ hostId: row.ops_console_host_id }] : [],
+        hostList: consoleHostSelection,
         nodeList: [],
         dynamicGroupList: [],
         serviceTemplateList: [],
@@ -483,6 +496,14 @@ const handleOpsConsoleHostSelectorChange = (value: any) => {
         const ip = host.ip || host.ipv6 || '';
         row.ops_console_host_id = hostId;
         row.ops_console_host_ip = ip;
+        // 缓存本次选择，再次打开选择器时可直接回显勾选，无需再查 topo
+        opsConsoleHostMap.value.set(Number(hostId), {
+            hostId: Number(hostId),
+            ip: host.ip || '',
+            ipv6: host.ipv6 || '',
+            cloudArea: host.cloudArea ?? host.cloud_area,
+            meta: host.meta,
+        });
     } else {
         row.ops_console_host_id = undefined;
         row.ops_console_host_ip = undefined;
@@ -543,40 +564,104 @@ onMounted(async () => {
 
     loading.value = true;
     const params = nodeManageStore.opsFieldsParams;
-
-    if (params.isCrossPageSelection) {
-        // 跨页全选：分页拉取所有数据
-        const allHosts: any[] = [];
-        const pageSize = 500;
-        let offset = 0;
-        let hasMore = true;
-
-        while (hasMore) {
-            const hostListData = await TopoService.HostList({
-                page: { offset, limit: pageSize },
-                only_count: false,
-                exact_include_conditions: params.queryParams?.exact_include_conditions || {},
-                exact_exclude_conditions: params.queryParams?.exact_exclude_conditions || {},
-                fuzzy_include_conditions: params.queryParams?.fuzzy_include_conditions || {},
-            }).catch(() => ({ total: 0, items: [] }));
-
-            if (hostListData.items?.length > 0) {
-                allHosts.push(...hostListData.items);
-                offset += pageSize;
-                if (hostListData.items.length < pageSize) hasMore = false;
-            } else {
-                hasMore = false;
-            }
+    try {
+        let selectedHosts = params.tableData;
+        if (params.isCrossPageSelection) {
+            selectedHosts = [];
+            const pageSize = 500;
+            let total = 0;
+            do {
+                const hostListData = await TopoService.HostList({
+                    page: { offset: selectedHosts.length, limit: pageSize },
+                    only_count: false,
+                    exact_include_conditions: params.queryParams?.exact_include_conditions || {},
+                    exact_exclude_conditions: params.queryParams?.exact_exclude_conditions || {},
+                    fuzzy_include_conditions: params.queryParams?.fuzzy_include_conditions || {},
+                });
+                total = hostListData.total;
+                if (!hostListData.items?.length) break;
+                selectedHosts.push(...hostListData.items);
+            } while (selectedHosts.length < total);
         }
-
-        tableData.value = formatHostData(allHosts);
-    } else {
-        tableData.value = formatHostData(params.tableData);
+        const rows = formatHostData(selectedHosts);
+        await loadCurrentOpsFields(rows);
+        await loadOpsConsoleHostDetails(rows);
+        tableData.value = rows;
+    } catch (err: any) {
+        Message({ theme: 'error', message: err?.message || String(err) });
+    } finally {
+        loading.value = false;
     }
-    loading.value = false;
 });
 
-// 格式化主机数据为表格行：与 assign-unit 一致，提取 info 字段并初始化 Ops 字段
+// 读取所选主机的当前带外配置，回写到表格行
+async function loadCurrentOpsFields(rows: any[]) {
+    const hostIds = [...new Set<number>(rows.map(row => Number(row.bk_host_id)))];
+    if (!hostIds.length) return;
+    const fieldsByHost = new Map<number, NodeOpsInfo>();
+    // 按节点类型调用对应接口，各自校验权限
+    const result = nodeType.value === 'proxy'
+        ? await OpsService.NodeOpsFieldsListProxy({ bk_host_id: hostIds })
+        : await OpsService.NodeOpsFieldsListAgent({ bk_host_id: hostIds });
+    for (const fields of result.items || []) {
+        fieldsByHost.set(fields.bk_host_id, fields);
+    }
+    for (const row of rows) {
+        const fields = fieldsByHost.get(Number(row.bk_host_id));
+        if (!fields) continue;
+        // 接口仅返回主控机 ID，IP 由 loadOpsConsoleHostDetails 单独回填
+        Object.assign(row, fields);
+        const protocol = fields.ops_out_band_protocol;
+        if (protocol && !opsOutBandProtocols.value.some(item => item.name === protocol)) {
+            opsOutBandProtocols.value.push({ name: protocol, port: 0, description: '' });
+        }
+    }
+}
+
+// 聚合查询主控机基础信息：一次查询覆盖所有已设置的主控机，避免逐行请求；
+// 结果同时用于表格 IP 回显与选择器勾选。
+async function loadOpsConsoleHostDetails(rows: any[]) {
+    const hostIds = [...new Set<number>(rows
+        .map(row => Number(row.ops_console_host_id))
+        .filter(hostId => Number.isSafeInteger(hostId) && hostId > 0))];
+    if (!hostIds.length) return;
+
+    const hosts = new Map<number, any>();
+    try {
+        // 主控机不要求安装 Agent，这里不附加 node_role 过滤，避免被节点角色条件排除。
+        const chunkSize = 500;
+        for (let offset = 0; offset < hostIds.length; offset += chunkSize) {
+            const chunk = hostIds.slice(offset, offset + chunkSize);
+            const { items } = await TopoService.HostList({
+                page: { offset: 0, limit: chunk.length },
+                only_count: false,
+                exact_include_conditions: { bk_host_id: chunk },
+            });
+            for (const item of items || []) {
+                const mapped = IpSelectorService.mapHostItem(item);
+                if (!Number.isSafeInteger(mapped.host_id) || mapped.host_id <= 0) continue;
+                hosts.set(mapped.host_id, {
+                    hostId: mapped.host_id,
+                    ip: mapped.ip,
+                    ipv6: mapped.ipv6,
+                    cloudArea: mapped.cloud_area,
+                    meta: mapped.meta,
+                });
+            }
+        }
+    } catch {
+        // IP 仅用于回显：查询失败时保留 host-id 展示，不阻塞带外字段编辑与提交
+        return;
+    }
+
+    opsConsoleHostMap.value = hosts;
+    for (const row of rows) {
+        const host = hosts.get(Number(row.ops_console_host_id));
+        if (host) row.ops_console_host_ip = host.ip || host.ipv6 || '';
+    }
+}
+
+// Format only display metadata; current Ops fields are loaded separately.
 function formatHostData(hosts: any[]): any[] {
     return hosts.map((item: any) => {
         const info = item.info || {};
@@ -587,13 +672,6 @@ function formatHostData(hosts: any[]): any[] {
             bk_networkarea_name: info.bk_networkarea_name ?? item.bk_networkarea_name ?? '',
             bk_host_innerip: info.bk_host_innerip_list?.join(',') ?? item.bk_host_innerip ?? '',
             bk_host_innerip_v6: info.bk_host_innerip_v6_list?.join(',') ?? item.bk_host_innerip_v6 ?? '',
-            // Ops 字段：优先取已有值，否则初始化为空
-            ops_console_host_id: item.ops_console_host_id ?? info.ops_console_host_id ?? undefined,
-            ops_console_host_ip: item.ops_console_host_ip ?? info.ops_console_host_ip ?? undefined,
-            ops_out_band_type: item.ops_out_band_type ?? info.ops_out_band_type ?? undefined,
-            ops_out_band_protocol: item.ops_out_band_protocol ?? info.ops_out_band_protocol ?? undefined,
-            ops_out_band_ip: item.ops_out_band_ip ?? info.ops_out_band_ip ?? undefined,
-            ops_out_band_port: item.ops_out_band_port ?? info.ops_out_band_port ?? undefined,
         };
     });
 }
