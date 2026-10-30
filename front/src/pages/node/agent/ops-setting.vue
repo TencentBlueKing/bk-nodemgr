@@ -291,7 +291,10 @@
         </div>
 
         <!-- 主控机 IP 选择器 -->
+        <!-- key 绑定业务：切换业务后强制重建组件，让拓扑树按新业务范围重新拉取
+             （库的拓扑树只在组件挂载时请求一次，重开弹窗不会自动刷新） -->
         <IpSelector
+            :key="mainStore.selectedBusinessId.join(',')"
             mode="dialog"
             :show-dialog="isShowOpsConsoleHostSelector"
             :value="opsConsoleHostSelectorValue"
@@ -316,7 +319,7 @@
 import { Button, Input, Loading, Message, Popover, Select } from 'bkui-vue';
 import { Done, Error, Plus } from 'bkui-vue/lib/icon';
 import { debounce } from 'lodash';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -459,6 +462,14 @@ const handleIpSelectorPanelChange = (panel: string) => {
     IpSelectorService.setActiveIpsPanel(panel);
 };
 
+// 顶部切换业务时同步库的业务范围，保证已打开/下次打开的 IP 选择器与当前业务一致
+watch(
+    () => mainStore.selectedBusinessId,
+    (bizIds) => {
+        IpSelectorService.setBizId([...(bizIds || [])]);
+    },
+);
+
 const handleOpenOpsConsoleHostSelector = (row: any) => {
     opsConsoleHostEditingRow.value = row;
     // 业务范围与顶部业务选择器保持一致：拓扑树与主机查询仅覆盖选中业务；
@@ -569,19 +580,20 @@ onMounted(async () => {
         if (params.isCrossPageSelection) {
             selectedHosts = [];
             const pageSize = 500;
-            let total = 0;
-            do {
+            // 逐页拉取：单页失败时降级为已拉到的数据，避免整表空白；
+            // 终止条件不依赖 total 字段，与拉取前的历史行为保持一致
+            for (;;) {
                 const hostListData = await TopoService.HostList({
                     page: { offset: selectedHosts.length, limit: pageSize },
                     only_count: false,
                     exact_include_conditions: params.queryParams?.exact_include_conditions || {},
                     exact_exclude_conditions: params.queryParams?.exact_exclude_conditions || {},
                     fuzzy_include_conditions: params.queryParams?.fuzzy_include_conditions || {},
-                });
-                total = hostListData.total;
+                }).catch(() => ({ total: 0, items: [] }));
                 if (!hostListData.items?.length) break;
                 selectedHosts.push(...hostListData.items);
-            } while (selectedHosts.length < total);
+                if (hostListData.items.length < pageSize) break;
+            }
         }
         const rows = formatHostData(selectedHosts);
         await loadCurrentOpsFields(rows);
@@ -596,13 +608,23 @@ onMounted(async () => {
 
 // 读取所选主机的当前带外配置，回写到表格行
 async function loadCurrentOpsFields(rows: any[]) {
-    const hostIds = [...new Set<number>(rows.map(row => Number(row.bk_host_id)))];
+    // 过滤非法 host-id，避免 NaN 以 null 形式传给后端导致整个请求被拒绝
+    const hostIds = [...new Set<number>(rows
+        .map(row => Number(row.bk_host_id))
+        .filter(hostId => Number.isSafeInteger(hostId) && hostId > 0))];
     if (!hostIds.length) return;
     const fieldsByHost = new Map<number, NodeOpsInfo>();
-    // 按节点类型调用对应接口，各自校验权限
-    const result = nodeType.value === 'proxy'
-        ? await OpsService.NodeOpsFieldsListProxy({ bk_host_id: hostIds })
-        : await OpsService.NodeOpsFieldsListAgent({ bk_host_id: hostIds });
+    let result: { items?: NodeOpsInfo[] } | undefined;
+    try {
+        // 按节点类型调用对应接口，各自校验权限
+        result = nodeType.value === 'proxy'
+            ? await OpsService.NodeOpsFieldsListProxy({ bk_host_id: hostIds })
+            : await OpsService.NodeOpsFieldsListAgent({ bk_host_id: hostIds });
+    } catch {
+        // 回显失败不阻塞表格展示：字段保持为空，仅丢失回显，与主控机详情降级逻辑保持一致
+        return;
+    }
+    if (!result) return;
     for (const fields of result.items || []) {
         fieldsByHost.set(fields.bk_host_id, fields);
     }
