@@ -184,7 +184,9 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfig(nCtx contextx.IContext, 
 	desiredDetails := genDeployPolicySubConfigDetails(params.DeployPolicyID, param.ConfigFilesDetail)
 	desiredDetailMap, err := conv.SliceToMap(
 		desiredDetails,
-		func(detail *types.PluginConfigDetail) string { return detail.Name },
+		func(detail *types.PluginConfigDetail) string {
+			return genProcessConfigUniqueID(detail.Name, detail.IsMainConfig)
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert plugin config details to map, count(%d): %w", len(desiredDetails), err)
@@ -335,7 +337,7 @@ func groupProcessConfigsByHost(configs []*types.ProcessConfig) map[int64]map[str
 		if _, ok := configMap[config.HostID]; !ok {
 			configMap[config.HostID] = make(map[string]*types.ProcessConfig)
 		}
-		configMap[config.HostID][config.Name] = config
+		configMap[config.HostID][genProcessConfigUniqueID(config.Name, config.IsMainConfig)] = config
 	}
 
 	return configMap
@@ -361,7 +363,7 @@ func findStaleSubConfigDetails(
 		if config == nil {
 			continue
 		}
-		if _, ok := desiredDetailMap[config.Name]; ok {
+		if _, ok := desiredDetailMap[genProcessConfigUniqueID(config.Name, config.IsMainConfig)]; ok {
 			continue
 		}
 
@@ -409,7 +411,7 @@ func addDeleteSubConfigDetail(
 		return
 	}
 
-	key := fmt.Sprintf("%d_%s", hostID, detail.Name)
+	key := fmt.Sprintf("%d_%s", hostID, genProcessConfigUniqueID(detail.Name, detail.IsMainConfig))
 	if _, ok := seen[key]; ok {
 		return
 	}

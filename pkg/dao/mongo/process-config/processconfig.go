@@ -83,13 +83,14 @@ func (d *dao) upsertMany(nCtx contextx.IContext, configs ...*ProcessConfig) erro
 
 // buildUpsertManyParams build upsert many params.
 func buildUpsertManyParams(configs ...*ProcessConfig) []mongo.WriteModel {
-	models := make([]mongo.WriteModel, 0)
+	models := make([]mongo.WriteModel, 0, len(configs))
 
 	for _, config := range configs {
 		filter := append(base.AliveFilter(),
 			bson.E{Key: FieldKeyName, Value: config.Name},
 			bson.E{Key: FieldKeyProcessName, Value: config.ProcessName},
-			bson.E{Key: FieldKeyHostID, Value: config.HostID})
+			bson.E{Key: FieldKeyHostID, Value: config.HostID},
+			bson.E{Key: FieldKeyIsMainConfig, Value: config.IsMainConfig})
 
 		update := base.BuildUpsertParam(config)
 

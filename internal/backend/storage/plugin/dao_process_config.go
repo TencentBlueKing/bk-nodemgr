@@ -86,7 +86,7 @@ func (s *Storage) deleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 	return nil
 }
 
-func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error {
+func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, isMainConfig bool, names ...string) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -99,11 +99,11 @@ func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey 
 		return base.ErrInvalidParam(fmt.Errorf("names is empty"))
 	}
 
-	err := s.daoProcessConfig.DeleteMany(
-		nCtx,
+	err := s.daoProcessConfig.DeleteMany(nCtx,
 		daoProcessConfig.WithProcessName(processUniqueKey.Name),
 		daoProcessConfig.WithHostID(processUniqueKey.HostID),
 		daoProcessConfig.WithName(names...),
+		daoProcessConfig.WithIsMainConfig(isMainConfig),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to delete processConfigs: %w", err)
@@ -112,7 +112,9 @@ func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey 
 	return nil
 }
 
-func (s *Storage) getProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error) {
+func (s *Storage) getProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string, isMainConfig bool) (
+	*types.ProcessConfig, error) {
+
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -125,7 +127,7 @@ func (s *Storage) getProcessConfig(nCtx contextx.IContext, processUniqueKey *typ
 		return nil, base.ErrInvalidParam(fmt.Errorf("name is empty"))
 	}
 
-	config, err := s.daoProcessConfig.Get(nCtx, processUniqueKey.HostID, processUniqueKey.Name, name)
+	config, err := s.daoProcessConfig.Get(nCtx, processUniqueKey.HostID, processUniqueKey.Name, name, isMainConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get processConfig: %w", err)
 	}

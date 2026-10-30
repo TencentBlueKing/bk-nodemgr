@@ -36,6 +36,10 @@ func genProcessUniqueID(hostID int64, pluginName string) string {
 	return fmt.Sprintf("%d_%s", hostID, pluginName)
 }
 
+func genProcessConfigUniqueID(name string, isMainConfig bool) string {
+	return fmt.Sprintf("%s_%t", name, isMainConfig)
+}
+
 func genDeployPolicySubConfigName(configName string, deployPolicyID int64) string {
 	ext := path.Ext(configName)
 	baseName := strings.TrimSuffix(configName, ext)
