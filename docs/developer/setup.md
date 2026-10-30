@@ -26,7 +26,9 @@ mise run setup-go-sdk
 
 在 macOS 和 Linux 上，`setup-go-sdk` 会安装缺失的 Go 版本，并创建 `~/sdk/go1.26.10` 和 `~/sdk/go1.20.14` 符号链接，分别指向 mise 管理的对应安装目录。重复执行时会保留正确的链接；如果目标位置已有目录或指向其他位置的链接，任务会报错且不会覆盖。请处理提示的冲突后再执行。
 
-该任务仅创建 SDK 链接。`go1.26.10` 和 `go1.20.14` 启动命令分别由根目录和 `tools/` 下 Makefile 的 `pre` 目标安装。如果需要在构建前直接使用这两个命令，可执行：
+该任务还会在链接目标里写入 `golang.org/dl` 用于识别"已下载"的空标记文件 `.unpacked-success`，因此 `make` 的 `pre` 目标执行 `go1.26.10 download` / `go1.20.14 download` 时会直接复用 mise 已安装的 SDK，不再下载 64 MB 的官方压缩包。`mise install`、升级或重装 `go@1.26.10`、`go@1.20.14` 会重建安装目录并丢失该标记，此时重新执行 `mise run setup-go-sdk` 即可恢复。
+
+该任务不改变 Makefile 的构建流程，CI 流水线仍按原有方式自行下载 Go SDK。`go1.26.10` 和 `go1.20.14` 启动命令分别由根目录和 `tools/` 下 Makefile 的 `pre` 目标安装。如果需要在构建前直接使用这两个命令，可执行：
 
 ```bash
 go install golang.org/dl/go1.26.10@latest
