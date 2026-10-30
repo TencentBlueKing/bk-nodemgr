@@ -54,7 +54,9 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfigTemplate(nCtx contextx.IC
 	}
 	desiredDetailMap, err := conv.SliceToMap(
 		desiredDetails,
-		func(detail *types.PluginConfigDetail) string { return detail.Name },
+		func(detail *types.PluginConfigDetail) string {
+			return genProcessConfigUniqueID(detail.Name, detail.IsMainConfig)
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert plugin config details to map, count(%d): %w", len(desiredDetails), err)
@@ -175,7 +177,7 @@ func findApplyOrUpdateSubConfigDetails(
 			continue
 		}
 
-		currentConfig, ok := currentConfigMap[detail.Name]
+		currentConfig, ok := currentConfigMap[genProcessConfigUniqueID(detail.Name, detail.IsMainConfig)]
 		if !ok || isSpecifyPluginSubConfigTemplateDeclarationChanged(detail, currentConfig, customConfigContext) {
 			applyDetails = append(applyDetails, detail)
 		}
@@ -299,7 +301,7 @@ func findMissingSubConfigDetails(
 		if detail == nil {
 			continue
 		}
-		if _, ok := currentConfigMap[detail.Name]; ok {
+		if _, ok := currentConfigMap[genProcessConfigUniqueID(detail.Name, detail.IsMainConfig)]; ok {
 			continue
 		}
 

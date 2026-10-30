@@ -21,12 +21,14 @@
 package processconfig
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
+	"github.com/stretchr/testify/require"
 )
 
 func testClient(t *testing.T) IHandler {
@@ -34,6 +36,52 @@ func testClient(t *testing.T) IHandler {
 
 	_, db := support.RequireMongoDatabase(t)
 	return New(db)
+}
+
+func TestHandlerSameNameMainAndSubConfig(t *testing.T) {
+	for _, subFirst := range []bool{false, true} {
+		t.Run(fmt.Sprintf("sub-first-%t", subFirst), func(t *testing.T) {
+			h := testClient(t)
+			nCtx := contextx.From(contextx.Background(), contextx.WithTenantID("same-name"))
+			main := &types.ProcessConfig{
+				Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: true, Content: "main",
+			}
+			sub := &types.ProcessConfig{
+				Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: false, Content: "sub",
+			}
+			configs := []*types.ProcessConfig{main, sub}
+			if subFirst {
+				configs[0], configs[1] = configs[1], configs[0]
+			}
+			for _, config := range configs {
+				require.NoError(t, h.Create(nCtx, config))
+			}
+			require.Error(t, h.Create(nCtx, sub), "same-type duplicate must violate the unique index")
+			for _, config := range []*types.ProcessConfig{main, sub} {
+				got, err := h.Get(nCtx, 1, "plugin", "same.conf", config.IsMainConfig)
+				require.NoError(t, err)
+				require.Equal(t, config.IsMainConfig, got.IsMainConfig)
+				require.Equal(t, config.Content, got.Content)
+			}
+
+			sub.Content = "updated sub"
+			require.NoError(t, h.UpsertMany(nCtx, sub))
+			for _, config := range []*types.ProcessConfig{main, sub} {
+				got, count, err := h.List(nCtx, types.UnlimitedPage(),
+					WithHostID(1), WithProcessName("plugin"), WithName("same.conf"), WithIsMainConfig(config.IsMainConfig))
+				require.NoError(t, err)
+				require.EqualValues(t, 1, count)
+				require.Equal(t, config.Content, got[0].Content)
+			}
+
+			require.NoError(t, h.DeleteMany(nCtx,
+				WithHostID(1), WithProcessName("plugin"), WithName("same.conf"), WithIsMainConfig(false)))
+			got, err := h.Get(nCtx, 1, "plugin", "same.conf", true)
+			require.NoError(t, err)
+			require.True(t, got.IsMainConfig)
+			require.Equal(t, "main", got.Content)
+		})
+	}
 }
 
 func prepareData(t *testing.T, nCtx contextx.IContext) IHandler {
@@ -205,10 +253,11 @@ func Test_handler_Get(t *testing.T) {
 	nCtx := contextx.From(contextx.Background(), contextx.WithTenantID("test-tenant-id"))
 
 	type args struct {
-		nCtx        contextx.IContext
-		name        string
-		processName string
-		hostID      int64
+		nCtx         contextx.IContext
+		name         string
+		processName  string
+		hostID       int64
+		isMainConfig bool
 	}
 	tests := []struct {
 		name    string
@@ -217,17 +266,38 @@ func Test_handler_Get(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "get process config",
+			name: "get main process config",
 			args: args{
-				nCtx:        nCtx,
-				name:        "test-process-config-name-1",
-				processName: "test-process-name-1",
-				hostID:      2,
+				nCtx:         nCtx,
+				name:         "test-process-config-name-1",
+				processName:  "test-process-name-1",
+				hostID:       2,
+				isMainConfig: true,
 			},
 			want: &types.ProcessConfig{
-				ProcessName: "test-process-name-1",
-				HostID:      2,
-				Name:        "test-process-config-name-1",
+				ProcessName:  "test-process-name-1",
+				HostID:       2,
+				Name:         "test-process-config-name-1",
+				Set:          "deploy_policy",
+				IsMainConfig: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "get sub process config",
+			args: args{
+				nCtx:         nCtx,
+				name:         "test-process-config-name-2",
+				processName:  "test-process-name-2",
+				hostID:       2,
+				isMainConfig: false,
+			},
+			want: &types.ProcessConfig{
+				ProcessName:  "test-process-name-2",
+				HostID:       2,
+				Name:         "test-process-config-name-2",
+				Set:          "manual",
+				IsMainConfig: false,
 			},
 			wantErr: false,
 		},
@@ -235,7 +305,7 @@ func Test_handler_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := prepareData(t, nCtx)
-			got, err := h.Get(tt.args.nCtx, tt.args.hostID, tt.args.processName, tt.args.name)
+			got, err := h.Get(tt.args.nCtx, tt.args.hostID, tt.args.processName, tt.args.name, tt.args.isMainConfig)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -256,6 +326,7 @@ func compareProcessConfig(a, b *types.ProcessConfig) bool {
 
 	return a.Name == b.Name &&
 		a.ProcessName == b.ProcessName &&
+		a.IsMainConfig == b.IsMainConfig &&
 		a.Set == b.Set
 }
 
