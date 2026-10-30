@@ -155,6 +155,10 @@ func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.Plu
 }
 
 func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params ...*types.PluginDeploymentParam) error {
+	plugins := make(map[string]*types.Plugin)
+	defaultVersions := make(map[types.ReleasePluginKey]string)
+	releases := make(map[types.ReleasePluginKey]*types.ReleasePlugin)
+
 	for _, param := range params {
 		host, err := h.daoHost.GetHostByID(rCtx, param.HostID)
 		if err != nil {
@@ -163,26 +167,39 @@ func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params
 		if host.Dynamic == nil {
 			return fmt.Errorf("plugin host dynamic info is empty, host-id(%d)", param.HostID)
 		}
-		plugin, err := h.daoPlugin.GetPlugin(rCtx, param.PluginName)
-		if err != nil {
-			return fmt.Errorf("failed to get plugin, plugin-name(%s): %w", param.PluginName, err)
+		plugin, ok := plugins[param.PluginName]
+		if !ok {
+			plugin, err = h.daoPlugin.GetPlugin(rCtx, param.PluginName)
+			if err != nil {
+				return fmt.Errorf("failed to get plugin, plugin-name(%s): %w", param.PluginName, err)
+			}
+			plugins[param.PluginName] = plugin
 		}
 		pluginPlatform := platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
-		version := param.Version
-		if version == "" {
-			version, err = h.fileHandler.GetReleasePluginDefaultVersion(rCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
-			if err != nil {
-				return fmt.Errorf("failed to get default plugin version, plugin-pkg-name(%s): %w", plugin.PkgName, err)
-			}
-		}
-		release, err := h.fileHandler.GetReleasePlugin(rCtx, types.ReleasePluginKey{
+		releaseKey := types.ReleasePluginKey{
 			Generation: host.Dynamic.NodeGeneration,
 			Platform:   pluginPlatform,
-			Version:    version,
 			Name:       plugin.PkgName,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w", plugin.PkgName, version, err)
+		}
+		version := param.Version
+		if version == "" {
+			version, ok = defaultVersions[releaseKey]
+			if !ok {
+				version, err = h.fileHandler.GetReleasePluginDefaultVersion(rCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
+				if err != nil {
+					return fmt.Errorf("failed to get default plugin version, plugin-pkg-name(%s): %w", plugin.PkgName, err)
+				}
+				defaultVersions[releaseKey] = version
+			}
+		}
+		releaseKey.Version = version
+		release, ok := releases[releaseKey]
+		if !ok {
+			release, err = h.fileHandler.GetReleasePlugin(rCtx, releaseKey)
+			if err != nil {
+				return fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w", plugin.PkgName, version, err)
+			}
+			releases[releaseKey] = release
 		}
 		param.Version = version
 		param.EnableCompatibilityMode = param.EnableCompatibilityMode && !release.LegacyConflict
