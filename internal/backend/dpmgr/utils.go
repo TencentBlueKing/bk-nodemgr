@@ -28,9 +28,7 @@ func genPluginNameForSpecifyPluginPkg(pluginPkgName string, deployPolicyID int64
 	return fmt.Sprintf("%s_%d_%d", pluginPkgName, deployPolicyID, moduleID)
 }
 
-func genPluginNameForProjectPluginPkgToHosts(
-	pluginPkgName string, deployPolicyID int64, moduleID int64, hostID int64,
-) string {
+func genPluginNameForProjectPluginPkgToHosts(pluginPkgName string, deployPolicyID int64, moduleID int64, hostID int64) string {
 	return fmt.Sprintf("%s_%d_%d_%d", pluginPkgName, deployPolicyID, moduleID, hostID)
 }
 
@@ -69,25 +67,25 @@ func NewDsu[T ~int64]() *DSU[T] {
 }
 
 // Find x's father.
-func (d *DSU[T]) Find(x T) T {
-	if _, ok := d.father[x]; !ok {
-		d.father[x] = x
+func (dsu *DSU[T]) Find(x T) T {
+	if _, ok := dsu.father[x]; !ok {
+		dsu.father[x] = x
 	}
 
-	if d.father[x] != x {
-		d.father[x] = d.Find(d.father[x])
+	if dsu.father[x] != x {
+		dsu.father[x] = dsu.Find(dsu.father[x])
 	}
 
-	return d.father[x]
+	return dsu.father[x]
 }
 
 // Union x and y.
-func (d *DSU[T]) Union(x, y T) {
-	r1, r2 := d.Find(x), d.Find(y)
-	d.father[r2] = r1
+func (dsu *DSU[T]) Union(x, y T) {
+	r1, r2 := dsu.Find(x), dsu.Find(y)
+	dsu.father[r2] = r1
 }
 
 // Judge whether x and y are in the same set.
-func (d *DSU[T]) Judge(x, y T) bool {
-	return d.Find(x) == d.Find(y)
+func (dsu *DSU[T]) Judge(x, y T) bool {
+	return dsu.Find(x) == dsu.Find(y)
 }
