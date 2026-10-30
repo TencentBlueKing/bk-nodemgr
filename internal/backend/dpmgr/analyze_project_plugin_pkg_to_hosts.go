@@ -26,9 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (analyzer *Analyzer) analyzeProjectPluginPkgToHosts(
-	nCtx contextx.IContext, params *AnalyzeParams,
-) ([]*ChangeTask, error) {
+func (analyzer *Analyzer) analyzeProjectPluginPkgToHosts(nCtx contextx.IContext, params *AnalyzeParams) ([]*ChangeTask, error) {
 	param, err := params.Spec.GetProjectPluginPkgToHostsParam()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get project plugin pkg to hosts param, spec(%+v): %w", params.Spec, err)
@@ -87,9 +85,7 @@ func (analyzer *Analyzer) analyzeProjectPluginPkgToHosts(
 	return changeTasks, nil
 }
 
-func (analyzer *Analyzer) listPlacementHostMap(
-	nCtx contextx.IContext, hostIDs []int64,
-) (map[int64]*types.Host, error) {
+func (analyzer *Analyzer) listPlacementHostMap(nCtx contextx.IContext, hostIDs []int64) (map[int64]*types.Host, error) {
 	cond := &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	}
@@ -112,9 +108,9 @@ func (analyzer *Analyzer) listPlacementHostMap(
 	return hostMap, nil
 }
 
-func (analyzer *Analyzer) listProjectPluginPkgProcessMap(
-	nCtx contextx.IContext, pluginPkgName string, hostIDs []int64,
-) (map[string]*types.Process, error) {
+func (analyzer *Analyzer) listProjectPluginPkgProcessMap(nCtx contextx.IContext, pluginPkgName string, hostIDs []int64) (
+	map[string]*types.Process, error) {
+
 	cond := &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
 			HostID:        hostIDs,

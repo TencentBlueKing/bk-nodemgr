@@ -253,9 +253,7 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfig(nCtx contextx.IContext, 
 	return changeTasks, nil
 }
 
-func (analyzer *Analyzer) listRunningProcessMap(
-	nCtx contextx.IContext, pluginName string, hostIDs []int64,
-) (map[string]*types.Process, error) {
+func (analyzer *Analyzer) listRunningProcessMap(nCtx contextx.IContext, pluginName string, hostIDs []int64) (map[string]*types.Process, error) {
 	if len(hostIDs) == 0 {
 		return map[string]*types.Process{}, nil
 	}
@@ -282,9 +280,9 @@ func (analyzer *Analyzer) listRunningProcessMap(
 	return processMap, nil
 }
 
-func (analyzer *Analyzer) listDeployPolicySubConfigMap(
-	nCtx contextx.IContext, pluginName string, deployPolicyID int64,
-) (map[int64]map[string]*types.ProcessConfig, error) {
+func (analyzer *Analyzer) listDeployPolicySubConfigMap(nCtx contextx.IContext, pluginName string, deployPolicyID int64) (
+	map[int64]map[string]*types.ProcessConfig, error) {
+
 	cond := &types.ProcessConfigCondition{
 		ExactInclude: &types.ProcessConfigExactFields{
 			ProcessName:  []string{pluginName},
@@ -356,8 +354,8 @@ func groupTargetsByHost(targets []*types.Target) map[int64]*types.Target {
 }
 
 func findStaleSubConfigDetails(
-	desiredDetailMap map[string]*types.PluginConfigDetail, currentConfigMap map[string]*types.ProcessConfig,
-) []*types.PluginConfigDetail {
+	desiredDetailMap map[string]*types.PluginConfigDetail, currentConfigMap map[string]*types.ProcessConfig) []*types.PluginConfigDetail {
+
 	staleDetails := make([]*types.PluginConfigDetail, 0)
 	for _, config := range currentConfigMap {
 		if config == nil {
@@ -378,6 +376,7 @@ func collectDeleteSubConfigDetails(
 	targetMap map[int64]*types.Target,
 	deployPolicyConfigMap map[int64]map[string]*types.ProcessConfig,
 ) map[int64][]*types.PluginConfigDetail {
+
 	deleteDetailsByHost := make(map[int64][]*types.PluginConfigDetail)
 	seen := make(map[string]struct{})
 
@@ -405,6 +404,7 @@ func addDeleteSubConfigDetail(
 	hostID int64,
 	detail *types.PluginConfigDetail,
 ) {
+
 	if detail == nil {
 		return
 	}
@@ -425,6 +425,7 @@ func genDeleteSubConfigTasks(
 	targetMap map[int64]*types.Target,
 	deleteDetailsByHost map[int64][]*types.PluginConfigDetail,
 ) ([]*ChangeTask, error) {
+
 	changeTasks := make([]*ChangeTask, 0)
 	for hostID, details := range deleteDetailsByHost {
 		deleteSpec, err := newSpecifyPluginSubConfigSpec(pluginName, details, customConfigContext)
@@ -471,9 +472,9 @@ func convProcessConfigToPluginConfigDetail(config *types.ProcessConfig) *types.P
 	}
 }
 
-func newSpecifyPluginSubConfigSpec(
-	pluginName string, details []*types.PluginConfigDetail, customConfigContext map[string]any,
-) (*types.DeploySpec, error) {
+func newSpecifyPluginSubConfigSpec(pluginName string, details []*types.PluginConfigDetail, customConfigContext map[string]any) (
+	*types.DeploySpec, error) {
+
 	return types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
 		PluginName:          pluginName,
 		ConfigFilesDetail:   details,

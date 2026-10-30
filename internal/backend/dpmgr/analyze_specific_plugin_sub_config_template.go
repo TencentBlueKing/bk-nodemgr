@@ -107,6 +107,7 @@ func genSpecifyPluginSubConfigTemplateApplyOrUpdateTasks(
 	desiredDetails []*types.PluginConfigDetail,
 	deployPolicyConfigMap map[int64]map[string]*types.ProcessConfig,
 ) ([]*ChangeTask, error) {
+
 	changeTasks := make([]*ChangeTask, 0)
 	for _, target := range targets {
 		applyDetails := findApplyOrUpdateSubConfigDetails(
@@ -135,9 +136,7 @@ func genSpecifyPluginSubConfigTemplateApplyOrUpdateTasks(
 	return changeTasks, nil
 }
 
-func genDeployPolicySubConfigDetailsByConfigTemplateName(
-	deployPolicyID int64, details []*types.PluginConfigDetail,
-) []*types.PluginConfigDetail {
+func genDeployPolicySubConfigDetailsByConfigTemplateName(deployPolicyID int64, details []*types.PluginConfigDetail) []*types.PluginConfigDetail {
 	desiredDetails := make([]*types.PluginConfigDetail, 0, len(details))
 	for _, detail := range details {
 		if detail == nil {
@@ -169,6 +168,7 @@ func findApplyOrUpdateSubConfigDetails(
 	currentConfigMap map[string]*types.ProcessConfig,
 	customConfigContext map[string]any,
 ) []*types.PluginConfigDetail {
+
 	applyDetails := make([]*types.PluginConfigDetail, 0)
 	for _, detail := range desiredDetails {
 		if detail == nil {
@@ -189,6 +189,7 @@ func isSpecifyPluginSubConfigTemplateDeclarationChanged(
 	currentConfig *types.ProcessConfig,
 	customConfigContext map[string]any,
 ) bool {
+
 	if currentConfig == nil {
 		return true
 	}
@@ -215,6 +216,7 @@ func collectSpecifyPluginSubConfigTemplateDeleteDetails(
 	runningProcessMap map[string]*types.Process,
 	pluginName string,
 ) map[int64][]*types.PluginConfigDetail {
+
 	deleteDetailsByHost := make(map[int64][]*types.PluginConfigDetail)
 	seen := make(map[string]struct{})
 
@@ -246,6 +248,7 @@ func genSpecifyPluginSubConfigTemplateDeleteTasks(
 	deleteDetailsByHost map[int64][]*types.PluginConfigDetail,
 	runningProcessMap map[string]*types.Process,
 ) ([]*ChangeTask, error) {
+
 	changeTasks := make([]*ChangeTask, 0)
 	for hostID, details := range deleteDetailsByHost {
 		deleteSpec, err := newSpecifyPluginSubConfigSpec(pluginName, details, customConfigContext)
@@ -272,9 +275,7 @@ func genSpecifyPluginSubConfigTemplateDeleteTasks(
 	return changeTasks, nil
 }
 
-func selectSubConfigTemplateDeleteTarget(
-	hostID int64, targetMap map[int64]*types.Target, process *types.Process,
-) *types.Target {
+func selectSubConfigTemplateDeleteTarget(hostID int64, targetMap map[int64]*types.Target, process *types.Process) *types.Target {
 	if target, ok := targetMap[hostID]; ok {
 		return target
 	}
@@ -291,8 +292,8 @@ func selectSubConfigTemplateDeleteTarget(
 }
 
 func findMissingSubConfigDetails(
-	desiredDetails []*types.PluginConfigDetail, currentConfigMap map[string]*types.ProcessConfig,
-) []*types.PluginConfigDetail {
+	desiredDetails []*types.PluginConfigDetail, currentConfigMap map[string]*types.ProcessConfig) []*types.PluginConfigDetail {
+
 	missingDetails := make([]*types.PluginConfigDetail, 0)
 	for _, detail := range desiredDetails {
 		if detail == nil {
