@@ -1,0 +1,47 @@
+{{- if .Values.bkLogConfig.enabled }}
+# Stdout Log
+apiVersion: bk.tencent.com/v1alpha1
+kind: BkLogConfig
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-stdout-log
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  dataId: {{ .Values.bkLogConfig.dataId }}
+  logConfigType: std_log_config  # 标准输出日志
+  namespace: {{ .Release.Namespace | quote }}
+  labelSelector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}  # Deployment 中配置的 matchLabels
+  encoding: 'utf-8'
+---
+# Container Log
+apiVersion: bk.tencent.com/v1alpha1
+kind: BkLogConfig
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-container-log
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  dataId: {{ .Values.bkLogConfig.dataId }}
+  logConfigType: container_log_config  # 容器的文件日志
+  namespace: {{ .Release.Namespace | quote }}
+  labelSelector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}  # Deployment 中配置的 matchLabels
+  path:
+    # 只采带时间戳的普通日志文件，不采 *.INFO 软链，避免轮转时丢数据或重复
+    - {{ .Values.common.logPath }}/bk-nodemgr-*-system.*.INFO
+    - {{ .Values.common.logPath }}/bk-nodemgr-*-business.*.INFO
+  encoding: 'utf-8'
+{{- end }}

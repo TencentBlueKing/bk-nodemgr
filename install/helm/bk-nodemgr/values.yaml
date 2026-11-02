@@ -803,7 +803,7 @@ common:
   binPath: "/bk-nodemgr/bin"
   ## @param log path.
   ##
-  logPath: "/bk-nodemgr/logs"
+  logPath: "/bk-nodemgr/log"
   ## @param cert path.
   ##
   certPath: "/bk-nodemgr/cert"
@@ -1237,7 +1237,7 @@ application:
       ## unixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection, default is 22.
       unixSSHPortDefault: 22
       ## opsOutBandProtocols is the JSON-encoded list of out-of-band device protocols.
-      opsOutBandProtocols: '[]'
+      opsOutBandProtocols: "[]"
       ## unassignedNetworkAreaID is the CMDB network-area ID used for unassigned hosts, default is -1.
       unassignedNetworkAreaID: -1
       ## bkIAMSaasHost is the BK IAM saas host, default is empty.
@@ -1395,7 +1395,6 @@ application:
 
     ## defines the log related settings.
     log:
-      dir: "/bk-nodemgr/log"
       level: "INFO"
       maxNum: 10
       maxSizeMB: 200
@@ -1987,7 +1986,6 @@ backend:
 
     ## defines the log related settings.
     log:
-      dir: "/bk-nodemgr/log"
       level: "INFO"
       maxNum: 10
       maxSizeMB: 200
@@ -2328,7 +2326,6 @@ file:
 
     ## defines the log related settings.
     log:
-      dir: "/bk-nodemgr/log"
       level: "INFO"
       maxNum: 10
       maxSizeMB: 200
@@ -2552,6 +2549,12 @@ iamV4:
     # Externally reachable host; empty host produces an empty callback_url.
     host: ""
     path: "/api/v3/iam/v4/resource"
+
+## 蓝鲸日志采集
+##
+bkLogConfig:
+  enabled: false
+  dataId: 1
 
 ## ServiceMonitor configuration
 ##
