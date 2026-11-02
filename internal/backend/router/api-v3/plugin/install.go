@@ -155,25 +155,56 @@ func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.Plu
 }
 
 func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params ...*types.PluginDeploymentParam) error {
-	plugins := make(map[string]*types.Plugin)
+	if len(params) == 0 {
+		return nil
+	}
+
+	hostIDs := conv.SliceToSlice(params, func(param *types.PluginDeploymentParam) int64 {
+		return param.HostID
+	})
+	hosts, _, err := h.daoHost.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to list plugin hosts: %w", err)
+	}
+	hostMap, err := conv.SliceToMap(hosts, func(host *types.Host) int64 {
+		return host.HostID
+	})
+	if err != nil {
+		return fmt.Errorf("failed to convert plugin hosts to map: %w", err)
+	}
+
+	pluginNames := conv.SliceToSlice(params, func(param *types.PluginDeploymentParam) string {
+		return param.PluginName
+	})
+	plugins, _, err := h.daoPlugin.ListPlugins(rCtx, types.UnlimitedPage(), &types.PluginCondition{
+		ExactInclude: &types.PluginExactFields{Name: conv.SliceUnique(pluginNames)},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to list plugins: %w", err)
+	}
+	pluginMap, err := conv.SliceToMap(plugins, func(plugin *types.Plugin) string {
+		return plugin.Name
+	})
+	if err != nil {
+		return fmt.Errorf("failed to convert plugins to map: %w", err)
+	}
+
 	defaultVersions := make(map[types.ReleasePluginKey]string)
 	releases := make(map[types.ReleasePluginKey]*types.ReleasePlugin)
 
 	for _, param := range params {
-		host, err := h.daoHost.GetHostByID(rCtx, param.HostID)
-		if err != nil {
-			return fmt.Errorf("failed to get plugin host, host-id(%d): %w", param.HostID, err)
+		host, ok := hostMap[param.HostID]
+		if !ok {
+			return fmt.Errorf("plugin host not found, host-id(%d)", param.HostID)
 		}
 		if host.Dynamic == nil {
 			return fmt.Errorf("plugin host dynamic info is empty, host-id(%d)", param.HostID)
 		}
-		plugin, ok := plugins[param.PluginName]
+		plugin, ok := pluginMap[param.PluginName]
 		if !ok {
-			plugin, err = h.daoPlugin.GetPlugin(rCtx, param.PluginName)
-			if err != nil {
-				return fmt.Errorf("failed to get plugin, plugin-name(%s): %w", param.PluginName, err)
-			}
-			plugins[param.PluginName] = plugin
+			return fmt.Errorf("plugin not found, plugin-name(%s)", param.PluginName)
 		}
 		pluginPlatform := platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
 		releaseKey := types.ReleasePluginKey{
