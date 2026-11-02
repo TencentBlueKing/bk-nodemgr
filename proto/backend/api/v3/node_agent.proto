@@ -6,7 +6,7 @@ import "common.proto";
 
 import "google/api/annotations.proto";
 
-// NodeAgentInstallReq describes the node agent install request.
+// 待安装节点 Agent 的主机、登录方式及目标版本。
 message NodeAgentInstallReq {
   message Host {
     string bk_addressing = 1;
@@ -16,7 +16,7 @@ message NodeAgentInstallReq {
     string login_ip = 5;
     optional int64 login_port = 6;
     string login_user = 7;
-    // support: password_vault, password, keyfile
+    // 凭证类型：password_vault=密码库，password=密码，keyfile=密钥文件。
     string login_mode = 8;
     string login_password = 9;
     string login_key_file = 10;
@@ -39,7 +39,7 @@ message NodeAgentInstallReq {
   bool is_manual = 3;
 }
 
-// NodeAgentInstallResp describes the node agent install response.
+// 节点 Agent 安装工作流的标识。
 message NodeAgentInstallResp {
   int32 code = 1;
   string message = 2;
@@ -47,11 +47,14 @@ message NodeAgentInstallResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data {
+    // 用于跟踪本次操作的工作流 ID，不代表操作已完成。
+    string workflow_id = 1;
+  }
   Data data = 5;
 }
 
-// NodeAgentInstallCheckReq describes the node agent install check request.
+// 待检查节点 Agent 安装条件的目标主机。
 message NodeAgentInstallCheckReq {
   message Host {
     optional int64 bk_biz_id = 1;
@@ -63,8 +66,7 @@ message NodeAgentInstallCheckReq {
   repeated Host host = 1;
 }
 
-// NodeAgentInstallCheckResp describes the response for node agent installation
-// check.
+// 各目标主机的节点 Agent 安装检查结论。
 message NodeAgentInstallCheckResp {
   int32 code = 1;
   string message = 2;
@@ -72,11 +74,14 @@ message NodeAgentInstallCheckResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { repeated NodeAgentInstallCheckResult results = 1; }
+  message Data {
+    // 与请求 host 顺序一致，每台主机对应一条安装检查结论。
+    repeated NodeAgentInstallCheckResult results = 1;
+  }
   Data data = 5;
 }
 
-// NodeAgentInstallCheckMatchedItem describes the matched item for node.
+// 安装检查中匹配到的已存在主机信息。
 message NodeAgentInstallCheckMatchedItem {
   optional int64 bk_host_id = 1;
   optional int64 bk_biz_id = 2;
@@ -88,8 +93,7 @@ message NodeAgentInstallCheckMatchedItem {
   repeated string bk_host_innerip_v6_list = 8;
 }
 
-// NodeAgentInstallCheckResult describes the check result for node agent
-// installation.
+// 单台主机的节点 Agent 安装检查结论及提示信息。
 message NodeAgentInstallCheckResult {
   string status = 1;
   NodeAgentInstallCheckMatchedItem matched = 2;
@@ -98,7 +102,7 @@ message NodeAgentInstallCheckResult {
   string category = 5;
 }
 
-// NodeAgentUpgradeCheckReq describes the node agent upgrade check request.
+// 待检查升级条件的目标主机及候选目标版本。
 message NodeAgentUpgradeCheckReq {
   message Host {
     optional int64 bk_host_id = 1;
@@ -109,8 +113,7 @@ message NodeAgentUpgradeCheckReq {
   repeated TargetVersion target_version = 2;
 }
 
-// NodeAgentUpgradeCheckResp describes the response for node agent upgrade
-// check.
+// 各目标主机的节点 Agent 升级检查结论。
 message NodeAgentUpgradeCheckResp {
   int32 code = 1;
   string message = 2;
@@ -118,12 +121,14 @@ message NodeAgentUpgradeCheckResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { repeated NodeAgentUpgradeCheckResult results = 1; }
+  message Data {
+    // 与请求 host 顺序一致，每台主机对应一条升级检查结论。
+    repeated NodeAgentUpgradeCheckResult results = 1;
+  }
   Data data = 5;
 }
 
-// NodeAgentUpgradeCheckMatchedItem describes the matched item for upgrade
-// check.
+// 升级检查中匹配到的主机及网络信息。
 message NodeAgentUpgradeCheckMatchedItem {
   optional int64 bk_host_id = 1;
   optional int64 bk_biz_id = 2;
@@ -135,14 +140,13 @@ message NodeAgentUpgradeCheckMatchedItem {
   repeated string bk_host_innerip_v6_list = 8;
 }
 
-// NodeAgentUpgradeCheckResult describes the check result for node agent
-// upgrade.
+// 单台主机的节点 Agent 升级检查结论。
 message NodeAgentUpgradeCheckResult {
   string status = 1;
   NodeAgentUpgradeCheckMatchedItem matched = 2;
 }
 
-// NodeAgentUpgradeReq describes the node agent upgrade request.
+// 待升级的主机及各自的目标版本和重启选项。
 message NodeAgentUpgradeReq {
   message Host {
     int64 bk_host_id = 1;
@@ -155,7 +159,7 @@ message NodeAgentUpgradeReq {
   repeated Host host = 1;
 }
 
-// NodeAgentUpgradeResp describes the node agent upgrade response.
+// 节点 Agent 升级工作流的标识。
 message NodeAgentUpgradeResp {
   int32 code = 1;
   string message = 2;
@@ -163,11 +167,14 @@ message NodeAgentUpgradeResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data {
+    // 用于跟踪本次操作的工作流 ID，不代表操作已完成。
+    string workflow_id = 1;
+  }
   Data data = 5;
 }
 
-// NodeAgentReconfigReq describes the node agent reconfigure request.
+// 待重新下发配置的主机及重启选项。
 message NodeAgentReconfigReq {
   message Host {
     int64 bk_host_id = 1;
@@ -177,7 +184,7 @@ message NodeAgentReconfigReq {
   repeated Host host = 1;
 }
 
-// NodeAgentReconfigResp describes the node agent reconfigure response.
+// 节点 Agent 配置下发工作流的标识。
 message NodeAgentReconfigResp {
   int32 code = 1;
   string message = 2;
@@ -185,11 +192,14 @@ message NodeAgentReconfigResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data {
+    // 用于跟踪本次操作的工作流 ID，不代表操作已完成。
+    string workflow_id = 1;
+  }
   Data data = 5;
 }
 
-// NodeAgentRestartReq describes the node agent restart request.
+// 待重启的主机及重启选项。
 message NodeAgentRestartReq {
   message Host {
     int64 bk_host_id = 1;
@@ -199,7 +209,7 @@ message NodeAgentRestartReq {
   repeated Host host = 1;
 }
 
-// NodeAgentRestartResp describes the node agent restart response.
+// 节点 Agent 重启工作流的标识。
 message NodeAgentRestartResp {
   int32 code = 1;
   string message = 2;
@@ -207,18 +217,21 @@ message NodeAgentRestartResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data {
+    // 用于跟踪本次操作的工作流 ID，不代表操作已完成。
+    string workflow_id = 1;
+  }
   Data data = 5;
 }
 
-// NodeAgentUninstallReq describes the node agent uninstall request.
+// 待卸载节点 Agent 的主机及 Agent ID 解绑选项。
 message NodeAgentUninstallReq {
   message Host { int64 bk_host_id = 1; }
   repeated Host host = 1;
   bool unbind_agent_id = 2;
 }
 
-// NodeAgentUninstallResp describes the node agent uninstall response.
+// 节点 Agent 卸载工作流的标识。
 message NodeAgentUninstallResp {
   int32 code = 1;
   string message = 2;
@@ -226,19 +239,20 @@ message NodeAgentUninstallResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data { string workflow_id = 1; }
+  message Data {
+    // 用于跟踪本次操作的工作流 ID，不代表操作已完成。
+    string workflow_id = 1;
+  }
   Data data = 5;
 }
 
-// NodeAgentAssignUnitReq describes the request body for batch-assigning
-// a network unit to hosts.
+// 待分配管控单元的主机列表及共同的目标管控单元。
 message NodeAgentAssignUnitReq {
   repeated int64 bk_host_id = 1;
   int64 bk_networkunit_id = 2;
 }
 
-// NodeAgentAssignUnitResp describes the response for batch-assigning
-// a network unit.
+// 管控单元分配成功、失败的主机数量及失败原因。
 message NodeAgentAssignUnitResp {
   int32 code = 1;
   string message = 2;
@@ -247,15 +261,17 @@ message NodeAgentAssignUnitResp {
   Permission permission = 6;
 
   message Data {
+    // 成功写入管控单元的主机数。
     int64 success_count = 1;
+    // 未成功写入管控单元的主机数。
     int64 failed_count = 2;
+    // 失败原因列表；批量更新失败时按批次记录。
     repeated string failed_reasons = 3;
   }
   Data data = 5;
 }
 
-// NodeAgentAssignUnitMultiReq describes the request body for batch-assigning
-// multiple network units to agent hosts.
+// 按目标管控单元分组的待分配主机。
 message NodeAgentAssignUnitMultiReq {
   message Item {
     repeated int64 bk_host_id = 1;
@@ -264,9 +280,9 @@ message NodeAgentAssignUnitMultiReq {
   repeated Item items = 1;
 }
 
-// NodeAgent is the service for node agent.
+// 节点 Agent 安装、升级、重启、配置及管控单元分配接口。
 service NodeAgent {
-  // NodeAgentInstall installs node agent.
+  // 批量安装节点 Agent。
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/install"
@@ -274,7 +290,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentUpgrade upgrades node agent.
+  // 批量升级节点 Agent。
   rpc NodeAgentUpgrade(NodeAgentUpgradeReq) returns (NodeAgentUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/upgrade"
@@ -282,7 +298,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentRestart restarts node agent.
+  // 批量重启节点 Agent。
   rpc NodeAgentRestart(NodeAgentRestartReq) returns (NodeAgentRestartResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/restart"
@@ -290,7 +306,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentReconfig reconfigs node agent.
+  // 批量重新下发节点 Agent 配置并重启 Agent。
   rpc NodeAgentReconfig(NodeAgentReconfigReq) returns (NodeAgentReconfigResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/reconfig"
@@ -298,7 +314,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentUninstall uninstalls node agent.
+  // 批量卸载节点 Agent。
   rpc NodeAgentUninstall(NodeAgentUninstallReq)
       returns (NodeAgentUninstallResp) {
     option (google.api.http) = {
@@ -307,7 +323,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentInstallCheck provides node agent install check.
+  // 检查目标主机是否满足节点 Agent 安装条件。
   rpc NodeAgentInstallCheck(NodeAgentInstallCheckReq)
       returns (NodeAgentInstallCheckResp) {
     option (google.api.http) = {
@@ -316,7 +332,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentUpgradeCheck provides node agent upgrade check.
+  // 检查目标主机是否满足节点 Agent 升级条件。
   rpc NodeAgentUpgradeCheck(NodeAgentUpgradeCheckReq)
       returns (NodeAgentUpgradeCheckResp) {
     option (google.api.http) = {
@@ -325,7 +341,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.
+  // 为尚未分配管控单元的主机批量分配同一管控单元，仅更新节点元数据。
   rpc NodeAgentAssignUnit(NodeAgentAssignUnitReq)
       returns (NodeAgentAssignUnitResp) {
     option (google.api.http) = {
@@ -334,12 +350,92 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentAssignUnitMulti batch-assigns multiple network units to agent
-  // hosts.
+  // 按主机分组批量分配对应的管控单元，仅更新节点元数据。
   rpc NodeAgentAssignUnitMulti(NodeAgentAssignUnitMultiReq)
       returns (NodeAgentAssignUnitResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/assign_unit_multi"
+      body : "*"
+    };
+  }
+}
+
+// 开放入口的节点 Agent 安装、升级、重启、配置及管控单元分配接口。
+service OpenNodeAgent {
+  // 批量安装节点 Agent。
+  rpc OpenNodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/install"
+      body : "*"
+    };
+  }
+
+  // 批量升级节点 Agent。
+  rpc OpenNodeAgentUpgrade(NodeAgentUpgradeReq) returns (NodeAgentUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/upgrade"
+      body : "*"
+    };
+  }
+
+  // 批量重启节点 Agent。
+  rpc OpenNodeAgentRestart(NodeAgentRestartReq) returns (NodeAgentRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/restart"
+      body : "*"
+    };
+  }
+
+  // 批量重新下发节点 Agent 配置并重启 Agent。
+  rpc OpenNodeAgentReconfig(NodeAgentReconfigReq)
+      returns (NodeAgentReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/reconfig"
+      body : "*"
+    };
+  }
+
+  // 批量卸载节点 Agent。
+  rpc OpenNodeAgentUninstall(NodeAgentUninstallReq)
+      returns (NodeAgentUninstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/uninstall"
+      body : "*"
+    };
+  }
+
+  // 检查目标主机是否满足节点 Agent 安装条件。
+  rpc OpenNodeAgentInstallCheck(NodeAgentInstallCheckReq)
+      returns (NodeAgentInstallCheckResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/install_check"
+      body : "*"
+    };
+  }
+
+  // 检查目标主机是否满足节点 Agent 升级条件。
+  rpc OpenNodeAgentUpgradeCheck(NodeAgentUpgradeCheckReq)
+      returns (NodeAgentUpgradeCheckResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/upgrade_check"
+      body : "*"
+    };
+  }
+
+  // 为尚未分配管控单元的主机批量分配同一管控单元，仅更新节点元数据。
+  rpc OpenNodeAgentAssignUnit(NodeAgentAssignUnitReq)
+      returns (NodeAgentAssignUnitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/assign_unit"
+      body : "*"
+    };
+  }
+
+  // 按主机分组批量分配对应的管控单元，仅更新节点元数据。
+  rpc OpenNodeAgentAssignUnitMulti(NodeAgentAssignUnitMultiReq)
+      returns (NodeAgentAssignUnitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/agent/assign_unit_multi"
       body : "*"
     };
   }
