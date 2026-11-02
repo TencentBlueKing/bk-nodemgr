@@ -26,7 +26,6 @@ package jwttoken
 import (
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/configfile"
@@ -230,24 +229,14 @@ func loadFileJWTKey(path, server string) (string, error) {
 func validateServiceServer(service, server string) error {
 	entry, ok := jwtServiceConfigs[service]
 	if !ok {
-		return fmt.Errorf("unknown service '%s', available services: %s", service, joinSortedKeys(jwtServiceConfigs))
+		return fmt.Errorf("unknown service '%s', available services: %s",
+			service, strings.Join(conv.MapKeyToSlice(jwtServiceConfigs), ", "))
 	}
 
 	if !slices.Contains(entry.servers, server) {
-		servers := slices.Clone(entry.servers)
-		sort.Strings(servers)
-
 		return fmt.Errorf("unknown server '%s' for service '%s', available servers: %s",
-			server, service, strings.Join(servers, ", "))
+			server, service, strings.Join(slices.Sorted(slices.Values(entry.servers)), ", "))
 	}
 
 	return nil
-}
-
-// joinSortedKeys joins map keys in sorted order for stable error messages.
-func joinSortedKeys[V any](source map[string]V) string {
-	keys := conv.MapKeyToSlice(source)
-	sort.Strings(keys)
-
-	return strings.Join(keys, ", ")
 }

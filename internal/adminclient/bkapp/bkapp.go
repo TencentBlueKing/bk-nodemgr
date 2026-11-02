@@ -24,7 +24,6 @@ package bkapp
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/adminclient/configfile"
@@ -159,16 +158,9 @@ func loadBKAppIDSecret(flags *configfile.Flags, name string) (string, string, er
 // validateCredName validates the credential name against the known names.
 func validateCredName(name string) error {
 	if _, ok := bkAppCredentials[name]; !ok {
-		return fmt.Errorf("unknown credential name '%s', available names: %s", name, joinSortedNames(bkAppCredentials))
+		return fmt.Errorf("unknown credential name '%s', available names: %s",
+			name, strings.Join(conv.MapKeyToSlice(bkAppCredentials), ", "))
 	}
 
 	return nil
-}
-
-// joinSortedNames joins map keys in sorted order for stable error messages.
-func joinSortedNames[V any](source map[string]V) string {
-	names := conv.MapKeyToSlice(source)
-	sort.Strings(names)
-
-	return strings.Join(names, ", ")
 }

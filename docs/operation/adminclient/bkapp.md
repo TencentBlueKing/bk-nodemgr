@@ -22,7 +22,7 @@ APP_SECRET=$(bk-nodemgr-adminclient bkapp secret iamv3 -f /bk-nodemgr/etc/backen
 
 ## 前提
 
-- `-f/--file`、`--conf-dir` 语义与 [database](database.md) 命令一致；凭证均位于 Backend 配置，自动发现按服务名依次尝试 `<conf-dir>/backend_conf.yaml` 与 `<conf-dir>/bk-nodemgr-backend.yml`。
+- `-f/--file`、`--conf-dir` 语义与 [database](database.md) 命令一致；凭证均位于 Backend 配置，自动发现匹配 `<conf-dir>` 下含 `callbackServer:` 段的 yaml/yml 文件（与文件名无关，helm 的 `backend_conf.yaml` 与 legacy `bk-nodemgr-backend.yml` 均覆盖）；多个文件命中时报错，需 `-f` 显式指定。
 - KMS 模式：运行环境需可读 `kms.globalSecretFile` 指向的 global envelope 文件，并注入 `BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL` 环境变量（K8S 中即 `*-global-kms-secret` 的 `privateKey` key）。只需 global envelope，无需 module envelope。
 - 明文模式：`iamv3`/`iamv4` 要求配置文件中对应段的 `appCode/appSecret` 已渲染为明文值；`apigw-sync` 要求环境已注入 `BK_APP_CODE`/`BK_APP_SECRET`。
 - 解析结果为空时报错退出，不会输出空值；KMS 模式下 envelope 缺失或解密失败同样明确报错，不回退明文。

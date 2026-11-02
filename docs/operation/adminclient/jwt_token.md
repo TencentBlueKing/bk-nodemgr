@@ -24,7 +24,7 @@ JWT_TOKEN=$(bk-nodemgr-adminclient jwt_token file basic -f /bk-nodemgr/etc/file_
 
 ## 前提
 
-- `-f/--file`、`--conf-dir` 语义与 [database](database.md) 命令一致；自动发现按 `<service>` 参数定位，依次尝试 `<conf-dir>/<service>_conf.yaml` 与 `<conf-dir>/bk-nodemgr-<service>.yml`。
+- `-f/--file`、`--conf-dir` 语义与 [database](database.md) 命令一致；自动发现按 `<service>` 参数定位：匹配 `<conf-dir>` 下含服务标识段的 yaml/yml 文件（application=`front:`、backend=`callbackServer:`、file=`downloadServer:`），与文件名无关；多个文件命中同一服务时报错，需 `-f` 显式指定。
 - KMS 模式（`kms.enabled: true`）：运行环境需可读 `kms.globalSecretFile` 指向的 global envelope 文件，并注入 `BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL` 环境变量（K8S 中即 `*-global-kms-secret` 的 `privateKey` key）。只需 global envelope，无需 module envelope。
 - 明文模式（`kms.enabled: false`）：配置文件的 `<server>Server.jwtServerConfig.symmetricKey` 需已渲染为明文值。
 - `--login-name`、`--bk-username` 默认均为 `admin`，会写入 JWT 声明用于标识调用方。
