@@ -191,10 +191,8 @@ func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params
 		return fmt.Errorf("failed to convert plugins to map: %w", err)
 	}
 
-	defaultVersions := make(map[types.ReleasePluginKey]string)
-	releases := make(map[types.ReleasePluginKey]*types.ReleasePlugin)
-
-	for _, param := range params {
+	releaseKeys := make([]types.ReleasePluginKey, len(params))
+	for idx, param := range params {
 		host, ok := hostMap[param.HostID]
 		if !ok {
 			return fmt.Errorf("plugin host not found, host-id(%d)", param.HostID)
@@ -207,36 +205,68 @@ func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params
 			return fmt.Errorf("plugin not found, plugin-name(%s)", param.PluginName)
 		}
 		pluginPlatform := platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
-		releaseKey := types.ReleasePluginKey{
+		releaseKeys[idx] = types.ReleasePluginKey{
 			Generation: host.Dynamic.NodeGeneration,
 			Platform:   pluginPlatform,
 			Name:       plugin.PkgName,
+			Version:    param.Version,
 		}
-		version := param.Version
-		if version == "" {
-			version, ok = defaultVersions[releaseKey]
-			if !ok {
-				version, err = h.fileHandler.GetReleasePluginDefaultVersion(rCtx, plugin.PkgName, host.Dynamic.NodeGeneration, pluginPlatform)
-				if err != nil {
-					return fmt.Errorf("failed to get default plugin version, plugin-pkg-name(%s): %w", plugin.PkgName, err)
-				}
-				defaultVersions[releaseKey] = version
-			}
-		}
-		releaseKey.Version = version
-		release, ok := releases[releaseKey]
-		if !ok {
-			release, err = h.fileHandler.GetReleasePlugin(rCtx, releaseKey)
-			if err != nil {
-				return fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w", plugin.PkgName, version, err)
-			}
-			releases[releaseKey] = release
-		}
-		param.Version = version
-		param.EnableCompatibilityMode = param.EnableCompatibilityMode && !release.LegacyConflict
+	}
+
+	if err := h.resolvePluginReleaseVersions(rCtx, releaseKeys); err != nil {
+		return err
+	}
+	releases, err := h.fetchPluginReleases(rCtx, conv.SliceUnique(releaseKeys))
+	if err != nil {
+		return err
+	}
+
+	for idx, param := range params {
+		releaseKey := releaseKeys[idx]
+		param.Version = releaseKey.Version
+		param.EnableCompatibilityMode = param.EnableCompatibilityMode && !releases[releaseKey].LegacyConflict
 	}
 
 	return nil
+}
+
+func (h *handler) resolvePluginReleaseVersions(rCtx restserver.IContext, keys []types.ReleasePluginKey) error {
+	defaultKeys := make([]types.ReleasePluginKey, 0)
+	for _, key := range keys {
+		if key.Version == "" {
+			defaultKeys = append(defaultKeys, key)
+		}
+	}
+
+	defaultVersions := make(map[types.ReleasePluginKey]string)
+	for _, key := range conv.SliceUnique(defaultKeys) {
+		version, err := h.fileHandler.GetReleasePluginDefaultVersion(rCtx, key.Name, key.Generation, key.Platform)
+		if err != nil {
+			return fmt.Errorf("failed to get default plugin version, plugin-pkg-name(%s): %w", key.Name, err)
+		}
+		defaultVersions[key] = version
+	}
+
+	for idx, key := range keys {
+		if key.Version == "" {
+			keys[idx].Version = defaultVersions[key]
+		}
+	}
+
+	return nil
+}
+
+func (h *handler) fetchPluginReleases(rCtx restserver.IContext, keys []types.ReleasePluginKey) (map[types.ReleasePluginKey]*types.ReleasePlugin, error) {
+	releases := make(map[types.ReleasePluginKey]*types.ReleasePlugin)
+	for _, key := range keys {
+		release, err := h.fileHandler.GetReleasePlugin(rCtx, key)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get plugin release, plugin-pkg-name(%s), version(%s): %w", key.Name, key.Version, err)
+		}
+		releases[key] = release
+	}
+
+	return releases, nil
 }
 
 func (h *handler) resolvePluginCompatibilityModePolicy(rCtx restserver.IContext) compatibility.Policy {
