@@ -1472,8 +1472,8 @@ application:
       # appCode is the BlueKing app code of Nodemgr to request IAM v3 gateway.
       appCode: ""
       # appSecret is the BlueKing app secret of Nodemgr to request IAM v3 gateway.
-      # appCode/appSecret are ignored under kms.enabled: the sync Job resolves them
-      # from the kms global envelope via adminclient bkapp.
+      # under kms.enabled the values here are overridden from the kms global
+      # envelope by the application service's own config loader.
       appSecret: ""
       # user is the BlueKing user of Nodemgr to request IAM v3 gateway.
       user: ""
@@ -2060,8 +2060,8 @@ backend:
       endpoints:
         - "https://example.com/api/bkiam/prod"
       appCode: ""
-      # appCode/appSecret are ignored under kms.enabled: the sync Job resolves them
-      # from the kms global envelope via adminclient bkapp.
+      # under kms.enabled the values here are overridden from the kms global
+      # envelope; the sync Job resolves them via adminclient bkapp in both modes.
       appSecret: ""
       authMode: "un"
       systemID: "bk_nodemgr"
@@ -2385,8 +2385,9 @@ apigwSync:
     - name: BK_APP_CODE
       value: "bk-nodemgr"
     - name: BK_APP_SECRET
-      # BK_APP_CODE/BK_APP_SECRET are ignored under kms.enabled: the sync Job resolves
-      # them from the kms global envelope via adminclient bkapp.
+      # plaintext deployments: adminclient bkapp reads the apigw-sync credential
+      # from these env entries; under kms.enabled they are ignored and the
+      # credential is resolved from the kms global envelope instead.
       value: ""
     - name: BK_API_URL_TMPL
       value: "http://bkapi.example.com/api/{api_name}"

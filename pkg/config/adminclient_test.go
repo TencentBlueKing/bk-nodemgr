@@ -111,14 +111,36 @@ kms:
 
 func TestAdminClientBKApp_LoadFromFileKMSDisabled(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "backend_conf.yaml")
-	configContent := []byte(`kms:
+	configContent := []byte(`# unrelated fields may contain unreplaced rendering placeholders.
+advertiseIPV4: "__ADVERTISE_IPV4__"
+kms:
   enabled: false
+iamV3:
+  endpoints:
+    - "https://example.com/api/bk-iam/prod"
+  appCode: iamv3-code
+  appSecret: iamv3-secret
+  systemID: bk_nodemgr
+iamV4:
+  appCode: iamv4-code
+  appSecret: iamv4-secret
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+	t.Setenv(bkAppCodeEnvName, "apigw-sync-code")
+	t.Setenv(bkAppSecretEnvName, "apigw-sync-secret")
 
 	conf := &AdminClientBKApp{}
-	err := conf.LoadFromFile(configPath)
-	require.ErrorContains(t, err, "kms is not enabled")
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.False(t, conf.KMS.Enabled)
+	// plaintext iamV3/iamV4 credentials come from the yaml sections.
+	assert.Equal(t, "iamv3-code", conf.IAMV3.AppCode)
+	assert.Equal(t, "iamv3-secret", conf.IAMV3.AppSecret)
+	assert.Equal(t, "iamv4-code", conf.IAMV4.AppCode)
+	assert.Equal(t, "iamv4-secret", conf.IAMV4.AppSecret)
+	// plaintext apigw-sync credential comes from the env injected by the job layer.
+	assert.Equal(t, "apigw-sync-code", conf.Default.AppCode)
+	assert.Equal(t, "apigw-sync-secret", conf.Default.AppSecret)
 }
 
 func TestAdminClientFile_LoadFromFileKMS(t *testing.T) {

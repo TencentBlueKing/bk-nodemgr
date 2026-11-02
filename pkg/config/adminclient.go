@@ -54,29 +54,47 @@ func (conf *AdminClientDatabase) LoadFromFile(path string) error {
 	return nil
 }
 
-// AdminClientBKApp the minimal config for the adminclient bkapp command: only the kms
-// section is needed, since the bk app code/secret lives in the kms global envelope.
+// bk app credential environment variable names: the ops job layer (e.g. the
+// apigw-sync job) injects the plaintext apigw-sync credential through these
+// variables, the same deployment-layer channel as the KMS private key env.
+const (
+	bkAppCodeEnvName   = "BK_APP_CODE"
+	bkAppSecretEnvName = "BK_APP_SECRET"
+)
+
+// AdminClientBKApp the minimal config for the adminclient bkapp command. It mirrors
+// the backend config sections holding the named bk app credentials; with kms enabled,
+// LoadFromFile overrides all of them with the default credential decrypted from the
+// kms global envelope.
 type AdminClientBKApp struct {
 	KMS KMS `yaml:"kms" usage:"kms secret config"`
 
-	// AppCode/AppSecret hold the decrypted bk app credentials, populated by LoadFromFile.
-	AppCode   string `yaml:"-"`
-	AppSecret string `yaml:"-"`
+	// IAMV3/IAMV4 decode the appCode/appSecret of the backend iamV3/iamV4 sections;
+	// the remaining APIGatewayClient fields are ignored.
+	IAMV3 APIGatewayClient `yaml:"iamV3"`
+	IAMV4 APIGatewayClient `yaml:"iamV4"`
+
+	// Default is the apigw-sync credential, populated by LoadFromFile: decrypted
+	// from the kms global envelope when kms is enabled, read from the
+	// BK_APP_CODE/BK_APP_SECRET env (injected by the ops job layer) otherwise.
+	Default APIGatewayClient `yaml:"-"`
 }
 
-// LoadFromFile loads the kms section from a service config file and decrypts the bk app
-// code/secret from the kms global envelope into AppCode/AppSecret. Unlike the database
-// commands, kms is mandatory here: plaintext deployments read app credentials from values
-// directly and never call this command, so a disabled kms section is an error.
+// LoadFromFile loads the backend config file and resolves the named bk app
+// credentials: kms enabled overrides every credential from the global envelope,
+// plaintext keeps the yaml iamV3/iamV4 values and resolves Default from the env.
 func (conf *AdminClientBKApp) LoadFromFile(path string) error {
 	if err := loadYAMLFile(path, conf); err != nil {
 		return err
 	}
 
-	// load kms secret.
-	if err := conf.KMS.ParseAdminClientBKApp(conf); err != nil {
-		return err
+	if conf.KMS.Enabled {
+		return conf.KMS.ParseAdminClientBKApp(conf)
 	}
+
+	// load plaintext apigw-sync credential from the env.
+	conf.Default.AppCode = os.Getenv(bkAppCodeEnvName)
+	conf.Default.AppSecret = os.Getenv(bkAppSecretEnvName)
 
 	return nil
 }

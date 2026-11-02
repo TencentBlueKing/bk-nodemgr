@@ -17,8 +17,9 @@
  */
 
 // Package configfile resolves service config files for adminclient commands:
-// either the explicit -f/--file path, or auto-discovery of the first *_conf.yaml
-// containing a given top-level section under --conf-dir.
+// either the explicit -f/--file path, auto-discovery of the first *_conf.yaml
+// containing a given top-level section, or the named service's own config file
+// under --conf-dir.
 package configfile
 
 import (
@@ -26,6 +27,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -59,6 +61,28 @@ func Resolve(path, dir, section string) (string, error) {
 	}
 
 	return discover(dir, section)
+}
+
+// ResolveForService returns the explicit flag path when set, otherwise the config
+// file of the named service: <dir>/<service>_conf.yaml, falling back to the legacy
+// bare-metal/docker-compose name <dir>/bk-nodemgr-<service>.yml.
+func ResolveForService(path, dir, service string) (string, error) {
+	if path != "" {
+		return path, nil
+	}
+
+	candidates := []string{
+		filepath.Join(dir, service+fileSuffix),
+		filepath.Join(dir, "bk-nodemgr-"+service+".yml"),
+	}
+	for _, candidate := range candidates {
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate, nil
+		}
+	}
+
+	return "", fmt.Errorf("no config file for service '%s' found in %s/ (tried %s), use -f to specify manually",
+		service, dir, strings.Join(candidates, ", "))
 }
 
 // discover finds the first conf file containing the target section.

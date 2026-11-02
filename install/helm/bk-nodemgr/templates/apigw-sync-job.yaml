@@ -71,18 +71,14 @@ spec:
           args:
             - |
               set -e
-              {{- if .Values.kms.enabled }}
               # the apigw-sync image carries bk-nodemgr-adminclient at /usr/local/bin
-              # (not common.binPath); resolve the app credentials from the kms global
-              # envelope on the command line, then export for sync-apigateway.sh.
-              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "binPath" "/usr/local/bin" "exportBKApp" true) | nindent 14 }}
-              {{- end }}
+              # (not common.binPath); resolve the apigw-sync app credentials via
+              # adminclient (source-agnostic: kms envelope, or the BK_APP_CODE/
+              # BK_APP_SECRET env below in plaintext mode), then export for
+              # sync-apigateway.sh.
+              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "name" "apigw-sync" "binPath" "/usr/local/bin" "exportBKApp" true) | nindent 14 }}
               exec bash bin/sync-apigateway.sh
           env:
-          {{- if .Values.kms.enabled }}
-          # the BK_APP_CODE/BK_APP_SECRET entries below are placeholders; the
-          # command line above exports the resolved values.
-          {{- end }}
           {{- $extraEnvVars := list }}
           {{- range .Values.apigwSync.extraEnvVars }}
           {{- if ne .name "BK_APP_TENANT_ID" }}

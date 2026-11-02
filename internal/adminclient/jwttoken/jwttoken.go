@@ -37,8 +37,6 @@ import (
 )
 
 const (
-	// sectionKMS is the top-level config section used for auto-discovery.
-	sectionKMS = "kms"
 	// serviceServerArgCount is the positional argument count of jwt_token: service + server.
 	serviceServerArgCount = 2
 )
@@ -143,7 +141,7 @@ func loadJWTKeyFromConfig(flags *configfile.Flags, service, server string) (stri
 		return "", err
 	}
 
-	path, err := configfile.Resolve(flags.Path, flags.Dir, sectionKMS)
+	path, err := configfile.ResolveForService(flags.Path, flags.Dir, service)
 	if err != nil {
 		return "", err
 	}

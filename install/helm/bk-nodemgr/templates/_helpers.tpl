@@ -386,6 +386,18 @@ Params: dict "root" . "module" (backend|application|file) "moduleValues" <module
 {{- end -}}
 
 {{/*
+Whether the backend configmap is rendered: the backend config holds not only the
+backend workload's settings but also the named bk app credential sources consumed
+by the sync jobs (iamv3/iamv4/apigw-sync via bk-nodemgr.bkapp* helpers), so the
+configmap renders when backend is enabled OR any sync job is enabled, even when
+the backend workload itself is not deployed. New consumers of the backend config
+must extend this condition.
+*/}}
+{{- define "bk-nodemgr.backendConfigRequired" -}}
+{{- if or .Values.backend.enabled .Values.apigwSync.enabled .Values.backend.config.iamV3.enable .Values.iamV4.enabled -}}true{{- end -}}
+{{- end -}}
+
+{{/*
 Config file location shared by bk-nodemgr.bkappResolveScript and
 bk-nodemgr.bkappVolumeMounts: the backend config is mounted at
 bk-nodemgr.bkappConfigDir, and bkapp reads <dir>/backend_conf.yaml from it.
@@ -394,34 +406,27 @@ bk-nodemgr.bkappConfigDir, and bkapp reads <dir>/backend_conf.yaml from it.
 {{- define "bk-nodemgr.bkappConfigFile" -}}{{ include "bk-nodemgr.bkappConfigDir" . }}/backend_conf.yaml{{- end -}}
 
 {{/*
-Resolve bk app code/secret into the APP_CODE/APP_SECRET shell variables.
-Under kms.enabled they are decrypted from the kms global envelope via
-bk-nodemgr-adminclient bkapp; otherwise the values-rendered appCode/appSecret
-are used. Requires bk-nodemgr.bkappVolumeMounts (+ bkappKMSEnv) on the pod; the
-pod's own retry (job backoffLimit / initContainer restart) covers first-install
-timing where the ESO-synced kms secret is not ready yet.
+Resolve a named bk app code/secret into the APP_CODE/APP_SECRET shell variables
+via bk-nodemgr-adminclient bkapp. The credential source is resolved by
+adminclient: the kms global envelope when kms.enabled, plaintext sources
+otherwise (the iamV3/iamV4 sections of the mounted backend config for the iam
+jobs; the BK_APP_CODE/BK_APP_SECRET env injected via extraEnvVars for
+apigw-sync). The command line is identical in both modes, so jobs never branch
+on kms.enabled. Requires bk-nodemgr.bkappVolumeMounts (+ bkappKMSEnv) on the
+pod; the pod's own retry (job backoffLimit / initContainer restart) covers
+first-install timing where the ESO-synced kms secret is not ready yet.
 Note: assignments must stay un-exported so `set -e` still aborts the script
 when adminclient fails; pass "exportBKApp" true to additionally export them as
 BK_APP_CODE/BK_APP_SECRET for a child process.
-Params: dict "root" . "appCode" <values appCode> "appSecret" <values appSecret>
+Params: dict "root" . "name" <credential name: iamv3|iamv4|apigw-sync>
         "binPath" <dir of bk-nodemgr-adminclient> (default: common.binPath;
         images not based on bk-nodemgr-server, e.g. apigw-sync, override this)
         "exportBKApp" <bool> (default false)
 */}}
 {{- define "bk-nodemgr.bkappResolveScript" -}}
 {{- $binPath := .binPath | default .root.Values.common.binPath }}
-{{- if .root.Values.kms.enabled }}
-{{- if not .root.Values.backend.enabled }}
-{{- fail "kms.enabled requires backend.enabled: bkapp credentials are resolved from the kms section of the backend config" }}
-{{- end }}
-APP_CODE="$({{ $binPath }}/bk-nodemgr-adminclient bkapp code -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
-APP_SECRET="$({{ $binPath }}/bk-nodemgr-adminclient bkapp secret -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
-{{- else }}
-# single quotes keep $ and backticks in the values literal; embedded single
-# quotes are closed, escaped and reopened ('\''), so any byte sequence stays literal.
-APP_CODE='{{ .appCode | replace "'" "'\\''" }}'
-APP_SECRET='{{ .appSecret | replace "'" "'\\''" }}'
-{{- end }}
+APP_CODE="$({{ $binPath }}/bk-nodemgr-adminclient bkapp code {{ .name }} -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
+APP_SECRET="$({{ $binPath }}/bk-nodemgr-adminclient bkapp secret {{ .name }} -f {{ include "bk-nodemgr.bkappConfigFile" .root }})"
 {{- if .exportBKApp }}
 export BK_APP_CODE="${APP_CODE}"
 export BK_APP_SECRET="${APP_SECRET}"
@@ -443,14 +448,19 @@ private key from the ESO-synced kms secret. Rendered only when kms.enabled.
 {{- end -}}
 
 {{/*
-Volume mounts for bkapp resolution: the backend config (bkapp reads its kms
-section) and, when kms.enabled, only the global envelope item (least privilege).
+Volume mounts for bkapp resolution: the backend config holds every named bk app
+credential source (iamV3/iamV4 sections; the kms section pointing at the global
+envelope), so it is mounted unconditionally; the global envelope item is mounted
+only when kms.enabled (least privilege).
 */}}
 {{- define "bk-nodemgr.bkappVolumeMounts" -}}
-{{- if .Values.kms.enabled }}
+{{- if ne (include "bk-nodemgr.backendConfigRequired" .) "true" }}
+{{- fail "bkapp resolution requires the backend configmap: enable backend or one of the sync jobs (apigwSync/iamV3/iamV4)" }}
+{{- end }}
 - name: {{ template "bk-nodemgr.fullname" . }}-backend-config
   mountPath: {{ include "bk-nodemgr.bkappConfigDir" . }}
   readOnly: true
+{{- if .Values.kms.enabled }}
 - name: kms-envelope
   mountPath: {{ .Values.common.secretPath }}/kms-global-envelope
   subPath: kms-global-envelope
@@ -462,10 +472,13 @@ section) and, when kms.enabled, only the global envelope item (least privilege).
 Volumes backing bk-nodemgr.bkappVolumeMounts.
 */}}
 {{- define "bk-nodemgr.bkappVolumes" -}}
-{{- if .Values.kms.enabled }}
+{{- if ne (include "bk-nodemgr.backendConfigRequired" .) "true" }}
+{{- fail "bkapp resolution requires the backend configmap: enable backend or one of the sync jobs (apigwSync/iamV3/iamV4)" }}
+{{- end }}
 - name: {{ template "bk-nodemgr.fullname" . }}-backend-config
   configMap:
     name: {{ template "bk-nodemgr.fullname" . }}-backend-config
+{{- if .Values.kms.enabled }}
 - name: kms-envelope
   secret:
     secretName: {{ template "bk-nodemgr.fullname" . }}-global-kms-secret

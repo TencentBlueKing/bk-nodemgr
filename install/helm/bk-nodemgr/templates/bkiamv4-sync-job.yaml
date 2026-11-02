@@ -73,8 +73,8 @@ spec:
             - |
               set -eu
 
-              # Resolve app credentials: from the kms global envelope when kms.enabled, else from values.
-              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "appCode" .Values.backend.config.iamV4.appCode "appSecret" .Values.backend.config.iamV4.appSecret) | nindent 14 }}
+              # Resolve the iamv4 app credentials via adminclient (source-agnostic).
+              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "name" "iamv4") | nindent 14 }}
               # iam-migrate reads the secret from BK_APP_SECRET.
               export BK_APP_SECRET="${APP_SECRET}"
 

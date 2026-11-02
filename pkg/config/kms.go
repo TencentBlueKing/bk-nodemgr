@@ -125,15 +125,12 @@ func (k *KMS) ParseAdminClientDatabase(conf *AdminClientDatabase) error {
 	return nil
 }
 
-// ParseAdminClientBKApp parses the adminclient bkapp config.
-// The bk app credentials live only in the global envelope, so only the global private
-// key is required. Unlike the other Parse functions, kms disabled is an error here:
-// plaintext deployments read app credentials from values and never call the bkapp command.
+// ParseAdminClientBKApp overrides the named bk app credentials with the default
+// credential from the kms global envelope. The bk app credentials live only in the
+// global envelope, so only the global private key is required. Callers must branch
+// on k.Enabled first: when kms is disabled the credentials stay as resolved from
+// plaintext sources (yaml sections or env).
 func (k *KMS) ParseAdminClientBKApp(conf *AdminClientBKApp) error {
-	if !k.Enabled {
-		return fmt.Errorf("kms is not enabled, bk app code/secret are only available via kms")
-	}
-
 	if err := k.loadGlobal(); err != nil {
 		return err
 	}
@@ -143,8 +140,12 @@ func (k *KMS) ParseAdminClientBKApp(conf *AdminClientBKApp) error {
 		return err
 	}
 
-	conf.AppCode = dataGlobal.BKAppIDSecret.Default.AppCode
-	conf.AppSecret = dataGlobal.BKAppIDSecret.Default.AppSecret
+	conf.IAMV3.AppCode = dataGlobal.BKAppIDSecret.Default.AppCode
+	conf.IAMV3.AppSecret = dataGlobal.BKAppIDSecret.Default.AppSecret
+	conf.IAMV4.AppCode = dataGlobal.BKAppIDSecret.Default.AppCode
+	conf.IAMV4.AppSecret = dataGlobal.BKAppIDSecret.Default.AppSecret
+	conf.Default.AppCode = dataGlobal.BKAppIDSecret.Default.AppCode
+	conf.Default.AppSecret = dataGlobal.BKAppIDSecret.Default.AppSecret
 
 	return nil
 }

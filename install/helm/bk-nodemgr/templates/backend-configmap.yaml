@@ -1,4 +1,4 @@
-{{- if .Values.backend.enabled }}
+{{- if eq (include "bk-nodemgr.backendConfigRequired" .) "true" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
