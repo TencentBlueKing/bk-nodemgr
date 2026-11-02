@@ -181,12 +181,16 @@ type PluginV2Project struct {
 
 // Validate validates the project.yaml installer limits.
 func (project *PluginV2Project) Validate() error {
-	if math.IsNaN(project.InstallCPULimit) || math.IsInf(project.InstallCPULimit, 0) ||
+	if math.IsNaN(project.InstallCPULimit) ||
+		math.IsInf(project.InstallCPULimit, 0) ||
 		project.InstallCPULimit < 0 || project.InstallCPULimit > 1 {
+
 		return fmt.Errorf("invalid install_cpu_limit(%v), must be between 0 and 1", project.InstallCPULimit)
 	}
-	if math.IsNaN(project.InstallDiskIOLimit) || math.IsInf(project.InstallDiskIOLimit, 0) ||
+	if math.IsNaN(project.InstallDiskIOLimit) ||
+		math.IsInf(project.InstallDiskIOLimit, 0) ||
 		project.InstallDiskIOLimit < 0 {
+
 		return fmt.Errorf("invalid install_disk_io_limit(%v), must be a non-negative number", project.InstallDiskIOLimit)
 	}
 
@@ -299,14 +303,13 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 				return nil
 			},
 		},
-	}
-
-	tgzReadRules = append(tgzReadRules, tgzReadRule{
-		filePathRegex: []string{buildPrefixMatchRegex(originalPluginPkgV2DirNamePlatPrefix)},
-		callback: func(path []string, r io.Reader) error {
-			return readOriginPluginV2Payload(path, r, payloads, platformPayloads, payloadFiles)
+		{
+			filePathRegex: []string{buildPrefixMatchRegex(originalPluginPkgV2DirNamePlatPrefix)},
+			callback: func(path []string, r io.Reader) error {
+				return readOriginPluginV2Payload(path, r, payloads, platformPayloads, payloadFiles)
+			},
 		},
-	})
+	}
 	err := checkTgz(file, tgzReadRules)
 	if err != nil {
 		return nil, err
@@ -480,6 +483,12 @@ func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) (
 		if variables != nil {
 			pkgConfigTemplates[idx].Variables[variables.Title] = variables
 		}
+	}
+
+	if _, err := conv.SliceToMap(pkgConfigTemplates, func(template types.PluginPkgConfigTemplate) types.PluginPkgConfigTemplateKey {
+		return template.GetUniqueKey()
+	}); err != nil {
+		return nil, fmt.Errorf("invalid config templates: %w", err)
 	}
 
 	return pkgConfigTemplates, nil

@@ -353,6 +353,20 @@ type PluginPkgConfigTemplate struct {
 	Variables     map[string]*PluginPkgConfigTemplateProperty
 }
 
+// GetUniqueKey gets the unique key of the plugin package config template within a platform.
+func (template *PluginPkgConfigTemplate) GetUniqueKey() PluginPkgConfigTemplateKey {
+	return PluginPkgConfigTemplateKey{
+		Name:         template.Name,
+		IsMainConfig: template.IsMainConfig,
+	}
+}
+
+// PluginPkgConfigTemplateKey identifies a plugin package config template within a platform.
+type PluginPkgConfigTemplateKey struct {
+	Name         string
+	IsMainConfig bool
+}
+
 // PluginPkgConfigTemplateProperty defines the template of plugin package.
 // @Title: property title.
 // @Type: property type.

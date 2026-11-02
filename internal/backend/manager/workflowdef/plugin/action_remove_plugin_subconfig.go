@@ -46,6 +46,12 @@ const (
 
 	// removePluginSubConfigResultPollInterval the interval between two result polls.
 	removePluginSubConfigResultPollInterval = 1 * time.Second
+
+	// removeSubConfigScriptHeadCommands the commands count of the remove sub config script head.
+	removeSubConfigScriptHeadCommands = 3
+
+	// removeSubConfigScriptCommandsPerPath the commands count generated for each removed path.
+	removeSubConfigScriptCommandsPerPath = 7
 )
 
 // NewActionRemovePluginSubConfig new an action to remove plugin sub config.
@@ -139,9 +145,10 @@ func (act *actionRemovePluginSubConfig) Do(ctx *action.InstanceContext) (err err
 
 	configs, _, err := act.daoProcessConfig.ListProcessConfigs(nCtx, types.UnlimitedPage(), &types.ProcessConfigCondition{
 		ExactInclude: &types.ProcessConfigExactFields{
-			HostID:      []int64{deployInfo.Process.HostID},
-			ProcessName: []string{deployInfo.Process.PluginName},
-			Name:        pluginConf.RemoveConfigFileName,
+			HostID:       []int64{deployInfo.Process.HostID},
+			ProcessName:  []string{deployInfo.Process.PluginName},
+			Name:         pluginConf.RemoveConfigFileName,
+			IsMainConfig: []bool{false},
 		},
 	})
 	if err != nil {
@@ -256,7 +263,8 @@ func (act *actionRemovePluginSubConfig) buildWindowsRemoveSubConfigScript(
 	subConfigDir string, fullPaths []string) (types.ScriptType, string) {
 
 	basePrefix := ensureWindowsTrailingSeparator(cleanRemoveSubConfigDir(subConfigDir, criteria.OSWindows))
-	commands := []string{"@echo off", "setlocal", fmt.Sprintf(`set "BASE=%s"`, escapeBatPath(basePrefix))}
+	commands := make([]string, 0, removeSubConfigScriptHeadCommands+removeSubConfigScriptCommandsPerPath*len(fullPaths)+1)
+	commands = append(commands, "@echo off", "setlocal", fmt.Sprintf(`set "BASE=%s"`, escapeBatPath(basePrefix)))
 	for _, fullPath := range fullPaths {
 		label := fmt.Sprintf("skip%d", len(commands))
 		commands = append(commands,
@@ -278,7 +286,8 @@ func (act *actionRemovePluginSubConfig) buildUnixRemoveSubConfigScript(
 	subConfigDir string, osType criteria.OSType, fullPaths []string) (types.ScriptType, string) {
 
 	basePrefix := ensureUnixTrailingSeparator(cleanRemoveSubConfigDir(subConfigDir, osType))
-	commands := []string{"#!/bin/bash", "set -e", fmt.Sprintf("base=%s", quoteShellArg(basePrefix))}
+	commands := make([]string, 0, removeSubConfigScriptHeadCommands+removeSubConfigScriptCommandsPerPath*len(fullPaths))
+	commands = append(commands, "#!/bin/bash", "set -e", fmt.Sprintf("base=%s", quoteShellArg(basePrefix)))
 	for _, fullPath := range fullPaths {
 		commands = append(commands,
 			fmt.Sprintf("target=%s", quoteShellArg(fullPath)),

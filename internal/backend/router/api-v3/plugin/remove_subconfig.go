@@ -16,6 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
+// nolint: revive
 package plugin
 
 import (
@@ -131,6 +132,7 @@ func (h *handler) getTargetConfigNames(rCtx restserver.IContext, hostID int64, p
 			HostID:       []int64{hostID},
 			ProcessName:  []string{pluginName},
 			TemplateName: targetTemplateNames,
+			IsMainConfig: []bool{false},
 		},
 	})
 	if err != nil {

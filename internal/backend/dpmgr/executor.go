@@ -760,14 +760,15 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfigRecord(nCtx co
 			return fmt.Errorf("failed to execute change action plugin delete sub config record: %w", err)
 		}
 
-		configNames := conv.SliceToSlice(param.ConfigFilesDetail, func(detail *types.PluginConfigDetail) string {
-			return detail.Name
+		processConfigKeys := conv.SliceToSlice(param.ConfigFilesDetail, func(detail *types.PluginConfigDetail) *types.ProcessConfigUniqueKey {
+			return &types.ProcessConfigUniqueKey{
+				Name:         detail.Name,
+				ProcessName:  param.PluginName,
+				HostID:       task.Target.Host.HostID,
+				IsMainConfig: false,
+			}
 		})
-		processUniqueKey := &types.ProcessUniqueKey{
-			HostID: task.Target.Host.HostID,
-			Name:   param.PluginName,
-		}
-		if err := executor.daoProcessConfig.DeleteProcessConfigs(nCtx, processUniqueKey, configNames...); err != nil {
+		if err := executor.daoProcessConfig.DeleteProcessConfigs(nCtx, processConfigKeys...); err != nil {
 			return fmt.Errorf("failed to execute change action plugin delete sub config record: %w", err)
 		}
 	}

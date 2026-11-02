@@ -24,6 +24,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func Test_convProcessConfigCustomConfigContext(t *testing.T) {
@@ -64,6 +66,32 @@ func Test_convProcessConfigCustomConfigContext(t *testing.T) {
 	}
 }
 
+func TestProcessConfigIdentityIncludesType(t *testing.T) {
+	main := &ProcessConfig{Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: true}
+	sub := &ProcessConfig{Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: false}
+	if main.UniqueKey() == sub.UniqueKey() {
+		t.Fatal("main and sub configs must have different unique keys")
+	}
+	wantFields := []string{FieldKeyName, FieldKeyProcessName, FieldKeyHostID, FieldKeyIsMainConfig}
+	if !reflect.DeepEqual(main.UniqueFields(), wantFields) {
+		t.Fatalf("unique fields = %v, want %v", main.UniqueFields(), wantFields)
+	}
+	for idx, model := range buildUpsertManyParams(main, sub) {
+		update, ok := model.(*mongo.UpdateOneModel)
+		if !ok {
+			t.Fatalf("unexpected write model %T", model)
+		}
+		filter, ok := update.Filter.(bson.D)
+		if !ok {
+			t.Fatalf("unexpected filter %T", update.Filter)
+		}
+		wantType := idx == 0
+		if got := filter.Map()[FieldKeyIsMainConfig]; got != wantType {
+			t.Fatalf("upsert type filter = %v, want %t", got, wantType)
+		}
+	}
+}
+
 func TestWithTemplateName(t *testing.T) {
 	filter := WithTemplateName("template.conf")(base.AliveFilter())
 	if len(filter) != 2 {
@@ -71,5 +99,42 @@ func TestWithTemplateName(t *testing.T) {
 	}
 	if filter[1].Key != FieldKeyTemplateName {
 		t.Fatalf("WithTemplateName() key = %q, want %q", filter[1].Key, FieldKeyTemplateName)
+	}
+}
+
+func TestWithProcessConfigUniqueKeys(t *testing.T) {
+	keys := []*types.ProcessConfigUniqueKey{
+		{Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: true},
+		nil,
+		{Name: "same.conf", ProcessName: "plugin", HostID: 2, IsMainConfig: false},
+	}
+	filter := WithProcessConfigUniqueKeys(keys...)(base.AliveFilter())
+	if len(filter) != 2 {
+		t.Fatalf("WithProcessConfigUniqueKeys() filter len = %d, want %d", len(filter), 2)
+	}
+
+	conditions, ok := filter[1].Value.(bson.A)
+	if !ok {
+		t.Fatalf("WithProcessConfigUniqueKeys() conditions type = %T, want bson.A", filter[1].Value)
+	}
+
+	// the nil key is skipped, so each remaining key must be mapped to exactly
+	// one four-field condition with its own host-id and main-sub marker.
+	want := bson.A{
+		bson.D{
+			{Key: FieldKeyHostID, Value: int64(1)},
+			{Key: FieldKeyProcessName, Value: "plugin"},
+			{Key: FieldKeyName, Value: "same.conf"},
+			{Key: FieldKeyIsMainConfig, Value: true},
+		},
+		bson.D{
+			{Key: FieldKeyHostID, Value: int64(2)},
+			{Key: FieldKeyProcessName, Value: "plugin"},
+			{Key: FieldKeyName, Value: "same.conf"},
+			{Key: FieldKeyIsMainConfig, Value: false},
+		},
+	}
+	if !reflect.DeepEqual(conditions, want) {
+		t.Fatalf("WithProcessConfigUniqueKeys() conditions = %v, want %v", conditions, want)
 	}
 }

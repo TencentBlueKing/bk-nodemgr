@@ -264,8 +264,12 @@ func (h *Handler) UpsertPluginConfConfigFilesDetail(nCtx contextx.IContext, toke
 		return err
 	}
 
-	confMap, err := conv.SliceToMap(dbData.PluginConf.ConfigFilesDetail, func(detail configDetail) string {
-		return detail.Name
+	type configKey struct {
+		name         string
+		isMainConfig bool
+	}
+	confMap, err := conv.SliceToMap(dbData.PluginConf.ConfigFilesDetail, func(detail configDetail) configKey {
+		return configKey{detail.Name, detail.IsMainConfig}
 	})
 	if err != nil {
 		return err
@@ -273,7 +277,7 @@ func (h *Handler) UpsertPluginConfConfigFilesDetail(nCtx contextx.IContext, toke
 
 	data := convertPluginConfigDetailsFromTypes(configDetails...)
 	for _, item := range data {
-		confMap[item.Name] = item
+		confMap[configKey{item.Name, item.IsMainConfig}] = item
 	}
 
 	mergedDetails := conv.MapValueToSlice(confMap)
