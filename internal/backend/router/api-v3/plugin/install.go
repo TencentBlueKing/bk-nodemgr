@@ -233,9 +233,10 @@ func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params
 func (h *handler) resolvePluginReleaseVersions(rCtx restserver.IContext, keys []types.ReleasePluginKey) error {
 	defaultKeys := make([]types.ReleasePluginKey, 0)
 	for _, key := range keys {
-		if key.Version == "" {
-			defaultKeys = append(defaultKeys, key)
+		if key.Version != "" {
+			continue
 		}
+		defaultKeys = append(defaultKeys, key)
 	}
 
 	defaultVersions := make(map[types.ReleasePluginKey]string)
@@ -248,9 +249,10 @@ func (h *handler) resolvePluginReleaseVersions(rCtx restserver.IContext, keys []
 	}
 
 	for idx, key := range keys {
-		if key.Version == "" {
-			keys[idx].Version = defaultVersions[key]
+		if key.Version != "" {
+			continue
 		}
+		keys[idx].Version = defaultVersions[key]
 	}
 
 	return nil
