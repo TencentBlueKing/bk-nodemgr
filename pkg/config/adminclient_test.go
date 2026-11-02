@@ -111,17 +111,39 @@ kms:
 
 func TestAdminClientBKApp_LoadFromFileKMSDisabled(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "backend_conf.yaml")
-	configContent := []byte(`kms:
+	configContent := []byte(`# unrelated fields may contain unreplaced rendering placeholders.
+advertiseIPV4: "__ADVERTISE_IPV4__"
+kms:
   enabled: false
+iamV3:
+  endpoints:
+    - "https://example.com/api/bk-iam/prod"
+  appCode: iamv3-code
+  appSecret: iamv3-secret
+  systemID: bk_nodemgr
+iamV4:
+  appCode: iamv4-code
+  appSecret: iamv4-secret
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+	t.Setenv(bkAppCodeEnvName, "apigw-sync-code")
+	t.Setenv(bkAppSecretEnvName, "apigw-sync-secret")
 
 	conf := &AdminClientBKApp{}
-	err := conf.LoadFromFile(configPath)
-	require.ErrorContains(t, err, "kms is not enabled")
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.False(t, conf.KMS.Enabled)
+	// plaintext iamV3/iamV4 credentials come from the yaml sections.
+	assert.Equal(t, "iamv3-code", conf.IAMV3.AppCode)
+	assert.Equal(t, "iamv3-secret", conf.IAMV3.AppSecret)
+	assert.Equal(t, "iamv4-code", conf.IAMV4.AppCode)
+	assert.Equal(t, "iamv4-secret", conf.IAMV4.AppSecret)
+	// plaintext apigw-sync credential comes from the env injected by the job layer.
+	assert.Equal(t, "apigw-sync-code", conf.Default.AppCode)
+	assert.Equal(t, "apigw-sync-secret", conf.Default.AppSecret)
 }
 
-func TestAdminClientJWT_LoadFromFile(t *testing.T) {
+func TestAdminClientFile_LoadFromFileKMS(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "file_conf.yaml")
 	configContent := []byte(`# unrelated fields may contain unreplaced rendering placeholders.
 advertiseIPV4: "__ADVERTISE_IPV4__"
@@ -131,7 +153,7 @@ kms:
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
 
-	conf := &AdminClientJWT{}
+	conf := &AdminClientFile{}
 	// LoadFromFile decrypts inline; the missing envelope file surfaces its parsed path,
 	// which also proves the kms section yaml fields were loaded.
 	err := conf.LoadFromFile(configPath)
@@ -141,14 +163,68 @@ kms:
 	assert.Equal(t, "/bk-nodemgr/secret/kms-global-envelope", conf.KMS.GlobalSecretFile)
 }
 
-func TestAdminClientJWT_LoadFromFileKMSDisabled(t *testing.T) {
+func TestAdminClientFile_LoadFromFilePlaintext(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "file_conf.yaml")
-	configContent := []byte(`kms:
+	configContent := []byte(`# unrelated fields may contain unreplaced rendering placeholders.
+advertiseIPV4: "__ADVERTISE_IPV4__"
+kms:
   enabled: false
+basicServer:
+  jwtServerConfig:
+    symmetricKey: file-basic-key
+downloadServer:
+  jwtServerConfig:
+    symmetricKey: file-download-key
+exportServer:
+  address: ":28304"
+  jwtServerConfig:
+    symmetricKey: file-export-key
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
 
-	conf := &AdminClientJWT{}
-	err := conf.LoadFromFile(configPath)
-	require.ErrorContains(t, err, "kms is not enabled")
+	conf := &AdminClientFile{}
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.False(t, conf.KMS.Enabled)
+	assert.Equal(t, "file-basic-key", conf.BasicServer.JWTServerConfig.SymmetricKey)
+	assert.Equal(t, "file-download-key", conf.DownloadServer.JWTServerConfig.SymmetricKey)
+	assert.Equal(t, "file-export-key", conf.ExportServer.JWTServerConfig.SymmetricKey)
+}
+
+func TestAdminClientBackend_LoadFromFilePlaintext(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "backend_conf.yaml")
+	configContent := []byte(`kms:
+  enabled: false
+callbackServer:
+  jwtServerConfig:
+    symmetricKey: backend-callback-key
+proxyServer:
+  jwtServerConfig:
+    symmetricKey: backend-proxy-key
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	conf := &AdminClientBackend{}
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.Equal(t, "backend-callback-key", conf.CallbackServer.JWTServerConfig.SymmetricKey)
+	assert.Equal(t, "backend-proxy-key", conf.ProxyServer.JWTServerConfig.SymmetricKey)
+}
+
+func TestAdminClientApplication_LoadFromFilePlaintext(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
+	configContent := []byte(`kms:
+  enabled: false
+front:
+  enableVault: false
+basicServer:
+  jwtServerConfig:
+    symmetricKey: application-basic-key
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	conf := &AdminClientApplication{}
+	require.NoError(t, conf.LoadFromFile(configPath))
+
+	assert.Equal(t, "application-basic-key", conf.BasicServer.JWTServerConfig.SymmetricKey)
 }

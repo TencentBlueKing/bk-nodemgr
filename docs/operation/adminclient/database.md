@@ -9,9 +9,9 @@
 | 输入 | 语义 |
 | ---- | ---- |
 | `-f, --file` | 显式指定服务配置文件路径（backend/application/file 的 `*_conf.yaml` 均可） |
-| `--conf-dir` | 自动发现目录，缺省 `/bk-nodemgr/etc`；未指定 `-f` 时，在该目录下发现第一个包含目标段的 `*_conf.yaml` |
+| `--conf-dir` | 自动发现目录，缺省 `/bk-nodemgr/etc`；未指定 `-f` 时，在该目录下发现第一个包含目标段的 yaml/yml 文件 |
 
-注意：自动发现只匹配 `*_conf.yaml`；docker-compose 部署的配置文件为 `bk-nodemgr-*.yml`，不在匹配范围内，需用 `-f` 显式指定。
+自动发现同时覆盖 `*_conf.yaml` 与 legacy `bk-nodemgr-*.yml`（docker-compose 部署），均按段内容匹配，与文件名无关。
 
 KMS 环境下还需满足：
 

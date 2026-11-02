@@ -17,31 +17,46 @@
 package jwttoken
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestPickJWTKey(t *testing.T) {
-	pick, err := pickJWTKey("file", "basic")
-	require.NoError(t, err)
+func TestLoadFileJWTKey(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "file_conf.yaml")
+	configContent := []byte(`kms:
+  enabled: false
+basicServer:
+  jwtServerConfig:
+    symmetricKey: file-basic-key
+downloadServer:
+  jwtServerConfig:
+    symmetricKey: file-download-key
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
 
-	conf := config.AdminClientJWT{
-		FileBasic: config.JWTServerConfig{SymmetricKey: "file-basic-key"},
-	}
-	assert.Equal(t, "file-basic-key", pick(conf))
+	key, err := loadFileJWTKey(configPath, serverBasic)
+	require.NoError(t, err)
+	assert.Equal(t, "file-basic-key", key)
+
+	// server names are validated before the loader runs; an unvalidated name yields
+	// an empty key and no error.
+	key, err = loadFileJWTKey(configPath, "unknown")
+	require.NoError(t, err)
+	assert.Empty(t, key)
 }
 
-func TestPickJWTKeyUnknownService(t *testing.T) {
-	_, err := pickJWTKey("unknown", "basic")
+func TestValidateServiceServerUnknownService(t *testing.T) {
+	err := validateServiceServer("unknown", "basic")
 	require.ErrorContains(t, err, "unknown service 'unknown'")
 	require.ErrorContains(t, err, "application, backend, file")
 }
 
-func TestPickJWTKeyUnknownServer(t *testing.T) {
-	_, err := pickJWTKey("file", "unknown")
+func TestValidateServiceServerUnknownServer(t *testing.T) {
+	err := validateServiceServer("file", "unknown")
 	require.ErrorContains(t, err, "unknown server 'unknown' for service 'file'")
 	require.ErrorContains(t, err, "admin, basic, download, export, info")
 }

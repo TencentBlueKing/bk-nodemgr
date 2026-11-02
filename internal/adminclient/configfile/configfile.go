@@ -17,8 +17,9 @@
  */
 
 // Package configfile resolves service config files for adminclient commands:
-// either the explicit -f/--file path, or auto-discovery of the first *_conf.yaml
-// containing a given top-level section under --conf-dir.
+// either the explicit -f/--file path, or auto-discovery under --conf-dir by a
+// top-level section anchor (shared sections like etcd) or by the service's
+// conventional file name.
 package configfile
 
 import (
@@ -26,6 +27,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -51,34 +53,72 @@ func AddPersistentFlags(cmd *cobra.Command, flags *Flags) {
 		"directory of service config files for auto-discovery")
 }
 
-// Resolve returns the explicit flag path when set, otherwise the first conf file
-// containing the target top-level section.
+// Resolve returns the explicit flag path when set, otherwise the first config
+// file containing the target top-level section.
 func Resolve(path, dir, section string) (string, error) {
 	if path != "" {
 		return path, nil
 	}
 
-	return discover(dir, section)
+	matches, err := discover(dir, section)
+	if err != nil {
+		return "", err
+	}
+	if len(matches) == 0 {
+		return "", fmt.Errorf("no config file containing '%s:' found in %s/, use -f to specify manually", section, dir)
+	}
+
+	return matches[0], nil
 }
 
-// discover finds the first conf file containing the target section.
-func discover(dir, section string) (string, error) {
-	matches, err := filepath.Glob(filepath.Join(dir, "*"+fileSuffix))
-	if err != nil {
-		return "", fmt.Errorf("failed to glob config files in %s: %w", dir, err)
+// ResolveForService returns the explicit flag path when set, otherwise the config
+// file of the named service under dir: <service>_conf.yaml, falling back to the
+// legacy bare-metal/docker-compose name bk-nodemgr-<service>.yml. The resolved
+// file is trusted as-is; non-standard layouts should pass -f explicitly.
+func ResolveForService(path, dir, service string) (string, error) {
+	if path != "" {
+		return path, nil
+	}
+
+	candidates := []string{
+		filepath.Join(dir, service+fileSuffix),
+		filepath.Join(dir, "bk-nodemgr-"+service+".yml"),
+	}
+	for _, candidate := range candidates {
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate, nil
+		}
+	}
+
+	return "", fmt.Errorf("no config file for service '%s' found in %s/ (tried %s), use -f to specify manually",
+		service, dir, strings.Join(candidates, ", "))
+}
+
+// discover returns all config files under dir containing the target top-level
+// section. Both yaml and yml extensions are scanned, covering the helm
+// *_conf.yaml files and the legacy bk-nodemgr-<service>.yml files alike.
+func discover(dir, section string) ([]string, error) {
+	var files []string
+	for _, extension := range []string{"*.yaml", "*.yml"} {
+		matched, err := filepath.Glob(filepath.Join(dir, extension))
+		if err != nil {
+			return nil, fmt.Errorf("failed to glob config files in %s: %w", dir, err)
+		}
+		files = append(files, matched...)
 	}
 
 	sectionPattern := regexp.MustCompile(`(?m)^` + section + `:`)
-	for _, file := range matches {
+	var matches []string
+	for _, file := range files {
 		content, err := os.ReadFile(file) // nolint: gosec
 		if err != nil {
 			// an unreadable file is treated as not containing the section.
 			continue
 		}
 		if sectionPattern.Match(content) {
-			return file, nil
+			matches = append(matches, file)
 		}
 	}
 
-	return "", fmt.Errorf("no config file containing '%s:' found in %s/, use -f to specify manually", section, dir)
+	return matches, nil
 }

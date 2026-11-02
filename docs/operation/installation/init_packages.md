@@ -21,10 +21,10 @@
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `--host`                        | CLI，否则 `localhost`                                                                                                                 |
 | `--port`                        | CLI，否则读取 File 配置 `file.config.basicServer.port`，再回落 `28202`                                                                |
-| `--jwt-key`                     | CLI 显式传入；否则当配置 `kms.enabled: true` 且 `authIdentity` 不为 `none` 时，由 `bk-nodemgr-adminclient jwt_token file basic` 从 KMS 取密签发 token；非 KMS 部署回落到 File 配置 `file.config.basicServer.jwtServerConfig.symmetricKey`；未启用 JWT 时为空 |
-| `--expire-hours`                | 仅使用 CLI 显式设置；File 配置没有 JWT 有效期字段，未设置时默认为 `24` 小时                                                           |
 | `--bk-username`、`--login-name` | CLI，否则 `admin`                                                                                                                     |
 | `--tenant-id`                   | CLI，否则读取 File 配置 `file.config.tenantMode`；`multiple` 使用 `system`，其他情况使用 `default`                                    |
+
+当 File 配置 `basicServer.authIdentity` 不为 `none` 时，脚本调用 `bk-nodemgr-adminclient jwt_token file basic` 签发 JWT；签名密钥来源（KMS global envelope 或配置明文）由 adminclient 按 `kms.enabled` 自行解析，脚本不感知 KMS 是否开启。token 固定 24 小时有效期。
 
 单租户默认命令可以只指定包路径：
 
@@ -32,7 +32,7 @@
 python3 /bk-nodemgr/support-files/initpackage/init_package.py --init-agent /tmp/agent.tgz
 ```
 
-多租户未传 `--tenant-id` 时目标租户为 `system`；导入其他租户时显式传入对应的 `--tenant-id`。多租户初始化要求 File 的 `config.basicServer.authIdentity` 为 `rest-server`，且 `config.basicServer.jwtServerConfig.symmetricKey` 非空并与生成 JWT 使用的密钥匹配。`authIdentity: none` 会使请求在 `default` tenant 处理，不能作为 `tenantMode: multiple` 的初始化配置。
+多租户未传 `--tenant-id` 时目标租户为 `system`；导入其他租户时显式传入对应的 `--tenant-id`。多租户初始化要求 File 的 `config.basicServer.authIdentity` 为 `rest-server`，且签发使用的 JWT 密钥与 File 服务校验密钥一致（两种模式下 adminclient 与 File 服务读取同一来源，天然一致）。`authIdentity: none` 会使请求在 `default` tenant 处理，不能作为 `tenantMode: multiple` 的初始化配置。
 
 ## 支持的初始化包类型
 
@@ -57,7 +57,7 @@ python3 /bk-nodemgr/support-files/initpackage/init_package.py --init-agent /tmp/
 - `file.enabled=true`
 - `initPackages.enabled=true`
 
-该 Job 以 Helm Hook 方式运行。它等待 `file` 服务健康后，使用与 `file` 服务相同的镜像，读取镜像内置的初始化包，并调用 `init_package.py` 连接集群内的 `file` 服务完成导入。Job 会将 `{{ .Values.common.etcPath }}/file_conf.yaml` 挂载为 `{{ template "bk-nodemgr.fullname" . }}-file-config` ConfigMap 中的 `file_conf.yaml`。命令通过 `--config-file` 读取该配置，因此连接端口、JWT 密钥和 tenant 来自 File 配置；JWT 有效期没有 File 配置字段，默认 24 小时，也可由 `--expire-hours` 显式覆盖。Job 仍通过 `--host` 使用 File Service DNS 覆盖配置中的 host，因为 ConfigMap 不包含该 Service DNS。该挂载的 ConfigMap 内容是 File 配置模板，不应理解为与 File Pod 中经过 advertise/tracing 占位符替换后的运行时文件逐字节相同。
+该 Job 以 Helm Hook 方式运行。它等待 `file` 服务健康后，使用与 `file` 服务相同的镜像，读取镜像内置的初始化包，并调用 `init_package.py` 连接集群内的 `file` 服务完成导入。Job 会将 `{{ .Values.common.etcPath }}/file_conf.yaml` 挂载为 `{{ template "bk-nodemgr.fullname" . }}-file-config` ConfigMap 中的 `file_conf.yaml`。命令通过 `--config-file` 读取该配置，因此连接端口和 tenant 来自 File 配置；启用 JWT 鉴权时 token 由 `bk-nodemgr-adminclient jwt_token` 基于同一配置签发，固定 24 小时有效期。Job 仍通过 `--host` 使用 File Service DNS 覆盖配置中的 host，因为 ConfigMap 不包含该 Service DNS。该挂载的 ConfigMap 内容是 File 配置模板，不应理解为与 File Pod 中经过 advertise/tracing 占位符替换后的运行时文件逐字节相同。
 
 ### 自动导入范围
 
@@ -91,8 +91,8 @@ file:
     # 仅当 File Basic Server 启用 JWT 鉴权时配置 authIdentity
     basicServer:
       authIdentity: rest-server
-      # kms.enabled=true 时无需填写 jwtServerConfig.symmetricKey：Job 经
-      # bk-nodemgr-adminclient jwt_token 从 KMS 取密签发，密钥不进入 values。
+      # kms.enabled=true 时无需填写 jwtServerConfig.symmetricKey：adminclient 从 KMS
+      # 取密签发，密钥不进入 values；非 KMS 部署需在此配置明文密钥。
 
 initPackages:
   enabled: true
@@ -104,7 +104,7 @@ initPackages:
   loginName: "admin"
 ```
 
-Job 不再从 Helm values 单独传入端口、JWT 密钥或 tenant；这些值均由挂载的 File 配置读取。JWT 有效期没有 File 配置字段，默认 24 小时，也可通过 `--expire-hours` 显式覆盖（KMS 模式由 adminclient 固定签发 24 小时 token，该参数不生效）。`--host` 仍显式设置为 Job 使用的 File Service DNS。若 `file` Basic Server 启用了 JWT 鉴权：KMS 模式（`kms.enabled: true`）下 Job 挂载 global envelope 并注入私钥环境变量，由 `bk-nodemgr-adminclient jwt_token file basic` 解密 `jwt_server_config.file_basic.symmetric_key` 并签发 token，values 中的 `jwtServerConfig.symmetricKey` 留空即可；非 KMS 模式下 `jwtServerConfig.symmetricKey` 必须与生成 JWT 使用的密钥一致。使用 `authIdentity: none` 时请求会按 `default` tenant 处理，密钥可以留空。File Pod 会在启动时替换配置中的 advertise/tracing 占位符，因此 Job 挂载的 ConfigMap 与 File Pod 的运行时配置文件不是逐字节相同的文件。
+Job 不再从 Helm values 单独传入端口、JWT 密钥或 tenant；端口和 tenant 由挂载的 File 配置读取，JWT token 由 `bk-nodemgr-adminclient jwt_token file basic` 签发（固定 24 小时有效期）。`--host` 仍显式设置为 Job 使用的 File Service DNS。若 `file` Basic Server 启用了 JWT 鉴权：KMS 模式（`kms.enabled: true`）下 Job 挂载 global envelope 并注入私钥环境变量，adminclient 解密 `jwt_server_config.file_basic.symmetric_key` 并签发 token，values 中的 `jwtServerConfig.symmetricKey` 留空即可；非 KMS 模式下 adminclient 直接读取配置中的 `jwtServerConfig.symmetricKey` 明文值，该值必须非空。使用 `authIdentity: none` 时请求会按 `default` tenant 处理，密钥可以留空。File Pod 会在启动时替换配置中的 advertise/tracing 占位符，因此 Job 挂载的 ConfigMap 与 File Pod 的运行时配置文件不是逐字节相同的文件。
 
 启用 JWT 鉴权时，应为 `bkUsername` 和 `loginName` 配置非空值。二者会写入 JWT 声明，用于标识本次初始化操作的执行用户。
 
@@ -156,7 +156,7 @@ Job 最多等待 `file` 健康接口 300 秒，随后导入镜像中存在的全
 
 ## 在 Kubernetes 中手工导入插件包
 
-部署镜像在 `/bk-nodemgr/support-files/initpackage` 下包含 `init_package.py` 和 `jwt-generator`。建议在 `file` Pod 中运行脚本，以便直接访问服务并复用镜像中的 Python 依赖。
+部署镜像在 `/bk-nodemgr/support-files/initpackage` 下包含 `init_package.py`。脚本通过 `/bk-nodemgr/bin/bk-nodemgr-adminclient jwt_token` 签发 JWT，无需手动提供密钥。建议在 `file` Pod 中运行脚本，以便直接访问服务并复用镜像中的 Python 依赖。
 
 ### 1. 获取 File Pod
 
@@ -179,11 +179,10 @@ kubectl -n "${NAMESPACE}" cp ./plugin-v3.tgz "${FILE_POD}:/tmp/plugin-v3.tgz"
 
 ### 3. 执行导入
 
-`FILE_PORT` 应使用 `file.config.basicServer.port` 的实际配置，Chart 默认值为 `28202`。JWT 密钥和执行用户应与部署配置一致；`file` 接口未启用 JWT 鉴权时，`JWT_KEY` 可以留空。
+`FILE_PORT` 应使用 `file.config.basicServer.port` 的实际配置，Chart 默认值为 `28202`。执行用户与租户应与部署配置一致；`file` 接口未启用 JWT 鉴权（`authIdentity: none`）时脚本不会签发 token。
 
 ```bash
 export FILE_PORT="28202"
-export JWT_KEY="<jwt-symmetric-key>"
 export TENANT_ID="default"
 export BK_USERNAME="admin"
 export LOGIN_NAME="admin"
@@ -192,8 +191,6 @@ kubectl -n "${NAMESPACE}" exec "${FILE_POD}" -- \
   python3 /bk-nodemgr/support-files/initpackage/init_package.py \
     --host 127.0.0.1 \
     --port "${FILE_PORT}" \
-    --jwt-key "${JWT_KEY}" \
-    --expire-hours 24 \
     --tenant-id "${TENANT_ID}" \
     --bk-username "${BK_USERNAME}" \
     --login-name "${LOGIN_NAME}" \
@@ -271,8 +268,8 @@ Helm Job 和运行中 File Pod 的手工命令均可复用 `--auto-select` 目�
 | 没有执行初始化 Job                        | 确认 `file.enabled=true` 和 `initPackages.enabled=true`。在升级场景还需确认 `initPackages.installOnly=false`。             |
 | Job 输出 `No packages to upload`          | 扫描目录中没有普通初始化包，且没有提供完整的证书文件；这是成功的空操作，不表示 Job 失败。                                  |
 | 输出 `file service not ready within 300s` | 检查 `file` Deployment、Service、`file.config.infoServer.port` 和 `readinessProbe.path`。                                  |
-| 输出 `jwt-generator binary not found`     | 使用通过项目 Makefile 完整构建的 bk-nodemgr 镜像，构建产物必须包含 `/bk-nodemgr/support-files/initpackage/jwt-generator`。 |
-| 鉴权失败                                  | 对比导入脚本的 JWT 密钥、过期时间与已部署的 `file` 鉴权配置，并检查 `bkUsername`、`loginName` 和租户 ID。                  |
+| 输出 `jwt_token failed` 或 `bk-nodemgr-adminclient not found` | 使用通过项目 Makefile 完整构建的 bk-nodemgr 镜像，构建产物必须包含 `/bk-nodemgr/bin/bk-nodemgr-adminclient`；并按报错检查 KMS envelope/私钥环境变量（KMS 模式）或配置中的明文 `symmetricKey`（非 KMS 模式）。 |
+| 鉴权失败                                  | 确认 `file` 鉴权配置与 adminclient 读取的密钥来源一致（KMS envelope 或明文配置），并检查 `bkUsername`、`loginName` 和租户 ID。                     |
 | 上传或发布失败                            | 确认压缩包符合对应的 V2、V2 外部插件或 V3 包格式，且包内元数据有效；通过 `file` 服务日志查看具体校验错误。                 |
 | 部分包成功但命令仍返回非零状态            | 脚本会在单个任务失败后继续处理，并在最后返回失败。根据各任务输出，只重试失败的插件包。                                     |
 

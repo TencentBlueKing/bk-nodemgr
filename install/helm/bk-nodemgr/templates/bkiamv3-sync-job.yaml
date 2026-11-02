@@ -115,8 +115,8 @@ spec:
               # Extract the first endpoint (remove trailing slash if present)
               IAM_ENDPOINT="{{ index .Values.backend.config.iamV3.endpoints 0 }}"
 
-              # Resolve app credentials: from the kms global envelope when kms.enabled, else from values.
-              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "appCode" .Values.backend.config.iamV3.appCode "appSecret" .Values.backend.config.iamV3.appSecret) | nindent 14 }}
+              # Resolve the iamv3 app credentials via adminclient (source-agnostic).
+              {{- include "bk-nodemgr.bkappResolveScript" (dict "root" . "name" "iamv3") | nindent 14 }}
 
               # Execute migration
               python3 "${BKIAMV3_DIR}/do_migrate.py" \
