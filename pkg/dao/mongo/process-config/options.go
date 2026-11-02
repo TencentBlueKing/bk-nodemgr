@@ -108,3 +108,37 @@ func WithProcessUniqueKeys(keys ...*types.ProcessUniqueKey) OptFn {
 		return append(f, bson.E{Key: "$or", Value: conditions})
 	}
 }
+
+// WithProcessConfigUniqueKeys filters by process config unique keys as paired
+// host-id + process-name + config-name + main-sub conditions.
+//
+// A nil key is skipped. When every key is nil the filter is returned unchanged,
+// same as WithProcessUniqueKeys, so callers that use this option to delete must
+// reject empty or all-nil key lists before reaching the DAO.
+func WithProcessConfigUniqueKeys(keys ...*types.ProcessConfigUniqueKey) OptFn {
+	return func(f bson.D) bson.D {
+		if len(keys) == 0 {
+			return f
+		}
+
+		conditions := make(bson.A, 0, len(keys))
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+
+			conditions = append(conditions, bson.D{
+				{Key: FieldKeyHostID, Value: key.HostID},
+				{Key: FieldKeyProcessName, Value: key.ProcessName},
+				{Key: FieldKeyName, Value: key.Name},
+				{Key: FieldKeyIsMainConfig, Value: key.IsMainConfig},
+			})
+		}
+
+		if len(conditions) == 0 {
+			return f
+		}
+
+		return append(f, bson.E{Key: "$or", Value: conditions})
+	}
+}

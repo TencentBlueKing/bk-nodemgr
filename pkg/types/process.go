@@ -325,6 +325,18 @@ type ProcessConfig struct {
 	CustomConfigContext map[string]any
 }
 
+// ProcessConfigUniqueKey process config unique key.
+type ProcessConfigUniqueKey struct {
+	// Name is the config file name.
+	Name string
+	// ProcessName is the plugin name that owns the config.
+	ProcessName string
+	// HostID is the host ID that owns the config.
+	HostID int64
+	// IsMainConfig distinguishes the main config from the sub config with the same name.
+	IsMainConfig bool
+}
+
 // ProcessUniqueKey process unique key.
 type ProcessUniqueKey struct {
 	Name   string

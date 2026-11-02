@@ -58,7 +58,9 @@ func TestHandlerSameNameMainAndSubConfig(t *testing.T) {
 			}
 			require.Error(t, h.Create(nCtx, sub), "same-type duplicate must violate the unique index")
 			for _, config := range []*types.ProcessConfig{main, sub} {
-				got, err := h.Get(nCtx, 1, "plugin", "same.conf", config.IsMainConfig)
+				got, err := h.Get(nCtx, &types.ProcessConfigUniqueKey{
+					Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: config.IsMainConfig,
+				})
 				require.NoError(t, err)
 				require.Equal(t, config.IsMainConfig, got.IsMainConfig)
 				require.Equal(t, config.Content, got.Content)
@@ -76,7 +78,9 @@ func TestHandlerSameNameMainAndSubConfig(t *testing.T) {
 
 			require.NoError(t, h.DeleteMany(nCtx,
 				WithHostID(1), WithProcessName("plugin"), WithName("same.conf"), WithIsMainConfig(false)))
-			got, err := h.Get(nCtx, 1, "plugin", "same.conf", true)
+			got, err := h.Get(nCtx, &types.ProcessConfigUniqueKey{
+				Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: true,
+			})
 			require.NoError(t, err)
 			require.True(t, got.IsMainConfig)
 			require.Equal(t, "main", got.Content)
@@ -253,11 +257,8 @@ func Test_handler_Get(t *testing.T) {
 	nCtx := contextx.From(contextx.Background(), contextx.WithTenantID("test-tenant-id"))
 
 	type args struct {
-		nCtx         contextx.IContext
-		name         string
-		processName  string
-		hostID       int64
-		isMainConfig bool
+		nCtx contextx.IContext
+		key  *types.ProcessConfigUniqueKey
 	}
 	tests := []struct {
 		name    string
@@ -268,11 +269,13 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "get main process config",
 			args: args{
-				nCtx:         nCtx,
-				name:         "test-process-config-name-1",
-				processName:  "test-process-name-1",
-				hostID:       2,
-				isMainConfig: true,
+				nCtx: nCtx,
+				key: &types.ProcessConfigUniqueKey{
+					Name:         "test-process-config-name-1",
+					ProcessName:  "test-process-name-1",
+					HostID:       2,
+					IsMainConfig: true,
+				},
 			},
 			want: &types.ProcessConfig{
 				ProcessName:  "test-process-name-1",
@@ -286,11 +289,13 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "get sub process config",
 			args: args{
-				nCtx:         nCtx,
-				name:         "test-process-config-name-2",
-				processName:  "test-process-name-2",
-				hostID:       2,
-				isMainConfig: false,
+				nCtx: nCtx,
+				key: &types.ProcessConfigUniqueKey{
+					Name:         "test-process-config-name-2",
+					ProcessName:  "test-process-name-2",
+					HostID:       2,
+					IsMainConfig: false,
+				},
 			},
 			want: &types.ProcessConfig{
 				ProcessName:  "test-process-name-2",
@@ -305,7 +310,7 @@ func Test_handler_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := prepareData(t, nCtx)
-			got, err := h.Get(tt.args.nCtx, tt.args.hostID, tt.args.processName, tt.args.name, tt.args.isMainConfig)
+			got, err := h.Get(tt.args.nCtx, tt.args.key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return

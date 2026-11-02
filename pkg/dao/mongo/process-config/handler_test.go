@@ -101,3 +101,40 @@ func TestWithTemplateName(t *testing.T) {
 		t.Fatalf("WithTemplateName() key = %q, want %q", filter[1].Key, FieldKeyTemplateName)
 	}
 }
+
+func TestWithProcessConfigUniqueKeys(t *testing.T) {
+	keys := []*types.ProcessConfigUniqueKey{
+		{Name: "same.conf", ProcessName: "plugin", HostID: 1, IsMainConfig: true},
+		nil,
+		{Name: "same.conf", ProcessName: "plugin", HostID: 2, IsMainConfig: false},
+	}
+	filter := WithProcessConfigUniqueKeys(keys...)(base.AliveFilter())
+	if len(filter) != 2 {
+		t.Fatalf("WithProcessConfigUniqueKeys() filter len = %d, want %d", len(filter), 2)
+	}
+
+	conditions, ok := filter[1].Value.(bson.A)
+	if !ok {
+		t.Fatalf("WithProcessConfigUniqueKeys() conditions type = %T, want bson.A", filter[1].Value)
+	}
+
+	// the nil key is skipped, so each remaining key must be mapped to exactly
+	// one four-field condition with its own host-id and main-sub marker.
+	want := bson.A{
+		bson.D{
+			{Key: FieldKeyHostID, Value: int64(1)},
+			{Key: FieldKeyProcessName, Value: "plugin"},
+			{Key: FieldKeyName, Value: "same.conf"},
+			{Key: FieldKeyIsMainConfig, Value: true},
+		},
+		bson.D{
+			{Key: FieldKeyHostID, Value: int64(2)},
+			{Key: FieldKeyProcessName, Value: "plugin"},
+			{Key: FieldKeyName, Value: "same.conf"},
+			{Key: FieldKeyIsMainConfig, Value: false},
+		},
+	}
+	if !reflect.DeepEqual(conditions, want) {
+		t.Fatalf("WithProcessConfigUniqueKeys() conditions = %v, want %v", conditions, want)
+	}
+}

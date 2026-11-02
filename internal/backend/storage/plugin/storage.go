@@ -1032,7 +1032,7 @@ func (s *Storage) MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []
 // ===============================================================================
 
 // GetProcessConfig get process config.
-func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string, isMainConfig bool) (
+func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processConfigKey *types.ProcessConfigUniqueKey) (
 	*types.ProcessConfig, error) {
 
 	var (
@@ -1042,7 +1042,7 @@ func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *typ
 
 	err = s.WrapFn(nCtx, metricOperationGetProcessConfig, func(nCtx contextx.IContext) error {
 		var err error
-		processConfig, err = s.getProcessConfig(nCtx, processUniqueKey, name, isMainConfig)
+		processConfig, err = s.getProcessConfig(nCtx, processConfigKey)
 
 		return err
 	})
@@ -1077,12 +1077,10 @@ func (s *Storage) DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 	return err
 }
 
-// DeleteProcessConfigs deletes named configs of the specified main/sub type.
-func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey,
-	isMainConfig bool, names ...string) error {
-
+// DeleteProcessConfigs deletes process configs by their unique keys.
+func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processConfigKeys ...*types.ProcessConfigUniqueKey) error {
 	err := s.WrapFn(nCtx, metricOperationDeleteProcessConfigs, func(nCtx contextx.IContext) error {
-		return s.deleteProcessConfigs(nCtx, processUniqueKey, isMainConfig, names...)
+		return s.deleteProcessConfigs(nCtx, processConfigKeys...)
 	})
 
 	return err

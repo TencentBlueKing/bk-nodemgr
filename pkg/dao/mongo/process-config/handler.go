@@ -19,6 +19,7 @@
 package processconfig
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -34,8 +35,8 @@ type IHandler interface {
 	// Create create process config record.
 	Create(nCtx contextx.IContext, config *types.ProcessConfig) error
 
-	// Get gets a process config record by name and config type.
-	Get(nCtx contextx.IContext, hostID int64, processName, name string, isMainConfig bool) (*types.ProcessConfig, error)
+	// Get gets a process config record by unique key.
+	Get(nCtx contextx.IContext, key *types.ProcessConfigUniqueKey) (*types.ProcessConfig, error)
 
 	// Count count process config records.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
@@ -107,18 +108,18 @@ func (h *Handler) Create(nCtx contextx.IContext, config *types.ProcessConfig) er
 	return nil
 }
 
-// Get gets a process config record by name and config type.
-func (h *Handler) Get(nCtx contextx.IContext, hostID int64, processName, name string, isMainConfig bool) (*types.ProcessConfig, error) {
+// Get gets a process config record by unique key.
+func (h *Handler) Get(nCtx contextx.IContext, key *types.ProcessConfigUniqueKey) (*types.ProcessConfig, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
 
+	if key == nil {
+		return nil, base.ErrInvalidParam(errors.New("process config unique key is nil"))
+	}
+
 	tenantID := nCtx.TenantID()
-	filter := base.AliveFilter()
-	filter = WithName(name)(filter)
-	filter = WithProcessName(processName)(filter)
-	filter = WithHostID(hostID)(filter)
-	filter = WithIsMainConfig(isMainConfig)(filter)
+	filter := WithProcessConfigUniqueKeys(key)(base.AliveFilter())
 
 	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {

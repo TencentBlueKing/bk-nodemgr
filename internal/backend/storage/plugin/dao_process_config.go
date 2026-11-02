@@ -86,25 +86,26 @@ func (s *Storage) deleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 	return nil
 }
 
-func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, isMainConfig bool, names ...string) error {
+func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processConfigKeys ...*types.ProcessConfigUniqueKey) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
-	if processUniqueKey == nil {
-		return base.ErrInvalidParam(fmt.Errorf("processUniqueKey is nil"))
+	if len(processConfigKeys) == 0 {
+		return base.ErrInvalidParam(errors.New("processConfigKeys is empty"))
 	}
 
-	if len(names) == 0 {
-		return base.ErrInvalidParam(fmt.Errorf("names is empty"))
+	for _, key := range processConfigKeys {
+		if key == nil {
+			return base.ErrInvalidParam(errors.New("processConfigKey is nil"))
+		}
+
+		if key.Name == "" {
+			return base.ErrInvalidParam(errors.New("processConfigKey name is empty"))
+		}
 	}
 
-	err := s.daoProcessConfig.DeleteMany(nCtx,
-		daoProcessConfig.WithProcessName(processUniqueKey.Name),
-		daoProcessConfig.WithHostID(processUniqueKey.HostID),
-		daoProcessConfig.WithName(names...),
-		daoProcessConfig.WithIsMainConfig(isMainConfig),
-	)
+	err := s.daoProcessConfig.DeleteMany(nCtx, daoProcessConfig.WithProcessConfigUniqueKeys(processConfigKeys...))
 	if err != nil {
 		return fmt.Errorf("failed to delete processConfigs: %w", err)
 	}
@@ -112,22 +113,22 @@ func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey 
 	return nil
 }
 
-func (s *Storage) getProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string, isMainConfig bool) (
+func (s *Storage) getProcessConfig(nCtx contextx.IContext, processConfigKey *types.ProcessConfigUniqueKey) (
 	*types.ProcessConfig, error) {
 
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
-	if processUniqueKey == nil {
-		return nil, base.ErrInvalidParam(fmt.Errorf("processUniqueKey is nil"))
+	if processConfigKey == nil {
+		return nil, base.ErrInvalidParam(errors.New("processConfigKey is nil"))
 	}
 
-	if name == "" {
-		return nil, base.ErrInvalidParam(fmt.Errorf("name is empty"))
+	if processConfigKey.Name == "" {
+		return nil, base.ErrInvalidParam(errors.New("processConfigKey name is empty"))
 	}
 
-	config, err := s.daoProcessConfig.Get(nCtx, processUniqueKey.HostID, processUniqueKey.Name, name, isMainConfig)
+	config, err := s.daoProcessConfig.Get(nCtx, processConfigKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get processConfig: %w", err)
 	}

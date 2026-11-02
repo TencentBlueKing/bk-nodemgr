@@ -143,7 +143,15 @@ func (act *actionDeleteProcessConfigRecord) Do(ctx *action.InstanceContext) (err
 		return nil
 	}
 
-	if err := act.daoProcessConfig.DeleteProcessConfigs(nCtx, processUniqueKey, false, pluginConf.RemoveConfigFileName...); err != nil {
+	processConfigKeys := conv.SliceToSlice(pluginConf.RemoveConfigFileName, func(name string) *types.ProcessConfigUniqueKey {
+		return &types.ProcessConfigUniqueKey{
+			Name:         name,
+			ProcessName:  deployInfo.Process.PluginName,
+			HostID:       deployInfo.Process.HostID,
+			IsMainConfig: false,
+		}
+	})
+	if err := act.daoProcessConfig.DeleteProcessConfigs(nCtx, processConfigKeys...); err != nil {
 		return fmt.Errorf("failed to delete process configs, host-id(%d), plugin-name(%s): %w",
 			deployInfo.Process.HostID, deployInfo.Process.PluginName, err)
 	}
