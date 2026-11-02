@@ -36,19 +36,30 @@ func (h *Handler) calculateChanges(
 	nCtx contextx.IContext, policies []*types.DeployPolicy,
 ) (*policyCalculation, error) {
 
-	originalUnits := make([]*DeployUnit, len(policies))
-	for idx, policy := range policies {
+	originalUnits := make([]*DeployUnit, 0, len(policies))
+	absentChangeTasks := make([]*ChangeTask, 0)
+	for _, policy := range policies {
+		if policy.EnsureAbsent {
+			tasks, err := h.calculateAbsentChanges(policy)
+			if err != nil {
+				return nil, fmt.Errorf("failed to calculate absent changes for policy %d: %w", policy.DeployPolicyID, err)
+			}
+			absentChangeTasks = append(absentChangeTasks, tasks...)
+
+			continue
+		}
+
 		targets, err := h.calculator.Calculate(nCtx, policy.Scopes...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate targets for policy, deploy-policy(%v): %w", policy, err)
 		}
 
-		originalUnits[idx] = &DeployUnit{
+		originalUnits = append(originalUnits, &DeployUnit{
 			DeployPolicyID: policy.DeployPolicyID,
 			LifeCycle:      policy.LifeCycle,
 			Targets:        targets,
 			Specs:          policy.Specs,
-		}
+		})
 	}
 
 	resolvedUnits, err := h.conflictResolver.ResolveConflict(originalUnits)
@@ -64,6 +75,6 @@ func (h *Handler) calculateChanges(
 	return &policyCalculation{
 		originalUnits: originalUnits,
 		resolvedUnits: resolvedUnits,
-		changeTasks:   changeTasks,
+		changeTasks:   append(changeTasks, absentChangeTasks...),
 	}, nil
 }
