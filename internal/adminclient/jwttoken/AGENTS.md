@@ -9,7 +9,7 @@
 |Where to look:service/server→config mapping:jwttoken.go:jwtServiceConfigs|service arg selects valid servers + load<Service>JWTKey loader(server-name switch lives here, not in pkg/config);application={info,admin,basic};backend={+callback,proxy};file={+download,export}
 |Where to look:signing:pkg/rest/header:NewNodeMgrAuthorizationManager.Generate(loginName,bkUserName)|HS256;fixed 24h expiration
 |Where to look:config/decrypt:pkg/config:AdminClient{Application,Backend,File}.LoadFromFile(path)|mirrors service config server sections;kms enabled→KMS.ParseAdminClient<Service>JWT overrides JWTServerConfig.SymmetricKey from global envelope;kms disabled→plaintext yaml as-is
-|Where to look:config file resolution:internal/adminclient/configfile:ResolveForService(path,dir,service)|-f explicit;else the single yaml/yml under --conf-dir containing the service-identifying section(application=front,backend=callbackServer,file=downloadServer);multiple matches=error
+|Where to look:config file resolution:internal/adminclient/configfile:ResolveForService(path,dir,service)|-f explicit;else <conf-dir>/<service>_conf.yaml,legacy fallback bk-nodemgr-<service>.yml;resolved file is trusted as-is(no content probing)
 |Where to look:consumer:support-files/initpackage/init_package.py:generate_jwt_token|FileClient caches the token per client instance;script never passes --jwt-key
 |Where to look:helm wiring:install/helm/bk-nodemgr/templates/init-packages-job.yaml|mounts global envelope only + BK_NODEMGR_KMS_PRIVATE_KEY_GLOBAL env via bk-nodemgr.bkappKMSEnv (kms.enabled gated)
 |Where to look:user docs:docs/operation/adminclient/jwt_token.md

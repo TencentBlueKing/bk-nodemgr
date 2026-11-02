@@ -18,8 +18,8 @@
 
 // Package configfile resolves service config files for adminclient commands:
 // either the explicit -f/--file path, or auto-discovery under --conf-dir by a
-// top-level section anchor (a shared section like etcd, or the section that
-// uniquely identifies the target service).
+// top-level section anchor (shared sections like etcd) or by the service's
+// conventional file name.
 package configfile
 
 import (
@@ -29,25 +29,15 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/spf13/cobra"
 )
 
 const (
 	// DefaultDir is the default directory of service config files.
 	DefaultDir = "/bk-nodemgr/etc"
+	// fileSuffix is the file name suffix of service config files.
+	fileSuffix = "_conf.yaml"
 )
-
-// serviceMarkers maps each service name to the top-level config section that
-// uniquely identifies its config file. The markers hold in both deployment
-// families: the helm configmaps and the legacy bk-nodemgr-<service>.yml
-// templates, so discovery does not depend on file names.
-// nolint: gochecknoglobals
-var serviceMarkers = map[string]string{
-	"application": "front",
-	"backend":     "callbackServer",
-	"file":        "downloadServer",
-}
 
 // Flags carries the config file flags shared by adminclient command groups.
 type Flags struct {
@@ -82,34 +72,26 @@ func Resolve(path, dir, section string) (string, error) {
 }
 
 // ResolveForService returns the explicit flag path when set, otherwise the config
-// file of the named service: the single yaml file under dir containing the
-// service-identifying top-level section (see serviceMarkers). Multiple matches
-// are an error: the resolved file feeds credentials, so guessing is unsafe.
+// file of the named service under dir: <service>_conf.yaml, falling back to the
+// legacy bare-metal/docker-compose name bk-nodemgr-<service>.yml. The resolved
+// file is trusted as-is; non-standard layouts should pass -f explicitly.
 func ResolveForService(path, dir, service string) (string, error) {
 	if path != "" {
 		return path, nil
 	}
 
-	marker, ok := serviceMarkers[service]
-	if !ok {
-		return "", fmt.Errorf("unknown service '%s', available services: %s",
-			service, strings.Join(conv.MapKeyToSlice(serviceMarkers), ", "))
+	candidates := []string{
+		filepath.Join(dir, service+fileSuffix),
+		filepath.Join(dir, "bk-nodemgr-"+service+".yml"),
+	}
+	for _, candidate := range candidates {
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate, nil
+		}
 	}
 
-	matches, err := discover(dir, marker)
-	if err != nil {
-		return "", err
-	}
-	if len(matches) == 0 {
-		return "", fmt.Errorf("no config file for service '%s' found in %s/ (no yaml file contains the '%s:' section), "+
-			"use -f to specify manually", service, dir, marker)
-	}
-	if len(matches) > 1 {
-		return "", fmt.Errorf("multiple config files for service '%s' found in %s/: %s, use -f to specify manually",
-			service, dir, strings.Join(matches, ", "))
-	}
-
-	return matches[0], nil
+	return "", fmt.Errorf("no config file for service '%s' found in %s/ (tried %s), use -f to specify manually",
+		service, dir, strings.Join(candidates, ", "))
 }
 
 // discover returns all config files under dir containing the target top-level
