@@ -19,8 +19,6 @@
 package dpmgr
 
 import (
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -31,50 +29,8 @@ type policyCalculation struct {
 	changeTasks   []*ChangeTask
 }
 
-// calculateChanges is the read-only computation shared by execution and preview.
-func (h *Handler) calculateChanges(
-	nCtx contextx.IContext, policies []*types.DeployPolicy,
-) (*policyCalculation, error) {
-
-	originalUnits := make([]*DeployUnit, 0, len(policies))
-	absentChangeTasks := make([]*ChangeTask, 0)
-	for _, policy := range policies {
-		if policy.EnsureAbsent {
-			tasks, err := h.calculateAbsentChanges(policy)
-			if err != nil {
-				return nil, fmt.Errorf("failed to calculate absent changes for policy %d: %w", policy.DeployPolicyID, err)
-			}
-			absentChangeTasks = append(absentChangeTasks, tasks...)
-
-			continue
-		}
-
-		targets, err := h.calculator.Calculate(nCtx, policy.Scopes...)
-		if err != nil {
-			return nil, fmt.Errorf("failed to calculate targets for policy, deploy-policy(%v): %w", policy, err)
-		}
-
-		originalUnits = append(originalUnits, &DeployUnit{
-			DeployPolicyID: policy.DeployPolicyID,
-			LifeCycle:      policy.LifeCycle,
-			Targets:        targets,
-			Specs:          policy.Specs,
-		})
-	}
-
-	resolvedUnits, err := h.conflictResolver.ResolveConflict(originalUnits)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve conflict: %w", err)
-	}
-
-	changeTasks, err := h.analyzer.Analyze(nCtx, resolvedUnits...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to analyze work units: %w", err)
-	}
-
-	return &policyCalculation{
-		originalUnits: originalUnits,
-		resolvedUnits: resolvedUnits,
-		changeTasks:   append(changeTasks, absentChangeTasks...),
-	}, nil
+// policyCalculator provides read-only computation shared by execution and preview.
+// Direction-specific implementations receive policies selected by the mixed implementation.
+type policyCalculator interface {
+	Calculate(nCtx contextx.IContext, policies []*types.DeployPolicy) (*policyCalculation, error)
 }

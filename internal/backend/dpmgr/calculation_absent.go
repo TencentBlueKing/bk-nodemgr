@@ -21,11 +21,36 @@ package dpmgr
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// calculateAbsentChanges derives reverse tasks from each spec, without forward scope calculation.
-func (h *Handler) calculateAbsentChanges(policy *types.DeployPolicy) ([]*ChangeTask, error) {
+var _ policyCalculator = &absentCalculation{}
+
+type absentCalculation struct{}
+
+// Calculate derives reverse changes from specs without forward scope calculation.
+func (calculation *absentCalculation) Calculate(
+	_ contextx.IContext, policies []*types.DeployPolicy,
+) (*policyCalculation, error) {
+
+	changeTasks := make([]*ChangeTask, 0)
+	for _, policy := range policies {
+		tasks, err := calculation.calculateAbsentChanges(policy)
+		if err != nil {
+			return nil, fmt.Errorf("failed to calculate absent changes for policy %d: %w", policy.DeployPolicyID, err)
+		}
+		changeTasks = append(changeTasks, tasks...)
+	}
+
+	return &policyCalculation{
+		originalUnits: make([]*DeployUnit, 0),
+		resolvedUnits: make([]*DeployUnit, 0),
+		changeTasks:   changeTasks,
+	}, nil
+}
+
+func (calculation *absentCalculation) calculateAbsentChanges(policy *types.DeployPolicy) ([]*ChangeTask, error) {
 	changeTasks := make([]*ChangeTask, 0)
 	for specIndex, spec := range policy.Specs {
 		switch spec.Type() {
