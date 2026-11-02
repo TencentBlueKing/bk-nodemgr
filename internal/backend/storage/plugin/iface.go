@@ -173,7 +173,7 @@ type IDaoProcessConfig interface {
 	CreateProcessConfig(nCtx contextx.IContext, config *types.ProcessConfig) error
 
 	// GetProcessConfig get process config record.
-	GetProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error)
+	GetProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string, isMainConfig bool) (*types.ProcessConfig, error)
 
 	// CountProcessConfigs count process config records.
 	CountProcessConfigs(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error)
@@ -187,8 +187,8 @@ type IDaoProcessConfig interface {
 	// DeleteProcessConfigsByProcessUniqueKey delete many process config record by process unique key.
 	DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error
 
-	// DeleteProcessConfigs delete many process config record.
-	DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error
+	// DeleteProcessConfigs deletes named configs of the specified main/sub type.
+	DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, isMainConfig bool, names ...string) error
 }
 
 // IDomainPlugin defines the plugin domain interface.

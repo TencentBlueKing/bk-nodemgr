@@ -48,12 +48,12 @@ type ProcessConfig struct {
 
 // UniqueFields unique fields of the table.
 func (config *ProcessConfig) UniqueFields() []string {
-	return []string{FieldKeyName, FieldKeyProcessName, FieldKeyHostID}
+	return []string{FieldKeyName, FieldKeyProcessName, FieldKeyHostID, FieldKeyIsMainConfig}
 }
 
 // UniqueKey unique key of the table.
 func (config *ProcessConfig) UniqueKey() string {
-	return fmt.Sprintf("%s_%s_%d", config.Name, config.ProcessName, config.HostID)
+	return fmt.Sprintf("%s_%s_%d_%t", config.Name, config.ProcessName, config.HostID, config.IsMainConfig)
 }
 
 // TableScheduledWorkflow represent the complete db structures of scheduled workflow.

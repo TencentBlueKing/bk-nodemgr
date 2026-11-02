@@ -325,14 +325,13 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 				return nil
 			},
 		},
-	}
-
-	tgzReadRules = append(tgzReadRules, tgzReadRule{
-		filePathRegex: []string{".*", buildPrefixMatchRegex(originalPluginPkgV3DirNamePlatPrefix)},
-		callback: func(path []string, r io.Reader) error {
-			return readOriginPluginV3Payload(path, r, payloads, payloadFiles)
+		{
+			filePathRegex: []string{".*", buildPrefixMatchRegex(originalPluginPkgV3DirNamePlatPrefix)},
+			callback: func(path []string, r io.Reader) error {
+				return readOriginPluginV3Payload(path, r, payloads, payloadFiles)
+			},
 		},
-	})
+	}
 	err := checkTgz(file, tgzReadRules)
 	if err != nil {
 		return nil, err
@@ -418,10 +417,16 @@ func readOriginPluginV3Definition(path []string, definitionFile io.Reader,
 
 		return nil
 	}
+	configTemplates := parsePluginV3PkgConfigTemplateFromDefinition(definition)
+	if _, err := conv.SliceToMap(configTemplates, func(template types.PluginPkgConfigTemplate) types.PluginPkgConfigTemplateKey {
+		return template.GetUniqueKey()
+	}); err != nil {
+		return fmt.Errorf("invalid config templates for platform(%s): %w", plat.String(), err)
+	}
 	definitions[root] = definition
 	detail.Platforms = append(detail.Platforms, plat)
 	detail.BindAddressAllocated[plat.String()] = buildPluginV3PkgBindAddressAllocated(bindAddressAllocated)
-	detail.ConfigTemplates[plat.String()] = parsePluginV3PkgConfigTemplateFromDefinition(definition)
+	detail.ConfigTemplates[plat.String()] = configTemplates
 	detail.Controller[plat.String()] = buildPluginV3PkgController(plat, definition)
 
 	return nil

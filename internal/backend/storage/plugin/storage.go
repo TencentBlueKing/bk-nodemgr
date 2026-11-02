@@ -17,7 +17,7 @@
  */
 
 // Package plugin provide plugin storage.
-// nolint: nonamedreturns
+// nolint: nonamedreturns, revive
 package plugin
 
 import (
@@ -1032,7 +1032,9 @@ func (s *Storage) MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []
 // ===============================================================================
 
 // GetProcessConfig get process config.
-func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error) {
+func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string, isMainConfig bool) (
+	*types.ProcessConfig, error) {
+
 	var (
 		processConfig *types.ProcessConfig
 		err           error
@@ -1040,7 +1042,7 @@ func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *typ
 
 	err = s.WrapFn(nCtx, metricOperationGetProcessConfig, func(nCtx contextx.IContext) error {
 		var err error
-		processConfig, err = s.getProcessConfig(nCtx, processUniqueKey, name)
+		processConfig, err = s.getProcessConfig(nCtx, processUniqueKey, name, isMainConfig)
 
 		return err
 	})
@@ -1075,10 +1077,12 @@ func (s *Storage) DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 	return err
 }
 
-// DeleteProcessConfigs delete process configs.
-func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error {
+// DeleteProcessConfigs deletes named configs of the specified main/sub type.
+func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey,
+	isMainConfig bool, names ...string) error {
+
 	err := s.WrapFn(nCtx, metricOperationDeleteProcessConfigs, func(nCtx contextx.IContext) error {
-		return s.deleteProcessConfigs(nCtx, processUniqueKey, names...)
+		return s.deleteProcessConfigs(nCtx, processUniqueKey, isMainConfig, names...)
 	})
 
 	return err

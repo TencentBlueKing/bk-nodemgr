@@ -34,8 +34,8 @@ type IHandler interface {
 	// Create create process config record.
 	Create(nCtx contextx.IContext, config *types.ProcessConfig) error
 
-	// Get get process config record.
-	Get(nCtx contextx.IContext, hostID int64, processName, name string) (*types.ProcessConfig, error)
+	// Get gets a process config record by name and config type.
+	Get(nCtx contextx.IContext, hostID int64, processName, name string, isMainConfig bool) (*types.ProcessConfig, error)
 
 	// Count count process config records.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
@@ -107,8 +107,8 @@ func (h *Handler) Create(nCtx contextx.IContext, config *types.ProcessConfig) er
 	return nil
 }
 
-// Get get process config record.
-func (h *Handler) Get(nCtx contextx.IContext, hostID int64, processName, name string) (*types.ProcessConfig, error) {
+// Get gets a process config record by name and config type.
+func (h *Handler) Get(nCtx contextx.IContext, hostID int64, processName, name string, isMainConfig bool) (*types.ProcessConfig, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
@@ -118,6 +118,7 @@ func (h *Handler) Get(nCtx contextx.IContext, hostID int64, processName, name st
 	filter = WithName(name)(filter)
 	filter = WithProcessName(processName)(filter)
 	filter = WithHostID(hostID)(filter)
+	filter = WithIsMainConfig(isMainConfig)(filter)
 
 	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {

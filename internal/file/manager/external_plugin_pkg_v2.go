@@ -264,13 +264,13 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				return nil
 			},
 		},
-	}
-	tgzReadRules = append(tgzReadRules, tgzReadRule{
-		filePathRegex: []string{buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix)},
-		callback: func(path []string, r io.Reader) error {
-			return readOriginExternalPluginPayload(path, r, payloads, platformPayloads, payloadFiles)
+		{
+			filePathRegex: []string{buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix)},
+			callback: func(path []string, r io.Reader) error {
+				return readOriginExternalPluginPayload(path, r, payloads, platformPayloads, payloadFiles)
+			},
 		},
-	})
+	}
 	if err := checkTgz(file, tgzReadRules); err != nil {
 		return nil, err
 	}
@@ -456,6 +456,12 @@ func parseExternalPluginPkgConfigTemplateFromProject(pluginProject *ExternalPlug
 		if variables != nil {
 			pkgConfigTemplates[idx].Variables[variables.Title] = variables
 		}
+	}
+
+	if _, err := conv.SliceToMap(pkgConfigTemplates, func(template types.PluginPkgConfigTemplate) types.PluginPkgConfigTemplateKey {
+		return template.GetUniqueKey()
+	}); err != nil {
+		return nil, fmt.Errorf("invalid config templates: %w", err)
 	}
 
 	return pkgConfigTemplates, nil
