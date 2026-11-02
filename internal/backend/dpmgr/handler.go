@@ -43,11 +43,8 @@ type Handler struct {
 
 	policyDiscovery IPolicyDiscovery
 
-	calculator       IScopeCalculator
-	conflictResolver IConflictResolver
-
-	analyzer IAnalyzer
-	executor IExecutor
+	calculation policyCalculator
+	executor    IExecutor
 
 	domainDeployPolicyMgr   deploypolicy.IDomainDeployPolicyMgr
 	daoDeployPolicyWorkflow deploypolicy.IDaoDeployPolicyWorkflow
@@ -86,10 +83,15 @@ func NewHandler(conf *Config) *Handler {
 		domainDeployPolicyMgr:   conf.DomainDeployPolicyMgr,
 		daoDeployPolicyWorkflow: conf.DaoDeployPolicyWorkflow,
 		policyDiscovery:         policyDiscovery,
-		calculator:              calculator,
-		conflictResolver:        conflictResolver,
-		analyzer:                analyzer,
-		executor:                executor,
+		calculation: &mixedCalculation{
+			forward: &forwardCalculation{
+				calculator:       calculator,
+				conflictResolver: conflictResolver,
+				analyzer:         analyzer,
+			},
+			absent: &absentCalculation{},
+		},
+		executor: executor,
 	}
 }
 
@@ -119,7 +121,7 @@ func (h *Handler) Do(nCtx contextx.IContext, execution ExecutionParam,
 	}
 
 	// 2-4. Calculate targets, resolve conflicts and analyze changes.
-	calculation, err := h.calculateChanges(nCtx, relatedDeployPolicies)
+	calculation, err := h.calculation.Calculate(nCtx, relatedDeployPolicies)
 	if err != nil {
 		return err
 	}

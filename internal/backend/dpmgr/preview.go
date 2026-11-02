@@ -37,7 +37,7 @@ func (h *Handler) Preview(
 		return nil, fmt.Errorf("failed to discover related deploy policies: %w", err)
 	}
 
-	calculation, err := h.calculateChanges(nCtx, policies)
+	calculation, err := h.calculation.Calculate(nCtx, policies)
 	if err != nil {
 		return nil, err
 	}
