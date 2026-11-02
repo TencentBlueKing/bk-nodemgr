@@ -88,6 +88,7 @@ Render service log config. Embedded Alloy log collection reads container stdout/
 */}}
 {{- define "bk-nodemgr.logConfig" -}}
 {{- $config := deepCopy (.config | default dict) -}}
+{{- $_ := set $config "dir" .context.Values.common.logPath -}}
 {{- if .context.Values.alloy.enabled -}}
 {{- $_ := set $config "alsoToStderr" true -}}
 {{- end -}}
