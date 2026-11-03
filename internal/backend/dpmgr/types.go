@@ -45,6 +45,9 @@ type ChangeTask struct {
 	Target         *types.Target
 	ConfigSource   *types.Target
 
+	// absentProcess identifies the stored plugin to uninstall without requiring a desired version.
+	absentProcess *types.Process
+
 	// specIndex is the zero-based index in the original policy, even when Spec is rewritten.
 	specIndex int
 }

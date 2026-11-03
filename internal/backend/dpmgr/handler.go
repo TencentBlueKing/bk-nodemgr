@@ -89,7 +89,11 @@ func NewHandler(conf *Config) *Handler {
 				conflictResolver: conflictResolver,
 				analyzer:         analyzer,
 			},
-			absent: &absentCalculation{},
+			absent: &absentCalculation{
+				daoProcess:       conf.DaoProcess,
+				daoProcessConfig: conf.DaoProcessConfig,
+				daoHost:          conf.DaoHost,
+			},
 		},
 		executor: executor,
 	}
