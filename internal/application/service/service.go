@@ -55,7 +55,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
-	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
@@ -602,7 +601,7 @@ func (svc *Service) registerBasicServer() error {
 			ShutdownTimeout:  time.Duration(svc.conf.BasicServer.GracefulShutdownTimeoutSec) * time.Second,
 			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
-			RequestIDSetter:  apigwserver.NewBKAPIRequestIDSetter(),
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			StaticOptions: restserver.NewStaticOptions(svc.conf.BasicServer.StaticDir).
 				WithHTMLs("index.html").
 				WithDirs("assets").
