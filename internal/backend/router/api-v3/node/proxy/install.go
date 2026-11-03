@@ -360,6 +360,10 @@ func (h *handler) fetchExistedHosts(ctx contextx.IContext, hosts []*protoBackend
 		}
 	}
 
+	if len(hostIDMap) == 0 {
+		return make(map[int64]*types.Host), nil
+	}
+
 	existedHostList, _, err := h.storageHost.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: conv.MapKeyToSlice(hostIDMap),
