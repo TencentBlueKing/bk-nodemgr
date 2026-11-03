@@ -601,7 +601,7 @@ func (svc *Service) registerBasicServer() error {
 			ShutdownTimeout:  time.Duration(svc.conf.BasicServer.GracefulShutdownTimeoutSec) * time.Second,
 			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
-			RequestIDSetter:  restserver.NewRequestIDSetter(),
+			RequestIDSetter:  bksaasheader.NewBKSaasRequestIDSetter(),
 			StaticOptions: restserver.NewStaticOptions(svc.conf.BasicServer.StaticDir).
 				WithHTMLs("index.html").
 				WithDirs("assets").

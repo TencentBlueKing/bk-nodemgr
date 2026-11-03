@@ -24,7 +24,7 @@ import "net/http"
 
 const (
 	// KeyBKRequestID the header key of bk request id.
-	KeyBKRequestID = "X-Bkapi-Request-Id"
+	KeyBKRequestID = "X-Request-Id"
 )
 
 // BKRIDGetter request id value.
