@@ -821,6 +821,15 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 								},
 								targetFileMode: tgzModeFile,
 							},
+							{
+								sourceFilePath: []string{convPlatToPluginV2DirName(plat), pluginName},
+								recursive:      true,
+								exclude: func(path []string) bool {
+									return path[0] == originalPluginPkgV2FileNameProject ||
+										(path[0] == originalPluginPkgV2DirNameEtc && len(path) > 1 &&
+											strings.HasSuffix(path[1], originalPluginPkgV2FileNameEtcExt))
+								},
+							},
 						},
 					},
 					// get things from origin plugin bintool.

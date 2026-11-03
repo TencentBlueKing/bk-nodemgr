@@ -824,6 +824,15 @@ func (m *Manager) generatePluginV3Pkg(nCtx contextx.IContext,
 								},
 								targetFileMode: tgzModeFile,
 							},
+							{
+								sourceFilePath: []string{pluginName, convPlatToPluginV3DirName(plat)},
+								recursive:      true,
+								exclude: func(path []string) bool {
+									return path[0] == originalPluginPkgV3FileNameDefinition ||
+										(path[0] == originalPluginPkgV3DirNameTemplates && len(path) > 1 &&
+											strings.HasSuffix(path[1], originalPluginPkgV3FileNameTemplatesExt))
+								},
+							},
 						},
 					},
 					// get things from origin plugin bintool.

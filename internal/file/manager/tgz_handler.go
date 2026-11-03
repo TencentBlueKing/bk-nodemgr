@@ -39,6 +39,7 @@ const (
 	tgzPathMatchingSegment3 = "*~3"
 
 	maxTrailingGzipBytes = 1 << 20
+	tgzParentPathSegment = ".."
 )
 
 func isTgzPathMatchingSegment(pathName string) bool {
@@ -56,6 +57,9 @@ type tgzWriteRuleFile struct {
 	sourceFilePath []string
 	targetFilePath []string
 	targetFileMode int64
+	// Recursive rules preserve relative paths and source permissions below sourceFilePath.
+	recursive bool
+	exclude   func([]string) bool
 }
 
 type tgzWriteRuleStream struct {
@@ -151,7 +155,18 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 		paths := strings.Split(strings.TrimLeft(header.Name, "./"), "/")
 
 		// validates if the paths match the rules.
+		copied := false
 		for _, rule := range fileRules {
+			if rule.recursive {
+				if copied {
+					continue
+				}
+				if err := copyRecursiveTgzFile(rule, paths, header, tarReader, tarWriter); err != nil {
+					return err
+				}
+
+				continue
+			}
 			if len(paths) != len(rule.sourceFilePath) {
 				continue
 			}
@@ -205,6 +220,7 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 			if _, err = io.Copy(tarWriter, tarReader); err != nil {
 				return fmt.Errorf("failed to copy file. origin(%v), target(%v): %w", paths, target, err)
 			}
+			copied = true
 		}
 	}
 
@@ -215,6 +231,48 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 	}
 	if trailingBytes > maxTrailingGzipBytes {
 		return fmt.Errorf("source gzip stream exceeds %d trailing decompressed bytes", maxTrailingGzipBytes)
+	}
+
+	return nil
+}
+
+// copyRecursiveTgzFile copies non-standard files relative to a package root.
+func copyRecursiveTgzFile(rule tgzWriteRuleFile, paths []string, header *tar.Header, source io.Reader, target *tar.Writer) error {
+	if len(paths) <= len(rule.sourceFilePath) {
+		return nil
+	}
+	for idx, segment := range rule.sourceFilePath {
+		if paths[idx] != segment {
+			return nil
+		}
+	}
+
+	relative := paths[len(rule.sourceFilePath):]
+	if rule.exclude != nil && rule.exclude(relative) {
+		return nil
+	}
+
+	if _, err := cleanTgzPath(header.Name); err != nil {
+		return fmt.Errorf("invalid plugin file path(%s): %w", header.Name, err)
+	}
+	for _, segment := range relative {
+		if segment == "" || segment == "." || segment == tgzParentPathSegment || strings.ContainsAny(segment, `\:`) {
+			return fmt.Errorf("invalid plugin file path(%s)", header.Name)
+		}
+	}
+
+	name := strings.Join(append(append([]string{}, rule.targetFilePath...), relative...), "/")
+	if err := target.WriteHeader(&tar.Header{
+		Name:     name,
+		Mode:     header.Mode,
+		ModTime:  time.Now(),
+		Typeflag: tar.TypeReg,
+		Size:     header.Size,
+	}); err != nil {
+		return fmt.Errorf("failed to write plugin file header(%s): %w", name, err)
+	}
+	if _, err := io.Copy(target, source); err != nil {
+		return fmt.Errorf("failed to copy plugin file(%s): %w", name, err)
 	}
 
 	return nil
