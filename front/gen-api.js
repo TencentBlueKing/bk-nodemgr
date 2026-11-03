@@ -91,15 +91,16 @@ import { type Config } from '../interceptors';
             httpMethod = allHttpMethods.find(m => trpcOpts[apiType]?.[m]);
             path = trpcOpts[apiType]?.[httpMethod];
           }
-          if (!types.includes(method.requestType)) {
-            types.push(method.requestType);
+          const requestType = method.requestType.split('.').pop();
+          if (!types.includes(requestType)) {
+            types.push(requestType);
           }
           if (!types.includes(method.responseType)) {
             types.push(method.responseType);
           }
           const commentList = method.comment?.split('\n');
           tmpOutput += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
-          tmpOutput += `  ${method.name}: async <Request = ${method.requestType}, ResponseData = ${method.responseType}['data']>(params?: Request, config?: Config) => await fetch.${httpMethod}<Request, ResponseData>('${path}')(params, config),\n`;
+          tmpOutput += `  ${method.name}: async <Request = ${requestType}, ResponseData = ${method.responseType}['data']>(params?: Request, config?: Config) => await fetch.${httpMethod}<Request, ResponseData>('${path}')(params, config),\n`;
         });
         tmpOutput += '};\n\n';
       }

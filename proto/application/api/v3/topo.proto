@@ -1067,7 +1067,8 @@ service Topo {
   }
 
   // TopoGraphNodeGetReq provides graph node getting.
-  rpc TopoGraphNodeGetReq(TopoGraphNodeGetResp) returns (TopoGraphNodeGetResp) {
+  rpc TopoGraphNodeGetReq(.v3.TopoGraphNodeGetReq)
+      returns (TopoGraphNodeGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/graph/node/get"
       body : "*"

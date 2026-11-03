@@ -1126,122 +1126,13 @@ paths:
           application/json:
             schema:
               type: object
-              title: TopoGraphNodeGetResp describes the HTTP response body when get node
+              title: TopoGraphNodeGetReq describes the HTTP request body when get node
               properties:
-                code:
-                  type: integer
-                  format: int32
-                data:
-                  type: object
-                  properties:
-                    graph_node_info:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          is_healthy:
-                            type: boolean
-                          cycle_times:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                time:
-                                  type: string
-                                bk_host_id:
-                                  type: integer
-                                  format: int64
-                                bk_agent_id:
-                                  type: string
-                                bk_host_innerip_list:
-                                  type: array
-                                  items:
-                                    type: string
-                                bk_host_innerip_v6_list:
-                                  type: array
-                                  items:
-                                    type: string
-                              description: CycleTime describes the cycle time of a node in topo graph.
-                          total_agent:
-                            type: integer
-                            format: int64
-                          total_proxy:
-                            type: integer
-                            format: int64
-                          running_agent:
-                            type: integer
-                            format: int64
-                          running_proxy:
-                            type: integer
-                            format: int64
-                          bk_networkunit_id:
-                            type: integer
-                            format: int64
-                        description: GraphNodeInfo describes the node information in topo graph.
-                error:
-                  type: object
-                  properties:
-                    system:
-                      type: string
-                    details:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          code:
-                            type: string
-                          message:
-                            type: string
-                    message:
-                      type: string
-                message:
-                  type: string
-                permission:
-                  type: object
-                  properties:
-                    system:
-                      type: string
-                    actions:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                          name:
-                            type: string
-                          related_resource_types:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                type:
-                                  type: string
-                                instances:
-                                  type: array
-                                  items:
-                                    type: object
-                                    properties:
-                                      id:
-                                        type: string
-                                      name:
-                                        type: string
-                                      type:
-                                        type: string
-                                      type_name:
-                                        type: string
-                                system_id:
-                                  type: string
-                                type_name:
-                                  type: string
-                                system_name:
-                                  type: string
-                    apply_url:
-                      type: string
-                    system_name:
-                      type: string
-                request_id:
-                  type: string
+                bk_networkunit_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
         required: true
         description: ''
       x-bk-apigateway-resource:
