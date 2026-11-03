@@ -18,6 +18,12 @@
 
 安装前请为 `bk-nodemgr` 按 [第三方 APIGateway 资源使用清单](installation/thirdparty_apigateway_permission.md) 申请权限。
 
+## Service run mode
+
+Application, Backend, and File use `runMode` in their service YAML configuration, with `debug` and `release` as the supported values. The service constructors default to `release`; deployment templates may set an explicit value. Use `release` in production.
+
+When migrating an older configuration, replace the service run mode key `mode` with `runMode`. The old key is not supported and does not set the service run mode. For Helm, configure `<service>.config.runMode`; for direct service YAML, use the top-level `runMode` key. This does not apply to unrelated `mode` fields in third-party components.
+
 ## Helm部署
 
 通过 Helm 初始化证书和工具包，或在部署期间手工导入 V2/V3 插件包时，参考 [初始化包导入](installation/init_packages.md)。
@@ -26,13 +32,13 @@
 
 `Application`、`Backend`、`File` 三个服务均支持 `config.tracing` 配置。默认使用 `stdout` exporter，仅输出本地 trace；如需上报到 OpenTelemetry Collector、Tempo 或其它兼容 OTLP 的后端，将 `exporterType` 改为 `otlp`，并配置对应的 `otlpEndpoint`。
 
-| 参数 | 默认值 | 说明 |
-| --- | --- | --- |
-| `tracing.exporterType` | `stdout` | trace exporter 类型。可使用 `stdout` 或 `otlp`；使用 `otlp` 时需要配置 OTLP 连接参数。 |
-| `tracing.otlpEndpoint` | 空 | OTLP collector/exporter endpoint。`otlpProtocol: grpc` 时填写 gRPC endpoint，例如 `otel-collector:4317`；`otlpProtocol: http` 时填写 HTTP endpoint 的 host 和 port，例如 `otel-collector:4318`，默认上报 path 为 `/v1/traces`。 |
-| `tracing.otlpProtocol` | `grpc` | OTLP 传输协议，合法值为 `grpc` 或 `http`。配置为其它非空值时服务启动会失败，并返回 `otlp protocol is invalid`。 |
-| `tracing.otlpInsecure` | `false` | 是否跳过 OTLP TLS 校验或使用非 TLS 连接。集群内明文 Collector 可设置为 `true`；公网或跨网络访问建议保持 `false` 并使用 HTTPS/TLS。 |
-| `tracing.otlpHeaders` | `{}` | 发送 OTLP 请求时附加的 headers，常用于上游 collector 的认证或租户标识。 |
+| 参数                   | 默认值   | 说明                                                                                                                                                                                                                            |
+| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tracing.exporterType` | `stdout` | trace exporter 类型。可使用 `stdout` 或 `otlp`；使用 `otlp` 时需要配置 OTLP 连接参数。                                                                                                                                          |
+| `tracing.otlpEndpoint` | 空       | OTLP collector/exporter endpoint。`otlpProtocol: grpc` 时填写 gRPC endpoint，例如 `otel-collector:4317`；`otlpProtocol: http` 时填写 HTTP endpoint 的 host 和 port，例如 `otel-collector:4318`，默认上报 path 为 `/v1/traces`。 |
+| `tracing.otlpProtocol` | `grpc`   | OTLP 传输协议，合法值为 `grpc` 或 `http`。配置为其它非空值时服务启动会失败，并返回 `otlp protocol is invalid`。                                                                                                                 |
+| `tracing.otlpInsecure` | `false`  | 是否跳过 OTLP TLS 校验或使用非 TLS 连接。集群内明文 Collector 可设置为 `true`；公网或跨网络访问建议保持 `false` 并使用 HTTPS/TLS。                                                                                              |
+| `tracing.otlpHeaders`  | `{}`     | 发送 OTLP 请求时附加的 headers，常用于上游 collector 的认证或租户标识。                                                                                                                                                         |
 
 `otlpProtocol: http` 适用于网络环境不便开放 gRPC 出口、只允许 HTTP/HTTPS 出口，或上游只暴露 OTLP HTTP 接收端的场景。示例：
 

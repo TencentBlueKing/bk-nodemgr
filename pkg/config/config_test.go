@@ -62,23 +62,21 @@ func TestApplicationService_LoadFromFileReadsUnassignedNetworkAreaID(t *testing.
 	assert.Equal(t, int64(100), svc.Front.UnassignedNetworkAreaID)
 }
 
-func TestApplicationService_LoadFromFileKeepsLegacyModeKeyCompatible(t *testing.T) {
+func TestApplicationService_LoadFromFileDefaultsRunMode(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
-	configContent := []byte(`mode: debug
-tenantMode: single
+	configContent := []byte(`tenantMode: single
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
 
 	svc := NewApplicationService()
 	require.NoError(t, svc.LoadFromFile(configPath))
 
-	assert.Equal(t, RunModeDebug, svc.RunMode)
+	assert.Equal(t, RunModeRelease, svc.RunMode)
 }
 
-func TestApplicationService_LoadFromFilePrefersRunModeOverLegacyMode(t *testing.T) {
+func TestApplicationService_LoadFromFileReadsRunMode(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
 	configContent := []byte(`runMode: release
-mode: debug
 tenantMode: single
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
