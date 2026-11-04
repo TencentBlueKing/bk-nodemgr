@@ -1049,6 +1049,7 @@ pkgUpload:
   fileFormatTip: 支持 tgz、tar、gz 扩展名格式文件
   uploadSuccess: 上传成功
   uploadFailed: 上传失败
+  uploadFailedDetail: "上传失败：{message}"
   overwriteConfirm: "{type} 目标版本已存在，是否覆盖上传？"
   overwrite: 覆盖上传
   cancelUpload: 取消上传

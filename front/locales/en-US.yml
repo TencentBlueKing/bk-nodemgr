@@ -1046,6 +1046,7 @@ pkgUpload:
   fileFormatTip: Supports .tgz, .tar, .gz
   uploadSuccess: Uploaded successfully
   uploadFailed: Upload failed
+  uploadFailedDetail: "Upload failed: {message}"
   overwriteConfirm: "{type} version already exists. Overwrite?"
   overwrite: Overwrite
   cancelUpload: Cancel Upload

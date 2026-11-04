@@ -16,8 +16,8 @@
         <div class="w-[32px] h-full">
           <i class="nodeman-icon nc-package-2 text-[32px]"></i>
         </div>
-        <div class="ml-[10px] flex-1">
-          <div class="text-[12px]">{{ file.name }}</div>
+        <div class="ml-[10px] flex-1 min-w-0">
+          <div class="text-[12px] break-all">{{ file.name }}</div>
           <div
             class="text-[12px] text-[#2DCB56] flex items-center"
             v-if="curFile.status === 'success'"
@@ -26,10 +26,12 @@
             <span>{{ t('pkgUpload.uploadSuccess') }}</span>
           </div>
           <div
-            class="text-[#FF5656] text-[12px]"
+            class="pkg-upload-error"
             v-else-if="curFile.status === 'failed'"
           >
-            {{ curFile.message }}
+            {{ curFile.message
+              ? t('pkgUpload.uploadFailedDetail', { message: curFile.message })
+              : t('pkgUpload.uploadFailed') }}
           </div>
           <div
             class="text-[12px] flex items-center cursor-pointer"
@@ -39,8 +41,8 @@
               width="320"
               theme="light"
               :title="t('pkgUpload.overwriteConfirm', { type: capitalizeFirstLetter(currentType) })"
-              :confirmText="t('pkgUpload.overwrite')"
-              :cancelText="t('pkgUpload.cancelUpload')"
+              :confirm-text="t('pkgUpload.overwrite')"
+              :cancel-text="t('pkgUpload.cancelUpload')"
               @confirm="handleOverwrite"
               @cancel="handleCancel"
             >
@@ -99,7 +101,6 @@ import { useRoute } from 'vue-router';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { bytesToMegabytes, capitalizeFirstLetter } from '@/common/util';
 
-const { t } = useI18n();
 const props = defineProps({
   pluginType: {
     type: String,
@@ -109,9 +110,10 @@ const props = defineProps({
     type: String,
     default: 'origin_proxy',
   },
-  });
-
+});
 const emit = defineEmits(['upload', 'cancel', 'loading']);
+
+const { t } = useI18n();
 const route = useRoute();
 const uploader = ref(null);
 
@@ -142,6 +144,48 @@ const curFile = reactive({
   data: null,
   message: '',
 });
+
+type UploadRespBody = {
+  code?: number;
+  message?: string;
+  data?: any;
+  error?: { message?: string; details?: Array<{ message?: string }> };
+};
+
+/** parseUploadBody 解析上传响应体，非 JSON 响应（如网关错误页）返回空对象。 */
+const parseUploadBody = (raw: string): UploadRespBody => {
+  try {
+    return JSON.parse(raw) as UploadRespBody;
+  } catch {
+    return {};
+  }
+};
+
+/**
+ * resolveUploadErrMsg 提取后端返回的具体失败原因：
+ * 标准错误响应把真实原因放在 error.details，其次 error.message、message；都取不到时返回空串，由调用方兜底。
+ */
+const resolveUploadErrMsg = (body: UploadRespBody, statusText: string) => {
+  const detailMsgs = (body.error?.details ?? [])
+    .map(detail => detail.message)
+    .filter((message): message is string => !!message);
+  if (detailMsgs.length > 0) {
+    return detailMsgs.join('; ');
+  }
+  return body.message || body.error?.message || statusText || '';
+};
+
+/** failUpload 标记当前文件上传失败；errMsg 为空时只提示通用文案，避免渲染出“上传失败：上传失败”。 */
+const failUpload = (errMsg: string) => {
+  const detail = errMsg.trim();
+  curFile.message = detail;
+  curFile.status = 'failed';
+  Message({
+    theme: 'error',
+    message: detail ? t('pkgUpload.uploadFailedDetail', { message: detail }) : t('pkgUpload.uploadFailed'),
+  });
+  emit('upload', null);
+};
 
 const handleBeforeUpload = (file: File, fileList: File[]) => {
   const whiteList = ['tgz', 'tar', 'gz'];
@@ -187,47 +231,22 @@ const handleUpload = () => {
 
   xhr.onload = () => {
     emit('loading', false);
-    if (xhr.status >= 200 && xhr.status < 300) {
-      const response = JSON.parse(xhr.responseText);
-      // 后端业务错误（HTTP 200 + code 非 0）：展示后端返回的具体错误信息
-      if (response.code !== 0) {
-        curFile.message = response.message || t('pkgUpload.uploadFailed');
-        curFile.status = 'failed';
-        Message({
-          theme: 'error',
-          message: curFile.message,
-        });
-        emit('upload', null);
-        return;
-      }
-      curFile.status = (response.data.existed && !overwrite.value)
+    const body = parseUploadBody(xhr.responseText);
+    // 仅 HTTP 2xx 且业务 code 为 0 才算上传成功，其余情况都要把后端错误信息暴露出来
+    if (xhr.status >= 200 && xhr.status < 300 && body.code === 0) {
+      curFile.status = (body.data?.existed && !overwrite.value)
         ? 'existed'
         : 'success';
-      curFile.data = response.data;
-      emit('upload', response.data);
-    } else {
-      // HTTP 错误：优先取响应体中的 message，兜底 statusText
-      let errMsg = xhr.statusText || t('pkgUpload.uploadFailed');
-      try {
-        errMsg = JSON.parse(xhr.responseText)?.message || errMsg;
-      } catch { /* responseText 非 JSON，使用 statusText */ }
-      curFile.message = errMsg;
-      curFile.status = 'failed';
-      Message({
-        theme: 'error',
-        message: errMsg,
-      });
-      emit('upload', null);
+      curFile.data = body.data;
+      emit('upload', body.data);
+      return;
     }
+    failUpload(resolveUploadErrMsg(body, xhr.statusText));
   };
 
-  // 错误处理
+  // 网络层错误（请求未完成，拿不到响应体）
   xhr.onerror = () => {
-    curFile.message = t('pkgUpload.uploadFailed');
-    Message({
-      theme: 'error',
-      message: t('pkgUpload.uploadFailed'),
-    });
+    failUpload('');
   };
 
   xhr.send(formData);
@@ -251,3 +270,24 @@ const handleDelete = () => {
   emit('upload', null);
 };
 </script>
+
+<style lang="postcss" scoped>
+/* 文件条目默认 max-height: 60px，错误信息换行后会被裁切，这里放开高度让外框随内容增大 */
+:deep(.bk-upload-list__item) {
+  max-height: none;
+}
+
+/* 错误信息框：跟随文本换行自动增高，不与右侧重试/删除按钮重叠 */
+.pkg-upload-error {
+  margin: 6px 72px 0 0;
+  padding: 6px 8px;
+  border: 1px solid #ffd9d9;
+  border-radius: 2px;
+  background: #fff0f0;
+  color: #ff5656;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+</style>
