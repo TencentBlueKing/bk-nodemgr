@@ -346,7 +346,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3TopoGraphNodeGetResp"
+              "$ref": "#/definitions/v3TopoGraphNodeGetReq"
             }
           }
         ],
@@ -2614,6 +2614,19 @@
           }
         }
       }
+    },
+    "v3TopoGraphNodeGetReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "title": "TopoGraphNodeGetReq describes the HTTP request body when get node"
     },
     "v3TopoGraphNodeGetResp": {
       "type": "object",
