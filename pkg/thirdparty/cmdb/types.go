@@ -222,6 +222,10 @@ const (
 	// codeNoPermission define the no permission code.
 	// notice: !!! not all api will return correct response code.
 	codeNoPermission = 9900403
+
+	// codeDefaultAreaHostIPExist define the code of the host inner ip that is still used by a host in the default
+	// area(cloud area 0) of cmdb. cmdb may return an unknown-meaning message for this code, explain it here.
+	codeDefaultAreaHostIPExist = 1106025
 )
 
 // IsFailed check the response is ok.
@@ -231,6 +235,10 @@ func (resp *BaseBroker[T]) IsFailed() error {
 		return nil
 	case (!resp.Result && resp.Code == codeNoPermission) || resp.Permission != nil:
 		return fmt.Errorf("no permission, please check your permission, permission(%v)", resp.Permission)
+	case !resp.Result && resp.Code == codeDefaultAreaHostIPExist:
+		return fmt.Errorf(
+			"the inner ip already exists in the default area(cloud area 0) of cmdb, reuse the existing host or clean it up first, code(%d)",
+			resp.Code)
 	default:
 		return fmt.Errorf("result(%v), code(%d) , msg(%s)", resp.Result, resp.Code, resp.Message)
 	}
