@@ -558,21 +558,17 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
 	for idx, task := range tasks {
-		process := task.absentProcess
-		if process == nil {
-			param, err := task.Spec.GetSpecifyPluginParam()
-			if err != nil {
-				return fmt.Errorf("failed to schedule and execute change action: %w", err)
-			}
-			process = &types.Process{
-				TenantID:   nCtx.TenantID(),
-				HostID:     task.Target.Host.HostID,
-				PluginName: param.PluginName,
-			}
+		param, err := task.Spec.GetSpecifyPluginParam()
+		if err != nil {
+			return fmt.Errorf("failed to schedule and execute change action: %w", err)
 		}
 
 		pluginDeployments[idx] = types.NewPluginDeployment(&types.PluginDeploymentInfo{
-			Process:      *process,
+			Process: types.Process{
+				TenantID:   nCtx.TenantID(),
+				HostID:     task.Target.Host.HostID,
+				PluginName: param.PluginName,
+			},
 			ConfigSource: getTaskConfigSource(task),
 		}, &types.PluginDeploymentPluginConf{})
 

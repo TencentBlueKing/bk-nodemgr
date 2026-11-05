@@ -111,14 +111,14 @@ func (calculation *absentCalculation) calculateSpecAbsentChanges(
 			return nil, fmt.Errorf("failed to get plugin pkg param: %w", err)
 		}
 
-		return calculation.calculateAbsentPlugins(nCtx, policyID, param.PluginPkgName, spec)
+		return calculation.calculateAbsentPlugins(nCtx, policyID, param.PluginPkgName, param.Version)
 	case types.DeploySpecTypeProjectPluginPkgToHosts:
 		param, err := spec.GetProjectPluginPkgToHostsParam()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get projected plugin pkg param: %w", err)
 		}
 
-		return calculation.calculateAbsentPlugins(nCtx, policyID, param.PluginPkgName, spec)
+		return calculation.calculateAbsentPlugins(nCtx, policyID, param.PluginPkgName, param.Version)
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
 		param, err := spec.GetSpecifyPluginSubConfigParam()
 		if err != nil {
@@ -139,7 +139,7 @@ func (calculation *absentCalculation) calculateSpecAbsentChanges(
 }
 
 func (calculation *absentCalculation) calculateAbsentPlugins(
-	nCtx contextx.IContext, policyID int64, pluginPkgName string, spec *types.DeploySpec,
+	nCtx contextx.IContext, policyID int64, pluginPkgName, version string,
 ) ([]*ChangeTask, error) {
 
 	cond := &types.ProcessCondition{
@@ -155,7 +155,14 @@ func (calculation *absentCalculation) calculateAbsentPlugins(
 
 	tasks := make([]*ChangeTask, 0, len(processes))
 	for _, process := range processes {
-		// Use the stored process, not the current spec's placement or generated name.
+		// Uninstall uses the stored plugin name; the declared version does not filter removal.
+		spec, err := types.NewDeploySpecWithSpecifyPlugin(&types.SpecifyPluginParam{
+			PluginName: process.PluginName,
+			Version:    version,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create plugin uninstall spec: %w", err)
+		}
 		target, err := calculation.absentTarget(nCtx, process.HostID)
 		if err != nil {
 			return nil, err
@@ -165,7 +172,6 @@ func (calculation *absentCalculation) calculateAbsentPlugins(
 			Action:         ChangeActionPluginUninstall,
 			Spec:           spec,
 			Target:         target,
-			absentProcess:  process,
 		})
 	}
 
@@ -215,8 +221,13 @@ func (calculation *absentCalculation) calculateAbsentConfigs(
 }
 
 func absentTaskKey(task *ChangeTask) (string, error) {
-	if task.absentProcess != nil {
-		return fmt.Sprintf("plugin/%d/%s", task.Target.Host.HostID, task.absentProcess.PluginName), nil
+	if task.Spec.Type() == types.DeploySpecTypeSpecifyPlugin {
+		param, err := task.Spec.GetSpecifyPluginParam()
+		if err != nil {
+			return "", fmt.Errorf("failed to identify absent plugin task: %w", err)
+		}
+
+		return fmt.Sprintf("plugin/%d/%s", task.Target.Host.HostID, param.PluginName), nil
 	}
 	param, err := task.Spec.GetSpecifyPluginSubConfigParam()
 	if err != nil {
