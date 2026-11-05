@@ -125,6 +125,7 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_TENANT_MODE":              tenant.GetMode(),
 		"BK_DOMAIN":                   h.frontSetting.BKDomain(),
 		"BK_DOCS_CENTER_URL":          h.frontSetting.BKDocsCenterURL(),
+		"BK_SHARED_RES_BASE_JS_URL":   h.frontSetting.BKSharedResBaseJSURL(),
 		"BKAPP_NAV_OPEN_SOURCE_URL":   h.frontSetting.BKAppNavOpenSourceURL(),
 		"WINDOWS_WMI_PORT_DEFAULT":    h.frontSetting.WindowsWMIPortDefault(),
 		"WINDOWS_SSH_PORT_DEFAULT":    h.frontSetting.WindowsSSHPortDefault(),

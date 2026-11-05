@@ -226,6 +226,7 @@ func (svc *Service) initialCapability() error {
 			BKUserWebURL:            svc.conf.Front.BKUserWebURL,
 			BKDomain:                svc.conf.Front.BKDomain,
 			BKDocsCenterURL:         svc.conf.Front.BKDocsCenterURL,
+			BKSharedResBaseJSURL:    svc.conf.Front.BKSharedResBaseJSURL,
 			BKAppNavOpenSourceURL:   svc.conf.Front.BKAppNavOpenSourceURL,
 			WindowsWMIPortDefault:   svc.conf.Front.WindowsWMIPortDefault,
 			WindowsSSHPortDefault:   svc.conf.Front.WindowsSSHPortDefault,

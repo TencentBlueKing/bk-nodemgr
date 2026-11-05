@@ -36,9 +36,14 @@ export default function usePlatform() {
         footerInfoHTML: '',
       },
     };
+    // In vite dev mode index.html is not rendered by the backend, the value stays as the raw
+    // Go template placeholder; fall back to the build-time env in that case.
+    const sharedResBaseJsUrl = window.PROJECT_CONFIG.BK_SHARED_RES_BASE_JS_URL.includes('BK_SHARED_RES_BASE_JS_URL')
+      ? import.meta.env.BK_SHARED_RES_BASE_JS_URL
+      : window.PROJECT_CONFIG.BK_SHARED_RES_BASE_JS_URL;
     let data: Record<string, any> = {};
-    if (import.meta.env.BK_SHARED_RES_BASE_JS_URL) {
-      data = await getPlatformConfig(import.meta.env.BK_SHARED_RES_BASE_JS_URL, defaults);
+    if (sharedResBaseJsUrl) {
+      data = await getPlatformConfig(sharedResBaseJsUrl, defaults);
     } else {
       data = await getPlatformConfig(defaults);
     }
