@@ -311,7 +311,6 @@ const handlePreview = async () => {
     result[2] = result[2].every(item => item);
   }
   if (result.every(item => item)) {
-    previewData.isShow = true;
     const modeMap = {
       password: 'login_password',
       keyfile: 'login_key_file',
@@ -354,6 +353,9 @@ const handlePreview = async () => {
           };
         });
     }
+    // open the preview only after encryption finished: encrypt() is async, and
+    // opening early lets preview.vue snapshot rows still holding plaintext credit
+    previewData.isShow = true;
   } else {
     scrollToFirstErrorByClassNames();
   }
