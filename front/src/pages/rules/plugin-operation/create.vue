@@ -264,7 +264,6 @@ const handleSubmit = async () => {
     }
 
     // 获取参数配置相关信息
-    const configNamesMap = paramConfigRef.value?.configNamesMap || {};
     const paramConfig = formData.paramConfig || {};
     // 获取每个平台的版本映射（platform → version）
     const systemData = deployTargetRef.value?.systemData || [];
@@ -276,7 +275,7 @@ const handleSubmit = async () => {
     });
 
     // 构建平台匹配：用 host 的 os_type + cpu_arch 拼接成 platform key（如 "linux_x86_64"）精确匹配
-    const allPlatformKeys = [...new Set([...Object.keys(paramConfig), ...Object.keys(versionMap), ...Object.keys(configNamesMap)])];
+    const allPlatformKeys = [...new Set([...Object.keys(paramConfig), ...Object.keys(versionMap)])];
     const getMatchedPlatform = (osType: string, cpuArch: string): string => {
       if (osType && cpuArch) {
         const platformKey = `${osType}_${cpuArch}`;
@@ -292,7 +291,7 @@ const handleSubmit = async () => {
       return allPlatformKeys[0] || '';
     };
 
-    // 构造插件参数：每个 host 带上对应 platform 的 version、config_template_name 和 custom_config_context
+    // 构造插件参数：每个 host 带上对应 platform 的 version 和 custom_config_context
     const pluginName = formData.pluginName?.trim() || currentPluginName.value;
     const buildBasePluginInfo = (host: any) => {
       const hostOsType = host.os_type || '';
@@ -302,7 +301,6 @@ const handleSubmit = async () => {
         bk_host_id: host.bk_host_id || host.host_id,
         plugin_name: pluginName,
         version: versionMap[matchedPlatform] || formData.selectedVersion || '',
-        config_template_name: configNamesMap[matchedPlatform] || [],
         custom_config_context: paramConfig[matchedPlatform] || {},
       };
     };

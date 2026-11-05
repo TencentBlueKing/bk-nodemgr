@@ -13,7 +13,6 @@ export interface PluginInstallReqInstallInfo {
   bk_host_id: number;
   plugin_name: string;
   version: string;
-  config_template_name: string[];
   custom_config_context: Record<string, any>;
   custom_spec: DeploymentSpec;
 }
@@ -41,7 +40,6 @@ export interface PluginUpgradeReqUpgradeInfo {
   bk_host_id: number;
   plugin_name: string;
   version: string;
-  config_template_name: string[];
   custom_config_context: Record<string, any>;
 }
 
