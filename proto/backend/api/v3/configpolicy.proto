@@ -98,7 +98,6 @@ message ConfigPolicyUpdateReq {
   map<string, string> configs_string = 7;
   map<string, int64> configs_int = 8;
   map<string, bool> configs_bool = 9;
-  bool enabled = 10;
   string operator = 11;
   int64 priority = 12;
   repeated int64 target_host_ids = 13;

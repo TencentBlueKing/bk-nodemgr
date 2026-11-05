@@ -131,7 +131,6 @@ message ConfigPolicyUpdateReq {
   string remark = 5;
   repeated ConfigPolicyScope scopes = 6;
   repeated ConfigPolicyConfigBlock configs = 7;
-  bool enabled = 8;
   string operator = 9;
   int64 priority = 10;
   repeated int64 target_host_ids = 11;
