@@ -18,11 +18,26 @@
         </Button>
       </template>
       <template #optionRender="{ item }">
-        <Tag v-if="item.pId === 'base_config'">{{ $t('common.basic') }}</Tag>
-        <Tag theme="success" v-else-if="item.pId === 'script_config'">{{ $t('common.script') }}</Tag>
-        <Tag theme="info" v-else-if="item.pId === 'data_config'">{{ $t('common.data') }}</Tag>
-        <Tag theme="warning" v-else-if="item.pId === 'file_config'">{{ $t('common.file') }}</Tag>
-        <span class="ml-[5px]">{{ item.name }}</span>
+        <div class="config-option-tip">
+          <Tag v-if="item.pId === 'base_config'">{{ $t('common.basic') }}</Tag>
+          <Tag theme="success" v-else-if="item.pId === 'script_config'">{{ $t('common.script') }}</Tag>
+          <Tag theme="info" v-else-if="item.pId === 'data_config'">{{ $t('common.data') }}</Tag>
+          <Tag theme="warning" v-else-if="item.pId === 'file_config'">{{ $t('common.file') }}</Tag>
+          <Popover
+            theme="light"
+            trigger="hover"
+            placement="right"
+            :arrow="true"
+            :max-width="400"
+            :popover-delay="[0, 100]"
+            :component-event-delay="0"
+            :disabled="!item.remark">
+            <span class="ml-[5px] flex items-center h-full">{{ item.name }}</span>
+            <template #content>
+              <div class="text-[12px] leading-[20px]">{{ item.remark }}</div>
+            </template>
+          </Popover>
+        </div>
       </template>
     </Select>
     <div class="flex items-center text-[#979BA5] absolute left-[125px] top-[2px]">
@@ -36,7 +51,11 @@
         v-if="selectedValue.includes(`${temp.id}-${item.id}`)"
         :key="ind"
         class="flex gap-[15px] mb-[20px] h-[36px] items-center ml-[24px] hover:bg-[#F0F1F5] relative tempItem">
-        <div class="text-[14px] w-[180px] text-right">{{ item.name_zh }}</div>
+        <div
+          class="text-[14px] w-[180px] text-right"
+          v-bk-tooltips="{ content: getRemark(item), disabled: !getRemark(item), maxWidth: 400, theme: 'light' }">
+          {{ item.name_zh }}
+        </div>
         <span>
           <Tag v-if="temp.id === 'base_config'">{{ $t('common.basic') }}</Tag>
           <Tag theme="success" v-else-if="temp.id === 'script_config'">{{ $t('common.script') }}</Tag>
@@ -92,7 +111,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Input, Radio, Select, Switcher, Tag } from 'bkui-vue';
+import { Button, Input, Popover, Radio, Select, Switcher, Tag } from 'bkui-vue';
 import { cloneDeep } from 'lodash';
 import { computed, onMounted, ref, watch  } from 'vue';
 
@@ -118,6 +137,7 @@ const typeMap = {
 
 const mainStore = useMainStore();
 const isZh = computed(() => mainStore.curLanguage === 'zh-CN');
+const getRemark = (item: ConfigPolicyConfigItem) => (isZh.value ? item.remark_zh : item.remark_en);
 const selectedValue = ref<string[]>([]);
 const configMenuList = ref<any[]>([]);
 // 获取到配置项模板数据时候更新配置项下拉数据和勾选值
@@ -129,6 +149,7 @@ const updateConfigTemplates = (configTemplates: any[]) => {
       id: item.id,
       selectId: `${temp.id}-${item.id}`,
       name: isZh.value ? item.name_zh : item.name_en,
+      remark: getRemark(item),
       enabled: item.enabled,
     })));
   });
@@ -216,6 +237,20 @@ watch(() => props.visible, (newVal: boolean) => {
 // });
 </script>
 <style lang="postcss" scoped>
+.config-option-tip {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+}
+
+/* Popover 在触发元素外包一层无 class 的 span，撑满剩余空间让整行（含留白）都能触发 tooltip */
+.config-option-tip :deep(span:not([class])) {
+  flex: 1;
+  align-self: stretch;
+}
+
 .tempItem {
   &:hover {
     .deleteBtn {
