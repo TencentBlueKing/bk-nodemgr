@@ -105,7 +105,7 @@ func TestPluginDeploymentProcessLastSyncAt(t *testing.T) {
 	}
 }
 
-// TestPluginDeploymentApplyPluginSubConfigOptions verifies optional target options survive BSON persistence.
+// TestPluginDeploymentApplyPluginSubConfigOptions verifies target options survive BSON persistence.
 func TestPluginDeploymentApplyPluginSubConfigOptions(t *testing.T) {
 	for _, mapping := range []struct {
 		name  string
@@ -117,7 +117,7 @@ func TestPluginDeploymentApplyPluginSubConfigOptions(t *testing.T) {
 		{name: "empty", value: map[string]string{}},
 	} {
 		t.Run(mapping.name, func(t *testing.T) {
-			options := &types.PluginDeploymentApplyPluginSubConfigOptions{
+			options := types.PluginDeploymentApplyPluginSubConfigOptions{
 				PluginName: "target_plugin",
 				Set:        "deploy_policy_42",
 				ConfigFilesDetail: []*types.PluginConfigDetail{{
@@ -170,19 +170,35 @@ func TestPluginDeploymentApplyPluginSubConfigOptions(t *testing.T) {
 	}
 
 	t.Run("absent_in_existing_document", func(t *testing.T) {
-		restored, err := convertPluginDeploymentInfoToTypes(&Info{})
+		encoded, err := bson.Marshal(bson.M{})
 		if err != nil {
 			t.Fatal(err)
 		}
-		if restored.ApplyPluginSubConfigOptions != nil {
-			t.Fatal("absent target options must remain nil")
+		var decoded Info
+		if err := bson.Unmarshal(encoded, &decoded); err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(decoded.ApplyPluginSubConfigOptions, applyPluginSubConfigOptions{}) {
+			t.Fatal("missing target options must decode to the zero value")
+		}
+		restored, err := convertPluginDeploymentInfoToTypes(&decoded)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := types.PluginDeploymentApplyPluginSubConfigOptions{
+			ConfigFilesDetail: []*types.PluginConfigDetail{},
+		}
+		if !reflect.DeepEqual(restored.ApplyPluginSubConfigOptions, want) {
+			t.Fatalf("target options = %#v, want empty options %#v", restored.ApplyPluginSubConfigOptions, want)
 		}
 		stored, err := convertPluginDeploymentInfoFromTypes(restored)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if stored.ApplyPluginSubConfigOptions != nil {
-			t.Fatal("absent target options must not be created on write")
+		if !reflect.DeepEqual(stored.ApplyPluginSubConfigOptions, applyPluginSubConfigOptions{
+			ConfigFilesDetail: []configDetail{},
+		}) {
+			t.Fatal("empty target options must remain empty on write")
 		}
 	})
 }

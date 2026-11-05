@@ -39,14 +39,14 @@ type Data struct {
 
 // Info this is the info of this plugin deployment.
 type Info struct {
-	ActionName                  string                       `json:"action_name" bson:"action_name"`
-	Process                     process                      `json:"process" bson:"process"`
-	ConfigSource                *target                      `json:"config_source,omitempty" bson:"config_source,omitempty"`
-	InstallerRuntime            installerRuntime             `json:"installer_runtime" bson:"installer_runtime"`
-	BaseRuntime                 baseRuntime                  `json:"base_runtime" bson:"base_runtime"`
-	TransferOptions             transferOptions              `json:"transfer_options" bson:"transfer_options"`
-	InstallOptions              installOptions               `json:"install_options" bson:"install_options"`
-	ApplyPluginSubConfigOptions *applyPluginSubConfigOptions `json:"apply_plugin_sub_config_options,omitempty" bson:"apply_plugin_sub_config_options,omitempty"` //nolint:lll
+	ActionName                  string                      `json:"action_name" bson:"action_name"`
+	Process                     process                     `json:"process" bson:"process"`
+	ConfigSource                *target                     `json:"config_source,omitempty" bson:"config_source,omitempty"`
+	InstallerRuntime            installerRuntime            `json:"installer_runtime" bson:"installer_runtime"`
+	BaseRuntime                 baseRuntime                 `json:"base_runtime" bson:"base_runtime"`
+	TransferOptions             transferOptions             `json:"transfer_options" bson:"transfer_options"`
+	InstallOptions              installOptions              `json:"install_options" bson:"install_options"`
+	ApplyPluginSubConfigOptions applyPluginSubConfigOptions `json:"apply_plugin_sub_config_options" bson:"apply_plugin_sub_config_options"` //nolint:lll
 }
 
 type applyPluginSubConfigOptions struct {

@@ -105,8 +105,8 @@ type PluginDeploymentInfo struct {
 	InstallOptions PluginDeploymentInstallOptions
 
 	// ApplyPluginSubConfigOptions describes target sub-configs composed from this deployment.
-	// Nil means no target sub-config composition is requested; PluginConf remains the source plugin config.
-	ApplyPluginSubConfigOptions *PluginDeploymentApplyPluginSubConfigOptions
+	// These options only store configuration; PluginConf remains the source plugin config.
+	ApplyPluginSubConfigOptions PluginDeploymentApplyPluginSubConfigOptions
 
 	// TransferOptions is used to control the tools when transfer plugin.
 	TransferOptions PluginDeploymentTransferOptions

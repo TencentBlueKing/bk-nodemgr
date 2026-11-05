@@ -433,14 +433,12 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		}
 	}
 
-	if options := info.ApplyPluginSubConfigOptions; options != nil {
-		typesInfo.ApplyPluginSubConfigOptions = &types.PluginDeploymentApplyPluginSubConfigOptions{
-			PluginName:             options.PluginName,
-			Set:                    options.Set,
-			ConfigFilesDetail:      convertPluginConfigDetailsToTypes(options.ConfigFilesDetail...),
-			CustomConfigContext:    options.CustomConfigContext,
-			PluginInfoFieldMapping: options.PluginInfoFieldMapping,
-		}
+	typesInfo.ApplyPluginSubConfigOptions = types.PluginDeploymentApplyPluginSubConfigOptions{
+		PluginName:             info.ApplyPluginSubConfigOptions.PluginName,
+		Set:                    info.ApplyPluginSubConfigOptions.Set,
+		ConfigFilesDetail:      convertPluginConfigDetailsToTypes(info.ApplyPluginSubConfigOptions.ConfigFilesDetail...),
+		CustomConfigContext:    info.ApplyPluginSubConfigOptions.CustomConfigContext,
+		PluginInfoFieldMapping: info.ApplyPluginSubConfigOptions.PluginInfoFieldMapping,
 	}
 
 	return typesInfo, nil
@@ -554,14 +552,12 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 		}
 	}
 
-	if options := info.ApplyPluginSubConfigOptions; options != nil {
-		data.ApplyPluginSubConfigOptions = &applyPluginSubConfigOptions{
-			PluginName:             options.PluginName,
-			Set:                    options.Set,
-			ConfigFilesDetail:      convertPluginConfigDetailsFromTypes(options.ConfigFilesDetail...),
-			CustomConfigContext:    options.CustomConfigContext,
-			PluginInfoFieldMapping: options.PluginInfoFieldMapping,
-		}
+	data.ApplyPluginSubConfigOptions = applyPluginSubConfigOptions{
+		PluginName:             info.ApplyPluginSubConfigOptions.PluginName,
+		Set:                    info.ApplyPluginSubConfigOptions.Set,
+		ConfigFilesDetail:      convertPluginConfigDetailsFromTypes(info.ApplyPluginSubConfigOptions.ConfigFilesDetail...),
+		CustomConfigContext:    info.ApplyPluginSubConfigOptions.CustomConfigContext,
+		PluginInfoFieldMapping: info.ApplyPluginSubConfigOptions.PluginInfoFieldMapping,
 	}
 
 	return data, nil
