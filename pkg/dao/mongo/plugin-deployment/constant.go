@@ -28,6 +28,9 @@ const (
 	// FieldKeyApplyPluginSubConfigOptions the target sub-config composition options field key.
 	FieldKeyApplyPluginSubConfigOptions = "data.info.apply_plugin_sub_config_options"
 
+	// FieldKeyPluginInfoFieldMapping the source plugin field to target template variable mapping field key.
+	FieldKeyPluginInfoFieldMapping = FieldKeyApplyPluginSubConfigOptions + ".plugin_info_field_mapping"
+
 	// FieldKeyPluginConf the plugin conf field key.
 	FieldKeyPluginConf = "data.plugin_config"
 

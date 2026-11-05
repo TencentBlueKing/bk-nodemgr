@@ -435,14 +435,11 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 
 	if options := info.ApplyPluginSubConfigOptions; options != nil {
 		typesInfo.ApplyPluginSubConfigOptions = &types.PluginDeploymentApplyPluginSubConfigOptions{
-			PluginName:          options.PluginName,
-			Set:                 options.Set,
-			ConfigFilesDetail:   convertPluginConfigDetailsToTypes(options.ConfigFilesDetail...),
-			CustomConfigContext: options.CustomConfigContext,
-			AddressBindings: types.PluginDeploymentAddressBindings{
-				BindIP:   options.AddressBindings.BindIP,
-				BindPort: options.AddressBindings.BindPort,
-			},
+			PluginName:             options.PluginName,
+			Set:                    options.Set,
+			ConfigFilesDetail:      convertPluginConfigDetailsToTypes(options.ConfigFilesDetail...),
+			CustomConfigContext:    options.CustomConfigContext,
+			PluginInfoFieldMapping: options.PluginInfoFieldMapping,
 		}
 	}
 
@@ -559,14 +556,11 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 
 	if options := info.ApplyPluginSubConfigOptions; options != nil {
 		data.ApplyPluginSubConfigOptions = &applyPluginSubConfigOptions{
-			PluginName:          options.PluginName,
-			Set:                 options.Set,
-			ConfigFilesDetail:   convertPluginConfigDetailsFromTypes(options.ConfigFilesDetail...),
-			CustomConfigContext: options.CustomConfigContext,
-			AddressBindings: addressBindings{
-				BindIP:   options.AddressBindings.BindIP,
-				BindPort: options.AddressBindings.BindPort,
-			},
+			PluginName:             options.PluginName,
+			Set:                    options.Set,
+			ConfigFilesDetail:      convertPluginConfigDetailsFromTypes(options.ConfigFilesDetail...),
+			CustomConfigContext:    options.CustomConfigContext,
+			PluginInfoFieldMapping: options.PluginInfoFieldMapping,
 		}
 	}
 

@@ -107,31 +107,41 @@ func TestPluginDeploymentProcessLastSyncAt(t *testing.T) {
 
 // TestPluginDeploymentApplyPluginSubConfigOptions verifies optional target options survive BSON persistence.
 func TestPluginDeploymentApplyPluginSubConfigOptions(t *testing.T) {
-	for _, binding := range []struct {
+	for _, mapping := range []struct {
 		name  string
-		value types.PluginDeploymentAddressBindings
+		value map[string]string
 	}{
-		{name: "bind_ip_only", value: types.PluginDeploymentAddressBindings{BindIP: "endpoint_host"}},
-		{name: "bind_port_only", value: types.PluginDeploymentAddressBindings{BindPort: "endpoint_port"}},
-		{name: "both", value: types.PluginDeploymentAddressBindings{BindIP: "endpoint_host", BindPort: "endpoint_port"}},
-		{name: "neither"},
+		{name: "bind_ip_only", value: map[string]string{"BindIP": "endpoint_host"}},
+		{name: "bind_port_only", value: map[string]string{"BindPort": "endpoint_port"}},
+		{name: "both", value: map[string]string{"BindIP": "endpoint_host", "BindPort": "endpoint_port"}},
+		{name: "empty", value: map[string]string{}},
 	} {
-		t.Run(binding.name, func(t *testing.T) {
+		t.Run(mapping.name, func(t *testing.T) {
 			options := &types.PluginDeploymentApplyPluginSubConfigOptions{
 				PluginName: "target_plugin",
 				Set:        "deploy_policy_42",
 				ConfigFilesDetail: []*types.PluginConfigDetail{{
 					Name: "source.conf", TemplateName: "source.conf.tpl", Content: "endpoint", FilePath: "sub/source.conf",
 				}},
-				CustomConfigContext: map[string]any{"label": "source"},
-				AddressBindings:     binding.value,
+				CustomConfigContext:    map[string]any{"label": "source"},
+				PluginInfoFieldMapping: mapping.value,
 			}
 			info := &types.PluginDeploymentInfo{
 				Process:                     types.Process{PluginName: "source_plugin"},
 				InstallOptions:              types.PluginDeploymentInstallOptions{Version: "1.0.0"},
 				ApplyPluginSubConfigOptions: options,
 			}
-			stored, err := convertPluginDeploymentInfoFromTypes(info)
+			deployment := &types.PluginDeployment{
+				Info: info,
+				PluginConf: &types.PluginDeploymentPluginConf{
+					Set: "source_set",
+					ConfigFilesDetail: []*types.PluginConfigDetail{{
+						Name: "source-main.conf", Content: "source content", IsMainConfig: true,
+					}},
+					CustomConfigContext: map[string]any{"source_label": "unchanged"},
+				},
+			}
+			stored, err := convertPluginDeploymentFromTypes(deployment)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -139,19 +149,22 @@ func TestPluginDeploymentApplyPluginSubConfigOptions(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			var decoded Info
+			var decoded Data
 			if err := bson.Unmarshal(encoded, &decoded); err != nil {
 				t.Fatal(err)
 			}
-			restored, err := convertPluginDeploymentInfoToTypes(&decoded)
+			restored, err := convertPluginDeploymentToTypes(&decoded)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !reflect.DeepEqual(restored.ApplyPluginSubConfigOptions, options) {
-				t.Fatalf("target options = %#v, want %#v", restored.ApplyPluginSubConfigOptions, options)
+			if !reflect.DeepEqual(restored.Info.ApplyPluginSubConfigOptions, options) {
+				t.Fatalf("target options = %#v, want %#v", restored.Info.ApplyPluginSubConfigOptions, options)
 			}
-			if restored.Process.PluginName != info.Process.PluginName || restored.InstallOptions != info.InstallOptions {
+			if restored.Info.Process.PluginName != info.Process.PluginName || restored.Info.InstallOptions != info.InstallOptions {
 				t.Fatal("source plugin or install options changed")
+			}
+			if !reflect.DeepEqual(restored.PluginConf, deployment.PluginConf) {
+				t.Fatalf("source plugin config = %#v, want %#v", restored.PluginConf, deployment.PluginConf)
 			}
 		})
 	}
