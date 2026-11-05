@@ -433,6 +433,17 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		}
 	}
 
+	typesInfo.ApplyPluginSubConfigOptions = types.PluginDeploymentApplyPluginSubConfigOptions{
+		PluginName:          info.ApplyPluginSubConfigOptions.PluginName,
+		Set:                 info.ApplyPluginSubConfigOptions.Set,
+		ConfigFilesDetail:   convertPluginConfigDetailsToTypes(info.ApplyPluginSubConfigOptions.ConfigFilesDetail...),
+		CustomConfigContext: info.ApplyPluginSubConfigOptions.CustomConfigContext,
+		PluginInfoFieldMapping: types.PluginInfoFieldMapping{
+			BindIP:   info.ApplyPluginSubConfigOptions.PluginInfoFieldMapping.BindIP,
+			BindPort: info.ApplyPluginSubConfigOptions.PluginInfoFieldMapping.BindPort,
+		},
+	}
+
 	return typesInfo, nil
 }
 
@@ -542,6 +553,17 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 				OpTimeoutSecs:  info.InstallOptions.CustomSpec.MonitorPolicy.OpTimeoutSecs,
 			},
 		}
+	}
+
+	data.ApplyPluginSubConfigOptions = applyPluginSubConfigOptions{
+		PluginName:          info.ApplyPluginSubConfigOptions.PluginName,
+		Set:                 info.ApplyPluginSubConfigOptions.Set,
+		ConfigFilesDetail:   convertPluginConfigDetailsFromTypes(info.ApplyPluginSubConfigOptions.ConfigFilesDetail...),
+		CustomConfigContext: info.ApplyPluginSubConfigOptions.CustomConfigContext,
+		PluginInfoFieldMapping: pluginInfoFieldMapping{
+			BindIP:   info.ApplyPluginSubConfigOptions.PluginInfoFieldMapping.BindIP,
+			BindPort: info.ApplyPluginSubConfigOptions.PluginInfoFieldMapping.BindPort,
+		},
 	}
 
 	return data, nil
