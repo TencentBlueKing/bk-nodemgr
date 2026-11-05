@@ -26,14 +26,6 @@
             </Select.Option>
           </Select>
         </Form.FormItem>
-        <Form.FormItem
-          :label="t('agentStrategy.form.enabled')"
-          property="enabled"
-          required
-          v-if="isEditMode"
-        >
-          <Switcher v-model="formData.enabled" theme="primary" :disabled="isViewMode"></Switcher>
-        </Form.FormItem>
         <Form.FormItem :label="t('agentStrategy.form.remark')" property="remark">
           <Input type="textarea" v-model="formData.remark" show-word-limit :maxlength="100" :disabled="isViewMode"></Input>
         </Form.FormItem>
@@ -271,8 +263,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, InfoBox, Input, Popover, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
-import { cloneDeep, isEqual } from 'lodash';
+import { Button, Form, InfoBox, Input, Popover, Select, Sideslider, Tag } from 'bkui-vue';
+import { cloneDeep, isEqual, omit } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -610,7 +602,7 @@ const handleSubmit = async () => {
     : formData.selectedHosts.map((h: any) => h.bk_host_id);
   if (isEditMode.value) {
     res = await ConfigPolicyAPIService.ConfigPolicyUpdate({
-      ...formData,
+      ...omit(formData, ['enabled']),
       configpolicy_id: configpolicyId.value,
       scopes,
       target_host_ids: targetHostIds,

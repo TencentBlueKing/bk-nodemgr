@@ -68,7 +68,6 @@ type ConfigPolicyFields struct {
 	TargetHostIDs    bool
 	TargetPluginName bool
 	Configs          bool
-	Enabled          bool
 	Priority         bool
 	Operator         bool
 }
@@ -82,7 +81,6 @@ func UpdateAllConfigPolicyFields() ConfigPolicyFields {
 		TargetHostIDs:    true,
 		TargetPluginName: true,
 		Configs:          true,
-		Enabled:          true,
 		Priority:         true,
 		Operator:         true,
 	}

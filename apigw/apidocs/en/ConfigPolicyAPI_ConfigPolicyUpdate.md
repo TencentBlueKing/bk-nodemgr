@@ -21,7 +21,6 @@ POST /api/v3/policy/config/update
 | configs_string     | object      | No       | String config key-value pairs                                                                              |
 | configs_int        | object      | No       | Integer config key-value pairs                                                                             |
 | configs_bool       | object      | No       | Boolean config key-value pairs                                                                             |
-| enabled            | bool        | Yes      | Whether enabled                                                                                            |
 | operator           | string      | No       | Operator                                                                                                   |
 | priority           | int64       | Yes      | Priority, must be greater than `0`                                                                         |
 | target_host_ids    | int64 array | No       | Target host ID list                                                                                        |
@@ -63,7 +62,6 @@ POST /api/v3/policy/config/update
   "configs_bool": {
     "enable_metrics": true
   },
-  "enabled": true,
   "operator": "admin",
   "priority": 1,
   "target_host_ids": [1001, 1002],

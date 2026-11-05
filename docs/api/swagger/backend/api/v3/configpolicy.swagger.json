@@ -1363,9 +1363,6 @@
             "type": "boolean"
           }
         },
-        "enabled": {
-          "type": "boolean"
-        },
         "operator": {
           "type": "string"
         },

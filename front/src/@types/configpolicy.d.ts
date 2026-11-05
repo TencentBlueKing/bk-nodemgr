@@ -131,7 +131,6 @@ export interface ConfigPolicyUpdateReq {
   remark: string;
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
-  enabled: boolean;
   operator: string;
   priority: number;
   target_host_ids: number[];
