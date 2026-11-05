@@ -774,6 +774,9 @@ type Front struct {
 	// BKDocsCenterURL is the URL of bk docs center.
 	BKDocsCenterURL string `yaml:"bkDocsCenterURL" usage:"bk docs center url"`
 
+	// BKSharedResBaseJSURL is the URL of the bk shared resource base js, used to load platform config (logo, title, footer, etc.).
+	BKSharedResBaseJSURL string `yaml:"bkSharedResBaseJSURL" usage:"bk shared res base js url"`
+
 	// BKAppNavOpenSourceURL is the URL of bk app nav open source.
 	BKAppNavOpenSourceURL string `yaml:"bkAppNavOpenSourceURL" usage:"bk app nav open source url"`
 

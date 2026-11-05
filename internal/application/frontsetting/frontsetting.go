@@ -68,6 +68,9 @@ type IFrontSetting interface {
 	// BKDocsCenterURL the front setting field.
 	BKDocsCenterURL() string
 
+	// BKSharedResBaseJSURL the front setting field.
+	BKSharedResBaseJSURL() string
+
 	// BKAppNavOpenSourceURL the front setting field.
 	BKAppNavOpenSourceURL() string
 
@@ -113,6 +116,7 @@ type FrontSetting struct {
 
 	bkDomain              string
 	bkDocsCenterURL       string
+	bkSharedResBaseJSURL  string
 	bkAppNavOpenSourceURL string
 
 	windowsWMIPortDefault   int
@@ -151,6 +155,9 @@ type Option struct {
 
 	// BKDocsCenterURL is the URL of bk docs center.
 	BKDocsCenterURL string
+
+	// BKSharedResBaseJSURL is the URL of the bk shared resource base js, used to load platform config.
+	BKSharedResBaseJSURL string
 
 	// BKAppNavOpenSourceURL is the URL of bk app nav open source.
 	BKAppNavOpenSourceURL string
@@ -210,6 +217,7 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkUserSaaSHost:          opt.BKUserSaaSHost,
 		bkDomain:                normalizeFrontValue(opt.BKDomain, frontValueKindHost),
 		bkDocsCenterURL:         normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
+		bkSharedResBaseJSURL:    normalizeFrontValue(opt.BKSharedResBaseJSURL, frontValueKindURL),
 		bkAppNavOpenSourceURL:   normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
 		windowsWMIPortDefault:   opt.WindowsWMIPortDefault,
 		windowsSSHPortDefault:   opt.WindowsSSHPortDefault,
@@ -323,6 +331,11 @@ func (setting *FrontSetting) BKDomain() string {
 // BKDocsCenterURL get bk docs center url.
 func (setting *FrontSetting) BKDocsCenterURL() string {
 	return setting.bkDocsCenterURL
+}
+
+// BKSharedResBaseJSURL get bk shared res base js url.
+func (setting *FrontSetting) BKSharedResBaseJSURL() string {
+	return setting.bkSharedResBaseJSURL
 }
 
 // BKAppNavOpenSourceURL get bk app nav open source url.

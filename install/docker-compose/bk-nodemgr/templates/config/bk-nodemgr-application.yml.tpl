@@ -15,6 +15,8 @@ front:
   bkDomain: "__BK_NODEMGR_APPLICATION_DOMAIN__"
   # bk docs center url.
   bkDocsCenterURL: "__BK_NODEMGR_APPLICATION_DOCS_CENTER_URL__"
+  # bk shared res base js url (platform config: logo, title, footer, etc.).
+  bkSharedResBaseJSURL: "__BK_NODEMGR_APPLICATION_SHARED_RES_BASE_JS_URL__"
   # bk app nav open source url.
   bkAppNavOpenSourceURL: "__BK_NODEMGR_APPLICATION_NAV_OPEN_SOURCE_URL__"
   # default port for Windows WMI connection.

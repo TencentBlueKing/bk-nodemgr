@@ -1228,6 +1228,8 @@ application:
       bkDomain: ""
       ## bk docs center url, default is empty.
       bkDocsCenterURL: ""
+      ## bk shared res base js url (platform config: logo, title, footer, etc.), default is empty.
+      bkSharedResBaseJSURL: ""
       ## bk app nav open source url, default is empty.
       bkAppNavOpenSourceURL: ""
       ## windowsWMIPortDefault is the default port for Windows WMI connection, default is 445.

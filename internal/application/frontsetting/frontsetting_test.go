@@ -63,6 +63,7 @@ func TestNewFrontSettingNormalizesURLs(t *testing.T) {
 		BKUserWebURL:          "https://user.example.com/",
 		BKDomain:              "https://domain.example.com///",
 		BKDocsCenterURL:       "https://docs.example.com/",
+		BKSharedResBaseJSURL:  "https://shared-res.example.com/base.js/",
 		BKAppNavOpenSourceURL: "https://github.com/TencentBlueKing/bk-nodemgr/",
 	})
 	require.NoError(t, err)
@@ -71,5 +72,6 @@ func TestNewFrontSettingNormalizesURLs(t *testing.T) {
 	require.Equal(t, "https://user.example.com", setting.BKUserWebURL())
 	require.Equal(t, "domain.example.com", setting.BKDomain())
 	require.Equal(t, "https://docs.example.com", setting.BKDocsCenterURL())
+	require.Equal(t, "https://shared-res.example.com/base.js", setting.BKSharedResBaseJSURL())
 	require.Equal(t, "https://github.com/TencentBlueKing/bk-nodemgr", setting.BKAppNavOpenSourceURL())
 }

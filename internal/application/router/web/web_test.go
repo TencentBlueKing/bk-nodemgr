@@ -44,6 +44,7 @@ func (testFrontSetting) PasswordVaultName() string            { return "" }
 func (testFrontSetting) BKUserWebURL() string                 { return "https://bkuser.example.com" }
 func (testFrontSetting) BKDomain() string                     { return "example.com" }
 func (testFrontSetting) BKDocsCenterURL() string              { return "https://docs.example.com" }
+func (testFrontSetting) BKSharedResBaseJSURL() string         { return "" }
 func (testFrontSetting) BKAppNavOpenSourceURL() string        { return "https://nav.example.com" }
 func (testFrontSetting) WindowsWMIPortDefault() int           { return 445 }
 func (testFrontSetting) WindowsSSHPortDefault() int           { return 22 }
