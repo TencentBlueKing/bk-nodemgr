@@ -935,7 +935,6 @@ agentStrategy:
   form:
     configName: Config Name
     business: Business
-    enabled: Enabled
     remark: Remark
     scope: Configuration Scope
     scopeTip: The scope where this policy applies in the current business. Multiple scopes are combined.

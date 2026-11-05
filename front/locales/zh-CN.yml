@@ -935,7 +935,6 @@ agentStrategy:
   form:
     configName: 配置名称
     business: 业务
-    enabled: 是否启用
     remark: 备注
     scope: 配置作用范围
     scopeTip: 该策略在当前业务下的作用范围，多个范围取并集

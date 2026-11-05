@@ -21,7 +21,6 @@ POST /api/v3/policy/config/update
 | configs_string     | object      | 否   | 字符串类型配置键值对                                                                       |
 | configs_int        | object      | 否   | 整型配置键值对                                                                             |
 | configs_bool       | object      | 否   | 布尔配置键值对                                                                             |
-| enabled            | bool        | 是   | 是否启用                                                                                   |
 | operator           | string      | 否   | 操作人                                                                                     |
 | priority           | int64       | 是   | 优先级，必须大于 `0`                                                                       |
 | target_host_ids    | int64 array | 否   | 定向目标主机 ID 列表                                                                       |
@@ -63,7 +62,6 @@ POST /api/v3/policy/config/update
   "configs_bool": {
     "enable_metrics": true
   },
-  "enabled": true,
   "operator": "admin",
   "priority": 1,
   "target_host_ids": [1001, 1002],

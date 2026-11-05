@@ -273,10 +273,6 @@ func (x *ConfigPolicyUpdateReq) Validate() error {
 		return fmt.Errorf("config policy name is required")
 	}
 
-	if x.GetPriority() <= 0 {
-		return fmt.Errorf("config policy priority is required")
-	}
-
 	if types.ConfigPolicyType(x.GetConfigpolicyType()) == types.ConfigPolicyTypePlugin && x.GetTargetPluginName() == "" {
 		return errors.New("target_plugin_name is required for plugin config policy")
 	}
@@ -320,7 +316,6 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() *types.ConfigPolicy
 		TargetHostIDs:    x.GetTargetHostIds(),
 		TargetPluginName: x.GetTargetPluginName(),
 		Configs:          configs,
-		Enabled:          x.GetEnabled(),
 		Priority:         x.GetPriority(),
 		Operator:         x.GetOperator(),
 	}
@@ -340,7 +335,6 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyFromTypes(configPolicy *types
 	x.Remark = configPolicy.Remark
 	x.Scopes = scopes
 	x.ConfigsString, x.ConfigsInt, x.ConfigsBool = convertConfigPolicyConfigsFromTypes(configPolicy.Configs)
-	x.Enabled = configPolicy.Enabled
 	x.Operator = configPolicy.Operator
 	x.TargetHostIds = configPolicy.TargetHostIDs
 	x.TargetPluginName = &configPolicy.TargetPluginName
