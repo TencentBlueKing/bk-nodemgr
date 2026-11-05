@@ -438,6 +438,13 @@ const filterContent = function (con) {
     color: #e6aa00;
     margin-right: 8px;
   }
+  // bk-popover renders the default slot inside an anonymous inline <span>;
+  // grow it to fill the free space so the notice text stays left-aligned
+  // instead of being centered by justify-content: space-between
+  > span:has(.bk-notice-content-container) {
+    flex: 1;
+    min-width: 0;
+  }
   .bk-notice-content-container {
     height: 40px;
     /* line-height: 40px; */
