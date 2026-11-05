@@ -60,6 +60,9 @@ const (
 	// PluginWorkflowTypeApplyPluginSubConfig is the operation type for apply plugin sub config.
 	PluginWorkflowTypeApplyPluginSubConfig PluginWorkflowType = "apply_plugin_subconfig"
 
+	// PluginWorkflowTypeComposePluginSubConfig prepares a source plugin and applies target configs.
+	PluginWorkflowTypeComposePluginSubConfig PluginWorkflowType = "compose_plugin_subconfig"
+
 	// PluginWorkflowTypeRemovePluginSubConfig is the workflow type that removes plugin sub config.
 	PluginWorkflowTypeRemovePluginSubConfig PluginWorkflowType = "remove_plugin_subconfig"
 
@@ -96,6 +99,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeUninstall,
 		PluginWorkflowTypeReconfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
+		PluginWorkflowTypeComposePluginSubConfig,
 		PluginWorkflowTypeRemovePluginSubConfig,
 		PluginWorkflowTypeStart,
 		PluginWorkflowTypeRestart,

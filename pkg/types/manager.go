@@ -19,6 +19,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -188,6 +190,39 @@ type ApplyPluginSubConfigParam struct {
 	Operator          string
 	DeployPolicyIDs   []int64
 	PluginDeployments []*PluginDeployment
+}
+
+// PluginSubConfigSourceOperation selects the optional source operation before applying target configs.
+type PluginSubConfigSourceOperation string
+
+const (
+	// PluginSubConfigSourceNone uses the current source process without installing or upgrading it.
+	PluginSubConfigSourceNone PluginSubConfigSourceOperation = "none"
+	// PluginSubConfigSourceInstall installs the source plugin before applying target configs.
+	PluginSubConfigSourceInstall PluginSubConfigSourceOperation = "install"
+	// PluginSubConfigSourceUpgrade upgrades the source plugin before applying target configs.
+	PluginSubConfigSourceUpgrade PluginSubConfigSourceOperation = "upgrade"
+)
+
+// Validate checks the source operation.
+func (oper PluginSubConfigSourceOperation) Validate() error {
+	switch oper {
+	case PluginSubConfigSourceNone, PluginSubConfigSourceInstall, PluginSubConfigSourceUpgrade:
+		return nil
+	default:
+		return fmt.Errorf("invalid plugin sub-config source operation: %s", oper)
+	}
+}
+
+// ComposePluginSubConfigParam defines inputs for source-to-target config composition.
+type ComposePluginSubConfigParam struct {
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
+	// SourceOperation is independent of the source deployment's install options.
+	SourceOperation PluginSubConfigSourceOperation
 }
 
 // RemovePluginSubConfigParam define the param of LaunchRemovePluginSubConfig.
