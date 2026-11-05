@@ -94,11 +94,11 @@ GSE 托管进程的唯一 key 是 `agentID:namespace:procName` (`pkg/thirdparty/
 
 ### 4.3 V2 Ensure 工作流
 
-`oper_plugin_ensure_plugin_v2.go:46-59`，action 链：
+`oper_plugin_ensure_plugin_v2.go:54-68`，action 链：
 
 ```
 InjectPluginBaseRuntimeV2 → FinishIfPluginProcessV2Alive → VerifyPluginAvailabilityV2 →
-RenderPluginDeploymentV2 → EnsureAndUpdatePluginConfigDetailsV2 → RenderPluginConfigV2 →
+InjectMainConfigDetailV2 → RenderPluginDeploymentV2 → EnsureAndUpdatePluginConfigDetailsV2 → RenderPluginConfigV2 →
 TransferPluginPkgToNodeV2 → InstallPluginV2 → WaitPluginInstallerCompleteV2 → StartProcessV2
 ```
 
@@ -126,21 +126,24 @@ TransferPluginPkgToNodeV2 → InstallPluginV2 → WaitPluginInstallerCompleteV2 
 
 ### 5.3 V3 Install 工作流
 
-`oper_install_plugin.go:46-62`，action 链：
+`oper_install_plugin.go:54-73`，action 链：
 
 ```
 CheckV2PluginNoAlive → TryStopProcess → UpsertProcess → VerifyPluginAvailability → InjectPluginCustomDeployConfig →
-RenderPluginDeployment → EnsureAndUpdatePluginConfigDetails → RenderPluginConfig →
-OverwritePluginConfigForCompatibility → TransferPluginPkgToNode → InstallPlugin →
+InjectMainConfigDetail → RenderPluginDeployment → AllocatePluginBindAddress → EnsureAndUpdatePluginConfigDetails →
+RenderPluginConfig → OverwritePluginConfigForCompatibility → TransferPluginPkgToNode → InstallPlugin →
 WaitPluginInstallerComplete → StartProcess → UpdateProcess
 ```
 
-注意 `OverwritePluginConfigForCompatibility`（:55）是兼容模式的关键 hook，V2 工作流中没有对应 action。
+`InjectMainConfigDetail` 从插件发布包注入全部主配置模板（`IsMainConfig=true`），因此 install/upgrade/debug 请求无需再指定主配置模板。
+
+注意 `OverwritePluginConfigForCompatibility`（:66）是兼容模式的关键 hook，V2 工作流中没有对应 action。
 
 ### 5.4 V3 子配置（子插件）管理
 
 - 配置目录固定：主配置的 `filePath` 为 `etc`，子配置为 `etc/<plugin_name>`；模板通过 `PluginInfo.SubConfigPath` 获取子配置绝对目录（`docs/developer/plugin_pkg_build_guide.md`）。
 - `FetchProcessSubConfigIntoDeployment`：查询 `IsMainConfig: false` 的 ProcessConfig 并注入 deployment（`action_fetch_process_config_into_deployment.go`）。
+- `InjectMainConfigDetail`：从插件发布包注入 `IsMainConfig: true` 的主配置详情，与 `FetchProcessSubConfigIntoDeployment` 一起构成“主配置来自发布包、子配置来自进程配置”的来源划分（`action_inject_main_config_detail.go`）。
 - ApplyPluginSubConfig 工作流：`oper_apply_plugin_subconfig.go`，含 `OverwritePluginConfigForCompatibility` + `ReloadProcess`。
 - API 路由：`internal/backend/router/api-v3/plugin/apply_subconfig.go:23` (`ApplySubConfig` handler)。
 - SubConfigDir 生成：`pkg/deployconstant/plugin_deploy_constant.go:145-147` (`GeneratePluginSubConfigDir`)。
@@ -404,7 +407,7 @@ V3 插件包作者可在 `project.yaml` 中配置可选 bool 字段 `legacyConfl
 **为什么是 upgrade**：
 
 - upgrade handler（`upgrade.go:48`）调 `resolvePluginCompatibilityModePolicy` + `applyPluginCompatibilityModePolicy`，按全局策略设置 `EnableCompatibilityMode`；
-- upgrade 工作流（`oper_upgrade_plugin.go:46-64`）含完整渲染链：`EnsureAndUpdatePluginConfigDetails`（:54，重载模板原文）→ `RenderPluginConfig`（:55，渲染）→ `OverwritePluginConfigForCompatibility`（:56，兼容模式关则跳过覆写）；
+- upgrade 工作流（`oper_upgrade_plugin.go:54-74`）含完整渲染链：`InjectMainConfigDetail`（:63，注入主配置详情）→ `EnsureAndUpdatePluginConfigDetails`（:64，重载模板原文）→ `RenderPluginConfig`（:65，渲染）→ `OverwritePluginConfigForCompatibility`（:66，兼容模式关则跳过覆写）；
 - 当 `EnableCompatibilityMode == false` 时，`OverwritePluginConfigForCompatibility` 在 `action_overwrite_plugin_config_for_compatibility.go:107-114` 直接 return，不把 dataid 改为 -1；
 - 于是渲染后的正常 dataid 被保留并下发。
 

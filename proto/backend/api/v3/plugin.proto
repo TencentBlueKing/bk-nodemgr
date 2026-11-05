@@ -19,9 +19,8 @@ message PluginInstallReq {
     int64 bk_host_id = 1;
     string plugin_name = 2;
     string version = 3;
-    repeated string config_template_name = 4;
-    optional google.protobuf.Struct custom_config_context = 5;
-    optional DeploymentSpec custom_spec = 6;
+    optional google.protobuf.Struct custom_config_context = 4;
+    optional DeploymentSpec custom_spec = 5;
   }
 
   repeated InstallInfo plugin = 1;
@@ -45,8 +44,7 @@ message PluginUpgradeReq {
     int64 bk_host_id = 1;
     string plugin_name = 2;
     string version = 3;
-    repeated string config_template_name = 4;
-    optional google.protobuf.Struct custom_config_context = 5;
+    optional google.protobuf.Struct custom_config_context = 4;
   }
 
   repeated UpgradeInfo plugin = 1;

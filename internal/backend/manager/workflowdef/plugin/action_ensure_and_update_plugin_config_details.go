@@ -186,20 +186,9 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *plug
 	pluginConf *types.PluginDeploymentPluginConf) error {
 
 	templateMap := make(map[types.PluginPkgConfigTemplateKey]types.PluginPkgConfigTemplate, len(pluginRelease.ConfigTemplates))
-	var mainTemplate *types.PluginConfigDetail
 
 	for _, tpl := range pluginRelease.ConfigTemplates {
 		templateMap[tpl.GetUniqueKey()] = tpl
-
-		if tpl.IsMainConfig && mainTemplate == nil {
-			mainTemplate = &types.PluginConfigDetail{
-				Name:         tpl.Name,
-				TemplateName: tpl.Name,
-				Content:      tpl.SourceContent,
-				IsMainConfig: tpl.IsMainConfig,
-				FilePath:     splitPathAndCombineByOS(tpl.FilePath, pluginRelease.Platform.OS),
-			}
-		}
 	}
 
 	for idx, detail := range pluginConf.ConfigFilesDetail {
@@ -225,10 +214,6 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *plug
 		pluginConf.ConfigFilesDetail[idx].Content = tpl.SourceContent
 		pluginConf.ConfigFilesDetail[idx].IsMainConfig = tpl.IsMainConfig
 		pluginConf.ConfigFilesDetail[idx].FilePath = splitPathAndCombineByOS(tpl.FilePath, pluginRelease.Platform.OS)
-	}
-
-	if len(pluginConf.ConfigFilesDetail) == 0 && mainTemplate != nil {
-		pluginConf.ConfigFilesDetail = []*types.PluginConfigDetail{mainTemplate}
 	}
 
 	return nil

@@ -21,7 +21,7 @@ POST /api/v3/plugin/start_debug
 | scope                 | object       | 是   | 调试目标范围（主机或服务实例）                                                                      |
 | plugin_name           | string       | 是   | 插件名称                                                                                            |
 | version               | string       | 是   | 插件版本号                                                                                          |
-| config_template_name  | string array | 否   | 配置模板名称列表。配置模板记录在对应插件版本的包（release）中，通过 插件名+版本号+模板名 可唯一定位 |
+| config_template_name  | string array | 否   | 需要额外渲染下发的子配置模板名称列表                                                                |
 | custom_config_context | object       | 否   | 自定义配置上下文，对本次调试的所有配置模板通用，用于覆盖模板渲染变量                                |
 
 #### debug_info.scope
@@ -35,6 +35,7 @@ POST /api/v3/plugin/start_debug
 
 **处理规则**：
 
+- 主配置模板由目标插件版本发布包自动下发；`config_template_name` 只用于额外指定子配置模板，传入主配置模板名会因匹配不到子配置模板而失败。
 - 接口成功表示调试任务已提交，不表示调试已完成；使用 `workflow_id` 查询插件任务流及操作状态，或请求停止调试。
 
 ### 调用示例

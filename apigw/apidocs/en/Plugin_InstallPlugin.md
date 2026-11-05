@@ -2,7 +2,7 @@
 
 - API Version: v3.0.1+.
 - Required Permission: plugin_operate (Operate Plugin).
-- Function: Batch install plugins on specified hosts, with optional sub-config selection and custom render context.
+- Function: Batch install plugins on specified hosts, with optional custom render context.
 
 ### URL
 
@@ -16,14 +16,13 @@ POST /api/v3/plugin/install
 
 #### plugin[n]
 
-| Parameter Name        | Parameter Type | Required | Description                                                                                                        |
-| --------------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| bk_host_id            | int64          | Yes      | Target host ID; must be a positive integer                                                                         |
-| plugin_name           | string         | Yes      | Plugin name                                                                                                        |
-| version               | string         | No       | Plugin version to install; when omitted or empty, the plugin's current default release version is used             |
-| config_template_name  | string array   | No       | Sub-configuration file names to apply; values come from config template names in the target plugin release package |
-| custom_config_context | object         | No       | Custom configuration render context; free-form object with reserved top-level keys forbidden                       |
-| custom_spec           | object         | No       | Custom process resources and monitoring policy; replaces defaults and matched configuration policies in full       |
+| Parameter Name        | Parameter Type | Required | Description                                                                        |
+| --------------------- | -------------- | -------- | ---------------------------------------------------------------------------------- |
+| bk_host_id            | int64          | Yes      | Target host ID; must be a positive integer                                         |
+| plugin_name           | string         | Yes      | Plugin name                                                                        |
+| version               | string         | No       | Plugin version to install; when omitted or empty, the plugin's current default release version is used |
+| custom_config_context | object         | No       | Custom configuration render context; free-form object with reserved top-level keys forbidden |
+| custom_spec           | object         | No       | Custom process resources and monitoring policy; replaces defaults and matched configuration policies in full |
 
 #### plugin[n].custom_spec
 
@@ -52,17 +51,15 @@ POST /api/v3/plugin/install
 
 - `plugin`: At least one plugin item must be provided, otherwise request validation fails.
 - `bk_host_id`: Provide a valid positive host ID. Omitting it or passing `0` or a negative value fails.
-- `config_template_name`: This is not a fixed enum. Valid values depend on the configuration template names shipped in the target
-  plugin release package. When omitted, the main configuration is used by default.
 - `custom_config_context`: Custom variables for template rendering. Reserved top-level keys are forbidden, including
   `PluginInfo`, `NodeInfo`, `PreDefinitionConstants`, `CustomContext`, `plugin_path`, `nodeman`, `cmdb_instance`,
   `target`, and `control_info`.
 - `custom_spec`: When omitted, defaults and matched configuration policies are used. When provided, it replaces both resource and monitoring policies in full, without field-by-field merging. Omitted objects or numeric fields become zero values, and an omitted `restart_type` becomes an empty string. Provide both groups in full when using this field.
-- A successful response means the installation task has been submitted, not completed. Use `workflow_id` to query the plugin workflow and operation status. Template names and reserved keys are checked during workflow execution; inspect task status and logs for related errors.
+- A successful response means the installation task has been submitted, not completed. Use `workflow_id` to query the plugin workflow and operation status. Reserved keys are checked during workflow execution; inspect task status and logs for related errors.
 
 ### Request Example
 
-Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config, custom render variables, and process resource and monitoring policies.
+Install `bk-monitor-agent` on two hosts, with one host specifying custom render variables and process resource and monitoring policies.
 
 ```json
 {
@@ -71,7 +68,6 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config, 
       "bk_host_id": 1001,
       "plugin_name": "bk-monitor-agent",
       "version": "2.4.0",
-      "config_template_name": ["bkmonitoragent.conf"],
       "custom_config_context": {
         "cluster_id": "prod-ap-guangzhou",
         "labels": {

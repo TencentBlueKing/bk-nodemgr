@@ -21,7 +21,7 @@
 | `debug_info.scope`                 | yes      | `ScopeInstance`；解析出的每个目标对应一次独立的执行单位 |
 | `debug_info.plugin_name`           | yes      | 要调试的插件名                                          |
 | `debug_info.version`               | yes      | 要调试的插件版本                                        |
-| `debug_info.config_template_name`  | no       | 配置模板名列表                                          |
+| `debug_info.config_template_name`  | no       | 需要额外渲染的子配置模板；主配置模板自动下发           |
 | `debug_info.custom_config_context` | no       | 自定义配置上下文                                        |
 
 `ScopeInstance` 的形状：
@@ -74,7 +74,8 @@ WORKFLOW_ID="$(printf '%s' "${START_RESPONSE}" | jq -r '.data.workflow_id')"
 平台会把该请求解释为一次独立的 debug workflow：
 
 - `debug_info.plugin_name` + `debug_info.version` 决定调试用的插件包。
-- `debug_info.config_template_name` / `custom_config_context` 与普通 install/upgrade 一致，控制渲染生成的配置。
+- `debug_info.config_template_name`：需要额外渲染下发的子配置模板名称；不传时只下发发布包中的主配置模板。
+- `debug_info.custom_config_context`：自定义渲染上下文。
 - 调试命令本身来自插件包 `definition.yaml` 的 `control.debug`；API 请求无法指定运行命令。
 - 多目标时，每个解析出的 target 各对应 workflow 内一个独立的执行单位；状态、日志、停止信号都按执行单位隔离。
 

@@ -297,6 +297,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionRunDebugPlugin(pluginCap),
 		plugin.NewActionCleanDebugPlugin(pluginCap),
 		plugin.NewActionCheckV2PluginNoAlive(pluginCap),
+		plugin.NewActionInjectMainConfigDetail(pluginCap),
 	); err != nil {
 		return err
 	}
@@ -345,6 +346,7 @@ func (mgr *Manager) registerDefPluginV2() error {
 		pluginv2.NewActionInjectPluginBaseRuntimeV2(pluginCap),
 		pluginv2.NewActionFinishIfPluginProcessV2Alive(pluginCap),
 		pluginv2.NewActionFinishIfPluginProcessV2NotAlive(pluginCap),
+		pluginv2.NewActionInjectMainConfigDetailV2(pluginCap),
 	); err != nil {
 		return err
 	}

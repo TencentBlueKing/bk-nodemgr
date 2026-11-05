@@ -357,7 +357,6 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInsta
 		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
-		item.ConfigTemplateName = param.ConfigTemplateName
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -412,7 +411,6 @@ func (x *PluginInstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMappin
 			BizID:               hostTopoMapping[proc.GetBkHostId()].BizID,
 			PluginName:          proc.GetPluginName(),
 			Version:             proc.GetVersion(),
-			ConfigTemplateName:  proc.GetConfigTemplateName(),
 			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 			CustomSpec:          customSpec,
 		}
@@ -458,7 +456,6 @@ func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDe
 		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
-		item.ConfigTemplateName = param.ConfigTemplateName
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -480,7 +477,6 @@ func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 			HostID:              plugin.GetBkHostId(),
 			PluginName:          plugin.GetPluginName(),
 			Version:             plugin.GetVersion(),
-			ConfigTemplateName:  plugin.GetConfigTemplateName(),
 			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
 		}
 	})
@@ -494,7 +490,6 @@ func (x *PluginUpgradeReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMappin
 			BizID:               hostTopoMapping[proc.GetBkHostId()].BizID,
 			PluginName:          proc.GetPluginName(),
 			Version:             proc.GetVersion(),
-			ConfigTemplateName:  proc.GetConfigTemplateName(),
 			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}
 	})
