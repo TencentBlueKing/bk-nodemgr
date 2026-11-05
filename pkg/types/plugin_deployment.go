@@ -159,9 +159,17 @@ type PluginDeploymentApplyPluginSubConfigOptions struct {
 	ConfigFilesDetail []*PluginConfigDetail
 	// CustomConfigContext contains target template values, independently of the source PluginConf.
 	CustomConfigContext map[string]any
-	// PluginInfoFieldMapping maps standard source plugin fields (e.g. BindIP, BindPort) to target template variable names.
-	// An empty mapping requests no source plugin fields; this contract only stores mappings, not runtime expressions.
-	PluginInfoFieldMapping map[string]string
+	// PluginInfoFieldMapping names target custom config variables for controlled source plugin fields.
+	PluginInfoFieldMapping PluginInfoFieldMapping
+}
+
+// PluginInfoFieldMapping maps source plugin information to target custom config variable names.
+// Each empty field means that source value is not mapped. Additional source fields require code changes.
+type PluginInfoFieldMapping struct {
+	// BindIP names the target variable for the source plugin's bind IP.
+	BindIP string
+	// BindPort names the target variable for the source plugin's bind port.
+	BindPort string
 }
 
 // PluginDeploymentTransferOptions defines the options for plugin deployment.

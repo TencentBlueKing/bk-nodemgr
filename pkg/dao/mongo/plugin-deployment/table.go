@@ -50,11 +50,16 @@ type Info struct {
 }
 
 type applyPluginSubConfigOptions struct {
-	PluginName             string            `json:"plugin_name" bson:"plugin_name"`
-	Set                    string            `json:"set" bson:"set"`
-	ConfigFilesDetail      []configDetail    `json:"config_files_detail" bson:"config_files_detail"`
-	CustomConfigContext    map[string]any    `json:"custom_config_context" bson:"custom_config_context"`
-	PluginInfoFieldMapping map[string]string `json:"plugin_info_field_mapping" bson:"plugin_info_field_mapping"`
+	PluginName             string                 `json:"plugin_name" bson:"plugin_name"`
+	Set                    string                 `json:"set" bson:"set"`
+	ConfigFilesDetail      []configDetail         `json:"config_files_detail" bson:"config_files_detail"`
+	CustomConfigContext    map[string]any         `json:"custom_config_context" bson:"custom_config_context"`
+	PluginInfoFieldMapping pluginInfoFieldMapping `json:"plugin_info_field_mapping" bson:"plugin_info_field_mapping"`
+}
+
+type pluginInfoFieldMapping struct {
+	BindIP   string `json:"bind_ip" bson:"bind_ip"`
+	BindPort string `json:"bind_port" bson:"bind_port"`
 }
 
 type target struct {

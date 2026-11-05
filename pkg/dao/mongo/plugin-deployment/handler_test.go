@@ -109,12 +109,12 @@ func TestPluginDeploymentProcessLastSyncAt(t *testing.T) {
 func TestPluginDeploymentApplyPluginSubConfigOptions(t *testing.T) {
 	for _, mapping := range []struct {
 		name  string
-		value map[string]string
+		value types.PluginInfoFieldMapping
 	}{
-		{name: "bind_ip_only", value: map[string]string{"BindIP": "endpoint_host"}},
-		{name: "bind_port_only", value: map[string]string{"BindPort": "endpoint_port"}},
-		{name: "both", value: map[string]string{"BindIP": "endpoint_host", "BindPort": "endpoint_port"}},
-		{name: "empty", value: map[string]string{}},
+		{name: "bind_ip_only", value: types.PluginInfoFieldMapping{BindIP: "endpoint_host"}},
+		{name: "bind_port_only", value: types.PluginInfoFieldMapping{BindPort: "endpoint_port"}},
+		{name: "both", value: types.PluginInfoFieldMapping{BindIP: "endpoint_host", BindPort: "endpoint_port"}},
+		{name: "empty", value: types.PluginInfoFieldMapping{}},
 	} {
 		t.Run(mapping.name, func(t *testing.T) {
 			options := types.PluginDeploymentApplyPluginSubConfigOptions{
