@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "NodeAgent"
+    },
+    {
+      "name": "OpenNodeAgent"
     }
   ],
   "consumes": [
@@ -18,7 +21,7 @@
   "paths": {
     "/api/v3/node/agent/assign_unit": {
       "post": {
-        "summary": "NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.",
+        "summary": "为尚未分配管控单元的主机批量分配同一管控单元，仅更新节点元数据。",
         "operationId": "NodeAgent_NodeAgentAssignUnit",
         "responses": {
           "200": {
@@ -37,7 +40,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentAssignUnitReq describes the request body for batch-assigning\na network unit to hosts.",
             "in": "body",
             "required": true,
             "schema": {
@@ -52,7 +54,7 @@
     },
     "/api/v3/node/agent/assign_unit_multi": {
       "post": {
-        "summary": "NodeAgentAssignUnitMulti batch-assigns multiple network units to agent\nhosts.",
+        "summary": "按主机分组批量分配对应的管控单元，仅更新节点元数据。",
         "operationId": "NodeAgent_NodeAgentAssignUnitMulti",
         "responses": {
           "200": {
@@ -71,7 +73,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentAssignUnitMultiReq describes the request body for batch-assigning\nmultiple network units to agent hosts.",
             "in": "body",
             "required": true,
             "schema": {
@@ -86,7 +87,7 @@
     },
     "/api/v3/node/agent/install": {
       "post": {
-        "summary": "NodeAgentInstall installs node agent.",
+        "summary": "批量安装节点 Agent。",
         "operationId": "NodeAgent_NodeAgentInstall",
         "responses": {
           "200": {
@@ -105,7 +106,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentInstallReq describes the node agent install request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/node/agent/install_check": {
       "post": {
-        "summary": "NodeAgentInstallCheck provides node agent install check.",
+        "summary": "检查目标主机是否满足节点 Agent 安装条件。",
         "operationId": "NodeAgent_NodeAgentInstallCheck",
         "responses": {
           "200": {
@@ -139,7 +139,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentInstallCheckReq describes the node agent install check request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -154,7 +153,7 @@
     },
     "/api/v3/node/agent/reconfig": {
       "post": {
-        "summary": "NodeAgentReconfig reconfigs node agent.",
+        "summary": "批量重新下发节点 Agent 配置并重启 Agent。",
         "operationId": "NodeAgent_NodeAgentReconfig",
         "responses": {
           "200": {
@@ -173,7 +172,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentReconfigReq describes the node agent reconfigure request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -188,7 +186,7 @@
     },
     "/api/v3/node/agent/restart": {
       "post": {
-        "summary": "NodeAgentRestart restarts node agent.",
+        "summary": "批量重启节点 Agent。",
         "operationId": "NodeAgent_NodeAgentRestart",
         "responses": {
           "200": {
@@ -207,7 +205,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentRestartReq describes the node agent restart request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -222,7 +219,7 @@
     },
     "/api/v3/node/agent/uninstall": {
       "post": {
-        "summary": "NodeAgentUninstall uninstalls node agent.",
+        "summary": "批量卸载节点 Agent。",
         "operationId": "NodeAgent_NodeAgentUninstall",
         "responses": {
           "200": {
@@ -241,7 +238,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentUninstallReq describes the node agent uninstall request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -256,7 +252,7 @@
     },
     "/api/v3/node/agent/upgrade": {
       "post": {
-        "summary": "NodeAgentUpgrade upgrades node agent.",
+        "summary": "批量升级节点 Agent。",
         "operationId": "NodeAgent_NodeAgentUpgrade",
         "responses": {
           "200": {
@@ -275,7 +271,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentUpgradeReq describes the node agent upgrade request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -290,7 +285,7 @@
     },
     "/api/v3/node/agent/upgrade_check": {
       "post": {
-        "summary": "NodeAgentUpgradeCheck provides node agent upgrade check.",
+        "summary": "检查目标主机是否满足节点 Agent 升级条件。",
         "operationId": "NodeAgent_NodeAgentUpgradeCheck",
         "responses": {
           "200": {
@@ -309,7 +304,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeAgentUpgradeCheckReq describes the node agent upgrade check request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -319,6 +313,303 @@
         ],
         "tags": [
           "NodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/assign_unit": {
+      "post": {
+        "summary": "为尚未分配管控单元的主机批量分配同一管控单元，仅更新节点元数据。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentAssignUnit",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentAssignUnitResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentAssignUnitReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/assign_unit_multi": {
+      "post": {
+        "summary": "按主机分组批量分配对应的管控单元，仅更新节点元数据。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentAssignUnitMulti",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentAssignUnitResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentAssignUnitMultiReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/install": {
+      "post": {
+        "summary": "批量安装节点 Agent。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentInstall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/install_check": {
+      "post": {
+        "summary": "检查目标主机是否满足节点 Agent 安装条件。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentInstallCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/reconfig": {
+      "post": {
+        "summary": "批量重新下发节点 Agent 配置并重启 Agent。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentReconfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentReconfigResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentReconfigReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/restart": {
+      "post": {
+        "summary": "批量重启节点 Agent。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentRestart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentRestartResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentRestartReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/uninstall": {
+      "post": {
+        "summary": "批量卸载节点 Agent。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentUninstall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUninstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUninstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/upgrade": {
+      "post": {
+        "summary": "批量升级节点 Agent。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentUpgrade",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
+        ]
+      }
+    },
+    "/api/v3/open/node/agent/upgrade_check": {
+      "post": {
+        "summary": "检查目标主机是否满足节点 Agent 升级条件。",
+        "operationId": "OpenNodeAgent_OpenNodeAgentUpgradeCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeAgent"
         ]
       }
     }
@@ -426,7 +717,7 @@
           }
         }
       },
-      "description": "NodeAgentAssignUnitMultiReq describes the request body for batch-assigning\nmultiple network units to agent hosts."
+      "title": "按目标管控单元分组的待分配主机。"
     },
     "v3NodeAgentAssignUnitReq": {
       "type": "object",
@@ -443,7 +734,7 @@
           "format": "int64"
         }
       },
-      "description": "NodeAgentAssignUnitReq describes the request body for batch-assigning\na network unit to hosts."
+      "title": "待分配管控单元的主机列表及共同的目标管控单元。"
     },
     "v3NodeAgentAssignUnitResp": {
       "type": "object",
@@ -468,24 +759,27 @@
           "$ref": "#/definitions/v3NodeAgentAssignUnitRespData"
         }
       },
-      "description": "NodeAgentAssignUnitResp describes the response for batch-assigning\na network unit."
+      "title": "管控单元分配成功、失败的主机数量及失败原因。"
     },
     "v3NodeAgentAssignUnitRespData": {
       "type": "object",
       "properties": {
         "success_count": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "title": "成功写入管控单元的主机数。"
         },
         "failed_count": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "title": "未成功写入管控单元的主机数。"
         },
         "failed_reasons": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "title": "失败原因列表；批量更新失败时按批次记录。"
         }
       }
     },
@@ -527,7 +821,7 @@
           }
         }
       },
-      "description": "NodeAgentInstallCheckMatchedItem describes the matched item for node."
+      "title": "安装检查中匹配到的已存在主机信息。"
     },
     "v3NodeAgentInstallCheckReq": {
       "type": "object",
@@ -540,7 +834,7 @@
           }
         }
       },
-      "description": "NodeAgentInstallCheckReq describes the node agent install check request."
+      "title": "待检查节点 Agent 安装条件的目标主机。"
     },
     "v3NodeAgentInstallCheckReqHost": {
       "type": "object",
@@ -594,7 +888,7 @@
           "$ref": "#/definitions/v3NodeAgentInstallCheckRespData"
         }
       },
-      "description": "NodeAgentInstallCheckResp describes the response for node agent installation\ncheck."
+      "title": "各目标主机的节点 Agent 安装检查结论。"
     },
     "v3NodeAgentInstallCheckRespData": {
       "type": "object",
@@ -604,7 +898,8 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3NodeAgentInstallCheckResult"
-          }
+          },
+          "title": "与请求 host 顺序一致，每台主机对应一条安装检查结论。"
         }
       }
     },
@@ -627,7 +922,7 @@
           "type": "string"
         }
       },
-      "description": "NodeAgentInstallCheckResult describes the check result for node agent\ninstallation."
+      "title": "单台主机的节点 Agent 安装检查结论及提示信息。"
     },
     "v3NodeAgentInstallReq": {
       "type": "object",
@@ -650,7 +945,7 @@
           "type": "boolean"
         }
       },
-      "description": "NodeAgentInstallReq describes the node agent install request."
+      "title": "待安装节点 Agent 的主机、登录方式及目标版本。"
     },
     "v3NodeAgentInstallReqHost": {
       "type": "object",
@@ -686,7 +981,7 @@
         },
         "login_mode": {
           "type": "string",
-          "title": "support: password_vault, password, keyfile"
+          "title": "凭证类型：password_vault=密码库，password=密码，keyfile=密钥文件。"
         },
         "login_password": {
           "type": "string"
@@ -759,13 +1054,14 @@
           "$ref": "#/definitions/v3NodeAgentInstallRespData"
         }
       },
-      "description": "NodeAgentInstallResp describes the node agent install response."
+      "title": "节点 Agent 安装工作流的标识。"
     },
     "v3NodeAgentInstallRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
+          "type": "string",
+          "title": "用于跟踪本次操作的工作流 ID，不代表操作已完成。"
         }
       }
     },
@@ -780,7 +1076,7 @@
           }
         }
       },
-      "description": "NodeAgentReconfigReq describes the node agent reconfigure request."
+      "title": "待重新下发配置的主机及重启选项。"
     },
     "v3NodeAgentReconfigReqHost": {
       "type": "object",
@@ -821,13 +1117,14 @@
           "$ref": "#/definitions/v3NodeAgentReconfigRespData"
         }
       },
-      "description": "NodeAgentReconfigResp describes the node agent reconfigure response."
+      "title": "节点 Agent 配置下发工作流的标识。"
     },
     "v3NodeAgentReconfigRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
+          "type": "string",
+          "title": "用于跟踪本次操作的工作流 ID，不代表操作已完成。"
         }
       }
     },
@@ -842,7 +1139,7 @@
           }
         }
       },
-      "description": "NodeAgentRestartReq describes the node agent restart request."
+      "title": "待重启的主机及重启选项。"
     },
     "v3NodeAgentRestartReqHost": {
       "type": "object",
@@ -883,13 +1180,14 @@
           "$ref": "#/definitions/v3NodeAgentRestartRespData"
         }
       },
-      "description": "NodeAgentRestartResp describes the node agent restart response."
+      "title": "节点 Agent 重启工作流的标识。"
     },
     "v3NodeAgentRestartRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
+          "type": "string",
+          "title": "用于跟踪本次操作的工作流 ID，不代表操作已完成。"
         }
       }
     },
@@ -907,7 +1205,7 @@
           "type": "boolean"
         }
       },
-      "description": "NodeAgentUninstallReq describes the node agent uninstall request."
+      "title": "待卸载节点 Agent 的主机及 Agent ID 解绑选项。"
     },
     "v3NodeAgentUninstallReqHost": {
       "type": "object",
@@ -941,13 +1239,14 @@
           "$ref": "#/definitions/v3NodeAgentUninstallRespData"
         }
       },
-      "description": "NodeAgentUninstallResp describes the node agent uninstall response."
+      "title": "节点 Agent 卸载工作流的标识。"
     },
     "v3NodeAgentUninstallRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
+          "type": "string",
+          "title": "用于跟踪本次操作的工作流 ID，不代表操作已完成。"
         }
       }
     },
@@ -989,7 +1288,7 @@
           }
         }
       },
-      "description": "NodeAgentUpgradeCheckMatchedItem describes the matched item for upgrade\ncheck."
+      "title": "升级检查中匹配到的主机及网络信息。"
     },
     "v3NodeAgentUpgradeCheckReq": {
       "type": "object",
@@ -1009,7 +1308,7 @@
           }
         }
       },
-      "description": "NodeAgentUpgradeCheckReq describes the node agent upgrade check request."
+      "title": "待检查升级条件的目标主机及候选目标版本。"
     },
     "v3NodeAgentUpgradeCheckReqHost": {
       "type": "object",
@@ -1050,7 +1349,7 @@
           "$ref": "#/definitions/v3NodeAgentUpgradeCheckRespData"
         }
       },
-      "description": "NodeAgentUpgradeCheckResp describes the response for node agent upgrade\ncheck."
+      "title": "各目标主机的节点 Agent 升级检查结论。"
     },
     "v3NodeAgentUpgradeCheckRespData": {
       "type": "object",
@@ -1060,7 +1359,8 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3NodeAgentUpgradeCheckResult"
-          }
+          },
+          "title": "与请求 host 顺序一致，每台主机对应一条升级检查结论。"
         }
       }
     },
@@ -1074,7 +1374,7 @@
           "$ref": "#/definitions/v3NodeAgentUpgradeCheckMatchedItem"
         }
       },
-      "description": "NodeAgentUpgradeCheckResult describes the check result for node agent\nupgrade."
+      "title": "单台主机的节点 Agent 升级检查结论。"
     },
     "v3NodeAgentUpgradeReq": {
       "type": "object",
@@ -1087,7 +1387,7 @@
           }
         }
       },
-      "description": "NodeAgentUpgradeReq describes the node agent upgrade request."
+      "title": "待升级的主机及各自的目标版本和重启选项。"
     },
     "v3NodeAgentUpgradeReqHost": {
       "type": "object",
@@ -1138,13 +1438,14 @@
           "$ref": "#/definitions/v3NodeAgentUpgradeRespData"
         }
       },
-      "description": "NodeAgentUpgradeResp describes the node agent upgrade response."
+      "title": "节点 Agent 升级工作流的标识。"
     },
     "v3NodeAgentUpgradeRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
+          "type": "string",
+          "title": "用于跟踪本次操作的工作流 ID，不代表操作已完成。"
         }
       }
     },
