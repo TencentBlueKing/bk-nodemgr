@@ -39,13 +39,27 @@ type Data struct {
 
 // Info this is the info of this plugin deployment.
 type Info struct {
-	ActionName       string           `json:"action_name" bson:"action_name"`
-	Process          process          `json:"process" bson:"process"`
-	ConfigSource     *target          `json:"config_source,omitempty" bson:"config_source,omitempty"`
-	InstallerRuntime installerRuntime `json:"installer_runtime" bson:"installer_runtime"`
-	BaseRuntime      baseRuntime      `json:"base_runtime" bson:"base_runtime"`
-	TransferOptions  transferOptions  `json:"transfer_options" bson:"transfer_options"`
-	InstallOptions   installOptions   `json:"install_options" bson:"install_options"`
+	ActionName                  string                       `json:"action_name" bson:"action_name"`
+	Process                     process                      `json:"process" bson:"process"`
+	ConfigSource                *target                      `json:"config_source,omitempty" bson:"config_source,omitempty"`
+	InstallerRuntime            installerRuntime             `json:"installer_runtime" bson:"installer_runtime"`
+	BaseRuntime                 baseRuntime                  `json:"base_runtime" bson:"base_runtime"`
+	TransferOptions             transferOptions              `json:"transfer_options" bson:"transfer_options"`
+	InstallOptions              installOptions               `json:"install_options" bson:"install_options"`
+	ApplyPluginSubConfigOptions *applyPluginSubConfigOptions `json:"apply_plugin_sub_config_options,omitempty" bson:"apply_plugin_sub_config_options,omitempty"` //nolint:lll
+}
+
+type applyPluginSubConfigOptions struct {
+	PluginName          string          `json:"plugin_name" bson:"plugin_name"`
+	Set                 string          `json:"set" bson:"set"`
+	ConfigFilesDetail   []configDetail  `json:"config_files_detail" bson:"config_files_detail"`
+	CustomConfigContext map[string]any  `json:"custom_config_context" bson:"custom_config_context"`
+	AddressBindings     addressBindings `json:"address_bindings" bson:"address_bindings"`
+}
+
+type addressBindings struct {
+	BindIP   string `json:"bind_ip,omitempty" bson:"bind_ip,omitempty"`
+	BindPort string `json:"bind_port,omitempty" bson:"bind_port,omitempty"`
 }
 
 type target struct {

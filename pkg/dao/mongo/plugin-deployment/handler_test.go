@@ -105,6 +105,75 @@ func TestPluginDeploymentProcessLastSyncAt(t *testing.T) {
 	}
 }
 
+// TestPluginDeploymentApplyPluginSubConfigOptions verifies optional target options survive BSON persistence.
+func TestPluginDeploymentApplyPluginSubConfigOptions(t *testing.T) {
+	for _, binding := range []struct {
+		name  string
+		value types.PluginDeploymentAddressBindings
+	}{
+		{name: "bind_ip_only", value: types.PluginDeploymentAddressBindings{BindIP: "endpoint_host"}},
+		{name: "bind_port_only", value: types.PluginDeploymentAddressBindings{BindPort: "endpoint_port"}},
+		{name: "both", value: types.PluginDeploymentAddressBindings{BindIP: "endpoint_host", BindPort: "endpoint_port"}},
+		{name: "neither"},
+	} {
+		t.Run(binding.name, func(t *testing.T) {
+			options := &types.PluginDeploymentApplyPluginSubConfigOptions{
+				PluginName: "target_plugin",
+				Set:        "deploy_policy_42",
+				ConfigFilesDetail: []*types.PluginConfigDetail{{
+					Name: "source.conf", TemplateName: "source.conf.tpl", Content: "endpoint", FilePath: "sub/source.conf",
+				}},
+				CustomConfigContext: map[string]any{"label": "source"},
+				AddressBindings:     binding.value,
+			}
+			info := &types.PluginDeploymentInfo{
+				Process:                     types.Process{PluginName: "source_plugin"},
+				InstallOptions:              types.PluginDeploymentInstallOptions{Version: "1.0.0"},
+				ApplyPluginSubConfigOptions: options,
+			}
+			stored, err := convertPluginDeploymentInfoFromTypes(info)
+			if err != nil {
+				t.Fatal(err)
+			}
+			encoded, err := bson.Marshal(stored)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var decoded Info
+			if err := bson.Unmarshal(encoded, &decoded); err != nil {
+				t.Fatal(err)
+			}
+			restored, err := convertPluginDeploymentInfoToTypes(&decoded)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(restored.ApplyPluginSubConfigOptions, options) {
+				t.Fatalf("target options = %#v, want %#v", restored.ApplyPluginSubConfigOptions, options)
+			}
+			if restored.Process.PluginName != info.Process.PluginName || restored.InstallOptions != info.InstallOptions {
+				t.Fatal("source plugin or install options changed")
+			}
+		})
+	}
+
+	t.Run("absent_in_existing_document", func(t *testing.T) {
+		restored, err := convertPluginDeploymentInfoToTypes(&Info{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if restored.ApplyPluginSubConfigOptions != nil {
+			t.Fatal("absent target options must remain nil")
+		}
+		stored, err := convertPluginDeploymentInfoFromTypes(restored)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if stored.ApplyPluginSubConfigOptions != nil {
+			t.Fatal("absent target options must not be created on write")
+		}
+	})
+}
+
 // TestHandler_Create test handler Create
 func TestHandler_Create(t *testing.T) {
 	type args struct {

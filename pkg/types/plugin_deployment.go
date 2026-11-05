@@ -104,6 +104,10 @@ type PluginDeploymentInfo struct {
 	// InstallOptions is used to control the tools when install plugin.
 	InstallOptions PluginDeploymentInstallOptions
 
+	// ApplyPluginSubConfigOptions describes target sub-configs composed from this deployment.
+	// Nil means no target sub-config composition is requested; PluginConf remains the source plugin config.
+	ApplyPluginSubConfigOptions *PluginDeploymentApplyPluginSubConfigOptions
+
 	// TransferOptions is used to control the tools when transfer plugin.
 	TransferOptions PluginDeploymentTransferOptions
 }
@@ -143,6 +147,27 @@ type PluginDeploymentInstallOptions struct {
 	IsOffline               bool
 	EnableCompatibilityMode bool
 	CustomSpec              *PluginSpec
+}
+
+// PluginDeploymentApplyPluginSubConfigOptions defines target sub-configs on the source deployment's host.
+type PluginDeploymentApplyPluginSubConfigOptions struct {
+	// PluginName identifies the target plugin, independently of the source process plugin.
+	PluginName string
+	// Set is the stable management set of the target configs, reused across retries and redeployments.
+	Set string
+	// ConfigFilesDetail describes target config files and their plugin templates.
+	ConfigFilesDetail []*PluginConfigDetail
+	// CustomConfigContext contains target template values, independently of the source PluginConf.
+	CustomConfigContext map[string]any
+	// AddressBindings maps source process bind values to target template variable names.
+	AddressBindings PluginDeploymentAddressBindings
+}
+
+// PluginDeploymentAddressBindings names target template variables for source process bind values.
+// Each empty field leaves that value unbound; binding either value does not require the other.
+type PluginDeploymentAddressBindings struct {
+	BindIP   string
+	BindPort string
 }
 
 // PluginDeploymentTransferOptions defines the options for plugin deployment.

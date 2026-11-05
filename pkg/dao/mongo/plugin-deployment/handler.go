@@ -433,6 +433,19 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		}
 	}
 
+	if options := info.ApplyPluginSubConfigOptions; options != nil {
+		typesInfo.ApplyPluginSubConfigOptions = &types.PluginDeploymentApplyPluginSubConfigOptions{
+			PluginName:          options.PluginName,
+			Set:                 options.Set,
+			ConfigFilesDetail:   convertPluginConfigDetailsToTypes(options.ConfigFilesDetail...),
+			CustomConfigContext: options.CustomConfigContext,
+			AddressBindings: types.PluginDeploymentAddressBindings{
+				BindIP:   options.AddressBindings.BindIP,
+				BindPort: options.AddressBindings.BindPort,
+			},
+		}
+	}
+
 	return typesInfo, nil
 }
 
@@ -540,6 +553,19 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 				StartCheckSecs: info.InstallOptions.CustomSpec.MonitorPolicy.StartCheckSecs,
 				StopCheckSecs:  info.InstallOptions.CustomSpec.MonitorPolicy.StopCheckSecs,
 				OpTimeoutSecs:  info.InstallOptions.CustomSpec.MonitorPolicy.OpTimeoutSecs,
+			},
+		}
+	}
+
+	if options := info.ApplyPluginSubConfigOptions; options != nil {
+		data.ApplyPluginSubConfigOptions = &applyPluginSubConfigOptions{
+			PluginName:          options.PluginName,
+			Set:                 options.Set,
+			ConfigFilesDetail:   convertPluginConfigDetailsFromTypes(options.ConfigFilesDetail...),
+			CustomConfigContext: options.CustomConfigContext,
+			AddressBindings: addressBindings{
+				BindIP:   options.AddressBindings.BindIP,
+				BindPort: options.AddressBindings.BindPort,
 			},
 		}
 	}

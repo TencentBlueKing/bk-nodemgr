@@ -25,6 +25,9 @@ const (
 	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
 
+	// FieldKeyApplyPluginSubConfigOptions the target sub-config composition options field key.
+	FieldKeyApplyPluginSubConfigOptions = "data.info.apply_plugin_sub_config_options"
+
 	// FieldKeyPluginConf the plugin conf field key.
 	FieldKeyPluginConf = "data.plugin_config"
 
