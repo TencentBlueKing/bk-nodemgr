@@ -415,7 +415,6 @@ const handleSave = async () => {
     scrollToFirstErrorByClassNames();
     return;
   };
-  loading.value = true;
   const authChanged = formData.login_mode !== originalLoginMode.value || formData.credit !== '';
   if (authChanged && formData.login_mode !== 'password_vault') {
     const modeMap: Record<string, string> = {
@@ -431,6 +430,9 @@ const handleSave = async () => {
 
     formData[modeMap[formData.login_mode]] = encryptedValue;
   }
+  // set loading after encryption: an early return on encrypt failure must not
+  // leave the save button stuck in loading state
+  loading.value = true;
   formData.proxy_tags = [];
   proxyTags.forEach((key) => {
     formData[key] && formData.proxy_tags.push(key);

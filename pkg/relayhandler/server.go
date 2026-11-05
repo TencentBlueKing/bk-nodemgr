@@ -70,6 +70,26 @@ type ServerMessagerConfig struct {
 	RedisClient redis.UniversalClient
 }
 
+// String returns a redacted representation for logging: the slot token, app
+// secret and any TLS private key material or password never appear in logs.
+func (c ServerMessagerConfig) String() string {
+	redacted := c
+	redacted.Token = "***"
+	redacted.AppSecret = "***"
+
+	if redacted.TLSConfig != nil {
+		tlsCopy := *redacted.TLSConfig
+		tlsCopy.Key = nil
+		tlsCopy.EncKey = nil
+		tlsCopy.Password = "***"
+		redacted.TLSConfig = &tlsCopy
+	}
+
+	// bypass the Stringer to avoid recursion.
+	type plain ServerMessagerConfig
+	return fmt.Sprintf("%+v", plain(redacted))
+}
+
 const (
 	// serverCheckAckInterval is deliberately coarser than the client side one: every probe
 	// is a Redis lookup, so a batch install polling at millisecond granularity would put
