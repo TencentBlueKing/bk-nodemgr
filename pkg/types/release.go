@@ -361,6 +361,18 @@ func (template *PluginPkgConfigTemplate) GetUniqueKey() PluginPkgConfigTemplateK
 	}
 }
 
+// MainConfigTemplateKeys gets the unique keys of all main config templates.
+func (info *ReleaseAdditionInfoPlugin) MainConfigTemplateKeys() []PluginPkgConfigTemplateKey {
+	keys := make([]PluginPkgConfigTemplateKey, 0, len(info.ConfigTemplates))
+	for idx := range info.ConfigTemplates {
+		if info.ConfigTemplates[idx].IsMainConfig {
+			keys = append(keys, info.ConfigTemplates[idx].GetUniqueKey())
+		}
+	}
+
+	return keys
+}
+
 // PluginPkgConfigTemplateKey identifies a plugin package config template within a platform.
 type PluginPkgConfigTemplateKey struct {
 	Name         string

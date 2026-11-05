@@ -21,7 +21,7 @@ POST /api/v3/plugin/start_debug
 | scope                 | object       | Yes      | Debug target scope (host or service instance)                                                                                                                                       |
 | plugin_name           | string       | Yes      | Plugin name                                                                                                                                                                         |
 | version               | string       | Yes      | Plugin version                                                                                                                                                                      |
-| config_template_name  | string array | No       | List of config template names. Templates are recorded in the plugin package (release) of the given version; a template is uniquely located by plugin name + version + template name |
+| config_template_name  | string array | No       | Sub config template names to render in addition                                                                                                                                     |
 | custom_config_context | object       | No       | Custom config context shared by all config templates of this debug unit, used to override template render variables                                                                 |
 
 #### debug_info.scope
@@ -35,6 +35,7 @@ POST /api/v3/plugin/start_debug
 
 **Processing Rules**:
 
+- Main config templates are published automatically from the target plugin release package; `config_template_name` only adds sub config templates, and a main config template name fails because no sub config template matches it.
 - A successful response means the debug task has been submitted, not completed. Use `workflow_id` to query the plugin workflow and operation status, or request that debugging stop.
 
 ### Request Example

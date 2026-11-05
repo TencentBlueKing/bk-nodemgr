@@ -428,12 +428,6 @@
         "version": {
           "type": "string"
         },
-        "config_template_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "custom_config_context": {
           "type": "object"
         },
@@ -502,12 +496,6 @@
         },
         "version": {
           "type": "string"
-        },
-        "config_template_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         },
         "custom_config_context": {
           "type": "object"

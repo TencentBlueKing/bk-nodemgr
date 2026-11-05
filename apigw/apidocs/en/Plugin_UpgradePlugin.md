@@ -2,7 +2,7 @@
 
 - API Version: v3.0.1+.
 - Required Permission: plugin_operate (Operate Plugin).
-- Function: Batch upgrade plugins on specified hosts, with target version, optional sub-config selection, and custom render context.
+- Function: Batch upgrade plugins on specified hosts, with target version and custom render context.
 
 ### URL
 
@@ -16,22 +16,20 @@ POST /api/v3/plugin/upgrade
 
 #### plugin[n]
 
-| Parameter Name        | Parameter Type | Required | Description                                                                                                        |
-| --------------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| bk_host_id            | int64          | Yes      | Target host ID; must be a positive integer                                                                         |
-| plugin_name           | string         | Yes      | Plugin name                                                                                                        |
-| version               | string         | Yes      | Target plugin version                                                                                              |
-| config_template_name  | string array   | No       | Sub-configuration file names to apply; values come from config template names in the target plugin release package |
-| custom_config_context | object         | No       | Custom configuration render context; free-form object with reserved top-level keys forbidden                       |
+| Parameter Name        | Parameter Type | Required | Description                                                                        |
+| --------------------- | -------------- | -------- | ---------------------------------------------------------------------------------- |
+| bk_host_id            | int64          | Yes      | Target host ID; must be a positive integer                                         |
+| plugin_name           | string         | Yes      | Plugin name                                                                        |
+| version               | string         | Yes      | Target plugin version                                                              |
+| custom_config_context | object         | No       | Custom configuration render context; free-form object with reserved top-level keys forbidden |
 
 **Parameter Notes**:
 
 - `plugin`: At least one item must be provided, otherwise request validation fails.
 - `bk_host_id`: Provide a valid positive host ID. Omitting it or passing `0` or a negative value fails.
 - `version`: Must not be empty and specifies the target plugin version.
-- `config_template_name`: This is not a fixed enum. Valid values depend on configuration template names in the target plugin release package.
 - `custom_config_context`: Custom variables for template rendering. Reserved top-level keys are forbidden, including `PluginInfo`, `NodeInfo`, `PreDefinitionConstants`, `CustomContext`, `plugin_path`, `nodeman`, `cmdb_instance`, `target`, and `control_info`.
-- A successful response means the upgrade task has been submitted, not completed. Use `workflow_id` to query the plugin workflow and operation status. Template names and reserved keys are checked during workflow execution; inspect task status and logs for related errors.
+- A successful response means the upgrade task has been submitted, not completed. Use `workflow_id` to query the plugin workflow and operation status. Reserved keys are checked during workflow execution; inspect task status and logs for related errors.
 
 ### Request Example
 
@@ -42,7 +40,6 @@ POST /api/v3/plugin/upgrade
       "bk_host_id": 1001,
       "plugin_name": "bk-monitor-agent",
       "version": "2.5.0",
-      "config_template_name": ["bkmonitoragent.conf"],
       "custom_config_context": {
         "cluster_id": "prod-ap-guangzhou"
       }

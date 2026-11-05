@@ -12,7 +12,8 @@
 
 - `scope`：哪些机器或 service instance 会运行调试命令。
 - `plugin_name` + `version`：要调试的插件。
-- （可选）`config_template_name`、`custom_config_context`：与普通 install/upgrade 行为一致。
+- （可选）`config_template_name`：需要额外渲染下发的子配置模板；主配置模板默认自动下发。
+- （可选）`custom_config_context`：自定义渲染上下文，与普通 install/upgrade 行为一致。
 
 API 响应只确认调试 workflow 已创建；响应本身不证明调试命令已经执行、已经产出有效输出，也不证明目标主机已经清理。
 
@@ -73,7 +74,7 @@ scope 解析出的每个目标各对应调试会话内一台主机的独立执�
 | `debug_info.scope`                 | yes      | 目标范围         |
 | `debug_info.plugin_name`           | yes      | 插件名           |
 | `debug_info.version`               | yes      | 插件版本         |
-| `debug_info.config_template_name`  | no       | 配置模板名列表   |
+| `debug_info.config_template_name`  | no       | 子配置模板名列表 |
 | `debug_info.custom_config_context` | no       | 自定义配置上下文 |
 
 start 响应包含 `data.workflow_id`。把它保存为本次调试会话 identity，用于后续读取或停止。
