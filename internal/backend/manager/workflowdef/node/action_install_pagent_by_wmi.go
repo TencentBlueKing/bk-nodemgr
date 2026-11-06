@@ -352,6 +352,8 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 		RenewGSETask:           std.DeployInfo().InstallOptions.RenewGSETask,
 		DownloadBeforeCallback: true,
 	}
+	installParams.FirewallFeatures, installParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
+		std.DeployInfo().InstallerRuntime.Firewall)
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,

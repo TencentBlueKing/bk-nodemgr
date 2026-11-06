@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/filedownloader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/firewall"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/noderestarter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
@@ -55,12 +56,14 @@ func NewFullUpgrade() *cobra.Command {
 		nodeVersion     string
 
 		// optional flags.
-		downloadSvrAddr string
-		logDir          string
-		logToStd        bool
-		restart         bool
-		force           bool
-		skipDownload    bool
+		downloadSvrAddr   string
+		logDir            string
+		logToStd          bool
+		restart           bool
+		force             bool
+		skipDownload      bool
+		firewallFeatures  string
+		firewallRemoteIPs string
 
 		// pre-run.
 		persistentVars   *persistent.Variables
@@ -129,6 +132,14 @@ func NewFullUpgrade() *cobra.Command {
 					CallbackSvrAddr: callbackSvrAddrs,
 				}).Run(cmd.Context())
 			}()
+
+			if err := firewall.NewStep(firewall.StepArgs{
+				DeployEnv: persistentVars.DeployEnv,
+				Features:  firewallFeatures,
+				RemoteIPs: firewallRemoteIPs,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
 
 			// download files.
 			if !skipDownload {
@@ -238,6 +249,8 @@ func NewFullUpgrade() *cobra.Command {
 	fullCmd.Flags().BoolVar(&restart, nodeFlag.Restart, false, "whether to restart node after upgrade")
 	fullCmd.Flags().BoolVar(&force, nodeFlag.Force, false, "whether to force restart when --restart is set")
 	fullCmd.Flags().BoolVar(&skipDownload, nodeFlag.SkipDownload, false, "whether to skip downloading files")
+	fullCmd.Flags().StringVar(&firewallFeatures, nodeFlag.FirewallFeatures, "", "firewall features to enable, separated by comma")
+	fullCmd.Flags().StringVar(&firewallRemoteIPs, nodeFlag.FirewallRemoteIPs, "", "firewall remote IP CIDRs, separated by comma")
 
 	return fullCmd
 }

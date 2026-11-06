@@ -172,6 +172,8 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		OperInstID:        std.InstanceData().OperationInstanceID,
 		SkipDownload:      true,
 	}
+	upgradeParams.FirewallFeatures, upgradeParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
+		std.DeployInfo().InstallerRuntime.Firewall)
 
 	err = saveWaitInstallerPrivateData(
 		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,

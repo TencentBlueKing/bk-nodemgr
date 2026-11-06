@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -126,6 +127,14 @@ const (
 	// nodeFlagHTTPProxy node flag name defines the http proxy override for all http requests.
 	// SYNC: tools/cmd/installer/node/flag.HTTPProxy.
 	nodeFlagHTTPProxy nodeFlagName = "http_proxy"
+
+	// nodeFlagFirewallFeatures node flag name defines the firewall features of a full install.
+	// SYNC: tools/cmd/installer/node/flag.FirewallFeatures.
+	nodeFlagFirewallFeatures nodeFlagName = "firewall_features"
+
+	// nodeFlagFirewallRemoteIPs node flag name defines the firewall remote IP CIDRs of a full install.
+	// SYNC: tools/cmd/installer/node/flag.FirewallRemoteIPs.
+	nodeFlagFirewallRemoteIPs nodeFlagName = "firewall_remote_ips"
 )
 
 // NodeCommonParams defines the common installer-facing params shared by node commands.
@@ -204,6 +213,13 @@ type NodeInstallParams struct {
 	SkipCallback bool
 	RenewGSEProc bool
 	RenewGSETask bool
+
+	// FirewallFeatures are the enabled firewall features (gse, nodemgr), separated by comma.
+	FirewallFeatures string
+
+	// FirewallRemoteIPs are the firewall remote IP CIDRs, separated by comma.
+	FirewallRemoteIPs string
+
 	// DownloadBeforeCallback keeps legacy token-first install arg order for compatibility.
 	DownloadBeforeCallback bool
 }
@@ -239,6 +255,7 @@ func (params *NodeInstallParams) buildArgs() []string {
 	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
 	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
 	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
+	args = appendNodeFirewallArgs(args, params.FirewallFeatures, params.FirewallRemoteIPs)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -253,6 +270,7 @@ func (params *NodeInstallParams) buildDownloadBeforeCallbackArgs() []string {
 	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
 	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
 	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
+	args = appendNodeFirewallArgs(args, params.FirewallFeatures, params.FirewallRemoteIPs)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -267,6 +285,7 @@ func (params *NodeInstallParams) buildServerFirstArgs() []string {
 		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
 	)
 	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
+	args = appendNodeFirewallArgs(args, params.FirewallFeatures, params.FirewallRemoteIPs)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -287,6 +306,12 @@ type NodeUpgradeParams struct {
 	Force        bool
 	Restart      bool
 	SkipDownload bool
+
+	// FirewallFeatures are the enabled firewall features (gse, nodemgr), separated by comma.
+	FirewallFeatures string
+
+	// FirewallRemoteIPs are the firewall remote IP CIDRs, separated by comma.
+	FirewallRemoteIPs string
 }
 
 // Validate validates the full node upgrade params required by the installer CLI.
@@ -339,6 +364,7 @@ func (params *NodeUpgradeParams) buildArgs() []string {
 	if params.SkipDownload {
 		args = append(args, fmt.Sprintf("--%s", nodeFlagSkipDownload))
 	}
+	args = appendNodeFirewallArgs(args, params.FirewallFeatures, params.FirewallRemoteIPs)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -356,6 +382,12 @@ type NodeReconfigParams struct {
 
 	Force   bool
 	Restart bool
+
+	// FirewallFeatures are the enabled firewall features (gse, nodemgr), separated by comma.
+	FirewallFeatures string
+
+	// FirewallRemoteIPs are the firewall remote IP CIDRs, separated by comma.
+	FirewallRemoteIPs string
 }
 
 // Validate validates the full node reconfig params required by the installer CLI.
@@ -390,6 +422,7 @@ func (params *NodeReconfigParams) buildArgs() []string {
 		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
 		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
 	)
+	args = appendNodeFirewallArgs(args, params.FirewallFeatures, params.FirewallRemoteIPs)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -405,6 +438,12 @@ type NodeUninstallParams struct {
 	DeployToken     string
 	OperInstID      string
 	SkipCallback    bool
+
+	// FirewallFeatures are the enabled firewall features (gse, nodemgr), separated by comma.
+	FirewallFeatures string
+
+	// FirewallRemoteIPs are the firewall remote IP CIDRs, separated by comma.
+	FirewallRemoteIPs string
 }
 
 // Validate validates the full node uninstall params required by the installer CLI.
@@ -439,6 +478,7 @@ func (params *NodeUninstallParams) buildArgs() []string {
 		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
 		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
 	)
+	args = appendNodeFirewallArgs(args, params.FirewallFeatures, params.FirewallRemoteIPs)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -570,6 +610,12 @@ type NodeOfflineInstallParams struct {
 	LogToStd     bool
 	RenewGSEProc bool
 	RenewGSETask bool
+
+	// FirewallFeatures are the enabled firewall features (gse, nodemgr), separated by comma.
+	FirewallFeatures string
+
+	// FirewallRemoteIPs are the firewall remote IP CIDRs, separated by comma.
+	FirewallRemoteIPs string
 }
 
 // Validate validates the offline node install params required by the installer CLI.
@@ -603,6 +649,7 @@ func (params *NodeOfflineInstallParams) buildArgs() []string {
 		fmt.Sprintf("--%s", nodeFlagSkipDownload),
 	)
 	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
+	args = appendNodeFirewallArgs(args, params.FirewallFeatures, params.FirewallRemoteIPs)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -878,6 +925,33 @@ func appendNodeInstallOptionalArgs(args []string, logToStd bool, agentID string,
 	}
 
 	return args
+}
+
+func appendNodeFirewallArgs(args []string, features string, remoteIPs string) []string {
+	if features != "" {
+		args = append(args, fmt.Sprintf(`--%s="%s"`, nodeFlagFirewallFeatures, features))
+	}
+
+	if remoteIPs != "" {
+		args = append(args, fmt.Sprintf(`--%s="%s"`, nodeFlagFirewallRemoteIPs, remoteIPs))
+	}
+
+	return args
+}
+
+// NodeFirewallFlagValues renders a firewall snapshot into the --firewall_features and --firewall_remote_ips
+// flag values of a full install command. A nil snapshot renders empty values, which the installer skips.
+func NodeFirewallFlagValues(firewall *types.DeploymentFirewall) (features string, remoteIPs string) {
+	if firewall == nil {
+		return "", ""
+	}
+
+	featureList := make([]string, 0, len(firewall.Features))
+	for _, feature := range firewall.Features {
+		featureList = append(featureList, string(feature))
+	}
+
+	return strings.Join(featureList, ","), strings.Join(firewall.RemoteIPs, ",")
 }
 
 func validateNodeInstallerPath(installerPath string) error {
