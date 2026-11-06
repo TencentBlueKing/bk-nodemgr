@@ -178,7 +178,15 @@
                 field="bk_host_innerip"
                 :title="$t('common.ipv4')"
                 :min-width="150"
-              ></TableColumn>
+              >
+                <template #default="{ row }">
+                  <template v-if="row.is_invalid">
+                    <Tag class="mr-[8px]">{{ t('agentStrategy.form.invalid') }}</Tag>
+                    <span>-- ({{ row.bk_host_id }})</span>
+                  </template>
+                  <span v-else>{{ row.bk_host_innerip }}</span>
+                </template>
+              </TableColumn>
               <TableColumn
                 field="bk_host_innerip_v6"
                 :title="$t('common.ipv6')"
@@ -296,6 +304,8 @@ interface ISelectedHost {
   os_type: string;
   cpu_arch: string;
   bk_networkarea_id: number;
+  /** true = host_id 在 nodemgr 中已删除，仅展示占位行 */
+  is_invalid?: boolean;
 }
 
 // Sideslider显示状态
@@ -463,6 +473,19 @@ const mapRawToRow = (host: any): ISelectedHost => {
   return mapCachedToRow(mapped);
 };
 
+// 主机已被删除（host_id 查不到详情）时构造占位行，详情页仍展示该条目
+const mapInvalidToRow = (id: number): ISelectedHost => ({
+  bk_host_id: id,
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  bk_host_name: '',
+  bk_networkarea_name: '',
+  os_type: '',
+  cpu_arch: '',
+  bk_networkarea_id: 0,
+  is_invalid: true,
+});
+
 // 根据 allSelectedHostIds 获取主机详情：优先从缓存取，未命中再查后端
 const fetchHostData = async () => {
   const ids = allSelectedHostIds.value;
@@ -495,7 +518,8 @@ const fetchHostData = async () => {
       const rowMap = new Map<number, ISelectedHost>();
       pageRows.forEach(row => rowMap.set(row.bk_host_id, row));
       mapped.forEach(row => rowMap.set(row.bk_host_id, row));
-      pageRows = pageIds.map(id => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
+      // 查不到详情的 host-id 视为已删除，保留占位行让用户能看到失效数据
+      pageRows = pageIds.map(id => rowMap.get(id) || mapInvalidToRow(id));
     } catch {
       // 当前页部分失败时只展示缓存中的数据
     }
