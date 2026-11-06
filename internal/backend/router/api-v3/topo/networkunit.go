@@ -619,6 +619,13 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	networkArea, err := h.storage.GetNetworkArea(rCtx, networkUnit.NetworkAreaID)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("networkarea-id", networkUnit.NetworkAreaID).Error(
+			"failed to delete networkunit, failed to get networkarea")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
 	if err := h.storage.DeleteManyNetworkUnit(rCtx, networkUnitID); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkunit")
 		if errors.Is(err, topoStg.ErrNetworkUnitDeleteProtected) {
@@ -629,7 +636,7 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	// record event.
-	h.recordNetworkUnitDeleteEvent(rCtx, networkUnit.NetworkAreaID, networkUnitID, networkUnit.Name)
+	h.recordNetworkUnitDeleteEvent(rCtx, networkArea, networkUnitID, networkUnit.Name)
 
 	logger.G.Biz(rCtx).With("networkunit-id", networkUnitID).Info("deleted networkunit")
 
