@@ -20,9 +20,9 @@
 package apiv3
 
 import (
-	backendauth "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/deploypolicy"
@@ -41,7 +41,7 @@ import (
 
 type handler struct {
 	rg         *gin.RouterGroup
-	authorizer backendauth.IAuthorizer
+	authorizer auth.IAuthorizer
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -73,8 +73,8 @@ func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, mi
 	policy.Load(h.rg, capability)
 	process.Load(h.rg, capability)
 	deploypolicy.Load(h.rg, capability)
-	cipher.Load(h.rg, capability)
-	auth.Load(h.rg, capability)
+	ciphersuite.Load(h.rg, capability)
+	authRouter.Load(h.rg, capability)
 }
 
 // LoadBasicOpenAPIs register the basic apis.
@@ -93,8 +93,8 @@ func LoadBasicOpenAPIs(rg *gin.RouterGroup, capability *options.Capability, midd
 	pkg.Load(h.rg, capability)
 	policy.Load(h.rg, capability)
 	process.Load(h.rg, capability)
-	cipher.Load(h.rg, capability)
-	auth.Load(h.rg, capability)
+	ciphersuite.Load(h.rg, capability)
+	authRouter.Load(h.rg, capability)
 }
 
 // LoadCallbackAPIs register the callback apis.

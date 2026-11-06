@@ -16,12 +16,12 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package rsa provides the RSA encryption related API handlers.
-package rsa
+// Package rsakey provides the RSA encryption related API handlers.
+package rsakey
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
+	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -32,7 +32,7 @@ import (
 
 type handler struct {
 	rg        *gin.RouterGroup
-	daoCipher cipher.IStorage
+	daoCipher cipherStg.IStorage
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {

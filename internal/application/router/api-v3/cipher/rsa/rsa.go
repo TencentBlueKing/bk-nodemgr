@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package rsa provides the RSA encryption related API handlers.
-package rsa
+// Package rsakey provides the RSA encryption related API handlers.
+package rsakey
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"

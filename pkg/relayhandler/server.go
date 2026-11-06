@@ -70,23 +70,27 @@ type ServerMessagerConfig struct {
 	RedisClient redis.UniversalClient
 }
 
+// redactedMask replaces sensitive field values in log output.
+const redactedMask = "***"
+
 // String returns a redacted representation for logging: the slot token, app
 // secret and any TLS private key material or password never appear in logs.
 func (c ServerMessagerConfig) String() string {
 	redacted := c
-	redacted.Token = "***"
-	redacted.AppSecret = "***"
+	redacted.Token = redactedMask
+	redacted.AppSecret = redactedMask
 
 	if redacted.TLSConfig != nil {
 		tlsCopy := *redacted.TLSConfig
 		tlsCopy.Key = nil
 		tlsCopy.EncKey = nil
-		tlsCopy.Password = "***"
+		tlsCopy.Password = redactedMask
 		redacted.TLSConfig = &tlsCopy
 	}
 
 	// bypass the Stringer to avoid recursion.
 	type plain ServerMessagerConfig
+
 	return fmt.Sprintf("%+v", plain(redacted))
 }
 
