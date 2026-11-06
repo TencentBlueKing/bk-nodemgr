@@ -65,9 +65,6 @@ export const useAuthStore = defineStore('auth', () => {
       const verifyItem: AuthVerifyItem = {
         action: item.action,
       };
-      if (!item.resourceType) {
-        verifyItem.resources = [];
-      }
 
       // For biz-scoped actions, include the biz resource
       if (item.resourceType === 'biz' && bizResources.length > 0) {
@@ -86,6 +83,8 @@ export const useAuthStore = defineStore('auth', () => {
           }));
         }
       }
+      // resourceType 缺失（资源无关 action）时 resources 字段保持缺失；
+      // 空数组 resources 对 IAM 是非法 payload（会触发 3800012 thirdparty request failed）
 
       return verifyItem;
     });

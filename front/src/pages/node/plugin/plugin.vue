@@ -123,6 +123,7 @@
       :status-map="processStatusTextMap"
       :hide-restart-options="true"
       :selection-confirm-formatter="selectionConfirmFormatter"
+      auth-action="plugin_operate"
       @confirm="handleOperateConfirm"
       ></operate-dialog>
   </div>

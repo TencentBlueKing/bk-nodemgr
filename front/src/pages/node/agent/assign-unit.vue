@@ -47,6 +47,8 @@
       :title="restartDialogTitle"
       :type="'restart'"
       :sub-title="restartDialogSubTitle"
+      :data="formData.info"
+      auth-action="agent_operate"
       @confirm="handleRestartConfirm"
     ></operate-dialog>
   </div>

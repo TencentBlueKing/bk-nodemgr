@@ -410,6 +410,7 @@
     :hide-restart-options="true"
     :hide-checkbox="!isBatchOperate"
     :selection-confirm-formatter="operateDialogShowTable ? undefined : selectionConfirmFormatter"
+    auth-action="plugin_operate"
     @confirm="handleOperateConfirm"
   ></operate-dialog>
 </template>
