@@ -42,6 +42,7 @@ const (
 func NewActionFinishIfPluginProcessV2Alive(capability *Capability) action.Definition {
 	return &actionFinishIfPluginProcessV2Alive{
 		daoPluginDeployment:  capability.StoragePlugin,
+		daoProcessV2:         capability.StoragePlugin,
 		daoOperationInstance: capability.StorageWorkflow,
 		daoActionInstance:    capability.StorageWorkflow,
 		daoHost:              capability.StorageTopo,
@@ -56,6 +57,7 @@ type ActParamFinishIfPluginProcessV2Alive struct {
 
 type actionFinishIfPluginProcessV2Alive struct {
 	daoPluginDeployment  pluginStg.IDaoPluginDeployment
+	daoProcessV2         pluginStg.IDaoProcessV2
 	daoOperationInstance workflow.IStorageOperationInstance
 	daoActionInstance    workflow.IStorageActionInstance
 	daoHost              topoStg.IStorageHost
@@ -141,6 +143,10 @@ func (act *actionFinishIfPluginProcessV2Alive) Do(ctx *action.InstanceContext) (
 			En("v2 plugin process is already running, host-id(%d), plugin-name(%s), process-status(%s)",
 				host.HostID, pluginName, processInfo.Status).
 			Info()
+
+		if err := act.daoProcessV2.UpdateProcessInfoV2(nCtx, deployInfo.Process.HostID, pluginName, processInfo); err != nil {
+			return fmt.Errorf("failed to update process v2 info: %w", err)
+		}
 
 		std.InstanceData().Content = conv.StructToMapIgnoreError(param)
 

@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -42,6 +43,7 @@ const (
 func NewActionRenderPluginConfigV2(capability *Capability) action.Definition {
 	return &actionRenderPluginConfigV2{
 		daoPluginDeployment: capability.StoragePlugin,
+		daoProcessV2Config:  capability.StoragePlugin,
 	}
 }
 
@@ -53,6 +55,7 @@ type ActParamRenderPluginConfigV2 struct {
 // actionRenderPluginConfigV2 ...
 type actionRenderPluginConfigV2 struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
+	daoProcessV2Config  pluginStg.IDaoProcessConfigV2
 }
 
 // Name returns the name of the action.
@@ -126,9 +129,56 @@ func (act *actionRenderPluginConfigV2) Do(ctx *action.InstanceContext) (err erro
 		return fmt.Errorf("failed to update plugin deployment plugin conf: %w", err)
 	}
 
+	if err := act.upsertMainConfigs(std, pluginConf); err != nil {
+		return err
+	}
+
 	std.InstanceData().Log().
 		Zh("渲染v2插件配置操作成功完成").
 		En("render v2 plugin config action completed successfully").
+		Info()
+
+	return nil
+}
+
+// upsertMainConfigs persists the rendered main config files of the v2 plugin.
+// Only the main config is stored, the sub configs are pushed to the host by the push plugin config action.
+func (act *actionRenderPluginConfigV2) upsertMainConfigs(
+	std *pluginV2Utils.PluginActionStandarder, pluginConf *types.PluginDeploymentPluginConf) error {
+
+	mainConfigs := make([]*types.ProcessConfig, 0, len(pluginConf.ConfigFilesDetail))
+	for _, detail := range pluginConf.ConfigFilesDetail {
+		if detail == nil || !detail.IsMainConfig {
+			continue
+		}
+
+		mainConfigs = append(mainConfigs, &types.ProcessConfig{
+			Name:                detail.Name,
+			TemplateName:        detail.TemplateName,
+			ProcessName:         std.DeployInfo().Process.PluginName,
+			HostID:              std.DeployInfo().Process.HostID,
+			Set:                 pluginConf.Set,
+			IsMainConfig:        detail.IsMainConfig,
+			Content:             detail.Content,
+			MD5:                 crypter.MD5Sum(detail.Content),
+			FilePath:            detail.FilePath,
+			CustomConfigContext: pluginConf.CustomConfigContext,
+		})
+	}
+
+	if len(mainConfigs) == 0 {
+		return nil
+	}
+
+	if err := act.daoProcessV2Config.UpsertProcessConfigsV2(std.Context(), mainConfigs...); err != nil {
+		return fmt.Errorf("failed to upsert process configs v2: %w", err)
+	}
+
+	std.InstanceData().Log().
+		Zh("成功记录 %d 个 V2 主配置文件, plugin-name(%s), host-id(%d)",
+			len(mainConfigs), std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID).
+		En("succeed to record %d v2 main config files, plugin-name(%s), host-id(%d)",
+			len(mainConfigs), std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID).
 		Info()
 
 	return nil
@@ -142,8 +192,8 @@ func (act *actionRenderPluginConfigV2) renderPluginConf(std *pluginV2Utils.Plugi
 	renderContext := make(map[string]any)
 
 	std.InstanceData().Log().
-		Zh("插件模板类型为(%s)", pluginConf.TemplateRenderer).
-		En("plugin template type is(%s)", pluginConf.TemplateRenderer).
+		Zh("V2 插件模板类型为(%s)", pluginConf.TemplateRenderer).
+		En("v2 plugin template type is(%s)", pluginConf.TemplateRenderer).
 		Info()
 
 	// V2 plugin only supports Jinja2 template renderer currently, and the render context is composed of both system context and custom context.
@@ -168,10 +218,10 @@ func (act *actionRenderPluginConfigV2) renderPluginConf(std *pluginV2Utils.Plugi
 		}
 
 		std.InstanceData().Log().
-			Zh("渲染插件配置成功, plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",
+			Zh("渲染 V2 插件配置成功, plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",
 				std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
 				std.DeployInfo().Process.Info.Version, pluginConf.ConfigFilesDetail[idx].Name).
-			En("rendered plugin config success, plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",
+			En("rendered v2 plugin config success, plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",
 				std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
 				std.DeployInfo().Process.Info.Version, pluginConf.ConfigFilesDetail[idx].Name).
 			Info()
