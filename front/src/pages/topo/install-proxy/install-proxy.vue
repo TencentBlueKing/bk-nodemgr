@@ -85,7 +85,6 @@
           <BizSelect
             select-class="w-[488px]"
             v-model="form.bk_biz_id"
-            action="proxy_operate"
             :placeholder="t('installProxy.selectBusiness')"
           />
         </Form.FormItem>
@@ -417,7 +416,6 @@ import { PACKAGE_GENERATION } from '@/common/const';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import BizSelect from '@/components/biz-select.vue';
-import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { useTopoStore } from '@/stores/topo';
 import { useWorkareaStore } from '@/stores/workarea';
@@ -926,16 +924,12 @@ const handleExcelImportCancel = () => {
   isShowExcelImport.value = false;
   uploadExcelRef.value?.handleDelete();
 };
-const authStore = useAuthStore();
 
 const handleUpload = (data: any) => {
   excelImportData.value = data?.info || [];
 };
 onMounted(async () => {
   await initPublicKey();
-  // 预加载 proxy_operate 权限（biz 级别），供 BizSelect 过滤业务列表；
-  // force 强制刷新：避免被其他页面按 action 名缓存的旧维度数据去重跳过
-  authStore.fetchAuthorized([{ action: 'proxy_operate', resource_type: 'biz' }], undefined, { force: true });
 });
 
 const handleSetpBack = () => {

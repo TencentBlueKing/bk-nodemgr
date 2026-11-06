@@ -38,9 +38,13 @@ export default function usePlatform() {
     };
     // In vite dev mode index.html is not rendered by the backend, the value stays as the raw
     // Go template placeholder; fall back to the build-time env in that case.
-    const sharedResBaseJsUrl = window.PROJECT_CONFIG.BK_SHARED_RES_BASE_JS_URL.includes('BK_SHARED_RES_BASE_JS_URL')
+    const rawSharedResBaseJsUrl = window.PROJECT_CONFIG.BK_SHARED_RES_BASE_JS_URL.includes('BK_SHARED_RES_BASE_JS_URL')
       ? import.meta.env.BK_SHARED_RES_BASE_JS_URL
       : window.PROJECT_CONFIG.BK_SHARED_RES_BASE_JS_URL;
+    // 为空或已含 base.js 时原样返回；否则拼接默认路径 /bk_nodemgr/base.js
+    const sharedResBaseJsUrl = !rawSharedResBaseJsUrl || rawSharedResBaseJsUrl.includes('base.js')
+      ? rawSharedResBaseJsUrl
+      : `${rawSharedResBaseJsUrl}/bk_nodemgr/base.js`;
     let data: Record<string, any> = {};
     if (sharedResBaseJsUrl) {
       data = await getPlatformConfig(sharedResBaseJsUrl, defaults);

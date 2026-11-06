@@ -41,8 +41,11 @@ const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 
 const permissionDetail = computed(() => authStore.getPermissionDetail());
-const canOpenPermissionDialog = computed(() => !!permissionDetail.value?.actions?.length);
 const deniedActionIds = computed(() => authStore.getDeniedActionIds());
+// 只取与被拒 action 匹配的明细：permissionDetail 可能残留其它 action（如单元查看）的 verify 结果，
+// 直接使用会导致「去申请」弹出无关权限的申请弹窗
+const relatedActions = computed(() => (permissionDetail.value?.actions ?? [])
+  .filter(action => deniedActionIds.value.includes(action.id)));
 const displayActions = computed(() => deniedActionIds.value.map((actionId) => {
   const matchedAction = permissionDetail.value?.actions?.find(action => action.id === actionId);
 
@@ -51,6 +54,8 @@ const displayActions = computed(() => deniedActionIds.value.map((actionId) => {
     actionName: matchedAction?.name || actionId,
   };
 }));
+
+const canOpenPermissionDialog = computed(() => relatedActions.value.length > 0);
 
 const columns = computed(() => [
   {
@@ -61,8 +66,8 @@ const columns = computed(() => [
 ]);
 
 function handleApply() {
-  if (permissionDetail.value?.actions?.length) {
-    permissionStore.showDialog(permissionDetail.value);
+  if (relatedActions.value.length) {
+    permissionStore.showDialog({ ...permissionDetail.value!, actions: relatedActions.value });
   }
 }
 

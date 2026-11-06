@@ -77,31 +77,25 @@ function formatResourceInstance(instance: {
 }
 
 // 后端会把「父资源 → 子资源」的层级实例路径拍平成节点数组（如 管控区域→管控单元）：
-// 相邻同类型节点属于并列实例，用「、」分隔；类型切换表示上下级，用「/」拼接
+// 相邻同类型节点属于并列实例，用「、」分隔；类型切换表示上下级，用「/」拼接（前后留空格，与「、」区分）
 function formatInstancePaths(
   instances: NonNullable<PermissionAction['related_resource_types'][number]['instances']>,
-): string[] {
-  const paths: string[] = [];
-  let current = '';
+): string {
+  // 逐层收集实例：同层并列的归入同一层级，最终形如「管控区域 / 单元1、单元2」
+  const levels: string[][] = [];
   let prevType = '';
 
   for (const instance of instances) {
     const rendered = formatResourceInstance(instance);
-    if (instance.type === prevType) {
-      if (current) {
-        paths.push(current);
-      }
-      current = rendered;
+    if (instance.type === prevType && levels.length > 0) {
+      levels[levels.length - 1].push(rendered);
     } else {
-      current = current ? `${current}/${rendered}` : rendered;
+      levels.push([rendered]);
     }
     prevType = instance.type;
   }
 
-  if (current) {
-    paths.push(current);
-  }
-  return paths;
+  return levels.map(level => level.join('、')).join(' / ');
 }
 
 function formatRelatedResources(data: PermissionAction): string {
@@ -116,7 +110,7 @@ function formatRelatedResources(data: PermissionAction): string {
       return resource.type_name;
     }
 
-    const renderedInstances = formatInstancePaths(instances).join('、');
+    const renderedInstances = formatInstancePaths(instances);
     return `${resource.type_name}: ${renderedInstances}`;
   }).join('；');
 }
