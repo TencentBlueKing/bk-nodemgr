@@ -1261,6 +1261,10 @@ components:
     passwordKey: Password / Key
     batchEditPasswordKey: Batch Edit Password/Key
     autoGet: Auto Get
+    isSudo: Sudo Escalation
+    isSudoTooltip: Enable when the login user is non-root with passwordless sudo configured; install commands run via sudo -n. Unix-like systems only
+    isSudoDisabledTooltip: Sudo escalation is not supported on non-Unix systems
+    batchEditIsSudo: Batch Edit Sudo Escalation
     installJump: Install Jumper
     agentControl: Agent Control
     fileTransfer: File Transfer

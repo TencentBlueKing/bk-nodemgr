@@ -126,6 +126,7 @@ type InstallOptions struct {
 	RenewGSETask             bool `json:"renew_gse_task" bson:"renew_gse_task"`
 	RenewGSEProc             bool `json:"renew_gse_proc" bson:"renew_gse_proc"`
 	InstallPreOrderedPlugins bool `json:"install_pre_ordered_plugins" bson:"install_pre_ordered_plugins"`
+	IsSudo                   bool `json:"is_sudo" bson:"is_sudo"`
 	DirectInstall            bool `json:"direct_install" bson:"direct_install"`
 	IsManual                 bool `json:"is_manual" bson:"is_manual"`
 	IsOffline                bool `json:"is_offline" bson:"is_offline"`

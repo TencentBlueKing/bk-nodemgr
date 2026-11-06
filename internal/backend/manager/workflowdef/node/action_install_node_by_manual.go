@@ -205,6 +205,7 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		LogToStd:        true,
 		RenewGSEProc:    std.DeployInfo().InstallOptions.RenewGSEProc,
 		RenewGSETask:    std.DeployInfo().InstallOptions.RenewGSETask,
+		SudoInstall:     std.DeployInfo().InstallOptions.IsSudo,
 	}
 	installParams.FirewallFeatures, installParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
 		std.DeployInfo().InstallerRuntime.Firewall)

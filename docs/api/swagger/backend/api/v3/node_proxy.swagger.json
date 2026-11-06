@@ -771,6 +771,10 @@
         },
         "install_method": {
           "type": "string"
+        },
+        "is_sudo": {
+          "type": "boolean",
+          "title": "登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n\n提权执行；默认为 false"
         }
       },
       "description": "NodeProxyInstallHost describes the node proxy install host."

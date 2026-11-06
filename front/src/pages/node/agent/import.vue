@@ -159,6 +159,7 @@ const initData = {
   bk_host_id: '',
   re_register: false,
   install_pre_ordered_plugins: true,
+  is_sudo: false,
   install_method: 'ssh',
   credit: '',
 };
@@ -209,6 +210,7 @@ const tableSetting = reactive({
     { title: t('platform.nodeMan.installAgentPage.loginIp'), field: 'login_ip' },
     { title: t('platform.nodeMan.installAgentPage.loginPort'), field: 'login_port' },
     { title: t('platform.nodeMan.installAgentPage.loginUser'), field: 'login_user' },
+    { title: t('components.installTable.isSudo'), field: 'is_sudo' },
     { title: t('platform.nodeMan.installAgentPage.loginMode'), field: 'login_mode' },
     { title: t('platform.nodeMan.installAgentPage.passwordKey'), field: 'credit' },
     { title: t('components.installTable.installPreOrderedPlugins'), field: 'install_pre_ordered_plugins' },
@@ -226,6 +228,7 @@ const tableSetting = reactive({
     'login_port',
     'login_ip',
     'login_user',
+    'is_sudo',
     'login_mode',
     'credit',
   ],

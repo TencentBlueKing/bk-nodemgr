@@ -74,6 +74,7 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 			RenewGseTask:             host.RenewGSETask,
 			RenewGseProc:             host.RenewGSEProc,
 			InstallPreOrderedPlugins: host.InstallPreOrderedPlugins,
+			IsSudo:                   host.IsSudo,
 			ProxyTags:                types.ProxyTagListToStringList(host.ProxyTags),
 			ProxyInstallOriginUnitId: host.ProxyInstallOriginUnitID,
 			CreditExpiredIntervalSec: host.CreditExpiredIntervalSec,

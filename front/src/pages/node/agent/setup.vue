@@ -319,6 +319,7 @@ const initData = {
   bk_biz_id: '',
   re_register: false,
   install_pre_ordered_plugins: true,
+  is_sudo: false,
   install_method: 'ssh',
   credit: '',
 };
@@ -346,6 +347,7 @@ const settings = reactive({
     { title: t('components.installTable.loginIP'), field: 'login_ip' },
     { title: t('components.installTable.port'), field: 'login_port' },
     { title: t('components.installTable.account'), field: 'login_user' },
+    { title: t('components.installTable.isSudo'), field: 'is_sudo' },
     { title: t('components.installTable.authMethod'), field: 'login_mode' },
     { title: t('components.installTable.passwordKey'), field: 'credit' },
     { title: t('components.installTable.installPreOrderedPlugins'), field: 'install_pre_ordered_plugins' },
@@ -360,6 +362,7 @@ const settings = reactive({
     'login_port',
     'login_ip',
     'login_user',
+    'is_sudo',
     'login_mode',
     'credit',
   ],

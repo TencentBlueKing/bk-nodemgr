@@ -112,6 +112,10 @@ type DeploymentInstallOptions struct {
 	RenewGSETask             bool
 	RenewGSEProc             bool
 	InstallPreOrderedPlugins bool
+	// IsSudo escalates the installer invocation through `sudo -n`, for non-root login
+	// users whose sudoers entry allows passwordless escalation. Only honored by
+	// SSH-executed and manually-executed install flows, not by GSE job flows.
+	IsSudo                   bool
 	DirectInstall            bool
 	IsManual                 bool
 	IsOffline                bool

@@ -44,6 +44,7 @@ POST /api/v3/node/proxy/install
 | renew_gse_task               | bool          | 否  | 是否重新生成 GSE .task runtime 文件，默认 false 表示保留已有 .task 文件                         |
 | renew_gse_proc               | bool          | 否  | 是否重新生成 GSE .proc runtime 文件，默认 false 表示保留已有 .proc 文件                         |
 | install_method               | string        | 否  | Proxy 安装方式，支持值：空字符串、ssh；空字符串表示按 Proxy 场景自动选择安装逻辑                       |
+| is_sudo                      | bool          | 否  | 登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n 提权执行；默认为 false，仅对类 Unix 系统生效 |
 | proxy_tags                   | array[string] | 否  | Proxy标签，可选值：dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel |
 | proxy_install_origin_unit_id | int64         | 否  | 安装来源网络单元ID                                                                   |
 | credit_expired_interval_sec  | int64         | 否  | 凭证有效期（秒），默认 86400                                                            |
@@ -87,7 +88,8 @@ POST /api/v3/node/proxy/install
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
       "renew_gse_proc": false,
-      "install_method": "ssh"
+      "install_method": "ssh",
+      "is_sudo": false
     }
   ],
   "target_version": [

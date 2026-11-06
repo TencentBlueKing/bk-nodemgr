@@ -20,6 +20,7 @@ export interface AgentInstallInfo {
   renew_gse_task: boolean;
   renew_gse_proc: boolean;
   install_method: string;
+  is_sudo: boolean;
 }
 
 // NodeAgentInstallReq describes the HTTP request body when install node agent.
@@ -266,6 +267,7 @@ export interface AgentInstallParsedInfo {
   bk_addressing: string;
   install_pre_ordered_plugins: boolean;
   re_register: boolean;
+  is_sudo: boolean;
 }
 
 // UploadAgentInstallTemplateResp ...

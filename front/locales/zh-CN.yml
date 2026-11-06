@@ -1264,6 +1264,10 @@ components:
     passwordKey: 密码/密钥
     batchEditPasswordKey: 批量编辑密码/密钥
     autoGet: 自动拉取
+    isSudo: sudo 提权
+    isSudoTooltip: 登录用户为非 root 且已配置免密 sudo 时开启，安装命令将通过 sudo -n 提权执行；仅对类 Unix 系统生效
+    isSudoDisabledTooltip: 非类 Unix 系统不支持 sudo 提权
+    batchEditIsSudo: 批量编辑 sudo 提权
     installJump: 安装跳板
     agentControl: Agent控制
     fileTransfer: 文件传输
