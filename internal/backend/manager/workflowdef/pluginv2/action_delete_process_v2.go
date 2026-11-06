@@ -38,7 +38,7 @@ const (
 func NewActionDeleteProcessV2(capability *Capability) action.Definition {
 	return &actionDeleteProcessV2{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoProcess:          capability.StoragePlugin,
+		daoProcessV2:        capability.StoragePlugin,
 	}
 }
 
@@ -49,7 +49,7 @@ type ActParamDeleteProcessV2 struct {
 
 type actionDeleteProcessV2 struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoProcess          pluginStg.IDaoProcess
+	daoProcessV2        pluginStg.IDaoProcessV2
 }
 
 // Name returns the name of the action.
@@ -107,16 +107,13 @@ func (act *actionDeleteProcessV2) Do(ctx *action.InstanceContext) (err error) {
 	}()
 
 	deployInfo := std.DeployInfo()
-	if err = act.daoProcess.DeleteProcess(std.Context(), deployInfo.Process.HostID, deployInfo.Process.PluginName); err != nil {
-		return fmt.Errorf("failed to delete process, plugin-name(%s), host-id(%d): %w",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID, err)
+	if err = act.daoProcessV2.DeleteProcessV2(std.Context(), deployInfo.Process.HostID, deployInfo.Process.PluginName); err != nil {
+		return fmt.Errorf("failed to delete process, plugin-name(%s), host-id(%d): %w", deployInfo.Process.PluginName, deployInfo.Process.HostID, err)
 	}
 
 	std.InstanceData().Log().
-		Zh("成功删除 V2 进程信息, plugin-name(%s), host-id(%d)",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID).
-		En("succeed to delete V2 process info, plugin-name(%s), host-id(%d)",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID).
+		Zh("成功删除 V2 进程信息, plugin-name(%s), host-id(%d)", deployInfo.Process.PluginName, deployInfo.Process.HostID).
+		En("succeed to delete V2 process info, plugin-name(%s), host-id(%d)", deployInfo.Process.PluginName, deployInfo.Process.HostID).
 		Info()
 
 	return nil

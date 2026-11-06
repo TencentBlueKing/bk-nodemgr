@@ -213,6 +213,9 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionWatchCMDBResource(syncdataCap),
 		syncdata.NewActionSyncAlivePluginProcessInfo(syncdataCap),
 		syncdata.NewActionGenOperSyncAlivePluginProcessInfo(syncdataCap),
+		// The v2 compatible plugin processes are synced by their own scheduled workflow.
+		syncdata.NewActionSyncAlivePluginProcessV2Info(syncdataCap),
+		syncdata.NewActionGenOperSyncAlivePluginProcessV2Info(syncdataCap),
 		syncdata.NewActionGenOperCorrectUnknownProcessStatus(syncdataCap),
 		syncdata.NewActionCorrectUnknownProcessStatus(syncdataCap),
 		syncdata.NewActionGenOperCleanOrphanProcess(syncdataCap),
@@ -339,6 +342,8 @@ func (mgr *Manager) registerDefPluginV2() error {
 		pluginv2.NewActionCheckPluginProcessAliveV2(pluginCap),
 		pluginv2.NewActionEnsureAndUpdatePluginConfigDetailsV2(pluginCap),
 		pluginv2.NewActionStartProcessV2(pluginCap),
+		pluginv2.NewActionUpsertProcessV2(pluginCap),
+		pluginv2.NewActionUpdateProcessV2(pluginCap),
 		pluginv2.NewActionStopProcessV2(pluginCap),
 		pluginv2.NewActionRestartProcessV2(pluginCap),
 		pluginv2.NewActionReloadProcessV2(pluginCap),

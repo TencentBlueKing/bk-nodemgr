@@ -39,7 +39,7 @@ const (
 func NewActionDeleteProcessConfigRecordV2(capability *Capability) action.Definition {
 	return &actionDeleteProcessConfigRecordV2{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoProcessConfig:    capability.StoragePlugin,
+		daoProcessV2Config:  capability.StoragePlugin,
 	}
 }
 
@@ -50,7 +50,7 @@ type ActParamDeleteProcessConfigRecordV2 struct {
 
 type actionDeleteProcessConfigRecordV2 struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoProcessConfig    pluginStg.IDaoProcessConfig
+	daoProcessV2Config  pluginStg.IDaoProcessConfigV2
 }
 
 // Name returns the name of the action.
@@ -125,16 +125,14 @@ func (act *actionDeleteProcessConfigRecordV2) Do(ctx *action.InstanceContext) (e
 		Name:   deployInfo.Process.PluginName,
 	}
 	if pluginConf.RemoveAllConfigs {
-		if err := act.daoProcessConfig.DeleteProcessConfigsByProcessUniqueKey(nCtx, processUniqueKey); err != nil {
+		if err := act.daoProcessV2Config.DeleteProcessConfigsV2ByProcessUniqueKey(nCtx, processUniqueKey); err != nil {
 			return fmt.Errorf("failed to delete all process configs, host-id(%d), plugin-name(%s): %w",
 				deployInfo.Process.HostID, deployInfo.Process.PluginName, err)
 		}
 
 		std.InstanceData().Log().
-			Zh("删除全部配置存储记录成功, 主机ID(%d), 插件名(%s)",
-				deployInfo.Process.HostID, deployInfo.Process.PluginName).
-			En("delete all process config records succeeded, host-id(%d), plugin-name(%s)",
-				deployInfo.Process.HostID, deployInfo.Process.PluginName).
+			Zh("删除全部配置存储记录成功, 主机ID(%d), 插件名(%s)", deployInfo.Process.HostID, deployInfo.Process.PluginName).
+			En("delete all process config records succeeded, host-id(%d), plugin-name(%s)", deployInfo.Process.HostID, deployInfo.Process.PluginName).
 			Info()
 
 		return nil
@@ -148,7 +146,7 @@ func (act *actionDeleteProcessConfigRecordV2) Do(ctx *action.InstanceContext) (e
 			IsMainConfig: false,
 		}
 	})
-	if err := act.daoProcessConfig.DeleteProcessConfigs(nCtx, processConfigKeys...); err != nil {
+	if err := act.daoProcessV2Config.DeleteProcessConfigsV2(nCtx, processConfigKeys...); err != nil {
 		return fmt.Errorf("failed to delete process configs, host-id(%d), plugin-name(%s): %w",
 			deployInfo.Process.HostID, deployInfo.Process.PluginName, err)
 	}
