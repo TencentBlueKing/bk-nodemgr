@@ -35,6 +35,8 @@ import (
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
 	daoProcess "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
 	daoProcessConfig "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config"
+	daoProcessV2 "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-v2"
+	daoProcessV2Config "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-v2-config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -106,6 +108,20 @@ const (
 	metricOperationDeleteProcessConfigs                   = "delete_process_configs"
 	metricOperationListProcessConfig                      = "list_process_config"
 	metricOperationCountProcessConfig                     = "count_process_config"
+
+	metricOperationCreateProcessV2                          = "create_process_v2"
+	metricOperationExistProcessV2                           = "exist_process_v2"
+	metricOperationUpdateProcessV2                          = "update_process_v2"
+	metricOperationUpdateProcessInfoV2                      = "update_process_info_v2"
+	metricOperationListProcessV2                            = "list_process_v2"
+	metricOperationUpdateManyProcessInfoV2                  = "update_many_process_info_v2"
+	metricOperationDeleteProcessV2                          = "delete_process_v2"
+	metricOperationUpsertManyProcessConfigsV2               = "upsert_many_process_configs_v2"
+	metricOperationGetProcessConfigV2                       = "get_process_config_v2"
+	metricOperationListProcessConfigsV2                     = "list_process_configs_v2"
+	metricOperationCountProcessConfigsV2                    = "count_process_configs_v2"
+	metricOperationDeleteProcessConfigsByProcessUniqueKeyV2 = "delete_process_configs_by_process_unique_key_v2"
+	metricOperationDeleteProcessConfigsV2                   = "delete_process_configs_v2"
 )
 
 // NewStorage ...
@@ -153,6 +169,8 @@ type Storage struct {
 	daoPlugin           plugin.IHandler
 	daoProcess          daoProcess.IHandler
 	daoProcessConfig    daoProcessConfig.IHandler
+	daoProcessV2        daoProcessV2.IHandler
+	daoProcessV2Config  daoProcessV2Config.IHandler
 	daoOperation        daoOperation.IHandler
 	daoNodeDeployment   daoNodeDeployment.IHandler
 
@@ -166,6 +184,8 @@ func (s *Storage) initDao() error {
 	s.daoPlugin = plugin.New(s.Database)
 	s.daoProcess = daoProcess.New(s.Database)
 	s.daoProcessConfig = daoProcessConfig.New(s.Database)
+	s.daoProcessV2 = daoProcessV2.New(s.Database)
+	s.daoProcessV2Config = daoProcessV2Config.New(s.Database)
 	s.daoOperation = daoOperation.New(s.Database)
 	s.daoNodeDeployment = daoNodeDeployment.New(s.Database)
 
@@ -433,6 +453,34 @@ func (s *Storage) check() error {
 
 	if s.daoPluginWorkflow == nil {
 		return errors.New("dao plugin workflow is nil")
+	}
+
+	if s.daoPlugin == nil {
+		return errors.New("dao plugin is nil")
+	}
+
+	if s.daoProcess == nil {
+		return errors.New("dao process is nil")
+	}
+
+	if s.daoProcessConfig == nil {
+		return errors.New("dao process config is nil")
+	}
+
+	if s.daoProcessV2 == nil {
+		return errors.New("dao process v2 is nil")
+	}
+
+	if s.daoProcessV2Config == nil {
+		return errors.New("dao process v2 config is nil")
+	}
+
+	if s.daoOperation == nil {
+		return errors.New("dao operation is nil")
+	}
+
+	if s.daoNodeDeployment == nil {
+		return errors.New("dao node deployment is nil")
 	}
 
 	return nil
@@ -1084,6 +1132,157 @@ func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processConfigKeys
 	})
 
 	return err
+}
+
+// CreateProcessV2 create a v2 compatible process.
+func (s *Storage) CreateProcessV2(nCtx contextx.IContext, process *types.Process) error {
+	return s.WrapFn(nCtx, metricOperationCreateProcessV2, func(nCtx contextx.IContext) error {
+		return s.createProcessV2(nCtx, process)
+	})
+}
+
+// ExistProcessV2 check if the v2 compatible process exist.
+func (s *Storage) ExistProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error) {
+	var (
+		exist bool
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationExistProcessV2, func(nCtx contextx.IContext) error {
+		exist, err = s.existProcessV2(nCtx, hostID, pluginName)
+
+		return err
+	})
+
+	return exist, err
+}
+
+// UpdateProcessV2 update a v2 compatible process.
+func (s *Storage) UpdateProcessV2(nCtx contextx.IContext, process *types.Process) error {
+	return s.WrapFn(nCtx, metricOperationUpdateProcessV2, func(nCtx contextx.IContext) error {
+		return s.updateProcessV2(nCtx, process)
+	})
+}
+
+// UpdateProcessInfoV2 update the process info of a v2 compatible process.
+func (s *Storage) UpdateProcessInfoV2(
+	nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error {
+
+	return s.WrapFn(nCtx, metricOperationUpdateProcessInfoV2, func(nCtx contextx.IContext) error {
+		return s.updateProcessInfoV2(nCtx, hostID, pluginName, processInfo)
+	})
+}
+
+// ListProcessesV2 list the v2 compatible processes of the given hosts.
+func (s *Storage) ListProcessesV2(nCtx contextx.IContext, page types.Page, hostIDs []int64) ([]*types.Process, int64, error) {
+	var (
+		processes []*types.Process
+		total     int64
+		err       error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListProcessV2, func(nCtx contextx.IContext) error {
+		processes, total, err = s.listProcessesV2(nCtx, page, hostIDs)
+
+		return err
+	})
+
+	return processes, total, err
+}
+
+// UpdateManyProcessInfoV2 batch update the process info of v2 compatible processes.
+func (s *Storage) UpdateManyProcessInfoV2(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error {
+	return s.WrapFn(nCtx, metricOperationUpdateManyProcessInfoV2, func(nCtx contextx.IContext) error {
+		return s.updateManyProcessInfoV2(nCtx, processInfoDeltas)
+	})
+}
+
+// DeleteProcessV2 delete a v2 compatible process.
+func (s *Storage) DeleteProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) error {
+	return s.WrapFn(nCtx, metricOperationDeleteProcessV2, func(nCtx contextx.IContext) error {
+		return s.deleteProcessV2(nCtx, hostID, pluginName)
+	})
+}
+
+// GetProcessConfigV2 gets a v2 compatible process config by unique key.
+func (s *Storage) GetProcessConfigV2(nCtx contextx.IContext, processConfigKey *types.ProcessConfigUniqueKey) (
+	*types.ProcessConfig, error) {
+
+	var (
+		processConfig *types.ProcessConfig
+		err           error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetProcessConfigV2, func(nCtx contextx.IContext) error {
+		var err error
+		processConfig, err = s.getProcessConfigV2(nCtx, processConfigKey)
+
+		return err
+	})
+
+	return processConfig, err
+}
+
+// ListProcessConfigsV2 lists the v2 compatible process configs by conditions.
+func (s *Storage) ListProcessConfigsV2(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ProcessConfigCondition) ([]*types.ProcessConfig, int64, error) {
+
+	var (
+		processConfigs []*types.ProcessConfig
+		total          int64
+		err            error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListProcessConfigsV2, func(nCtx contextx.IContext) error {
+		var err error
+		processConfigs, total, err = s.listProcessConfigsV2(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return processConfigs, total, err
+}
+
+// CountProcessConfigsV2 counts the v2 compatible process configs by conditions.
+func (s *Storage) CountProcessConfigsV2(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (
+	int64, error) {
+
+	var (
+		count int64
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationCountProcessConfigsV2, func(nCtx contextx.IContext) error {
+		var err error
+		count, err = s.countProcessConfigsV2(nCtx, conditions...)
+
+		return err
+	})
+
+	return count, err
+}
+
+// UpsertProcessConfigsV2 upsert many v2 compatible process configs.
+func (s *Storage) UpsertProcessConfigsV2(nCtx contextx.IContext, processConfigs ...*types.ProcessConfig) error {
+	return s.WrapFn(nCtx, metricOperationUpsertManyProcessConfigsV2, func(nCtx contextx.IContext) error {
+		return s.upsertProcessConfigsV2(nCtx, processConfigs...)
+	})
+}
+
+// DeleteProcessConfigsV2ByProcessUniqueKey delete v2 compatible process configs by process unique key.
+func (s *Storage) DeleteProcessConfigsV2ByProcessUniqueKey(
+	nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error {
+
+	return s.WrapFn(nCtx, metricOperationDeleteProcessConfigsByProcessUniqueKeyV2, func(nCtx contextx.IContext) error {
+		return s.deleteProcessConfigsV2ByProcessUniqueKey(nCtx, processUniqueKeys...)
+	})
+}
+
+// DeleteProcessConfigsV2 deletes v2 compatible process configs by their unique keys.
+func (s *Storage) DeleteProcessConfigsV2(nCtx contextx.IContext, processConfigKeys ...*types.ProcessConfigUniqueKey) error {
+	return s.WrapFn(nCtx, metricOperationDeleteProcessConfigsV2, func(nCtx contextx.IContext) error {
+		return s.deleteProcessConfigsV2(nCtx, processConfigKeys...)
+	})
 }
 
 // ListProcessConfigs list process configs.

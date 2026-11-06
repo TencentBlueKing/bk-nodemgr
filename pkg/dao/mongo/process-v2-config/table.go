@@ -1,0 +1,61 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云 - 节点管理 (BlueKing - Node Management) available.
+ * Copyright (C) Tencent. All rights reserved.
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+
+ * We undertake not to change the open source license (MIT license) applicable
+
+ * to the current version of the project delivered to anyone in the future.
+ */
+
+// Package processv2config provides storage for the node manager v2 compatible plugin configuration.
+package processv2config
+
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+)
+
+// TableName process v2 config table name.
+func TableName(tenantID string) string {
+	return fmt.Sprintf("process_v2_config_%s", tenantID)
+}
+
+var _ base.IData = &ProcessConfig{}
+
+// ProcessConfig represents the table of the v2 compatible plugin configuration.
+// The schema is the same as the v3 process config table, only the main config file is persisted.
+type ProcessConfig struct {
+	Name                string         `json:"name" bson:"name"`
+	TemplateName        string         `json:"template_name" bson:"template_name"`
+	ProcessName         string         `json:"process_name" bson:"process_name"`
+	HostID              int64          `json:"host_id" bson:"host_id"`
+	Set                 string         `json:"set" bson:"set"`
+	IsMainConfig        bool           `json:"is_main_config" bson:"is_main_config"`
+	Content             string         `json:"content" bson:"content"`
+	MD5                 string         `json:"md5" bson:"md5"`
+	FilePath            string         `json:"file_path" bson:"file_path"`
+	CustomConfigContext map[string]any `json:"custom_config_context" bson:"custom_config_context"`
+}
+
+// UniqueFields unique fields of the table.
+func (config *ProcessConfig) UniqueFields() []string {
+	return []string{FieldKeyName, FieldKeyProcessName, FieldKeyHostID, FieldKeyIsMainConfig}
+}
+
+// UniqueKey unique key of the table.
+func (config *ProcessConfig) UniqueKey() string {
+	return fmt.Sprintf("%s_%s_%d_%t", config.Name, config.ProcessName, config.HostID, config.IsMainConfig)
+}
+
+// Table represent the complete db structures of the v2 compatible plugin configuration.
+type Table base.TableBroker[*ProcessConfig]
