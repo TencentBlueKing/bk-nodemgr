@@ -6953,6 +6953,196 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Query the process list with pagination, count-only mode, and exact or fuzzy filters.
+  /api/v3/process/list_v2_compatible:
+    post:
+      operationId: Process_ListV2ProcessesCompatible
+      description: 仅监控平台使用，不对外开放申请。
+      tags:
+      - Process
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: ProcessV2CompatibleListResp 主机 process v2 进程状态。
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    title: Data 查询结果。
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          title: Host 主机及其插件进程状态。
+                          properties:
+                            inner_ip:
+                              type: string
+                              title: 内网 IPv4，多个以逗号分隔。
+                            bk_host_id:
+                              type: integer
+                              title: 主机 ID。
+                              format: int64
+                            inner_ipv6:
+                              type: string
+                              title: 内网 IPv6，多个以逗号分隔。
+                            setup_path:
+                              type: string
+                              title: Agent 安装路径，按部署配置与管控区域自定义部署配置计算。
+                            bk_cloud_id:
+                              type: integer
+                              title: 云区域 ID。
+                              format: int64
+                            plugin_status:
+                              type: array
+                              items:
+                                type: object
+                                title: ProcessV2Status 插件在某台主机上的进程状态。
+                                properties:
+                                  name:
+                                    type: string
+                                    title: 插件名，当前固定为 bkmonitorbeat。
+                                  status:
+                                    type: string
+                                    title: 进程状态，取值为 running、stopped、unknown，未注册时为 unregister。
+                                  version:
+                                    type: string
+                                    title: 插件版本，进程未注册时为空。
+                              title: 插件进程状态，当前仅包含 bkmonitorbeat。
+                        title: 主机列表。
+                      total:
+                        type: integer
+                        title: 主机总数。
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: ProcessV2CompatibleListReq 查询主机上 process v2 的进程状态。
+              properties:
+                bk_biz_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  title: 业务 ID，必传。
+                bk_host_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  title: 主机 ID，不传则返回业务内全部主机。
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/process/list_v2_compatible
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn:
   /api/v3/plugin/apply_subconfig:
     post:
       operationId: Plugin_ApplyPluginSubConfig
@@ -32830,6 +33020,8 @@ paths:
                       renew_gse_proc:
                         type: boolean
                       renew_gse_task:
+                        type: boolean
+                      is_sudo:
                         type: boolean
                       bk_host_innerip:
                         type: array
