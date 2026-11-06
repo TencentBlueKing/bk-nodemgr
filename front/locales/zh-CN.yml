@@ -638,8 +638,7 @@ topoManager:
     guide: 安装要求
     strategyTitle: 安装策略
     strategyTip1: 1. 目标机器必须是 Linux 系统
-    strategyTip2: 2. Linux 系统使用非 root 安装时，要求可以免密sudo执行/tmp/setup_agent.sh 脚本
-    strategyTip3: '3. 直连 Proxy 端：保证与蓝鲸服务端以下端口互通，可使用telnet {ip} {port}来确认端口是否可通'
+    strategyTip2: '2. 直连 Proxy 端：保证与蓝鲸服务端以下端口互通，可使用telnet {ip} {port}来确认端口是否可通'
     sourceAddress: 源地址
     targetAddress: 目标地址
     targetPort: 目标端口

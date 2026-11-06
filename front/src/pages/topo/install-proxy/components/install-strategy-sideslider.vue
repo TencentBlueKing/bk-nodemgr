@@ -9,8 +9,7 @@
       <!-- 提示信息 -->
       <div class="text-[12px] leading-[20px] text-[#4d4f56] mb-[24px]">
         <p>{{ $t('topoManager.installProxy.strategyTip1') }}</p>
-        <p>{{ $t('topoManager.installProxy.strategyTip2') }}</p>
-        <p>{{ $t('topoManager.installProxy.strategyTip3', { ip: '<IP>', port: '<PORT>' }) }}</p>
+        <p>{{ $t('topoManager.installProxy.strategyTip2', { ip: '<IP>', port: '<PORT>' }) }}</p>
       </div>
 
       <!-- 区域可折叠标题 -->
@@ -113,22 +112,16 @@ const toggleAreaCollapse = () => {
 const strategyConfigs = [
   {
     key: 'cluster' as const,
-    sourcePrefix: '',
-    targetPrefix: '',
     protocol: 'TCP',
     purpose: t('topoManager.installProxy.purposeCluster'),
   },
   {
     key: 'file' as const,
-    sourcePrefix: '',
-    targetPrefix: '',
     protocol: 'TCP',
     purpose: t('topoManager.installProxy.purposeFile'),
   },
   {
     key: 'data' as const,
-    sourcePrefix: '',
-    targetPrefix: '',
     protocol: 'TCP',
     purpose: t('topoManager.installProxy.purposeData'),
   },
@@ -234,8 +227,8 @@ const loadStrategyTableData = async () => {
       if (endpoints.length > 0) {
         endpoints.forEach(({ ip, port }) => {
           rows.push({
-            source: `${config.sourcePrefix}: ${exportIp}`,
-            target: `${config.targetPrefix}: ${ip}`,
+            source: exportIp,
+            target: ip,
             port,
             protocol: config.protocol,
             purpose: config.purpose,
@@ -244,8 +237,8 @@ const loadStrategyTableData = async () => {
       } else {
         // 没有 upstream IP 时也显示一条
         rows.push({
-          source: `${config.sourcePrefix}: ${exportIp}`,
-          target: `${config.targetPrefix}: -`,
+          source: exportIp,
+          target: '-',
           port: 0,
           protocol: config.protocol,
           purpose: config.purpose,
