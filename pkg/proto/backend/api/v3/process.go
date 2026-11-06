@@ -518,3 +518,52 @@ func (x *ProcessDistinctResp) ConvertResultToTypes() (*types.ProcessDistinctResu
 
 	return result, nil
 }
+
+// Validate check body.
+func (x *ProcessV2CompatibleListReq) Validate() error {
+	if len(x.GetBkBizId()) == 0 {
+		return fmt.Errorf("bk_biz_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ProcessV2CompatibleListReq) AutoConvert() {}
+
+// ConvertConditionsToTypes convert conditions.
+func (x *ProcessV2CompatibleListReq) ConvertConditionsToTypes() *types.HostCondition {
+	return &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			HostID: x.GetBkHostId(),
+			BizID:  x.GetBkBizId(),
+		},
+	}
+}
+
+// ConvertHostPluginProcessFromTypes converts host plugin process from types.
+func (x *ProcessV2CompatibleListResp) ConvertHostPluginProcessFromTypes(total int64, hosts []*types.HostPluginProcess) {
+	items := make([]*ProcessV2CompatibleListResp_Host, 0, len(hosts))
+	for _, host := range hosts {
+		item := &ProcessV2CompatibleListResp_Host{
+			BkHostId:     host.HostID,
+			InnerIp:      host.InnerIP,
+			InnerIpv6:    host.InnerIPv6,
+			BkCloudId:    host.NetworkAreaID,
+			SetupPath:    host.SetupPath,
+			PluginStatus: make([]*ProcessV2CompatibleListResp_ProcessV2Status, 0, len(host.Plugins)),
+		}
+
+		for _, plugin := range host.Plugins {
+			item.PluginStatus = append(item.PluginStatus, &ProcessV2CompatibleListResp_ProcessV2Status{
+				Name:    plugin.Name,
+				Version: plugin.Version,
+				Status:  plugin.Status.String(),
+			})
+		}
+
+		items = append(items, item)
+	}
+
+	x.Data = &ProcessV2CompatibleListResp_Data{Total: total, List: items}
+}

@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +33,11 @@ type handler struct {
 	daoProcess    pluginStg.IDaoProcess
 	domainProcess pluginStg.IDomainPlugin
 	authorizer    auth.IAuthorizer
+
+	// For v2 plugin process
+	daoHost      topoStg.IStorageHost
+	daoDomainGse topoStg.IStorageDomainGse
+	daoProcessV2 pluginStg.IDaoProcessV2
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -41,6 +47,10 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		daoProcess:    capability.StoragePlugin,
 		domainProcess: capability.StoragePlugin,
 		authorizer:    capability.Authorizer,
+
+		daoHost:      capability.StorageTopo,
+		daoDomainGse: capability.StorageTopo,
+		daoProcessV2: capability.StoragePlugin,
 	}
 }
 
@@ -48,8 +58,11 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/get_distribution_by_host_id", restserver.Handler(h.GetDistributionByHostID))
 	h.rg.POST("/get_distribution_by_plugin_name", restserver.Handler(h.GetDistributionByPluginName))
 	h.rg.POST("/distinct", restserver.Handler(h.Distinct))
+
+	h.rg.POST("/list", restserver.Handler(h.List))
+
+	h.rg.POST("/list_v2_compatible", restserver.Handler(h.ListV2Compatible))
 }
