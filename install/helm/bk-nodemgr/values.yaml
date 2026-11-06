@@ -2205,7 +2205,7 @@ file:
       bindIP: "0.0.0.0"
       bindIPV6: "::1"
       port: 28202
-      authIdentity: none
+      authIdentity: rest-server
       traceServiceName: "file-server-basic"
       traceSampleRate: 0
 
