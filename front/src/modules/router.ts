@@ -3,6 +3,7 @@ import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import { cancelRequest } from '@/api/request-queue';
+import { userStorage } from '@/common/storage';
 import {
   getPageAuthorizedItems,
   handleDeferredBizAuthCheck,
@@ -436,7 +437,7 @@ export const install: UserModule = ({ app }) => {
       matched.resourceType === 'biz'
       && (currentBizId === undefined || currentBizId === null)
     ) {
-      const cachedBiz = localStorage.getItem(isRuleManagerRoute ? 'strategy_biz_id' : 'bk_biz_id');
+      const cachedBiz = userStorage.getItem(isRuleManagerRoute ? 'strategy_biz_id' : 'bk_biz_id');
       if (cachedBiz) {
         try {
           if (isRuleManagerRoute) {

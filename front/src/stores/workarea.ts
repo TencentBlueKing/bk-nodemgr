@@ -2,6 +2,7 @@ import { keyBy } from 'lodash';
 import { defineStore } from 'pinia';
 import { reactive, ref, watch } from 'vue';
 
+import { userStorage } from '@/common/storage';
 import type {
   TopoEventListReq,
   TopoNetworkAreaCreateReq,
@@ -22,7 +23,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const allAccessPointList = ref<Map<number, AccessPoint[]>>(new Map());
 
   // 收藏的管控区域
-  const favoriteWorkareaList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
+  const favoriteWorkareaList = ref<number[]>(JSON.parse(userStorage.getItem('collect_workarea') || '[]'));
 
   const vendorList = ref<string[]>([]);
   const osTypeList = ref<string[]>([]);
@@ -320,7 +321,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
 
   // 同步更新收藏状态
   const syncFavoriteWorkareaList = () => {
-    favoriteWorkareaList.value = JSON.parse(localStorage.getItem('collect_workarea') || '[]');
+    favoriteWorkareaList.value = JSON.parse(userStorage.getItem('collect_workarea') || '[]');
   };
 
   return {

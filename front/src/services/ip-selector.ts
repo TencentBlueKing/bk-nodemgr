@@ -8,6 +8,7 @@
  * 2. 插件手动拓扑：不设置策略参数，走通用查询路径
  */
 
+import { userStorage } from '@/common/storage';
 import { TopoService } from '@/api/modules/topo';
 import { useMainStore } from '@/stores/main';
 import { useAuthStore } from '@/stores/auth';
@@ -32,7 +33,7 @@ export const setActiveIpsPanel = (panel: string) => {
 /** 统一别名：设置类型 */
 export const setType = setPolicyType;
 
-// 当前策略业务 ID 数组（由外部设置，从 store 或 localStorage 获取）
+// 当前策略业务 ID 数组（由外部设置，从 store 或用户维度存储获取）
 let currentBizIds: number[] = [];
 // 是否已显式调用过 setBizId（用于区分"从未设置"和"主动设为全选空数组"）
 let bizIdExplicitlySet = false;
@@ -250,7 +251,7 @@ export const mapHostItem = (item: any) => {
   };
 };
 
-/** 获取默认业务 ID 数组（优先 IP 选择器上下文，再回退 mainStore / localStorage）
+/** 获取默认业务 ID 数组（优先 IP 选择器上下文，再回退 mainStore / 用户维度存储）
  *  多选业务场景下返回完整数组，避免只取第一个业务导致查询范围缺失 */
 const getDefaultBizIds = (): number[] => {
   // 1. IP 选择器上下文（setBizId / setStrategyBizId 设置的 currentBizIds）
@@ -264,9 +265,9 @@ const getDefaultBizIds = (): number[] => {
   } catch {
     // ignore
   }
-  // 3. 兼容：store 未就绪时（如页面刷新），从 localStorage 读取
+  // 3. 兼容：store 未就绪时（如页面刷新），从用户维度存储读取
   try {
-    const saved = localStorage.getItem('bk_biz_id');
+    const saved = userStorage.getItem('bk_biz_id');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed.map(Number);
@@ -440,7 +441,7 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
   // 策略管理/插件安装场景：只返回当前策略业务（支持单业务或业务数组）
   let effectiveBizIds = getEffectiveBizIds();
 
-  // 兼容刷新后模块变量丢失：从 store / localStorage 补充
+  // 兼容刷新后模块变量丢失：从 store / 用户维度存储补充
   if (effectiveBizIds.length === 0 && !bizIdExplicitlySet) {
     const fallbackBizId = getDefaultBizId();
     if (fallbackBizId) effectiveBizIds = [fallbackBizId];

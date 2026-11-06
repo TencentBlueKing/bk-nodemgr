@@ -13,6 +13,12 @@ import './styles/main.css';
 import 'uno.css';
 import './fonts/style.css';
 
+import { migrateLegacyStorage } from '@/common/storage';
+
+// 存量数据迁移：把改造前直接写入 localStorage 的用户偏好搬到 <username>-<key> 下
+// 必须在应用初始化读取任何存储之前执行
+migrateLegacyStorage();
+
 // 忽略 AbortError 报错
 window.addEventListener('unhandledrejection', (event) => {
   if (event.reason?.name === 'AbortError') {

@@ -186,6 +186,7 @@ import { useHead } from '@vueuse/head';
 
 import { TopoService } from '@/api/modules/topo';
 import { logout } from '@/common/auth';
+import { userStorage } from '@/common/storage';
 import { parseCookies } from '@/common/util';
 import BizSelector from '@/components/biz-selector.vue';
 import Notice from '@/components/notice.vue';
@@ -557,8 +558,8 @@ onMounted(async () => {
     }, 300),
   );
   // 初始化收藏管控区域（仅首次使用时设置默认值，避免刷新后覆盖用户的收藏）
-  if (!localStorage.getItem('collect_workarea')) {
-    localStorage.setItem('collect_workarea', JSON.stringify([0]));
+  if (!userStorage.getItem('collect_workarea')) {
+    userStorage.setItem('collect_workarea', JSON.stringify([0]));
   }
 });
 

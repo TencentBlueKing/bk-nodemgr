@@ -90,6 +90,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import useAuthLock from '@/composables/use-auth-lock';
+import { userStorage } from '@/common/storage';
 import { useAuthStore } from '@/stores/auth';
 import { usePermissionStore } from '@/stores/permission';
 import { useTopoStore } from '@/stores/topo';
@@ -236,9 +237,9 @@ const sortedOtherList = computed(() => {
 const isFavorited = (id: number) => workareaStore.favoriteWorkareaList.includes(id);
 
 const handleCollect = (id: number) => {
-  let collectList = JSON.parse(localStorage.getItem('collect_workarea') || '[]');
+  let collectList = JSON.parse(userStorage.getItem('collect_workarea') || '[]');
   collectList = collectList.includes(id) ? collectList.filter((i: number) => i !== id) : [...collectList, id];
-  localStorage.setItem('collect_workarea', JSON.stringify(collectList));
+  userStorage.setItem('collect_workarea', JSON.stringify(collectList));
   workareaStore.syncFavoriteWorkareaList();
 };
 

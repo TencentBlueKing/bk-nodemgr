@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 
+import { userStorage } from '@/common/storage';
+
 export const useMainStore = defineStore('mainStore', {
   state: (): {
     globalPageSize: number;
@@ -23,12 +25,12 @@ export const useMainStore = defineStore('mainStore', {
     businessList: [] as Business[], // 业务列表
     selectedBusinessId: (() => {
       try {
-        const saved = localStorage.getItem('bk_biz_id');
+        const saved = userStorage.getItem('bk_biz_id');
         return saved ? JSON.parse(saved) : [];
       } catch {
         return [];
       }
-    })() as number[], // 当前业务id（优先从 localStorage 恢复）
+    })() as number[], // 当前业务id（优先从用户维度存储恢复）
     selectedBusinessName: [] as string[], // 当前业务名称
     isBusinessReady: false, // 业务初始化是否完成
     strategyBizId: 0, // 策略管理 - 当前选中的业务ID
@@ -58,7 +60,7 @@ export const useMainStore = defineStore('mainStore', {
       this.selectedBusinessId = businessId;
       this.selectedBusinessName = businessId.map(id =>
         this.businessList.find(item => item.bk_biz_id === id)?.bk_biz_name) as string[];
-      localStorage.setItem('bk_biz_id', JSON.stringify(businessId));
+      userStorage.setItem('bk_biz_id', JSON.stringify(businessId));
     },
     updateAgentSetupType(type: string) {
       this.agentSetupType = type;
