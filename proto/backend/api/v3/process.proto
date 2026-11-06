@@ -140,6 +140,58 @@ message ProcessDistinctResp {
   Data data = 5;
 }
 
+// ProcessV2CompatibleListReq 查询主机上 process v2 的进程状态。
+message ProcessV2CompatibleListReq {
+  // 业务 ID，必传。
+  repeated int64 bk_biz_id = 1;
+  // 主机 ID，不传则返回业务内全部主机。
+  repeated int64 bk_host_id = 2;
+}
+
+// ProcessV2CompatibleListResp 主机 process v2 进程状态。
+message ProcessV2CompatibleListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  // ProcessV2Status 插件在某台主机上的进程状态。
+  message ProcessV2Status {
+    // 插件名，当前固定为 bkmonitorbeat。
+    string name = 1;
+    // 插件版本，进程未注册时为空。
+    string version = 2;
+    // 进程状态，取值为 running、stopped、unknown，未注册时为 unregister。
+    string status = 3;
+  }
+
+  // Host 主机及其插件进程状态。
+  message Host {
+    // 主机 ID。
+    int64 bk_host_id = 1;
+    // 内网 IPv4，多个以逗号分隔。
+    string inner_ip = 2;
+    // 内网 IPv6，多个以逗号分隔。
+    string inner_ipv6 = 3;
+    // 云区域 ID。
+    int64 bk_cloud_id = 4;
+    // Agent 安装路径，按部署配置与管控区域自定义部署配置计算。
+    string setup_path = 5;
+    // 插件进程状态，当前仅包含 bkmonitorbeat。
+    repeated ProcessV2Status plugin_status = 6;
+  }
+
+  // Data 查询结果。
+  message Data {
+    // 主机总数。
+    int64 total = 1;
+    // 主机列表。
+    repeated Host list = 2;
+  }
+  Data data = 5;
+}
+
 service Process {
   // ListProcesses lists the processes.
   rpc ListProcesses(ProcessListReq) returns (ProcessListResp) {
@@ -172,6 +224,17 @@ service Process {
   rpc ProcessDistinct(ProcessDistinctReq) returns (ProcessDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/process/distinct"
+      body : "*"
+    };
+  }
+
+  // 查询主机上的插件进程状态，兼容节点管理 V2 的插件检索返回内容。
+  //
+  // 仅监控平台使用，不对外开放申请。
+  rpc ListV2ProcessesCompatible(ProcessV2CompatibleListReq)
+      returns (ProcessV2CompatibleListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/process/list_v2_compatible"
       body : "*"
     };
   }

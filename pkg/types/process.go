@@ -342,3 +342,23 @@ type ProcessUniqueKey struct {
 	Name   string
 	HostID int64
 }
+
+// HostPluginProcess describes the plugin processes of a host.
+//
+// It is only used by the v2 plugin process list, and the plugin process list is not a complete list.
+type HostPluginProcess struct {
+	HostID        int64
+	InnerIP       string
+	InnerIPv6     string
+	NetworkAreaID int64
+	// SetupPath is the agent install path on the host.
+	SetupPath string
+	Plugins   []HostPluginProcessStatus
+}
+
+// HostPluginProcessStatus describes the status of a plugin process on a host.
+type HostPluginProcessStatus struct {
+	Name    string
+	Version string
+	Status  ProcessStatus
+}

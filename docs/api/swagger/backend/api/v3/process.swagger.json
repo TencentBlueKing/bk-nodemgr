@@ -151,6 +151,40 @@
           "Process"
         ]
       }
+    },
+    "/api/v3/process/list_v2_compatible": {
+      "post": {
+        "summary": "查询主机上的插件进程状态，兼容节点管理 V2 的插件检索返回内容。",
+        "description": "仅监控平台使用，不对外开放申请。",
+        "operationId": "Process_ListV2ProcessesCompatible",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ProcessV2CompatibleListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ProcessV2CompatibleListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Process"
+        ]
+      }
     }
   },
   "definitions": {
@@ -211,6 +245,24 @@
           "format": "int64"
         }
       }
+    },
+    "ProcessV2CompatibleListRespProcessV2Status": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "插件名，当前固定为 bkmonitorbeat。"
+        },
+        "version": {
+          "type": "string",
+          "title": "插件版本，进程未注册时为空。"
+        },
+        "status": {
+          "type": "string",
+          "title": "进程状态，取值为 running、stopped、unknown，未注册时为 unregister。"
+        }
+      },
+      "title": "ProcessV2Status 插件在某台主机上的进程状态。"
     },
     "protobufAny": {
       "type": "object",
@@ -780,6 +832,108 @@
         }
       },
       "description": "ProcessResource describes the process resource."
+    },
+    "v3ProcessV2CompatibleListReq": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": "业务 ID，必传。"
+        },
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": "主机 ID，不传则返回业务内全部主机。"
+        }
+      },
+      "title": "ProcessV2CompatibleListReq 查询主机上 process v2 的进程状态。"
+    },
+    "v3ProcessV2CompatibleListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ProcessV2CompatibleListRespData"
+        }
+      },
+      "title": "ProcessV2CompatibleListResp 主机 process v2 进程状态。"
+    },
+    "v3ProcessV2CompatibleListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "title": "主机总数。"
+        },
+        "list": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ProcessV2CompatibleListRespHost"
+          },
+          "title": "主机列表。"
+        }
+      },
+      "title": "Data 查询结果。"
+    },
+    "v3ProcessV2CompatibleListRespHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "主机 ID。"
+        },
+        "inner_ip": {
+          "type": "string",
+          "title": "内网 IPv4，多个以逗号分隔。"
+        },
+        "inner_ipv6": {
+          "type": "string",
+          "title": "内网 IPv6，多个以逗号分隔。"
+        },
+        "bk_cloud_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "云区域 ID。"
+        },
+        "setup_path": {
+          "type": "string",
+          "title": "Agent 安装路径，按部署配置与管控区域自定义部署配置计算。"
+        },
+        "plugin_status": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ProcessV2CompatibleListRespProcessV2Status"
+          },
+          "title": "插件进程状态，当前仅包含 bkmonitorbeat。"
+        }
+      },
+      "title": "Host 主机及其插件进程状态。"
     },
     "v3RelatedResourceType": {
       "type": "object",
