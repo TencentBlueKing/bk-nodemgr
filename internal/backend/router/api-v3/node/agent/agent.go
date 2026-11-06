@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +41,7 @@ type handler struct {
 	storageHostCredit     credit.IStorageHostCredit
 	storageGlobalSettings globalsettingsStorage.IStorage
 	storageCipher         cipherStg.IStorage
+	cryptoType            config.EncryptCryptoType
 	authorizer            auth.IAuthorizer
 
 	domainNodeInstall topoStg.IDomainNodeInstall
@@ -56,6 +58,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageHostCredit:     capability.StorageCredit,
 		storageGlobalSettings: capability.StorageGlobalSettings,
 		storageCipher:         capability.StorageCipher,
+		cryptoType:            capability.CryptoType,
 		authorizer:            capability.Authorizer,
 		domainNodeInstall:     capability.StorageTopo,
 	}

@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package rsa provides the RSA encryption related API handlers.
-package rsa
+// Package rsakey provides the RSA encryption related API handlers.
+package rsakey
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
@@ -61,7 +61,7 @@ func (h *handler) GetRSAPublicKey(rCtx restserver.IContext) (interface{}, error)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get rsa public key, failed to get public key from backend")
 
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := &protoApplication.GetRSAPublicKeyResp_Data{

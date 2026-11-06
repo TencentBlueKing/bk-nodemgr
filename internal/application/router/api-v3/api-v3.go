@@ -62,7 +62,7 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	pkg.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)
 	process.Load(h.rg, capability)
-	cipher.Load(h.rg, capability)
+	ciphersuite.Load(h.rg, capability)
 	auth.Load(h.rg, capability)
 	notice.Load(h.rg, capability)
 	versionlog.Load(h.rg, capability)

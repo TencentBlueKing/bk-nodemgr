@@ -621,7 +621,9 @@ const handleSetup = async () => {
   loading.value = true;
   // 过滤掉每条数据中的duplicate_host_ids和elig_status字段
   const filteredData = tableData.value.map((item: any) => {
-    const { pending_host_ids, status, bk_networkunit_id, __row_id, ...rest } = item;
+    // credit is the plaintext credential form field and must never be sent:
+    // exclude it here at the request boundary, regardless of upstream handling
+    const { pending_host_ids, status, bk_networkunit_id, __row_id, credit, ...rest } = item;
     return {
       ...rest,
       // install_method 为 auto（自动）时，后端协议要求传空字符串

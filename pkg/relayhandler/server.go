@@ -34,8 +34,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/redis/go-redis/v9"
@@ -58,12 +60,38 @@ type ServerMessagerConfig struct {
 	// GSEBaseURL defines the gse base url.
 	GSEBaseURL string
 
-	// SkipTLSVerify defines the skip tls verify.
-	SkipTLSVerify bool
+	// TLSConfig is the TLS/TLCP (GM TLS) configuration for the GSE server-api
+	// client. When it carries a TLCP encryption certificate pair, the client
+	// dials with TLCP; otherwise standard TLS with InsecureSkipVerify applies.
+	TLSConfig *ssl.TLSConfig
 
 	// RedisClient is the redis client for storing pending messages.
 	// Supports both standalone and cluster mode.
 	RedisClient redis.UniversalClient
+}
+
+// redactedMask replaces sensitive field values in log output.
+const redactedMask = "***"
+
+// String returns a redacted representation for logging: the slot token, app
+// secret and any TLS private key material or password never appear in logs.
+func (c ServerMessagerConfig) String() string {
+	redacted := c
+	redacted.Token = redactedMask
+	redacted.AppSecret = redactedMask
+
+	if redacted.TLSConfig != nil {
+		tlsCopy := *redacted.TLSConfig
+		tlsCopy.Key = nil
+		tlsCopy.EncKey = nil
+		tlsCopy.Password = redactedMask
+		redacted.TLSConfig = &tlsCopy
+	}
+
+	// bypass the Stringer to avoid recursion.
+	type plain ServerMessagerConfig
+
+	return fmt.Sprintf("%+v", plain(redacted))
 }
 
 const (
@@ -99,14 +127,34 @@ type serverMessager struct {
 	redisMsgTracker messagetracker.IMessageTracker
 }
 
+// newHTTPClient builds the GSE server-api http client, serving TLCP (GM TLS)
+// when the encryption certificate pair is configured, otherwise standard TLS
+// with InsecureSkipVerify.
+func newHTTPClient(conf ServerMessagerConfig) (*http.Client, error) {
+	if conf.TLSConfig != nil && conf.TLSConfig.GMEnabled() {
+		return restclient.NewHTTPClient(conf.TLSConfig)
+	}
+
+	insecureSkipVerify := false
+	if conf.TLSConfig != nil {
+		insecureSkipVerify = conf.TLSConfig.InsecureSkipVerify
+	}
+
+	// nolint: gosec // the skip-verify switch comes from trusted service config, not user input.
+	return &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: insecureSkipVerify},
+	}}, nil
+}
+
 // Start starts the messager.
 func (m *serverMessager) Start(_ contextx.IContext) error {
 	logger.G.Sys().With("config", m.config).Info("try to start messager")
 
 	// initialize http client.
-	httpClient := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: m.config.SkipTLSVerify},
-	}}
+	httpClient, err := newHTTPClient(m.config)
+	if err != nil {
+		return err
+	}
 
 	// GSE does not partition cluster message slots by tenant, but multi-tenant apigw
 	// rejects requests without X-Bk-Tenant-Id, so dispatching declares the system tenant.

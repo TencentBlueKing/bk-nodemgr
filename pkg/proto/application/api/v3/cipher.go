@@ -26,3 +26,12 @@ func (x *GetRSAPublicKeyReq) Validate() error {
 // AutoConvert auto convert.
 func (x *GetRSAPublicKeyReq) AutoConvert() {
 }
+
+// Validate check body.
+func (x *GetCurrentPublicKeyReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *GetCurrentPublicKeyReq) AutoConvert() {
+}

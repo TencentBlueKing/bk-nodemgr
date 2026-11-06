@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -35,12 +36,12 @@ import (
 func testClient(t *testing.T) IServerMessager {
 	ctx := contextx.New(context.Background())
 	proxyMessanger := NewServerMessager(ServerMessagerConfig{
-		SlotID:        0,
-		Token:         "",
-		AppCode:       "",
-		AppSecret:     "",
-		GSEBaseURL:    "",
-		SkipTLSVerify: true,
+		SlotID:     0,
+		Token:      "",
+		AppCode:    "",
+		AppSecret:  "",
+		GSEBaseURL: "",
+		TLSConfig:  &ssl.TLSConfig{InsecureSkipVerify: true},
 		RedisClient: redis.NewUniversalClient(&redis.UniversalOptions{
 			Addrs:    []string{""},
 			Password: "",
