@@ -21,6 +21,7 @@ package step
 import (
 	"fmt"
 
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/pluginuninstaller"
@@ -32,6 +33,9 @@ import (
 // NewUninstall creates a new uninstall step command.
 func NewUninstall() *cobra.Command {
 	var (
+		// optional flags.
+		renewSubConfig bool
+
 		// pre-run.
 		pluginHandler pluginv2handler.IPluginHandler
 	)
@@ -56,7 +60,8 @@ func NewUninstall() *cobra.Command {
 
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
-				PluginHandler: pluginHandler,
+				PluginHandler:   pluginHandler,
+				PreserveOptions: pluginv2handler.PreserveOptions{RenewSubConfig: renewSubConfig},
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {
@@ -68,6 +73,11 @@ func NewUninstall() *cobra.Command {
 			return nil
 		},
 	}
+
+	/*
+	 * optional flags.
+	 */
+	stepCmd.Flags().BoolVar(&renewSubConfig, pluginV2Flag.RenewSubConfig, false, "renew the plugin sub config instead of preserving it")
 
 	return stepCmd
 }

@@ -35,6 +35,8 @@ type Step struct {
 // StepArgs define args for step.
 type StepArgs struct {
 	PluginHandler pluginhandler.IPluginHandler
+
+	PreserveOptions pluginhandler.PreserveOptions
 }
 
 // NewStep new a step.
@@ -45,6 +47,17 @@ func NewStep(args StepArgs) *Step {
 // Run run the step to uninstall plugin.
 func (step *Step) Run(ctx context.Context) error {
 	logger.Info(plugin.StepUninstallPlugin, "start to uninstall plugin")
+
+	// the sub config dir of the plugin is preserved by default, renewing it lets the purge below drop
+	// it with the installed files.
+	if !step.args.PreserveOptions.RenewSubConfig {
+		if err := step.args.PluginHandler.FS().SaveSubConfigDir(ctx); err != nil {
+			logger.Errorf(plugin.StepUninstallPlugin, "failed to save sub config dir: %v", err)
+
+			return fmt.Errorf("failed to save sub config dir: %w", err)
+		}
+		logger.Info(plugin.StepUninstallPlugin, "saved sub config dir")
+	}
 
 	if err := step.args.PluginHandler.FS().Purge(ctx); err != nil {
 		logger.Errorf(plugin.StepUninstallPlugin, "failed to purge file-system: %v", err)

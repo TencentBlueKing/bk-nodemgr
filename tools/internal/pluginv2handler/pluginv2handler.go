@@ -35,6 +35,14 @@ type IPluginHandler interface {
 	Process() IPluginProcessHandler
 }
 
+// PreserveOptions defines plugin data that should be renewed instead of preserved.
+type PreserveOptions struct {
+	// RenewSubConfig renews the sub config of the plugin instead of preserving it: the sub config is
+	// neither saved nor restored, the install flow handles it as before. The sub config holds user
+	// data, so preserving it is the default.
+	RenewSubConfig bool
+}
+
 // IPluginFSHandler plugin compatible file system handler interface.
 type IPluginFSHandler interface {
 	// CheckIntegrity check the integrity of plugin file system.
@@ -46,6 +54,15 @@ type IPluginFSHandler interface {
 	// Purge purge plugin file system.
 	Purge(ctx context.Context) error
 
+	// SaveSubConfigDir saves the sub config dir of the plugin before reinstall or upgrade overwrites
+	// it. The snapshot mirrors the state before this operation, a snapshot left by an earlier run is
+	// replaced.
+	SaveSubConfigDir(ctx context.Context) error
+
+	// RestoreSubConfigDir restores the sub config dir saved by SaveSubConfigDir, the snapshot is
+	// consumed only after it is restored successfully.
+	RestoreSubConfigDir(ctx context.Context) error
+
 	// CopyConfigDir copy config files to plugin file system.
 	CopyConfigDir(ctx context.Context, configFileAbsDir string) error
 
@@ -54,7 +71,8 @@ type IPluginFSHandler interface {
 	// to keep the process running. Call Clean() to clean all the tmp files.
 	UnpackReleasePackage(ctx context.Context, releasePkgAbsPath string, keepOldFileAsTmp bool) error
 
-	// Clean cleans all the tmp files and tools in plugin file system.
+	// Clean cleans all the tmp files and tools in plugin file system. An unfinished sub config
+	// snapshot is cleaned as well, a published one is kept for the plugin reinstall.
 	Clean(ctx context.Context) error
 }
 

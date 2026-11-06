@@ -46,8 +46,9 @@ func NewFullUninstall() *cobra.Command {
 		operInstID      string
 
 		// optional flags.
-		logDir   string
-		logToStd bool
+		logDir         string
+		logToStd       bool
+		renewSubConfig bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -112,7 +113,8 @@ func NewFullUninstall() *cobra.Command {
 
 			// uninstall plugin.
 			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
-				PluginHandler: pluginHandler,
+				PluginHandler:   pluginHandler,
+				PreserveOptions: pluginhandler.PreserveOptions{RenewSubConfig: renewSubConfig},
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
@@ -146,6 +148,7 @@ func NewFullUninstall() *cobra.Command {
 	 */
 	fullCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
 	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().BoolVar(&renewSubConfig, pluginFlag.RenewSubConfig, false, "renew the plugin sub config instead of preserving it")
 
 	return fullCmd
 }

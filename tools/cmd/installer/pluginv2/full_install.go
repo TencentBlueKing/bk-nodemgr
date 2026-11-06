@@ -54,10 +54,11 @@ func NewFullInstall() *cobra.Command {
 		pluginVersion   string
 
 		// optional flags.
-		logDir       string
-		logToStd     bool
-		skipCallback bool
-		skipDownload bool
+		logDir         string
+		logToStd       bool
+		skipCallback   bool
+		skipDownload   bool
+		renewSubConfig bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -177,18 +178,21 @@ func NewFullInstall() *cobra.Command {
 				}
 			}
 
-			// uninstall plugin.
+			// purge the plugin files before installing, the sub config dir of the plugin is kept by
+			// default because the sub configs are user data.
 			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
-				PluginHandler: pluginHandler,
+				PluginHandler:   pluginHandler,
+				PreserveOptions: pluginv2handler.PreserveOptions{RenewSubConfig: renewSubConfig},
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
 
 			// install plugin.
 			if err := plugininstaller.NewStep(plugininstaller.StepArgs{
-				PluginHandler: pluginHandler,
-				PkgPath:       pkgPath,
-				SrcConfigDir:  persistentVars.ConfigDir,
+				PluginHandler:   pluginHandler,
+				PkgPath:         pkgPath,
+				SrcConfigDir:    persistentVars.ConfigDir,
+				PreserveOptions: pluginv2handler.PreserveOptions{RenewSubConfig: renewSubConfig},
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
@@ -231,6 +235,7 @@ func NewFullInstall() *cobra.Command {
 	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().BoolVar(&skipDownload, pluginFlag.SkipDownload, false, "whether to skip downloading files")
 	fullCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
+	fullCmd.Flags().BoolVar(&renewSubConfig, pluginFlag.RenewSubConfig, false, "renew the plugin sub config instead of preserving it")
 
 	return fullCmd
 }

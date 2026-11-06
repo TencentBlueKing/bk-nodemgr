@@ -115,6 +115,23 @@ func (handler *PluginHandler) overwriteFile(file io.Reader, targetRelativePath s
 	return nil
 }
 
+// openFileForRead opens the file of the given relative path for reading.
+func (handler *PluginHandler) openFileForRead(relativePath string) (*os.File, error) {
+	if err := handler.checkPathInFS(relativePath); err != nil {
+		return nil, fmt.Errorf("will not open path outside FS. file(%s): %w", relativePath, err)
+	}
+
+	absPath := handler.getAbsPath(relativePath)
+
+	// nolint: gosec
+	file, err := os.OpenFile(absPath, os.O_RDONLY, 0)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open reading file(%s): %w", absPath, err)
+	}
+
+	return file, nil
+}
+
 func (handler *PluginHandler) removeAll(relativePath string) error {
 	if err := handler.checkPathInFS(relativePath); err != nil {
 		return fmt.Errorf("will not remove path outside FS. file(%s): %w", relativePath, err)

@@ -53,10 +53,11 @@ func NewFullUpgrade() *cobra.Command {
 		pluginVersion   string
 
 		// optional flags.
-		logDir       string
-		logToStd     bool
-		skipCallback bool
-		skipDownload bool
+		logDir         string
+		logToStd       bool
+		skipCallback   bool
+		skipDownload   bool
+		renewSubConfig bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -171,11 +172,12 @@ func NewFullUpgrade() *cobra.Command {
 				}
 			}
 
-			// upgrade plugin.
+			// upgrade plugin, the sub config dir of the plugin is kept by default.
 			if err := pluginupgrader.NewStep(pluginupgrader.StepArgs{
-				PluginHandler: pluginHandler,
-				PkgPath:       pkgPath,
-				SrcConfigDir:  persistentVars.ConfigDir,
+				PluginHandler:   pluginHandler,
+				PkgPath:         pkgPath,
+				SrcConfigDir:    persistentVars.ConfigDir,
+				PreserveOptions: pluginhandler.PreserveOptions{RenewSubConfig: renewSubConfig},
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
@@ -219,6 +221,7 @@ func NewFullUpgrade() *cobra.Command {
 	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().BoolVar(&skipDownload, pluginFlag.SkipDownload, false, "whether to skip downloading files")
 	fullCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
+	fullCmd.Flags().BoolVar(&renewSubConfig, pluginFlag.RenewSubConfig, false, "renew the plugin sub config instead of preserving it")
 
 	return fullCmd
 }
