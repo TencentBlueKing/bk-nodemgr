@@ -143,6 +143,7 @@ func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCon
 		}
 		if fields := condition.ExactInclude; fields != nil {
 			opts = append(opts,
+				daoPackageEvent.WithName(fields.Name...),
 				daoPackageEvent.WithEventType(fields.EventType...),
 				daoPackageEvent.WithGeneration(fields.Generation...),
 				daoPackageEvent.WithReleaseType(fields.ReleaseType...),
@@ -154,6 +155,7 @@ func convertPackageEventConditionsToOptions(conditions ...*types.PackageEventCon
 		}
 		if fields := condition.ExactExclude; fields != nil {
 			opts = append(opts,
+				daoPackageEvent.WithoutName(fields.Name...),
 				daoPackageEvent.WithoutEventType(fields.EventType...),
 				daoPackageEvent.WithoutGeneration(fields.Generation...),
 				daoPackageEvent.WithoutReleaseType(fields.ReleaseType...),

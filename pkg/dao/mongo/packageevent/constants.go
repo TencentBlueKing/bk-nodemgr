@@ -26,6 +26,9 @@ const (
 	// FieldKeyEventType defines the field key of event type.
 	FieldKeyEventType = "data.event_type"
 
+	// FieldKeyName defines the field key of package name.
+	FieldKeyName = "data.name"
+
 	// FieldKeyGeneration defines the field key of generation.
 	FieldKeyGeneration = "data.generation"
 
