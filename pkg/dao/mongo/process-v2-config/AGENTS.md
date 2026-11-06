@@ -27,5 +27,5 @@
 |Anti-patterns:no handwritten dotted BSON paths when constants.go already owns FieldKey* paths
 |Anti-patterns:no schema field additions without synchronized updates to {table.go,constants.go,handler.go converter}
 |Anti-patterns:never reuse the v3 process config table or DAO for v2 compatible configs; the two generations must stay isolated
-|Tests:no tests yet|add converter unit tests or //go:build integration Mongo tests when read paths or schema mapping grow
+|Tests:handler_test.go covers convProcessConfig{ToTypes,FromTypes} and BSON-container normalization of CustomConfigContext|add //go:build integration Mongo tests when read paths or schema mapping grow
 |Related:shared DAO rules:pkg/dao/mongo/base/AGENTS.md|v3 counterpart:pkg/dao/mongo/process-config/AGENTS.md|process v2 counterpart:pkg/dao/mongo/process-v2/AGENTS.md
