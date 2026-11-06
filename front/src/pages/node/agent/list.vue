@@ -447,6 +447,8 @@
       :title="operateDialogData.title"
       :type="operateDialogData.type"
       :sub-title="operateDialogData.subTitle"
+      :data="operateData"
+      auth-action="agent_operate"
       @confirm="operateJob"
     ></operate-dialog>
 

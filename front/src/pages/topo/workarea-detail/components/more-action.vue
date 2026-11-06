@@ -44,6 +44,8 @@
       :title="operateDialogData.title"
       :type="operateDialogData.type"
       :sub-title="operateDialogData.subTitle"
+      :data="data"
+      auth-action="proxy_operate"
       @confirm="operateJob"
     ></operate-dialog>
   </div>

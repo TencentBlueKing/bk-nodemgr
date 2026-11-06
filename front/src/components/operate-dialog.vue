@@ -148,6 +148,11 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  /** 确认按钮权限校验的 action id，按业务场景传入：agent_operate / proxy_operate / plugin_operate */
+  authAction: {
+    type: String,
+    required: true,
+  },
 });
 const emit = defineEmits(['confirm', 'cancel', 'selection-change']);
 const { t } = useI18n();
@@ -171,13 +176,20 @@ const {
   handleMouseLeave: authLockMouseLeave,
   handleAuthClick: handleAuthApply,
 } = useAuthLock(
-  'plugin_operate',
+  props.authAction,
   () => {
-    // 从当前勾选数据中提取所属业务 ID；进程数据无有效 bk_biz_id 时回退当前选中业务（弹窗数据即按其查询）
-    const bizIds = [...new Set(
-      currentSelection.value.map((item: any) => item.bk_biz_id).filter((id: any) => id != null && id !== '' && id !== 0),
-    )];
-    return bizIds.length ? bizIds : [...mainStore.selectedBusinessId];
+    // 资源 ID：当前选中业务（全局 store，始终可得）∪ 勾选数据所属业务，
+    // 保证 verify 请求始终携带 resources；弹窗数据无 bk_biz_id 时（如仅 host_id 的跨页全选）也有兜底
+    const selectedBizIds = mainStore.selectedBusinessId;
+    const bizIds = new Set<number | string>(
+      Array.isArray(selectedBizIds) ? selectedBizIds.filter(id => id != null) : [selectedBizIds].filter(id => id != null),
+    );
+    currentSelection.value.forEach((item: any) => {
+      if (item?.bk_biz_id != null && item.bk_biz_id !== '' && item.bk_biz_id !== 0) {
+        bizIds.add(item.bk_biz_id);
+      }
+    });
+    return Array.from(bizIds);
   },
 );
 const confirmLocked = computed(() => !confirmHasAuth.value);
