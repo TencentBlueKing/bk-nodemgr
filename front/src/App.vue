@@ -221,12 +221,14 @@ import { i18nReady } from '@/modules/i18n';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
+import { usePermissionStore } from '@/stores/permission';
 import useUserStore from '@/stores/user';
 
 const { t } = useI18n();
 const mainStore = useMainStore();
 const authStore = useAuthStore();
 const nodeManageStore = useNodeManageStore();
+const permissionStore = usePermissionStore();
 // 路由信息
 const route = useRoute();
 const router = useRouter();
@@ -315,6 +317,20 @@ const ensureCurrentRoutePermission = async () => {
 
   if (!authStore.hasPermission(matched.id, bizScope, resourceId)) {
     authStore.setDeniedActionIds([matched.id]);
+    // 与路由守卫保持一致：无权限时先弹出当前 action 相关的权限申请弹窗，再跳 403
+    let detail = authStore.permissionDetail;
+    // 明细缺失（残留的是其它 action 如单元查看的 verify 结果）时重新 verify 拉取当前 action 明细，
+    // 否则 403 页只能显示裸 action id，且「去申请」会弹出无关权限的申请弹窗
+    if (!detail?.actions?.some(action => action.id === matched.action)) {
+      await authStore.batchVerify([matched], bizScope, resourceId);
+      detail = authStore.permissionDetail;
+    }
+    if (detail?.actions?.some(action => action.id === matched.action)) {
+      permissionStore.showDialog({
+        ...detail,
+        actions: detail.actions.filter(action => action.id === matched.action),
+      });
+    }
     router.replace({ name: '403' });
   }
 };
@@ -520,7 +536,9 @@ watch(appName, () => {
   });
 });
 watch(
-  [() => mainStore.isBusinessReady, () => mainStore.selectedBusinessId[0], () => mainStore.strategyBizId, () => route.fullPath],
+  // 监听完整业务选择（而非仅首个业务）：多选新增/移除业务时若首个业务不变，
+  // 只监听 selectedBusinessId[0] 会漏掉权限复检（如从业务3多选一个无权限业务不弹权限弹窗）
+  [() => mainStore.isBusinessReady, () => mainStore.selectedBusinessId.join(','), () => mainStore.strategyBizId, () => route.fullPath],
   () => {
     void ensureCurrentRoutePermission();
   },
@@ -578,7 +596,8 @@ watch(
   async (moduleName) => {
     if (!moduleName) return;
     // biz 类模块首次切入时同时加载 bizSelector（biz_access 全局共享）
-    if (['nodeManager', 'ruleManager'].includes(moduleName)) {
+    // topoManager 的管控区域详情（安装 Proxy 归属业务等）同样依赖 biz_access 判断业务可选状态
+    if (['nodeManager', 'ruleManager', 'topoManager'].includes(moduleName)) {
       const bizItems = getModuleAuthorizedItems('bizSelector');
       if (bizItems.length) {
         await authStore.fetchAuthorized(bizItems, 'bizSelector');
