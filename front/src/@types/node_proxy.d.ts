@@ -31,6 +31,7 @@ export interface NodeProxyInstallHost {
   renew_gse_task: boolean;
   renew_gse_proc: boolean;
   install_method: string;
+  is_sudo: boolean;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.
@@ -350,6 +351,7 @@ export interface ProxyInstallParsedInfo {
   advertise_ip: string;
   install_pre_ordered_plugins: boolean;
   re_register: boolean;
+  is_sudo: boolean;
   dedicated_installer: boolean;
   cluster_tunnel: boolean;
   file_tunnel: boolean;

@@ -44,6 +44,7 @@ POST /api/v3/node/proxy/install
 | renew_gse_task               | bool          | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file |
 | renew_gse_proc               | bool          | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file |
 | install_method               | string        | No       | Proxy install method. Supported values: empty string, ssh. Empty string means Proxy-scenario auto selection |
+| is_sudo                      | bool          | No       | When the login user is non-root with passwordless sudo configured, set to true to run the installer via sudo -n; default false. Unix-like systems only |
 | proxy_tags                   | array[string] | No       | Proxy tags: dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel                      |
 | proxy_install_origin_unit_id | int64         | No       | Origin network unit ID for installation                                                           |
 | credit_expired_interval_sec  | int64         | No       | Credential expiry interval in seconds, default 86400                                              |
@@ -87,7 +88,8 @@ POST /api/v3/node/proxy/install
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
       "renew_gse_proc": false,
-      "install_method": "ssh"
+      "install_method": "ssh",
+      "is_sudo": false
     }
   ],
   "target_version": [

@@ -38,6 +38,7 @@ POST /api/v3/node/agent/install
 | renew_gse_task              | bool          | 否  | 是否重新生成 GSE .task runtime 文件，默认false表示保留已有.task文件 |
 | renew_gse_proc              | bool          | 否  | 是否重新生成 GSE .proc runtime 文件，默认false表示保留已有.proc文件 |
 | install_method              | string        | 否  | Agent 安装方式，合法值：空字符串、ssh、wmi；空字符串表示按 OS 自动选择安装逻辑，直接 Windows Agent 安装使用 Windows 自动安装流程 |
+| is_sudo                     | bool          | 否  | 登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n 提权执行；默认为 false，仅对类 Unix 系统生效 |
 
 **参数说明**：
 
@@ -84,7 +85,8 @@ POST /api/v3/node/agent/install
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
       "renew_gse_proc": false,
-      "install_method": "ssh"
+      "install_method": "ssh",
+      "is_sudo": false
     }
   ],
   "target_version": [

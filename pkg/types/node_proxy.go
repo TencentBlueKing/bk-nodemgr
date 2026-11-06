@@ -45,6 +45,8 @@ type NodeProxyInstallHost struct {
 	RenewGSETask             bool
 	RenewGSEProc             bool
 	InstallPreOrderedPlugins bool
+	// IsSudo requests wrapping the remote installer invocation with `sudo -n`.
+	IsSudo                   bool
 	ProxyTags                []ProxyTag
 	ProxyInstallOriginUnitID int64
 	CreditExpiredIntervalSec int64

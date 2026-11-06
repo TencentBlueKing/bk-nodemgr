@@ -44,6 +44,8 @@ type NodeAgentInstallHost struct {
 	RenewGSEProc             bool
 	InstallPreOrderedPlugins bool
 	InstallMethod            NodeInstallMethod
+	// IsSudo requests wrapping the remote installer invocation with `sudo -n`.
+	IsSudo bool
 }
 
 // NodeAgentInstallParam describes the node agent install parameter.

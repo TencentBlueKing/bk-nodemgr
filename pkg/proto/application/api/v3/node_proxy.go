@@ -149,6 +149,7 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 			RenewGSETask:             host.GetRenewGseTask(),
 			RenewGSEProc:             host.GetRenewGseProc(),
 			InstallPreOrderedPlugins: host.GetInstallPreOrderedPlugins(),
+			IsSudo:                   host.GetIsSudo(),
 			ProxyTags:                types.StringListToProxyTagList(host.GetProxyTags()),
 			ProxyInstallOriginUnitID: host.GetProxyInstallOriginUnitId(),
 			CreditExpiredIntervalSec: host.GetCreditExpiredIntervalSec(),

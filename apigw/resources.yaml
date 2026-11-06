@@ -16400,6 +16400,8 @@ paths:
                         type: boolean
                       renew_gse_task:
                         type: boolean
+                      is_sudo:
+                        type: boolean
                       advertise_ip_v6:
                         type: string
                       bk_host_innerip:
@@ -17374,6 +17376,8 @@ paths:
                       renew_gse_proc:
                         type: boolean
                       renew_gse_task:
+                        type: boolean
+                      is_sudo:
                         type: boolean
                       bk_host_innerip:
                         type: array

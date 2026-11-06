@@ -437,6 +437,7 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 		SkipDownload:  true,
 		RenewGSEProc:  std.DeployInfo().InstallOptions.RenewGSEProc,
 		RenewGSETask:  std.DeployInfo().InstallOptions.RenewGSETask,
+		SudoInstall:   std.DeployInfo().InstallOptions.IsSudo,
 	}
 	installParams.FirewallFeatures, installParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
 		std.DeployInfo().InstallerRuntime.Firewall)
@@ -586,6 +587,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		OperInstID:      std.InstanceData().OperationInstanceID,
 		RenewGSEProc:    std.DeployInfo().InstallOptions.RenewGSEProc,
 		RenewGSETask:    std.DeployInfo().InstallOptions.RenewGSETask,
+		SudoInstall:     std.DeployInfo().InstallOptions.IsSudo,
 	}
 	installParams.FirewallFeatures, installParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
 		std.DeployInfo().InstallerRuntime.Firewall)

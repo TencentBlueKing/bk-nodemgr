@@ -259,6 +259,7 @@ func (h *handler) generateInstallNodeDeployments(
 						ReRegister:               reqHost.GetReRegister(),
 						RenewGSETask:             reqHost.GetRenewGseTask(),
 						RenewGSEProc:             reqHost.GetRenewGseProc(),
+						IsSudo:                   reqHost.GetIsSudo(),
 						InstallPreOrderedPlugins: reqHost.GetInstallPreOrderedPlugins(),
 						DirectInstall:            installOriginUnit.IsDirect,
 						EnableCompatibilityMode: compatibility.DecideCompatibilityMode(

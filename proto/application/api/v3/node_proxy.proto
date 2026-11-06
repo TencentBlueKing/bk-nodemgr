@@ -38,6 +38,9 @@ message NodeProxyInstallHost {
   bool renew_gse_task = 26;
   bool renew_gse_proc = 27;
   string install_method = 28;
+  // 登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n
+  // 提权执行；默认为 false
+  bool is_sudo = 29;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.

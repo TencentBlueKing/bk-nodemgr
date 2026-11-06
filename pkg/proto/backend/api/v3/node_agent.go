@@ -226,6 +226,7 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 			RenewGseProc:             host.RenewGSEProc,
 			InstallPreOrderedPlugins: host.InstallPreOrderedPlugins,
 			InstallMethod:            string(host.InstallMethod),
+			IsSudo:                   host.IsSudo,
 		}
 	}
 

@@ -220,6 +220,10 @@ type NodeInstallParams struct {
 	// FirewallRemoteIPs are the firewall remote IP CIDRs, separated by comma.
 	FirewallRemoteIPs string
 
+	// SudoInstall escalates the installer invocation through `sudo -n` when rendering
+	// unix scripts, for installs driven by a non-root login user with passwordless sudo.
+	// It only affects unix rendering (ToUnixScript*); windows scripts ignore it.
+	SudoInstall bool
 	// DownloadBeforeCallback keeps legacy token-first install arg order for compatibility.
 	DownloadBeforeCallback bool
 }
@@ -616,6 +620,10 @@ type NodeOfflineInstallParams struct {
 
 	// FirewallRemoteIPs are the firewall remote IP CIDRs, separated by comma.
 	FirewallRemoteIPs string
+
+	// SudoInstall escalates the installer invocation through `sudo -n` in the generated
+	// offline install.sh, for hosts operated by a non-root user with passwordless sudo.
+	SudoInstall bool
 }
 
 // Validate validates the offline node install params required by the installer CLI.
@@ -669,7 +677,7 @@ func (params *NodeOfflineInstallParams) ToUnixScriptOffline() (string, string, e
 		`mkdir -p "${DATA_DIR}"`,
 		fmt.Sprintf(`cp -rf "${SCRIPT_DIR}/%s/." "${DATA_DIR}/"`, OfflinePkgRelPathData),
 		fmt.Sprintf(`chmod +x "${SCRIPT_DIR}/%s"`, params.InstallerFileName),
-		fmt.Sprintf(`"${SCRIPT_DIR}/%s" `, params.InstallerFileName) + NodeCmdFullInstall + ` \`,
+		unixInstallerBin(params.SudoInstall, fmt.Sprintf(`"${SCRIPT_DIR}/%s" `, params.InstallerFileName)) + NodeCmdFullInstall + ` \`,
 	}
 
 	args := params.buildArgs()
@@ -689,6 +697,16 @@ func (params *NodeOfflineInstallParams) ToUnixScriptOffline() (string, string, e
 	return OfflinePkgInstallScriptName, strings.Join(lines, "\n") + "\n", nil
 }
 
+// unixInstallerBin returns the installer binary invocation for unix scripts,
+// escalated through `sudo -n` when sudoInstall is enabled.
+func unixInstallerBin(sudoInstall bool, installerPath string) string {
+	if !sudoInstall {
+		return installerPath
+	}
+
+	return "sudo -n " + installerPath
+}
+
 // ToUnixScript converts the install params to a unix script.
 func (params *NodeInstallParams) ToUnixScript() (string, string, error) {
 	if err := params.Validate(); err != nil {
@@ -699,7 +717,8 @@ func (params *NodeInstallParams) ToUnixScript() (string, string, error) {
 
 	scriptName := "install.sh"
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))
-	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1 &", params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
+	installerBin := unixInstallerBin(params.SudoInstall, params.InstallerPath)
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1 &", installerBin, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
 
 	return scriptName, scriptContent, nil
 }
@@ -715,7 +734,8 @@ func (params *NodeInstallParams) ToUnixScriptDownloadBeforeCallback() (string, s
 
 	scriptName := "install.sh"
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))
-	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1 &", params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
+	installerBin := unixInstallerBin(params.SudoInstall, params.InstallerPath)
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1 &", installerBin, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
 
 	return scriptName, scriptContent, nil
 }
@@ -776,7 +796,8 @@ func (params *NodeInstallParams) ToUnixScriptManual() (string, string, error) {
 	args := params.buildServerFirstArgs()
 
 	scriptName := "install.sh"
-	scriptContent := fmt.Sprintf("%s %s %s", params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "))
+	installerBin := unixInstallerBin(params.SudoInstall, params.InstallerPath)
+	scriptContent := fmt.Sprintf("%s %s %s", installerBin, NodeCmdFullInstall, strings.Join(args, " "))
 
 	return scriptName, scriptContent, nil
 }

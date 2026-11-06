@@ -162,6 +162,7 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 			RenewGSEProc:             host.GetRenewGseProc(),
 			InstallPreOrderedPlugins: host.GetInstallPreOrderedPlugins(),
 			InstallMethod:            types.NodeInstallMethod(host.GetInstallMethod()),
+			IsSudo:                   host.GetIsSudo(),
 		}
 	}
 

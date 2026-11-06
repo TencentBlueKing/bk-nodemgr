@@ -741,10 +741,65 @@
             <ValidateCell :error="getError(rowIndex, 'login_user')">
               <Input
                 v-model.trim="row.login_user"
-                @change="clearError(rowIndex, 'login_user')"
+                @change="() => {
+                  clearError(rowIndex, 'login_user');
+                  syncSudoState(row);
+                }"
                 @blur="handleFieldBlur(rowIndex, 'login_user', row.login_user)"
               />
             </ValidateCell>
+          </template>
+        </VxeColumn>
+
+        <VxeColumn
+          :min-width="110"
+          field="is_sudo"
+          :visible="settings.checked.includes('is_sudo')"
+          :edit-render="{ name: 'VxeInput' }"
+        >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.isSudo') }}
+              </span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.isSudoTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+            <BatchEdit
+              :title="$t('components.installTable.batchEditIsSudo')"
+              type="switcher"
+              @confirm="(value) => handleBatchEdit('is_sudo', Boolean(value))"
+            />
+          </template>
+          <template #default="{ row }">
+            <span
+              v-if="row.os_type === 'windows'"
+              v-bk-tooltips="$t('components.installTable.isSudoDisabledTooltip')"
+            >
+              <Switcher theme="primary" v-model="row.is_sudo" size="small" disabled />
+            </span>
+            <Switcher v-else theme="primary" v-model="row.is_sudo" size="small" />
+          </template>
+          <template #edit="{ row }">
+            <span
+              v-if="row.os_type === 'windows'"
+              v-bk-tooltips="$t('components.installTable.isSudoDisabledTooltip')"
+            >
+              <Switcher theme="primary" v-model="row.is_sudo" disabled />
+            </span>
+            <Switcher v-else theme="primary" v-model="row.is_sudo" />
           </template>
         </VxeColumn>
 
@@ -1103,6 +1158,7 @@ const props = defineProps({
         { title: '登录 IP', field: 'login_ip' },
         { title: '登录端口', field: 'login_port' },
         { title: '登录账号', field: 'login_user' },
+        { title: 'sudo 提权', field: 'is_sudo' },
         { title: '认证方式', field: 'login_mode' },
         { title: '密码 / 密钥', field: 'credit' },
         { title: '安装预设插件', field: 'install_pre_ordered_plugins' },
@@ -1117,6 +1173,7 @@ const props = defineProps({
         'login_port',
         'login_ip',
         'login_user',
+        'is_sudo',
         'login_mode',
         'credit',
       ],
@@ -1182,6 +1239,7 @@ const initData = {
   bk_host_id: '',
   re_register: false,
   install_pre_ordered_plugins: true,
+  is_sudo: false,
   credit: '',
   export_ip: '',
   advertise_ip: '',
@@ -1370,6 +1428,17 @@ const handleChangeIPv4 = (val: string, row: any, rowIndex: number) => {
   }
 };
 
+// sudo 提权联动：类 Unix 系统登录账号非 root 时自动开启；Windows 不支持则强制关闭
+const syncSudoState = (row: any) => {
+  if (row.os_type === 'windows') {
+    row.is_sudo = false;
+    return;
+  }
+  if (row.login_user && row.login_user !== 'root') {
+    row.is_sudo = true;
+  }
+};
+
 const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
   if (val === 'linux') {
     row.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
@@ -1388,6 +1457,7 @@ const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
     handleFieldBlur(rowIndex, 'login_port', port);
     handleFieldBlur(rowIndex, 'login_user', 'administrator');
   }
+  syncSudoState(row);
 };
 
 const getHostDistinct = async () => {
@@ -1421,6 +1491,11 @@ const handleBatchEdit = (field: string, value: any) => {
       return;
     }
 
+    // Windows 不支持 sudo 提权：批量设置时跳过 Windows 行
+    if (field === 'is_sudo' && item.os_type === 'windows') {
+      return;
+    }
+
     if (field === 'credit') {
       if (item.login_mode === 'password') item.credit = value.password;
       else item.credit = value.key;
@@ -1429,6 +1504,10 @@ const handleBatchEdit = (field: string, value: any) => {
     }
 
     handleFieldBlur(index, field, value);
+
+    if (field === 'login_user' || field === 'os_type') {
+      syncSudoState(item);
+    }
 
     if (field === 'install_method') {
       // 批量设置安装方式后联动默认端口（复用行内切换逻辑）
@@ -1828,6 +1907,8 @@ const autoFillDefaults = () => {
     if (row.os_type && !row.login_user) {
       row.login_user = row.os_type === 'windows' ? 'administrator' : 'root';
     }
+    // 预填/整批替换场景同样保持 sudo 联动（如 CMDB 同步、重装回填）
+    syncSudoState(row);
   });
 };
 

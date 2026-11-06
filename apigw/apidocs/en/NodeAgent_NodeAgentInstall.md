@@ -38,6 +38,7 @@ POST /api/v3/node/agent/install
 | renew_gse_task              | bool           | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file             |
 | renew_gse_proc              | bool           | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file             |
 | install_method              | string         | No       | Agent install method. Legal values: empty string, ssh, wmi. Empty string means OS-based auto selection; direct Windows Agent installation uses the Windows auto install workflow |
+| is_sudo                     | bool           | No       | When the login user is non-root with passwordless sudo configured, set to true to run the installer via sudo -n; default false. Unix-like systems only |
 
 **Parameter Notes**:
 
@@ -86,7 +87,8 @@ Batch install agents for Linux systems using password login and explicit SSH ins
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
       "renew_gse_proc": false,
-      "install_method": "ssh"
+      "install_method": "ssh",
+      "is_sudo": false
     }
   ],
   "target_version": [

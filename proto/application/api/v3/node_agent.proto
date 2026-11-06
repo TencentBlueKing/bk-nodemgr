@@ -27,6 +27,9 @@ message AgentInstallInfo {
   bool renew_gse_task = 16;
   bool renew_gse_proc = 17;
   string install_method = 18;
+  // 登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n
+  // 提权执行；默认为 false
+  bool is_sudo = 19;
 }
 
 // NodeAgentInstallReq describes the HTTP request body when install node agent.

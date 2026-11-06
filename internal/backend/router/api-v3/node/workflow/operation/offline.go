@@ -316,6 +316,7 @@ func buildOfflineInstallScript(
 		LogToStd:          true,
 		RenewGSEProc:      deployInfo.InstallOptions.RenewGSEProc,
 		RenewGSETask:      deployInfo.InstallOptions.RenewGSETask,
+		SudoInstall:       deployInfo.InstallOptions.IsSudo,
 	}
 	params.FirewallFeatures, params.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
 		deployInfo.InstallerRuntime.Firewall)
