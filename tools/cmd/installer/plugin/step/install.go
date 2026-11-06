@@ -36,6 +36,9 @@ func NewInstall() *cobra.Command {
 		// required flags.
 		pkgPath string
 
+		// optional flags.
+		renewSubConfig bool
+
 		// pre-run.
 		pluginHandler  pluginhandler.IPluginHandler
 		persistentVars *persistent.Variables
@@ -61,9 +64,10 @@ func NewInstall() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := plugininstaller.NewStep(plugininstaller.StepArgs{
-				PluginHandler: pluginHandler,
-				PkgPath:       pkgPath,
-				SrcConfigDir:  persistentVars.ConfigDir,
+				PluginHandler:   pluginHandler,
+				PkgPath:         pkgPath,
+				SrcConfigDir:    persistentVars.ConfigDir,
+				PreserveOptions: pluginhandler.PreserveOptions{RenewSubConfig: renewSubConfig},
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {
@@ -81,6 +85,11 @@ func NewInstall() *cobra.Command {
 	 */
 	stepCmd.Flags().StringVar(&pkgPath, pluginFlag.PkgFile, "", "path to release package file to install")
 	_ = stepCmd.MarkFlagRequired(pluginFlag.PkgFile)
+
+	/*
+	 * optional flags.
+	 */
+	stepCmd.Flags().BoolVar(&renewSubConfig, pluginFlag.RenewSubConfig, false, "renew the plugin sub config instead of preserving it")
 
 	return stepCmd
 }

@@ -39,6 +39,8 @@ type StepArgs struct {
 
 	PkgPath      string
 	SrcConfigDir string
+
+	PreserveOptions pluginhandler.PreserveOptions
 }
 
 // String step args string message.
@@ -72,7 +74,18 @@ func (step *Step) Run(ctx context.Context) error {
 
 	logger.Info(plugin.StepInstallPlugin, "unpacked release pkg")
 
-	// 3. copy config files to installed file-system.
+	// 3. restore the saved sub config dir before the config files are copied, so the config files of
+	// this installation win over the preserved user data. A renewed sub config dir is not restored.
+	if !step.args.PreserveOptions.RenewSubConfig {
+		if err := step.args.PluginHandler.FS().RestoreSubConfigDir(ctx); err != nil {
+			logger.Errorf(plugin.StepInstallPlugin, "failed to restore sub config dir: %v", err)
+
+			return err
+		}
+		logger.Info(plugin.StepInstallPlugin, "restored sub config dir")
+	}
+
+	// 4. copy config files to installed file-system.
 	if err := step.args.PluginHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
 		logger.Errorf(plugin.StepInstallPlugin, "failed to copy config dir: %v", err)
 

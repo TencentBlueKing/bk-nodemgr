@@ -37,6 +37,8 @@ type StepArgs struct {
 
 	PkgPath      string
 	SrcConfigDir string
+
+	PreserveOptions pluginhandler.PreserveOptions
 }
 
 // NewStep new a step.
@@ -46,7 +48,18 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to upgrade plugin.
 func (step *Step) Run(ctx context.Context) error {
-	// 1. purge existing file-system.
+	// 1. save the sub config dir, the sub configs are user data that must survive an upgrade unless
+	// the caller renews the sub config dir instead.
+	if !step.args.PreserveOptions.RenewSubConfig {
+		if err := step.args.PluginHandler.FS().SaveSubConfigDir(ctx); err != nil {
+			logger.Errorf(plugin.StepUpgradePlugin, "failed to save sub config dir: %v", err)
+
+			return err
+		}
+		logger.Info(plugin.StepUpgradePlugin, "saved sub config dir")
+	}
+
+	// 2. purge existing file-system.
 	if err := step.args.PluginHandler.FS().Purge(ctx); err != nil {
 		logger.Errorf(plugin.StepUpgradePlugin, "failed to purge file-system: %v", err)
 
@@ -54,7 +67,7 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 	logger.Info(plugin.StepUpgradePlugin, "purged existing file-system")
 
-	// 2. init file-system architecture.
+	// 3. init file-system architecture.
 	if err := step.args.PluginHandler.FS().Init(); err != nil {
 		logger.Errorf(plugin.StepUpgradePlugin, "failed to init file-system: %v", err)
 
@@ -62,7 +75,7 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 	logger.Info(plugin.StepUpgradePlugin, "inited file-system")
 
-	// 3. unpack release package file into inited file-system.
+	// 4. unpack release package file into inited file-system.
 	if err := step.args.PluginHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, false); err != nil {
 		logger.Errorf(plugin.StepUpgradePlugin, "failed to unpack release pkg: %v", err)
 
@@ -71,7 +84,18 @@ func (step *Step) Run(ctx context.Context) error {
 
 	logger.Info(plugin.StepUpgradePlugin, "unpacked release pkg")
 
-	// 4. copy config files to inited file-system.
+	// 5. restore the saved sub config dir before the config files are copied, so the config files of
+	// this upgrade win over the preserved user data. A renewed sub config dir is not restored.
+	if !step.args.PreserveOptions.RenewSubConfig {
+		if err := step.args.PluginHandler.FS().RestoreSubConfigDir(ctx); err != nil {
+			logger.Errorf(plugin.StepUpgradePlugin, "failed to restore sub config dir: %v", err)
+
+			return err
+		}
+		logger.Info(plugin.StepUpgradePlugin, "restored sub config dir")
+	}
+
+	// 6. copy config files to inited file-system.
 	if err := step.args.PluginHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
 		logger.Errorf(plugin.StepUpgradePlugin, "failed to copy config dir: %v", err)
 

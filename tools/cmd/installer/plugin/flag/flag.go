@@ -85,4 +85,7 @@ const (
 
 	// HTTPProxy defines the flag to override the HTTP proxy for all http requests.
 	HTTPProxy = "http_proxy"
+
+	// RenewSubConfig defines the flag to renew the plugin sub config instead of preserving it.
+	RenewSubConfig = "renew_sub_config"
 )

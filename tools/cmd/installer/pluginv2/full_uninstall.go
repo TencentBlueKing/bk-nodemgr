@@ -121,8 +121,11 @@ func NewFullUninstall() *cobra.Command {
 				}).Run(cmd.Context())
 			}()
 
+			// uninstall plugin, the sub config dir is dropped with the installed files: a V2 uninstall
+			// leaves nothing behind to restore on the next install.
 			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
-				PluginHandler: pluginHandler,
+				PluginHandler:   pluginHandler,
+				PreserveOptions: pluginv2handler.PreserveOptions{RenewSubConfig: true},
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
