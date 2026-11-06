@@ -951,6 +951,7 @@ agentStrategy:
     addHost: 添加IP
     totalAdded: 共添加
     unit: 台
+    invalid: 失效
     confirmDelete: 确认删除
     confirmDeleteAllHosts: 确定要删除所有已选主机吗？
     save: 保存

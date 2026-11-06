@@ -951,6 +951,7 @@ agentStrategy:
     addHost: Add Hosts
     totalAdded: Total
     unit: hosts
+    invalid: Invalid
     confirmDelete: Confirm Delete
     confirmDeleteAllHosts: Are you sure to delete all selected hosts?
     save: Save

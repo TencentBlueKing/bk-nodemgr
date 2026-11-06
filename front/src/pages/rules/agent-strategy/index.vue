@@ -621,11 +621,10 @@ const renderExtraIps = (row: any) => {
   const ids: number[] = row.target_host_ids || [];
   if (!ids.length) return t('agentStrategy.table.scopeIpsEmpty');
   const ips = ids.map(id => hostMap[id]?.bk_host_innerip).filter(Boolean);
-  if (!ips.length) return t('agentStrategy.table.scopeIpsEmpty');
-  // 只展示第一个 IP 作为代表，文案为"xxx等N个IP"
+  // 数量以全部已选主机为准（含已失效主机）；全部失效时用首个 Host ID 占位展示
   return t('agentStrategy.table.scopeIps', {
-    ips: ips[0],
-    count: ips.length,
+    ips: ips[0] || `-- (${ids[0]})`,
+    count: ids.length,
   });
 };
 const debounceConfigPolicyList = debounce(getConfigPolicyList, 300);
