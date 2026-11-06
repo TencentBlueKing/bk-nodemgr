@@ -59,6 +59,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import useAuthLock from '@/composables/use-auth-lock';
+import { userStorage } from '@/common/storage';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { usePermissionStore } from '@/stores/permission';
@@ -280,7 +281,7 @@ const handleCollect = (val: number) => {
   } else {
     collectList.value.push(val);
   }
-  localStorage.setItem('collect', JSON.stringify(collectList.value));
+  userStorage.setItem('collect', JSON.stringify(collectList.value));
 };
 
 // ===== hover 无权限锁图标 =====
@@ -335,7 +336,7 @@ onBeforeUnmount(() => {
 
 // ===== 初始化收藏 =====
 onMounted(() => {
-  const collectsJson = localStorage.getItem('collect');
+  const collectsJson = userStorage.getItem('collect');
   if (collectsJson) {
     try {
       const collects = JSON.parse(collectsJson) as unknown;

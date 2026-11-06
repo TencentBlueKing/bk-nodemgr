@@ -1,6 +1,8 @@
 import type { ISettings } from 'node_modules/@blueking/table/typings/components/setting-column/Index.vue';
 import { reactive, ref, watch } from 'vue';
 
+import { userStorage } from '@/common/storage';
+
 export interface SettingsConfig {
   checked?: string[];
   disabled?: string[];
@@ -11,8 +13,8 @@ export default function useTableSetting(
   { checked = [], disabled = [] }: SettingsConfig,
   storageKey = 'bk-table-default-settings', // 允许自定义 key
 ) {
-  // 1. 从 localStorage 读取保存的设置
-  const savedSettingsStr = localStorage.getItem(storageKey);
+  // 1. 从用户维度存储读取保存的设置
+  const savedSettingsStr = userStorage.getItem(storageKey);
   const savedSettings: {
     checked?: string[];
     disabled?: string[];
@@ -46,7 +48,7 @@ export default function useTableSetting(
     if (Array.isArray(data.checked)) settings.checked = data.checked;
   };
 
-  // 3. 监听 settings 变更，自动保存到 localStorage
+  // 3. 监听 settings 变更，自动保存到用户维度存储
   watch(
     () => ({
       checked: settings.checked,
@@ -54,7 +56,7 @@ export default function useTableSetting(
       size: settings.size,
     }),
     (newVal) => {
-      localStorage.setItem(
+      userStorage.setItem(
         storageKey,
         JSON.stringify({
           checked: newVal.checked,

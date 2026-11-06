@@ -107,6 +107,7 @@ import {
 } from 'vue';
 
 import { parseCookies } from '@/common/util';
+import { userStorage } from '@/common/storage';
 
 
 defineOptions({
@@ -324,7 +325,7 @@ const fetchApiData = async function () {
 };
 
 const initData = function () {
-  const cookieDialogIds = (localStorage.getItem('bk-dialog-notice-ids') || '').split(',') || [];
+  const cookieDialogIds = (userStorage.getItem('bk-dialog-notice-ids') || '').split(',') || [];
   // eslint-disable-next-line max-len
   showDialogNoticeList.value = dialogNoticeList.value.filter(item => cookieDialogIds.indexOf(item.id?.toString()) === -1);
   showDialog.value = showDialogNoticeList.value.length > 0;
@@ -376,11 +377,11 @@ const changeDialogIndex = function (type = 'next') {
 
 const confirmDialog = function () {
   const ids = dialogNoticeList.value.map(item => item.id?.toString());
-  let existIds = localStorage.getItem('bk-dialog-notice-ids')?.split(',') || [];
+  let existIds = userStorage.getItem('bk-dialog-notice-ids')?.split(',') || [];
   existIds = existIds.concat(ids);
   const newIds = Array.from(new Set(existIds));
   const newStr = newIds.join(',');
-  localStorage.setItem('bk-dialog-notice-ids', newStr);
+  userStorage.setItem('bk-dialog-notice-ids', newStr);
   showDialog.value = false;
   setTimeout(() => {
     dialogIndex.value = 0;

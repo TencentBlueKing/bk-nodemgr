@@ -217,6 +217,7 @@ import { vendorMap } from '../vendorMap';
 import useAuthLock from '@/composables/use-auth-lock';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+import { userStorage } from '@/common/storage';
 import { useAuthStore } from '@/stores/auth';
 import { usePermissionStore } from '@/stores/permission';
 import type { INetWorkArea } from '@/stores/workarea';
@@ -372,7 +373,7 @@ const unitCountFilter = reactive<{
 });
 
 // 收藏管控区域
-const collectList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
+const collectList = ref<number[]>(JSON.parse(userStorage.getItem('collect_workarea') || '[]'));
 const handleCollect = (val: number) => {
   if (collectList.value.includes(val)) {
     collectList.value = collectList.value.filter(item => item !== val);
@@ -390,7 +391,7 @@ const handleCollect = (val: number) => {
     if (!aIsFavorite && bIsFavorite) return 1;
     return b.bk_networkarea_id - a.bk_networkarea_id;
   });
-  localStorage.setItem('collect_workarea', JSON.stringify(collectList.value));
+  userStorage.setItem('collect_workarea', JSON.stringify(collectList.value));
   // 同步更新store中的收藏状态
   workareaStore.syncFavoriteWorkareaList();
 };

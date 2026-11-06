@@ -188,6 +188,7 @@ import useAuthLock from '@/composables/use-auth-lock';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { usePermissionStore } from '@/stores/permission';
+import { userStorage } from '@/common/storage';
 import { useTopoStore } from '@/stores/topo';
 import { getPageAuthorizedItems } from '@/constants/auth';
 import { useWorkareaStore } from '@/stores/workarea';
@@ -324,20 +325,20 @@ const sortedNetWorkAreaList = computed(() => [...netWorkAreaList.value].sort((a,
   return b.bk_networkarea_id - a.bk_networkarea_id;
 }));
 
-// 监听选择状态变化，持久化到 localStorage
+// 监听选择状态变化，持久化到用户维度存储
 watch(regionList, (newVal) => {
-  localStorage.setItem('selected_workarea', JSON.stringify(newVal));
+  userStorage.setItem('selected_workarea', JSON.stringify(newVal));
 }, { deep: true });
 
 // 收藏管控区域
-const collectList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
+const collectList = ref<number[]>(JSON.parse(userStorage.getItem('collect_workarea') || '[]'));
 const handleCollect = (val: number) => {
   if (collectList.value.includes(val)) {
     collectList.value = collectList.value.filter(item => item !== val);
   } else {
     collectList.value.push(val);
   }
-  localStorage.setItem('collect_workarea', JSON.stringify(collectList.value));
+  userStorage.setItem('collect_workarea', JSON.stringify(collectList.value));
   // 同步更新store中的收藏状态
   workareaStore.syncFavoriteWorkareaList();
 };
@@ -1269,8 +1270,8 @@ onMounted(async () => {
   // 确保收藏状态同步
   workareaStore.syncFavoriteWorkareaList();
 
-  // 恢复用户的选择状态（优先从 localStorage 读取）
-  const savedSelection = localStorage.getItem('selected_workarea');
+  // 恢复用户的选择状态（优先从用户维度存储读取）
+  const savedSelection = userStorage.getItem('selected_workarea');
   if (savedSelection) {
     try {
       regionList.value = JSON.parse(savedSelection);

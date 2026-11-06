@@ -79,6 +79,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import useAuthLock from '@/composables/use-auth-lock';
+import { userStorage } from '@/common/storage';
 import { normalizeHistoryActive } from '@/constants/auth';
 import type { HistoryActiveScope } from '@/constants/auth';
 import { useAuthStore } from '@/stores/auth';
@@ -198,7 +199,7 @@ const businessList = ref<Business[]>([]);
 // ===== 收藏（同步初始化，避免硬刷新时收藏图标闪烁丢失）=====
 const collectList = ref<number[]>([]);
 
-// 从 localStorage 解析收藏列表并确保类型为 number[]（兼容历史 string[] 数据）
+// 从用户维度存储解析收藏列表并确保类型为 number[]（兼容历史 string[] 数据）
 const parseCollectList = (raw: string): number[] => {
   try {
     const parsed = JSON.parse(raw);
@@ -209,15 +210,15 @@ const parseCollectList = (raw: string): number[] => {
   return [];
 };
 (() => {
-  const raw = localStorage.getItem('collect');
+  const raw = userStorage.getItem('collect');
   if (raw) collectList.value = parseCollectList(raw);
 })();
 
 // ===== 多选业务 =====
-// 直接从 localStorage 恢复，不依赖外部 init() 调用（因为 App.vue onBeforeMount 时 bizSelectorRef.value 可能为 undefined）
+// 直接从用户维度存储恢复，不依赖外部 init() 调用（因为 App.vue onBeforeMount 时 bizSelectorRef.value 可能为 undefined）
 const multiBusiness = ref<number[]>((() => {
   try {
-    const saved = localStorage.getItem('bk_biz_id');
+    const saved = userStorage.getItem('bk_biz_id');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -247,7 +248,7 @@ const selectValue = computed<number | '' | number[]>({
 });
 
 const hasExplicitlyClearedMultiBusiness = () => {
-  const bizIdsJson = localStorage.getItem('bk_biz_id');
+  const bizIdsJson = userStorage.getItem('bk_biz_id');
   if (!bizIdsJson) return false;
 
   try {
@@ -259,7 +260,7 @@ const hasExplicitlyClearedMultiBusiness = () => {
 };
 
 const hasPersistedMultiBusiness = () => {
-  const bizIdsJson = localStorage.getItem('bk_biz_id');
+  const bizIdsJson = userStorage.getItem('bk_biz_id');
   if (!bizIdsJson) return false;
 
   try {
@@ -286,13 +287,13 @@ watch(() => authStore.authorizedLoaded, (loaded) => {
   if (defaultBizId !== undefined) {
     multiBusiness.value = [defaultBizId];
     mainStore.updateCurBusiness([defaultBizId]);
-    localStorage.setItem('bk_biz_id', JSON.stringify([defaultBizId]));
+    userStorage.setItem('bk_biz_id', JSON.stringify([defaultBizId]));
   }
 }, { immediate: true });
 
 const syncMultiBusiness = (bizIds: number[] = []) => {
   mainStore.updateCurBusiness(bizIds);
-  localStorage.setItem('bk_biz_id', JSON.stringify(bizIds));
+  userStorage.setItem('bk_biz_id', JSON.stringify(bizIds));
 };
 
 // ===== 多选业务持久化 & 同步到 store =====
@@ -304,7 +305,7 @@ watch(multiBusiness, (val) => {
 // ===== 策略单选业务持久化 & 同步到 store =====
 watch(singleBusiness, (val) => {
   if (val !== '' && val !== undefined) {
-    localStorage.setItem('strategy_biz_id', String(val));
+    userStorage.setItem('strategy_biz_id', String(val));
     mainStore.updateStrategyBizId(val);
   }
 });
@@ -414,13 +415,13 @@ const businessOptions = computed(() => {
 });
 
 // ===== 业务列表数据就绪后立即排序填充 options，确保 Select 的 tag 能正确渲染 =====
-// 这是解决刷新后业务选择器不显示已选业务的关键：即使 multiBusiness 从 localStorage 恢复了 [12]，
+// 这是解决刷新后业务选择器不显示已选业务的关键：即使 multiBusiness 从用户维度存储恢复了 [12]，
 // 如果 businessList（options）为空，Select 也无法渲染 tag
 watch(filteredBusinessList, (list) => {
   if (list.length > 0) {
     sortBusinessList();
     // 业务列表从 API 返回后，重新同步 selectedBusinessName
-    // 因为 multiBusiness 在声明时从 localStorage 恢复时，mainStore.businessList 可能还是空的，
+    // 因为 multiBusiness 在声明时从用户维度存储恢复时，mainStore.businessList 可能还是空的，
     // 导致 selectedBusinessName 为 [undefined]，shrinkText 显示为空
     if (!isSingle.value && multiBusiness.value.length > 0) {
       syncMultiBusiness(multiBusiness.value);
@@ -455,7 +456,7 @@ const handleCollect = (val: number) => {
   } else {
     collectList.value.push(val);
   }
-  localStorage.setItem('collect', JSON.stringify(collectList.value));
+  userStorage.setItem('collect', JSON.stringify(collectList.value));
 };
 
 // ===== 点击无权限业务，申请当前菜单页的查看权限 + 业务访问权限 =====
@@ -534,7 +535,7 @@ const getDefaultBizId = () => {
 };
 
 const getPersistedStrategyBizId = () => {
-  const savedBizId = localStorage.getItem('strategy_biz_id');
+  const savedBizId = userStorage.getItem('strategy_biz_id');
   if (savedBizId) {
     const parsedId = Number(savedBizId);
     // 缓存值仍需有权限才用
@@ -559,9 +560,9 @@ watch(isSingle, (val) => {
     }
   }
 
-  // 从策略（单选）切回其他模块（多选）时，从 localStorage.bk_biz_id 恢复多选选中状态
+  // 从策略（单选）切回其他模块（多选）时，从用户维度存储 bk_biz_id 恢复多选选中状态
   if (!val) {
-    const bizIdsJson = localStorage.getItem('bk_biz_id');
+    const bizIdsJson = userStorage.getItem('bk_biz_id');
     if (bizIdsJson) {
       try {
         const bizIds = JSON.parse(bizIdsJson);
@@ -597,12 +598,12 @@ watch(
 // 注意：init() 现在仅作为兜底，核心恢复逻辑已在 multiBusiness 声明时和 filteredBusinessList watcher 中完成
 const init = () => {
   // 1. 恢复收藏列表
-  const collectsJson = localStorage.getItem('collect');
+  const collectsJson = userStorage.getItem('collect');
   if (collectsJson) {
     collectList.value = parseCollectList(collectsJson);
   }
 
-  // 2. 多选业务已在 multiBusiness 声明时从 localStorage 恢复，此处仅同步 store（兜底）
+  // 2. 多选业务已在 multiBusiness 声明时从用户维度存储恢复，此处仅同步 store（兜底）
   if (multiBusiness.value.length > 0) {
     mainStore.updateCurBusiness(multiBusiness.value);
   }
