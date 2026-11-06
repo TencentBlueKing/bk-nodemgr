@@ -35,6 +35,8 @@ type IStorage interface {
 	IDaoPlugin
 	IDaoProcess
 	IDaoProcessConfig
+	IDaoProcessV2
+	IDaoProcessConfigV2
 
 	IDomainPlugin
 	IDomainProcess
@@ -189,6 +191,53 @@ type IDaoProcessConfig interface {
 
 	// DeleteProcessConfigs deletes process config records by their unique keys.
 	DeleteProcessConfigs(nCtx contextx.IContext, processConfigKeys ...*types.ProcessConfigUniqueKey) error
+}
+
+// IDaoProcessV2 defines the process dao interface of the node manager v2 compatible plugin processes.
+type IDaoProcessV2 interface {
+	// CreateProcessV2 create a v2 compatible process.
+	CreateProcessV2(nCtx contextx.IContext, process *types.Process) error
+
+	// ExistProcessV2 check if the v2 compatible process exist.
+	ExistProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
+
+	// UpdateProcessV2 update a v2 compatible process, the host id and plugin name of the process identify the record.
+	UpdateProcessV2(nCtx contextx.IContext, process *types.Process) error
+
+	// UpdateProcessInfoV2 update the process info of a v2 compatible process.
+	UpdateProcessInfoV2(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error
+
+	// ListProcessesV2 list the v2 compatible processes of the given hosts.
+	ListProcessesV2(nCtx contextx.IContext, page types.Page, hostIDs []int64) ([]*types.Process, int64, error)
+
+	// UpdateManyProcessInfoV2 batch update the process info of the v2 compatible processes.
+	UpdateManyProcessInfoV2(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
+
+	// DeleteProcessV2 delete a v2 compatible process.
+	DeleteProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) error
+}
+
+// IDaoProcessConfigV2 defines the process config dao interface of the node manager v2 compatible plugin configs.
+type IDaoProcessConfigV2 interface {
+	// GetProcessConfigV2 gets a v2 compatible process config by unique key.
+	GetProcessConfigV2(nCtx contextx.IContext, processConfigKey *types.ProcessConfigUniqueKey) (
+		*types.ProcessConfig, error)
+
+	// CountProcessConfigsV2 counts the v2 compatible process config records.
+	CountProcessConfigsV2(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error)
+
+	// ListProcessConfigsV2 lists the v2 compatible process config records.
+	ListProcessConfigsV2(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) (
+		[]*types.ProcessConfig, int64, error)
+
+	// UpsertProcessConfigsV2 upsert many v2 compatible process config records.
+	UpsertProcessConfigsV2(nCtx contextx.IContext, configs ...*types.ProcessConfig) error
+
+	// DeleteProcessConfigsV2ByProcessUniqueKey delete many v2 compatible config records by process unique key.
+	DeleteProcessConfigsV2ByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error
+
+	// DeleteProcessConfigsV2 deletes v2 compatible config records by their unique keys.
+	DeleteProcessConfigsV2(nCtx contextx.IContext, processConfigKeys ...*types.ProcessConfigUniqueKey) error
 }
 
 // IDomainPlugin defines the plugin domain interface.
