@@ -273,6 +273,7 @@ import SortPreview from './sort-preview.vue';
 import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import { TopoService } from '@/api/modules/topo';
+import { translateOperatorItems } from '@/common/user-display';
 import { formatTimestamp } from '@/common/util';
 import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
@@ -308,10 +309,12 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 }, 'rulesMng-config_policy_plugin');
 
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+// 搜索栏 operator 下拉选项（与操作记录页同源，显示名经 bk-user-display-name 翻译）
+const operatorChildren = ref<{ id: string; name: string }[]>([]);
 const searchSelectData = computed(() => [
   { id: 'configpolicy_name', name: t('agentStrategy.table.configName'), children: [] },
   { id: 'target_plugin_name', name: t('agentStrategy.table.pluginName'), children: [] },
-  { id: 'operator', name: t('agentStrategy.table.operator'), children: [] },
+  { id: 'operator', name: t('agentStrategy.table.operator'), children: operatorChildren.value, multiple: true },
 ]);
 
 const handleSearchSelectChange = async () => {};
@@ -472,6 +475,27 @@ const getConfigPolicyList = async () => {
 const debounceConfigPolicyList = debounce(getConfigPolicyList, 300);
 
 const strategyBizId = computed(() => mainStore.strategyBizId);
+
+// 拉取当前业务下的插件策略操作人去重集合，作为搜索栏 operator 下拉选项
+const getOperatorDistinct = async () => {
+  if (!strategyBizId.value) return;
+  const res = await ConfigPolicyAPIService.ConfigPolicyEventDistinct({
+    exact_include_conditions: {
+      bk_biz_id: [strategyBizId.value],
+      configpolicy_type: ['config_policy_plugin'],
+    },
+  }).catch(() => null);
+  if (!res) return;
+  const children = (res.operator || [])
+    .filter((item: string) => item !== '')
+    .map((value: string) => ({ id: value, name: value }));
+  await translateOperatorItems(children);
+  operatorChildren.value = children;
+};
+
+watch(strategyBizId, async () => {
+  await getOperatorDistinct();
+}, { immediate: true });
 
 watch([searchSelectValue, strategyBizId], async () => {
   if (strategyBizId.value) await debounceConfigPolicyList();

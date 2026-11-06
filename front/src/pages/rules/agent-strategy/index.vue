@@ -300,6 +300,7 @@ import SortPreview from './sort-preview.vue';
 import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import { TopoService } from '@/api/modules/topo';
+import { translateOperatorItems } from '@/common/user-display';
 import { formatTimestamp } from '@/common/util';
 import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
@@ -355,6 +356,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   disabled: ['action'],
 }, `rulesMng-${configpolicyType.value}`);
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+// 搜索栏 operator 下拉选项（与操作记录页同源，显示名经 bk-user-display-name 翻译）
+const operatorChildren = ref<{ id: string; name: string }[]>([]);
 const searchSelectData = computed(() => [
   {
     id: 'configpolicy_name',
@@ -364,7 +367,8 @@ const searchSelectData = computed(() => [
   {
     id: 'operator',
     name: t('agentStrategy.table.operator'),
-    children: [],
+    children: operatorChildren.value,
+    multiple: true,
   },
 ]);
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
@@ -629,11 +633,41 @@ const debounceConfigPolicyList = debounce(getConfigPolicyList, 300);
 // 从 store 获取策略专用的单选业务 ID
 const strategyBizId = computed(() => mainStore.strategyBizId);
 
+// 拉取当前业务+策略类型下的操作人去重集合，作为搜索栏 operator 下拉选项
+const getOperatorDistinct = async () => {
+  if (!strategyBizId.value) return;
+  const res = await ConfigPolicyAPIService.ConfigPolicyEventDistinct({
+    exact_include_conditions: {
+      bk_biz_id: [strategyBizId.value],
+      configpolicy_type: [configpolicyType.value],
+    },
+  }).catch(() => null);
+  if (!res) return;
+  const children = (res.operator || [])
+    .filter((item: string) => item !== '')
+    .map((value: string) => ({ id: value, name: value }));
+  await translateOperatorItems(children);
+  operatorChildren.value = children;
+};
+
+watch([strategyBizId, configpolicyType], async () => {
+  await getOperatorDistinct();
+}, { immediate: true });
+
+// 记录上一次路由名，agent/proxy 策略切换时清空搜索条件，避免条件残留
+let prevRouteName: typeof route.name = null;
 watch([
   () => route.name,
   searchSelectValue,
   strategyBizId,
 ], async () => {
+  if (route.name !== prevRouteName) {
+    prevRouteName = route.name;
+    if (searchSelectValue.value.length) {
+      searchSelectValue.value = [];
+      return;
+    }
+  }
   if (strategyBizId.value) {
     await debounceConfigPolicyList();
   }
