@@ -170,6 +170,8 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) (err error) {
 		DeployToken:       std.Token(),
 		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
+	uninstallParams.FirewallFeatures, uninstallParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
+		std.DeployInfo().InstallerRuntime.Firewall)
 
 	std.InstanceData().Log().
 		Zh("relay 回调服务地址(%s)", uninstallParams.CallbackSvrAddr).

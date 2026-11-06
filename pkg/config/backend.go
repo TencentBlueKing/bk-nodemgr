@@ -623,7 +623,7 @@ type GSEDeployConf struct {
 	BaseWorkDir      string                `yaml:"baseWorkDir" usage:"base work dir"`
 	BaseDeployDir    string                `yaml:"baseDeployDir" usage:"base deploy dir"`
 	HTTPProxy        HTTPProxy             `yaml:"httpProxy" usage:"http proxy override settings for the installer"`
-	Firewall         Firewall              `yaml:"firewall" usage:"local firewall settings the installer applies before installing"`
+	Firewall         Firewall              `yaml:"firewall" usage:"local firewall settings the installer applies before full commands"`
 	Custom           GSEDeployCustom       `yaml:"custom" usage:"custom deploy conf"`
 	PluginCustom     GSEDeployPluginCustom `yaml:"pluginCustom" usage:"plugin custom deploy conf"`
 	ManualScriptPath string                `yaml:"manualScriptPath" usage:"manual script"`
@@ -660,7 +660,7 @@ func (conf HTTPProxy) Validate() error {
 	return nil
 }
 
-// Firewall defines the local firewall settings the installer applies before installing. Only the windows
+// Firewall defines the local firewall settings the installer applies before full commands. Only the windows
 // installer applies them, the ports are computed by the installer from the enabled features.
 type Firewall struct {
 	// RemoteIPs are the CIDRs allowed by the firewall rules, both IPv4 and IPv6 are supported.

@@ -194,6 +194,8 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 		DeployToken:       std.Token(),
 		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
+	reconfigParams.FirewallFeatures, reconfigParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
+		std.DeployInfo().InstallerRuntime.Firewall)
 
 	err = saveWaitInstallerPrivateData(
 		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,

@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	nodeInstaller "github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/firewall"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodestopper"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeuninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
@@ -47,9 +48,11 @@ func NewFullUninstall() *cobra.Command {
 		operInstID      string
 
 		// optional flags.
-		logDir       string
-		logToStd     bool
-		skipCallback bool
+		logDir            string
+		logToStd          bool
+		skipCallback      bool
+		firewallFeatures  string
+		firewallRemoteIPs string
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -121,6 +124,14 @@ func NewFullUninstall() *cobra.Command {
 				}).Run(cmd.Context())
 			}()
 
+			if err := firewall.NewStep(firewall.StepArgs{
+				DeployEnv: persistentVars.DeployEnv,
+				Features:  firewallFeatures,
+				RemoteIPs: firewallRemoteIPs,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
 			// Stop node.
 			if err := nodestopper.NewStep(nodestopper.StepArgs{
 				AgentHandler: agentHandler,
@@ -161,6 +172,8 @@ func NewFullUninstall() *cobra.Command {
 	fullCmd.Flags().StringVar(&logDir, nodeFlag.LogDir, "", "directory to save log files")
 	fullCmd.Flags().BoolVar(&logToStd, nodeFlag.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().BoolVar(&skipCallback, nodeFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
+	fullCmd.Flags().StringVar(&firewallFeatures, nodeFlag.FirewallFeatures, "", "firewall features to enable, separated by comma")
+	fullCmd.Flags().StringVar(&firewallRemoteIPs, nodeFlag.FirewallRemoteIPs, "", "firewall remote IP CIDRs, separated by comma")
 
 	return fullCmd
 }

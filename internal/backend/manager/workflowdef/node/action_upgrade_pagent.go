@@ -170,6 +170,8 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 		NodeVersion:       std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
+	upgradeParams.FirewallFeatures, upgradeParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
+		std.DeployInfo().InstallerRuntime.Firewall)
 
 	std.InstanceData().Log().
 		Zh("构建升级参数成功. params(%v)", upgradeParams).

@@ -71,6 +71,13 @@ type featureRule struct {
 	ports     string
 }
 
+// featureRules maps a feature to its firewall rule definitions. The ports are hardcoded platform defaults:
+// gse carries the GSE2 agent ports inherited from the legacy bk-nodeman setup script; nodemgr opens the
+// callback and download ports of node manager, both the direct service ports and the relay ports, because
+// the installer cannot know whether the host reaches node manager directly or through a relay.
+// SYNC: nodemgr direct ports must match backend.callbackServer.port (28103) and file.downloadServer.port
+// (28203) in install/helm/bk-nodemgr/values.yaml; relay ports must match defaultRelayCallbackPort (28302)
+// and defaultRelayDownloadPort (28303) in pkg/config/relay.go.
 var featureRules = map[string][]featureRule{
 	featureGSE: {
 		{suffix: "Inbound_GSE2_Rule_TCP", direction: "in", protocol: "TCP", portType: "localport", ports: "60020-60030,20020,20030"},
@@ -79,7 +86,7 @@ var featureRules = map[string][]featureRule{
 		{suffix: "Outbound_GSE2_Rule_UDP", direction: "out", protocol: "UDP", portType: "remoteport", ports: "60020-60030,20020,20030,10020,10030"},
 	},
 	featureNodeMgr: {
-		{suffix: "Outbound_NodeMgr_Rule_TCP", direction: "out", protocol: "TCP", portType: "remoteport", ports: "80"},
+		{suffix: "Outbound_NodeMgr_Rule_TCP", direction: "out", protocol: "TCP", portType: "remoteport", ports: "28103,28203,28302,28303"},
 	},
 }
 

@@ -317,6 +317,8 @@ func buildOfflineInstallScript(
 		RenewGSEProc:      deployInfo.InstallOptions.RenewGSEProc,
 		RenewGSETask:      deployInfo.InstallOptions.RenewGSETask,
 	}
+	params.FirewallFeatures, params.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
+		deployInfo.InstallerRuntime.Firewall)
 
 	if deployInfo.Host.Dynamic.AgentID != "" && !isWindows(deployInfo.Host.Dynamic.NodeOsType) {
 		params.AgentID = string(deployInfo.Host.Dynamic.AgentID)

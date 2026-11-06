@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/checkdeploy"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/datareporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/firewall"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/noderestarter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
@@ -52,10 +53,12 @@ func NewFullReconfig() *cobra.Command {
 		operInstID      string
 
 		// optional flags.
-		logDir   string
-		logToStd bool
-		restart  bool
-		force    bool
+		logDir            string
+		logToStd          bool
+		restart           bool
+		force             bool
+		firewallFeatures  string
+		firewallRemoteIPs string
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -112,6 +115,14 @@ func NewFullReconfig() *cobra.Command {
 					CallbackSvrAddr: callbackSvrAddrs,
 				}).Run(cmd.Context())
 			}()
+
+			if err := firewall.NewStep(firewall.StepArgs{
+				DeployEnv: persistentVars.DeployEnv,
+				Features:  firewallFeatures,
+				RemoteIPs: firewallRemoteIPs,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
 
 			// fetch configs.
 			callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
@@ -199,6 +210,8 @@ func NewFullReconfig() *cobra.Command {
 	fullCmd.Flags().BoolVar(&logToStd, nodeFlag.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().BoolVar(&restart, nodeFlag.Restart, false, "whether to restart node after reload config")
 	fullCmd.Flags().BoolVar(&force, nodeFlag.Force, false, "whether to force restart when --restart is set")
+	fullCmd.Flags().StringVar(&firewallFeatures, nodeFlag.FirewallFeatures, "", "firewall features to enable, separated by comma")
+	fullCmd.Flags().StringVar(&firewallRemoteIPs, nodeFlag.FirewallRemoteIPs, "", "firewall remote IP CIDRs, separated by comma")
 
 	return fullCmd
 }

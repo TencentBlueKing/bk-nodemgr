@@ -206,6 +206,8 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		RenewGSEProc:    std.DeployInfo().InstallOptions.RenewGSEProc,
 		RenewGSETask:    std.DeployInfo().InstallOptions.RenewGSETask,
 	}
+	installParams.FirewallFeatures, installParams.FirewallRemoteIPs = installer.NodeFirewallFlagValues(
+		std.DeployInfo().InstallerRuntime.Firewall)
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,

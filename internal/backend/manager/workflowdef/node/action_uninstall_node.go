@@ -233,6 +233,8 @@ func (act *actionUninstallNodeBase) buildUninstallParamsBase(
 		return nil, err
 	}
 
+	firewallFeatures, firewallRemoteIPs := installer.NodeFirewallFlagValues(std.DeployInfo().InstallerRuntime.Firewall)
+
 	return &installer.NodeUninstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
 			DeployEnv:         system.GetEnv(),
@@ -247,6 +249,8 @@ func (act *actionUninstallNodeBase) buildUninstallParamsBase(
 		InstallerFileName: toolName,
 		DeployToken:       std.Token(),
 		OperInstID:        std.InstanceData().OperationInstanceID,
+		FirewallFeatures:  firewallFeatures,
+		FirewallRemoteIPs: firewallRemoteIPs,
 	}, nil
 }
 
