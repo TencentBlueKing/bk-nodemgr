@@ -25,7 +25,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func Test_convProcessConfigCustomConfigContext(t *testing.T) {
@@ -63,6 +65,45 @@ func Test_convProcessConfigCustomConfigContext(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got.CustomConfigContext, want) {
 		t.Fatalf("convProcessConfigToTypes() CustomConfigContext = %v, want %v", got.CustomConfigContext, want)
+	}
+}
+
+func Test_convProcessConfigToTypesCustomConfigContextWithBSONContainers(t *testing.T) {
+	config := &ProcessConfig{
+		Name:        "test-process-config-name",
+		ProcessName: "test-process-name",
+		HostID:      2,
+		CustomConfigContext: map[string]any{
+			"paths": primitive.A{"/tmp/a", "/tmp/b"},
+			"items": primitive.A{
+				primitive.M{"enabled": true},
+				primitive.A{int32(80), int64(443)},
+			},
+			"nested": map[string]any{
+				"listen": []any{"127.0.0.1"},
+			},
+		},
+	}
+
+	got := convProcessConfigToTypes(config)
+
+	want := map[string]any{
+		"paths": []any{"/tmp/a", "/tmp/b"},
+		"items": []any{
+			map[string]any{"enabled": true},
+			[]any{int32(80), int64(443)},
+		},
+		"nested": map[string]any{
+			"listen": []any{"127.0.0.1"},
+		},
+	}
+	if !reflect.DeepEqual(got.CustomConfigContext, want) {
+		t.Fatalf("CustomConfigContext = %#v, want %#v", got.CustomConfigContext, want)
+	}
+
+	// the plugin config file list API passes this map to structpb.NewStruct.
+	if _, err := structpb.NewStruct(got.CustomConfigContext); err != nil {
+		t.Fatalf("structpb.NewStruct() error = %v", err)
 	}
 }
 

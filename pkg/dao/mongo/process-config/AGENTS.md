@@ -18,7 +18,7 @@
 |Conventions:build filters from base.AliveFilter() + OptFn chain; keep FieldKey* constants synchronized with BSON tags and converter mappings
 |Conventions:UpsertMany identity is {name,process_name,host_id,is_main_config}; base.BuildUpsertParam writes the full data document, so callers must pass complete configs when preserving optional fields matters
 |Conventions:preserve WithProcessUniqueKeys paired $or semantics for {host_id,process_name}; do not rewrite as independent $in filters that create cross-product matches|WithProcessConfigUniqueKeys follows the same shape for the four-field key and skips nil keys, returning the filter unchanged when every key is nil, so delete callers must reject empty/all-nil key lists themselves
-|Conventions:CustomConfigContext is map[string]any and must round-trip through converters; update handler_test.go when its shape changes
+|Conventions:CustomConfigContext is map[string]any and must round-trip through converters; update handler_test.go when its shape changes|convProcessConfigToTypes normalizes primitive.M/primitive.A to plain map/slice because structpb.NewStruct rejects BSON containers
 |Conventions:condition-to-option mapping and fuzzy unsupported policy belong in internal/backend/storage/plugin, not this DAO package
 |Conventions:add indexes in GetIndexes() only for concrete read/write patterns; align keys with AliveFilter and current DeleteMany hard-delete behavior
 |Dependencies:pkg/dao/mongo/base (TableBroker/IOrm/AliveFilter/OptFn/page/errors)|pkg/contextx (tenant context)|pkg/types (domain DTOs)|pkg/logger|MongoDB Go driver BulkWrite/UpdateOneModel

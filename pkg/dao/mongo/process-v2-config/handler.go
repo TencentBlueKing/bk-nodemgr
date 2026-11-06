@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -211,7 +212,58 @@ func convProcessConfigToTypes(config *ProcessConfig) *types.ProcessConfig {
 		Content:             config.Content,
 		MD5:                 config.MD5,
 		FilePath:            config.FilePath,
-		CustomConfigContext: config.CustomConfigContext,
+		CustomConfigContext: convCustomConfigContextToTypes(config.CustomConfigContext),
+	}
+}
+
+// convCustomConfigContextToTypes converts the custom config context decoded from mongo into JSON-compatible values.
+func convCustomConfigContextToTypes(customConfigContext map[string]any) map[string]any {
+	if len(customConfigContext) == 0 {
+		return customConfigContext
+	}
+
+	result := make(map[string]any, len(customConfigContext))
+	for key, value := range customConfigContext {
+		result[key] = convCustomConfigValueToTypes(value)
+	}
+
+	return result
+}
+
+// convCustomConfigValueToTypes replaces BSON containers with plain map/slice values recursively,
+// otherwise proto structpb.NewStruct rejects values such as primitive.A and primitive.M.
+func convCustomConfigValueToTypes(value any) any {
+	switch typed := value.(type) {
+	case primitive.M:
+		result := make(map[string]any, len(typed))
+		for key, item := range typed {
+			result[key] = convCustomConfigValueToTypes(item)
+		}
+
+		return result
+	case primitive.A:
+		result := make([]any, 0, len(typed))
+		for _, item := range typed {
+			result = append(result, convCustomConfigValueToTypes(item))
+		}
+
+		return result
+	case map[string]any:
+		result := make(map[string]any, len(typed))
+		for key, item := range typed {
+			result[key] = convCustomConfigValueToTypes(item)
+		}
+
+		return result
+	case []any:
+		result := make([]any, 0, len(typed))
+		for _, item := range typed {
+			result = append(result, convCustomConfigValueToTypes(item))
+		}
+
+		return result
+	default:
+		return value
 	}
 }
 
