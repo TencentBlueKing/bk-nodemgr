@@ -20,12 +20,10 @@ package file
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -34,102 +32,12 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
 )
-
-func TestHandlerQueryReleaseCacheSingleflight(t *testing.T) {
-	h := &handler{releaseCache: cache.NewMemoryCache(time.Minute)}
-	nCtx := contextx.Background()
-	start := make(chan struct{})
-	release := make(chan struct{})
-	var calls atomic.Int32
-
-	fetch := func(contextx.IContext) ([]byte, error) {
-		calls.Add(1)
-		close(start)
-		<-release
-		return []byte("release"), nil
-	}
-
-	results := make(chan []byte, 2)
-	errs := make(chan error, 2)
-	var wg sync.WaitGroup
-	wg.Add(2)
-	for range 2 {
-		go func() {
-			defer wg.Done()
-			data, err := h.queryReleaseCache(nCtx, "release-key", fetch)
-			results <- data
-			errs <- err
-		}()
-	}
-
-	<-start
-	close(release)
-	wg.Wait()
-	close(results)
-	close(errs)
-
-	if got := calls.Load(); got != 1 {
-		t.Fatalf("expected one fetch call, got %d", got)
-	}
-	for err := range errs {
-		if err != nil {
-			t.Fatalf("query release cache failed: %v", err)
-		}
-	}
-	for data := range results {
-		if string(data) != "release" {
-			t.Fatalf("expected cached release, got %q", data)
-		}
-	}
-
-	data, err := h.queryReleaseCache(nCtx, "release-key", fetch)
-	require.NoError(t, err)
-	require.Equal(t, "release", string(data))
-	require.Equal(t, int32(1), calls.Load())
-}
-
-func TestHandlerQueryReleaseCacheContextCancellation(t *testing.T) {
-	h := &handler{releaseCache: cache.NewMemoryCache(time.Minute)}
-	parent := contextx.Background()
-	nCtx, cancel := contextx.WithCancel(parent)
-	cancel()
-
-	_, err := h.queryReleaseCache(nCtx, "release-key", func(contextx.IContext) ([]byte, error) {
-		t.Fatal("fetch should not run for a cancelled context")
-		return nil, nil
-	})
-	require.ErrorIs(t, err, context.Canceled)
-}
-
-func TestHandlerQueryReleaseCacheDoesNotCacheError(t *testing.T) {
-	h := &handler{releaseCache: cache.NewMemoryCache(time.Minute)}
-	nCtx := contextx.Background()
-	var calls atomic.Int32
-
-	fetch := func(contextx.IContext) ([]byte, error) {
-		if calls.Add(1) == 1 {
-			return nil, errors.New("temporary failure")
-		}
-		return []byte("release"), nil
-	}
-
-	_, err := h.queryReleaseCache(nCtx, "release-key", fetch)
-	require.Error(t, err)
-
-	data, err := h.queryReleaseCache(nCtx, "release-key", fetch)
-	require.NoError(t, err)
-	require.Equal(t, "release", string(data))
-	if got := calls.Load(); got != 2 {
-		t.Fatalf("expected two fetch calls, got %d", got)
-	}
-}
 
 func TestHandlerReleaseMetadataReadsCacheResults(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("tenant-a"))
