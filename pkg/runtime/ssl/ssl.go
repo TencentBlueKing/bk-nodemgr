@@ -49,6 +49,14 @@ type TLSConfig struct {
 	// Key authentication key content.
 	Key []byte
 
+	// EncCert TLCP (GM TLS, GB/T 38636) encryption certificate content,
+	// paired with EncKey. When set together with Cert/Key (the signing
+	// pair), the client dials with pure TLCP instead of standard TLS.
+	EncCert []byte
+
+	// EncKey TLCP (GM TLS) encryption key content.
+	EncKey []byte
+
 	// Password authentication key file password.
 	Password string
 }
@@ -120,6 +128,9 @@ func loadCertificates(cert, key []byte, passwd string) (*tls.Certificate, error)
 			return nil, fmt.Errorf("decode private key failed")
 		}
 
+		// legacy PEM encryption (RFC 1423), kept for backward compatibility
+		// with operator-provided encrypted key files.
+		// nolint: staticcheck // SA1019: see the comment above.
 		priDecrPem, decErr := x509.DecryptPEMBlock(priPem, []byte(passwd))
 		if decErr != nil {
 			return nil, decErr

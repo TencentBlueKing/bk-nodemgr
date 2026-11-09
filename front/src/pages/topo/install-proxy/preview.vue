@@ -483,6 +483,9 @@ const handleSetup = async () => {
         __row_id,
         bk_networkarea_name, bk_networkunit_name,
         dedicated_installer, cluster_tunnel, file_tunnel, data_tunnel,
+        // credit is the plaintext credential form field and must never be
+        // sent: exclude it at the request boundary
+        credit,
         ...rest
       } = item;
       return {

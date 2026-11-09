@@ -16,25 +16,29 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package cipher provides the cipher related API handlers.
-package cipher
+// Package ciphersuite provides the cipher related API handlers.
+package ciphersuite
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/cipher/rsa"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg        *gin.RouterGroup
-	daoCipher cipherStg.IStorage
+	rg         *gin.RouterGroup
+	daoCipher  cipherStg.IStorage
+	cryptoType config.EncryptCryptoType
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
-		rg:        rg.Group("/cipher"),
-		daoCipher: capability.StorageCipher,
+		rg:         rg.Group("/cipher"),
+		daoCipher:  capability.StorageCipher,
+		cryptoType: capability.CryptoType,
 	}
 }
 
@@ -42,5 +46,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	rsa.Load(h.rg, capability)
+	rsakey.Load(h.rg, capability)
+
+	h.rg.POST("/get_public_key", restserver.Handler(h.GetCurrentPublicKey))
 }

@@ -3,6 +3,7 @@ module github.com/TencentBlueKing/bk-nodemgr
 go 1.26.10
 
 require (
+	gitee.com/Trisia/gotlcp v1.5.0
 	github.com/RichardKnop/logging v0.0.0-20190827224416-1a693bdd4fae
 	github.com/RichardKnop/machinery/v2 v2.0.16
 	github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1
@@ -10,6 +11,7 @@ require (
 	github.com/TencentBlueKing/iam-go-sdk v1.0.1
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/containerd/errdefs v1.0.0
+	github.com/emmansun/gmsm v0.44.1
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -97,7 +99,6 @@ require (
 	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
-	github.com/emmansun/gmsm v0.41.1 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect

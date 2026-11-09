@@ -37,6 +37,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -139,6 +140,10 @@ type Capability struct {
 
 	// Crypter ...
 	Crypter crypter.Crypter
+
+	// CryptoType is the globally enabled crypto suite; the disabled suite's
+	// ciphertexts are rejected in both encryption and decryption paths.
+	CryptoType config.EncryptCryptoType
 
 	// InstallerFileGroup tool file group.
 	InstallerFileGroup fileiface.FileGroup

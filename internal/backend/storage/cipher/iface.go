@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package cipher defines the interface for cipher storage handlers.
-package cipher
+// Package ciphersuite defines the interface for cipher storage handlers.
+package ciphersuite
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
@@ -47,6 +47,6 @@ type IDaoStorage interface {
 
 // IDomainStorage defines business domain interfaces for cipher storage.
 type IDomainStorage interface {
-	// EnsureDefaultCipher ensures the default RSA cipher.
-	EnsureDefaultCipher(nCtx contextx.IContext) error
+	// EnsureDefaultCipher ensures the default keypair of the given key type.
+	EnsureDefaultCipher(nCtx contextx.IContext, keyType types.CipherKeyType) error
 }

@@ -317,6 +317,19 @@ func (svc *ApplicationService) LoadFromFile(path string) error {
 		return err
 	}
 
+	// legacy config files may still carry the old `mode` key; it applies only
+	// when the current `runMode` key is absent.
+	legacy := struct {
+		RunMode    *RunMode `yaml:"runMode"`
+		LegacyMode *RunMode `yaml:"mode"`
+	}{}
+	if err = yaml.Unmarshal(configContent, &legacy); err != nil {
+		return err
+	}
+	if legacy.RunMode == nil && legacy.LegacyMode != nil {
+		svc.RunMode = *legacy.LegacyMode
+	}
+
 	// load kms secret.
 	if svc.KMS.Enabled {
 		if err := svc.KMS.ParseApplicationServiceConfig(svc); err != nil {

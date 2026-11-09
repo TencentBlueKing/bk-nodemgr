@@ -32,7 +32,7 @@ This API has no business input parameters, but an empty JSON request body is req
   "error": null,
   "permission": null,
   "data": {
-    "public_key": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA...\n-----END PUBLIC KEY-----"
+    "public_key": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
   }
 }
 ```

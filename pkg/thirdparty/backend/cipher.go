@@ -21,6 +21,7 @@ package backend
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IHandlerCipher cipher handler interface.
@@ -29,6 +30,12 @@ type IHandlerCipher interface {
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @return the rsa public key string and error.
 	GetRSAPublicKey(nCtx contextx.IContext) (string, error)
+
+	// GetCurrentPublicKey get the public key of the globally enabled
+	// credential encryption suite.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @return the key type (RSA4096 or SM2), the public key string and error.
+	GetCurrentPublicKey(nCtx contextx.IContext) (types.CipherKeyType, string, error)
 }
 
 // GetRSAPublicKey get rsa public key.
@@ -41,4 +48,17 @@ func (h *Handler) GetRSAPublicKey(nCtx contextx.IContext) (string, error) {
 	}
 
 	return resp.GetData().GetPublicKey(), nil
+}
+
+// GetCurrentPublicKey get the public key of the globally enabled credential
+// encryption suite.
+func (h *Handler) GetCurrentPublicKey(nCtx contextx.IContext) (types.CipherKeyType, string, error) {
+	req := &protoBackend.GetCurrentPublicKeyReq{}
+
+	resp, err := h.cli.getCurrentPublicKey(nCtx, req)
+	if err != nil {
+		return "", "", err
+	}
+
+	return types.CipherKeyType(resp.GetData().GetKeyType()), resp.GetData().GetPublicKey(), nil
 }

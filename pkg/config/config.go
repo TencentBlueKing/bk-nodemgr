@@ -578,6 +578,18 @@ type TLSConfig struct {
 	Key     string `yaml:"key"`
 	KeyFile string `yaml:"keyFile"`
 
+	// EncCert / EncKey are the TLCP (GM TLS, GB/T 38636) encryption
+	// certificate pair of outbound clients; Cert/Key act as the signing
+	// pair. When the encryption pair is set, the client dials with pure
+	// TLCP instead of standard TLS.
+	// EncCert has higher priority than encCertFile.
+	EncCert     string `yaml:"encCert"`
+	EncCertFile string `yaml:"encCertFile"`
+
+	// EncKey has higher priority than encKeyFile.
+	EncKey     string `yaml:"encKey"`
+	EncKeyFile string `yaml:"encKeyFile"`
+
 	Password string `yaml:"password"`
 }
 
@@ -606,6 +618,24 @@ func (conf TLSConfig) GetKey() ([]byte, error) {
 	}
 
 	return readTLSMaterialFromFile(conf.KeyFile)
+}
+
+// GetEncCert gets the TLCP encryption cert.
+func (conf TLSConfig) GetEncCert() ([]byte, error) {
+	if conf.EncCert != "" {
+		return []byte(conf.EncCert), nil
+	}
+
+	return readTLSMaterialFromFile(conf.EncCertFile)
+}
+
+// GetEncKey gets the TLCP encryption key.
+func (conf TLSConfig) GetEncKey() ([]byte, error) {
+	if conf.EncKey != "" {
+		return []byte(conf.EncKey), nil
+	}
+
+	return readTLSMaterialFromFile(conf.EncKeyFile)
 }
 
 // ToSSLConfig resolves certificate sources without modifying the config.
@@ -645,6 +675,22 @@ func (conf TLSConfig) ToSSLConfig() (*ssl.TLSConfig, error) {
 	sslConf.Key = key
 	sslConf.Password = conf.Password
 
+	// the TLCP encryption pair rides on the enabled signing triple.
+	if conf.hasEncPair() {
+		encCert, encErr := conf.GetEncCert()
+		if encErr != nil {
+			return nil, encErr
+		}
+
+		encKey, keyErr := conf.GetEncKey()
+		if keyErr != nil {
+			return nil, keyErr
+		}
+
+		sslConf.EncCert = encCert
+		sslConf.EncKey = encKey
+	}
+
 	return sslConf, nil
 }
 
@@ -679,7 +725,27 @@ func (conf TLSConfig) Validate() error {
 		return errors.New("password provided but no key specified")
 	}
 
+	hasEncCert := conf.EncCert != "" || conf.EncCertFile != ""
+	hasEncKey := conf.EncKey != "" || conf.EncKeyFile != ""
+
+	// The TLCP encryption certificate must be paired, and implies the
+	// signing pair (Cert/Key) is present too.
+	if hasEncCert != hasEncKey {
+		return errors.New("tlcp enc cert and enc key must be both provided or both empty")
+	}
+
+	if hasEncCert && (!hasCert || !hasKey) {
+		return errors.New("tlcp enc certificate provided but the signing certificate pair is missing")
+	}
+
 	return nil
+}
+
+// hasEncPair reports whether the TLCP encryption certificate pair is fully
+// configured.
+func (conf TLSConfig) hasEncPair() bool {
+	return (conf.EncCert != "" || conf.EncCertFile != "") &&
+		(conf.EncKey != "" || conf.EncKeyFile != "")
 }
 
 // IsEnabled checks if tls is enabled.

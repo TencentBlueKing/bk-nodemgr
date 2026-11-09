@@ -384,9 +384,11 @@ func generateRSAKeyPair(bits RSAKeySize) (*rsa.PrivateKey, error) {
 	return priv, nil
 }
 
-// DecryptRSABase64Ciphertext decrypts RSA ciphertext encoded with standard base64.
-// Expected format: base64(RSAVersion + raw RSA ciphertext) for v1, or base64(RSAVersionHybrid + wrappedKey + nonce + gcmCiphertext) for v2.
-func DecryptRSABase64Ciphertext(cry Crypter, base64Ciphertext string) (string, error) {
+// DecryptBase64Ciphertext decrypts ciphertext encoded with standard base64.
+// Expected format: base64(version byte + algorithm specific ciphertext). The
+// crypter accepts only its own version bytes (RSA v1/v2, SM2 v3) and rejects
+// the others, so the globally enabled suite is enforced on decryption too.
+func DecryptBase64Ciphertext(cry Crypter, base64Ciphertext string) (string, error) {
 	if cry == nil {
 		return "", errors.New("nil crypter")
 	}

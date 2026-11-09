@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package cipher defines the interface for cipher storage handlers.
-package cipher
+// Package ciphersuite defines the interface for cipher storage handlers.
+package ciphersuite
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
