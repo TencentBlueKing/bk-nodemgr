@@ -413,6 +413,8 @@ func (x *PluginInstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMappin
 			Version:             proc.GetVersion(),
 			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 			CustomSpec:          customSpec,
+			// A v3 install renders the sub configs from scratch, so the installer must not restore the sub configs of a previous installation.
+			RenewSubConfig: true,
 		}
 	})
 }
@@ -483,7 +485,9 @@ func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 }
 
 // ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
-func (x *PluginUpgradeReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
+func (x *PluginUpgradeReq) ConvertParamToTypesWithHostTopoMapping(
+	hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
+
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginUpgradeReq_UpgradeInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
@@ -491,6 +495,9 @@ func (x *PluginUpgradeReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMappin
 			PluginName:          proc.GetPluginName(),
 			Version:             proc.GetVersion(),
 			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+			// A v3 upgrade renders the sub configs from scratch, so the installer must not restore
+			// the sub configs of the previous version.
+			RenewSubConfig: true,
 		}
 	})
 }
@@ -551,9 +558,10 @@ func (x *PluginUninstallReq) ConvertParamToTypes() []*types.PluginDeploymentPara
 func (x *PluginUninstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginUninstallReq_UninstallInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:     plugin.GetBkHostId(),
-			PluginName: plugin.GetPluginName(),
-			BizID:      hostTopoMapping[plugin.GetBkHostId()].BizID,
+			HostID:         plugin.GetBkHostId(),
+			PluginName:     plugin.GetPluginName(),
+			BizID:          hostTopoMapping[plugin.GetBkHostId()].BizID,
+			RenewSubConfig: true,
 		}
 	})
 }

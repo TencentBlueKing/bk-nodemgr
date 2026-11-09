@@ -109,13 +109,15 @@ const (
 	metricOperationListProcessConfig                      = "list_process_config"
 	metricOperationCountProcessConfig                     = "count_process_config"
 
-	metricOperationCreateProcessV2                          = "create_process_v2"
-	metricOperationExistProcessV2                           = "exist_process_v2"
-	metricOperationUpdateProcessV2                          = "update_process_v2"
-	metricOperationUpdateProcessInfoV2                      = "update_process_info_v2"
-	metricOperationListProcessV2                            = "list_process_v2"
-	metricOperationUpdateManyProcessInfoV2                  = "update_many_process_info_v2"
-	metricOperationDeleteProcessV2                          = "delete_process_v2"
+	metricOperationCreateProcessV2         = "create_process_v2"
+	metricOperationExistProcessV2          = "exist_process_v2"
+	metricOperationUpdateProcessV2         = "update_process_v2"
+	metricOperationUpdateProcessInfoV2     = "update_process_info_v2"
+	metricOperationGetProcessV2            = "get_process_v2"
+	metricOperationListProcessV2           = "list_process_v2"
+	metricOperationUpdateManyProcessInfoV2 = "update_many_process_info_v2"
+	metricOperationDeleteProcessV2         = "delete_process_v2"
+
 	metricOperationUpsertManyProcessConfigsV2               = "upsert_many_process_configs_v2"
 	metricOperationGetProcessConfigV2                       = "get_process_config_v2"
 	metricOperationListProcessConfigsV2                     = "list_process_configs_v2"
@@ -1171,6 +1173,22 @@ func (s *Storage) UpdateProcessInfoV2(
 	return s.WrapFn(nCtx, metricOperationUpdateProcessInfoV2, func(nCtx contextx.IContext) error {
 		return s.updateProcessInfoV2(nCtx, hostID, pluginName, processInfo)
 	})
+}
+
+// GetProcessV2 gets a v2 compatible process by host id and plugin name.
+func (s *Storage) GetProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error) {
+	var (
+		process *types.Process
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetProcessV2, func(nCtx contextx.IContext) error {
+		process, err = s.getProcessV2(nCtx, hostID, pluginName)
+
+		return err
+	})
+
+	return process, err
 }
 
 // ListProcessesV2 list the v2 compatible processes of the given hosts.

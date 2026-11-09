@@ -136,17 +136,30 @@ func (act *actionFinishIfPluginProcessV2Alive) Do(ctx *action.InstanceContext) (
 		return fmt.Errorf("failed to query process info: %w", err)
 	}
 
+	if err := act.daoProcessV2.UpdateProcessInfoV2(nCtx, deployInfo.Process.HostID, pluginName, processInfo); err != nil {
+		return fmt.Errorf("failed to update process v2 info: %w", err)
+	}
+
 	if processInfo.Status == types.ProcessStatusRunning {
+		targetVersion := deployInfo.InstallOptions.Version
+		if processInfo.Version == "" || (targetVersion != "" && processInfo.Version != targetVersion) {
+			std.InstanceData().Log().
+				Zh("V2 插件进程已运行但运行版本为空或与目标版本不一致, 需继续安装目标版本, 主机id(%d), 插件名(%s), 运行版本(%s), 目标版本(%s)",
+					host.HostID, pluginName, processInfo.Version, targetVersion).
+				En("v2 plugin process is running with an empty or different version, continue to install the target version, "+
+					"host-id(%d), plugin-name(%s), running-version(%s), target-version(%s)",
+					host.HostID, pluginName, processInfo.Version, targetVersion).
+				Info()
+
+			return nil
+		}
+
 		std.InstanceData().Log().
 			Zh("V2 插件进程已正常运行, 跳过后续流程, 主机id(%d), 插件名(%s), 进程状态(%s)",
 				host.HostID, pluginName, processInfo.Status).
 			En("v2 plugin process is already running, host-id(%d), plugin-name(%s), process-status(%s)",
 				host.HostID, pluginName, processInfo.Status).
 			Info()
-
-		if err := act.daoProcessV2.UpdateProcessInfoV2(nCtx, deployInfo.Process.HostID, pluginName, processInfo); err != nil {
-			return fmt.Errorf("failed to update process v2 info: %w", err)
-		}
 
 		std.InstanceData().Content = conv.StructToMapIgnoreError(param)
 
@@ -160,10 +173,10 @@ func (act *actionFinishIfPluginProcessV2Alive) Do(ctx *action.InstanceContext) (
 
 // DisplayNameZh returns the Chinese display name of the action.
 func (act *actionFinishIfPluginProcessV2Alive) DisplayNameZh() string {
-	return "检测 V2 插件进程是否已经存活，如果存活则结束"
+	return "检测 V2 插件进程是否已经存活且版本一致，如果是则结束"
 }
 
 // DisplayNameEn returns the English display name of the action.
 func (act *actionFinishIfPluginProcessV2Alive) DisplayNameEn() string {
-	return "check if plugin process is alive, if alive then finish"
+	return "check if plugin process is alive with the target version, if so then finish"
 }

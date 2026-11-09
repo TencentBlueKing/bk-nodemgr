@@ -345,6 +345,7 @@ func (mgr *Manager) registerDefPluginV2() error {
 		pluginv2.NewActionUpsertProcessV2(pluginCap),
 		pluginv2.NewActionUpdateProcessV2(pluginCap),
 		pluginv2.NewActionStopProcessV2(pluginCap),
+		pluginv2.NewActionStopMismatchVersionPluginProcessV2(pluginCap),
 		pluginv2.NewActionRestartProcessV2(pluginCap),
 		pluginv2.NewActionReloadProcessV2(pluginCap),
 		pluginv2.NewActionTrusteeshipProcessV2(pluginCap),

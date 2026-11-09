@@ -286,6 +286,7 @@ type installOptions struct {
 	IsOffline               bool         `json:"is_offline" bson:"is_offline"`
 	EnableCompatibilityMode bool         `json:"enable_compatibility_mode" bson:"enable_compatibility_mode"`
 	CustomSpec              *processSpec `json:"custom_spec" bson:"custom_spec"`
+	RenewSubConfig          bool         `json:"renew_sub_config" bson:"renew_sub_config"`
 }
 
 // transferOptions this is the options for plugin transfer.

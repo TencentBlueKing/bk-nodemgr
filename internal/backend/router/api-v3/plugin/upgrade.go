@@ -52,8 +52,9 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	policy := h.resolvePluginCompatibilityModePolicy(rCtx)
 	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
-	applyPluginCompatibilityModePolicy(h.resolvePluginCompatibilityModePolicy(rCtx), rCtx.TenantID(), pluginDeploymentParam...)
+	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.PluginDeploymentTransferOptionsAll(), pluginDeploymentParam...)
 	if err != nil {
@@ -70,6 +71,11 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 	})
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade plugin.")
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
+	if err := h.ensurePluginV2(rCtx, false, pluginDeploymentParam); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to ensure plugin v2")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 

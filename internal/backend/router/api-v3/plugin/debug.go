@@ -68,6 +68,7 @@ func (h *handler) StartDebug(rCtx restserver.IContext) (any, error) {
 			Version:             debugInfo.GetVersion(),
 			ConfigTemplateName:  debugInfo.GetConfigTemplateName(),
 			CustomConfigContext: make(map[string]any),
+			RenewSubConfig:      true,
 		}
 		if debugInfo.GetCustomConfigContext() != nil {
 			param.CustomConfigContext = debugInfo.GetCustomConfigContext().AsMap()

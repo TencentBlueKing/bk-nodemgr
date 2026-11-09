@@ -124,7 +124,7 @@ gseDeployConfs:
 
 ### 什么时候生效？
 
-只有插件开启兼容性安装时才会生效。插件安装请求命中兼容性策略（或节点安装携带兼容性安装选项）后，部署参数会带上 `EnableCompatibilityMode=true`，backend 会额外触发 `ensure_plugin_v2` 流程，只有该流程在注入插件 V2 基础运行时时读取这两个字段。
+只有插件开启兼容性安装时才会生效。插件安装或升级请求命中兼容性策略（或节点安装携带兼容性安装选项）后，部署参数会带上 `EnableCompatibilityMode=true`，backend 会额外触发 `ensure_plugin_v2` 流程，只有该流程在注入插件 V2 基础运行时时读取这两个字段。
 
 普通的「安装插件」流程（插件 V3）不读取它们，目录仍按 `<baseDeployDir>/<env>/plugin/<plugin_group>/<plugin_name>/run` 和 `.../data` 生成。
 

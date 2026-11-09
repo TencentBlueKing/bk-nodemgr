@@ -201,6 +201,9 @@ type IDaoProcessV2 interface {
 	// ExistProcessV2 check if the v2 compatible process exist.
 	ExistProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
 
+	// GetProcessV2 get a v2 compatible process by host id and plugin name.
+	GetProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error)
+
 	// UpdateProcessV2 update a v2 compatible process, the host id and plugin name of the process identify the record.
 	UpdateProcessV2(nCtx contextx.IContext, process *types.Process) error
 
