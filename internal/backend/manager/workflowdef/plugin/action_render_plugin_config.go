@@ -166,20 +166,31 @@ func (act *actionRenderPluginConfig) renderPluginConf(std *pluginUtils.PluginAct
 		En("plugin template type is(%s)", pluginConf.TemplateRenderer).
 		Info()
 
-	switch pluginConf.TemplateRenderer {
-	case types.TemplateRendererTypeJinja2:
-		maps.Copy(renderContext, systemContext)
-		maps.Copy(renderContext, customContext)
-	case types.TemplateRendererTypeGoTemplate:
-		maps.Copy(renderContext, systemContext)
-		renderContext[keyCustomContext] = customContext
-	default:
-		return fmt.Errorf("unsupported template renderer type: %s", pluginConf.TemplateRenderer)
-	}
-
 	renderHandler, err := renderer.NewRenderer(pluginConf.TemplateRenderer)
 	if err != nil {
 		return fmt.Errorf("failed to create template renderer: %w", err)
+	}
+
+	// the custom context may reference system context values, so it is rendered before merging into
+	// the render context that config templates are rendered with.
+	customValueContext := make(map[string]any, len(systemContext)+len(customContext))
+	maps.Copy(customValueContext, systemContext)
+	maps.Copy(customValueContext, customContext)
+
+	renderedCustomContext, err := renderer.RenderNestedMap(renderHandler, customContext, customValueContext)
+	if err != nil {
+		return fmt.Errorf("failed to render custom config context: %w", err)
+	}
+
+	switch pluginConf.TemplateRenderer {
+	case types.TemplateRendererTypeJinja2:
+		maps.Copy(renderContext, systemContext)
+		maps.Copy(renderContext, renderedCustomContext)
+	case types.TemplateRendererTypeGoTemplate:
+		maps.Copy(renderContext, systemContext)
+		renderContext[keyCustomContext] = renderedCustomContext
+	default:
+		return fmt.Errorf("unsupported template renderer type: %s", pluginConf.TemplateRenderer)
 	}
 
 	for idx := range pluginConf.ConfigFilesDetail {
