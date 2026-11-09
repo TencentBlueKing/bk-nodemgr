@@ -99,6 +99,11 @@ func (act *actionCleanOrphanProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionCleanOrphanProcess) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do this func define what the action will do.
 func (act *actionCleanOrphanProcess) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamCleanOrphanProcess)

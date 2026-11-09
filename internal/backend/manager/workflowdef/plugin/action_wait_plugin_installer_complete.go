@@ -96,6 +96,11 @@ func (act *actionWaitPluginInstallerComplete) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionWaitPluginInstallerComplete) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount this func define how many times this action will retry.
 func (act *actionWaitPluginInstallerComplete) MaxRetryCount() uint {
 	return 0

@@ -83,6 +83,11 @@ func (act *actionPackageReleasePluginHidden) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionPackageReleasePluginHidden) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 func (act *actionPackageReleasePluginHidden) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamImportPackageReleasePluginHidden)
 	err = conv.MapToStruct(ctx.Data.Content, param)

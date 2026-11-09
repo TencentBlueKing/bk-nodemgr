@@ -99,6 +99,11 @@ func (act *actionWaitDetectInfoByManual) Tags() []action.Tag {
 	return []action.Tag{action.TagNeedManualExecInstallScript}
 }
 
+// Queue returns the queue of the action.
+func (act *actionWaitDetectInfoByManual) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionWaitDetectInfoByManual) MaxRetryCount() uint {
 	return 0

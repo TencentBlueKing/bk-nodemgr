@@ -70,6 +70,11 @@ func (act *actionPrepareSubConfigSource) Timeout() time.Duration { return 10 * t
 // Tags returns action tags.
 func (act *actionPrepareSubConfigSource) Tags() []action.Tag { return []action.Tag{} }
 
+// Queue returns the queue of the action.
+func (act *actionPrepareSubConfigSource) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the action retry count.
 func (act *actionPrepareSubConfigSource) MaxRetryCount() uint { return 3 } // nolint: mnd
 

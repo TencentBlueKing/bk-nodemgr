@@ -113,6 +113,9 @@ type WorkflowConfig struct {
 	WorkNodeNum             int
 	GracefulShutdownTimeout time.Duration
 	Redis                   config.Redis
+	// ConsumeQueues defines the queue names consumed by workflow workers,
+	// empty means consuming the default queue and all dedicated action queues.
+	ConsumeQueues []string
 }
 
 // Validate configures the config.

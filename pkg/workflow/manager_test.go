@@ -20,10 +20,12 @@ package workflow
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 func Test_buildAddrsWithPassword(t *testing.T) {
@@ -130,4 +132,85 @@ func Test_buildAddrsWithPassword_doesNotModifyOriginal(t *testing.T) {
 	// Original slice should not be modified
 	assert.Equal(t, []string{"node1:6379"}, original)
 	assert.Equal(t, []string{"secret@node1:6379", "node1:6379"}, result)
+}
+
+type fakeActionDef struct {
+	name  string
+	queue action.Queue
+}
+
+func (def fakeActionDef) Name() string                       { return def.name }
+func (def fakeActionDef) DisplayNameZh() string              { return def.name }
+func (def fakeActionDef) DisplayNameEn() string              { return def.name }
+func (def fakeActionDef) Version() string                    { return "1.0.0" }
+func (def fakeActionDef) Description() string                { return def.name }
+func (def fakeActionDef) Timeout() time.Duration             { return time.Minute }
+func (def fakeActionDef) Tags() []action.Tag                 { return nil }
+func (def fakeActionDef) Queue() action.Queue                { return def.queue }
+func (def fakeActionDef) MaxRetryCount() uint                { return 0 }
+func (def fakeActionDef) DelayFn(_ int) func()               { return nil }
+func (def fakeActionDef) Do(_ *action.InstanceContext) error { return nil }
+
+func Test_resolveConsumeQueueNames(t *testing.T) {
+	newManager := func(consumeQueues []string, defs ...action.Definition) *manager {
+		mgr := &manager{
+			registeredActionDefs: make(map[string]action.Definition),
+			consumeQueues:        consumeQueues,
+		}
+		for _, def := range defs {
+			mgr.registeredActionDefs[def.Name()] = def
+		}
+
+		return mgr
+	}
+
+	tests := []struct {
+		name          string
+		consumeQueues []string
+		defs          []action.Definition
+		want          []string
+	}{
+		{
+			name: "default consumes default queue only when no dedicated queue",
+			defs: []action.Definition{fakeActionDef{name: "a", queue: action.QueueDefault}},
+			want: []string{"default"},
+		},
+		{
+			name: "default consumes default queue and all dedicated queues",
+			defs: []action.Definition{
+				fakeActionDef{name: "a", queue: action.QueueDefault},
+				fakeActionDef{name: "b", queue: "ssh"},
+				fakeActionDef{name: "c", queue: "credit"},
+			},
+			want: []string{"default", "ssh", "credit"},
+		},
+		{
+			name: "default deduplicates dedicated queues",
+			defs: []action.Definition{
+				fakeActionDef{name: "a", queue: action.QueueDefault},
+				fakeActionDef{name: "b", queue: "ssh"},
+				fakeActionDef{name: "c", queue: "ssh"},
+			},
+			want: []string{"default", "ssh"},
+		},
+		{
+			name:          "configured consumes only the configured queues",
+			consumeQueues: []string{"ssh"},
+			defs:          []action.Definition{fakeActionDef{name: "b", queue: "ssh"}},
+			want:          []string{"ssh"},
+		},
+		{
+			name:          "configured queues are consumed literally without registration check",
+			consumeQueues: []string{"operation_inst_engine_queue", "ssh", "ssh"},
+			defs:          []action.Definition{fakeActionDef{name: "b", queue: "ssh"}},
+			want:          []string{"operation_inst_engine_queue", "ssh"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := newManager(tt.consumeQueues, tt.defs...).resolveConsumeQueueNames()
+			assert.ElementsMatch(t, tt.want, got)
+		})
+	}
 }

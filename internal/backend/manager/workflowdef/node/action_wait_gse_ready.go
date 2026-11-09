@@ -100,6 +100,11 @@ func (act *actionWaitGseReady) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionWaitGseReady) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionWaitGseReady) MaxRetryCount() uint {
 	// notice: this action is an polling action should not auto retry.

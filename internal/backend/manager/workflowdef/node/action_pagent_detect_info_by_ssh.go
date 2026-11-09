@@ -118,6 +118,11 @@ func (act *actionPagentDetectInfoBySSH) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionPagentDetectInfoBySSH) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionPagentDetectInfoBySSH) MaxRetryCount() uint {
 	return 5 // nolint: mnd

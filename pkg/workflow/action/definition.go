@@ -35,7 +35,19 @@ const (
 	TagNeedOfflineManualInstall Tag = "need_offline_manual_install"
 )
 
+// Queue represents the dedicated queue an action is dispatched to.
+type Queue string
+
+const (
+	// QueueDefault the default queue.
+	QueueDefault Queue = "default"
+
+	// QueueRemoteHostConnector the queue for actions connecting to remote hosts (ssh/wmi).
+	QueueRemoteHostConnector Queue = "remote_host_connector"
+)
+
 // Definition represents an action, which is a single basic step of work.
+// nolint: interfacebloat
 type Definition interface {
 	// Name returns the name of the action.
 	Name() string
@@ -57,6 +69,9 @@ type Definition interface {
 
 	// Tags returns the tags of the action.
 	Tags() []Tag
+
+	// Queue returns the dedicated queue of the action.
+	Queue() Queue
 
 	// MaxRetryCount returns the max retry count of the action.
 	MaxRetryCount() uint

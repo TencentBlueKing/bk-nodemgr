@@ -123,6 +123,11 @@ func (act *actionInstallNodeBySSH) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionInstallNodeBySSH) Queue() action.Queue {
+	return action.QueueRemoteHostConnector
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionInstallNodeBySSH) MaxRetryCount() uint {
 	return 3 // nolint: mnd

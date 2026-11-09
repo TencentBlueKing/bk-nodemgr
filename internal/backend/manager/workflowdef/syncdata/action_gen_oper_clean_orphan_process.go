@@ -87,6 +87,11 @@ func (act *actionGenOperCleanOrphanProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionGenOperCleanOrphanProcess) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount disables automatic retries after partially generating operations.
 func (act *actionGenOperCleanOrphanProcess) MaxRetryCount() uint {
 	return 0

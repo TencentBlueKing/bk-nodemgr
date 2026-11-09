@@ -77,6 +77,11 @@ func (act *actionApplyComposedPluginSubConfig) Timeout() time.Duration { return 
 // Tags returns action tags.
 func (act *actionApplyComposedPluginSubConfig) Tags() []action.Tag { return []action.Tag{} }
 
+// Queue returns the queue of the action.
+func (act *actionApplyComposedPluginSubConfig) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the action retry count.
 func (act *actionApplyComposedPluginSubConfig) MaxRetryCount() uint { return 3 } // nolint: mnd
 

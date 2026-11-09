@@ -75,6 +75,11 @@ func (act *actCleanDebugPlugin) Timeout() time.Duration {
 // Tags returns action tags.
 func (act *actCleanDebugPlugin) Tags() []action.Tag { return []action.Tag{} }
 
+// Queue returns the queue of the action.
+func (act *actCleanDebugPlugin) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count.
 func (act *actCleanDebugPlugin) MaxRetryCount() uint { return 3 } // nolint: mnd
 

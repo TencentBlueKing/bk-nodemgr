@@ -103,6 +103,11 @@ func (act *actionDetectInfoBySSH) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionDetectInfoBySSH) Queue() action.Queue {
+	return action.QueueRemoteHostConnector
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionDetectInfoBySSH) MaxRetryCount() uint {
 	return 5 // nolint: mnd

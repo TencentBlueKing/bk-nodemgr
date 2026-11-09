@@ -105,6 +105,11 @@ func (act *actionWaitOfflineManualInstall) Tags() []action.Tag {
 	return []action.Tag{action.TagNeedOfflineManualInstall}
 }
 
+// Queue returns the queue of the action.
+func (act *actionWaitOfflineManualInstall) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionWaitOfflineManualInstall) MaxRetryCount() uint {
 	return 0

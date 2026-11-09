@@ -93,6 +93,11 @@ func (act *actionSyncAgentState) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncAgentState) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do the action.
 func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamSyncAgentState)

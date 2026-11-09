@@ -81,6 +81,11 @@ func (act *actionRestartProcessV2) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionRestartProcessV2) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionRestartProcessV2) MaxRetryCount() uint {
 	return 5 // nolint: mnd

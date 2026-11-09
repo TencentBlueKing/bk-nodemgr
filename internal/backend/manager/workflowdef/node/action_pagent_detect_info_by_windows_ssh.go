@@ -113,6 +113,11 @@ func (act *actionPagentDetectInfoByWindowsSSH) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionPagentDetectInfoByWindowsSSH) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionPagentDetectInfoByWindowsSSH) MaxRetryCount() uint {
 	return 5 // nolint: mnd

@@ -106,6 +106,11 @@ func (act *actionUninstallPagent) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionUninstallPagent) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionUninstallPagent) MaxRetryCount() uint {
 	return 3 // nolint: mnd

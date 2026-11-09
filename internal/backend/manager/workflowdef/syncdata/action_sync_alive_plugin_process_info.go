@@ -100,6 +100,11 @@ func (act *actionSyncAlivePluginProcessInfo) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncAlivePluginProcessInfo) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do the action.
 func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamSyncAlivePluginProcessInfo)

@@ -85,6 +85,11 @@ func (act *actRunDebugPlugin) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actRunDebugPlugin) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count.
 func (act *actRunDebugPlugin) MaxRetryCount() uint {
 	return 0

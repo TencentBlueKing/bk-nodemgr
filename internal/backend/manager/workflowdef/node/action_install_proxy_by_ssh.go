@@ -114,6 +114,11 @@ func (act *actionInstallProxyBySSH) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionInstallProxyBySSH) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionInstallProxyBySSH) MaxRetryCount() uint {
 	return 3 // nolint: mnd

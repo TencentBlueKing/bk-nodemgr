@@ -105,6 +105,11 @@ func (act *actionEnsureDefaultPlugin) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionEnsureDefaultPlugin) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do reconciles default plugins for all enabled plugin releases.
 func (act *actionEnsureDefaultPlugin) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamEnsureDefaultPlugin)

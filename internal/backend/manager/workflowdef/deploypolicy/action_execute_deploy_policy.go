@@ -102,6 +102,11 @@ func (act *actionExecuteDeployPolicy) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionExecuteDeployPolicy) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do the action.
 func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamExecuteDeployPolicy)

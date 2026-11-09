@@ -93,6 +93,11 @@ func (act *actionResolveOfflineDetectInfo) Tags() []action.Tag {
 	return nil
 }
 
+// Queue returns the queue of the action.
+func (act *actionResolveOfflineDetectInfo) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionResolveOfflineDetectInfo) MaxRetryCount() uint {
 	return 3 // nolint:mnd

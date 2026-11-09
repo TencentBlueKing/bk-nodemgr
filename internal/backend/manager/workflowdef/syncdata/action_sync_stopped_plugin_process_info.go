@@ -101,6 +101,11 @@ func (act *actionSyncStoppedPluginProcessInfo) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncStoppedPluginProcessInfo) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do the action.
 func (act *actionSyncStoppedPluginProcessInfo) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamSyncStoppedPluginProcessInfo)

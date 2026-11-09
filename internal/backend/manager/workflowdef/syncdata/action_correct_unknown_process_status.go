@@ -88,6 +88,11 @@ func (act *actionCorrectUnknownProcessStatus) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionCorrectUnknownProcessStatus) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do marks expired processes unknown and records the correction time as their last sync time.
 func (act *actionCorrectUnknownProcessStatus) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamCorrectUnknownProcessStatus)
