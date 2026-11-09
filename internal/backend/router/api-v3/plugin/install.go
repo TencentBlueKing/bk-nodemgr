@@ -20,7 +20,6 @@ package plugin
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/compatibility"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -59,13 +58,15 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 	policy := h.resolvePluginCompatibilityModePolicy(rCtx)
+	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
+	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 
-	workflowID, err := h.installPlugin(rCtx, req, hostTopoMapping, policy)
+	workflowID, err := h.installPlugin(rCtx, pluginDeploymentParam)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	if err := h.ensurePluginV2(rCtx, req, hostTopoMapping, policy); err != nil {
+	if err := h.ensurePluginV2(rCtx, true, pluginDeploymentParam); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to ensure plugin v2")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
@@ -79,12 +80,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	return respData, nil
 }
 
-func (h *handler) installPlugin(
-	rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostTopoMapping map[int64]types.HostTopoRelation, policy compatibility.Policy) (
-	string, error) {
-
-	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
-	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
+func (h *handler) installPlugin(rCtx restserver.IContext, pluginDeploymentParam []*types.PluginDeploymentParam) (string, error) {
 	if err := h.preparePluginDeploymentParams(rCtx, pluginDeploymentParam...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to prepare plugin installation")
 		return "", err
@@ -112,28 +108,26 @@ func (h *handler) installPlugin(
 	return workflowID, nil
 }
 
-func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.PluginInstallReq,
-	hostTopoMapping map[int64]types.HostTopoRelation, policy compatibility.Policy) error {
-
-	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
-	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
-	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
-		return !item.EnableCompatibilityMode
-	})
-	if err := h.preparePluginDeploymentParams(rCtx, pluginDeploymentParam...); err != nil {
+// ensurePluginV2 launches the plugin v2 workflow for the compatibility mode plugin deployments.
+func (h *handler) ensurePluginV2(rCtx restserver.IContext, renewSubConfig bool, params []*types.PluginDeploymentParam) error {
+	// The params are copied, so neither the selection nor the sub config policy leaks to the caller.
+	selected := compatibilityModeParams(params)
+	if err := h.preparePluginDeploymentParams(rCtx, selected...); err != nil {
 		return err
 	}
-	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(param *types.PluginDeploymentParam) bool {
-		return !param.EnableCompatibilityMode
-	})
-
-	if len(pluginDeploymentParam) == 0 {
+	// The prepare step may drop the compatibility mode, so the params are selected again.
+	selected = compatibilityModeParams(selected)
+	if len(selected) == 0 {
 		logger.G.Biz(rCtx).Info("no plugin deployment need to ensure plugin v2.")
 		return nil
 	}
 
-	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.PluginDeploymentTransferOptionsAll(), pluginDeploymentParam...)
+	for _, param := range selected {
+		param.RenewSubConfig = renewSubConfig
+	}
+
+	tenantID := rCtx.TenantID()
+	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(tenantID, types.PluginDeploymentTransferOptionsAll(), selected...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to ensure plugin, failed to generate plugin deployments.")
 		return err
@@ -152,6 +146,21 @@ func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.Plu
 	}
 
 	return nil
+}
+
+// compatibilityModeParams returns the copied params that enable the plugin compatibility mode.
+func compatibilityModeParams(params []*types.PluginDeploymentParam) []*types.PluginDeploymentParam {
+	selected := make([]*types.PluginDeploymentParam, 0, len(params))
+	for _, param := range params {
+		if param == nil || !param.EnableCompatibilityMode {
+			continue
+		}
+
+		copied := *param
+		selected = append(selected, &copied)
+	}
+
+	return selected
 }
 
 func (h *handler) preparePluginDeploymentParams(rCtx restserver.IContext, params ...*types.PluginDeploymentParam) error {

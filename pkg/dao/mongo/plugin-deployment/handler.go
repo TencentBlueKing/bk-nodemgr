@@ -411,6 +411,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 			Version:                 info.InstallOptions.Version,
 			IsOffline:               info.InstallOptions.IsOffline,
 			EnableCompatibilityMode: info.InstallOptions.EnableCompatibilityMode,
+			RenewSubConfig:          info.InstallOptions.RenewSubConfig,
 		},
 		TransferOptions: types.PluginDeploymentTransferOptions{
 			DisableReleasePackage: info.TransferOptions.DisableReleasePackage,
@@ -537,6 +538,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			Version:                 info.InstallOptions.Version,
 			IsOffline:               info.InstallOptions.IsOffline,
 			EnableCompatibilityMode: info.InstallOptions.EnableCompatibilityMode,
+			RenewSubConfig:          info.InstallOptions.RenewSubConfig,
 		},
 	}
 

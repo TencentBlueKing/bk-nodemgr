@@ -232,6 +232,7 @@ func (act *actionUninstallPlugin) buildUninstallParams(
 			CallbackSvrAddr: pluginUtils.BuildServerURLs(callbackEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
+			RenewSubConfig:  std.DeployInfo().InstallOptions.RenewSubConfig,
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}

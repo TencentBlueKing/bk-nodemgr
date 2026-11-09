@@ -147,6 +147,7 @@ type PluginDeploymentInstallOptions struct {
 	IsOffline               bool
 	EnableCompatibilityMode bool
 	CustomSpec              *PluginSpec
+	RenewSubConfig          bool
 }
 
 // PluginDeploymentApplyPluginSubConfigOptions defines target sub-configs on the source deployment's host.
@@ -201,6 +202,7 @@ type PluginDeploymentParam struct {
 	EnableCompatibilityMode bool
 	CustomSpec              *PluginSpec
 	RemoveSubConfigFileName []string
+	RenewSubConfig          bool
 }
 
 // PluginInstallParam defines the request-level parameters for plugin install.
@@ -259,6 +261,7 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 				IsOffline:               param.IsOffline,
 				EnableCompatibilityMode: param.EnableCompatibilityMode,
 				CustomSpec:              param.CustomSpec,
+				RenewSubConfig:          param.RenewSubConfig,
 			},
 			TransferOptions: transferOption,
 		}

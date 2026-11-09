@@ -291,6 +291,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 				Version:                 version,
 				IsOffline:               deployInfo.InstallOptions.IsOffline,
 				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
+				RenewSubConfig: true,
 			}
 
 			return nil
@@ -407,6 +408,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 				Version:                 version,
 				IsOffline:               deployInfo.InstallOptions.IsOffline,
 				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
+				RenewSubConfig: true,
 			}
 
 			return nil

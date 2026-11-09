@@ -60,6 +60,23 @@ func (s *Storage) existProcessV2(nCtx contextx.IContext, hostID int64, pluginNam
 	return exist, nil
 }
 
+func (s *Storage) getProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if pluginName == "" {
+		return nil, base.ErrInvalidParam(fmt.Errorf("plugin name is empty"))
+	}
+
+	process, err := s.daoProcessV2.Get(nCtx, daoProcessV2.WithHostID(hostID), daoProcessV2.WithPluginName(pluginName))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get process v2: %w", err)
+	}
+
+	return process, nil
+}
+
 func (s *Storage) updateProcessV2(nCtx contextx.IContext, process *types.Process) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()

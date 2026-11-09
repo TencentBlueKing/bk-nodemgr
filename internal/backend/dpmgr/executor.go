@@ -518,7 +518,8 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 			},
 			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
-				Version: param.Version,
+				Version:        param.Version,
+				RenewSubConfig: true,
 			},
 		}, &types.PluginDeploymentPluginConf{
 			CustomConfigContext: param.CustomConfigContext,
@@ -570,6 +571,9 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 				PluginName: param.PluginName,
 			},
 			ConfigSource: getTaskConfigSource(task),
+			InstallOptions: types.PluginDeploymentInstallOptions{
+				RenewSubConfig: true,
+			},
 		}, &types.PluginDeploymentPluginConf{})
 
 		hostMap[task.Target.Host.HostID] = struct{}{}
@@ -616,7 +620,8 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 			},
 			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
-				Version: param.Version,
+				Version:        param.Version,
+				RenewSubConfig: true,
 			},
 		}, &types.PluginDeploymentPluginConf{
 			CustomConfigContext: param.CustomConfigContext,
@@ -817,7 +822,8 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 			},
 			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
-				Version: param.version,
+				Version:        param.version,
+				RenewSubConfig: true,
 			},
 		}, &types.PluginDeploymentPluginConf{
 			CustomConfigContext: param.customConfigContext,
@@ -877,7 +883,8 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 			},
 			ConfigSource: getTaskConfigSource(task),
 			InstallOptions: types.PluginDeploymentInstallOptions{
-				Version: param.version,
+				Version:        param.version,
+				RenewSubConfig: true,
 			},
 		}, &types.PluginDeploymentPluginConf{
 			CustomConfigContext: param.customConfigContext,
@@ -930,6 +937,9 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 				PluginName: param.pluginName,
 			},
 			ConfigSource: getTaskConfigSource(task),
+			InstallOptions: types.PluginDeploymentInstallOptions{
+				RenewSubConfig: true,
+			},
 		}, &types.PluginDeploymentPluginConf{})
 
 		hostMap[task.Target.Host.HostID] = struct{}{}

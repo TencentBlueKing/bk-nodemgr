@@ -108,6 +108,10 @@ const (
 	// pluginFlagHTTPProxy plugin flag name defines the http proxy override for all http requests.
 	// SYNC: tools/cmd/installer/plugin/flag.HTTPProxy.
 	pluginFlagHTTPProxy pluginFlagName = "http_proxy"
+
+	// pluginFlagRenewSubConfig plugin flag name renews the plugin sub config instead of preserving it.
+	// SYNC: tools/cmd/installer/plugin/flag.RenewSubConfig.
+	pluginFlagRenewSubConfig pluginFlagName = "renew_sub_config"
 )
 
 // installerFlagCPULimit is the installer global flag name that defines the CPU usage limit ratio.
@@ -181,6 +185,10 @@ type PluginInstallParams struct {
 
 	SkipCallback bool
 	SkipDownload bool
+
+	// RenewSubConfig renews the plugin sub config instead of preserving it, so the sub configs
+	// rendered and pushed by the backend are the only source of the sub configs after the install.
+	RenewSubConfig bool
 }
 
 // Validate validates the install params.
@@ -303,6 +311,9 @@ func (params *PluginInstallParams) buildArgs() []string {
 	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
 	args = appendInstallDiskIOLimitArg(args, params.InstallDiskIOLimit)
 
+	if params.RenewSubConfig {
+		args = append(args, fmt.Sprintf("--%s", pluginFlagRenewSubConfig))
+	}
 	return args
 }
 
@@ -366,6 +377,10 @@ type PluginUpgradeParams struct {
 
 	SkipCallback bool
 	SkipDownload bool
+
+	// RenewSubConfig renews the plugin sub config instead of preserving it, so the sub configs
+	// rendered and pushed by the backend are the only source of the sub configs after the upgrade.
+	RenewSubConfig bool
 }
 
 // Validate validates the upgrade params.
@@ -451,6 +466,9 @@ func (params *PluginUpgradeParams) buildArgs() []string {
 	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
 	args = appendInstallDiskIOLimitArg(args, params.InstallDiskIOLimit)
 
+	if params.RenewSubConfig {
+		args = append(args, fmt.Sprintf("--%s", pluginFlagRenewSubConfig))
+	}
 	return args
 }
 
@@ -505,6 +523,10 @@ type PluginUninstallParams struct {
 
 	DeployToken string
 	OperInstID  string
+
+	// RenewSubConfig renews the plugin sub config instead of preserving it, so no sub config
+	// backup is kept after the plugin is uninstalled.
+	RenewSubConfig bool
 }
 
 // Validate validates the uninstall params.
@@ -552,6 +574,9 @@ func (params *PluginUninstallParams) buildArgs() []string {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginFlagHTTPProxy, params.HTTPProxyAddress))
 	}
 
+	if params.RenewSubConfig {
+		args = append(args, fmt.Sprintf("--%s", pluginFlagRenewSubConfig))
+	}
 	return args
 }
 

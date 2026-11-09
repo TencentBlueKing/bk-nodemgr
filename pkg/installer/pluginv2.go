@@ -87,6 +87,10 @@ const (
 	// pluginV2FlagHTTPProxy plugin flag name defines the http proxy override for all http requests.
 	// SYNC: tools/cmd/installer/pluginv2/flag.HTTPProxy.
 	pluginV2FlagHTTPProxy pluginV2FlagName = "http_proxy"
+
+	// pluginV2FlagRenewSubConfig plugin flag name renews the plugin sub config instead of preserving it.
+	// SYNC: tools/cmd/installer/pluginv2/flag.RenewSubConfig.
+	pluginV2FlagRenewSubConfig pluginV2FlagName = "renew_sub_config"
 )
 
 // PluginV2CommonParams defines the common params of installer.
@@ -154,6 +158,10 @@ type PluginV2InstallParams struct {
 	InstallCPULimit float64
 	// InstallDiskIOLimit is the installer disk IO rate limit in MB/s, 0 means unlimited.
 	InstallDiskIOLimit float64
+
+	// RenewSubConfig renews the sub config of the plugin instead of preserving it. The sub
+	// configs are preserved (saved and restored) only when the plugin is upgraded.
+	RenewSubConfig bool
 }
 
 // Validate validates the install params.
@@ -236,6 +244,9 @@ func (params *PluginV2InstallParams) buildArgs() []string {
 
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, pluginV2FlagHTTPProxy, params.HTTPProxyAddress))
+	}
+	if params.RenewSubConfig {
+		args = append(args, fmt.Sprintf("--%s", pluginV2FlagRenewSubConfig))
 	}
 	args = appendInstallCPULimitArg(args, params.InstallCPULimit)
 	args = appendInstallDiskIOLimitArg(args, params.InstallDiskIOLimit)

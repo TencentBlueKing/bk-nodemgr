@@ -88,26 +88,32 @@ GSE 托管进程的唯一 key 是 `agentID:namespace:procName` (`pkg/thirdparty/
 
 ### 4.2 部署目录与 namespace
 
-- 部署根目录 `plugins/`：`action_inject_plugin_base_runtime_v2.go:214-219` (`pluginV2BaseDirName = "plugins"`)。
-- 目录生成：把路径中的 `plugin` 替换为 `plugins`（`GeneratePluginV2HomeDir`，:222-248）。
+- 部署根目录 `plugins/`：`action_inject_plugin_base_runtime_v2.go:223` (`pluginV2BaseDirName = "plugins"`)。
+- 目录生成：把路径中的 `plugin` 替换为 `plugins`（`GeneratePluginV2HomeDir`，:229-236）。
 - GSE namespace = `nodeman`：`pluginv2.go:48` (`procNameSpaceNodeMan`)。
 - 进程托管：`action_trusteeship_process_to_gse_v2.go:32-38` 用 `gse.WithProcNameSpace(procNameSpaceNodeMan)` 创建 handler，调用 `TrusteeshipAndStartProcess` (`action_start_process_v2.go:36`)。
 
 ### 4.3 V2 Ensure 工作流
 
-`oper_plugin_ensure_plugin_v2.go:54-68`，action 链：
+`oper_plugin_ensure_plugin_v2.go:54-70`，action 链：
 
 ```
-InjectPluginBaseRuntimeV2 → FinishIfPluginProcessV2Alive → VerifyPluginAvailabilityV2 →
-InjectMainConfigDetailV2 → RenderPluginDeploymentV2 → EnsureAndUpdatePluginConfigDetailsV2 → RenderPluginConfigV2 →
-TransferPluginPkgToNodeV2 → InstallPluginV2 → WaitPluginInstallerCompleteV2 → StartProcessV2
+UpsertProcessV2 → InjectPluginBaseRuntimeV2 → FinishIfPluginProcessV2Alive → VerifyPluginAvailabilityV2 →
+InjectMainConfigDetailV2 → RenderPluginDeploymentV2 → EnsureAndUpdatePluginConfigDetailsV2 →
+RenderPluginConfigV2 → TransferPluginPkgToNodeV2 → StopMismatchVersionPluginProcessV2 →
+InstallPluginV2 → WaitPluginInstallerCompleteV2 → StartProcessV2 → UpdateProcessV2
 ```
+
+- `FinishIfPluginProcessV2Alive`（`action_finish_if_plugin_process_v2_alive.go:143-155`）：V2 进程存活**且运行版本非空并等于目标版本**（`InstallOptions.Version`）时才结束工作流；运行版本为空（旧插件不上报版本）或与目标版本不一致时继续安装目标版本。
+- `StopMismatchVersionPluginProcessV2`（`action_stop_mismatch_version_plugin_process_v2.go`，action 名 `stop_mismatch_version_plugin_process_v2`）：进程仍在运行且版本为空或与目标版本不一致时，在 `TransferPluginPkgToNodeV2` **之后**、`InstallPluginV2` **之前**停止进程。包传输写入的是安装器工作目录（`<workDir>/data/plugin/v2/<plugin_pkg_name>`），不会触碰正在运行的安装目录，因此停机窗口只需覆盖安装本身，不必把下载/解包阶段也算进去。停止时用旧实例的 Identity 与旧版本的 Controller 组装进程 spec，停止成功后才由 `InstallPluginV2` 替换包文件、`StartProcessV2` 拉起目标版本。该 action 的判定依据是 DB 中 `process_v2` 的进程状态，而 `UpsertProcessV2` 会在记录已存在时把状态写成 `init`，因此它必须排在把 GSE 观测值写回 DB 的 `FinishIfPluginProcessV2Alive` 之后。
+- 子配置目录保留与还原：`IPluginFSHandler` 提供 `SaveSubConfigDir(ctx)` / `RestoreSubConfigDir(ctx)` 两个显式操作，`Purge(ctx)` 仍为全量清理；`PreserveOptions{RenewSubConfig bool}` 默认 `false`，即默认保留。`RenewSubConfig=false` 时，安装/升级步骤在删除旧安装目录前 `SaveSubConfigDir`，解包后、复制配置文件前 `RestoreSubConfigDir`；`RenewSubConfig=true` 时两个操作都不调用，子配置交给原有流程（删安装目录 → 解包 → 复制配置）处理。快照分两步落盘：先完整复制到 `backup/<plugin_group>/<plugin_name>/sub-config.pending/`，复制成功后再 rename 为 `backup/<plugin_group>/<plugin_name>/sub-config/`，中断的复制因此不会被当成完整快照；每次 `SaveSubConfigDir` 都会用当前目录替换上一次的快照，快照只代表本次操作前的状态，因此不会还原很久以前遗留的子配置；代价是本次安装失败后重试会以当前（可能处于半安装状态）的目录重新生成快照；源目录不存在时也发布空快照，保证后续安装不会把新包生成的配置误认为待保留的用户数据。`RestoreSubConfigDir` 恢复成功后删除快照、失败则保留供重试；`Clean()` 只清理 `sub-config.pending/`，不触碰完整快照。由于还原发生在复制配置之前，同名文件以本次安装渲染的配置为准，保留的子配置只补充本次未提供的文件。
+- 生效范围（`RenewSubConfig=true` 表示本次安装/升级既不备份也不还原子配置）：V3 API install / upgrade / uninstall / debug；部署策略执行器 `internal/backend/dpmgr/executor.go` 的 plugin install / upgrade / uninstall 与 `plugin_pkg` install / upgrade / uninstall；节点预置插件（`action_install_pre_ordered_plugins.go` 的 `installPreOrderedPlugin` 与 `installPreOrderedPluginV2`）；V2 卸载固定 `RenewSubConfig=true`。V2 兼容插件只在**升级**时保留并还原子配置：`ensurePluginV2` 在 install 传 `true`、在 upgrade 传 `false`（`install.go:112-149`）。参数链：`types.PluginDeploymentParam.RenewSubConfig` → `PluginDeploymentInstallOptions.RenewSubConfig` → `installer.PluginV2InstallParams.RenewSubConfig` → 安装器 `--renew_sub_config`；V3 侧对应 `pkg/installer` 的 `PluginInstallParams` / `PluginUpgradeParams` / `PluginUninstallParams`，命令层 `full-install`、`full-upgrade`、`full-uninstall`、`step install`、`step upgrade`、`step uninstall`（V3）与 `full-install`、`step install`、`step uninstall`（V2）提供该 flag（默认 false）。依据：`tools/internal/pluginhandler/{pluginhandler.go,unix|windows/{handler,fs,os}.go}`、`tools/internal/pluginv2handler/{pluginv2handler.go,unix|windows/{handler,fs,os}.go}`、`tools/internal/installer/{plugin,pluginv2}/{pluginuninstaller,plugininstaller,pluginupgrader}/step.go`、`tools/cmd/installer/{plugin,pluginv2}/**`、`pkg/installer/{plugin.go,pluginv2.go}`、`pkg/types/plugin_deployment.go`、`internal/backend/router/api-v3/plugin/{install.go,upgrade.go,debug.go}`、`internal/backend/dpmgr/executor.go`、`internal/backend/manager/workflowdef/pluginv2/action_plugin_install_plugin_v2.go`、`internal/backend/manager/workflowdef/node/action_install_pre_ordered_plugins.go`。
 
 ### 4.4 V2 子配置（子插件）管理
 
-- 子配置路径变量 `subconfig_path`：`action_ensure_and_update_plugin_config_details_v2.go:429` (`keySubConfigPath`)。
-- 注释明确 V2 仍需提供固定 subconfig_path：`:538`。
-- 子配置目录生成：`action_inject_plugin_base_runtime_v2.go:246-248` (`GeneratePluginV2SubConfigDir`)。
+- 子配置路径变量 `subconfig_path`：`action_ensure_and_update_plugin_config_details_v2.go:447` (`keySubConfigPath`)。
+- 注释明确 V2 仍需提供固定 subconfig_path：`:556`。
+- 子配置目录生成：`action_inject_plugin_base_runtime_v2.go:253-256` (`GeneratePluginV2SubConfigDir`)。
 - 独立的 apply_subconfig 工作流：`oper_apply_plugin_subconfig_v2.go`。
 
 ## 5. V3 插件方案
@@ -221,16 +227,21 @@ if !deployInfo.InstallOptions.EnableCompatibilityMode || !deployInfo.InstallOpti
 
 `Install` handler 中：
 
-1. `installPlugin`（:53）→ `LaunchInstallPlugin` 安装 V3；
-2. `ensurePluginV2`（:58）→ `LaunchPluginEnsurePluginV2` 安装 V2。
+1. `installPlugin`（:64）→ `LaunchInstallPlugin` 安装 V3；
+2. `ensurePluginV2`（:69）→ `LaunchPluginEnsurePluginV2` 安装 V2。
 
-V2 安装过滤：先按全局策略保留 `EnableCompatibilityMode == true` 的插件，再根据所选版本的包元数据排除 `legacyConflict: true` 的插件；没有剩余插件时不启动 V2 ensure 部署：
+V2 安装过滤：先按全局策略保留 `EnableCompatibilityMode == true` 的插件，再根据所选版本的包元数据排除 `legacyConflict: true` 的插件；没有剩余插件时不启动 V2 ensure 部署。过滤逻辑由 `compatibilityModeParams`（`install.go:152`）选择、`preparePluginDeploymentParams`（`install.go:166`，`legacyConflict` 判定在 `:236`）改写兼容标志组成。
 
-```go
-pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
-    return !item.EnableCompatibilityMode
-})
-```
+#### 触发点三：插件 Upgrade API 调用
+
+`internal/backend/router/api-v3/plugin/upgrade.go`
+
+`Upgrade` handler 中复用 Install 的同一套 V2 ensure 逻辑（`legacyConflict` 的差异见 §7.4）：
+
+1. `LaunchUpgradePlugin`（:65）升级 V3 到请求指定的版本；
+2. `ensurePluginV2`（:77）复用 Install 的同一个 helper（`install.go:112-149`），以**升级目标版本**作为 V2 部署版本启动 ensure 工作流。
+
+因此 V3 升级后，兼容 V2 插件会被对齐到同一版本：运行版本非空且等于目标版本时 `FinishIfPluginProcessV2Alive` 直接结束；运行版本为空或版本不一致时先停止旧进程再安装目标版本。
 
 ### 7.3 兼容模式何时被判定
 
@@ -242,10 +253,11 @@ pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *type
 
 ### 7.4 包级旧版冲突声明：legacyConflict
 
-V3 插件包作者可在 `project.yaml` 中配置可选 bool 字段 `legacyConflict`，缺省为 `false`，示例与字段说明见 [V3 插件包规范](../../developer/plugin_pkg_build_guide.md)。以下兼容判定与 V2 ensure 过滤仅适用于插件 Install API（`POST /api/v3/plugin/install`），不覆盖节点预置、部署策略、升级或调试入口的兼容判定。
+V3 插件包作者可在 `project.yaml` 中配置可选 bool 字段 `legacyConflict`，缺省为 `false`，示例与字段说明见 [V3 插件包规范](../../developer/plugin_pkg_build_guide.md)。该字段只在插件 **Install** API（`POST /api/v3/plugin/install`）上完整生效；Upgrade API 只把它用于 V2 ensure 的过滤，不改 V3 的兼容判定（见下）。它不覆盖节点预置、部署策略或调试入口的兼容判定。
 
-- `true`：该 API 仅部署到 nodemgr 新版运行空间（GSE namespace=`bk-nodemgr`），优先于全局兼容策略及 `enabled_plugins` 列表，不启用兼容模式，也不启动 V2 ensure 部署。依据：`internal/backend/router/api-v3/plugin/install.go`。
-- 安装前检查 `nodeman` 空间中的同名旧实例，仍在运行或状态查询失败时阻断部署；需先自行停止仍在运行的旧实例。该检查不会自动停旧实例，也不是持续锁，不能阻止旧实例在检查后再次启动。依据：`internal/backend/manager/workflowdef/plugin/action_check_v2_plugin_no_alive.go` 及 `oper_install_plugin.go`。
+- `true`（Install API）：仅部署到 nodemgr 新版运行空间（GSE namespace=`bk-nodemgr`），优先于全局兼容策略及 `enabled_plugins` 列表——`preparePluginDeploymentParams` 把该部署的 `EnableCompatibilityMode` 置为 `false`，因此 V3 不进入兼容模式（不覆写 `dataid`），也不启动 V2 ensure 部署。依据：`internal/backend/router/api-v3/plugin/install.go`。
+- 安装前检查 `nodeman` 空间中的同名旧实例（仅 Install 链）：仍在运行或状态查询失败时阻断部署；需先自行停止仍在运行的旧实例。该检查不会自动停旧实例，也不是持续锁，不能阻止旧实例在检查后再次启动。依据：`internal/backend/manager/workflowdef/plugin/action_check_v2_plugin_no_alive.go` 及 `oper_install_plugin.go`。
+- `true`（Upgrade API）：只跳过 V2 ensure 部署。V3 的 `EnableCompatibilityMode` 仍由全局策略决定，因为 Upgrade 没有把该判定写回 V3 工作流参数；Upgrade 链也没有上述旧实例检查。因此当全局策略命中、目标版本又声明 `legacyConflict: true` 时，V3 仍以兼容模式部署（`dataid` 被覆写为 `-1`），同时没有 V2 兜底上报——升级前需确认该组合可接受，或先通过 Admin API 关闭对应业务的兼容模式（见 §10.4）。依据：`internal/backend/router/api-v3/plugin/upgrade.go`、`install.go:112-149`。
 - `false` 或未配置：仍按原有兼容规则处理，并非强制选择 `nodeman` 运行空间。
 
 ## 8. 如何保证只有一台 bkm 上报基础数据
@@ -485,7 +497,8 @@ V3 插件包作者可在 `project.yaml` 中配置可选 bool 字段 `legacyConfl
 ### 双安装触发点
 
 - `internal/backend/manager/workflowdef/node/action_install_pre_ordered_plugins.go:125-195,303-308,311-323,402-407` — Agent/Proxy 预置插件双装
-- `internal/backend/router/api-v3/plugin/install.go:28-69,99-133` — 插件 Install API 双装
+- `internal/backend/router/api-v3/plugin/install.go:37-81,112-149` — 插件 Install API 双装
+- `internal/backend/router/api-v3/plugin/upgrade.go:31-88` — 插件 Upgrade API 双装（升级后对齐 V2 版本）
 - `internal/backend/router/api-v3/node/agent/install.go:141,219-224` — Agent 安装时兼容模式判定
 - `internal/backend/router/api-v3/node/proxy/install.go:98,147,243-246` — Proxy 安装时兼容模式判定
 
@@ -494,9 +507,10 @@ V3 插件包作者可在 `project.yaml` 中配置可选 bool 字段 `legacyConfl
 - `internal/backend/manager/plugin_v2_manager.go:128-129,216-217` — V2 Manager 入口（`LaunchUninstallPluginV2` / `LaunchStopPluginV2`，已实现但 uninstall 无 API 调用方）
 - `internal/backend/manager/iface/iface.go:89-99` — V2 子接口定义
 - `internal/backend/manager/workflowdef/pluginv2/pluginv2.go:11,48` — V2 包注释与 namespace
-- `internal/backend/manager/workflowdef/pluginv2/oper_plugin_ensure_plugin_v2.go:46-59` — V2 ensure 工作流
-- `internal/backend/manager/workflowdef/pluginv2/action_inject_plugin_base_runtime_v2.go:214-248` — V2 目录与 subconfig 生成
-- `internal/backend/manager/workflowdef/pluginv2/action_ensure_and_update_plugin_config_details_v2.go:429,538` — V2 subconfig_path
+- `internal/backend/manager/workflowdef/pluginv2/oper_plugin_ensure_plugin_v2.go:54-70` — V2 ensure 工作流
+- `internal/backend/manager/workflowdef/pluginv2/action_stop_mismatch_version_plugin_process_v2.go` — V2 版本不一致时停止旧进程
+- `internal/backend/manager/workflowdef/pluginv2/action_inject_plugin_base_runtime_v2.go:223-256` — V2 目录与 subconfig 生成
+- `internal/backend/manager/workflowdef/pluginv2/action_ensure_and_update_plugin_config_details_v2.go:447,556` — V2 subconfig_path
 
 ### V3 工作流与配置渲染
 

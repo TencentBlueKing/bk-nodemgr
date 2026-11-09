@@ -259,6 +259,7 @@ func (act *actionInstallPluginV2) buildInstallParams(
 			OperInstID:      std.InstanceData().OperationInstanceID,
 			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline || len(callbackEndpoints) == 0,
 			SkipDownload:    std.DeployInfo().InstallOptions.IsOffline || len(downloadEndpoints) == 0,
+			RenewSubConfig:  std.DeployInfo().InstallOptions.RenewSubConfig,
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}
