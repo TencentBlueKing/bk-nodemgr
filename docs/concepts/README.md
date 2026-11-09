@@ -15,6 +15,7 @@
 节点相关的概念文档。
 
 - [Host（主机）](node/host.md)
+- [User（主机账号）](node/user.md)
 - [节点操作：传输模式与状态回写](node/control_mode.md)
 
 ### [plugin](plugin/README.md)

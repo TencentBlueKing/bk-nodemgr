@@ -67,5 +67,6 @@ Relay 监听或状态回写地址不可达。
 
 ## 相关文档
 
+- [User（主机账号）：登录与 GSE 操作身份](user.md)
 - [节点操作：传输模式与状态回写](control_mode.md)
 - [Network Unit（管控单元）](../topo/networkunit.md)
