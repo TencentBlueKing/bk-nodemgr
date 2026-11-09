@@ -49,7 +49,8 @@ V2 存在若干历史包袱：
 V3 重新设计：
 
 - 目录改为 `plugin/` (`pkg/deployconstant/plugin_deploy_constant.go:26`)，单数。
-- V3 通过 `PluginInfo.SubConfigPath` 提供固定子配置目录；`definition.yaml` 中子配置的 `filePath` 必须为 `etc/<plugin_name>`，导入时校验，与渲染、下发和删除目录保持一致（`docs/developer/plugin_pkg_build_guide.md`）。
+- V3 通过 `PluginInfo.SubConfigPath` 提供固定子配置目录；`definition.yaml` 中 `filePath` 可省略，省略或为空值时由 NodeMgr 填入固定目录（主配置 `etc`，子配置 
+  `etc/<plugin_name>`），提供了则必须等于该目录，导入时校验，与渲染、下发和删除目录保持一致（`docs/developer/plugin_pkg_build_guide.md`）。
 - 模板渲染推荐 `go-template`，渲染上下文使用 PascalCase (`internal/backend/manager/workflowdef/plugin/action_ensure_and_update_plugin_config_details.go:237-252`)。
 - GSE namespace 改为 `bk-nodemgr` (`pkg/thirdparty/gse/handler_proc.go:67`)。
 
@@ -141,7 +142,7 @@ WaitPluginInstallerComplete → StartProcess → UpdateProcess
 
 ### 5.4 V3 子配置（子插件）管理
 
-- 配置目录固定：主配置的 `filePath` 为 `etc`，子配置为 `etc/<plugin_name>`；模板通过 `PluginInfo.SubConfigPath` 获取子配置绝对目录（`docs/developer/plugin_pkg_build_guide.md`）。
+- 配置目录固定：主配置的 `filePath` 为 `etc`，子配置为 `etc/<plugin_name>`；`filePath` 可省略，省略或为空值时由 Node Manager 填入，提供了则必须等于该目录。模板通过 `PluginInfo.SubConfigPath` 获取子配置绝对目录（`docs/developer/plugin_pkg_build_guide.md`）。
 - `FetchProcessSubConfigIntoDeployment`：查询 `IsMainConfig: false` 的 ProcessConfig 并注入 deployment（`action_fetch_process_config_into_deployment.go`）。
 - `InjectMainConfigDetail`：从插件发布包注入 `IsMainConfig: true` 的主配置详情，与 `FetchProcessSubConfigIntoDeployment` 一起构成“主配置来自发布包、子配置来自进程配置”的来源划分（`action_inject_main_config_detail.go`）。
 - ApplyPluginSubConfig 工作流：`oper_apply_plugin_subconfig.go`，含 `OverwritePluginConfigForCompatibility` + `ReloadProcess`。

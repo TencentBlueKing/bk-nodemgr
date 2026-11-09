@@ -392,14 +392,20 @@ func readOriginPluginV3Definition(path []string, definitionFile io.Reader,
 	if err := yaml.NewDecoder(definitionFile).Decode(definition); err != nil {
 		return fmt.Errorf("failed to decode definition.yaml for platform(%s): %w", plat.String(), err)
 	}
-	for _, configTemplate := range definition.ConfigTemplates {
+	for idx := range definition.ConfigTemplates {
+		configTemplate := &definition.ConfigTemplates[idx]
 		expectedPath := pluginV3PkgDirNameEtc
 		if !configTemplate.IsMainConfig {
 			// Package validation ensures the top-level directory matches project.Name.
 			expectedPath += "/" + path[0]
 		}
+
+		if strings.TrimSpace(configTemplate.FilePath) == "" {
+			configTemplate.FilePath = expectedPath
+			continue
+		}
 		if configTemplate.FilePath != expectedPath {
-			return fmt.Errorf("config template(%s) filePath(%s) must equal %s", configTemplate.Name, configTemplate.FilePath, expectedPath)
+			return fmt.Errorf("config template(%s) filePath(%s) must equal %s if provided", configTemplate.Name, configTemplate.FilePath, expectedPath)
 		}
 	}
 	bindAddressAllocated := definition.BindAddressAllocated

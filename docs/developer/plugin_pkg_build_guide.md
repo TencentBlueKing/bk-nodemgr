@@ -37,7 +37,7 @@
 >
 > `name` 表示生成文件名；`filePath` 表示相对于插件部署目录 `PluginHomeDir` 的放置目录，不包含文件名。
 >
-> 导入时，主配置的 `filePath` 必须为 `etc`，子配置必须为 `etc/<plugin_name>`，不一致则拒绝导入。
+> 导入时，`filePath` 可选：缺省或为空值（`filePath:` / `filePath: ""`）时由 NodeMgr 填入固定目录，主配置为 `etc`，子配置为 `etc/<plugin_name>`；如果提供了但不是该固定目录，导入会被拒绝。
 >
 > V3 模板通过 `.PluginInfo.SubConfigPath` 获取子配置绝对目录；渲染、下发和删除均使用这一固定目录。
 
@@ -285,7 +285,7 @@ bindAddressAllocated:
 
 - configTemplates：插件配置模板列表，描述插件支持的配置模板信息。
   - name：生成的配置文件名称
-  - filePath：生成文件相对于 `PluginHomeDir` 的放置目录；主配置必须为 `etc`，子配置必须为 `etc/<plugin_name>`，不包含文件名
+  - filePath：生成文件相对于 `PluginHomeDir` 的放置目录，不包含文件名；可选，缺省或为空值时由 Node Manager 填入 `etc`（主配置）或 `etc/<plugin_name>`（子配置），提供了则必须等于该目录，否则拒绝导入
   - isMainConfig：是否为主配置文件, 支持 true（是）、 false（否），只能有一个主配置文件
   - sourcePath：配置模板文件在插件包中的相对路径, 相对于插件包内的`plugins_{{os_type}}_{{arch}}`目录, 以`/`分隔符分隔
   - variables：提供给页面配置的变量列表
