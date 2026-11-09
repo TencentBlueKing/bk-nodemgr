@@ -20,19 +20,23 @@
 package configfetcher
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/downloader"
 )
 
 // Step fetch configs step.
@@ -94,107 +98,119 @@ func (step *Step) Run(ctx context.Context) error {
 }
 
 const (
-	maxTime = 300 * time.Second
-
-	// API paths for plugin installer config fetch.
+	// getPluginConfigPath is the callback api path to fetch all main config files of the plugin deployment.
 	getPluginConfigPath = "/api/v3/callback/workflow/plugin/get_main_config"
+
+	// mainConfigFetchTimeout is the timeout for fetching the main config callback api.
+	mainConfigFetchTimeout = 60 * time.Second
+
+	// mainConfigFileMode is the permission of the saved main config files, they are copied to the plugin config dir.
+	mainConfigFileMode = 0600
 )
 
-// fetchConfigsMultiEndpoint tries multiple server addresses in order until one succeeds.
-func (step *Step) fetchConfigsMultiEndpoint(ctx context.Context, reqBody any, serverAddrs []string, subURL, savedPath string) error {
-	if len(serverAddrs) == 0 {
-		return fmt.Errorf("no server addresses provided")
-	}
-
-	var lastErr error
-	for i, serverAddr := range serverAddrs {
-		logger.Infof(plugin.StepFetchConfigs, "attempting to fetch from server, index(%d/%d), url(%s)", i+1, len(serverAddrs), serverAddr)
-		err := step.fetchConfig(ctx, reqBody, serverAddr, subURL, savedPath)
-		if err == nil {
-			return nil
-		}
-		logger.Warnf(plugin.StepFetchConfigs, "failed to fetch: %v", err)
-		lastErr = err
-	}
-
-	// All servers failed, return error with server addresses for debugging
-	return fmt.Errorf("failed to fetch from all %d server(s) %v: %w", len(serverAddrs), serverAddrs, lastErr)
+// getPluginConfigReq is the request body of the main config callback api.
+type getPluginConfigReq struct {
+	OSType  string `json:"os_type"`
+	CPUArch string `json:"cpu_arch"`
+	Token   string `json:"token"`
 }
 
-func (step *Step) fetchConfig(ctx context.Context, reqBody any, baseURL, subURL, savedPath string) error {
-	fetchURL, err := url.JoinPath(baseURL, subURL)
-	if err != nil {
-		logger.Errorf(plugin.StepFetchConfigs, "failed to join path(%s, %s): %v", baseURL, subURL, err)
-		return fmt.Errorf("fetch config failed: %v", err)
-	}
-
-	config := downloader.Config{
-		URL:         fetchURL,
-		Method:      http.MethodPost,
-		RequestBody: reqBody,
-		DestPath:    savedPath,
-		Timeout:     maxTime,
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-	}
-
-	lastProgress := int64(0)
-
-	// start progress report.
-	config.ProgressFunc = func(current, total int64) {
-		if current == total {
-			logger.Infof(plugin.StepFetchConfigs, "config fetch completed. file(%s)", savedPath)
-		}
-
-		if current-lastProgress < total/10 {
-			return
-		}
-
-		logger.Infof(plugin.StepFetchConfigs,
-			"config fetching. file(%s), progress(%d/%d)", savedPath, current, total)
-
-		lastProgress = current
-	}
-
-	d := new(downloader.HTTPDownloader)
-	if err := d.Download(ctx, config); err != nil {
-		return fmt.Errorf("failed to fetch config. url(%s), file(%s), req-body(%+v): %w",
-			fetchURL, savedPath, reqBody, err)
-	}
-
-	return nil
-}
-
-func pluginConfName(pluginName string) string {
-	return fmt.Sprintf("%s.conf", pluginName)
+// mainConfigsCallbackResp is the response body of the main config callback api.
+type mainConfigsCallbackResp struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    struct {
+		MainConfigs []struct {
+			FileName string `json:"file_name"`
+			Content  string `json:"content"`
+		} `json:"main_configs"`
+	} `json:"data"`
 }
 
 func (step *Step) fetchPluginConfig(ctx context.Context) error {
-	type getPluginConfigReq struct {
-		OSType  string `json:"os_type"`
-		CPUArch string `json:"cpu_arch"`
-		Token   string `json:"token"`
-	}
-
 	requestBody := getPluginConfigReq{
 		OSType:  runtime.GOOS,
 		CPUArch: runtime.GOARCH,
 		Token:   step.args.DeployToken,
 	}
 
-	savedPath := filepath.Join(step.args.ConfigSavedDir, pluginConfName(step.args.PluginPkgName))
-	if err := step.fetchConfigsMultiEndpoint(ctx,
-		requestBody,
-		step.args.CallbackSvrAddr,
-		getPluginConfigPath,
-		savedPath); err != nil {
-		logger.Errorf(plugin.StepFetchConfigs, "failed to get config: %v", err)
-
-		return fmt.Errorf("failed to get plugin config: %w", err)
+	if len(step.args.CallbackSvrAddr) == 0 {
+		return fmt.Errorf("no server addresses provided")
 	}
 
-	logger.Infof(plugin.StepFetchConfigs, "successfully fetched plugin-config(%s)", savedPath)
+	var lastErr error
+	for i, serverAddr := range step.args.CallbackSvrAddr {
+		logger.Infof(plugin.StepFetchConfigs,
+			"attempting to fetch main configs from server, index(%d/%d), url(%s)", i+1, len(step.args.CallbackSvrAddr), serverAddr)
+
+		err := step.fetchMainConfigs(ctx, requestBody, serverAddr)
+		if err == nil {
+			return nil
+		}
+
+		logger.Warnf(plugin.StepFetchConfigs, "failed to fetch main configs: %v", err)
+		lastErr = err
+	}
+
+	return fmt.Errorf("failed to fetch main configs from all %d server(s) %v: %w",
+		len(step.args.CallbackSvrAddr), step.args.CallbackSvrAddr, lastErr)
+}
+
+// fetchMainConfigs fetches all main config files from one callback server and saves them into the config dir.
+func (step *Step) fetchMainConfigs(ctx context.Context, requestBody getPluginConfigReq, baseURL string) error {
+	fetchURL, err := url.JoinPath(baseURL, getPluginConfigPath)
+	if err != nil {
+		logger.Errorf(plugin.StepFetchConfigs, "failed to join path(%s, %s): %v", baseURL, getPluginConfigPath, err)
+
+		return fmt.Errorf("failed to join main configs path: %w", err)
+	}
+
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return fmt.Errorf("failed to marshal main configs request: %w", err)
+	}
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, fetchURL, bytes.NewReader(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create main configs request: %w", err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	httpClient := &http.Client{Timeout: mainConfigFetchTimeout}
+	resp, err := httpClient.Do(request)
+	if err != nil {
+		return fmt.Errorf("failed to send main configs request. url(%s): %w", fetchURL, err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		logger.Errorf(plugin.StepFetchConfigs,
+			"failed to fetch main configs. url(%s), resp-code(%d), resp-body(%s)", fetchURL, resp.StatusCode, respBody)
+
+		return fmt.Errorf("failed to fetch main configs. url(%s), resp-code(%d)", fetchURL, resp.StatusCode)
+	}
+
+	respData := new(mainConfigsCallbackResp)
+	if err := json.NewDecoder(resp.Body).Decode(respData); err != nil {
+		return fmt.Errorf("failed to decode main configs response. url(%s): %w", fetchURL, err)
+	}
+
+	for _, configFile := range respData.Data.MainConfigs {
+		// all main config files are placed in the plugin config dir directly, so the file name must be plain.
+		if configFile.FileName == "" || configFile.FileName != filepath.Base(configFile.FileName) || strings.Contains(configFile.FileName, `\`) {
+			return fmt.Errorf("invalid main config file name(%s)", configFile.FileName)
+		}
+
+		savedPath := filepath.Join(step.args.ConfigSavedDir, configFile.FileName)
+		if err := os.WriteFile(savedPath, []byte(configFile.Content), mainConfigFileMode); err != nil {
+			return fmt.Errorf("failed to save main config file(%s): %w", savedPath, err)
+		}
+
+		logger.Infof(plugin.StepFetchConfigs, "saved main config file(%s), size(%d)", savedPath, len(configFile.Content))
+	}
 
 	return nil
 }

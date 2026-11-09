@@ -51,7 +51,7 @@ POST /api/v3/plugin/install
 
 - `plugin`：至少需要传入一个待安装对象，否则请求会校验失败。
 - `bk_host_id`：必须传入有效的正整数主机ID；省略或传入 `0`、负数会失败。
-- `custom_config_context`：可传入模板渲染所需的自定义变量。禁止使用保留顶层键，包括 `PluginInfo`、`NodeInfo`、
+- `custom_config_context`：可传入模板渲染所需的自定义变量，同一插件的多份主配置文件共用这一份渲染上下文。禁止使用保留顶层键，包括 `PluginInfo`、`NodeInfo`、
   `PreDefinitionConstants`、`CustomContext`、`plugin_path`、`nodeman`、`cmdb_instance`、`target`、`control_info`。
 - `custom_spec`：未传时使用默认配置和匹配的配置策略。传入时整体覆盖资源及监控策略，不进行逐字段合并；省略的对象或数值字段按零值处理，省略的 `restart_type` 按空字符串处理。使用时应完整提供两组配置。
 - 接口成功表示安装任务已提交，不表示插件已安装完成；使用 `workflow_id` 查询插件任务流及操作状态。保留键校验在工作流执行阶段进行，相关错误需通过任务状态和日志查看。

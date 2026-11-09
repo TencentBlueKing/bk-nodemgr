@@ -328,14 +328,30 @@ function platformToKey(platform: string): string {
   return cpuArch ? `${osType}/${cpuArch}` : osType;
 }
 
+/** 合并多个主配置模板的变量，后端只有一份扁平 custom_config_context，变量名冲突时保留首个声明 */
+function mergeMainConfigVariables(mainConfigs: any[]): Record<string, any> {
+  const merged: Record<string, any> = {};
+  for (const mainConfig of mainConfigs) {
+    const variables = mainConfig?.variables || {};
+    for (const [key, property] of Object.entries(variables)) {
+      if (key in merged) {
+        console.warn(`[plugin-operation] duplicated main config variable(${key}), keep the first declaration`);
+        continue;
+      }
+      merged[key] = property;
+    }
+  }
+  return merged;
+}
+
 /** 处理单个平台的配置变量数据，生成 schema 并初始化表单值 */
 function applyConfigToItem(item: FormItem, configVars: any[]): void {
   // 只保留 is_main_config 为 true 的配置模板
   const mainConfigs = configVars.filter((cv: any) => cv.is_main_config);
 
   if (mainConfigs.length > 0) {
-    const mainConfig = mainConfigs[0];
-    const schema = convertToSchema(mainConfig.variables || {});
+    // 多个主配置模板的变量合并为一份扁平表单，对应后端单一 custom_config_context
+    const schema = convertToSchema(mergeMainConfigVariables(mainConfigs));
     if (schema) {
       item.schema = schema;
       item.empty = false;

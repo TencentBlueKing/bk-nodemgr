@@ -17,13 +17,13 @@
  */
 
 // Package plugin support plugin callback api.
+// nolint: revive // the package name follows the plugin callback router layout.
 package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +31,6 @@ import (
 // handler ...
 type handler struct {
 	rg                  *gin.RouterGroup
-	logger              logger.ILogger
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 
 	stgWorkflow workflow.IStorage
@@ -54,5 +53,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/report_log", restserver.Handler(h.ReportLog))
 	h.rg.POST("/report_data", restserver.Handler(h.ReportData))
 	h.rg.POST("/report_status", restserver.Handler(h.ReportStatus))
-	h.rg.POST("/get_main_config", restserver.FileHandler(h.GetMainConfig))
+	h.rg.POST("/get_main_config", restserver.Handler(h.GetMainConfig))
 }
