@@ -32,6 +32,7 @@ type IHandlerAction interface {
 	ListActions(ctx contextx.IContext, systemID string) ([]Action, error)
 	CreateAction(ctx contextx.IContext, systemID string, action Action) error
 	UpdateAction(ctx contextx.IContext, systemID, actionID, name string) error
+	DeleteAction(ctx contextx.IContext, systemID, actionID string, cascade []string) error
 }
 
 // ListActions retrieves the complete action model or returns an error.
@@ -116,6 +117,13 @@ func (h *Handler) CreateAction(ctx contextx.IContext, systemID string, action Ac
 // UpdateAction updates only the action name, preserving its immutable binding.
 func (h *Handler) UpdateAction(ctx contextx.IContext, systemID, actionID, name string) error {
 	_, err := h.cli.updateAction(ctx, &UpdateActionReq{SystemID: systemID, ActionID: actionID, Name: name})
+
+	return err
+}
+
+// DeleteAction deletes one action without retrying or implicitly expanding dependency cleanup.
+func (h *Handler) DeleteAction(ctx contextx.IContext, systemID, actionID string, cascade []string) error {
+	_, err := h.cli.deleteAction(ctx, &DeleteActionReq{SystemID: systemID, ActionID: actionID, Cascade: cascade})
 
 	return err
 }

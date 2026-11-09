@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
@@ -74,6 +75,35 @@ func (c *cli) batchCreateAction(ctx contextx.IContext, req *BatchCreateActionReq
 	}
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("create action failed: %w", err)
+	}
+
+	return &resp.Data, nil
+}
+
+func (c *cli) deleteAction(ctx contextx.IContext, req *DeleteActionReq) (*DeleteActionResp, error) {
+	resp := new(BaseBroker[DeleteActionResp])
+	request := c.client.Delete().
+		SubResourcef("/model/systems/%s/actions/%s/", req.SystemID, req.ActionID).
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx))
+	if len(req.Cascade) > 0 {
+		request = request.WithParam("cascade", strings.Join(req.Cascade, ","))
+	}
+	result := request.Do()
+	if err := result.Into(resp); err != nil {
+		return nil, fmt.Errorf("delete action: %w; check remote state before rerunning (request-id: %s)",
+			err, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if result.StatusCode == http.StatusConflict {
+		return nil, fmt.Errorf("delete_action: HTTP 409 dependency conflict; review dependencies and explicitly selected cascade scopes (request-id: %s)",
+			result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if result.StatusCode != http.StatusNoContent {
+		return nil, fmt.Errorf("delete_action: unexpected HTTP %d; check remote state before rerunning (request-id: %s)",
+			result.StatusCode, result.Header.Get("X-Bkapi-Request-Id"))
+	}
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("delete action failed: %w; check remote state before rerunning", err)
 	}
 
 	return &resp.Data, nil

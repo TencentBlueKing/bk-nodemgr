@@ -115,17 +115,9 @@ func (item migration) executeRole(
 	resourceTypes map[string]map[string]iamv4.ResourceType, dryRun bool, out io.Writer,
 ) error {
 
-	roles, loaded := states[item.SystemID]
-	if !loaded {
-		listed, err := handler.ListRoles(ctx, item.SystemID)
-		if err != nil {
-			return fmt.Errorf("list roles for %s: %w", item.SystemID, err)
-		}
-		roles = make(map[string]iamv4.Role, len(listed))
-		for _, role := range listed {
-			roles[role.ID] = role
-		}
-		states[item.SystemID] = roles
+	roles, err := loadRoles(ctx, handler, item.SystemID, states)
+	if err != nil {
+		return err
 	}
 	role, fields, err := prepareRole(op, roles)
 	if err != nil {
@@ -156,6 +148,26 @@ func (item migration) executeRole(
 	roles[role.ID] = role
 
 	return nil
+}
+
+func loadRoles(
+	ctx contextx.IContext, handler iamv4.IHandlerRole, systemID string, states map[string]map[string]iamv4.Role,
+) (map[string]iamv4.Role, error) {
+
+	if roles, loaded := states[systemID]; loaded {
+		return roles, nil
+	}
+	listed, err := handler.ListRoles(ctx, systemID)
+	if err != nil {
+		return nil, fmt.Errorf("list roles for %s: %w", systemID, err)
+	}
+	roles := make(map[string]iamv4.Role, len(listed))
+	for _, role := range listed {
+		roles[role.ID] = role
+	}
+	states[systemID] = roles
+
+	return roles, nil
 }
 
 func prepareRole(op operation, roles map[string]iamv4.Role) (iamv4.Role, iamv4.RoleFields, error) {
