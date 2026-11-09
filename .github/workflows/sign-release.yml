@@ -3,6 +3,12 @@ name: Sign Release
 on:
   release:
     types: [published]
+  workflow_call:
+    inputs:
+      tag_name:
+        description: Tag of the release to sign
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -12,10 +18,11 @@ jobs:
     name: Sign source archive
     runs-on: self-hosted
     environment: GPG
+    env:
+      TAG_NAME: ${{ inputs.tag_name || github.event.release.tag_name }}
     steps:
       - name: Download source archive
         env:
-          TAG_NAME: ${{ github.event.release.tag_name }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -30,8 +37,6 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Sign source archive
-        env:
-          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
           gpg --detach-sign --armor "bk-nodemgr-${TAG_NAME}.tar.gz"
@@ -39,4 +44,5 @@ jobs:
       - name: Upload signature
         uses: softprops/action-gh-release@v2
         with:
-          files: bk-nodemgr-${{ github.event.release.tag_name }}.tar.gz.asc
+          tag_name: ${{ env.TAG_NAME }}
+          files: bk-nodemgr-${{ env.TAG_NAME }}.tar.gz.asc
