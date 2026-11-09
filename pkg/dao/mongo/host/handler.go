@@ -709,6 +709,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			LoginIP:                  host.Dynamic.LoginIP,
 			LoginPort:                host.Dynamic.LoginPort,
 			LoginUser:                host.Dynamic.LoginUser,
+			OperateUser:              host.Dynamic.OperateUser,
 			LoginMode:                string(host.Dynamic.LoginMode),
 			LoginCreditID:            host.Dynamic.LoginCreditID,
 			ExportIP:                 host.Dynamic.ExportIP,
@@ -810,6 +811,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			LoginIP:                  host.Dynamic.LoginIP,
 			LoginPort:                host.Dynamic.LoginPort,
 			LoginUser:                host.Dynamic.LoginUser,
+			OperateUser:              host.Dynamic.OperateUser,
 			LoginMode:                types.LoginMode(host.Dynamic.LoginMode),
 			LoginCreditID:            host.Dynamic.LoginCreditID,
 			ExportIP:                 host.Dynamic.ExportIP,
@@ -1143,6 +1145,9 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	if fields.LoginUser {
 		updates[FieldKeyDynamicLoginUser] = host.Dynamic.LoginUser
 	}
+	if fields.OperateUser {
+		updates[FieldKeyDynamicOperateUser] = host.Dynamic.OperateUser
+	}
 	if fields.LoginMode {
 		updates[FieldKeyDynamicLoginMode] = host.Dynamic.LoginMode
 	}
@@ -1436,6 +1441,7 @@ func (h *handler) ScanAllWithFields(nCtx contextx.IContext, selection *types.Hos
 	return data, nil
 }
 
+// nolint: gocyclo,cyclop // mechanical field-mask mapping; each branch appends one field key.
 func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []string {
 	fields := make([]string, 0)
 	if selection.HostID {
@@ -1470,6 +1476,9 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	}
 	if selection.LoginUser {
 		fields = append(fields, FieldKeyDynamicLoginUser)
+	}
+	if selection.OperateUser {
+		fields = append(fields, FieldKeyDynamicOperateUser)
 	}
 	if selection.AgentID {
 		fields = append(fields, FieldKeyDynamicAgentID)

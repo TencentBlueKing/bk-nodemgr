@@ -16,16 +16,21 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
+// nolint: revive
 package utils
 
 import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // EnsureHostLoginUser ensures host login user is set for plugin action runtime.
+// The login user is only the SSH authentication identity at install time;
+// GSE channel process/file operations must use the host operate user instead,
+// see EnsureHostOperateUser.
 func EnsureHostLoginUser(std *PluginActionStandarder, host *types.Host) error {
 	if host.Dynamic.LoginUser != "" {
 		return nil
@@ -43,6 +48,32 @@ func EnsureHostLoginUser(std *PluginActionStandarder, host *types.Host) error {
 			host.HostID, host.Dynamic.NodeOsType, host.Dynamic.LoginUser).
 		En("host(%d) login user is empty, fallback to default system administrator(%s) by os type(%s).",
 			host.HostID, host.Dynamic.LoginUser, host.Dynamic.NodeOsType).
+		Info()
+
+	return nil
+}
+
+// EnsureHostOperateUser ensures host operate user is set for plugin action runtime.
+// The operate user is the identity that the GSE channel uses to operate plugin processes
+// and files on the host (root on unix, system on windows); it is written with a default
+// value at host sync time, and falls back to the default here for legacy hosts.
+func EnsureHostOperateUser(std *PluginActionStandarder, host *types.Host) error {
+	if host.Dynamic.OperateUser != "" {
+		return nil
+	}
+
+	defaultUser, err := gse.DefaultOperateUser(host.Dynamic.NodeOsType)
+	if err != nil {
+		return fmt.Errorf("failed to get default operate user, host-id(%d), os-type(%s): %w",
+			host.HostID, host.Dynamic.NodeOsType, err)
+	}
+
+	host.Dynamic.OperateUser = defaultUser.String()
+	std.InstanceData().Log().
+		Zh("主机(%d)操作用户为空, 已根据操作系统类型(%s)回退为默认操作用户(%s)",
+			host.HostID, host.Dynamic.NodeOsType, host.Dynamic.OperateUser).
+		En("host(%d) operate user is empty, fallback to default operate user(%s) by os type(%s).",
+			host.HostID, host.Dynamic.OperateUser, host.Dynamic.NodeOsType).
 		Info()
 
 	return nil

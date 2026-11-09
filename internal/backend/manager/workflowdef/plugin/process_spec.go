@@ -37,6 +37,7 @@ func pluginProgramName(pkgName string, osType criteria.OSType) string {
 func buildPluginProcessSpec(process types.Process, host *types.Host, pluginPkg *types.ReleasePlugin,
 	runtime types.PluginDeploymentBaseRuntime,
 ) types.ProcessSpec {
+
 	osType := process.Platform.OS
 	var mainConfigPath string
 	for _, configTemplate := range pluginPkg.ConfigTemplates {
@@ -48,9 +49,12 @@ func buildPluginProcessSpec(process types.Process, host *types.Host, pluginPkg *
 		break
 	}
 
-	user := host.Dynamic.LoginUser
-	if host.Dynamic.NodeOsType == criteria.OSWindows {
-		user = gse.WindowsOperateUser
+	// the operate user is ensured by callers via pluginUtils.EnsureHostOperateUser;
+	// fall back to the os default here as defense in depth for legacy hosts.
+	user := host.Dynamic.OperateUser
+	if user == "" {
+		defaultUser, _ := gse.DefaultOperateUser(host.Dynamic.NodeOsType)
+		user = defaultUser.String()
 	}
 
 	// nolint: mnd

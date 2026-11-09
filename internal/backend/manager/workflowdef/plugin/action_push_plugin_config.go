@@ -119,6 +119,9 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) (err error) {
 	if err = pluginUtils.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
+	if err = pluginUtils.EnsureHostOperateUser(std, host); err != nil {
+		return err
+	}
 
 	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())
 	if err != nil {
@@ -213,7 +216,7 @@ func (act *actionPushPluginConfig) buildPushFileTask(
 			FileName:    pluginConfDetail.Name,
 			FileContent: pluginConfDetail.Content,
 			StoreDir:    storeDir,
-			Owner:       host.Dynamic.LoginUser,
+			Owner:       host.Dynamic.OperateUser,
 			Endpoints:   []*types.Endpoint{{AgentID: host.Dynamic.AgentID}},
 		})
 

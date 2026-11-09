@@ -138,6 +138,9 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 		if err = pluginUtils.EnsureHostLoginUser(std, targetHost); err != nil {
 			return err
 		}
+		if err = pluginUtils.EnsureHostOperateUser(std, targetHost); err != nil {
+			return err
+		}
 
 		gp.Go(func() error {
 			return act.transferRelease(std, targetHost)
@@ -319,7 +322,7 @@ func (act *actionTransferPluginPkgToNode) pushOfflinePluginConfig(
 			FileName:    conf.Name,
 			FileContent: conf.Content,
 			StoreDir:    configDir,
-			Owner:       targetHost.Dynamic.LoginUser,
+			Owner:       targetHost.Dynamic.OperateUser,
 			Endpoints:   endpoints,
 		})
 

@@ -293,6 +293,9 @@ func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginAction
 	if err := pluginUtils.EnsureHostLoginUser(std, host); err != nil {
 		return types.ProcessSpec{}, fmt.Errorf("failed to ensure host login user: %w", err)
 	}
+	if err := pluginUtils.EnsureHostOperateUser(std, host); err != nil {
+		return types.ProcessSpec{}, fmt.Errorf("failed to ensure host operate user: %w", err)
+	}
 
 	process := types.Process{
 		PluginName:    plugin.Name,

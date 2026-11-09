@@ -136,6 +136,14 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) (err erro
 
 		return err
 	}
+	if err := pluginV2Utils.EnsureHostOperateUser(std, host); err != nil {
+		std.InstanceData().Log().
+			Zh("获取主机操作用户失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
+			En("fetch host operate user failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).
+			Error()
+
+		return err
+	}
 
 	deployInfo.Process.HostID = host.HostID
 	deployInfo.Process.BizID = host.Static.BizID
@@ -200,7 +208,7 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) (err erro
 		PidPath:    pidFilePath,
 		ConfigPath: deployInfo.BaseRuntime.ConfigDir,
 		LogPath:    deployInfo.BaseRuntime.LogDir,
-		User:       host.Dynamic.LoginUser,
+		User:       host.Dynamic.OperateUser,
 	}
 
 	std.InstanceData().Log().

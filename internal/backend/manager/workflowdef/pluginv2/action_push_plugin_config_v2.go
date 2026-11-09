@@ -118,6 +118,9 @@ func (act *actionPushPluginConfigV2) Do(ctx *action.InstanceContext) (err error)
 	if err = pluginV2Utils.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
+	if err = pluginV2Utils.EnsureHostOperateUser(std, host); err != nil {
+		return err
+	}
 
 	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())
 	if err != nil {
@@ -140,7 +143,7 @@ func (act *actionPushPluginConfigV2) Do(ctx *action.InstanceContext) (err error)
 			FileName:    pluginConfDetail.Name,
 			FileContent: pluginConfDetail.Content,
 			StoreDir:    std.DeployInfo().BaseRuntime.SubConfigDir,
-			Owner:       host.Dynamic.LoginUser,
+			Owner:       host.Dynamic.OperateUser,
 			Endpoints:   endpoints,
 		})
 
