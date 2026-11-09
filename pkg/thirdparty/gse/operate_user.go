@@ -16,9 +16,13 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package criteria
+package gse
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+)
 
 // OperateUser define the user that the GSE channel uses to operate plugin
 // processes and files on the host.
@@ -37,16 +41,17 @@ const (
 // processes and files on the host of the os type.
 // The host login user is only the SSH authentication identity at install time and is never
 // used for GSE channel operations.
-func DefaultOperateUser(osType OSType) (OperateUser, error) {
+func DefaultOperateUser(osType criteria.OSType) (OperateUser, error) {
 	if err := osType.Validate(); err != nil {
 		return "", err
 	}
 
 	switch osType {
-	case OSWindows:
+	case criteria.OSWindows:
 		return OperateUserWindowsSystem, nil
-	case OSAix, OSAix6, OSAix7, OSAndroid, OSDarwin, OSDragonfly, OSFreebsd, OSHurd,
-		OSIllumos, OSIos, OSLinux, OSNetbsd, OSOpenbsd, OSSolaris, OSZos:
+	case criteria.OSAix, criteria.OSAix6, criteria.OSAix7, criteria.OSAndroid, criteria.OSDarwin,
+		criteria.OSDragonfly, criteria.OSFreebsd, criteria.OSHurd, criteria.OSIllumos, criteria.OSIos,
+		criteria.OSLinux, criteria.OSNetbsd, criteria.OSOpenbsd, criteria.OSSolaris, criteria.OSZos:
 		return OperateUserUnixRoot, nil
 	default:
 		return "", fmt.Errorf("unsupported os type for default operate user: %s", osType)

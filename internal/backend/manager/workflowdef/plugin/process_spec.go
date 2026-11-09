@@ -21,6 +21,7 @@ package plugin
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -49,7 +50,12 @@ func buildPluginProcessSpec(process types.Process, host *types.Host, pluginPkg *
 	}
 
 	// the operate user is ensured by callers via pluginUtils.EnsureHostOperateUser;
+	// fall back to the os default here as defense in depth for legacy hosts.
 	user := host.Dynamic.OperateUser
+	if user == "" {
+		defaultUser, _ := gse.DefaultOperateUser(host.Dynamic.NodeOsType)
+		user = defaultUser.String()
+	}
 
 	// nolint: mnd
 	return types.ProcessSpec{

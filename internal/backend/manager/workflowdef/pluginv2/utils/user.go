@@ -23,6 +23,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -61,7 +62,7 @@ func EnsureHostOperateUser(std *PluginActionStandarder, host *types.Host) error 
 		return nil
 	}
 
-	defaultUser, err := criteria.DefaultOperateUser(host.Dynamic.NodeOsType)
+	defaultUser, err := gse.DefaultOperateUser(host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get default operate user, host-id(%d), os-type(%s): %w",
 			host.HostID, host.Dynamic.NodeOsType, err)

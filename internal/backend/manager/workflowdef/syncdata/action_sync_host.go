@@ -34,6 +34,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -556,7 +557,7 @@ func fillDefaultOperateUser(host *types.Host) bool {
 		return false
 	}
 
-	defaultUser, err := criteria.DefaultOperateUser(criteria.OSType(host.Static.OSType))
+	defaultUser, err := gse.DefaultOperateUser(criteria.OSType(host.Static.OSType))
 	if err != nil {
 		logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default operate user for synced host")
 
