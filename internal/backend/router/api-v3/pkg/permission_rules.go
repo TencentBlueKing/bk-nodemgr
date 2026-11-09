@@ -20,7 +20,6 @@ package pkg
 
 import (
 	"errors"
-	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -126,108 +125,36 @@ func narrowReleaseCondition(
 	return condition
 }
 
-// narrowAuthorizedPackageNamesForHistory returns the fixed package types and plugin names the user is authorized to view history for.
-func (h *handler) narrowAuthorizedPackageNamesForHistory(
-	rCtx restserver.IContext,
-) (
-	[]types.ReleaseType,
-	[]string,
-	bool,
-	error,
-) {
+// narrowPackageEventCondition narrows history queries by authorized package types.
+// The boolean reports an empty intersection, which must not be queried as an unrestricted filter.
+func (h *handler) narrowPackageEventCondition(
+	rCtx restserver.IContext, condition *types.PackageEventCondition,
+) (*types.PackageEventCondition, bool, error) {
 
-	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPackageHistoryView, types.AuthResourceTypePackage)
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPackageHistoryView, types.AuthResourceTypePackageType)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, false, err
 	}
 
-	narrowedNames, scopeIsAny, _, err := auth.ResolveAuthorizedResourceIDsString(
-		scope, nil, types.AuthResourceTypePackage,
-	)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	fixedTypes := make([]types.ReleaseType, 0, len(narrowedNames))
-	pluginNames := make([]string, 0, len(narrowedNames))
-	for _, name := range narrowedNames {
-		releaseType := types.ReleaseType(name)
-		if isFixedType(releaseType) {
-			fixedTypes = append(fixedTypes, releaseType)
-			continue
-		}
-		pluginNames = append(pluginNames, name)
-	}
-
-	return fixedTypes, pluginNames, scopeIsAny, nil
-}
-
-// narrowPackageEventConditions creates normal package event conditions for authorized fixed and plugin packages.
-func narrowPackageEventConditions(
-	condition *types.PackageEventCondition, fixedTypes []types.ReleaseType, pluginNames []string, scopeIsAny bool,
-) (
-	*types.PackageEventCondition,
-	*types.PackageEventCondition,
-	bool,
-) {
-
-	if scopeIsAny {
-		if condition == nil {
-			condition = &types.PackageEventCondition{}
-		}
-
-		return condition, nil, true
-	}
-	if len(fixedTypes) == 0 && len(pluginNames) == 0 {
-		return nil, nil, false
-	}
-
-	requested := types.PackageEventExactFields{}
-	if condition != nil && condition.ExactInclude != nil {
-		requested = *condition.ExactInclude
-	}
-	fixedTypes = slices.Clone(fixedTypes)
-	pluginNames = slices.Clone(pluginNames)
-	pluginTypes := []types.ReleaseType{types.ReleaseTypePlugin, types.ReleaseTypePluginBinTool}
-	if len(requested.ReleaseType) > 0 {
-		fixedTypes = slices.DeleteFunc(fixedTypes, func(releaseType types.ReleaseType) bool {
-			return !slices.Contains(requested.ReleaseType, releaseType)
-		})
-		pluginTypes = slices.DeleteFunc(pluginTypes, func(releaseType types.ReleaseType) bool {
-			return !slices.Contains(requested.ReleaseType, releaseType)
-		})
-	}
-	if len(requested.Name) > 0 {
-		pluginNames = slices.DeleteFunc(pluginNames, func(name string) bool {
-			return !slices.Contains(requested.Name, name)
-		})
-	}
-
-	// Empty exact filters are unrestricted, so omit groups with no authorized matches.
-	var fixedCondition, pluginCondition *types.PackageEventCondition
-	if len(fixedTypes) > 0 {
-		fixedCondition = clonePackageEventCondition(condition)
-		fixedCondition.ExactInclude.ReleaseType = fixedTypes
-	}
-	if len(pluginTypes) > 0 && len(pluginNames) > 0 {
-		pluginCondition = clonePackageEventCondition(condition)
-		pluginCondition.ExactInclude.ReleaseType = pluginTypes
-		pluginCondition.ExactInclude.Name = pluginNames
-	}
-
-	return fixedCondition, pluginCondition, fixedCondition != nil || pluginCondition != nil
-}
-
-func clonePackageEventCondition(condition *types.PackageEventCondition) *types.PackageEventCondition {
 	if condition == nil {
 		condition = &types.PackageEventCondition{}
 	}
-	clone := *condition
-	fields := types.PackageEventExactFields{}
-	if condition.ExactInclude != nil {
-		fields = *condition.ExactInclude
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.PackageEventExactFields{}
 	}
-	clone.ExactInclude = &fields
+	releaseTypes, scopeIsAny, _, err := auth.ResolveAuthorizedResourceIDsString(
+		scope, types.ReleaseTypeListToStringList(condition.ExactInclude.ReleaseType), types.AuthResourceTypePackageType,
+	)
+	if err != nil {
+		return nil, false, err
+	}
+	if scopeIsAny {
+		return condition, false, nil
+	}
+	if len(releaseTypes) == 0 {
+		return condition, true, nil
+	}
+	condition.ExactInclude.ReleaseType = types.StringListToReleaseTypeList(releaseTypes)
 
-	return &clone
+	return condition, false, nil
 }

@@ -78,7 +78,7 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
 
   // pkgManager — non-biz pages
   { id: 'package_view', action: 'package_view', resourceType: 'package', routes: ['agentPackageMng', 'proxyPackageMng', 'certPackageMng', 'bintoolPackageMng', 'plugin_bintoolPackageMng', 'pluginPackageMng'] },
-  { id: 'package_history_view', action: 'package_history_view', resourceType: 'package', routes: ['operationRecords'] },
+  { id: 'package_history_view', action: 'package_history_view', resourceType: 'package_type', routes: ['operationRecords'] },
 ];
 
 export function normalizeHistoryActive(active: unknown): HistoryActiveScope {
@@ -284,7 +284,7 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
     { action: 'package_type_upload', resource_type: 'package_type' },
   ],
   operationRecords: [
-    { action: 'package_history_view', resource_type: 'package' },
+    { action: 'package_history_view', resource_type: 'package_type' },
   ],
 };
 

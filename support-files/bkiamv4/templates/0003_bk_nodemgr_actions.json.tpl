@@ -230,7 +230,7 @@
       "data": {
         "id": "package_history_view",
         "name": "查看资源包历史",
-        "resource_type_id": "package"
+        "resource_type_id": "package_type"
       }
     }
   ]

@@ -199,8 +199,7 @@ func convertPackageEventExactFieldsToTypes(fields *PackageEventExactConditions) 
 	if err != nil {
 		return nil, err
 	}
-	return &types.PackageEventExactFields{Name: fields.GetName(),
-		EventType:   types.StringListToPackageEventTypeList(fields.GetEventType()),
+	return &types.PackageEventExactFields{EventType: types.StringListToPackageEventTypeList(fields.GetEventType()),
 		ReleaseType: types.StringListToReleaseTypeList(fields.GetReleaseType()), Version: fields.GetVersion(),
 		OSType: osTypes, CPUArch: cpuArchs, Generation: types.Int64ListToGenerationList(fields.GetGeneration()),
 		Operator: fields.GetOperator()}, nil
@@ -224,9 +223,8 @@ func convertPackageEventExactFieldsFromTypes(fields *types.PackageEventExactFiel
 	if fields == nil {
 		return nil
 	}
-	return &PackageEventExactConditions{Name: fields.Name,
-		Generation: types.GenerationListToInt64List(fields.Generation),
-		OsType:     criteria.OSTypeListToStringList(fields.OSType), CpuArch: criteria.CPUArchListToStringList(fields.CPUArch),
+	return &PackageEventExactConditions{Generation: types.GenerationListToInt64List(fields.Generation),
+		OsType: criteria.OSTypeListToStringList(fields.OSType), CpuArch: criteria.CPUArchListToStringList(fields.CPUArch),
 		ReleaseType: types.ReleaseTypeListToStringList(fields.ReleaseType), Operator: fields.Operator,
 		EventType: types.PackageEventTypeListToStringList(fields.EventType), Version: fields.Version}
 }

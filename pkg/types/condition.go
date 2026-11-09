@@ -327,7 +327,6 @@ type TopoConstantFields struct {
 
 // PackageEventExactFields defines the package event exact fields.
 type PackageEventExactFields struct {
-	Name        []string
 	Generation  []Generation
 	ReleaseType []ReleaseType
 	OSType      []criteria.OSType

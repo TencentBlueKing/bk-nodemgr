@@ -258,12 +258,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       },
       "description": "PackageEventExactConditions describes exact package event filters."

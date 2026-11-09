@@ -141,7 +141,7 @@
           {"id": "package_type_upload", "resource_type_id": "package_type"},
           {"id": "package_view", "resource_type_id": "package"},
           {"id": "package_manage", "resource_type_id": "package"},
-          {"id": "package_history_view", "resource_type_id": "package"}
+          {"id": "package_history_view", "resource_type_id": "package_type"}
         ]
       }
     },
@@ -193,7 +193,7 @@
         "description": "支持查看资源包及其历史；资源范围以授权为准。",
         "actions": [
           {"id": "package_view", "resource_type_id": "package"},
-          {"id": "package_history_view", "resource_type_id": "package"}
+          {"id": "package_history_view", "resource_type_id": "package_type"}
         ]
       }
     }
