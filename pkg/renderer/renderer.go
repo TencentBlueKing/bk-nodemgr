@@ -43,3 +43,57 @@ func NewRenderer(renderType types.TemplateRendererType) (IHandler, error) {
 		return nil, fmt.Errorf("unknown template renderer: %s", renderType)
 	}
 }
+
+// RenderNestedMap renders every template string nested in nested with context and keeps other values as is.
+func RenderNestedMap(handler IHandler, nested, context map[string]any) (map[string]any, error) {
+	rendered := make(map[string]any, len(nested))
+	for key, value := range nested {
+		renderedValue, err := renderNestedValue(handler, value, context, key)
+		if err != nil {
+			return nil, err
+		}
+
+		rendered[key] = renderedValue
+	}
+
+	return rendered, nil
+}
+
+// renderNestedValue renders the template strings inside a single value, the path locates the value in error messages.
+func renderNestedValue(handler IHandler, value any, context map[string]any, path string) (any, error) {
+	switch typedValue := value.(type) {
+	case string:
+		rendered, err := handler.Render(typedValue, context)
+		if err != nil {
+			return nil, fmt.Errorf("failed to render %s: %w", path, err)
+		}
+
+		return rendered, nil
+	case map[string]any:
+		rendered := make(map[string]any, len(typedValue))
+		for key, item := range typedValue {
+			renderedItem, err := renderNestedValue(handler, item, context, path+"."+key)
+			if err != nil {
+				return nil, err
+			}
+
+			rendered[key] = renderedItem
+		}
+
+		return rendered, nil
+	case []any:
+		rendered := make([]any, len(typedValue))
+		for index, item := range typedValue {
+			renderedItem, err := renderNestedValue(handler, item, context, fmt.Sprintf("%s[%d]", path, index))
+			if err != nil {
+				return nil, err
+			}
+
+			rendered[index] = renderedItem
+		}
+
+		return rendered, nil
+	default:
+		return value, nil
+	}
+}
