@@ -1,0 +1,16 @@
+{{- if and .Values.backend_extra_worker .Values.backend_extra_worker.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-backend-extra-worker-config
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  backend-extra-worker_conf.yaml: |
+{{- include "bk-nodemgr.backendConfigData" (dict "root" . "workflow" .Values.backend_extra_worker.config.workflow) }}
+{{- end }}
