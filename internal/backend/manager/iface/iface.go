@@ -88,6 +88,9 @@ type iPluginManagerPlugin interface {
 	// LaunchComposePluginSubConfig prepares a source plugin and applies target sub-configs sequentially.
 	LaunchComposePluginSubConfig(nCtx contextx.IContext, param types.ComposePluginSubConfigParam) (string, error)
 
+	// LaunchComposeProjectedPluginSubConfigs prepares a single-host source batch and applies its targets sequentially.
+	LaunchComposeProjectedPluginSubConfigs(nCtx contextx.IContext, param types.ComposeProjectedPluginSubConfigsParam) (string, error)
+
 	// LaunchRemovePluginSubConfig launch a task to remove plugin subconfig. returns the workflow-id.
 	LaunchRemovePluginSubConfig(nCtx contextx.IContext, param types.RemovePluginSubConfigParam) (string, error)
 

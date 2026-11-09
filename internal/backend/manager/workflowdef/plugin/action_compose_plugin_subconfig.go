@@ -24,6 +24,7 @@ import (
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -59,11 +60,17 @@ func saveAndWaitCompositionChild(act action.Definition, storagePlugin pluginStg.
 func waitCompositionChild(storagePlugin pluginStg.IStorage, std *pluginUtils.PluginActionStandarder,
 	workflowID string, timeout time.Duration) error {
 
+	return waitPluginSubConfigChild(std.Context(), storagePlugin, workflowID, timeout)
+}
+
+func waitPluginSubConfigChild(nCtx contextx.IContext, storagePlugin pluginStg.IStorage,
+	workflowID string, timeout time.Duration) error {
+
 	var status types.PluginWorkflowStatus
 	polling := retrier.NewPolling(retrier.PollingOpts{Timeout: timeout, Interval: 10 * time.Second}) // nolint: mnd
-	if err := polling.Do(std.Context(), func(_ int) error {
+	if err := polling.Do(nCtx, func(_ int) error {
 		var err error
-		status, err = storagePlugin.GetPluginWorkflowStatus(std.Context(), workflowID)
+		status, err = storagePlugin.GetPluginWorkflowStatus(nCtx, workflowID)
 		if err != nil {
 			return fmt.Errorf("failed to get child workflow status: %w", err)
 		}
