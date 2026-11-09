@@ -124,7 +124,12 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	if err != nil {
 		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
+	// the login user is only the SSH authentication identity at install time;
+	// GSE channel process/file operations use the host operate user instead.
 	if err = pluginUtils.EnsureHostLoginUser(std, hostInfo); err != nil {
+		return err
+	}
+	if err = pluginUtils.EnsureHostOperateUser(std, hostInfo); err != nil {
 		return err
 	}
 	configSourceHostInfo := getConfigSourceHostInfo(std.DeployInfo(), hostInfo)
@@ -739,9 +744,11 @@ func generateConfigSourceHostRenderContext(hostInfo *types.Host, data hostRender
 		keyBkCPU:             hostInfo.Static.CPUNum,
 		keyBkMem:             hostInfo.Static.MemCap,
 		keyUserName:          hostInfo.Static.Operator,
-		keyAccount:           hostInfo.Dynamic.LoginUser,
-		keyAuthType:          strings.ToUpper(string(hostInfo.Dynamic.LoginMode)),
-		keyHostNodeType:      strings.ToUpper(string(hostInfo.Dynamic.NodeRole)),
+		// TODO: the account may not be the operate user, since the operate user is SYSTEM
+		// by default, but in some plugin cases the account should be Administrator.
+		keyAccount:      hostInfo.Dynamic.LoginUser,
+		keyAuthType:     strings.ToUpper(string(hostInfo.Dynamic.LoginMode)),
+		keyHostNodeType: strings.ToUpper(string(hostInfo.Dynamic.NodeRole)),
 	}
 }
 

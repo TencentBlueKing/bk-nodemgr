@@ -156,6 +156,9 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err er
 	if err = pluginUtils.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
+	if err = pluginUtils.EnsureHostOperateUser(std, host); err != nil {
+		return err
+	}
 
 	processSpec := buildPluginProcessSpec(std.DeployInfo().Process, host, pluginPkg, std.DeployInfo().BaseRuntime)
 	std.DeployInfo().Process.Identity = processSpec.Identity

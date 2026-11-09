@@ -31,7 +31,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -180,6 +179,9 @@ func (act *actionRenderPluginDeploymentV2) Do(ctx *action.InstanceContext) (err 
 	if err = pluginV2Utils.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
+	if err = pluginV2Utils.EnsureHostOperateUser(std, host); err != nil {
+		return err
+	}
 
 	std.DeployInfo().Process.Identity = types.ProcessIdentity{
 		Name:       programName,
@@ -187,12 +189,7 @@ func (act *actionRenderPluginDeploymentV2) Do(ctx *action.InstanceContext) (err 
 		PidPath:    pidFilePath,
 		ConfigPath: mainConfigPath,
 		LogPath:    std.DeployInfo().BaseRuntime.LogDir,
-		User:       host.Dynamic.LoginUser,
-	}
-
-	// windows use user direct need provide password, so we use system user to operate the process.
-	if host.Dynamic.NodeOsType == criteria.OSWindows {
-		std.DeployInfo().Process.Identity.User = gse.WindowsOperateUser
+		User:       host.Dynamic.OperateUser,
 	}
 
 	// nolint: mnd

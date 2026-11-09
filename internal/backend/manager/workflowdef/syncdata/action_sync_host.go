@@ -242,14 +242,14 @@ func (act *actionSyncHost) persistHostSyncChanges(
 		return err
 	}
 
-	loginUserRepairHosts := act.fillDefaultLoginUsers(
+	userRepairHosts := act.fillDefaultUsers(
 		ctx,
 		slices.Concat(changes.updateHosts, changes.insertHosts),
 		changes.dbData,
 	)
 
-	return batchHandleHosts(nCtx, loginUserRepairHosts, func(hosts ...*types.Host) error {
-		return act.storageHost.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{LoginUser: true}, hosts...)
+	return batchHandleHosts(nCtx, userRepairHosts, func(hosts ...*types.Host) error {
+		return act.storageHost.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{LoginUser: true, OperateUser: true}, hosts...)
 	})
 }
 
@@ -492,7 +492,7 @@ func fillDefaultAdvertiseIPs(hosts, dbData []*types.Host) []*types.Host {
 	return backfillHosts
 }
 
-func (act *actionSyncHost) fillDefaultLoginUsers(ctx *action.InstanceContext, hosts, dbData []*types.Host) []*types.Host {
+func (act *actionSyncHost) fillDefaultUsers(ctx *action.InstanceContext, hosts, dbData []*types.Host) []*types.Host {
 	dbHostMap := make(map[int64]*types.Host, len(dbData))
 	for _, host := range dbData {
 		dbHostMap[host.HostID] = host
@@ -500,31 +500,72 @@ func (act *actionSyncHost) fillDefaultLoginUsers(ctx *action.InstanceContext, ho
 
 	backfillHosts := make([]*types.Host, 0)
 	for _, host := range hosts {
-		if dbHost, exists := dbHostMap[host.HostID]; exists && dbHost.Dynamic.LoginUser != "" {
-			host.Dynamic.LoginUser = dbHost.Dynamic.LoginUser
-			continue
-		}
+		preserveDBUsers(host, dbHostMap[host.HostID])
 
-		if host.Dynamic.LoginUser != "" {
-			continue
+		loginRepaired := fillDefaultLoginUser(host)
+		operateRepaired := fillDefaultOperateUser(host)
+		if loginRepaired || operateRepaired {
+			backfillHosts = append(backfillHosts, host)
 		}
-
-		defaultUser, err := criteria.DefaultAdminUser(criteria.OSType(host.Static.OSType))
-		if err != nil {
-			logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default user for synced host")
-			continue
-		}
-
-		host.Dynamic.LoginUser = string(defaultUser)
-		backfillHosts = append(backfillHosts, host)
 	}
 
 	ctx.Data.Log().
-		Zh("主机登录用户修复完成，需修补 %d 台", len(backfillHosts)).
-		En("host login user repair done, %d hosts need repair", len(backfillHosts)).
+		Zh("主机登录用户与操作用户修复完成，需修补 %d 台", len(backfillHosts)).
+		En("host login user and operate user repair done, %d hosts need repair", len(backfillHosts)).
 		Info()
 
 	return backfillHosts
+}
+
+// preserveDBUsers keeps the login user and operate user already stored in db.
+func preserveDBUsers(host, dbHost *types.Host) {
+	if dbHost == nil {
+		return
+	}
+	if dbHost.Dynamic.LoginUser != "" {
+		host.Dynamic.LoginUser = dbHost.Dynamic.LoginUser
+	}
+	if dbHost.Dynamic.OperateUser != "" {
+		host.Dynamic.OperateUser = dbHost.Dynamic.OperateUser
+	}
+}
+
+// fillDefaultLoginUser fills the host login user with the os default when empty,
+// returning whether the host is repaired.
+func fillDefaultLoginUser(host *types.Host) bool {
+	if host.Dynamic.LoginUser != "" {
+		return false
+	}
+
+	defaultUser, err := criteria.DefaultAdminUser(criteria.OSType(host.Static.OSType))
+	if err != nil {
+		logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default login user for synced host")
+
+		return false
+	}
+
+	host.Dynamic.LoginUser = string(defaultUser)
+
+	return true
+}
+
+// fillDefaultOperateUser fills the host operate user with the os default when empty,
+// returning whether the host is repaired.
+func fillDefaultOperateUser(host *types.Host) bool {
+	if host.Dynamic.OperateUser != "" {
+		return false
+	}
+
+	defaultUser, err := criteria.DefaultOperateUser(criteria.OSType(host.Static.OSType))
+	if err != nil {
+		logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default operate user for synced host")
+
+		return false
+	}
+
+	host.Dynamic.OperateUser = string(defaultUser)
+
+	return true
 }
 
 func getAndFillEmptyDynamicAgentIDByStaticSyncedAgentID(

@@ -18,6 +18,8 @@
 
 package gse
 
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+
 const (
 	// queryMultiProcessInfoPageSize the page size of query multi process info.
 	// notice: This is not a mandatory value, but a recommended value
@@ -34,5 +36,5 @@ const (
 	// WindowsOperateUser the operate user of Windows.
 	// notice: In Windows use "system" user to do operations will not switch users,
 	// which can avoid the problem caused by the need to re-enter the password in some environments.
-	WindowsOperateUser = "system"
+	WindowsOperateUser = string(criteria.OperateUserWindowsSystem)
 )

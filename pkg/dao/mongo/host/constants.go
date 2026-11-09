@@ -155,6 +155,9 @@ const (
 	// FieldKeyDynamicLoginUser the dynamic login user field key.
 	FieldKeyDynamicLoginUser = "data.dynamic.login_user"
 
+	// FieldKeyDynamicOperateUser the dynamic operate user field key.
+	FieldKeyDynamicOperateUser = "data.dynamic.operate_user"
+
 	// FieldKeyDynamicLoginMode the dynamic login mode field key.
 	FieldKeyDynamicLoginMode = "data.dynamic.login_mode"
 

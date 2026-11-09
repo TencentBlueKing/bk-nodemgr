@@ -90,6 +90,7 @@ type HostDynamic struct {
 	LoginIP                  string     `json:"login_ip" bson:"login_ip"`
 	LoginPort                int64      `json:"login_port" bson:"login_port"`
 	LoginUser                string     `json:"login_user" bson:"login_user"`
+	OperateUser              string     `json:"operate_user" bson:"operate_user"`
 	LoginMode                string     `json:"login_mode" bson:"login_mode"`
 	LoginCreditID            string     `json:"login_credit_id" bson:"login_credit_id"`
 	ExportIP                 string     `json:"export_ip" bson:"export_ip"`

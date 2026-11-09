@@ -130,9 +130,14 @@ type HostDynamic struct {
 	// LoginIP represents the ip when SSH login to install.
 	// ExportIP and ExportIPV6 represents the ip that the outgoing IP in NAT.
 	// AdvertiseIP and AdvertiseIPV6 represents the ip that the incoming IP in NAT.
-	LoginIP          string
-	LoginPort        int64
-	LoginUser        string
+	LoginIP   string
+	LoginPort int64
+	LoginUser string
+	// OperateUser the user that the GSE channel uses to operate plugin processes and files
+	// on the host (root on unix, system on windows). It is written with a default value at
+	// host sync time and has no modification path for now; unlike LoginUser, which is only
+	// the SSH authentication identity at install time.
+	OperateUser      string
 	LoginMode        LoginMode
 	LoginCreditID    string
 	LoginCreditValid bool
@@ -231,6 +236,7 @@ type HostDynamicFields struct {
 	LoginIP       bool
 	LoginPort     bool
 	LoginUser     bool
+	OperateUser   bool
 	LoginMode     bool
 	LoginCreditID bool
 	ExportIP      bool
@@ -511,6 +517,7 @@ type HostFieldSelection struct {
 	NodeVersion    bool
 	NodeGeneration bool
 	LoginUser      bool
+	OperateUser    bool
 	AgentID        bool
 	AdvertiseIP    bool
 	AdvertiseIPV6  bool

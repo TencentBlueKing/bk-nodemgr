@@ -21,7 +21,6 @@ package plugin
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -37,6 +36,7 @@ func pluginProgramName(pkgName string, osType criteria.OSType) string {
 func buildPluginProcessSpec(process types.Process, host *types.Host, pluginPkg *types.ReleasePlugin,
 	runtime types.PluginDeploymentBaseRuntime,
 ) types.ProcessSpec {
+
 	osType := process.Platform.OS
 	var mainConfigPath string
 	for _, configTemplate := range pluginPkg.ConfigTemplates {
@@ -48,10 +48,8 @@ func buildPluginProcessSpec(process types.Process, host *types.Host, pluginPkg *
 		break
 	}
 
-	user := host.Dynamic.LoginUser
-	if host.Dynamic.NodeOsType == criteria.OSWindows {
-		user = gse.WindowsOperateUser
-	}
+	// the operate user is ensured by callers via pluginUtils.EnsureHostOperateUser;
+	user := host.Dynamic.OperateUser
 
 	// nolint: mnd
 	return types.ProcessSpec{
