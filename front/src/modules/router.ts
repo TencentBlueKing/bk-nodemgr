@@ -403,6 +403,10 @@ export const install: UserModule = ({ app }) => {
     cancelRequest();
 
     if (to.name === '403' || to.name === '404') return true;
+    if (to.name === 'workareaDetail'
+      && Number(to.params.workarea) === Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID)) {
+      return { name: 'workarea', replace: true };
+    }
 
     const authStore = useAuthStore();
     const mainStore = useMainStore();

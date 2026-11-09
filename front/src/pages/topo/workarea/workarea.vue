@@ -101,6 +101,7 @@ import { useWorkareaStore } from '@/stores/workarea';
 const { t } = useI18n();
 const authStore = useAuthStore();
 const workareaStore = useWorkareaStore();
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 
 const selectedAreaMap = ref(new Map<number, INetWorkArea>());
 const selectedAreaIds = computed(() => Array.from(selectedAreaMap.value.keys()));
@@ -114,12 +115,16 @@ const selectedUnitCounts = computed(() => {
 });
 const hasUnknownSelected = computed(() => selectedUnitCounts.value.some(count => count === undefined));
 const hasNonEmptySelected = computed(() => selectedUnitCounts.value.some(count => (count ?? 0) > 0));
-const isBatchCreateDisabled = computed(() => hasUnknownSelected.value || hasNonEmptySelected.value);
-const batchCreateDisabledTip = computed(() => (
-  hasUnknownSelected.value
-    ? t('topoManager.workArea.batchCreate.statisticsUnavailable')
-    : t('topoManager.workArea.batchCreate.nonEmptySelection')
+const hasUnassignedSelected = computed(() => selectedAreaIds.value.includes(unassignedAreaId));
+const isBatchCreateDisabled = computed(() => (
+  hasUnassignedSelected.value || hasUnknownSelected.value || hasNonEmptySelected.value
 ));
+const batchCreateDisabledTip = computed(() => {
+  if (hasUnassignedSelected.value) return t('topoManager.workArea.batchCreate.unassignedAreaDisabled');
+  return hasUnknownSelected.value
+    ? t('topoManager.workArea.batchCreate.statisticsUnavailable')
+    : t('topoManager.workArea.batchCreate.nonEmptySelection');
+});
 
 const handleBatchCreateClick = (event: MouseEvent) => {
   if (isBatchCreateDisabled.value) {
@@ -133,6 +138,7 @@ const handleBatchCreateClick = (event: MouseEvent) => {
 
 const handleSelectionChange = ({ row, checked }: { row: INetWorkArea; checked: boolean }) => {
   if (checked) {
+    if (row.bk_networkarea_id === unassignedAreaId) return;
     if (!selectedAreaMap.value.has(row.bk_networkarea_id) && selectedAreaIds.value.length >= 100) {
       Message({
         theme: 'warning',

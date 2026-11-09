@@ -22,6 +22,7 @@
         :id="String(defaultArea.bk_networkarea_id)"
         :name="defaultArea.bk_networkarea_name"
         :value="String(defaultArea.bk_networkarea_id)"
+        :disabled="defaultArea.bk_networkarea_id === unassignedAreaId"
       >
         <div class="flex items-center group/item">
           <Button text class="mr-2 w-[18px]">
@@ -45,10 +46,11 @@
         :value="String(item.bk_networkarea_id)"
         :disabled="item.bk_networkarea_id === unassignedAreaId"
         v-bk-tooltips="{
-          content: isAreaAuthorized(item.bk_networkarea_id)
+          content: item.bk_networkarea_id === unassignedAreaId || isAreaAuthorized(item.bk_networkarea_id)
             ? `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`
             : t('components.permission.noPermission'),
-          disabled: isAreaAuthorized(item.bk_networkarea_id) && !textOverflowMap[item.bk_networkarea_id],
+          disabled: (item.bk_networkarea_id === unassignedAreaId || isAreaAuthorized(item.bk_networkarea_id))
+            && !textOverflowMap[item.bk_networkarea_id],
           boundary: 'parent',
           placement: 'right',
           offset: 10
@@ -56,7 +58,10 @@
       >
         <div
           class="w-full flex items-center area-select-option overflow-hidden"
-          :class="{ 'unauthorized-area-row': !isAreaAuthorized(item.bk_networkarea_id) }"
+          :class="{
+            'unauthorized-area-row': item.bk_networkarea_id !== unassignedAreaId
+              && !isAreaAuthorized(item.bk_networkarea_id)
+          }"
           @click="handleOptionClick($event, item.bk_networkarea_id)"
           @mouseenter="handleOptionMouseEnter($event, item.bk_networkarea_id)"
           @mousemove="handleOptionMouseMove($event, item.bk_networkarea_id)"
@@ -135,9 +140,11 @@ function isAreaAuthorized(areaId: number): boolean {
 }
 
 const handleOptionMouseEnter = (e: MouseEvent, areaId: number) => {
+  if (areaId === unassignedAreaId) return;
   authLockMouseEnter(e, isAreaAuthorized(areaId));
 };
 const handleOptionMouseMove = (e: MouseEvent, areaId: number) => {
+  if (areaId === unassignedAreaId) return;
   authLockMouseMove(e, isAreaAuthorized(areaId));
 };
 const handleOptionMouseLeave = () => {
@@ -146,6 +153,11 @@ const handleOptionMouseLeave = () => {
 
 /** 点击无权限区域 → 阻止选中 + 触发权限申请 */
 const handleOptionClick = (e: MouseEvent, areaId: number) => {
+  if (areaId === unassignedAreaId) {
+    e.stopPropagation();
+    e.preventDefault();
+    return;
+  }
   if (!isAreaAuthorized(areaId)) {
     e.stopPropagation();
     e.preventDefault();
@@ -255,12 +267,16 @@ const handleSelectChange = (val: any) => {
 
   if (props.multiple) {
     // 处理多选：'all' 保持字符串，不限映射回 -1，数字 ID 转回 Number
-    rawIds = val.map((v: string) => (v === 'all' ? 'all' : v === NO_LIMIT_VALUE ? -1 : Number(v)));
-    selectedRows = topoStore.allWorkareaList.filter(item => rawIds.includes('all') || rawIds.includes(item.bk_networkarea_id));
+    rawIds = val.filter((v: string) => v === 'all' || v === NO_LIMIT_VALUE || Number(v) !== unassignedAreaId)
+      .map((v: string) => (v === 'all' ? 'all' : v === NO_LIMIT_VALUE ? -1 : Number(v)));
+    selectedRows = topoStore.allWorkareaList.filter(item => item.bk_networkarea_id !== unassignedAreaId
+      && (rawIds.includes('all') || val.includes(String(item.bk_networkarea_id))));
   } else {
+    if (val !== NO_LIMIT_VALUE && Number(val) === unassignedAreaId) return;
     // 处理单选：不限映射回 '-1'（对外语义）
     rawIds = val === NO_LIMIT_VALUE ? '-1' : val;
-    const target = topoStore.allWorkareaList.find(item => String(item.bk_networkarea_id) === rawIds);
+    const target = val === NO_LIMIT_VALUE ? undefined
+      : topoStore.allWorkareaList.find(item => String(item.bk_networkarea_id) === rawIds);
     selectedRows = target ? [target] : [];
   }
 

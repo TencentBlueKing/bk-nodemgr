@@ -290,6 +290,7 @@ const handleAreaOptionClick = (e: MouseEvent, areaId: number) => {
 };
 
 // 选择器逻辑
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 const regionList = useMinLengthRef(
   ['all'] as Array<string | number>,
   t('topoManager.topo.select.tips', { count: 1 }),
@@ -375,7 +376,7 @@ const loadMissingAreaUnits = async () => {
   // 提取数字 area id（包括 0=Default Area）。'all' 是特殊全选标记，跳过。
   const selectedIds = regionList.value
     .map(v => (v === 'all' ? NaN : Number(v)))
-    .filter(id => !isNaN(id));
+    .filter(id => !isNaN(id) && id !== unassignedAreaId);
   const missingIds = selectedIds.filter(id => !topoStore.loadedAreaIds.has(id));
   if (missingIds.length === 0) return;
   const authorizedIds = authStore.authorizedLoaded
@@ -1096,7 +1097,7 @@ const initAreaData = async () => {
     ? []
     : regionList.value
       .map(v => (v === 'all' ? NaN : Number(v)))
-      .filter(id => !isNaN(id));
+      .filter(id => !isNaN(id) && id !== unassignedAreaId);
 
   // 并行：区域列表 + 选中区域的 unit 数据
   // 首次加载时无论选了什么都调一次（['all'] 走空数组让 store 内部走全量分支）
@@ -1113,7 +1114,7 @@ const initAreaData = async () => {
   const loaded = topoStore.loadedAreaIds;
   const missingDeps = [...deps.values()]
     .flat()
-    .filter(id => !loaded.has(id));
+    .filter(id => id !== unassignedAreaId && !loaded.has(id));
   if (missingDeps.length > 0) {
     await handleFetchAllWorkUnit(missingDeps, authorizedIds).catch(() => {});
   }
@@ -1125,7 +1126,7 @@ const initAreaData = async () => {
 
   const defaultAreaId = defaultArea?.bk_networkarea_id;
   netWorkAreaList.value = topoStore.allWorkareaList
-    .filter(item => item.bk_networkarea_id !== defaultAreaId)
+    .filter(item => item.bk_networkarea_id !== defaultAreaId && item.bk_networkarea_id !== unassignedAreaId)
     .map(item => ({
       bk_networkarea_id: item.bk_networkarea_id,
       bk_networkarea_name: item.bk_networkarea_name,
@@ -1149,6 +1150,8 @@ function filterAreaNodes() {
       return arr;
     });
   }
+
+  targetAreaIds = targetAreaIds.filter(id => id !== unassignedAreaId);
 
   const filteredAreaNodes = topoStore.allWorkareaList
     .filter(item => targetAreaIds.includes(item.bk_networkarea_id))
@@ -1274,7 +1277,8 @@ onMounted(async () => {
   const savedSelection = userStorage.getItem('selected_workarea');
   if (savedSelection) {
     try {
-      regionList.value = JSON.parse(savedSelection);
+      const restored = JSON.parse(savedSelection).filter((id: string | number) => Number(id) !== unassignedAreaId);
+      regionList.value = restored.length > 0 ? restored : [0];
     } catch (err) {
       console.error('Failed to parse saved selection:', err);
       // 如果解析失败，默认选中 ID=0 的默认区域

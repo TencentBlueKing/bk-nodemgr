@@ -481,6 +481,7 @@ topoManager:
       createdUnit: 管控单元 ID：{id}
       retry: 重试失败项
       allSuccess: 默认管控单元批量创建成功
+      unassignedAreaDisabled: 未分配管控区域不支持管控单元管理或配置
       defaultAreaDisabled: 默认管控区域不支持批量初始化
       createPermissionDisabled: 没有该管控区域的管控单元创建权限
       filterEmpty: 空管控区域

@@ -77,10 +77,17 @@ const props = defineProps({
 
 const { allWorkareaList, allWorkUnitList, allAccessPointList } = useWorkareaStore();
 
-const curWorkAreaList = computed(() => Array.from(allWorkareaList.values()));
-const curWorkUnitList = computed(() => Array.from(allWorkUnitList.get(link.value.bk_networkarea_id as number) || []));
-// eslint-disable-next-line max-len
-const curAccessPointList = computed(() => Array.from(allAccessPointList.get(link.value.bk_networkunit_id as number) || []));
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
+const curWorkAreaList = computed(() => Array.from(allWorkareaList.values())
+  .filter(area => area.bk_networkarea_id !== unassignedAreaId));
+const curWorkUnitList = computed(() => {
+  if (link.value.bk_networkarea_id === unassignedAreaId) return [];
+  return Array.from(allWorkUnitList.get(link.value.bk_networkarea_id as number) || []);
+});
+const curAccessPointList = computed(() => {
+  if (link.value.bk_networkarea_id === unassignedAreaId) return [];
+  return Array.from(allAccessPointList.get(link.value.bk_networkunit_id as number) || []);
+});
 
 const handleWorkareaChange = () => {
   link.value.bk_networkunit_id = undefined;
