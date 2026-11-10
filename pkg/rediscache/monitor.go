@@ -176,6 +176,9 @@ const (
 
 	// MetricOperationDelete delete a key.
 	MetricOperationDelete MetricOperation = "delete"
+
+	// MetricOperationIncr increments a key.
+	MetricOperationIncr MetricOperation = "incr"
 )
 
 // MetricParam the metric param.

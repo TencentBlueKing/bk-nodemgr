@@ -47,6 +47,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -62,6 +63,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/redis/go-redis/extra/redisotel/v9"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -177,6 +180,12 @@ func (svc *Service) initialCapability(nCtx contextx.IContext) error {
 		return fmt.Errorf("failed to create mongo client: %w", err)
 	}
 
+	// initial redis client.
+	svc.Cap.RedisClient, err = svc.newRedisClient()
+	if err != nil {
+		return fmt.Errorf("failed to create redis client: %w", err)
+	}
+
 	// initial serveral storages.
 	if err = svc.initialStorages(); err != nil {
 		return fmt.Errorf("failed to initial storages: %w", err)
@@ -290,6 +299,56 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	return mongoClient, nil
 }
 
+func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
+	var tlsConfig *tls.Config
+	if svc.conf.Redis.TLS.IsEnabled() {
+		sslConf, err := svc.conf.Redis.TLS.ToSSLConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve redis tls config: %w", err)
+		}
+
+		tlsConfig, err = sslConf.NewClientTLSConf()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create tls config: %w", err)
+		}
+	}
+
+	logger.G.Sys().With("addrs", svc.conf.Redis.Addrs, "master-name", svc.conf.Redis.MasterName).
+		Info("initializing redis universal client")
+
+	client := redis.NewUniversalClient(&redis.UniversalOptions{
+		IsClusterMode: svc.conf.Redis.Type == config.RedisTypeCluster,
+		Addrs:         svc.conf.Redis.Addrs,
+		MasterName:    svc.conf.Redis.MasterName,
+		Password:      svc.conf.Redis.Password,
+		DB:            svc.conf.Redis.DB,
+		TLSConfig:     tlsConfig,
+	})
+
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName:     svc.conf.Redis.TraceServiceName,
+		ServiceCategory: tracing.ServiceCategoryCache,
+		SampleRate:      svc.conf.Redis.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create tracing service: %w", err)
+	}
+
+	err = redisotel.InstrumentTracing(client,
+		redisotel.WithTracerProvider(traceSvc.TracerProvider()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to instrument tracing for redis client: %w", err)
+	}
+
+	_, err = client.Ping(contextx.Background()).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to ping redis after creating redis client: %w", err)
+	}
+
+	return client, nil
+}
+
 // nolint: funlen
 func (svc *Service) initialStorages() error {
 	var err error
@@ -301,12 +360,15 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create upload storage: %w", err)
 	}
 
-	svc.Cap.StorageRelease, err = storageRelease.NewStorage(
+	releaseStorage, err := storageRelease.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create release storage: %w", err)
 	}
+
+	svc.Cap.StorageRelease = storageRelease.NewCachedStorage(
+		releaseStorage, rediscache.NewMarkerStore(svc.Cap.RedisClient))
 
 	svc.Cap.StorageTopo, err = storageTopo.NewStorage(
 		svc.Cap.MongoClient,

@@ -73,9 +73,9 @@ data:
         keyFile: {{ .Values.common.certPath }}/etcd.key
         password: {{ .Values.externalEtcd.tls.password }}
         {{- else if len .Values.externalEtcd.tls.secretName }}
-        "caFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCaFileName }}",
-        "certFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCertFileName }}",
-        "keyFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretKeyFileName }}",
+        caFile: {{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCaFileName }}
+        certFile: {{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCertFileName }}
+        keyFile: {{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretKeyFileName }}
         {{- end}}
       {{- end}}
 
@@ -105,13 +105,43 @@ data:
         keyFile: {{ .Values.common.certPath }}/mongo.key
         password: {{ .Values.externalMongodb.tls.password }}
         {{- else if len .Values.externalMongodb.tls.secretName }}
-        "caFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCaFileName }}",
-        "certFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCertFileName }}",
-        "keyFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretKeyFileName }}",
+        caFile: {{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCaFileName }}
+        certFile: {{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCertFileName }}
+        keyFile: {{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretKeyFileName }}
         {{- end}}
       {{- end}}
       traceServiceName: {{ .Values.file.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.file.config.mongodb.traceSampleRate }}
+
+    redis:
+      {{- if .Values.redis.enabled }}
+      type: standalone
+      addrs:
+        - "{{ template "bk-nodemgr.fullname" . }}-redis-headless:{{ .Values.redis.service.ports.redis }}"
+      password: {{ .Values.redis.auth.password }}
+      db: 0
+      {{- else }}
+      type: {{ .Values.externalRedis.type }}
+      addrs: {{ .Values.externalRedis.addrs | toYaml | nindent 8 }}
+      password: {{ .Values.externalRedis.password }}
+      db: {{ .Values.externalRedis.db }}
+      {{- if eq .Values.externalRedis.type "sentinel" }}
+      masterName: {{ .Values.externalRedis.masterName }}
+      {{- end }}
+      tls:
+        {{- if len .Values.externalRedis.tls.ca }}
+        caFile: {{ .Values.common.certPath }}/redisca.crt
+        certFile: {{ .Values.common.certPath }}/redis.crt
+        keyFile: {{ .Values.common.certPath }}/redis.key
+        password: {{ .Values.externalRedis.tls.password }}
+        {{- else if len .Values.externalRedis.tls.secretName }}
+        caFile: {{ .Values.common.certPath }}/{{ .Values.externalRedis.tls.secretCaFileName }}
+        certFile: {{ .Values.common.certPath }}/{{ .Values.externalRedis.tls.secretCertFileName }}
+        keyFile: {{ .Values.common.certPath }}/{{ .Values.externalRedis.tls.secretKeyFileName }}
+        {{- end}}
+      {{- end}}
+      traceServiceName: {{ .Values.file.config.redis.traceServiceName }}
+      traceSampleRate: {{ .Values.file.config.redis.traceSampleRate }}
 
     profiling:
       {{- include "bk-nodemgr.profilingConfig" (dict "config" .Values.file.config.profiling "context" $) | nindent 6 }}

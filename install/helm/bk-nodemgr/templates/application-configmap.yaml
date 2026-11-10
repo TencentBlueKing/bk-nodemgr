@@ -86,9 +86,9 @@ data:
         keyFile: {{ .Values.common.certPath }}/etcd.key
         password: {{ .Values.externalEtcd.tls.password }}
         {{- else if len .Values.externalEtcd.tls.secretName }}
-        "caFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCaFileName }}",
-        "certFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCertFileName }}",
-        "keyFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretKeyFileName }}",
+        caFile: {{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCaFileName }}
+        certFile: {{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCertFileName }}
+        keyFile: {{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretKeyFileName }}
         {{- end}}
       {{- end}}
 
@@ -118,9 +118,9 @@ data:
         keyFile: {{ .Values.common.certPath }}/mongo.key
         password: {{ .Values.externalMongodb.tls.password }}
         {{- else if len .Values.externalMongodb.tls.secretName }}
-        "caFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCaFileName }}",
-        "certFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCertFileName }}",
-        "keyFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretKeyFileName }}",
+        caFile: {{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCaFileName }}
+        certFile: {{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCertFileName }}
+        keyFile: {{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretKeyFileName }}
         {{- end}}
       {{- end}}
       traceServiceName: {{ .Values.application.config.mongodb.traceServiceName }}

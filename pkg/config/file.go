@@ -83,6 +83,7 @@ const (
 
 	defaultFileMongoDBAppName          = "bk_nodemgr_file"
 	defaultFileMongoDBTraceServiceName = "bk_nodemgr_mongo"
+	defaultFileRedisTraceServiceName   = "bk_nodemgr_redis"
 
 	defaultFileEtcdUsername = "root"
 	defaultFileEtcdPassword = ""
@@ -223,6 +224,11 @@ func NewFileService() *FileService {
 				TraceServiceName: defaultFileMongoDBTraceServiceName,
 			},
 		},
+		Redis: Redis{
+			TraceService: TraceService{
+				TraceServiceName: defaultFileRedisTraceServiceName,
+			},
+		},
 	}
 }
 
@@ -273,6 +279,7 @@ type FileService struct {
 	MountHostDir       string               `yaml:"mountHostDir" usage:"mount host dir of file service"`
 	Repo               Repo                 `yaml:"repo" usage:"repo config of file service"`
 	MongoDB            MongoDB              `yaml:"mongodb" usage:"mongodb config of file service"`
+	Redis              Redis                `yaml:"redis" usage:"redis config of file service"`
 	Log                Log                  `yaml:"log" usage:"log config of file service"`
 	Tracing            Tracing              `yaml:"tracing" usage:"tracing config of file service"`
 	Profiling          Profiling            `yaml:"profiling" usage:"profiling config of file service"`
@@ -383,6 +390,10 @@ func (svc *FileService) Validate() error {
 
 	if err := svc.MongoDB.Validate(); err != nil {
 		return fmt.Errorf("failed to validate mongodb config: %w", err)
+	}
+
+	if err := svc.Redis.Validate(); err != nil {
+		return fmt.Errorf("failed to validate redis config: %w", err)
 	}
 
 	if err := svc.Etcd.Validate(); err != nil {

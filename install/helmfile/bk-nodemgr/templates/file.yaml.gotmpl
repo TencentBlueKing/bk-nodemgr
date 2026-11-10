@@ -54,7 +54,7 @@ backend:
 {{- $gseEndpoint := replace "{gateway_name}" "bk-gse" $bkAPITmpl }}
 {{- $_ := set $gse "endpoints" (dig "gateways" "gse" "endpoints" (list $gseEndpoint) .Values) }}
 {{- $_ := set $config "gse" $gse }}
-{{- range $configName := list "infoServer" "adminServer" "basicServer" "downloadServer" "exportServer" "downloader" "repo" "mongodb" }}
+{{- range $configName := list "infoServer" "adminServer" "basicServer" "downloadServer" "exportServer" "downloader" "repo" "mongodb" "redis" }}
 {{- $current := deepCopy (dig $configName dict $config) }}
 {{- if not (hasKey $current "traceSampleRate") }}
 {{- $_ := set $current "traceSampleRate" 1 }}
