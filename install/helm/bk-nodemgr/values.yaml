@@ -2350,6 +2350,11 @@ file:
       traceServiceName: "bk_nodemgr_mongo"
       traceSampleRate: 0
 
+    ## defines the redis related settings.
+    redis:
+      traceServiceName: "bk_nodemgr_redis"
+      traceSampleRate: 0
+
     ## Process profiling. Omit enabled to follow pyroscope.enabled; explicit true/false wins.
     ## serverAddress never enables profiling. Empty uses embedded Pyroscope when enabled.
     profiling:

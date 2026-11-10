@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -39,6 +40,9 @@ import (
 type Capability struct {
 	// MongoClient mongo client.
 	MongoClient *mongo.Client
+
+	// RedisClient redis client (supports both standalone and cluster mode).
+	RedisClient redis.UniversalClient
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.IProvider
