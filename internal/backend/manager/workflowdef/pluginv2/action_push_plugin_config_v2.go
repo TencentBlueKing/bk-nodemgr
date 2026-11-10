@@ -179,12 +179,11 @@ func (act *actionPushPluginConfigV2) Do(ctx *action.InstanceContext) (err error)
 		return err
 	}
 
-	if !result.Terminated {
-		return fmt.Errorf("push config not terminated, task-id(%s)", taskID)
-	}
-
-	if result.ErrorCode != 0 {
-		return fmt.Errorf("push config failed, task-id(%s), err-code(%d), err-msg(%s)", taskID, result.ErrorCode, result.ErrorMessage)
+	for _, r := range result {
+		if r.ErrorCode != 0 {
+			return fmt.Errorf("push config file(%s) failed, task-id(%s), err-code(%d), err-msg(%s)",
+				r.FileName, taskID, r.ErrorCode, r.ErrorMessage)
+		}
 	}
 
 	std.InstanceData().Log().

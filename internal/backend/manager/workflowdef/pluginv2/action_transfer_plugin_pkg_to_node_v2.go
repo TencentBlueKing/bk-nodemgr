@@ -362,17 +362,16 @@ func (act *actionTransferPluginPkgToNodeV2) pushOfflinePluginConfig(
 		return fmt.Errorf("failed to push config files: %w", err)
 	}
 
-	pushResult, err := act.gseHandler.QueryPushFileFinalResult(nCtx, taskID)
+	pushResults, err := act.gseHandler.QueryPushFileFinalResult(nCtx, taskID)
 	if err != nil {
 		return fmt.Errorf("failed to query push config result: %w", err)
 	}
 
-	if !pushResult.Terminated {
-		return fmt.Errorf("push config not terminated, task-id(%s)", taskID)
-	}
-
-	if pushResult.ErrorCode != 0 {
-		return fmt.Errorf("push config failed, task-id(%s), err-code(%d), err-msg(%s)", taskID, pushResult.ErrorCode, pushResult.ErrorMessage)
+	for _, pushResult := range pushResults {
+		if pushResult.ErrorCode != 0 {
+			return fmt.Errorf("push config file(%s) failed, task-id(%s), err-code(%d), err-msg(%s)",
+				pushResult.FileName, taskID, pushResult.ErrorCode, pushResult.ErrorMessage)
+		}
 	}
 
 	std.InstanceData().Log().

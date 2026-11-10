@@ -95,8 +95,8 @@ type IHandlerNode interface {
 
 	// QueryPushFileFinalResult query push file final result.
 	// @param taskID given task id.
-	// @return  file transmission simple transfer result.
-	QueryPushFileFinalResult(nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, error)
+	// @return  file transmission simple transfer result list.
+	QueryPushFileFinalResult(nCtx contextx.IContext, taskID string) ([]*types.SimpleTransferResult, error)
 
 	// TerminateFileTransmission terminate file transmission.
 	// @param taskID given task id.
@@ -581,11 +581,11 @@ func (h *Handler) QueryFileTransmissionResult(nCtx contextx.IContext, taskID str
 
 // QueryPushFileFinalResult query push file final result.
 // nolint:mnd
-func (h *Handler) QueryPushFileFinalResult(nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, error) {
+func (h *Handler) QueryPushFileFinalResult(nCtx contextx.IContext, taskID string) ([]*types.SimpleTransferResult, error) {
 	var (
 		err         error
 		queryResult []*types.TransferResult
-		dst         *types.SimpleTransferResult
+		dst         []*types.SimpleTransferResult
 	)
 
 	expoBackoffOpts := retrier.ExpoBackoffOpts{
@@ -601,13 +601,17 @@ func (h *Handler) QueryPushFileFinalResult(nCtx contextx.IContext, taskID string
 			return fmt.Errorf("failed to get operate proc result: %w", err)
 		}
 
-		if len(queryResult) != 1 {
+		if len(queryResult) == 0 {
 			return fmt.Errorf("unexpected task(%s) transfer result count(%d), results(%+v)", taskID, len(queryResult), queryResult)
 		}
 
-		dst = types.ConvertTransferResultToSimple(queryResult[0])
-		if !dst.Terminated {
-			return fmt.Errorf("task(%s) is not terminated yet", taskID)
+		dst = make([]*types.SimpleTransferResult, len(queryResult))
+		for i, qr := range queryResult {
+			dst[i] = types.ConvertTransferResultToSimple(qr)
+
+			if !dst[i].Terminated {
+				return fmt.Errorf("task(%s) transfer result not terminated, result(%+v)", taskID, dst[i])
+			}
 		}
 
 		return nil
