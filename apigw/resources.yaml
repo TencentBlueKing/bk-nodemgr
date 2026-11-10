@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-- url: /
+  - url: /
 info:
   version: '2.0'
   title: API Gateway Resources
@@ -11,7 +11,7 @@ paths:
       operationId: Topo_AccessPointList
       description: AccessPointList provides access-point listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -208,7 +208,7 @@ paths:
       operationId: Topo_BusinessList
       description: BusinessList provides business listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -388,7 +388,7 @@ paths:
       operationId: Topo_ConstantGet
       description: ConstantGet provides getting a constant.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -537,7 +537,7 @@ paths:
       operationId: Topo_EventDistinct
       description: EventDistinct provides event distincting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -746,7 +746,7 @@ paths:
       operationId: Topo_EventList
       description: EventList provides event listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -977,7 +977,7 @@ paths:
       operationId: Topo_TopoGraphNodeGetReq
       description: TopoGraphNodeGetReq provides graph node getting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1157,7 +1157,7 @@ paths:
       operationId: Topo_HostDistinct
       description: HostDistinct provides host distincting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1442,7 +1442,7 @@ paths:
         GetHostDistributionByNetworkAreaIDReq uest provides getting host
         distribution by node role.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1686,7 +1686,7 @@ paths:
         GetHostDistributionByNodeRoleReq uest provides getting host
         distribution by node role.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1928,7 +1928,7 @@ paths:
       operationId: Topo_HostList
       description: HostList provides host listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -2292,7 +2292,7 @@ paths:
       operationId: Topo_HostSelectHostID
       description: HostSelectHostID provides host id selecting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -2612,7 +2612,7 @@ paths:
       operationId: Topo_HostSelectInnerIP
       description: HostSelectInnerIP provides host inner ip selecting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -2931,7 +2931,7 @@ paths:
       operationId: Topo_HostSelectInnerIPV6
       description: HostSelectInnerIPV6 provides host inner ipv6 selecting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -3252,7 +3252,7 @@ paths:
         HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip
         selecting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -3573,7 +3573,7 @@ paths:
         HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner
         ipv6 selecting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -3892,7 +3892,7 @@ paths:
       operationId: Topo_NetworkAreaCreate
       description: NetworkAreaCreate provides creating a new network-area.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -4036,7 +4036,7 @@ paths:
       operationId: Topo_NetworkAreaDelete
       description: NetworkAreaDelete provides deleting an existing network-area by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -4179,7 +4179,7 @@ paths:
       operationId: Topo_NetworkAreaGet
       description: NetworkAreaGet provides getting an existing network-area by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -4329,7 +4329,7 @@ paths:
       operationId: Topo_NetworkAreaList
       description: NetworkAreaList provides network-area listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -4515,7 +4515,7 @@ paths:
       operationId: Topo_NetworkAreaUpdate
       description: NetworkAreaUpdate provides updating an existing network-area by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -4662,7 +4662,7 @@ paths:
       operationId: Topo_NetworkUnitCreate
       description: NetworkUnitCreate provides creating a new network-unit.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -4951,7 +4951,7 @@ paths:
       operationId: Topo_NetworkUnitDelete
       description: NetworkUnitDelete provides deleting an existing network-unit by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -5094,7 +5094,7 @@ paths:
       operationId: Topo_NetworkUnitGet
       description: NetworkUnitGet provides getting an existing network-unit by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -5391,7 +5391,7 @@ paths:
       operationId: Topo_NetworkUnitList
       description: NetworkUnitList provides network-unit listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -5698,7 +5698,7 @@ paths:
       operationId: Topo_NetworkUnitUpdate
       description: NetworkUnitUpdate provides updating an existing network-unit by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -6012,7 +6012,7 @@ paths:
       operationId: Process_ProcessDistinct
       description: 按过滤条件获取指定进程字段的去重候选值。
       tags:
-      - Process
+        - Process
       responses:
         '200':
           content:
@@ -6250,7 +6250,7 @@ paths:
       operationId: Process_GetProcessDistributionByHostID
       description: 按过滤条件统计每台主机上的进程数量。
       tags:
-      - Process
+        - Process
       responses:
         '200':
           content:
@@ -6444,7 +6444,7 @@ paths:
       operationId: Process_GetProcessDistributionByPluginName
       description: 按过滤条件统计各插件名称对应的进程数量。
       tags:
-      - Process
+        - Process
       responses:
         '200':
           content:
@@ -6644,7 +6644,7 @@ paths:
       operationId: Process_ListProcesses
       description: 分页查询进程列表，支持仅统计总数，以及按精确或模糊条件过滤。
       tags:
-      - Process
+        - Process
       responses:
         '200':
           content:
@@ -6953,196 +6953,6 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Query the process list with pagination, count-only mode, and exact or fuzzy filters.
-  /api/v3/process/list_v2_compatible:
-    post:
-      operationId: Process_ListV2ProcessesCompatible
-      description: 仅监控平台使用，不对外开放申请。
-      tags:
-      - Process
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                title: ProcessV2CompatibleListResp 主机 process v2 进程状态。
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                    title: Data 查询结果。
-                    properties:
-                      list:
-                        type: array
-                        items:
-                          type: object
-                          title: Host 主机及其插件进程状态。
-                          properties:
-                            inner_ip:
-                              type: string
-                              title: 内网 IPv4，多个以逗号分隔。
-                            bk_host_id:
-                              type: integer
-                              title: 主机 ID。
-                              format: int64
-                            inner_ipv6:
-                              type: string
-                              title: 内网 IPv6，多个以逗号分隔。
-                            setup_path:
-                              type: string
-                              title: Agent 安装路径，按部署配置与管控区域自定义部署配置计算。
-                            bk_cloud_id:
-                              type: integer
-                              title: 云区域 ID。
-                              format: int64
-                            plugin_status:
-                              type: array
-                              items:
-                                type: object
-                                title: ProcessV2Status 插件在某台主机上的进程状态。
-                                properties:
-                                  name:
-                                    type: string
-                                    title: 插件名，当前固定为 bkmonitorbeat。
-                                  status:
-                                    type: string
-                                    title: 进程状态，取值为 running、stopped、unknown，未注册时为 unregister。
-                                  version:
-                                    type: string
-                                    title: 插件版本，进程未注册时为空。
-                              title: 插件进程状态，当前仅包含 bkmonitorbeat。
-                        title: 主机列表。
-                      total:
-                        type: integer
-                        title: 主机总数。
-                        format: int64
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                      message:
-                        type: string
-                  message:
-                    type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                  system_id:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  system_name:
-                                    type: string
-                      apply_url:
-                        type: string
-                      system_name:
-                        type: string
-                  request_id:
-                    type: string
-          description: A successful response.
-        default:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  details:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        '@type':
-                          type: string
-                      additionalProperties: {}
-                  message:
-                    type: string
-          description: An unexpected error response.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              title: ProcessV2CompatibleListReq 查询主机上 process v2 的进程状态。
-              properties:
-                bk_biz_id:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-                  title: 业务 ID，必传。
-                bk_host_id:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-                  title: 主机 ID，不传则返回业务内全部主机。
-        required: true
-        description: ''
-      x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/process/list_v2_compatible
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: false
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-          oauth2PublicClientEnabled: false
-          oauth2PersonalClientEnabled: false
-        descriptionEn:
   /api/v3/plugin/apply_subconfig:
     post:
       operationId: Plugin_ApplyPluginSubConfig
@@ -7150,7 +6960,7 @@ paths:
         ApplyPluginSubConfig applies sub-configuration for a plugin on specified
         hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -7305,7 +7115,7 @@ paths:
       operationId: Plugin_InstallPlugin
       description: InstallPlugin installs a plugin on specified hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -7480,7 +7290,7 @@ paths:
       operationId: Plugin_ListPlugins
       description: ListPlugins lists plugins based on the given conditions.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -7673,7 +7483,7 @@ paths:
       operationId: Plugin_SetPluginMemo
       description: SetPluginMemo sets the memo for a plugin.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -7805,7 +7615,7 @@ paths:
       operationId: Plugin_UpgradePlugin
       description: UpgradePlugin upgrades a plugin on specified hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -7952,7 +7762,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowDistinct
       description: 按过滤条件获取插件任务流的类型、主机 ID、操作人和状态去重候选值。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -8145,7 +7955,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowList
       description: 查询插件任务流列表，支持分页、精确条件过滤和操作时间范围过滤。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -8380,7 +8190,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceList
       description: 根据操作 ID 列表查询插件任务流操作实例，支持仅返回总数。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -8576,7 +8386,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceLogGet
       description: 根据操作实例 ID 获取插件任务流操作实例日志，包括各 action 的生命周期、日志内容、子任务流引用及实例级额外执行日志。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -8795,7 +8605,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceStatusDistributionList
       description: 按触发器 ID 查询插件任务流最新操作实例的状态分布。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -8951,7 +8761,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationList
       description: 查询指定插件任务流下的操作列表，支持分页、精确条件过滤和仅返回总数。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -9208,7 +9018,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationRetry
       description: 重试指定插件任务流中的操作，支持全部重试或按操作 ID 部分重试。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -9346,7 +9156,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationTerminate
       description: 终止指定插件任务流中一个或多个操作的最新执行实例。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -9484,7 +9294,7 @@ paths:
       operationId: Package_PackageEventDistinct
       description: 查询资源包操作事件各字段的去重值。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -9691,7 +9501,7 @@ paths:
       operationId: Package_PackageEventList
       description: 分页查询资源包操作事件。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -9915,7 +9725,7 @@ paths:
       operationId: Package_CancelAsDefaultReleaseAgent
       description: 取消指定 Agent 安装包版本的默认状态。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -10066,7 +9876,7 @@ paths:
       operationId: Package_DeleteReleaseAgent
       description: 删除指定的 Agent 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -10217,7 +10027,7 @@ paths:
       operationId: Package_DisableReleaseAgent
       description: 禁用指定的 Agent 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -10368,7 +10178,7 @@ paths:
       operationId: Package_DistinctReleaseAgent
       description: 获取 Agent 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -10579,7 +10389,7 @@ paths:
       operationId: Package_EnableReleaseAgent
       description: 启用指定的 Agent 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -10730,7 +10540,7 @@ paths:
       operationId: Package_ListReleaseAgent
       description: 查询 Agent 安装包列表，支持分页和条件过滤。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -10975,7 +10785,7 @@ paths:
       operationId: Package_SetAsDefaultReleaseAgent
       description: 将指定的 Agent 安装包版本设为默认版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -11126,7 +10936,7 @@ paths:
       operationId: Package_SetReleaseAgentLabelsMany
       description: 批量设置符合条件的 Agent 安装包标签。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -11311,7 +11121,7 @@ paths:
       operationId: Package_DeleteReleaseBinTool
       description: 删除指定代次的二进制工具安装包。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -11450,7 +11260,7 @@ paths:
       operationId: Package_ListReleaseBinTool
       description: 查询工具包（BinTool）安装包列表。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -11637,7 +11447,7 @@ paths:
       operationId: Package_DeleteReleaseCert
       description: 删除指定代次的证书安装包。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -11776,7 +11586,7 @@ paths:
       operationId: Package_ListReleaseCert
       description: 查询证书安装包列表。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -11963,7 +11773,7 @@ paths:
       operationId: Package_CancelAsDefaultReleasePlugin
       description: 取消指定插件安装包版本的默认状态。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -12114,7 +11924,7 @@ paths:
       operationId: Package_DeleteReleasePlugin
       description: 删除指定的插件安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -12265,7 +12075,7 @@ paths:
       operationId: Package_DisableReleasePlugin
       description: 禁用指定的插件安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -12416,7 +12226,7 @@ paths:
       operationId: Package_EnableReleasePlugin
       description: 启用指定的插件安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -12567,7 +12377,7 @@ paths:
       operationId: Package_ListReleasePlugin
       description: 查询插件安装包列表，支持分页和条件过滤。接口仅返回当前用户有权限查看的插件安装包。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -12808,7 +12618,7 @@ paths:
       operationId: Package_SetAsDefaultReleasePlugin
       description: 将指定的插件安装包版本设为默认版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -12959,7 +12769,7 @@ paths:
       operationId: Package_DeleteReleasePluginBinTool
       description: 删除指定插件和代次的插件二进制工具安装包。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -13100,7 +12910,7 @@ paths:
       operationId: Package_ListReleasePluginBinTool
       description: 查询插件工具包（PluginBinTool）安装包列表，接口仅返回当前用户有权限查看的插件工具包。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -13287,7 +13097,7 @@ paths:
       operationId: Package_CancelAsDefaultReleaseProxy
       description: 取消指定 Proxy 安装包版本的默认状态。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -13438,7 +13248,7 @@ paths:
       operationId: Package_DeleteReleaseProxy
       description: 删除指定的 Proxy 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -13589,7 +13399,7 @@ paths:
       operationId: Package_DisableReleaseProxy
       description: 禁用指定的 Proxy 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -13740,7 +13550,7 @@ paths:
       operationId: Package_DistinctReleaseProxy
       description: 获取 Proxy 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -13951,7 +13761,7 @@ paths:
       operationId: Package_EnableReleaseProxy
       description: 启用指定的 Proxy 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -14102,7 +13912,7 @@ paths:
       operationId: Package_ListReleaseProxy
       description: 查询 Proxy 安装包列表，支持分页和条件过滤。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -14347,7 +14157,7 @@ paths:
       operationId: Package_SetAsDefaultReleaseProxy
       description: 将指定的 Proxy 安装包版本设为默认版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -14498,7 +14308,7 @@ paths:
       operationId: Package_SetReleaseProxyLabelsMany
       description: 批量设置符合条件的 Proxy 安装包标签。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -14683,7 +14493,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowDistinct
       description: 按过滤条件获取节点任务流的去重字段候选值，返回任务流类型、业务 ID、操作人和任务流状态。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -14875,7 +14685,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowList
       description: 查询节点任务流列表，支持分页、按精确条件过滤和按操作时间范围过滤。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -15118,7 +14928,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
       description: 按操作 ID 或操作实例 ID 查询节点任务流操作实例列表，支持仅返回总数。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -15318,7 +15128,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
       description: 根据操作实例 ID 获取节点任务操作实例日志，返回每个 action 的生命周期与日志内容，以及实例级额外执行日志。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -15537,7 +15347,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusDistributionList
       description: 按触发 ID 查询操作实例状态分布。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -15693,7 +15503,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationList
       description: 查询指定节点任务流下的操作列表，支持分页、按节点部署维度精确过滤、按操作状态过滤。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -15957,7 +15767,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationManualInfoGet
       description: 获取指定操作的手动处理信息，包括网络策略和手动执行命令。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -16161,7 +15971,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
       description: 对指定节点任务流中的操作执行重试，支持全量重试或按操作 ID 部分重试。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -16299,7 +16109,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationTerminate
       description: 终止指定节点任务流中一个或多个操作的最后一次执行实例。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -16435,7 +16245,7 @@ paths:
       operationId: NodeProxy_NodeProxyInstall
       description: 批量安装节点Proxy。支持手动安装和离线安装模式。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -16548,6 +16358,8 @@ paths:
                   items:
                     type: object
                     properties:
+                      is_sudo:
+                        type: boolean
                       os_type:
                         type: string
                       cpu_arch:
@@ -16589,8 +16401,6 @@ paths:
                       renew_gse_proc:
                         type: boolean
                       renew_gse_task:
-                        type: boolean
-                      is_sudo:
                         type: boolean
                       advertise_ip_v6:
                         type: string
@@ -16661,7 +16471,7 @@ paths:
       operationId: NodeProxy_NodeProxyReconfig
       description: 批量重新配置节点Proxy。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -16807,7 +16617,7 @@ paths:
       operationId: NodeProxy_NodeProxyRestart
       description: 批量重启节点Proxy。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -16953,7 +16763,7 @@ paths:
       operationId: NodeProxy_NodeProxyUninstall
       description: 批量卸载节点Proxy。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -17096,7 +16906,7 @@ paths:
       operationId: NodeProxy_NodeProxyUpdate
       description: 批量更新节点Proxy的动态配置信息，包括登录信息、网络地址、标签等。此操作为元数据更新，不触发远程操作。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -17267,7 +17077,7 @@ paths:
       operationId: NodeProxy_NodeProxyUpgrade
       description: 批量升级节点Proxy到指定版本。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -17420,7 +17230,7 @@ paths:
       operationId: NodeAgent_NodeAgentInstall
       description: 批量安装节点 Agent。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -17535,6 +17345,8 @@ paths:
                   items:
                     type: object
                     properties:
+                      is_sudo:
+                        type: boolean
                       os_type:
                         type: string
                       login_ip:
@@ -17566,8 +17378,6 @@ paths:
                       renew_gse_proc:
                         type: boolean
                       renew_gse_task:
-                        type: boolean
-                      is_sudo:
                         type: boolean
                       bk_host_innerip:
                         type: array
@@ -17619,7 +17429,7 @@ paths:
       operationId: NodeAgent_NodeAgentInstallCheck
       description: 检查目标主机是否满足节点 Agent 安装条件。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -17815,7 +17625,7 @@ paths:
       operationId: NodeAgent_NodeAgentReconfig
       description: 批量重新下发节点 Agent 配置并重启 Agent。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -17962,7 +17772,7 @@ paths:
       operationId: NodeAgent_NodeAgentRestart
       description: 批量重启节点 Agent。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -18109,7 +17919,7 @@ paths:
       operationId: NodeAgent_NodeAgentUninstall
       description: 批量卸载节点 Agent。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -18253,7 +18063,7 @@ paths:
       operationId: NodeAgent_NodeAgentUpgrade
       description: 批量升级节点 Agent。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -18407,7 +18217,7 @@ paths:
       operationId: DeployPolicySvc_Create
       description: 创建部署策略。
       tags:
-      - DeployPolicySvc
+        - DeployPolicySvc
       responses:
         '200':
           content:
@@ -18554,7 +18364,7 @@ paths:
       operationId: DeployPolicySvc_Execute
       description: 执行部署策略。
       tags:
-      - DeployPolicySvc
+        - DeployPolicySvc
       responses:
         '200':
           content:
@@ -18691,7 +18501,7 @@ paths:
       operationId: DeployPolicySvc_List
       description: 查询部署策略列表，支持分页和条件过滤。
       tags:
-      - DeployPolicySvc
+        - DeployPolicySvc
       responses:
         '200':
           content:
@@ -18957,7 +18767,7 @@ paths:
       operationId: DeployPolicySvc_Update
       description: 更新部署策略。
       tags:
-      - DeployPolicySvc
+        - DeployPolicySvc
       responses:
         '200':
           content:
@@ -19140,7 +18950,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyCreate
       description: 创建新的配置策略。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -19304,7 +19114,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyDelete
       description: 批量删除配置策略。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -19424,7 +19234,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyDisable
       description: 批量禁用配置策略。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -19544,7 +19354,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyEnable
       description: 批量启用配置策略。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -19664,7 +19474,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyEventDistinct
       description: 按过滤条件查询配置策略事件的去重字段集合。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -19860,7 +19670,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyEventList
       description: 查询配置策略事件列表，支持分页、条件过滤和操作时间范围过滤。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -20068,7 +19878,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyGet
       description: 按配置策略 ID 查询单个配置策略详情。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -20249,7 +20059,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyList
       description: 查询配置策略列表，支持分页、精确过滤和模糊过滤。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -20481,7 +20291,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyUpdate
       description: 更新指定配置策略。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -20649,9 +20459,9 @@ paths:
   /api/v3/cipher/rsa/get_public_key:
     post:
       operationId: Cipher_GetRSAPublicKey
-      description: 获取默认 RSA4096 公钥，用于对敏感信息进行加密。
+      description: GetRSAPublicKey get rsa public key.
       tags:
-      - Cipher
+        - Cipher
       responses:
         '200':
           content:
@@ -20706,9 +20516,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -20762,133 +20587,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Get the default RSA4096 public key used to encrypt sensitive data.
-  /api/v3/cipher/get_public_key:
-    post:
-      operationId: Cipher_GetCurrentPublicKey
-      description: 获取当前全局启用的凭据加密套件对应的默认公钥（CLASSIC 为 RSA4096，SHANGMI 为 SM2）。
-      tags:
-        - Cipher
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                    properties:
-                      key_type:
-                        type: string
-                        description: The asymmetric algorithm of public_key, RSA4096 (CLASSIC suite) or SM2 (SHANGMI suite).
-                      public_key:
-                        type: string
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                      message:
-                        type: string
-                  message:
-                    type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                  system_id:
-                                    type: string
-                                  type_name:
-                                    type: string
-                      apply_url:
-                        type: string
-                      system_name:
-                        type: string
-                  request_id:
-                    type: string
-                description: GetCurrentPublicKeyResp get current public key response message.
-          description: A successful response.
-        default:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  details:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        '@type':
-                          type: string
-                      additionalProperties: {}
-                  message:
-                    type: string
-          description: An unexpected error response.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              description: GetCurrentPublicKeyReq get current public key request message.
-        required: true
-        description: GetCurrentPublicKeyReq get current public key request message.
-      x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: false
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/cipher/get_public_key
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: false
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn: Get the default public key of the globally enabled credential encryption suite (RSA4096 for CLASSIC, SM2 for SHANGMI).
+        descriptionEn:
   /api/v3/node/workflow/operation/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationDistinct
       description: 按任务流 ID 查询节点任务流下 operation 最新实例状态（state）的去重结果。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -21039,7 +20744,7 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationDistinct
       description: 获取指定插件任务流下操作状态的去重候选值。
       tags:
-      - PluginWorkflow
+        - PluginWorkflow
       responses:
         '200':
           content:
@@ -21190,7 +20895,7 @@ paths:
       operationId: NodeProxy_NodeProxyInstallCheck
       description: 批量检查主机是否可以安装Proxy，并返回每个主机的安装前置状态。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -21389,7 +21094,7 @@ paths:
       operationId: Auth_Verify
       description: 校验当前用户是否对指定的操作-资源对拥有权限。
       tags:
-      - Auth
+        - Auth
       responses:
         '200':
           content:
@@ -21566,7 +21271,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyPreview
       description: 按业务、策略类型和主机列表预览配置策略匹配结果与配置合并结果。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -21779,7 +21484,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyPriorityReorder
       description: 按指定顺序重排同一业务和同一策略类型下的已启用策略优先级。
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -21904,7 +21609,7 @@ paths:
       operationId: IAM_IAMResourceCallback
       description: 供 BlueKing IAM 回调查询节点管理资源信息，按请求中的资源类型与回调方法分发到对应资源提供方。
       tags:
-      - IAM
+        - IAM
       responses:
         '200':
           content:
@@ -21993,7 +21698,7 @@ paths:
       operationId: NodeAgent_NodeAgentAssignUnit
       description: 为尚未分配管控单元的主机批量分配同一管控单元，仅更新节点元数据。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -22145,7 +21850,7 @@ paths:
       operationId: NodeAgent_NodeAgentUpgradeCheck
       description: 检查目标主机是否满足节点 Agent 升级条件。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -22337,7 +22042,7 @@ paths:
       operationId: NodeProxy_NodeProxyUpgradeCheck
       description: 批量检查 Proxy 是否满足升级条件。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -22534,7 +22239,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallInfoGet
       description: 获取离线安装 Proxy 操作所需的安装脚本、配置、预检查和安装包信息。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -22707,7 +22412,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit
       description: 提交离线安装结果数据，唤醒并继续执行对应的离线安装任务步骤。
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -22845,7 +22550,7 @@ paths:
       operationId: Plugin_UninstallPlugin
       description: UninstallPlugin uninstalls a plugin on specified hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -22988,7 +22693,7 @@ paths:
       operationId: Package_GetConfigVariablesReleasePlugin
       description: 查询插件配置变量模板，支持按平台分组返回配置模板信息。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -23165,7 +22870,7 @@ paths:
       operationId: Auth_Authorized
       description: 查询用户对指定操作-资源类型对的授权资源范围。
       tags:
-      - Auth
+        - Auth
       responses:
         '200':
           content:
@@ -23362,7 +23067,7 @@ paths:
       operationId: NodeConstant_NodeConstantDeployGet
       description: 根据节点代际和操作系统类型，获取节点安装器、Agent 和插件的默认部署配置。
       tags:
-      - NodeConstant
+        - NodeConstant
       responses:
         '200':
           content:
@@ -23554,7 +23259,7 @@ paths:
         GetNetworkUnitDistributionByNetworkAreaID provides getting networkunit
         distribution by networkarea id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -23716,7 +23421,7 @@ paths:
       operationId: Topo_AccessPointListBrief
       description: AccessPointListBrief provides brief access-point listing (no endpoints).
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -23899,7 +23604,7 @@ paths:
         GetHostDistributionByNodeVersionReq uest provides getting host
         distribution by node version.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -24143,7 +23848,7 @@ paths:
         NetworkUnitListBrief provides brief network-unit listing (no sensitive
         fields).
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -24390,7 +24095,7 @@ paths:
         RecommendNetworkUnitByNetworkSegment provides recommend networkunit by
         network segment.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -24544,7 +24249,7 @@ paths:
       operationId: Package_ListReleaseAgentBrief
       description: 查询 Agent 安装包精简列表，仅返回核心字段，支持分页和条件过滤。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -24772,7 +24477,7 @@ paths:
       operationId: Package_ListReleasePluginBrief
       description: 查询 Plugin 安装包精简列表，仅返回核心字段，支持分页和条件过滤。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -24996,7 +24701,7 @@ paths:
       operationId: Package_ListReleaseProxyBrief
       description: 查询 Proxy 安装包精简列表，返回核心字段及变更日志，支持分页和条件过滤。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -25224,7 +24929,7 @@ paths:
       operationId: NodeProxy_NodeProxyAssignUnit
       description: 批量将未分配管控单元的运行中 Proxy 主机分配到指定管控单元，并启动分配工作流。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -25381,7 +25086,7 @@ paths:
       operationId: Plugin_RestartPlugin
       description: RestartPlugin restarts the plugin process on specified hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -25524,7 +25229,7 @@ paths:
       operationId: Plugin_StopPlugin
       description: StopPlugin stops the plugin process on specified hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -25667,7 +25372,7 @@ paths:
       operationId: Plugin_MigratePluginFromV2
       description: MigratePluginFromV2 migrates plugin process from v2 on specified hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -25810,7 +25515,7 @@ paths:
       operationId: Topo_BusinessHostCountGet
       description: BusinessHostCountGet provides host count getting by business id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -25968,7 +25673,7 @@ paths:
       operationId: Topo_BusinessInstTopoGet
       description: BusinessInstTopoGet provides business instance topology getting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -25981,7 +25686,8 @@ paths:
                     format: int32
                   data:
                     type: object
-                    properties: {}
+                    properties:
+                      items: {}
                   error:
                     type: object
                     properties:
@@ -26110,9 +25816,9 @@ paths:
   /api/v3/sync/cmdb/constants:
     post:
       operationId: Sync_SyncCmdbConstants
-      description: 触发同步 CMDB 常量数据。
+      description: SyncCmdbConstants provides syncing cmdb constants.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -26244,13 +25950,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of CMDB constants.
+        descriptionEn:
   /api/v3/sync/cmdb/host:
     post:
       operationId: Sync_SyncCmdbHost
-      description: 触发同步 CMDB 业务与主机数据。
+      description: SyncCmdbHost provides syncing cmdb host.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -26376,13 +26082,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of CMDB business and host data.
+        descriptionEn:
   /api/v3/sync/cmdb/networkarea:
     post:
       operationId: Sync_SyncCmdbNetworkArea
-      description: 触发同步 CMDB 管控区域数据。
+      description: SyncCmdbNetworkArea provides syncing cmdb networkarea.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -26514,13 +26220,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of CMDB network area data.
+        descriptionEn:
   /api/v3/sync/gse/agent/correct_agent_id:
     post:
       operationId: Sync_SyncCorrectAgentID
-      description: 触发修正 GSE Agent ID。
+      description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -26654,13 +26360,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger correction of GSE Agent IDs.
+        descriptionEn:
   /api/v3/sync/gse/agent/info:
     post:
       operationId: Sync_SyncAgentInfo
-      description: 触发同步指定主机的 GSE Agent 信息。
+      description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -26792,13 +26498,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of GSE Agent information for specified hosts.
+        descriptionEn:
   /api/v3/sync/gse/agent/info/alive:
     post:
       operationId: Sync_SyncAliveHostAgentInfo
-      description: 触发同步存活主机的 GSE Agent 信息。
+      description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -26930,13 +26636,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of GSE Agent information for alive hosts.
+        descriptionEn:
   /api/v3/sync/gse/agent/state:
     post:
       operationId: Sync_SyncAgentState
-      description: 触发同步指定主机的 GSE Agent 状态。
+      description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -27068,13 +26774,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of GSE Agent state for specified hosts.
+        descriptionEn:
   /api/v3/sync/gse/agent/state/all:
     post:
       operationId: Sync_SyncAllAgentState
-      description: 触发同步全部主机的 GSE Agent 状态。
+      description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -27206,289 +26912,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of GSE Agent state for all hosts.
-  /api/v3/sync/gse/plugin/process/info:
-    post:
-      operationId: Sync_SyncAlivePluginProcessInfo
-      description: 触发同步指定主机的存活插件进程信息。
-      tags:
-      - Sync
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                title: |-
-                  SyncAlivePluginProcessInfoResp describes the HTTP response body when sync
-                  alive
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                    properties:
-                      trigger_id:
-                        type: string
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                      message:
-                        type: string
-                  message:
-                    type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                  system_id:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  system_name:
-                                    type: string
-                      apply_url:
-                        type: string
-                      system_name:
-                        type: string
-                  request_id:
-                    type: string
-          description: A successful response.
-        default:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  details:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        '@type':
-                          type: string
-                      additionalProperties: {}
-                  message:
-                    type: string
-          description: An unexpected error response.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              title: SyncAlivePluginProcessInfoReq describes the HTTP request body when sync alive
-              properties:
-                host_ids:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-        required: true
-        description: ''
-      x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/sync/gse/plugin/process/info
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: false
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of alive plugin process information for specified hosts.
-  /api/v3/sync/gse/plugin/process/info/all:
-    post:
-      operationId: Sync_SyncAllAlivePluginProcessInfo
-      description: 触发同步全部存活插件进程信息。
-      tags:
-      - Sync
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                title: |-
-                  SyncAllAlivePluginProcessInfoResp describes the HTTP response body when sync
-                  all alive
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                    properties:
-                      trigger_id:
-                        type: string
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                      message:
-                        type: string
-                  message:
-                    type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                  system_id:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  system_name:
-                                    type: string
-                      apply_url:
-                        type: string
-                      system_name:
-                        type: string
-                  request_id:
-                    type: string
-          description: A successful response.
-        default:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  details:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        '@type':
-                          type: string
-                      additionalProperties: {}
-                  message:
-                    type: string
-          description: An unexpected error response.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              title: |-
-                SyncAllAlivePluginProcessInfoReq describes the HTTP request body when sync
-                all alive
-        required: true
-        description: ''
-      x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/sync/gse/plugin/process/info/all
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: false
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn: Trigger synchronization of all alive plugin process information.
+        descriptionEn:
   /api/v3/package/release/agent/unvisible:
     post:
       operationId: Package_UnvisibleReleaseAgent
       description: 隐藏指定的 Agent 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -27631,7 +27061,7 @@ paths:
       operationId: Package_VisibleReleaseAgent
       description: 显示指定的 Agent 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -27774,7 +27204,7 @@ paths:
       operationId: Package_DistinctReleasePlugin
       description: 获取 Plugin 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -27989,7 +27419,7 @@ paths:
       operationId: Package_UnvisibleReleasePlugin
       description: 隐藏指定的 Plugin 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -28132,7 +27562,7 @@ paths:
       operationId: Package_VisibleReleasePlugin
       description: 显示指定的 Plugin 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -28275,7 +27705,7 @@ paths:
       operationId: Package_UnvisibleReleaseProxy
       description: 隐藏指定的 Proxy 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -28418,7 +27848,7 @@ paths:
       operationId: Package_VisibleReleaseProxy
       description: 显示指定的 Proxy 安装包版本。
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -28561,7 +27991,7 @@ paths:
       operationId: NodeAgent_NodeAgentAssignUnitMulti
       description: 按主机分组批量分配对应的管控单元，仅更新节点元数据。
       tags:
-      - NodeAgent
+        - NodeAgent
       responses:
         '200':
           content:
@@ -28718,7 +28148,7 @@ paths:
       operationId: NodeProxy_NodeProxyAssignUnitMulti
       description: 批量将多组未分配管控单元的运行中 Proxy 主机分别分配到对应管控单元，并启动分配工作流。
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -28882,7 +28312,7 @@ paths:
         NetworkUnitCreateDefaultMulti creates empty non-direct network units in
         multiple empty network areas.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -29065,7 +28495,7 @@ paths:
       operationId: Plugin_StartPlugin
       description: StartPlugin starts the plugin process on specified hosts.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -29208,7 +28638,7 @@ paths:
       operationId: Plugin_StartDebugPlugin
       description: StartDebugPlugin starts a one-shot plugin debug workflow.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -29374,7 +28804,7 @@ paths:
       operationId: Plugin_StopDebugPlugin
       description: StopDebugPlugin requests a running plugin debug workflow to stop.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -29508,7 +28938,7 @@ paths:
         根据已发布的插件包名称与版本，发起异步插件资源包导出工作流（将目标插件包打包为可下载文件），并返回工作流ID。可通过
         PackageExportResult 接口查询导出结果及临时下载地址。
       tags:
-      - PackageWorkflow
+        - PackageWorkflow
       responses:
         '200':
           content:
@@ -29651,7 +29081,7 @@ paths:
       operationId: PackageWorkflow_PackageExportResult
       description: 根据工作流ID查询插件资源包导出工作流的执行结果。工作流执行成功后会返回临时下载地址及过期时间。
       tags:
-      - PackageWorkflow
+        - PackageWorkflow
       responses:
         '200':
           content:
@@ -29795,7 +29225,7 @@ paths:
         通过下载地址导入外部插件V2资源包（外部插件V2包）。接口会异步执行导入工作流（下载并上传外部插件V2包、发布资源包、更新资源包可见性），并返回工作流ID，可通过
         PackageImportResult 接口查询导入结果。
       tags:
-      - PackageWorkflow
+        - PackageWorkflow
       responses:
         '200':
           content:
@@ -29945,7 +29375,7 @@ paths:
         通过下载地址导入插件V2资源包（官方插件V2包）。接口会异步执行导入工作流（下载并上传插件V2包、发布资源包、更新资源包可见性），并返回工作流ID，可通过
         PackageImportResult 接口查询导入结果。
       tags:
-      - PackageWorkflow
+        - PackageWorkflow
       responses:
         '200':
           content:
@@ -30095,7 +29525,7 @@ paths:
         通过下载地址导入插件V3资源包。接口会异步执行导入工作流（下载并上传插件包、发布资源包、更新资源包可见性），并返回工作流ID，可通过
         PackageImportResult 接口查询导入结果。
       tags:
-      - PackageWorkflow
+        - PackageWorkflow
       responses:
         '200':
           content:
@@ -30245,7 +29675,7 @@ paths:
         查询插件V3资源包导入工作流的执行结果。通过 PackageImport 接口返回的
         workflow_id 查询导入进度、状态以及各操作（operation）的执行日志。
       tags:
-      - PackageWorkflow
+        - PackageWorkflow
       responses:
         '200':
           content:
@@ -30474,7 +29904,7 @@ paths:
       operationId: DeployPolicySvc_WorkflowList
       description: 查询部署策略执行记录，支持分页、精确条件和操作时间范围过滤。
       tags:
-      - DeployPolicySvc
+        - DeployPolicySvc
       responses:
         '200':
           content:
@@ -30687,7 +30117,7 @@ paths:
       operationId: IAM_IAMV4ResourceCallback
       description: 供 BlueKing IAM V4 回调查询节点管理资源实例列表和详情。
       tags:
-      - IAM
+        - IAM
       responses:
         '200':
           content:
@@ -30719,14 +30149,14 @@ paths:
             schema:
               type: object
               required:
-              - type
-              - method
+                - type
+                - method
               properties:
                 page:
                   type: object
                   required:
-                  - page
-                  - page_size
+                    - page
+                    - page_size
                   properties:
                     page:
                       type: integer
@@ -30754,8 +30184,8 @@ paths:
                     parent:
                       type: object
                       required:
-                      - type
-                      - id
+                        - type
+                        - id
                       properties:
                         id:
                           type: string
@@ -30770,8 +30200,8 @@ paths:
                   description: Optional for list_instance; required with ids for fetch_instance_info. Must not be null when supplied.
                 method:
                   enum:
-                  - list_instance
-                  - fetch_instance_info
+                    - list_instance
+                    - fetch_instance_info
                   type: string
                   description: IAM V4 callback method, encoded as a string.
                 requires:
@@ -30801,9 +30231,9 @@ paths:
   /api/v3/sync/gse/plugin/process/correct_unknown_status:
     post:
       operationId: Sync_CorrectUnknownProcessStatus
-      description: 异步触发当前租户指定主机的插件进程状态过期检查，将过期状态修正为 `unknown`。
+      description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -30941,13 +30371,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Asynchronously check plugin process status expiry for the specified hosts in the current tenant and mark expired statuses as unknown.
+        descriptionEn:
   /api/v3/sync/gse/plugin/process/correct_unknown_status/all:
     post:
       operationId: Sync_CorrectAllUnknownProcessStatus
-      description: 异步触发当前租户全部主机的插件进程状态过期检查，将过期状态修正为 `unknown`。
+      description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -31079,13 +30509,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Asynchronously check plugin process status expiry for all hosts in the current tenant and mark expired statuses as unknown.
+        descriptionEn:
   /api/v3/sync/plugin/ensure_default:
     post:
       operationId: Sync_EnsureDefaultPlugin
-      description: 触发一次性工作流，根据当前租户已启用的插件发布包补齐缺失的默认插件。
+      description: EnsureDefaultPlugin ensures default plugins.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -31217,13 +30647,15 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Start a one-time workflow to create missing default plugins from enabled plugin releases in the current tenant.
+        descriptionEn:
   /api/v3/sync/process/clean_orphan:
     post:
       operationId: Sync_CleanOrphanProcess
-      description: 触发一次性工作流，清理主机已不存在的遗留进程记录（孤立进程）。
+      description: |-
+        CleanOrphanProcess provides cleaning the processes whose host no longer
+        exists.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -31355,13 +30787,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Trigger a one-off workflow to clean orphan process records whose hosts no longer exist.
+        descriptionEn:
   /api/v3/sync/release/shared:
     post:
       operationId: Sync_SyncSharedReleases
-      description: 触发一次性工作流，将 system 租户的共享制品同步到当前租户。
+      description: SyncSharedReleases syncs shared releases.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -31493,13 +30925,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Start a one-time workflow to synchronize shared releases from the system tenant to the current tenant.
+        descriptionEn:
   /api/v3/deploy_policy/preview:
     post:
       operationId: DeployPolicySvc_Preview
       description: 预览部署策略当前状态，不执行变更。
       tags:
-      - DeployPolicySvc
+        - DeployPolicySvc
       responses:
         '200':
           content:
@@ -31679,7 +31111,7 @@ paths:
       operationId: Ops_NodeOpsFieldsListAgent
       description: NodeOpsFieldsListAgent reads agent out-of-band fields.
       tags:
-      - Ops
+        - Ops
       responses:
         '200':
           content:
@@ -31836,7 +31268,7 @@ paths:
       operationId: Ops_NodeOpsFieldsListProxy
       description: NodeOpsFieldsListProxy reads proxy out-of-band fields.
       tags:
-      - Ops
+        - Ops
       responses:
         '200':
           content:
@@ -31993,7 +31425,7 @@ paths:
       operationId: Ops_NodeOpsUpdateFieldsAgent
       description: NodeOpsUpdateFieldsAgent batch-updates out-of-band fields for agent hosts.
       tags:
-      - Ops
+        - Ops
       responses:
         '200':
           content:
@@ -32144,7 +31576,7 @@ paths:
       operationId: Ops_NodeOpsUpdateFieldsProxy
       description: NodeOpsUpdateFieldsProxy batch-updates out-of-band fields for proxy hosts.
       tags:
-      - Ops
+        - Ops
       responses:
         '200':
           content:
@@ -32297,7 +31729,7 @@ paths:
         NodeOpsHistoryDetail retrieves all archived snapshots for an operation
         within the caller's permission scope.
       tags:
-      - Ops
+        - Ops
       responses:
         '200':
           content:
@@ -32472,7 +31904,7 @@ paths:
         NodeOpsHistoryList lists operations across agent and proxy roles within
         the caller's permission scope.
       tags:
-      - Ops
+        - Ops
       responses:
         '200':
           content:
@@ -32681,7 +32113,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentAssignUnit
       description: 为尚未分配管控单元的主机批量分配同一管控单元，仅更新节点元数据。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -32835,7 +32267,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentAssignUnitMulti
       description: 按主机分组批量分配对应的管控单元，仅更新节点元数据。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -32994,7 +32426,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentInstall
       description: 批量安装节点 Agent。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -33109,6 +32541,8 @@ paths:
                   items:
                     type: object
                     properties:
+                      is_sudo:
+                        type: boolean
                       os_type:
                         type: string
                       login_ip:
@@ -33140,8 +32574,6 @@ paths:
                       renew_gse_proc:
                         type: boolean
                       renew_gse_task:
-                        type: boolean
-                      is_sudo:
                         type: boolean
                       bk_host_innerip:
                         type: array
@@ -33195,7 +32627,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentInstallCheck
       description: 检查目标主机是否满足节点 Agent 安装条件。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -33393,7 +32825,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentReconfig
       description: 批量重新下发节点 Agent 配置并重启 Agent。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -33542,7 +32974,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentRestart
       description: 批量重启节点 Agent。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -33691,7 +33123,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentUninstall
       description: 批量卸载节点 Agent。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -33837,7 +33269,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentUpgrade
       description: 批量升级节点 Agent。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -33993,7 +33425,7 @@ paths:
       operationId: OpenNodeAgent_OpenNodeAgentUpgradeCheck
       description: 检查目标主机是否满足节点 Agent 升级条件。
       tags:
-      - OpenNodeAgent
+        - OpenNodeAgent
       responses:
         '200':
           content:
@@ -34187,7 +33619,7 @@ paths:
       operationId: Plugin_ListPluginConfigFiles
       description: ListPluginConfigFiles lists plugin config files by host ID and plugin name.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -34354,7 +33786,7 @@ paths:
         such files selected by template name) from a single host + plugin and
         reloads the plugin once after the remote files have been deleted.
       tags:
-      - Plugin
+        - Plugin
       responses:
         '200':
           content:
@@ -34514,40 +33946,70 @@ paths:
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
         descriptionEn:
-  /api/v3/open/topo/business/list:
+  /api/v3/process/list_v2_compatible:
     post:
-      operationId: OpenTopo_OpenTopoBusinessList
-      description: 查询业务列表。
+      operationId: Process_ListV2ProcessesCompatible
+      description: 仅监控平台使用，不对外开放申请。
       tags:
-      - OpenTopo
+        - Process
       responses:
         '200':
           content:
             application/json:
               schema:
                 type: object
+                title: ProcessV2CompatibleListResp 主机 process v2 进程状态。
                 properties:
                   code:
                     type: integer
                     format: int32
                   data:
                     type: object
+                    title: Data 查询结果。
                     properties:
-                      items:
+                      list:
                         type: array
                         items:
                           type: object
+                          title: Host 主机及其插件进程状态。
                           properties:
-                            bk_biz_id:
+                            inner_ip:
+                              type: string
+                              title: 内网 IPv4，多个以逗号分隔。
+                            bk_host_id:
                               type: integer
+                              title: 主机 ID。
                               format: int64
-                            tenant_id:
+                            inner_ipv6:
                               type: string
-                            bk_biz_name:
+                              title: 内网 IPv6，多个以逗号分隔。
+                            setup_path:
                               type: string
-                          description: Business describes the business informations.
+                              title: Agent 安装路径，按部署配置与管控区域自定义部署配置计算。
+                            bk_cloud_id:
+                              type: integer
+                              title: 云区域 ID。
+                              format: int64
+                            plugin_status:
+                              type: array
+                              items:
+                                type: object
+                                title: ProcessV2Status 插件在某台主机上的进程状态。
+                                properties:
+                                  name:
+                                    type: string
+                                    title: 插件名，当前固定为 bkmonitorbeat。
+                                  status:
+                                    type: string
+                                    title: 进程状态，取值为 running、stopped、unknown，未注册时为 unregister。
+                                  version:
+                                    type: string
+                                    title: 插件版本，进程未注册时为空。
+                              title: 插件进程状态，当前仅包含 bkmonitorbeat。
+                        title: 主机列表。
                       total:
                         type: integer
+                        title: 主机总数。
                         format: int64
                   error:
                     type: object
@@ -34613,9 +34075,6 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: |-
-                  TopoBusinessListResp describes the HTTP response body when list business in
-                  topo service.
           description: A successful response.
         default:
           content:
@@ -34642,41 +34101,22 @@ paths:
           application/json:
             schema:
               type: object
+              title: ProcessV2CompatibleListReq 查询主机上 process v2 的进程状态。
               properties:
-                page:
-                  type: object
-                  properties:
-                    limit:
-                      type: integer
-                      format: int32
-                    offset:
-                      type: integer
-                      format: int32
-                  description: Page describes the generaic conditions when paging query.
-                only_count:
-                  type: boolean
-                exact_include_conditions:
-                  type: object
-                  properties:
-                    bk_biz_id:
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
-                fuzzy_include_conditions:
-                  type: object
-                  properties:
-                    bk_biz_name:
-                      type: array
-                      items:
-                        type: string
-              description: |-
-                TopoBusinessListReq describes the HTTP request body when list business in
-                topo service.
+                bk_biz_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  title: 业务 ID，必传。
+                bk_host_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  title: 主机 ID，不传则返回业务内全部主机。
         required: true
-        description: |-
-          TopoBusinessListReq describes the HTTP request body when list business in
-          topo service.
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -34685,27 +34125,32 @@ paths:
         backend:
           name: default
           method: post
-          path: /api/v3/open/topo/business/list
+          path: /api/v3/process/list_v2_compatible
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
         authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
         descriptionEn:
-  /api/v3/open/topo/business/host_count/get:
+  /api/v3/sync/gse/plugin/process/info/alive:
     post:
-      operationId: OpenTopo_OpenTopoBusinessHostCountGet
-      description: 按业务统计主机数量。
+      operationId: Sync_SyncAlivePluginProcessInfo
+      description: ''
       tags:
-      - OpenTopo
+        - Sync
       responses:
         '200':
           content:
             application/json:
               schema:
                 type: object
+                title: |-
+                  SyncAlivePluginProcessInfoResp describes the HTTP response body when sync
+                  alive
                 properties:
                   code:
                     type: integer
@@ -34713,18 +34158,8 @@ paths:
                   data:
                     type: object
                     properties:
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            bk_biz_id:
-                              type: integer
-                              format: int64
-                            host_count:
-                              type: integer
-                              format: int64
-                          description: BusinessHostCount describes the host count of business in topo service.
+                      trigger_id:
+                        type: string
                   error:
                     type: object
                     properties:
@@ -34789,9 +34224,6 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: |-
-                  TopoBusinessHostCountGetResp describes the HTTP response body when get host
-                  count of business in topo service.
           description: A successful response.
         default:
           content:
@@ -34818,23 +34250,15 @@ paths:
           application/json:
             schema:
               type: object
+              title: SyncAlivePluginProcessInfoReq describes the HTTP request body when sync alive
               properties:
-                bk_biz_id:
+                host_ids:
                   type: array
                   items:
                     type: integer
                     format: int64
-                node_role:
-                  type: array
-                  items:
-                    type: string
-              description: |-
-                TopoBusinessHostCountGetReq describes the HTTP request body when get host
-                count of business in topo service.
         required: true
-        description: |-
-          TopoBusinessHostCountGetReq describes the HTTP request body when get host
-          count of business in topo service.
+        description: ''
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -34843,21 +34267,157 @@ paths:
         backend:
           name: default
           method: post
-          path: /api/v3/open/topo/business/host_count/get
+          path: /api/v3/sync/gse/plugin/process/info/alive
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
         authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn:
-  /api/v3/open/topo/business/inst_topo/get:
+  /api/v3/sync/gse/plugin/process/info/alive/all:
     post:
-      operationId: OpenTopo_OpenTopoBusinessInstTopoGet
-      description: 查询业务实例拓扑。
+      operationId: Sync_SyncAllAlivePluginProcessInfo
+      description: ''
       tags:
-      - OpenTopo
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: |-
+                  SyncAllAlivePluginProcessInfoResp describes the HTTP response body when sync
+                  all alive
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: |-
+                SyncAllAlivePluginProcessInfoReq describes the HTTP request body when sync
+                all alive
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/plugin/process/info/alive/all
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/plugin/process/info/stopped:
+    post:
+      operationId: Sync_SyncStoppedPluginProcessInfo
+      description: ''
+      tags:
+        - Sync
       responses:
         '200':
           content:
@@ -34870,7 +34430,9 @@ paths:
                     format: int32
                   data:
                     type: object
-                    properties: {}
+                    properties:
+                      trigger_id:
+                        type: string
                   error:
                     type: object
                     properties:
@@ -34936,8 +34498,8 @@ paths:
                   request_id:
                     type: string
                 description: |-
-                  TopoBusinessInstTopoGetResp describes the HTTP response body when get
-                  business instance topology in topo service.
+                  SyncStoppedPluginProcessInfoResp describes the HTTP response body when
+                  syncing stopped plugin process info.
           description: A successful response.
         default:
           content:
@@ -34965,43 +34527,43 @@ paths:
             schema:
               type: object
               properties:
-                bk_biz_id:
-                  type: integer
-                  format: int64
-                node_role:
+                host_ids:
                   type: array
                   items:
-                    type: string
+                    type: integer
+                    format: int64
               description: |-
-                TopoBusinessInstTopoGetReq describes the HTTP request body when get business
-                instance topology in topo service.
+                SyncStoppedPluginProcessInfoReq describes the HTTP request body when syncing
+                stopped plugin process info.
         required: true
         description: |-
-          TopoBusinessInstTopoGetReq describes the HTTP request body when get business
-          instance topology in topo service.
+          SyncStoppedPluginProcessInfoReq describes the HTTP request body when syncing
+          stopped plugin process info.
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
           name: default
           method: post
-          path: /api/v3/open/topo/business/inst_topo/get
+          path: /api/v3/sync/gse/plugin/process/info/stopped
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
         authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
         descriptionEn:
-  /api/v3/open/topo/networkarea/list:
+  /api/v3/sync/gse/plugin/process/info/stopped/all:
     post:
-      operationId: OpenTopo_OpenTopoNetworkAreaList
-      description: 查询管控区域列表。
+      operationId: Sync_SyncAllStoppedPluginProcessInfo
+      description: ''
       tags:
-      - OpenTopo
+        - Sync
       responses:
         '200':
           content:
@@ -35015,24 +34577,8 @@ paths:
                   data:
                     type: object
                     properties:
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            tenant_id:
-                              type: string
-                            cloud_vendor:
-                              type: string
-                            bk_networkarea_id:
-                              type: integer
-                              format: int64
-                            bk_networkarea_name:
-                              type: string
-                          description: NetworkArea describes the network area informations.
-                      total:
-                        type: integer
-                        format: int64
+                      trigger_id:
+                        type: string
                   error:
                     type: object
                     properties:
@@ -35098,8 +34644,8 @@ paths:
                   request_id:
                     type: string
                 description: |-
-                  TopoNetworkAreaListResp describes the HTTP response body when list
-                  network-area in topo service.
+                  SyncAllStoppedPluginProcessInfoResp describes the HTTP response body when
+                  syncing all stopped plugin process info.
           description: A successful response.
         default:
           content:
@@ -35126,68 +34672,40 @@ paths:
           application/json:
             schema:
               type: object
-              properties:
-                page:
-                  type: object
-                  properties:
-                    limit:
-                      type: integer
-                      format: int32
-                    offset:
-                      type: integer
-                      format: int32
-                  description: Page describes the generaic conditions when paging query.
-                only_count:
-                  type: boolean
-                exact_include_conditions:
-                  type: object
-                  properties:
-                    cloud_vendor:
-                      type: array
-                      items:
-                        type: string
-                    bk_networkarea_id:
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
-                fuzzy_include_conditions:
-                  type: object
-                  properties:
-                    bk_networkarea_name:
-                      type: array
-                      items:
-                        type: string
               description: |-
-                TopoNetworkAreaListReq describes the HTTP request body when list network-area
-                in topo service.
+                SyncAllStoppedPluginProcessInfoReq describes the HTTP request body when
+                syncing all stopped plugin process info.
         required: true
         description: |-
-          TopoNetworkAreaListReq describes the HTTP request body when list network-area
-          in topo service.
+          SyncAllStoppedPluginProcessInfoReq describes the HTTP request body when
+          syncing all stopped plugin process info.
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
           name: default
           method: post
-          path: /api/v3/open/topo/networkarea/list
+          path: /api/v3/sync/gse/plugin/process/info/stopped/all
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
         authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
         descriptionEn:
-  /api/v3/open/topo/networkarea/get:
+  /api/v3/cipher/get_public_key:
     post:
-      operationId: OpenTopo_OpenTopoNetworkAreaGet
-      description: 按 ID 查询管控区域详情。
+      operationId: Cipher_GetCurrentPublicKey
+      description: |-
+        GetCurrentPublicKey get the public key of the globally enabled
+        credential encryption suite.
       tags:
-      - OpenTopo
+        - Cipher
       responses:
         '200':
           content:
@@ -35201,16 +34719,13 @@ paths:
                   data:
                     type: object
                     properties:
-                      tenant_id:
+                      key_type:
                         type: string
-                      cloud_vendor:
+                        description: |-
+                          key_type is the asymmetric algorithm of public_key: RSA4096 (CLASSIC
+                          suite) or SM2 (SHANGMI suite).
+                      public_key:
                         type: string
-                      bk_networkarea_id:
-                        type: integer
-                        format: int64
-                      bk_networkarea_name:
-                        type: string
-                    description: NetworkArea describes the network area informations.
                   error:
                     type: object
                     properties:
@@ -35276,8 +34791,8 @@ paths:
                   request_id:
                     type: string
                 description: |-
-                  TopoNetworkAreaGetResp describe the HTTP response body when get network-area
-                  in topo service.
+                  GetCurrentPublicKeyResp get current public key response message, the
+                  public key of the globally enabled credential encryption suite.
           description: A successful response.
         default:
           content:
@@ -35304,635 +34819,23 @@ paths:
           application/json:
             schema:
               type: object
-              properties:
-                bk_networkarea_id:
-                  type: integer
-                  format: int64
-              description: |-
-                TopoNetworkAreaGetReq describes the HTTP request body when get network-area
-                in topo service.
+              description: GetCurrentPublicKeyReq get current public key request message.
         required: true
-        description: |-
-          TopoNetworkAreaGetReq describes the HTTP request body when get network-area
-          in topo service.
+        description: GetCurrentPublicKeyReq get current public key request message.
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: true
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
           name: default
           method: post
-          path: /api/v3/open/topo/networkarea/get
+          path: /api/v3/cipher/get_public_key
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
         authConfig:
-          userVerifiedRequired: true
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn:
-  /api/v3/open/topo/networkunit/list:
-    post:
-      operationId: OpenTopo_OpenTopoNetworkUnitList
-      description: 查询管控单元列表。
-      tags:
-      - OpenTopo
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            links:
-                              type: object
-                              properties:
-                                data:
-                                  type: object
-                                  properties:
-                                    accesspoint_id:
-                                      type: integer
-                                      format: int64
-                                    bk_networkarea_id:
-                                      type: integer
-                                      format: int64
-                                    bk_networkunit_id:
-                                      type: integer
-                                      format: int64
-                                  description: Link describes the network unit link points target.
-                                file:
-                                  type: object
-                                  properties:
-                                    accesspoint_id:
-                                      type: integer
-                                      format: int64
-                                    bk_networkarea_id:
-                                      type: integer
-                                      format: int64
-                                    bk_networkunit_id:
-                                      type: integer
-                                      format: int64
-                                  description: Link describes the network unit link points target.
-                                cluster:
-                                  type: object
-                                  properties:
-                                    accesspoint_id:
-                                      type: integer
-                                      format: int64
-                                    bk_networkarea_id:
-                                      type: integer
-                                      format: int64
-                                    bk_networkunit_id:
-                                      type: integer
-                                      format: int64
-                                  description: Link describes the network unit link points target.
-                              description: Links describes the network unit links.
-                            is_direct:
-                              type: boolean
-                            tenant_id:
-                              type: string
-                            generation:
-                              type: integer
-                              format: int64
-                            accesspoints:
-                              type: array
-                              items:
-                                type: integer
-                                format: int64
-                            direct_endpoints:
-                              type: object
-                              properties:
-                                data:
-                                  type: array
-                                  items:
-                                    type: string
-                                file:
-                                  type: array
-                                  items:
-                                    type: string
-                                cluster:
-                                  type: array
-                                  items:
-                                    type: string
-                              description: Endpoints describes the links real address.
-                            bk_networkarea_id:
-                              type: integer
-                              format: int64
-                            bk_networkunit_id:
-                              type: integer
-                              format: int64
-                            bk_networkunit_name:
-                              type: string
-                            custom_deploy_config:
-                              type: object
-                              additionalProperties:
-                                type: object
-                                properties:
-                                  node_runtime:
-                                    type: object
-                                    properties:
-                                      city_id:
-                                        type: string
-                                      log_dir:
-                                        type: string
-                                      zone_id:
-                                        type: string
-                                      data_ipc:
-                                        type: string
-                                      plugin_ipc:
-                                        type: string
-                                      base_deploy_dir:
-                                        type: string
-                                    description: NodeRuntime describes the node runtime config.
-                                  plugin_runtime:
-                                    type: object
-                                    properties:
-                                      log_dir:
-                                        type: string
-                                      base_deploy_dir:
-                                        type: string
-                                    description: PluginRuntime describes the custom plugin runtime config.
-                                  installer_runtime:
-                                    type: object
-                                    properties:
-                                      firewall:
-                                        type: object
-                                        properties:
-                                          features:
-                                            type: array
-                                            items:
-                                              type: string
-                                          remote_ips:
-                                            type: array
-                                            items:
-                                              type: string
-                                        description: Firewall describes the local firewall setup before installation.
-                                      base_work_dir:
-                                        type: string
-                                    description: InstallerRuntime describes the installer runtime config.
-                                description: CustomDeployConfig describes the deploy config for host deployment.
-                          description: NetworkUnit describes the network unit informations.
-                      total:
-                        type: integer
-                        format: int64
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                      message:
-                        type: string
-                  message:
-                    type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                  system_id:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  system_name:
-                                    type: string
-                      apply_url:
-                        type: string
-                      system_name:
-                        type: string
-                  request_id:
-                    type: string
-                description: |-
-                  TopoNetworkUnitListResp describes the HTTP response body when list
-                  network-unit in topo service.
-          description: A successful response.
-        default:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  details:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        '@type':
-                          type: string
-                      additionalProperties: {}
-                  message:
-                    type: string
-          description: An unexpected error response.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                page:
-                  type: object
-                  properties:
-                    limit:
-                      type: integer
-                      format: int32
-                    offset:
-                      type: integer
-                      format: int32
-                  description: Page describes the generaic conditions when paging query.
-                only_count:
-                  type: boolean
-                exact_include_conditions:
-                  type: object
-                  properties:
-                    is_direct:
-                      type: array
-                      items:
-                        type: boolean
-                    generation:
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
-                    bk_networkarea_id:
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
-                    bk_networkunit_id:
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
-              description: |-
-                TopoNetworkUnitListReq describes the HTTP request body when list network-unit
-                in topo service.
-        required: true
-        description: |-
-          TopoNetworkUnitListReq describes the HTTP request body when list network-unit
-          in topo service.
-      x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/open/topo/networkunit/list
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: true
-          appVerifiedRequired: true
-          resourcePermissionRequired: true
-        descriptionEn:
-  /api/v3/open/topo/networkunit/get:
-    post:
-      operationId: OpenTopo_OpenTopoNetworkUnitGet
-      description: 按 ID 查询管控单元详情。
-      tags:
-      - OpenTopo
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                    properties:
-                      links:
-                        type: object
-                        properties:
-                          data:
-                            type: object
-                            properties:
-                              accesspoint_id:
-                                type: integer
-                                format: int64
-                              bk_networkarea_id:
-                                type: integer
-                                format: int64
-                              bk_networkunit_id:
-                                type: integer
-                                format: int64
-                            description: Link describes the network unit link points target.
-                          file:
-                            type: object
-                            properties:
-                              accesspoint_id:
-                                type: integer
-                                format: int64
-                              bk_networkarea_id:
-                                type: integer
-                                format: int64
-                              bk_networkunit_id:
-                                type: integer
-                                format: int64
-                            description: Link describes the network unit link points target.
-                          cluster:
-                            type: object
-                            properties:
-                              accesspoint_id:
-                                type: integer
-                                format: int64
-                              bk_networkarea_id:
-                                type: integer
-                                format: int64
-                              bk_networkunit_id:
-                                type: integer
-                                format: int64
-                            description: Link describes the network unit link points target.
-                        description: Links describes the network unit links.
-                      is_direct:
-                        type: boolean
-                      tenant_id:
-                        type: string
-                      generation:
-                        type: integer
-                        format: int64
-                      accesspoints:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            endpoints:
-                              type: object
-                              properties:
-                                data:
-                                  type: array
-                                  items:
-                                    type: string
-                                file:
-                                  type: array
-                                  items:
-                                    type: string
-                                cluster:
-                                  type: array
-                                  items:
-                                    type: string
-                              description: Endpoints describes the links real address.
-                            tenant_id:
-                              type: string
-                            accesspoint_id:
-                              type: integer
-                              format: int64
-                            accesspoint_name:
-                              type: string
-                            bk_networkarea_id:
-                              type: integer
-                              format: int64
-                          description: AccessPoint describes the access point informations.
-                      direct_endpoints:
-                        type: object
-                        properties:
-                          data:
-                            type: array
-                            items:
-                              type: string
-                          file:
-                            type: array
-                            items:
-                              type: string
-                          cluster:
-                            type: array
-                            items:
-                              type: string
-                        description: Endpoints describes the links real address.
-                      bk_networkarea_id:
-                        type: integer
-                        format: int64
-                      bk_networkunit_id:
-                        type: integer
-                        format: int64
-                      bk_networkunit_name:
-                        type: string
-                      custom_deploy_config:
-                        type: object
-                        additionalProperties:
-                          type: object
-                          properties:
-                            node_runtime:
-                              type: object
-                              properties:
-                                city_id:
-                                  type: string
-                                log_dir:
-                                  type: string
-                                zone_id:
-                                  type: string
-                                data_ipc:
-                                  type: string
-                                plugin_ipc:
-                                  type: string
-                                base_deploy_dir:
-                                  type: string
-                              description: NodeRuntime describes the node runtime config.
-                            plugin_runtime:
-                              type: object
-                              properties:
-                                log_dir:
-                                  type: string
-                                base_deploy_dir:
-                                  type: string
-                              description: PluginRuntime describes the custom plugin runtime config.
-                            installer_runtime:
-                              type: object
-                              properties:
-                                firewall:
-                                  type: object
-                                  properties:
-                                    features:
-                                      type: array
-                                      items:
-                                        type: string
-                                    remote_ips:
-                                      type: array
-                                      items:
-                                        type: string
-                                  description: Firewall describes the local firewall setup before installation.
-                                base_work_dir:
-                                  type: string
-                              description: InstallerRuntime describes the installer runtime config.
-                          description: CustomDeployConfig describes the deploy config for host deployment.
-                    description: |-
-                      NetworkUnitDetail describes the network unit detail informations.
-                      contains full access point objects.
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                      message:
-                        type: string
-                  message:
-                    type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                  system_id:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  system_name:
-                                    type: string
-                      apply_url:
-                        type: string
-                      system_name:
-                        type: string
-                  request_id:
-                    type: string
-                description: |-
-                  TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
-                  in topo service.
-          description: A successful response.
-        default:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  details:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        '@type':
-                          type: string
-                      additionalProperties: {}
-                  message:
-                    type: string
-          description: An unexpected error response.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                bk_networkunit_id:
-                  type: integer
-                  format: int64
-              description: |-
-                TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
-                in topo service.
-        required: true
-        description: |-
-          TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
-          in topo service.
-      x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
-        matchSubpath: false
-        enableWebsocket: false
-        backend:
-          name: default
-          method: post
-          path: /api/v3/open/topo/networkunit/get
-          matchSubpath: false
-          timeout: 0
-        pluginConfigs: []
-        authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn:
@@ -35941,7 +34844,7 @@ paths:
       operationId: OpenTopo_OpenTopoAccessPointList
       description: 查询接入点列表及其 endpoints。
       tags:
-      - OpenTopo
+        - OpenTopo
       responses:
         '200':
           content:
@@ -36138,7 +35041,7 @@ paths:
       operationId: OpenTopo_OpenTopoAccessPointListBrief
       description: 查询接入点简表，不返回 endpoints。
       tags:
-      - OpenTopo
+        - OpenTopo
       responses:
         '200':
           content:
@@ -36314,12 +35217,495 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn:
+  /api/v3/open/topo/business/host_count/get:
+    post:
+      operationId: OpenTopo_OpenTopoBusinessHostCountGet
+      description: 按业务统计主机数量。
+      tags:
+        - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_biz_id:
+                              type: integer
+                              format: int64
+                            host_count:
+                              type: integer
+                              format: int64
+                          description: BusinessHostCount describes the host count of business in topo service.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessHostCountGetResp describes the HTTP response body when get host
+                  count of business in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_biz_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                node_role:
+                  type: array
+                  items:
+                    type: string
+              description: |-
+                TopoBusinessHostCountGetReq describes the HTTP request body when get host
+                count of business in topo service.
+        required: true
+        description: |-
+          TopoBusinessHostCountGetReq describes the HTTP request body when get host
+          count of business in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/business/host_count/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/business/inst_topo/get:
+    post:
+      operationId: OpenTopo_OpenTopoBusinessInstTopoGet
+      description: 查询业务实例拓扑。
+      tags:
+        - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items: {}
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessInstTopoGetResp describes the HTTP response body when get
+                  business instance topology in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_biz_id:
+                  type: integer
+                  format: int64
+                node_role:
+                  type: array
+                  items:
+                    type: string
+              description: |-
+                TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+                instance topology in topo service.
+        required: true
+        description: |-
+          TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+          instance topology in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/business/inst_topo/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/business/list:
+    post:
+      operationId: OpenTopo_OpenTopoBusinessList
+      description: 查询业务列表。
+      tags:
+        - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_biz_id:
+                              type: integer
+                              format: int64
+                            tenant_id:
+                              type: string
+                            bk_biz_name:
+                              type: string
+                          description: Business describes the business informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessListResp describes the HTTP response body when list business in
+                  topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    bk_biz_name:
+                      type: array
+                      items:
+                        type: string
+              description: |-
+                TopoBusinessListReq describes the HTTP request body when list business in
+                topo service.
+        required: true
+        description: |-
+          TopoBusinessListReq describes the HTTP request body when list business in
+          topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/business/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
   /api/v3/open/topo/graph_node/get:
     post:
       operationId: OpenTopo_OpenTopoGraphNodeGet
       description: 查询管控单元图节点及健康信息。
       tags:
-      - OpenTopo
+        - OpenTopo
       responses:
         '200':
           content:
@@ -36499,7 +35885,7 @@ paths:
       operationId: OpenTopo_OpenTopoHostList
       description: 查询主机列表。
       tags:
-      - OpenTopo
+        - OpenTopo
       responses:
         '200':
           content:
@@ -36850,6 +36236,946 @@ paths:
           name: default
           method: post
           path: /api/v3/open/topo/host/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkarea/get:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkAreaGet
+      description: 按 ID 查询管控区域详情。
+      tags:
+        - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      tenant_id:
+                        type: string
+                      cloud_vendor:
+                        type: string
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkarea_name:
+                        type: string
+                    description: NetworkArea describes the network area informations.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkAreaGetResp describe the HTTP response body when get network-area
+                  in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkarea_id:
+                  type: integer
+                  format: int64
+              description: |-
+                TopoNetworkAreaGetReq describes the HTTP request body when get network-area
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkAreaGetReq describes the HTTP request body when get network-area
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkarea/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkarea/list:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkAreaList
+      description: 查询管控区域列表。
+      tags:
+        - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            tenant_id:
+                              type: string
+                            cloud_vendor:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkarea_name:
+                              type: string
+                          description: NetworkArea describes the network area informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkAreaListResp describes the HTTP response body when list
+                  network-area in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    cloud_vendor:
+                      type: array
+                      items:
+                        type: string
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    bk_networkarea_name:
+                      type: array
+                      items:
+                        type: string
+              description: |-
+                TopoNetworkAreaListReq describes the HTTP request body when list network-area
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkAreaListReq describes the HTTP request body when list network-area
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkarea/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkunit/get:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkUnitGet
+      description: 按 ID 查询管控单元详情。
+      tags:
+        - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      links:
+                        type: object
+                        properties:
+                          data:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                          file:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                          cluster:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                        description: Links describes the network unit links.
+                      is_direct:
+                        type: boolean
+                      tenant_id:
+                        type: string
+                      generation:
+                        type: integer
+                        format: int64
+                      accesspoints:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            endpoints:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: string
+                                file:
+                                  type: array
+                                  items:
+                                    type: string
+                                cluster:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: Endpoints describes the links real address.
+                            tenant_id:
+                              type: string
+                            accesspoint_id:
+                              type: integer
+                              format: int64
+                            accesspoint_name:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                          description: AccessPoint describes the access point informations.
+                      direct_endpoints:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              type: string
+                          file:
+                            type: array
+                            items:
+                              type: string
+                          cluster:
+                            type: array
+                            items:
+                              type: string
+                        description: Endpoints describes the links real address.
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_name:
+                        type: string
+                      custom_deploy_config:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            node_runtime:
+                              type: object
+                              properties:
+                                city_id:
+                                  type: string
+                                log_dir:
+                                  type: string
+                                zone_id:
+                                  type: string
+                                data_ipc:
+                                  type: string
+                                plugin_ipc:
+                                  type: string
+                                base_deploy_dir:
+                                  type: string
+                              description: NodeRuntime describes the node runtime config.
+                            plugin_runtime:
+                              type: object
+                              properties:
+                                log_dir:
+                                  type: string
+                                base_deploy_dir:
+                                  type: string
+                              description: PluginRuntime describes the custom plugin runtime config.
+                            installer_runtime:
+                              type: object
+                              properties:
+                                firewall:
+                                  type: object
+                                  properties:
+                                    features:
+                                      type: array
+                                      items:
+                                        type: string
+                                    remote_ips:
+                                      type: array
+                                      items:
+                                        type: string
+                                  description: Firewall describes the local firewall setup before installation.
+                                base_work_dir:
+                                  type: string
+                              description: InstallerRuntime describes the installer runtime config.
+                          description: CustomDeployConfig describes the deploy config for host deployment.
+                    description: |-
+                      NetworkUnitDetail describes the network unit detail informations.
+                      contains full access point objects.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
+                  in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkunit_id:
+                  type: integer
+                  format: int64
+              description: |-
+                TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkunit/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkunit/list:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkUnitList
+      description: 查询管控单元列表。
+      tags:
+        - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            links:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                                file:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                                cluster:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                              description: Links describes the network unit links.
+                            is_direct:
+                              type: boolean
+                            tenant_id:
+                              type: string
+                            generation:
+                              type: integer
+                              format: int64
+                            accesspoints:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            direct_endpoints:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: string
+                                file:
+                                  type: array
+                                  items:
+                                    type: string
+                                cluster:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: Endpoints describes the links real address.
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_name:
+                              type: string
+                            custom_deploy_config:
+                              type: object
+                              additionalProperties:
+                                type: object
+                                properties:
+                                  node_runtime:
+                                    type: object
+                                    properties:
+                                      city_id:
+                                        type: string
+                                      log_dir:
+                                        type: string
+                                      zone_id:
+                                        type: string
+                                      data_ipc:
+                                        type: string
+                                      plugin_ipc:
+                                        type: string
+                                      base_deploy_dir:
+                                        type: string
+                                    description: NodeRuntime describes the node runtime config.
+                                  plugin_runtime:
+                                    type: object
+                                    properties:
+                                      log_dir:
+                                        type: string
+                                      base_deploy_dir:
+                                        type: string
+                                    description: PluginRuntime describes the custom plugin runtime config.
+                                  installer_runtime:
+                                    type: object
+                                    properties:
+                                      firewall:
+                                        type: object
+                                        properties:
+                                          features:
+                                            type: array
+                                            items:
+                                              type: string
+                                          remote_ips:
+                                            type: array
+                                            items:
+                                              type: string
+                                        description: Firewall describes the local firewall setup before installation.
+                                      base_work_dir:
+                                        type: string
+                                    description: InstallerRuntime describes the installer runtime config.
+                                description: CustomDeployConfig describes the deploy config for host deployment.
+                          description: NetworkUnit describes the network unit informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkUnitListResp describes the HTTP response body when list
+                  network-unit in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    is_direct:
+                      type: array
+                      items:
+                        type: boolean
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+              description: |-
+                TopoNetworkUnitListReq describes the HTTP request body when list network-unit
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkUnitListReq describes the HTTP request body when list network-unit
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkunit/list
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
