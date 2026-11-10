@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -48,7 +48,7 @@ func NewActionPushPluginConfigV2(capability *Capability) action.Definition {
 
 // ActParamPushPluginConfigV2 defines the parameters for actionPushPluginConfigV2.
 type ActParamPushPluginConfigV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 type actionPushPluginConfigV2 struct {
@@ -100,7 +100,7 @@ func (act *actionPushPluginConfigV2) Do(ctx *action.InstanceContext) (err error)
 		return err
 	}
 
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -115,10 +115,10 @@ func (act *actionPushPluginConfigV2) Do(ctx *action.InstanceContext) (err error)
 		return err
 	}
 
-	if err = pluginV2Utils.EnsureHostLoginUser(std, host); err != nil {
+	if err = pluginv2action.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
-	if err = pluginV2Utils.EnsureHostOperateUser(std, host); err != nil {
+	if err = pluginv2action.EnsureHostOperateUser(std, host); err != nil {
 		return err
 	}
 
@@ -135,7 +135,7 @@ func (act *actionPushPluginConfigV2) Do(ctx *action.InstanceContext) (err error)
 			continue
 		}
 
-		if err = pluginV2Utils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
+		if err = pluginv2action.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
 			return fmt.Errorf("check config store dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
 		}
 

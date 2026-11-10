@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -50,7 +50,7 @@ func NewActionCheckSelfRelayPluginAlive(capability *Capability) action.Definitio
 
 // ActionParamCheckSelfRelayPluginAlive defines the action param.
 type ActionParamCheckSelfRelayPluginAlive struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionCheckSelfRelayPluginAlive struct {
@@ -113,7 +113,7 @@ func (act *actionCheckSelfRelayPluginAlive) Do(ctx *action.InstanceContext) erro
 		return err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

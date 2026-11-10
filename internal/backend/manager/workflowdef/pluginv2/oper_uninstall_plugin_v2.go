@@ -21,7 +21,7 @@ package pluginv2
 import (
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -42,7 +42,7 @@ type operUninstallPluginV2 struct {
 
 // OperParamUninstallPluginV2 defines the parameters for operUninstallPluginV2.
 type OperParamUninstallPluginV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // Name returns the name.

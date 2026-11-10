@@ -36,7 +36,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -813,7 +813,7 @@ func (s *Storage) UpdateActionInstanceLifecycle(
 
 // PushActionInstanceMessage pushes action instance message.
 func (s *Storage) PushActionInstanceMessage(
-	nCtx contextx.IContext, operInstID, actionName string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID, actionName string, messages ...execution.Message) error {
 
 	return s.WrapFn(nCtx, metricOperationPushActionInstanceMessage, func(nCtx contextx.IContext) error {
 		var err error
@@ -1068,7 +1068,7 @@ func (s *Storage) UpdateOperationLatestActionInstBriefData(
 
 // UpdateOperationInstanceExtraExecutionMessages updates operation instance execution messages.
 func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
-	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID string, messages ...execution.Message) error {
 
 	return s.WrapFn(nCtx, metricOperationUpdateOperationInstanceExtraExecutionMessages, func(nCtx contextx.IContext) error {
 		var err error

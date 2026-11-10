@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -61,7 +61,7 @@ func NewActionWaitOfflineManualInstall(capability *Capability) action.Definition
 
 // ActParamWaitOfflineManualInstall is the parameter for actionWaitOfflineManualInstall.
 type ActParamWaitOfflineManualInstall struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionWaitOfflineManualInstall struct {
@@ -123,7 +123,7 @@ func (act *actionWaitOfflineManualInstall) Do(ctx *action.InstanceContext) (err 
 		return err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func (act *actionWaitOfflineManualInstall) Do(ctx *action.InstanceContext) (err 
 var errOfflineInstallResultNotReceived = errors.New("offline install result not received")
 
 func (act *actionWaitOfflineManualInstall) tryFetchInstallResult(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 ) (*installerDataFileContent, error) {
 
 	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
@@ -204,7 +204,7 @@ func (act *actionWaitOfflineManualInstall) tryFetchInstallResult(
 }
 
 func (act *actionWaitOfflineManualInstall) applyResult(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	data *installerDataFileContent,
 ) error {
 

@@ -66,15 +66,15 @@ Windows 的 `Administrator` 和 `system` 是不同身份：
 
 ## 实现位置
 
-| 语义               | 实现位置                                                                                                                   |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| 主机账号模型       | `pkg/types/host.go`                                                                                                        |
-| 默认登录用户       | `pkg/runtime/criteria/admin_user.go`                                                                                       |
-| 默认 GSE 操作用户  | `pkg/thirdparty/gse/operate_user.go`                                                                                       |
-| 同步补全与持久化   | `internal/backend/manager/workflowdef/syncdata/action_sync_host.go`                                                        |
-| 插件运行时账号兜底 | `internal/backend/manager/workflowdef/plugin/utils/user.go`、`internal/backend/manager/workflowdef/pluginv2/utils/user.go` |
-| 标准插件进程身份   | `internal/backend/manager/workflowdef/plugin/process_spec.go`                                                              |
-| 标准插件配置渲染   | `internal/backend/manager/workflowdef/plugin/action_ensure_and_update_plugin_config_details.go`                            |
+| 语义               | 实现位置                                                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 主机账号模型       | `pkg/types/host.go`                                                                                                                        |
+| 默认登录用户       | `pkg/runtime/criteria/admin_user.go`                                                                                                       |
+| 默认 GSE 操作用户  | `pkg/thirdparty/gse/operate_user.go`                                                                                                       |
+| 同步补全与持久化   | `internal/backend/manager/workflowdef/syncdata/action_sync_host.go`                                                                        |
+| 插件运行时账号兜底 | `internal/backend/manager/workflowdef/plugin/pluginaction/user.go`、`internal/backend/manager/workflowdef/pluginv2/pluginv2action/user.go` |
+| 标准插件进程身份   | `internal/backend/manager/workflowdef/plugin/process_spec.go`                                                                              |
+| 标准插件配置渲染   | `internal/backend/manager/workflowdef/plugin/action_ensure_and_update_plugin_config_details.go`                                            |
 
 登录用户与 GSE 操作用户的分离见 [PR #3945](https://github.com/TencentBlueKing/bk-nodemgr/pull/3945)。
 

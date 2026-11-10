@@ -22,19 +22,19 @@ pkg/workflow/
 |- action/                    # action definition and runtime instance contracts
 |- operation/                 # operation definition and instance orchestration
 |- trigger/                   # trigger metadata and trigger model definitions
-|- common/                    # common errors and message payload contracts
+|- execution/                 # execution errors and message payload contracts
 `- metric/                    # workflow metrics and monitoring integration
 ```
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Workflow execution flow | `worker.go`, `controller.go`, `manager.go` | Main runtime path from scheduling to action execution |
-| Action/operation model changes | `action/**`, `operation/**` | Keep definition contracts and instance behavior aligned |
-| Trigger-driven behavior | `trigger_handler.go`, `trigger/**` | Ensure trigger metadata and handler logic are consistent |
-| Persistence/state transitions | `storage.go`, `operation/instance.go`, `action/instance.go` | Validate status transitions and retry semantics |
-| Runtime observability | `trace.go`, `logger_adaptor.go`, `metric/**` | Preserve log/tracing/metrics signal continuity |
+| Task                           | Location                                                    | Notes                                                    |
+| ------------------------------ | ----------------------------------------------------------- | -------------------------------------------------------- |
+| Workflow execution flow        | `worker.go`, `controller.go`, `manager.go`                  | Main runtime path from scheduling to action execution    |
+| Action/operation model changes | `action/**`, `operation/**`                                 | Keep definition contracts and instance behavior aligned  |
+| Trigger-driven behavior        | `trigger_handler.go`, `trigger/**`                          | Ensure trigger metadata and handler logic are consistent |
+| Persistence/state transitions  | `storage.go`, `operation/instance.go`, `action/instance.go` | Validate status transitions and retry semantics          |
+| Runtime observability          | `trace.go`, `logger_adaptor.go`, `metric/**`                | Preserve log/tracing/metrics signal continuity           |
 
 ## CONVENTIONS
 

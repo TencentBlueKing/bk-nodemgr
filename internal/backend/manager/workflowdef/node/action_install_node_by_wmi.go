@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -67,7 +67,7 @@ func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 
 // ActParamInstallAgentByWMI ...
 type ActParamInstallAgentByWMI struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallNodeByWMI struct {
@@ -141,7 +141,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -172,9 +172,9 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *actionInstallNodeByWMI) installByWMI(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionInstallNodeByWMI) installByWMI(std *nodeaction.NodeActionStandarder) error {
 	// get wmi credit.
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get wmi credit: %w", err)
@@ -217,7 +217,7 @@ func (act *actionInstallNodeByWMI) installByWMI(std *nodeUtils.NodeActionStandar
 	return nil
 }
 
-func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *wmix.Client) error {
+func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeaction.NodeActionStandarder, client *wmix.Client) error {
 	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+std.DeployInfo().InstallerRuntime.WorkDir)
 	if err != nil {
 		return fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
@@ -234,7 +234,7 @@ func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStan
 	return nil
 }
 
-func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeActionStandarder, client *wmix.Client) (string, error) {
+func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeaction.NodeActionStandarder, client *wmix.Client) (string, error) {
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return "", fmt.Errorf("failed to format installer tool name: %w", err)
@@ -277,7 +277,7 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 
 // openInstallerReader returns a reader for the installer binary, using the local
 // file cache when available to avoid redundant downloads across workflow retries.
-func (act *actionInstallNodeByWMI) openInstallerReader(std *nodeUtils.NodeActionStandarder) (io.ReadCloser, error) {
+func (act *actionInstallNodeByWMI) openInstallerReader(std *nodeaction.NodeActionStandarder) (io.ReadCloser, error) {
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 	cpuArch := std.DeployInfo().Host.Dynamic.NodeCPUArch
 
@@ -316,13 +316,13 @@ func (act *actionInstallNodeByWMI) openInstallerReader(std *nodeUtils.NodeAction
 	return reader, nil
 }
 
-func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
-	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
+func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeaction.NodeActionStandarder, client *wmix.Client, installerPath string) error {
+	endpointSource := nodeaction.SelectInstallEndpointSource(std)
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
 		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
-	downloadSvrAddr, err := nodeUtils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	downloadSvrAddr, err := nodeaction.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
 	if err != nil {
 		return fmt.Errorf("failed to build download server urls: %w", err)
 	}
@@ -339,7 +339,7 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		},
 		InstallerPath:   installerPath,
 		DownloadSvrAddr: downloadSvrAddr,
-		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
+		CallbackSvrAddr: nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,

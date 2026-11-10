@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -57,7 +57,7 @@ func NewActionUninstallPluginV2(capability *Capability) action.Definition {
 
 // ActParamUninstallPluginV2 ...
 type ActParamUninstallPluginV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // actionUninstallPluginV2 ...
@@ -113,7 +113,7 @@ func (act *actionUninstallPluginV2) Do(ctx *action.InstanceContext) (err error) 
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ type pluginV2UninstallParams struct {
 }
 
 func (act *actionUninstallPluginV2) buildUninstallParams(
-	std *pluginV2Utils.PluginActionStandarder,
+	std *pluginv2action.PluginActionStandarder,
 	targetHost *types.Host,
 	targetPlugin *types.Plugin,
 ) (*pluginV2UninstallParams, error) {
@@ -206,7 +206,7 @@ func (act *actionUninstallPluginV2) buildUninstallParams(
 	callbackEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
-		pluginV2Utils.DefaultEndpointSelectionCount,
+		pluginv2action.DefaultEndpointSelectionCount,
 		discover.NewRoundRobinSelector())
 	if err != nil {
 		return nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
@@ -225,7 +225,7 @@ func (act *actionUninstallPluginV2) buildUninstallParams(
 			},
 			PluginGroup:     targetPlugin.Group,
 			PluginName:      targetPlugin.Name,
-			CallbackSvrAddr: pluginV2Utils.BuildServerURLs(callbackEndpoints...),
+			CallbackSvrAddr: pluginv2action.BuildServerURLs(callbackEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 		},

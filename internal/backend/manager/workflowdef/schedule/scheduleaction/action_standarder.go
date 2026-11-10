@@ -16,28 +16,28 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package utils
+package scheduleaction
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewSyncDataActionStandarder creates a new SyncDataActionStandarder.
-func NewSyncDataActionStandarder() *SyncDataActionStandarder {
-	return &SyncDataActionStandarder{}
+// NewScheduleActionStandarder creates a new ScheduleActionStandarder.
+func NewScheduleActionStandarder() *ScheduleActionStandarder {
+	return &ScheduleActionStandarder{}
 }
 
-// SyncDataActionStandarder defines the standard parameters of node action.
-type SyncDataActionStandarder struct {
+// ScheduleActionStandarder defines the standard parameters of node action.
+type ScheduleActionStandarder struct {
 	instanceContext *action.InstanceContext
-	param           SyncDataActionStandardParam
+	param           ScheduleActionStandardParam
 
 	ctx contextx.IContext
 }
 
 // Initialize initializes the NodeActionStandarder.
-func (std *SyncDataActionStandarder) Initialize(instanceContext *action.InstanceContext, param SyncDataActionStandardParam) error {
+func (std *ScheduleActionStandarder) Initialize(instanceContext *action.InstanceContext, param ScheduleActionStandardParam) error {
 	std.instanceContext = instanceContext
 	std.param = param
 
@@ -47,27 +47,33 @@ func (std *SyncDataActionStandarder) Initialize(instanceContext *action.Instance
 }
 
 // Context returns the tenant user context.
-func (std *SyncDataActionStandarder) Context() contextx.IContext {
+func (std *ScheduleActionStandarder) Context() contextx.IContext {
 	return std.ctx
 }
 
+// WorkflowID returns the workflow ID.
+func (std *ScheduleActionStandarder) WorkflowID() string {
+	return std.param.WorkflowID
+}
+
 // TenantID returns the tenant ID.
-func (std *SyncDataActionStandarder) TenantID() string {
+func (std *ScheduleActionStandarder) TenantID() string {
 	return std.param.TenantID
 }
 
 // Operator returns the operator.
-func (std *SyncDataActionStandarder) Operator() string {
+func (std *ScheduleActionStandarder) Operator() string {
 	return std.param.Operator
 }
 
 // InstanceData returns the instance data.
-func (std *SyncDataActionStandarder) InstanceData() *action.InstanceData {
+func (std *ScheduleActionStandarder) InstanceData() *action.InstanceData {
 	return std.instanceContext.Data
 }
 
-// SyncDataActionStandardParam defines the standard parameters of sync data action.
-type SyncDataActionStandardParam struct {
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+// ScheduleActionStandardParam defines the standard parameters of sync data action.
+type ScheduleActionStandardParam struct {
+	WorkflowID string `json:"workflow_id"`
+	TenantID   string `json:"tenant_id"`
+	Operator   string `json:"operator"`
 }

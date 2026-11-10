@@ -32,7 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
@@ -270,7 +270,7 @@ func (ctl *controller) GetOperation(nCtx contextx.IContext, operationID string) 
 	}
 
 	if oper.TriggerID != ctl.trig.TriggerID {
-		return nil, errors.Join(common.ErrInvalidParameters(),
+		return nil, errors.Join(execution.ErrInvalidParameters(),
 			fmt.Errorf("operation(%s) not belong to trigger(%s)", operationID, ctl.trig.TriggerID))
 	}
 
@@ -854,7 +854,7 @@ func (ctl *controller) createOperationInstanceBase(_ contextx.IContext, stateDec
 			DisplayNameEn:       actionDef.DisplayNameEn(),
 			Index:               index,
 			TotalIndex:          len(actionNames),
-			Messages:            make([]common.Message, 0),
+			Messages:            make([]execution.Message, 0),
 			Content:             make(map[string]any),
 			PrivateData:         make(map[string]any),
 			Lifecycle: &action.Lifecycle{
@@ -877,7 +877,7 @@ func (ctl *controller) createOperationInstanceBase(_ contextx.IContext, stateDec
 				Timeout:                ctl.oper.Param.Timeout,
 				InitContent:            ctl.oper.Param.InitContent,
 				ExtraExecutionName:     ctl.oper.Definition.ExtraExecutionName(),
-				ExtraExecutionMessages: make([]common.Message, 0),
+				ExtraExecutionMessages: make([]execution.Message, 0),
 			},
 			Lifecycle: &operation.Lifecycle{
 				CreatedAt: time.Now().Local(),

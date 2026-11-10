@@ -26,7 +26,7 @@ import (
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 )
 
 // ReportLog report plugin installer log.
@@ -46,13 +46,13 @@ func (h *handler) ReportLog(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	logs := make([]common.Message, len(req.GetLogs()))
+	logs := make([]execution.Message, len(req.GetLogs()))
 	for idx, log := range req.GetLogs() {
 		text := fmt.Sprintf("%s\t:%s\t:%s\t",
 			time.Unix(log.GetTimestamp(), 0).Format("2006-01-02 15:04:05"),
 			log.GetStep(),
 			log.GetLog())
-		logs[idx] = common.Message{
+		logs[idx] = execution.Message{
 			Time:   time.Now(),
 			TextZh: text,
 			TextEn: text,

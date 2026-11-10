@@ -16,28 +16,28 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package utils
+package syncdataaction
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewDeployPolicyActionStandarder creates a new DeployPolicyActionStandarder.
-func NewDeployPolicyActionStandarder() *DeployPolicyActionStandarder {
-	return &DeployPolicyActionStandarder{}
+// NewSyncDataActionStandarder creates a new SyncDataActionStandarder.
+func NewSyncDataActionStandarder() *SyncDataActionStandarder {
+	return &SyncDataActionStandarder{}
 }
 
-// DeployPolicyActionStandarder defines the standard parameters of deploy policy action.
-type DeployPolicyActionStandarder struct {
+// SyncDataActionStandarder defines the standard parameters of node action.
+type SyncDataActionStandarder struct {
 	instanceContext *action.InstanceContext
-	param           DeployPolicyActionStandardParam
+	param           SyncDataActionStandardParam
 
 	ctx contextx.IContext
 }
 
-// Initialize initializes the DeployPolicyActionStandarder.
-func (std *DeployPolicyActionStandarder) Initialize(instanceContext *action.InstanceContext, param DeployPolicyActionStandardParam) error {
+// Initialize initializes the NodeActionStandarder.
+func (std *SyncDataActionStandarder) Initialize(instanceContext *action.InstanceContext, param SyncDataActionStandardParam) error {
 	std.instanceContext = instanceContext
 	std.param = param
 
@@ -47,27 +47,27 @@ func (std *DeployPolicyActionStandarder) Initialize(instanceContext *action.Inst
 }
 
 // Context returns the tenant user context.
-func (std *DeployPolicyActionStandarder) Context() contextx.IContext {
+func (std *SyncDataActionStandarder) Context() contextx.IContext {
 	return std.ctx
 }
 
 // TenantID returns the tenant ID.
-func (std *DeployPolicyActionStandarder) TenantID() string {
+func (std *SyncDataActionStandarder) TenantID() string {
 	return std.param.TenantID
 }
 
 // Operator returns the operator.
-func (std *DeployPolicyActionStandarder) Operator() string {
+func (std *SyncDataActionStandarder) Operator() string {
 	return std.param.Operator
 }
 
 // InstanceData returns the instance data.
-func (std *DeployPolicyActionStandarder) InstanceData() *action.InstanceData {
+func (std *SyncDataActionStandarder) InstanceData() *action.InstanceData {
 	return std.instanceContext.Data
 }
 
-// DeployPolicyActionStandardParam defines the standard parameters of deploy policy action.
-type DeployPolicyActionStandardParam struct {
+// SyncDataActionStandardParam defines the standard parameters of sync data action.
+type SyncDataActionStandardParam struct {
 	TenantID string `json:"tenant_id"`
 	Operator string `json:"operator"`
 }

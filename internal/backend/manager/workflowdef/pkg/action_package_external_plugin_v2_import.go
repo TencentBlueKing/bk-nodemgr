@@ -16,7 +16,7 @@ import (
 	"io"
 	"time"
 
-	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/packageaction"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -45,7 +45,7 @@ type actionPackageImportExternalPluginV2PkgFetchAndUpload struct {
 
 // ActionPackageImportExternalPluginV2PkgFetchAndUpload defines the action's parameters.
 type ActionPackageImportExternalPluginV2PkgFetchAndUpload struct {
-	pkgUtils.PackageActionStandardParam
+	packageaction.PackageActionStandardParam
 }
 
 func (act *actionPackageImportExternalPluginV2PkgFetchAndUpload) Name() string {
@@ -91,7 +91,7 @@ func (act *actionPackageImportExternalPluginV2PkgFetchAndUpload) Do(ctx *action.
 		return err
 	}
 
-	std := pkgUtils.NewPackageActionStandarder(act.storagePackage)
+	std := packageaction.NewPackageActionStandarder(act.storagePackage)
 	if err := std.Initialize(ctx, param.PackageActionStandardParam); err != nil {
 		return err
 	}

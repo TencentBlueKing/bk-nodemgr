@@ -24,7 +24,7 @@ import (
 	"regexp"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
@@ -49,7 +49,7 @@ func NewActionOverwritePluginConfigForCompatibility(capability *Capability) acti
 
 // ActParamOverwritePluginConfigForCompatibility defines the parameters for actionOverwritePluginConfigForCompatibility.
 type ActParamOverwritePluginConfigForCompatibility struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionOverwritePluginConfigForCompatibility struct {
@@ -100,7 +100,7 @@ func (act *actionOverwritePluginConfigForCompatibility) Do(ctx *action.InstanceC
 		return err
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}

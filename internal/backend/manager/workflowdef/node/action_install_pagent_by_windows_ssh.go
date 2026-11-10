@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -68,7 +68,7 @@ func NewActionInstallPagentByWindowsSSH(capability *Capability) action.Definitio
 
 // ActParamInstallPagentByWindowsSSH defines the action parameter.
 type ActParamInstallPagentByWindowsSSH struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPagentByWindowsSSH struct {
@@ -138,7 +138,7 @@ func (act *actionInstallPagentByWindowsSSH) Do(ctx *action.InstanceContext) (err
 		return err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (act *actionInstallPagentByWindowsSSH) Do(ctx *action.InstanceContext) (err
 		return fmt.Errorf("failed to save blocking action name: %w", err)
 	}
 
-	creditHandler := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	creditHandler := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	_, cKey, err := creditHandler.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -206,7 +206,7 @@ func (act *actionInstallPagentByWindowsSSH) Do(ctx *action.InstanceContext) (err
 }
 
 func (act *actionInstallPagentByWindowsSSH) setupInstallationTools(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 ) (string, string, error) {
 
 	toolName, err := tool.FormatInstallerName(criteria.OSWindows, std.DeployInfo().Host.Dynamic.NodeCPUArch)
@@ -225,12 +225,12 @@ func (act *actionInstallPagentByWindowsSSH) setupInstallationTools(
 }
 
 func (act *actionInstallPagentByWindowsSSH) buildInstallParams(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	installerPath string,
 ) (*installer.NodeInstallParams, error) {
 
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
-		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay,
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeaction.NodeInstallerEndpointSourceRelay,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate node installer server endpoints: %w", err)
@@ -247,8 +247,8 @@ func (act *actionInstallPagentByWindowsSSH) buildInstallParams(
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
 		InstallerPath:          installerPath,
-		DownloadSvrAddr:        nodeUtils.BuildServerURLs(downloadEndpoints...),
-		CallbackSvrAddr:        nodeUtils.BuildServerURLs(callbackEndpoints...),
+		DownloadSvrAddr:        nodeaction.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr:        nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:            std.Token(),
 		NodeVersion:            std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:             std.InstanceData().OperationInstanceID,
@@ -286,7 +286,7 @@ func (act *actionInstallPagentByWindowsSSH) buildShell(param *installer.NodeInst
 }
 
 func (act *actionInstallPagentByWindowsSSH) notifyRelayToInstall(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	cKey string,
 	toolsName string,
 	installerBatCmd string,
@@ -333,7 +333,7 @@ func (act *actionInstallPagentByWindowsSSH) notifyRelayToInstall(
 
 // nolint: gocognit
 func (act *actionInstallPagentByWindowsSSH) waitForRelayReportInstall(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 ) error {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)

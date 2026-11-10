@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -57,7 +57,7 @@ func NewActionUpgradePagent(capability *Capability) action.Definition {
 
 // ActionParamUpgradePagent defines the action param.
 type ActionParamUpgradePagent struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionUpgradePagent struct {
@@ -125,7 +125,7 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -146,8 +146,8 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
-		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay)
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeaction.NodeInstallerEndpointSourceRelay)
 	if err != nil {
 		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
@@ -164,8 +164,8 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		DownloadSvrAddr:   nodeUtils.BuildServerURLs(downloadEndpoints...),
-		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
+		DownloadSvrAddr:   nodeaction.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr:   nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
 		NodeVersion:       std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:        std.InstanceData().OperationInstanceID,
@@ -193,7 +193,7 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 	return act.doUpgradeUnix(std, upgradeParams)
 }
 
-func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeUnix(std *nodeaction.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
 	_, upgradeCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)
@@ -229,7 +229,7 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarde
 	return nil
 }
 
-func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeWindows(std *nodeaction.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
 	_, upgradeCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)

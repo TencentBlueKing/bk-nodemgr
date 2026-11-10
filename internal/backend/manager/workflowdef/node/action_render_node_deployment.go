@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -65,7 +65,7 @@ func NewActionRenderNodeDeployment(capability *Capability) action.Definition {
 
 // ActParamRenderNodeDeployment this is the param for render deployment.
 type ActParamRenderNodeDeployment struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionRenderNodeDeployment struct {
@@ -134,7 +134,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) (err erro
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) (err erro
 // getReleaseAgentForRender gets agent release for rendering node config.
 // If the exact version is not found and AllowReleaseFallback is enabled, it falls back to the default release.
 func (act *actionRenderNodeDeployment) getReleaseAgentForRender(
-	std *nodeUtils.NodeActionStandarder) (*types.ReleaseAgent, error) {
+	std *nodeaction.NodeActionStandarder) (*types.ReleaseAgent, error) {
 
 	plat := platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch}
 	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
@@ -251,7 +251,7 @@ func (act *actionRenderNodeDeployment) getReleaseAgentForRender(
 
 // fallbackDefaultReleaseAgent queries the default agent release and logs the fallback.
 func (act *actionRenderNodeDeployment) fallbackDefaultReleaseAgent(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	plat platfmt.Platform, gen types.Generation, originalVersion string,
 ) (*types.ReleaseAgent, error) {
 
@@ -287,7 +287,7 @@ func (act *actionRenderNodeDeployment) fallbackDefaultReleaseAgent(
 // getReleaseProxyForRender gets proxy release for rendering node config.
 // If the exact version is not found and AllowReleaseFallback is enabled, it falls back to the default release.
 func (act *actionRenderNodeDeployment) getReleaseProxyForRender(
-	std *nodeUtils.NodeActionStandarder) (*types.ReleaseProxy, error) {
+	std *nodeaction.NodeActionStandarder) (*types.ReleaseProxy, error) {
 
 	plat := platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch}
 	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
@@ -322,7 +322,7 @@ func (act *actionRenderNodeDeployment) getReleaseProxyForRender(
 
 // fallbackDefaultReleaseProxy queries the default proxy release and logs the fallback.
 func (act *actionRenderNodeDeployment) fallbackDefaultReleaseProxy(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	plat platfmt.Platform, gen types.Generation, originalVersion string,
 ) (*types.ReleaseProxy, error) {
 
@@ -357,7 +357,7 @@ func (act *actionRenderNodeDeployment) fallbackDefaultReleaseProxy(
 
 // logReleaseFallback records fallback behavior in both system log and workflow log.
 func (act *actionRenderNodeDeployment) logReleaseFallback(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	originalVersion, fallbackVersion string,
 ) {
 
@@ -563,7 +563,7 @@ const (
 // renderLogicSetting load logic setting to the config presetting and custom setting .
 // nolint: nonamedreturns,funlen,gocognit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) error {
+func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeaction.NodeActionStandarder, nodeConf *types.NodeConf) error {
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
 	if err := act.checkHostExist(std.Context(), std.DeployInfo().Host.HostID); err != nil {
 		return err
@@ -581,7 +581,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 }
 
 // renderLogicSettingRuntime this function is used to set some base settings, which are not related to network.
-func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) error {
+func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeaction.NodeActionStandarder, nodeConf *types.NodeConf) error {
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 
 	nodeConf.PreSetting[GseTemplateKeyRunMode] = std.DeployInfo().Host.Dynamic.NodeRole
@@ -682,7 +682,7 @@ const (
 )
 
 // renderLogicSettingNetwork this function is used to set some network related settings.
-func (act *actionRenderNodeDeployment) renderLogicSettingNetwork(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) error {
+func (act *actionRenderNodeDeployment) renderLogicSettingNetwork(std *nodeaction.NodeActionStandarder, nodeConf *types.NodeConf) error {
 	needStaticAccess, err := act.storageDomainGse.NeedStaticAccess(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
 	if err != nil {
 		return fmt.Errorf("failed to get need static access: %w", err)
@@ -816,7 +816,7 @@ func applyProxyFileCacheDirFallback(info *types.DeploymentInfo, conf *types.Node
 }
 
 // renderCustomSetting load custom setting to the config presetting.
-func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeActionStandarder, conf *types.NodeConf) error {
+func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeaction.NodeActionStandarder, conf *types.NodeConf) error {
 	matchResult, err := act.storageConfigPolicy.MatchConfigPolicyNode(std.Context(),
 		std.DeployInfo().Host.Static.BizID,
 		std.DeployInfo().Host.Static.NetworkAreaID,
@@ -983,7 +983,7 @@ func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 	return nil
 }
 
-func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(std *nodeaction.NodeActionStandarder) error {
 	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
 	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
 	if advertiseIPV4 == "" && len(std.DeployInfo().Host.Static.InnerIPList) > 0 {

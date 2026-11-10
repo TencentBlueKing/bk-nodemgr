@@ -25,5 +25,5 @@
 |Anti-patterns:do not assume operation has instances|use len(InstanceIDs) checks before accessing GetLastInstanceID()/GetNonLastInstanceIDs()
 |Anti-patterns:do not break retry flag chain|each retry must reference SourceInstanceID correctly
 |Anti-patterns:do not add business logic to operation primitives|keep this layer generic runtime infrastructure
-|Dependencies:pkg/workflow/action for action instance contracts|pkg/workflow/common for Message and error types|pkg/contextx for context propagation
+|Dependencies:pkg/workflow/action for action instance contracts|pkg/workflow/execution for Message and error types|pkg/contextx for context propagation
 |Parent AGENTS:../AGENTS.md (workflow runtime overview)

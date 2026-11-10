@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -44,7 +44,7 @@ type actionSyncSharedReleases struct {
 
 // ActionParamSyncSharedReleases defines the shared release synchronization action parameters.
 type ActionParamSyncSharedReleases struct {
-	utils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 // Name returns the name.
@@ -99,7 +99,7 @@ func (act *actionSyncSharedReleases) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std := utils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}

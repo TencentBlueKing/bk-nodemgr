@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -49,7 +49,7 @@ func NewActionSyncNodeInfo(capability *Capability) action.Definition {
 
 // ActParamSyncNodeInfo ...
 type ActParamSyncNodeInfo struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionSyncNodeInfo struct {
@@ -112,7 +112,7 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

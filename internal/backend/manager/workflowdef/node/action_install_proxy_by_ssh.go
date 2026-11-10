@@ -25,7 +25,7 @@ import (
 	"path"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -71,7 +71,7 @@ func NewActionInstallProxyBySSH(capability *Capability) action.Definition {
 
 // ActParamInstallProxyBySSH defines parameters for actionInstallProxyBySSH.
 type ActParamInstallProxyBySSH struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallProxyBySSH struct {
@@ -132,7 +132,7 @@ func (act *actionInstallProxyBySSH) Do(ctx *action.InstanceContext) (err error) 
 		return err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.nodeInstaller.storageNodeDeployment, act.nodeInstaller.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.nodeInstaller.storageNodeDeployment, act.nodeInstaller.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -159,18 +159,18 @@ func (act *actionInstallProxyBySSH) Do(ctx *action.InstanceContext) (err error) 
 	return act.doRelayCallbackInstall(std)
 }
 
-func (act *actionInstallProxyBySSH) isCrossUnitInstall(std *nodeUtils.NodeActionStandarder) bool {
+func (act *actionInstallProxyBySSH) isCrossUnitInstall(std *nodeaction.NodeActionStandarder) bool {
 	return std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID != std.DeployInfo().Host.Dynamic.NetworkUnitID
 }
 
 // doRelayCallbackInstall handles the relay-assisted SSH installation for same-unit installs.
-func (act *actionInstallProxyBySSH) doRelayCallbackInstall(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionInstallProxyBySSH) doRelayCallbackInstall(std *nodeaction.NodeActionStandarder) error {
 	std.InstanceData().Log().
 		Zh("检测到同管控单元 Proxy 安装, 使用 Relay Callback 模式").
 		En("same-unit proxy install detected, using Relay Callback mode").
 		Info()
 
-	credit := nodeUtils.NewCreditHandler(act.pagentInstaller.storageHostCredit, act.pagentInstaller.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.pagentInstaller.storageHostCredit, act.pagentInstaller.passwordVault)
 	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -209,13 +209,13 @@ func (act *actionInstallProxyBySSH) doRelayCallbackInstall(std *nodeUtils.NodeAc
 }
 
 // doRelaySSHOnlyInstall handles the SSH-only installation for cross-unit installs.
-func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeaction.NodeActionStandarder) error {
 	std.InstanceData().Log().
 		Zh("检测到跨管控单元 Proxy 安装, 使用 Relay SSH-Only 模式").
 		En("cross-unit proxy install detected, using Relay SSH-Only mode").
 		Info()
 
-	credit := nodeUtils.NewCreditHandler(act.nodeInstaller.storageHostCredit, act.nodeInstaller.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.nodeInstaller.storageHostCredit, act.nodeInstaller.passwordVault)
 	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -267,7 +267,7 @@ func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeUtils.NodeAct
 	)
 }
 
-func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.NodeActionStandarder, installerPath string) (string, error) {
+func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeaction.NodeActionStandarder, installerPath string) (string, error) {
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
 			DeployEnv:         system.GetEnv(),
@@ -309,7 +309,7 @@ func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.N
 }
 
 func (act *actionInstallProxyBySSH) notifyRelayToInstallProxyBySSH(
-	std *nodeUtils.NodeActionStandarder, cKey, installerName, releaseName, installerCmd string, relayInfo *types.RelayInfo,
+	std *nodeaction.NodeActionStandarder, cKey, installerName, releaseName, installerCmd string, relayInfo *types.RelayInfo,
 ) error {
 
 	event := protoRelay.InstallProxyBySSHReq{

@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -48,7 +48,7 @@ func NewActionPushPluginConfig(capability *Capability) action.Definition {
 
 // ActParamPushPluginConfig defines the parameters for actionPushPluginConfig.
 type ActParamPushPluginConfig struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 	OnlyPushSubConfig                     bool `json:"only_push_sub_config"` // only push sub config files, not main config file
 }
 
@@ -101,7 +101,7 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -116,10 +116,10 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	if err = pluginUtils.EnsureHostLoginUser(std, host); err != nil {
+	if err = pluginaction.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
-	if err = pluginUtils.EnsureHostOperateUser(std, host); err != nil {
+	if err = pluginaction.EnsureHostOperateUser(std, host); err != nil {
 		return err
 	}
 
@@ -189,7 +189,7 @@ func (act *actionPushPluginConfig) DisplayNameEn() string {
 }
 
 func (act *actionPushPluginConfig) buildPushFileTask(
-	std *pluginUtils.PluginActionStandarder, host *types.Host, pluginConf []*types.PluginConfigDetail, onlyPushSubConfig bool) (
+	std *pluginaction.PluginActionStandarder, host *types.Host, pluginConf []*types.PluginConfigDetail, onlyPushSubConfig bool) (
 	[]*types.PushFileDetail, error) {
 
 	tasks := make([]*types.PushFileDetail, 0, len(pluginConf))
@@ -203,7 +203,7 @@ func (act *actionPushPluginConfig) buildPushFileTask(
 			storeDir = std.DeployInfo().BaseRuntime.SubConfigDir
 		}
 
-		if err := pluginUtils.CheckDirPathSafe(storeDir, std.DeployInfo().Process.Platform.OS); err != nil {
+		if err := pluginaction.CheckDirPathSafe(storeDir, std.DeployInfo().Process.Platform.OS); err != nil {
 			std.InstanceData().Log().
 				Zh("检查配置文件目标目录安全失败, 目录(%s)", storeDir).
 				En("check config target dir safe failed, dir(%s)", storeDir).

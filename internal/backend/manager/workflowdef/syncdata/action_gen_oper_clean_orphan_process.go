@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -54,7 +54,7 @@ func NewActionGenOperCleanOrphanProcess(capability *Capability) action.Definitio
 
 // ActionParamGenOperCleanOrphanProcess defines the generator parameters.
 type ActionParamGenOperCleanOrphanProcess struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 type actionGenOperCleanOrphanProcess struct {
@@ -103,7 +103,7 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
 		return fmt.Errorf("failed to decode orphan process generator parameters: %w", err)
 	}
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func (act *actionGenOperCleanOrphanProcess) Do(ctx *action.InstanceContext) erro
 }
 
 func (act *actionGenOperCleanOrphanProcess) executeOper(
-	nCtx contextx.IContext, std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, processes []*types.Process) error {
+	nCtx contextx.IContext, std *syncdataaction.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, processes []*types.Process) error {
 
 	operationDef := NewOperCleanOrphanProcess(OperParamCleanOrphanProcess{
 		TenantID:  std.TenantID(),

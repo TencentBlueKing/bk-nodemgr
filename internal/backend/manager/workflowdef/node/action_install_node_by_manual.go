@@ -24,7 +24,7 @@ import (
 	"path"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -61,7 +61,7 @@ func NewActionInstallNodeByManual(capability *Capability) action.Definition {
 
 // ActParamInstallNodeByManual ...
 type ActParamInstallNodeByManual struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallNodeByManual struct {
@@ -130,7 +130,7 @@ func (act *actionInstallNodeByManual) Do(ctx *action.InstanceContext) (err error
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -160,19 +160,19 @@ func (act *actionInstallNodeByManual) Do(ctx *action.InstanceContext) (err error
 	return nil
 }
 
-func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeaction.NodeActionStandarder) error {
 	// format installer tool name
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return fmt.Errorf("failed to format installer tool name: %w", err)
 	}
 
-	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
+	endpointSource := nodeaction.SelectInstallEndpointSource(std)
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
 		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
-	downloadSvrAddr, err := nodeUtils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	downloadSvrAddr, err := nodeaction.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
 	if err != nil {
 		return fmt.Errorf("failed to build download server urls: %w", err)
 	}
@@ -198,7 +198,7 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		},
 		InstallerPath:   installerPath,
 		DownloadSvrAddr: downloadSvrAddr,
-		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
+		CallbackSvrAddr: nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,

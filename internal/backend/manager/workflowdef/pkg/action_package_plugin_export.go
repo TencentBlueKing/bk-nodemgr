@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"time"
 
-	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/packageaction"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
@@ -46,7 +46,7 @@ type actionPackageExportPlugin struct {
 
 // ActionPackageExportPlugin defines the action's parameters.
 type ActionPackageExportPlugin struct {
-	pkgUtils.PackageActionStandardParam
+	packageaction.PackageActionStandardParam
 }
 
 func (act *actionPackageExportPlugin) Name() string {
@@ -90,7 +90,7 @@ func (act *actionPackageExportPlugin) Do(ctx *action.InstanceContext) error {
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
 		return fmt.Errorf("failed to decode export parameters: %w", err)
 	}
-	std := pkgUtils.NewPackageActionStandarder(act.storagePackage)
+	std := packageaction.NewPackageActionStandarder(act.storagePackage)
 	if err := std.Initialize(ctx, param.PackageActionStandardParam); err != nil {
 		return err
 	}

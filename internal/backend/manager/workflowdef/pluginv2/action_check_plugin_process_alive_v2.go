@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
@@ -48,7 +48,7 @@ func NewActionCheckPluginProcessAliveV2(capability *Capability) action.Definitio
 
 // ActParamCheckPluginProcessAliveV2 defines the parameters for actionCheckPluginProcessAliveV2.
 type ActParamCheckPluginProcessAliveV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 type actionCheckPluginProcessAliveV2 struct {
@@ -101,7 +101,7 @@ func (act *actionCheckPluginProcessAliveV2) Do(ctx *action.InstanceContext) (err
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}

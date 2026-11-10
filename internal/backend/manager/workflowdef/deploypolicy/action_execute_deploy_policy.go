@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
-	deployPolicyUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/deploypolicyaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -49,7 +49,7 @@ func NewActionExecuteDeployPolicy(capability *Capability) action.Definition {
 
 // ActionParamExecuteDeployPolicy the action's param.
 type ActionParamExecuteDeployPolicy struct {
-	deployPolicyUtils.DeployPolicyActionStandardParam
+	deploypolicyaction.DeployPolicyActionStandardParam
 	DeployPolicyIDs []int64 `json:"deploy_policy_ids"`
 }
 
@@ -111,7 +111,7 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := deployPolicyUtils.NewDeployPolicyActionStandarder()
+	std := deploypolicyaction.NewDeployPolicyActionStandarder()
 	if err = std.Initialize(ctx, param.DeployPolicyActionStandardParam); err != nil {
 		return err
 	}

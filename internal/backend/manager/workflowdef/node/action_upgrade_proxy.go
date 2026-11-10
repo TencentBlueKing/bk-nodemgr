@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -59,7 +59,7 @@ func NewActionUpgradeProxy(capability *Capability) action.Definition {
 
 // ActionParamUpgradeProxy defines the action param.
 type ActionParamUpgradeProxy struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionUpgradeProxy struct {
@@ -127,7 +127,7 @@ func (act *actionUpgradeProxy) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -148,8 +148,8 @@ func (act *actionUpgradeProxy) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
-		std, act.provider, nodeUtils.NodeInstallerEndpointSourceProxySelf)
+	callbackEndpoints, _, err := nodeaction.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeaction.NodeInstallerEndpointSourceProxySelf)
 	if err != nil {
 		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
@@ -166,7 +166,7 @@ func (act *actionUpgradeProxy) Do(ctx *action.InstanceContext) (err error) {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
+		CallbackSvrAddr:   nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
 		NodeVersion:       std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:        std.InstanceData().OperationInstanceID,
@@ -190,7 +190,7 @@ func (act *actionUpgradeProxy) Do(ctx *action.InstanceContext) (err error) {
 	return act.doUpgradeUnix(std, upgradeParams)
 }
 
-func (act *actionUpgradeProxy) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
+func (act *actionUpgradeProxy) doUpgradeUnix(std *nodeaction.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
 	_, upgradeCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render proxy upgrade script: %w", err)
@@ -227,7 +227,7 @@ func (act *actionUpgradeProxy) doUpgradeUnix(std *nodeUtils.NodeActionStandarder
 	return nil
 }
 
-func (act *actionUpgradeProxy) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
+func (act *actionUpgradeProxy) doUpgradeWindows(std *nodeaction.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
 	_, upgradeCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render proxy upgrade script: %w", err)

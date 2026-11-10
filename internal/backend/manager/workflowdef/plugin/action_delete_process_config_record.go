@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -47,7 +47,7 @@ func NewActionDeleteProcessConfigRecord(capability *Capability) action.Definitio
 
 // ActParamDeleteProcessConfigRecord defines the parameters for actionDeleteProcessConfigRecord.
 type ActParamDeleteProcessConfigRecord struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionDeleteProcessConfigRecord struct {
@@ -100,7 +100,7 @@ func (act *actionDeleteProcessConfigRecord) Do(ctx *action.InstanceContext) (err
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}

@@ -25,7 +25,7 @@ import (
 	"path"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -67,7 +67,7 @@ func NewActionInstallPagentBySSH(capability *Capability) action.Definition {
 
 // ActParamInstallPagentBySSH ...
 type ActParamInstallPagentBySSH struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPagentBySSH struct {
@@ -139,7 +139,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// get ssh credit.
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -199,7 +199,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	return nil
 }
 
-func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeActionStandarder,
+func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeaction.NodeActionStandarder,
 	cKey, toolsName, installCmd string,
 	relayInfo *types.RelayInfo) error {
 
@@ -238,7 +238,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeAct
 
 // nolint: gocognit
 func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
-	std *nodeUtils.NodeActionStandarder) error {
+	std *nodeaction.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
@@ -299,7 +299,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 	}
 }
 
-func (act *actionInstallPagentBySSH) setupInstallationTools(std *nodeUtils.NodeActionStandarder) (string, string, error) {
+func (act *actionInstallPagentBySSH) setupInstallationTools(std *nodeaction.NodeActionStandarder) (string, string, error) {
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
 		std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -317,11 +317,11 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *nodeUtils.NodeA
 }
 
 func (act *actionInstallPagentBySSH) buildInstallCmd(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	installerPath string) (string, error) {
 
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
-		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay)
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeaction.NodeInstallerEndpointSourceRelay)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
@@ -337,8 +337,8 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
 		InstallerPath:   installerPath,
-		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
-		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
+		DownloadSvrAddr: nodeaction.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr: nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,

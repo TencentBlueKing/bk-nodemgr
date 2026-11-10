@@ -24,7 +24,7 @@ import (
 	"time"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
@@ -58,7 +58,7 @@ func NewActionSyncHost(capability *Capability) action.Definition {
 
 // ActionParamSyncHost ...
 type ActionParamSyncHost struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 
 	BizID int64 `json:"biz_id"`
 }
@@ -115,7 +115,7 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func (act *actionSyncHost) persistHostSyncChanges(
 
 // nolint: gocognit
 func (act *actionSyncHost) doubleCheckNeedPersistHosts(
-	std *syncDataUtils.SyncDataActionStandarder,
+	std *syncdataaction.SyncDataActionStandarder,
 	updateHosts, insertHosts []*types.Host,
 	deleteHostIDs []int64,
 	dbData []*types.Host) (
@@ -404,10 +404,10 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 	// Handling Hosts that Only Exist in the CMDB (New Hosts)
 	for _, host := range cmdbHostMap {
 		// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
-		syncDataUtils.FillHostDynamicAgentID(host)
+		syncdataaction.FillHostDynamicAgentID(host)
 
 		// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
-		syncDataUtils.FillHostDynamicOpsInfo(host)
+		syncdataaction.FillHostDynamicOpsInfo(host)
 
 		insertHosts = append(insertHosts, host)
 	}
@@ -598,7 +598,7 @@ func getAndFillEmptyDynamicAgentIDByStaticSyncedAgentID(
 
 func (act *actionSyncHost) tryTriggerCorrectAgentID(
 	ctx *action.InstanceContext,
-	std *syncDataUtils.SyncDataActionStandarder,
+	std *syncdataaction.SyncDataActionStandarder,
 	updateHosts, dbData []*types.Host,
 ) error {
 
@@ -656,7 +656,7 @@ func filterNeedCorrectAgentIDHostIDs(updateHosts, dbData []*types.Host) []int64 
 	return hostIDs
 }
 
-func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64,
+func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncdataaction.SyncDataActionStandarder, bizID int64,
 	cmdbData ...*types.Host) error {
 
 	hostIDs := conv.SliceToSlice(cmdbData, func(host *types.Host) int64 {

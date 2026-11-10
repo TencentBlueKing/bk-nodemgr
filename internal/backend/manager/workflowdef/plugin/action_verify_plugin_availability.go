@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -50,7 +50,7 @@ func NewActionVerifyPluginAvailability(capability *Capability) action.Definition
 
 // ActParamVerifyPluginAvailability defines the parameters for actionVerifyPluginAvailability.
 type ActParamVerifyPluginAvailability struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionVerifyPluginAvailability struct {
@@ -104,7 +104,7 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) (err 
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}

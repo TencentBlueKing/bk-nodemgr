@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package utils use to provide some common utils for sync data actions.
-package utils
+// Package syncdataaction provides standard parameters and shared behavior for data synchronization actions.
+package syncdataaction
 
 import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 

@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
@@ -48,7 +48,7 @@ func NewActionStopProcessV2(capability *Capability) action.Definition {
 
 // ActParamStopProcessV2 defines the parameters for actionStopProcess.
 type ActParamStopProcessV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // actionStopProcessV2 ...
@@ -102,7 +102,7 @@ func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}

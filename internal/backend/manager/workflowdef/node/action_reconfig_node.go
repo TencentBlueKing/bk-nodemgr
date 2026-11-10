@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -58,7 +58,7 @@ func NewActionReconfigNode(capability *Capability) action.Definition {
 
 // ActionParamReconfigNode defines the action param.
 type ActionParamReconfigNode struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionReconfigNode struct {
@@ -125,7 +125,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -163,19 +163,19 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 			proxyEndpoint.IPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
 		}
 
-		callbackSvrAddr = nodeUtils.BuildServerURLs(proxyEndpoint)
+		callbackSvrAddr = nodeaction.BuildServerURLs(proxyEndpoint)
 	} else {
 		// direct-link agent upgrade: use discover callback endpoints.
 		callbackEndpoints, err := act.provider.SelectEndpoints(
 			discover.ServiceNameBackend,
 			discover.EndpointNameBackendCallback,
-			nodeUtils.DefaultEndpointSelectionCount,
+			nodeaction.DefaultEndpointSelectionCount,
 			discover.NewRoundRobinSelector())
 		if err != nil {
 			return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 		}
 
-		callbackSvrAddr = nodeUtils.BuildServerURLs(callbackEndpoints...)
+		callbackSvrAddr = nodeaction.BuildServerURLs(callbackEndpoints...)
 	}
 
 	reconfigParams := &installer.NodeReconfigParams{
@@ -213,7 +213,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 }
 
 // nolint: perfsprint
-func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+func (act *actionReconfigNode) doReconfigUnix(std *nodeaction.NodeActionStandarder, param *installer.NodeReconfigParams) error {
 	_, reconfigCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
@@ -248,7 +248,7 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 }
 
 // nolint: perfsprint
-func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+func (act *actionReconfigNode) doReconfigWindows(std *nodeaction.NodeActionStandarder, param *installer.NodeReconfigParams) error {
 	_, reconfigCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)

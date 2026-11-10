@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -50,7 +50,7 @@ func NewActionGenOperCorrectUnknownProcessStatus(capability *Capability) action.
 
 // ActionParamGenOperCorrectUnknownProcessStatus defines the generation parameters.
 type ActionParamGenOperCorrectUnknownProcessStatus struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 type actionGenOperCorrectUnknownProcessStatus struct {
@@ -99,7 +99,7 @@ func (act *actionGenOperCorrectUnknownProcessStatus) Do(ctx *action.InstanceCont
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
 		return fmt.Errorf("failed to parse correct unknown process status parameters: %w", err)
 	}
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return fmt.Errorf("failed to initialize sync data action context: %w", err)
 	}

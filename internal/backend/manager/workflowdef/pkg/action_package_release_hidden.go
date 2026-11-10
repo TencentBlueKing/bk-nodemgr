@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/packageaction"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -44,7 +44,7 @@ type actionPackageReleasePluginHidden struct {
 
 // ActionParamImportPackageReleasePluginHidden defines the hidden release plugin package action's param.
 type ActionParamImportPackageReleasePluginHidden struct {
-	pkgUtils.PackageActionStandardParam
+	packageaction.PackageActionStandardParam
 }
 
 func (act *actionPackageReleasePluginHidden) Name() string {
@@ -90,7 +90,7 @@ func (act *actionPackageReleasePluginHidden) Do(ctx *action.InstanceContext) (er
 		return err
 	}
 
-	std := pkgUtils.NewPackageActionStandarder(act.storagePackage)
+	std := packageaction.NewPackageActionStandarder(act.storagePackage)
 	if err := std.Initialize(ctx, param.PackageActionStandardParam); err != nil {
 		return err
 	}

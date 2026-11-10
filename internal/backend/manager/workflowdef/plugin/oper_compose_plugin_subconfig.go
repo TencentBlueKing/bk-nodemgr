@@ -21,7 +21,7 @@ package plugin
 import (
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -32,7 +32,7 @@ const OperDefNameComposePluginSubConfig = "compose_plugin_subconfig"
 
 // OperParamComposePluginSubConfig controls the source action independently of install options.
 type OperParamComposePluginSubConfig struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 	SourceOperation                       types.PluginSubConfigSourceOperation `json:"source_operation"`
 }
 

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/diff"
@@ -48,7 +48,7 @@ func NewActionSyncTenant(capability *Capability) action.Definition {
 
 // ActionParamSyncTenant the action's param.
 type ActionParamSyncTenant struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 type actionSyncTenant struct {
@@ -101,7 +101,7 @@ func (act *actionSyncTenant) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}

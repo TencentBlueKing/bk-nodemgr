@@ -19,7 +19,7 @@
 |Conventions:tenant safety comes from upper filters/collection naming; keep queries scoped by opts + base.AliveFilter()
 |Conventions:when updating one action field, reuse FieldKeyActionInst* helpers instead of handwritten dotted paths
 |Conventions:nil/empty guards are part of DAO contract here; preserve current error style and avoid silent coercion
-|Dependencies:pkg/dao/mongo/base for broker/filter/page helpers|pkg/workflow/{action,operation,common} for runtime structs|pkg/types for page and shared DTOs
+|Dependencies:pkg/dao/mongo/base for broker/filter/page helpers|pkg/workflow/{action,operation,execution} for runtime structs|pkg/types for page and shared DTOs
 |Anti-patterns:no business workflow rules, status policy, retry semantics, or permission logic in this package
 |Anti-patterns:no proto imports or API-shaping logic here; this layer stores and reconstructs workflow runtime data only
 |Anti-patterns:no key-specific compatibility hacks in DAO for PrivateData values; if a value needs serialization, callers must serialize before write

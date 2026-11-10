@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -61,7 +61,7 @@ func NewActionUpgradePluginV2(capability *Capability) action.Definition {
 
 // ActParamUpgradePluginV2 ...
 type ActParamUpgradePluginV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // actionUpgradePluginV2 ...
@@ -119,7 +119,7 @@ func (act *actionUpgradePluginV2) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ type pluginUpgradeParams struct {
 }
 
 func (act *actionUpgradePluginV2) buildUpgradeParams(
-	std *pluginV2Utils.PluginActionStandarder,
+	std *pluginv2action.PluginActionStandarder,
 	targetHost *types.Host,
 	targetPlugin *types.Plugin,
 ) (*pluginUpgradeParams, error) {
@@ -221,7 +221,7 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 	downloadEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileDownload,
-		pluginV2Utils.DefaultEndpointSelectionCount,
+		pluginv2action.DefaultEndpointSelectionCount,
 		discover.NewRoundRobinSelector())
 	if err != nil {
 		return nil, fmt.Errorf("failed to select file endpoints: %w", err)
@@ -230,12 +230,12 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 	callbackEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
-		pluginV2Utils.DefaultEndpointSelectionCount,
+		pluginv2action.DefaultEndpointSelectionCount,
 		discover.NewRoundRobinSelector())
 	if err != nil {
 		return nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
-	downloadSvrAddr, err := pluginV2Utils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	downloadSvrAddr, err := pluginv2action.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build download server urls: %w", err)
 	}
@@ -255,7 +255,7 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 			PluginName:      targetPlugin.Name,
 			PluginVersion:   std.DeployInfo().Process.Info.Version,
 			PluginPkgName:   targetPlugin.PkgName,
-			CallbackSvrAddr: pluginV2Utils.BuildServerURLs(callbackEndpoints...),
+			CallbackSvrAddr: pluginv2action.BuildServerURLs(callbackEndpoints...),
 			DownloadSvrAddr: downloadSvrAddr,
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,

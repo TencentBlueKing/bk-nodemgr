@@ -24,7 +24,7 @@ import (
 	"time"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -59,7 +59,7 @@ func NewActionWatchCMDBResource(capability *Capability) action.Definition {
 
 // ActionParamWatchAndApplyCMDBResource defines the action's param.
 type ActionParamWatchAndApplyCMDBResource struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 // actionWatchAndApplyCMDBResource implements the action.Definition interface.
@@ -120,7 +120,7 @@ func (act *actionWatchAndApplyCMDBResource) Do(ctx *action.InstanceContext) erro
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -243,7 +243,7 @@ func (act *actionWatchAndApplyCMDBResource) watchHostRelationResource(ctx contex
 }
 
 // applyHostEvent applies the host event to the watcher.
-func (act *actionWatchAndApplyCMDBResource) applyHostEvent(std *syncDataUtils.SyncDataActionStandarder) error {
+func (act *actionWatchAndApplyCMDBResource) applyHostEvent(std *syncdataaction.SyncDataActionStandarder) error {
 	for !act.pendingProcessEvents.IsEmpty() {
 		event, ok := act.pendingProcessEvents.Dequeue()
 		if !ok {
@@ -264,7 +264,7 @@ func (act *actionWatchAndApplyCMDBResource) applyHostEvent(std *syncDataUtils.Sy
 }
 
 // handleHostResource this func defines how to handle the host resource event.
-func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	switch event.EventType {
 	case types.EventTypeCreate:
 		act.handleHostCreateEvent(std, event)
@@ -277,13 +277,13 @@ func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtil
 	}
 }
 
-func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	host, ok := act.waitingCreateHostMap[event.Detail.HostID]
 	if !ok {
 		// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
-		syncDataUtils.FillHostDynamicAgentID(event.Detail)
+		syncdataaction.FillHostDynamicAgentID(event.Detail)
 		// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
-		syncDataUtils.FillHostDynamicOpsInfo(event.Detail)
+		syncdataaction.FillHostDynamicOpsInfo(event.Detail)
 		fillDefaultAdvertiseIP(event.Detail, nil)
 		act.waitingCreateHostMap[event.Detail.HostID] = event.Detail
 
@@ -305,7 +305,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 	delete(act.waitingCreateHostMap, event.Detail.HostID)
 }
 
-func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	exists, err := act.storageTopo.ExistHost(std.Context(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: []int64{event.Detail.HostID},
@@ -391,7 +391,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 	}
 }
 
-func (act *actionWatchAndApplyCMDBResource) handleHostDeleteEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostDeleteEvent(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	if err := act.storageTopo.DeleteManyHost(std.Context(), event.Detail.HostID); err != nil {
 		std.InstanceData().Log().
 			Zh("删除主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -405,7 +405,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostDeleteEvent(std *syncDataU
 // handleHostRelationResource this func defines how to handle the host relation resource event.
 // if the host relation is deleted, it means the host is need deleted
 // host event will handle the delete logic, so we can ignore the delete event of host relation.
-func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	switch event.EventType {
 	case types.EventTypeCreate:
 		act.handleHostRelationCreateEvent(std, event)
@@ -418,7 +418,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *sync
 	}
 }
 
-func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	host, ok := act.waitingCreateHostMap[event.Detail.HostID]
 	existHost, err := act.storageTopo.ExistHost(std.Context(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}},
@@ -480,7 +480,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *s
 	}
 }
 
-func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	exists, err := act.storageTopo.ExistHost(std.Context(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}},
 	})
@@ -544,7 +544,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *s
 	}
 }
 
-func (act *actionWatchAndApplyCMDBResource) handleHostRelationDeleteEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+func (act *actionWatchAndApplyCMDBResource) handleHostRelationDeleteEvent(std *syncdataaction.SyncDataActionStandarder, event *types.HostEvent) {
 	hostRelation := &types.HostTopoRelation{
 		HostID: event.Detail.HostID,
 		BizID:  event.Detail.Static.BizID,
@@ -561,7 +561,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationDeleteEvent(std *s
 }
 
 // tryCreateHostFromCMDB depends on the host id to get the host information from CMDB.
-func (act *actionWatchAndApplyCMDBResource) tryCreateHostFromCMDB(std *syncDataUtils.SyncDataActionStandarder, hostID int64, bizID int64) error {
+func (act *actionWatchAndApplyCMDBResource) tryCreateHostFromCMDB(std *syncdataaction.SyncDataActionStandarder, hostID int64, bizID int64) error {
 	cond := &types.HostStaticExactCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{hostID}},
 	}
@@ -590,9 +590,9 @@ func (act *actionWatchAndApplyCMDBResource) tryCreateHostFromCMDB(std *syncDataU
 
 	host := hosts[0]
 	// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
-	syncDataUtils.FillHostDynamicAgentID(host)
+	syncdataaction.FillHostDynamicAgentID(host)
 	// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
-	syncDataUtils.FillHostDynamicOpsInfo(host)
+	syncdataaction.FillHostDynamicOpsInfo(host)
 	fillDefaultAdvertiseIP(host, nil)
 	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
@@ -632,7 +632,7 @@ func (act *actionWatchAndApplyCMDBResource) checkHostNeedCorrectAgentID(dbHost, 
 	return true
 }
 
-func (act *actionWatchAndApplyCMDBResource) tryTriggerCorrectAgentID(std *syncDataUtils.SyncDataActionStandarder) error {
+func (act *actionWatchAndApplyCMDBResource) tryTriggerCorrectAgentID(std *syncdataaction.SyncDataActionStandarder) error {
 	if len(act.pendingCorrectAgentIDList) == 0 {
 		return nil
 	}

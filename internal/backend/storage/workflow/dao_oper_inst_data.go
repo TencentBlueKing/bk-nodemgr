@@ -27,7 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -141,7 +141,7 @@ func (s *Storage) updateActionInstanceLifecycle(
 
 // pushActionInstanceMessage pushes action instance message.
 func (s *Storage) pushActionInstanceMessage(
-	nCtx contextx.IContext, operInstID, actionName string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID, actionName string, messages ...execution.Message) error {
 
 	if nCtx == nil {
 		return basestorage.ErrNilContent()
@@ -327,7 +327,7 @@ func (s *Storage) updateOperationLatestActionInstBriefData(
 
 // updateOperationInstanceExtraExecutionMessages updates operation instance execution messages.
 func (s *Storage) updateOperationInstanceExtraExecutionMessages(
-	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID string, messages ...execution.Message) error {
 
 	if nCtx == nil {
 		return basestorage.ErrNilContent()

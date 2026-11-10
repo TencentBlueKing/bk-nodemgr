@@ -27,7 +27,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -92,7 +92,7 @@ func Test_handler_Upsert(t *testing.T) {
 							Timeout:                0,
 							InitContent:            map[string]any{},
 							ExtraExecutionName:     "extra-execution",
-							ExtraExecutionMessages: make([]common.Message, 0),
+							ExtraExecutionMessages: make([]execution.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "success",
@@ -141,7 +141,7 @@ func Test_handler_Upsert(t *testing.T) {
 								"order_id": "ORD-1001",
 							},
 							ExtraExecutionName:     "extra-execution",
-							ExtraExecutionMessages: make([]common.Message, 0),
+							ExtraExecutionMessages: make([]execution.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "success",
@@ -185,7 +185,7 @@ func Test_handler_Upsert(t *testing.T) {
 							Timeout:                1 * time.Hour,
 							InitContent:            map[string]any{},
 							ExtraExecutionName:     "extra-execution",
-							ExtraExecutionMessages: make([]common.Message, 0),
+							ExtraExecutionMessages: make([]execution.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "running",
@@ -240,7 +240,7 @@ func Test_handler_Upsert(t *testing.T) {
 							Timeout:                0,
 							InitContent:            map[string]any{},
 							ExtraExecutionName:     "extra-execution",
-							ExtraExecutionMessages: make([]common.Message, 0),
+							ExtraExecutionMessages: make([]execution.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "success",
@@ -574,7 +574,7 @@ func Test_UpdateExecMessages(t *testing.T) {
 		nCtx       context.Context
 		OperInstID string
 		ExecName   string
-		Messages   []common.Message
+		Messages   []execution.Message
 	}
 
 	tests := []struct {
@@ -587,7 +587,7 @@ func Test_UpdateExecMessages(t *testing.T) {
 			args: args{
 				nCtx:       context.Background(),
 				OperInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-				Messages: []common.Message{
+				Messages: []execution.Message{
 					{
 						Time:  time.Now(),
 						Text:  "This is a test message",
@@ -602,7 +602,7 @@ func Test_UpdateExecMessages(t *testing.T) {
 			args: args{
 				nCtx:       context.Background(),
 				OperInstID: "op-instance-002",
-				Messages: []common.Message{
+				Messages: []execution.Message{
 					{
 						Time:  time.Now(),
 						Text:  "This is a test message",

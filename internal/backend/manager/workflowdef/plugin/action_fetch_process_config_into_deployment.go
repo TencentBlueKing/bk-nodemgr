@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -45,7 +45,7 @@ func NewActionFetchProcessSubConfigIntoDeployment(capability *Capability) action
 
 // ActParamFetchProcessSubConfigIntoDeployment defines the parameters for actionFetchProcessSubConfigIntoDeployment.
 type ActParamFetchProcessSubConfigIntoDeployment struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionFetchProcessSubConfigIntoDeployment struct {
@@ -97,7 +97,7 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}

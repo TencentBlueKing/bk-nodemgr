@@ -21,7 +21,7 @@ package syncdata
 import (
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -47,7 +47,7 @@ func NewActionSyncAgentState(capability *Capability) action.Definition {
 
 // ActionParamSyncAgentState the action's param.
 type ActionParamSyncAgentState struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 
 	Hosts               []*HostIDAgentID `json:"hosts"`
 	CompareCurrentState bool             `json:"compare_current_state,omitempty"`
@@ -102,7 +102,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}

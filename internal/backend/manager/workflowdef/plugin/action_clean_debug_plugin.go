@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -50,7 +50,7 @@ func NewActionCleanDebugPlugin(capability *Capability) action.Definition {
 
 // ActionParamCleanDebugPlugin defines parameters for debug plugin cleanup.
 type ActionParamCleanDebugPlugin struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actCleanDebugPlugin struct {
@@ -91,7 +91,7 @@ func (act *actCleanDebugPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (act *actCleanDebugPlugin) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actCleanDebugPlugin) waitCleanupResult(std *pluginUtils.PluginActionStandarder, taskID string, endpoint types.Endpoint) error {
+func (act *actCleanDebugPlugin) waitCleanupResult(std *pluginaction.PluginActionStandarder, taskID string, endpoint types.Endpoint) error {
 	ticker := time.NewTicker(cleanDebugPluginPollingInterval)
 	defer ticker.Stop()
 

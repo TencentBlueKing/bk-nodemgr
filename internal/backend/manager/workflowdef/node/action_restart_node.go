@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -54,7 +54,7 @@ func NewActionRestartNode(capability *Capability) action.Definition {
 
 // ActionParamRestartNode defines the action param.
 type ActionParamRestartNode struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionRestartNode struct {
@@ -120,7 +120,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionRestartNode) capturePreRestartNodeStartTime(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	preRestartNodeStartTime *uint64,
 ) error {
 
@@ -195,7 +195,7 @@ func (act *actionRestartNode) capturePreRestartNodeStartTime(
 	return nil
 }
 
-func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {
+func (act *actionRestartNode) restartThroughCluster(std *nodeaction.NodeActionStandarder, info *types.DeploymentInfo) error {
 	result, err := act.gseHandler.OperateAgent(std.Context(), types.OperateAgent{
 		Type:                   types.OperateAgentTypeRestart,
 		CurrentAgentVersion:    "",
@@ -221,7 +221,7 @@ func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionSta
 	return nil
 }
 
-func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {
+func (act *actionRestartNode) restartThroughCommand(std *nodeaction.NodeActionStandarder, info *types.DeploymentInfo) error {
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -252,7 +252,7 @@ func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionSta
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
+func (act *actionRestartNode) restartThroughCommandUnix(std *nodeaction.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
 	_, restartCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)
@@ -287,7 +287,7 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
+func (act *actionRestartNode) restartThroughCommandWindows(std *nodeaction.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
 	_, restartCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)

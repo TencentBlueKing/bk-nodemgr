@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -63,7 +63,7 @@ func NewActionInstallPluginV2(capability *Capability) action.Definition {
 
 // ActParamInstallPluginV2 ...
 type ActParamInstallPluginV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // actionInstallPluginV2 ...
@@ -122,7 +122,7 @@ func (act *actionInstallPluginV2) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ type pluginV2InstallParams struct {
 }
 
 func (act *actionInstallPluginV2) buildInstallParams(
-	std *pluginV2Utils.PluginActionStandarder,
+	std *pluginv2action.PluginActionStandarder,
 	targetHost *types.Host,
 	targetPlugin *types.Plugin,
 ) (*pluginV2InstallParams, error) {
@@ -221,7 +221,7 @@ func (act *actionInstallPluginV2) buildInstallParams(
 		return nil, err
 	}
 
-	callbackEndpoints, downloadEndpoints, err := pluginV2Utils.GeneratePluginInstallerServerEndpoints(
+	callbackEndpoints, downloadEndpoints, err := pluginv2action.GeneratePluginInstallerServerEndpoints(
 		std.Context(),
 		act.provider,
 		act.daoHost,
@@ -233,7 +233,7 @@ func (act *actionInstallPluginV2) buildInstallParams(
 
 		return nil, err
 	}
-	downloadSvrAddr, err := pluginV2Utils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	downloadSvrAddr, err := pluginv2action.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build download server urls: %w", err)
 	}
@@ -253,7 +253,7 @@ func (act *actionInstallPluginV2) buildInstallParams(
 			PluginName:      targetPlugin.Name,
 			PluginVersion:   std.DeployInfo().Process.Info.Version,
 			PluginPkgName:   targetPlugin.PkgName,
-			CallbackSvrAddr: pluginV2Utils.BuildServerURLs(callbackEndpoints...),
+			CallbackSvrAddr: pluginv2action.BuildServerURLs(callbackEndpoints...),
 			DownloadSvrAddr: downloadSvrAddr,
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,

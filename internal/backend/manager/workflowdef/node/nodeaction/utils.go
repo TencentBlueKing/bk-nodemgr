@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package utils use to provide some common utils for node actions.
-package utils
+// Package nodeaction provides standard parameters and shared behavior for node workflow actions.
+package nodeaction
 
 import (
 	"fmt"

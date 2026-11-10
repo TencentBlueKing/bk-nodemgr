@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -56,7 +56,7 @@ func NewActionEnsureAndUpdatePluginConfigDetailsV2(capability *Capability) actio
 
 // ActParamEnsureAndUpdatePluginConfigDetailsV2 ...
 type ActParamEnsureAndUpdatePluginConfigDetailsV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // actionEnsureAndUpdatePluginConfigDetailsV2 ...
@@ -110,7 +110,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) Do(ctx *action.InstanceCo
 		return err
 	}
 
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -126,10 +126,10 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) Do(ctx *action.InstanceCo
 	}
 	// the login user is only the SSH authentication identity at install time;
 	// GSE channel process/file operations use the host operate user instead.
-	if err = pluginV2Utils.EnsureHostLoginUser(std, hostInfo); err != nil {
+	if err = pluginv2action.EnsureHostLoginUser(std, hostInfo); err != nil {
 		return err
 	}
-	if err = pluginV2Utils.EnsureHostOperateUser(std, hostInfo); err != nil {
+	if err = pluginv2action.EnsureHostOperateUser(std, hostInfo); err != nil {
 		return err
 	}
 	pluginRelease, err := act.fileHandler.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
@@ -181,7 +181,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) Do(ctx *action.InstanceCo
 	return nil
 }
 
-func (act *actionEnsureAndUpdatePluginConfigDetailsV2) fillConfigDetails(std *pluginV2Utils.PluginActionStandarder,
+func (act *actionEnsureAndUpdatePluginConfigDetailsV2) fillConfigDetails(std *pluginv2action.PluginActionStandarder,
 	pluginRelease *types.ReleasePlugin, pluginConf *types.PluginDeploymentPluginConf) error {
 
 	templateMap := make(map[types.PluginPkgConfigTemplateKey]types.PluginPkgConfigTemplate, len(pluginRelease.ConfigTemplates))
@@ -400,7 +400,7 @@ const (
 )
 
 func (act *actionEnsureAndUpdatePluginConfigDetailsV2) generateGoTemplateSystemConfigContext(
-	std *pluginV2Utils.PluginActionStandarder, hostInfo *types.Host) map[string]any {
+	std *pluginv2action.PluginActionStandarder, hostInfo *types.Host) map[string]any {
 
 	pluginInfo := ContextPluginInfo{
 		Name:          std.DeployInfo().Process.PluginName,
@@ -490,7 +490,7 @@ const (
 )
 
 func (act *actionEnsureAndUpdatePluginConfigDetailsV2) generateJinja2SystemConfigContext(
-	std *pluginV2Utils.PluginActionStandarder, hostInfo *types.Host) (map[string]any, error) {
+	std *pluginv2action.PluginActionStandarder, hostInfo *types.Host) (map[string]any, error) {
 
 	var (
 		innerIP   string
@@ -560,7 +560,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) generateJinja2SystemConfi
 	}
 
 	// notice: in v2 plugin, subconfig_path still need provide, and the path is fixed
-	if err = pluginV2Utils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
+	if err = pluginv2action.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
 		return nil, fmt.Errorf("check subconfig dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
 	}
 

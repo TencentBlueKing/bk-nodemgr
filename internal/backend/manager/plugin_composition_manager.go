@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
@@ -74,7 +74,7 @@ func (mgr *Manager) LaunchComposePluginSubConfig(nCtx contextx.IContext, param t
 			return "", fmt.Errorf("failed to create composition deployment: %w", err)
 		}
 		def := plugin.NewOperComposePluginSubConfig(plugin.OperParamComposePluginSubConfig{
-			PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 				Token: deploy.Token, TenantID: nCtx.TenantID(), Operator: param.Operator,
 			}, SourceOperation: param.SourceOperation,
 		})

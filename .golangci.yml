@@ -244,16 +244,16 @@ linters:
           alias: pluginworkflow
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment
           alias: plugindeployment
-        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils
-          alias: nodeUtils
-        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils
-          alias: pluginUtils
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction
+          alias: nodeaction
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction
+          alias: pluginaction
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2
           alias: pluginv2
-        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils
-          alias: pluginV2Utils
-        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils
-          alias: syncDataUtils
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action
+          alias: pluginv2action
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction
+          alias: syncdataaction
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow
           alias: scheduledworkflow
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform
@@ -294,8 +294,8 @@ linters:
           alias: cipherStg
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/cipher
           alias: daoCipher
-        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils
-          alias: deployPolicyUtils
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/deploypolicyaction
+          alias: deploypolicyaction
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config
           alias: daoProcessConfig
         - pkg: github.com/patrickmn/go-cache
@@ -318,8 +318,8 @@ linters:
           alias: pkgStg
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-deployment
           alias: packagedeployment
-        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils
-          alias: pkgUtils
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/packageaction
+          alias: packageaction
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-export
           alias: packageexport
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-ops-history

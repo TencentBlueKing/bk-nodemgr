@@ -27,7 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -533,7 +533,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 		ActionInstanceDataMap: make(map[string]*action.InstanceData),
 		InstanceBriefData: operation.InstanceBriefData{
 			Metadata: &operation.InstanceMetadata{
-				ExtraExecutionMessages: make([]common.Message, 0),
+				ExtraExecutionMessages: make([]execution.Message, 0),
 			},
 		},
 	}
@@ -555,12 +555,12 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 		}
 
 		if actionData.GetMessage() != nil {
-			instance.Messages = make([]common.Message, 0, len(actionData.GetMessage().GetLogs()))
+			instance.Messages = make([]execution.Message, 0, len(actionData.GetMessage().GetLogs()))
 			for _, msg := range actionData.GetMessage().GetLogs() {
 				if msg == nil {
 					continue
 				}
-				instance.Messages = append(instance.Messages, common.Message{
+				instance.Messages = append(instance.Messages, execution.Message{
 					Time:   time.UnixMilli(msg.GetTime()),
 					TextZh: msg.GetTextZh(),
 					TextEn: msg.GetTextEn(),
@@ -597,7 +597,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 			continue
 		}
 
-		result.InstanceBriefData.Metadata.ExtraExecutionMessages = append(result.InstanceBriefData.Metadata.ExtraExecutionMessages, common.Message{
+		result.InstanceBriefData.Metadata.ExtraExecutionMessages = append(result.InstanceBriefData.Metadata.ExtraExecutionMessages, execution.Message{
 			Time:   time.UnixMilli(msg.GetTime()),
 			TextZh: msg.GetTextZh(),
 			TextEn: msg.GetTextEn(),

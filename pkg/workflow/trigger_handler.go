@@ -34,7 +34,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.opentelemetry.io/otel/attribute"
@@ -467,7 +467,7 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 		return nil
 
 	default:
-		return common.ErrUnknownTriggerCategory()
+		return execution.ErrUnknownTriggerCategory()
 	}
 }
 
@@ -622,12 +622,12 @@ func (handler *triggerHandler) listInitOperationInstances(
 func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataOrdered)
 	if !ok {
-		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
+		return nil, errors.Join(execution.ErrInvalidTriggerMetadata(),
 			fmt.Errorf("trigger metadata is not ordered type. trigger-id(%s)", trigCtl.GetTriggerID()))
 	}
 
 	if metadata.MaxConcurrencyNum <= 0 {
-		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
+		return nil, errors.Join(execution.ErrInvalidTriggerMetadata(),
 			fmt.Errorf("max concurrency num is invalid. trigger-id(%s), max-concurrency-num(%d)",
 				trigCtl.GetTriggerID(), metadata.MaxConcurrencyNum))
 	}
@@ -667,7 +667,7 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataPeriodic)
 	if !ok {
-		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
+		return nil, errors.Join(execution.ErrInvalidTriggerMetadata(),
 			fmt.Errorf("trigger metadata is not periodic type. trigger-id(%s)", trigCtl.GetTriggerID()))
 	}
 
@@ -711,7 +711,7 @@ func (handler *triggerHandler) createPeriodicOperationInstance(nCtx contextx.ICo
 	}
 
 	if count != 1 {
-		return errors.Join(common.ErrInvalidPeriodicOperationNum(),
+		return errors.Join(execution.ErrInvalidPeriodicOperationNum(),
 			fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
 				trigCtl.GetTriggerID(), count))
 	}
@@ -722,7 +722,7 @@ func (handler *triggerHandler) createPeriodicOperationInstance(nCtx contextx.ICo
 	}
 
 	if len(operList) != 1 {
-		return errors.Join(common.ErrInvalidPeriodicOperationNum(),
+		return errors.Join(execution.ErrInvalidPeriodicOperationNum(),
 			fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
 				trigCtl.GetTriggerID(), len(operList)))
 	}

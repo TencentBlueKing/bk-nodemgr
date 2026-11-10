@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -56,7 +56,7 @@ func NewActionReconfigPagent(capability *Capability) action.Definition {
 
 // ActionParamReconfigPagent defines the action param.
 type ActionParamReconfigPagent struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionReconfigPagent struct {
@@ -122,7 +122,7 @@ func (act *actionReconfigPagent) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (act *actionReconfigPagent) Do(ctx *action.InstanceContext) (err error) {
 }
 
 // nolint: perfsprint
-func (act *actionReconfigPagent) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+func (act *actionReconfigPagent) doReconfigUnix(std *nodeaction.NodeActionStandarder, param *installer.NodeReconfigParams) error {
 	_, reconfigCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
@@ -225,7 +225,7 @@ func (act *actionReconfigPagent) doReconfigUnix(std *nodeUtils.NodeActionStandar
 }
 
 // nolint: perfsprint
-func (act *actionReconfigPagent) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+func (act *actionReconfigPagent) doReconfigWindows(std *nodeaction.NodeActionStandarder, param *installer.NodeReconfigParams) error {
 	_, reconfigCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)

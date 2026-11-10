@@ -18,7 +18,7 @@
 
 // Package utils use to provide some common utils for plugin v2 actions.
 // nolint: revive
-package utils
+package pluginv2action
 
 import (
 	"errors"

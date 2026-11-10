@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 )
 
 // testActionInstData ...
@@ -338,7 +338,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 		nCtx       context.Context
 		operInstID string
 		actionName string
-		msgs       []common.Message
+		msgs       []execution.Message
 	}
 	tests := []struct {
 		name    string
@@ -351,7 +351,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 				nCtx:       context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "sync_action_from_cmdb",
-				msgs: []common.Message{
+				msgs: []execution.Message{
 					{
 						Time:  time.Now(),
 						Text:  "test1 ",

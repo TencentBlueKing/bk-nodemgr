@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -50,7 +50,7 @@ func NewActionUpsertHostToCMDB(capability *Capability) action.Definition {
 
 // ActParamUpsertHostToCMDB ...
 type ActParamUpsertHostToCMDB struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionUpsertHostToCMDB struct {
@@ -115,7 +115,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) checkHost(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionUpsertHostToCMDB) checkHost(std *nodeaction.NodeActionStandarder) error {
 	info := std.DeployInfo()
 	hosts, _, err := act.storageHost.ListHost(std.Context(), types.SingleItemPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{

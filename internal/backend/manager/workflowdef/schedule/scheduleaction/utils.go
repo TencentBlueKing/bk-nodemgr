@@ -16,5 +16,5 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package utils use to provide some common utils for schedule actions.
-package utils
+// Package scheduleaction provides standard parameters for scheduled workflow actions.
+package scheduleaction

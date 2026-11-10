@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -69,7 +69,7 @@ func newActionUninstallNodeBase(capability *Capability) actionUninstallNodeBase 
 
 // ActionParamUninstallNode defines the action param.
 type ActionParamUninstallNode struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionUninstallNodeBase struct {
@@ -167,13 +167,13 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
-		std, act.provider, nodeUtils.NodeInstallerEndpointSourceServer)
+	callbackEndpoints, _, err := nodeaction.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeaction.NodeInstallerEndpointSourceServer)
 	if err != nil {
 		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
-	uninstallParams.CallbackSvrAddr = nodeUtils.BuildServerURLs(callbackEndpoints...)
+	uninstallParams.CallbackSvrAddr = nodeaction.BuildServerURLs(callbackEndpoints...)
 	err = saveWaitInstallerPrivateData(
 		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
 		false, false)
@@ -206,7 +206,7 @@ func (act *actionUninstallNodeSkipReport) Do(ctx *action.InstanceContext) (err e
 }
 
 func (act *actionUninstallNodeBase) initializeStandarder(
-	ctx *action.InstanceContext) (*nodeUtils.NodeActionStandarder, error) {
+	ctx *action.InstanceContext) (*nodeaction.NodeActionStandarder, error) {
 
 	param := new(ActionParamUninstallNode)
 	err := conv.MapToStruct(ctx.Data.Content, param)
@@ -214,7 +214,7 @@ func (act *actionUninstallNodeBase) initializeStandarder(
 		return nil, err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (act *actionUninstallNodeBase) initializeStandarder(
 }
 
 func (act *actionUninstallNodeBase) buildUninstallParamsBase(
-	std *nodeUtils.NodeActionStandarder) (*installer.NodeUninstallParams, error) {
+	std *nodeaction.NodeActionStandarder) (*installer.NodeUninstallParams, error) {
 
 	toolName, err := tool.FormatInstallerName(
 		std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -255,7 +255,7 @@ func (act *actionUninstallNodeBase) buildUninstallParamsBase(
 }
 
 func (act *actionUninstallNodeBase) doUninstall(
-	std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
+	std *nodeaction.NodeActionStandarder, param *installer.NodeUninstallParams) error {
 
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doUninstallWindows(std, param)
@@ -266,7 +266,7 @@ func (act *actionUninstallNodeBase) doUninstall(
 
 // nolint: perfsprint
 func (act *actionUninstallNodeBase) doUninstallUnix(
-	std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
+	std *nodeaction.NodeActionStandarder, param *installer.NodeUninstallParams) error {
 
 	_, uninstallCmd, err := param.ToUnixScript()
 	if err != nil {
@@ -303,7 +303,7 @@ func (act *actionUninstallNodeBase) doUninstallUnix(
 
 // nolint: perfsprint
 func (act *actionUninstallNodeBase) doUninstallWindows(
-	std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
+	std *nodeaction.NodeActionStandarder, param *installer.NodeUninstallParams) error {
 
 	_, uninstallCmd, err := param.ToWindowsScript()
 	if err != nil {

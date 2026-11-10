@@ -23,7 +23,7 @@ import (
 	"slices"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
@@ -54,7 +54,7 @@ func NewActionSyncAlivePluginProcessV2Info(capability *Capability) action.Defini
 
 // ActionParamSyncAlivePluginProcessV2Info the action's param.
 type ActionParamSyncAlivePluginProcessV2Info struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 
 	HostIDs []int64 `json:"host_ids"`
 }
@@ -109,7 +109,7 @@ func (act *actionSyncAlivePluginProcessV2Info) Do(ctx *action.InstanceContext) e
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}

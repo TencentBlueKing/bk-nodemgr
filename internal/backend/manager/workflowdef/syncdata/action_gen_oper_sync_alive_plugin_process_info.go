@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
@@ -56,7 +56,7 @@ func NewActionGenOperSyncAlivePluginProcessInfo(capability *Capability) action.D
 
 // ActionParamGenOperSyncAlivePluginProcessInfo defines the action's param.
 type ActionParamGenOperSyncAlivePluginProcessInfo struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 type actionGenOperSyncAlivePluginProcessInfo struct {
@@ -110,7 +110,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -189,7 +189,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 
 // executeOper create an operation to sync alive plugin process info and then execute it.
 func (act *actionGenOperSyncAlivePluginProcessInfo) executeOper(
-	std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, hostIDs ...int64) error {
+	std *syncdataaction.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, hostIDs ...int64) error {
 
 	operationDef := NewOperSyncAlivePluginProcessInfo(OperParamSyncAlivePluginProcessInfo{
 		TenantID: std.TenantID(),

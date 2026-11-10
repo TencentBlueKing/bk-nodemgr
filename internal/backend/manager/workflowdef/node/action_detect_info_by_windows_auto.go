@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -55,7 +55,7 @@ func NewActionDetectInfoByWindowsAuto(capability *Capability) action.Definition 
 
 // ActParamDetectInfoByWindowsAuto defines the action parameter.
 type ActParamDetectInfoByWindowsAuto struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionDetectInfoByWindowsAuto struct {
@@ -126,7 +126,7 @@ func (act *actionDetectInfoByWindowsAuto) Do(ctx *action.InstanceContext) (err e
 		return fmt.Errorf("failed to convert param: %w", err)
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -148,8 +148,8 @@ func (act *actionDetectInfoByWindowsAuto) Do(ctx *action.InstanceContext) (err e
 	return nil
 }
 
-func (act *actionDetectInfoByWindowsAuto) detectByWindowsSSH(std *nodeUtils.NodeActionStandarder) (windowsSSHDetectResult, error) {
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+func (act *actionDetectInfoByWindowsAuto) detectByWindowsSSH(std *nodeaction.NodeActionStandarder) (windowsSSHDetectResult, error) {
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return windowsSSHDetectResult{}, fmt.Errorf("failed to get ssh credit: %w", err)
@@ -193,8 +193,8 @@ func (act *actionDetectInfoByWindowsAuto) detectByWindowsSSH(std *nodeUtils.Node
 	return detectWindowsSSHInfo(std.InstanceData(), client)
 }
 
-func (act *actionDetectInfoByWindowsAuto) detectByWMI(std *nodeUtils.NodeActionStandarder) (windowsWMIDetectResult, error) {
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+func (act *actionDetectInfoByWindowsAuto) detectByWMI(std *nodeaction.NodeActionStandarder) (windowsWMIDetectResult, error) {
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
 		return windowsWMIDetectResult{}, fmt.Errorf("failed to get wmi credit: %w", err)
@@ -226,7 +226,7 @@ func (act *actionDetectInfoByWindowsAuto) detectByWMI(std *nodeUtils.NodeActionS
 }
 
 func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
-	std *nodeUtils.NodeActionStandarder, result windowsAutoDetectResult,
+	std *nodeaction.NodeActionStandarder, result windowsAutoDetectResult,
 ) error {
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = result.osType
@@ -283,7 +283,7 @@ func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
 	return nil
 }
 
-func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(std *nodeUtils.NodeActionStandarder) (windowsAutoDetectResult, error) {
+func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(std *nodeaction.NodeActionStandarder) (windowsAutoDetectResult, error) {
 	sshResult, sshErr := act.detectByWindowsSSH(std)
 	if sshErr == nil {
 		return windowsAutoDetectResult{

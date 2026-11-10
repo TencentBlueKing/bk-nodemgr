@@ -8,9 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package utils provides common utilities for package workflow actions.
-// nolint:revive // package name follows the workflowdef XxxUtils convention (node/utils, plugin/utils).
-package utils
+// Package packageaction provides standard parameters and shared behavior for package workflow actions.
+package packageaction
 
 import (
 	"fmt"

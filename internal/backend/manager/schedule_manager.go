@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/scheduleaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
@@ -426,18 +426,18 @@ func getScheduledWorkflowOperator(nCtx contextx.IContext) (string, error) {
 	return operator, nil
 }
 
-func buildScheduleActionStandardParam(nCtx contextx.IContext, sw *types.ScheduledWorkflow) (utils.ScheduleActionStandardParam, error) {
+func buildScheduleActionStandardParam(nCtx contextx.IContext, sw *types.ScheduledWorkflow) (scheduleaction.ScheduleActionStandardParam, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
-		return utils.ScheduleActionStandardParam{}, err
+		return scheduleaction.ScheduleActionStandardParam{}, err
 	}
 
 	tenantID := nCtx.TenantID()
 	operator, err := getScheduledWorkflowOperator(nCtx)
 	if err != nil {
-		return utils.ScheduleActionStandardParam{}, err
+		return scheduleaction.ScheduleActionStandardParam{}, err
 	}
 
-	return utils.ScheduleActionStandardParam{
+	return scheduleaction.ScheduleActionStandardParam{
 		WorkflowID: sw.WorkflowID,
 		TenantID:   tenantID,
 		Operator:   operator,

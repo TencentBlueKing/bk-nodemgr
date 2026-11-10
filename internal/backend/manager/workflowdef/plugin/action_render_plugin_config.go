@@ -24,7 +24,7 @@ import (
 	"maps"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer"
@@ -49,7 +49,7 @@ func NewActionRenderPluginConfig(capability *Capability) action.Definition {
 
 // ActParamRenderPluginConfig ...
 type ActParamRenderPluginConfig struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 // actionRenderPluginConfig ...
@@ -102,7 +102,7 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) (err error)
 	return nil
 }
 
-func (act *actionRenderPluginConfig) renderPluginConf(std *pluginUtils.PluginActionStandarder, pluginConf *types.PluginDeploymentPluginConf) error {
+func (act *actionRenderPluginConfig) renderPluginConf(std *pluginaction.PluginActionStandarder, pluginConf *types.PluginDeploymentPluginConf) error {
 	customContext := pluginConf.CustomConfigContext
 	systemContext := pluginConf.SystemConfigContext
 	renderContext := make(map[string]any)

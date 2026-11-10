@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 )
 
 // InstanceContext represents the context of an action instance.
@@ -48,7 +48,7 @@ type InstanceData struct {
 	DisplayNameEn string // English display name
 	Index         int
 	TotalIndex    int
-	Messages      []common.Message
+	Messages      []execution.Message
 	MessagesMutex sync.Mutex
 	Content       map[string]any
 	PrivateData   map[string]any
@@ -66,7 +66,7 @@ func (data *InstanceData) SetMessage(zhMsg, enMsg, level string) {
 	data.MessagesMutex.Lock()
 	defer data.MessagesMutex.Unlock()
 
-	data.Messages = append(data.Messages, common.Message{
+	data.Messages = append(data.Messages, execution.Message{
 		Time:   time.Now(),
 		TextZh: zhMsg,
 		TextEn: enMsg,
@@ -75,8 +75,8 @@ func (data *InstanceData) SetMessage(zhMsg, enMsg, level string) {
 }
 
 // Log returns a new LogBuilder for chainable bilingual logging.
-func (data *InstanceData) Log() *common.LogBuilder {
-	return common.NewLogBuilder(data)
+func (data *InstanceData) Log() *execution.LogBuilder {
+	return execution.NewLogBuilder(data)
 }
 
 // IsFirst checks if the action instance is the first one.
@@ -93,10 +93,10 @@ func (data *InstanceData) IsLast() bool {
 func (data *InstanceData) NeedExecuted() error {
 	switch data.Lifecycle.State {
 	case StateSuccess:
-		return common.ErrActionAlreadySucceeded()
+		return execution.ErrActionAlreadySucceeded()
 
 	case StateSkipped:
-		return common.ErrActionSkipped()
+		return execution.ErrActionSkipped()
 
 	case StatePending:
 		return nil

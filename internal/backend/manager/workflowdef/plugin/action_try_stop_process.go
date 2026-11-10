@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
@@ -55,7 +55,7 @@ func NewActionTryStopProcess(capability *Capability) action.Definition {
 
 // ActionParamTryStopProcess defines the parameters for actionTryStopProcess.
 type ActionParamTryStopProcess struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 // actTryStopProcess ...
@@ -114,7 +114,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -248,7 +248,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginActionStandarder, host *types.Host, plugin *types.Plugin, version string) (
+func (act *actTryStopProcess) buildStopProcessSpec(std *pluginaction.PluginActionStandarder, host *types.Host, plugin *types.Plugin, version string) (
 	types.ProcessSpec, error) {
 
 	nCtx := std.Context()
@@ -290,10 +290,10 @@ func (act *actTryStopProcess) buildStopProcessSpec(std *pluginUtils.PluginAction
 	}
 	pluginConstant.BaseDeployDir = conv.NonEmptyOr(customDeployConfig.PluginRuntime.BaseDeployDir, pluginConstant.BaseDeployDir)
 
-	if err := pluginUtils.EnsureHostLoginUser(std, host); err != nil {
+	if err := pluginaction.EnsureHostLoginUser(std, host); err != nil {
 		return types.ProcessSpec{}, fmt.Errorf("failed to ensure host login user: %w", err)
 	}
-	if err := pluginUtils.EnsureHostOperateUser(std, host); err != nil {
+	if err := pluginaction.EnsureHostOperateUser(std, host); err != nil {
 		return types.ProcessSpec{}, fmt.Errorf("failed to ensure host operate user: %w", err)
 	}
 

@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -54,7 +54,7 @@ func NewActionWaitDetectInfoByManual(capability *Capability) action.Definition {
 
 // ActParamWaitDetectInfoByManual ...
 type ActParamWaitDetectInfoByManual struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionWaitDetectInfoByManual struct {
@@ -119,7 +119,7 @@ func (act *actionWaitDetectInfoByManual) Do(ctx *action.InstanceContext) (err er
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (act *actionWaitDetectInfoByManual) Do(ctx *action.InstanceContext) (err er
 	return nil
 }
 
-func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStandarder, detectInfo *types.PDDetectInfo) error {
+func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeaction.NodeActionStandarder, detectInfo *types.PDDetectInfo) error {
 	osType, err := platform.NormalizeOS(detectInfo.OsType)
 	if err != nil {
 		return err
@@ -242,7 +242,7 @@ var (
 	errDetectInfoNotReceived = errors.New("detect info not received")
 )
 
-func (act *actionWaitDetectInfoByManual) tryFetchDetectInfo(std *nodeUtils.NodeActionStandarder, key string) (*types.PDDetectInfo, error) {
+func (act *actionWaitDetectInfoByManual) tryFetchDetectInfo(std *nodeaction.NodeActionStandarder, key string) (*types.PDDetectInfo, error) {
 	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 		std.Context(),
 		std.InstanceData().OperationInstanceID,

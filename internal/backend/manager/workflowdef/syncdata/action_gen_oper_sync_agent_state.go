@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -59,7 +59,7 @@ func NewActionGenOperSyncAgentState(capability *Capability) action.Definition {
 
 // ActionParamGenOperSyncAgentState defines the action's param.
 type ActionParamGenOperSyncAgentState struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 
 	CompareCurrentState bool `json:"compare_current_state,omitempty"`
 }
@@ -115,7 +115,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils.SyncDataActionStandarder,
+func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncdataaction.SyncDataActionStandarder,
 	trigCtl workflow.ITriggerCtl, biz *types.Business, compareCurrentState bool) (int, error) {
 
 	// find nodes and sync agent state. skip the empty-agent-id nodes.
@@ -233,7 +233,7 @@ func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils
 
 // executeOper create an operation to sync agent state for the given hosts and then execute it.
 func (act *actionGenOperSyncAgentState) executeOper(
-	std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, compareCurrentState bool,
+	std *syncdataaction.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, compareCurrentState bool,
 	hosts ...*types.Host) error {
 
 	hostAgentID := make([]*HostIDAgentID, 0, len(hosts))

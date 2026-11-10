@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -54,7 +54,7 @@ func NewActionCleanInstaller(capability *Capability) action.Definition {
 
 // ActionParamCleanInstaller defines the action param.
 type ActionParamCleanInstaller struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionCleanInstaller struct {
@@ -119,7 +119,7 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 }
 
 // nolint: perfsprint
-func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
+func (act *actionCleanInstaller) doCleanUnix(std *nodeaction.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
 	_, cleanCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)
@@ -193,7 +193,7 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 }
 
 // nolint: perfsprint
-func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
+func (act *actionCleanInstaller) doCleanWindows(std *nodeaction.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
 	_, cleanCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)

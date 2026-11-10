@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -53,7 +53,7 @@ func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
 
 // ActParamRenderPluginDeployment ...
 type ActParamRenderPluginDeployment struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 // actionRenderPluginDeployment ...
@@ -109,7 +109,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err er
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -153,10 +153,10 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err er
 	std.DeployInfo().Process.Controller = pluginPkg.PluginController
 
 	// TODO: 接入配置管理
-	if err = pluginUtils.EnsureHostLoginUser(std, host); err != nil {
+	if err = pluginaction.EnsureHostLoginUser(std, host); err != nil {
 		return err
 	}
-	if err = pluginUtils.EnsureHostOperateUser(std, host); err != nil {
+	if err = pluginaction.EnsureHostOperateUser(std, host); err != nil {
 		return err
 	}
 
@@ -182,7 +182,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err er
 	return nil
 }
 
-func (act *actionRenderPluginDeployment) MatchConfigPolicy(std *pluginUtils.PluginActionStandarder, host *types.Host) error {
+func (act *actionRenderPluginDeployment) MatchConfigPolicy(std *pluginaction.PluginActionStandarder, host *types.Host) error {
 	std.InstanceData().Log().
 		Zh("匹配配置策略. "+
 			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), host-id(%d), plugin-name(%s)",

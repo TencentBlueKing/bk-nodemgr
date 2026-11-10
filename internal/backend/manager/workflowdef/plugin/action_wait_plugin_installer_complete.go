@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -56,7 +56,7 @@ func NewActionWaitPluginInstallerComplete(capability *Capability) action.Definit
 
 // ActionWaitPluginInstallerComplete defines the action param.
 type ActionWaitPluginInstallerComplete struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionWaitPluginInstallerComplete struct {
@@ -115,7 +115,7 @@ func (act *actionWaitPluginInstallerComplete) Do(ctx *action.InstanceContext) (e
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func (act *actionWaitPluginInstallerComplete) Do(ctx *action.InstanceContext) (e
 	return act.doCallbackPolling(std)
 }
 
-func (act *actionWaitPluginInstallerComplete) doCallbackPolling(std *pluginUtils.PluginActionStandarder) error {
+func (act *actionWaitPluginInstallerComplete) doCallbackPolling(std *pluginaction.PluginActionStandarder) error {
 	instanceID := std.InstanceData().OperationInstanceID
 
 	rawInstallerResult, err := act.waitInstallerField(std, types.PDKeyInstallerReportStatus)
@@ -162,7 +162,7 @@ func (act *actionWaitPluginInstallerComplete) doCallbackPolling(std *pluginUtils
 // doOfflinePolling waits for the offline installer to complete by polling the status file via GSE.
 // Uses a single GSE ExecuteScript call with internal polling logic to minimize API calls.
 // The script polls every second and returns when a terminal state is reached (success/failed/timeout).
-func (act *actionWaitPluginInstallerComplete) doOfflinePolling(std *pluginUtils.PluginActionStandarder) error {
+func (act *actionWaitPluginInstallerComplete) doOfflinePolling(std *pluginaction.PluginActionStandarder) error {
 	instanceID := std.InstanceData().OperationInstanceID
 
 	// Use one-time GSE script execution with internal polling loop
@@ -177,7 +177,7 @@ func (act *actionWaitPluginInstallerComplete) doOfflinePolling(std *pluginUtils.
 // waitOfflineInstallerStatus executes a single GSE script that polls internally until status file is ready.
 // nolint: gocognit
 func (act *actionWaitPluginInstallerComplete) waitOfflineInstallerStatus(
-	std *pluginUtils.PluginActionStandarder,
+	std *pluginaction.PluginActionStandarder,
 ) (*offlinePluginInstallerStatus, error) {
 
 	osType := std.DeployInfo().Process.Platform.OS
@@ -302,7 +302,7 @@ func (act *actionWaitPluginInstallerComplete) waitOfflineInstallerStatus(
 }
 
 func (act *actionWaitPluginInstallerComplete) buildWaitStatusScript(
-	std *pluginUtils.PluginActionStandarder,
+	std *pluginaction.PluginActionStandarder,
 ) string {
 
 	statusFile := path.Join(
@@ -350,7 +350,7 @@ exit 1
 }
 
 func (act *actionWaitPluginInstallerComplete) handleInstallerResult(
-	std *pluginUtils.PluginActionStandarder,
+	std *pluginaction.PluginActionStandarder,
 	instanceID string,
 	installerResult installer.ProcessState,
 	installerError string,
@@ -387,7 +387,7 @@ func (act *actionWaitPluginInstallerComplete) handleInstallerResult(
 }
 
 func (act *actionWaitPluginInstallerComplete) buildOfflineInstallerReadEndpoints(
-	std *pluginUtils.PluginActionStandarder,
+	std *pluginaction.PluginActionStandarder,
 ) (*types.EndpointWithAuth, *types.EndpointWithRestrict, error) {
 
 	agentID := std.DeployInfo().Process.Info.AgentID
@@ -405,7 +405,7 @@ func (act *actionWaitPluginInstallerComplete) buildOfflineInstallerReadEndpoints
 	}, nil
 }
 
-func (act *actionWaitPluginInstallerComplete) waitInstallerField(std *pluginUtils.PluginActionStandarder, key string) (string, error) {
+func (act *actionWaitPluginInstallerComplete) waitInstallerField(std *pluginaction.PluginActionStandarder, key string) (string, error) {
 	ticker := time.NewTicker(waitInstallerCompleteInterval)
 	defer ticker.Stop()
 
@@ -427,7 +427,7 @@ func (act *actionWaitPluginInstallerComplete) waitInstallerField(std *pluginUtil
 	}
 }
 
-func (act *actionWaitPluginInstallerComplete) tryFetchValue(std *pluginUtils.PluginActionStandarder, key string) (string, error) {
+func (act *actionWaitPluginInstallerComplete) tryFetchValue(std *pluginaction.PluginActionStandarder, key string) (string, error) {
 	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 		std.Context(),
 		std.InstanceData().OperationInstanceID,

@@ -23,7 +23,7 @@ import (
 	"slices"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -61,7 +61,7 @@ func NewActionSyncCorrectAgentID(capability *Capability) action.Definition {
 
 // ActionParamSyncCorrectAgentID defines the action's param.
 type ActionParamSyncCorrectAgentID struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 
 	HostIDs []int64 `json:"host_ids"`
 }
@@ -147,7 +147,7 @@ func (act *actionSyncCorrectAgentID) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func (act *actionSyncCorrectAgentID) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionSyncCorrectAgentID) correctHosts(std *syncDataUtils.SyncDataActionStandarder, stats *syncCorrectAgentIDStats, hosts []*types.Host) (
+func (act *actionSyncCorrectAgentID) correctHosts(std *syncdataaction.SyncDataActionStandarder, stats *syncCorrectAgentIDStats, hosts []*types.Host) (
 	[]*correctItem, error) {
 
 	agentInfos, err := act.listAgentInfo(std, hosts)
@@ -212,7 +212,7 @@ func (act *actionSyncCorrectAgentID) correctHosts(std *syncDataUtils.SyncDataAct
 	return validatedItems, nil
 }
 
-func (act *actionSyncCorrectAgentID) filterNeedCorrectHosts(std *syncDataUtils.SyncDataActionStandarder,
+func (act *actionSyncCorrectAgentID) filterNeedCorrectHosts(std *syncdataaction.SyncDataActionStandarder,
 	stats *syncCorrectAgentIDStats, hostIDs []int64) ([]*types.Host, error) {
 
 	hosts, _, err := act.hostStg.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
@@ -272,7 +272,7 @@ func checkHostNeedCorrect(host *types.Host) (string, bool) {
 	return "", true
 }
 
-func (act *actionSyncCorrectAgentID) listAgentInfo(std *syncDataUtils.SyncDataActionStandarder,
+func (act *actionSyncCorrectAgentID) listAgentInfo(std *syncdataaction.SyncDataActionStandarder,
 	items []*types.Host) (map[string]*types.AgentInfo, error) {
 
 	agentIDs := conv.SliceToSlice(items, func(host *types.Host) string {
@@ -311,7 +311,7 @@ func matchAgentInfoAndHost(host *types.Host, agentInfo *types.AgentInfo) (string
 	return "", true
 }
 
-func (act *actionSyncCorrectAgentID) recheckItems(std *syncDataUtils.SyncDataActionStandarder,
+func (act *actionSyncCorrectAgentID) recheckItems(std *syncdataaction.SyncDataActionStandarder,
 	stats *syncCorrectAgentIDStats, items []*correctItem) ([]*correctItem, error) {
 
 	if len(items) == 0 {
@@ -361,7 +361,7 @@ func (act *actionSyncCorrectAgentID) recheckItems(std *syncDataUtils.SyncDataAct
 	return recheckedItems, nil
 }
 
-func (act *actionSyncCorrectAgentID) updateHosts(std *syncDataUtils.SyncDataActionStandarder,
+func (act *actionSyncCorrectAgentID) updateHosts(std *syncdataaction.SyncDataActionStandarder,
 	items []*correctItem) error {
 
 	if len(items) == 0 {
@@ -387,7 +387,7 @@ func (act *actionSyncCorrectAgentID) updateHosts(std *syncDataUtils.SyncDataActi
 	})
 }
 
-func (act *actionSyncCorrectAgentID) logStats(ctx *action.InstanceContext, std *syncDataUtils.SyncDataActionStandarder,
+func (act *actionSyncCorrectAgentID) logStats(ctx *action.InstanceContext, std *syncdataaction.SyncDataActionStandarder,
 	stats *syncCorrectAgentIDStats) {
 
 	logger.G.Sys().Ctx(std.Context()).With(

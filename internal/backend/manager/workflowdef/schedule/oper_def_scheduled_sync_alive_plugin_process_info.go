@@ -21,7 +21,7 @@ package schedule
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/scheduleaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -43,7 +43,7 @@ type operScheduledSyncAlivePluginProcessInfo struct {
 
 // OperParamSyncAlivePluginProcessInfo defines the parameters for operScheduledSyncAlivePluginProcessInfo.
 type OperParamSyncAlivePluginProcessInfo struct {
-	utils.ScheduleActionStandardParam
+	scheduleaction.ScheduleActionStandardParam
 }
 
 // Name returns the name.

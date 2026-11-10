@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -46,7 +46,7 @@ func NewActionEnsureDirectNetworkUnit(capability *Capability) action.Definition 
 
 // ActionParamEnsureDirectNetworkUnit describes the parameters.
 type ActionParamEnsureDirectNetworkUnit struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 type actionEnsureDirectNetworkUnit struct {
@@ -98,7 +98,7 @@ func (act *actionEnsureDirectNetworkUnit) Do(ctx *action.InstanceContext) error 
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}

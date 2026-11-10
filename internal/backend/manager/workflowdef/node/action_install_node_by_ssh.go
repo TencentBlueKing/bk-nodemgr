@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -72,7 +72,7 @@ func NewActionInstallNodeBySSH(capability *Capability) action.Definition {
 
 // ActParamInstallAgentBySSH ...
 type ActParamInstallAgentBySSH struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallNodeBySSH struct {
@@ -145,7 +145,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// get ssh credit.
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -229,7 +229,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 }
 
 // doCrossUnitProxyInstall handles the SSH-only install flow for cross-unit proxy deployment.
-func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(std *nodeUtils.NodeActionStandarder, client *sshx.Client,
+func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(std *nodeaction.NodeActionStandarder, client *sshx.Client,
 	installerPath string) error {
 
 	std.InstanceData().Log().
@@ -256,7 +256,7 @@ func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(std *nodeUtils.NodeAc
 }
 
 // ensureProxyArtifacts pre-renders GSE config files and checklist, pushes them to target via SFTP.
-func (act *actionInstallNodeBySSH) ensureProxyArtifacts(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
+func (act *actionInstallNodeBySSH) ensureProxyArtifacts(std *nodeaction.NodeActionStandarder, client *sshx.Client) error {
 	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), std.Token())
 	if err != nil {
 		return fmt.Errorf("failed to get node conf: %w", err)
@@ -328,7 +328,7 @@ func (act *actionInstallNodeBySSH) ensureProxyArtifacts(std *nodeUtils.NodeActio
 }
 
 // pushProxyReleasePackage downloads the proxy release package and pushes it to the target via SFTP.
-func (act *actionInstallNodeBySSH) pushProxyReleasePackage(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
+func (act *actionInstallNodeBySSH) pushProxyReleasePackage(std *nodeaction.NodeActionStandarder, client *sshx.Client) error {
 	// Resolve the target filename first so that openReleaseReader's reader is not
 	// leaked when FormatPkgFileName fails.
 	plat := platfmt.NewPlatform(
@@ -368,7 +368,7 @@ func (act *actionInstallNodeBySSH) pushProxyReleasePackage(std *nodeUtils.NodeAc
 }
 
 // openReleaseReader returns a reader for the release package (proxy).
-func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeUtils.NodeActionStandarder) (io.ReadCloser, string, error) {
+func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeaction.NodeActionStandarder) (io.ReadCloser, string, error) {
 	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 	cpuArch := std.DeployInfo().Host.Dynamic.NodeCPUArch
@@ -417,7 +417,7 @@ func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeUtils.NodeActionSt
 
 // executeSSHOnlyProxyInstallCMD builds and runs the ssh only installer command with --skip_callback --skip_download flags.
 func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
+	std *nodeaction.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
@@ -474,7 +474,7 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 	return nil
 }
 
-func (act *actionInstallNodeBySSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
+func (act *actionInstallNodeBySSH) ensureWorkspace(std *nodeaction.NodeActionStandarder, client *sshx.Client) error {
 	if _, stderr, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerRuntime.WorkDir); err != nil {
 		err = fmt.Errorf("failed to run command. command(mkdir -p %s), stderr(%s): %w", std.DeployInfo().InstallerRuntime.WorkDir, stderr, err)
 
@@ -484,7 +484,7 @@ func (act *actionInstallNodeBySSH) ensureWorkspace(std *nodeUtils.NodeActionStan
 	return nil
 }
 
-func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeActionStandarder, client *sshx.Client) (string, error) {
+func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeaction.NodeActionStandarder, client *sshx.Client) (string, error) {
 	// select matching tools, and use sftp to transfer it.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -518,7 +518,7 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 
 // openInstallerReader returns a reader for the installer binary, using the local
 // file cache when available to avoid redundant downloads across workflow retries.
-func (act *actionInstallNodeBySSH) openInstallerReader(std *nodeUtils.NodeActionStandarder) (io.ReadCloser, error) {
+func (act *actionInstallNodeBySSH) openInstallerReader(std *nodeaction.NodeActionStandarder) (io.ReadCloser, error) {
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 	cpuArch := std.DeployInfo().Host.Dynamic.NodeCPUArch
 
@@ -558,13 +558,13 @@ func (act *actionInstallNodeBySSH) openInstallerReader(std *nodeUtils.NodeAction
 	return reader, nil
 }
 
-func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
-	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
+func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeaction.NodeActionStandarder, client *sshx.Client, installerPath string) error {
+	endpointSource := nodeaction.SelectInstallEndpointSource(std)
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
 		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
-	downloadSvrAddr, err := nodeUtils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	downloadSvrAddr, err := nodeaction.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
 	if err != nil {
 		return fmt.Errorf("failed to build download server urls: %w", err)
 	}
@@ -581,7 +581,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		},
 		InstallerPath:   installerPath,
 		DownloadSvrAddr: downloadSvrAddr,
-		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
+		CallbackSvrAddr: nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,

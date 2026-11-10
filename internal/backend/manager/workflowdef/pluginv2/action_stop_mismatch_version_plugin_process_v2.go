@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -54,7 +54,7 @@ func NewActionStopMismatchVersionPluginProcessV2(capability *Capability) action.
 
 // ActParamStopMismatchVersionPluginProcessV2 defines the parameters for actionStopMismatchVersionPluginProcessV2.
 type ActParamStopMismatchVersionPluginProcessV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // actionStopMismatchVersionPluginProcessV2 stops the running plugin process whose version mismatches the target
@@ -110,7 +110,7 @@ func (act *actionStopMismatchVersionPluginProcessV2) Do(ctx *action.InstanceCont
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -210,7 +210,7 @@ func (act *actionStopMismatchVersionPluginProcessV2) Do(ctx *action.InstanceCont
 	return nil
 }
 
-func (act *actionStopMismatchVersionPluginProcessV2) buildStopProcessSpec(std *pluginV2Utils.PluginActionStandarder, runningProcess *types.Process) (
+func (act *actionStopMismatchVersionPluginProcessV2) buildStopProcessSpec(std *pluginv2action.PluginActionStandarder, runningProcess *types.Process) (
 	types.ProcessSpec, error) {
 
 	pluginPkg, err := act.getRunningProcessPluginPkg(std, runningProcess.Info.Version)
@@ -243,7 +243,7 @@ func (act *actionStopMismatchVersionPluginProcessV2) buildStopProcessSpec(std *p
 
 // getRunningProcessPluginPkg gets the plugin package of the running process.
 func (act *actionStopMismatchVersionPluginProcessV2) getRunningProcessPluginPkg(
-	std *pluginV2Utils.PluginActionStandarder, version string) (*types.ReleasePlugin, error) {
+	std *pluginv2action.PluginActionStandarder, version string) (*types.ReleasePlugin, error) {
 
 	deployProcess := std.DeployInfo().Process
 	releaseKey := types.ReleasePluginKey{

@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -54,7 +54,7 @@ func NewActionAllocatePluginBindAddress(capability *Capability) action.Definitio
 
 // ActParamAllocatePluginBindAddress defines the parameters for actionAllocatePluginBindAddress.
 type ActParamAllocatePluginBindAddress struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionAllocatePluginBindAddress struct {
@@ -106,7 +106,7 @@ func (act *actionAllocatePluginBindAddress) Do(ctx *action.InstanceContext) (err
 		return err
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (act *actionAllocatePluginBindAddress) Do(ctx *action.InstanceContext) (err
 }
 
 func (act *actionAllocatePluginBindAddress) waitAllocatedPluginBindPort(
-	std *pluginUtils.PluginActionStandarder, taskID string, endpoint types.Endpoint) (int, error) {
+	std *pluginaction.PluginActionStandarder, taskID string, endpoint types.Endpoint) (int, error) {
 
 	ticker := time.NewTicker(allocatePluginBindAddressPollInterval)
 	defer ticker.Stop()

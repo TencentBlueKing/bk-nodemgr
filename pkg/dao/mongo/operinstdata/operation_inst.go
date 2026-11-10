@@ -27,7 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -62,7 +62,7 @@ type IOperationInstData interface {
 	UpdateLatestActionInstBriefData(nCtx contextx.IContext, operInstID string, briefData *action.InstanceBriefData) error
 
 	// UpdateExtraExecutionMessages updates operation instance extra execution messages.
-	UpdateExtraExecutionMessages(nCtx contextx.IContext, operInstID string, messages ...common.Message) error
+	UpdateExtraExecutionMessages(nCtx contextx.IContext, operInstID string, messages ...execution.Message) error
 
 	// Delete deletes operation instance data by given operation instance IDs.
 	Delete(nCtx contextx.IContext, operInstIDs ...string) error
@@ -132,14 +132,14 @@ func (h *Handler) FindOne(nCtx contextx.IContext, opts ...OptFn) (*operation.Ins
 			DisplayNameEn:       v.DisplayNameEn,
 			Index:               v.Index,
 			TotalIndex:          v.TotalIndex,
-			Messages:            make([]common.Message, len(v.Messages)),
+			Messages:            make([]execution.Message, len(v.Messages)),
 			Content:             make(map[string]any, len(v.Content)),
 			PrivateData:         v.PrivateData,
 			Lifecycle:           ConvActInstLifeCycleFromDB(v.Lifecycle),
 		}
 
 		for idx, msg := range v.Messages {
-			actionInstData.Messages[idx] = common.Message{
+			actionInstData.Messages[idx] = execution.Message{
 				Time:   msg.Time,
 				TextZh: msg.TextZh,
 				TextEn: msg.TextEn,
@@ -204,14 +204,14 @@ func (h *Handler) ListFullData(nCtx contextx.IContext, page types.Page, opts ...
 				DisplayNameEn:       v.DisplayNameEn,
 				Index:               v.Index,
 				TotalIndex:          v.TotalIndex,
-				Messages:            make([]common.Message, len(v.Messages)),
+				Messages:            make([]execution.Message, len(v.Messages)),
 				Content:             make(map[string]any, len(v.Content)),
 				PrivateData:         v.PrivateData,
 				Lifecycle:           ConvActInstLifeCycleFromDB(v.Lifecycle),
 			}
 
 			for idx, msg := range v.Messages {
-				actionInstData.Messages[idx] = common.Message{
+				actionInstData.Messages[idx] = execution.Message{
 					Time:   msg.Time,
 					TextZh: msg.TextZh,
 					TextEn: msg.TextEn,
@@ -388,7 +388,7 @@ func (h *Handler) UpdateLatestActionInstBriefData(nCtx contextx.IContext, operIn
 
 // UpdateExtraExecutionMessages updates operation instance extra execution messages.
 func (h *Handler) UpdateExtraExecutionMessages(
-	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID string, messages ...execution.Message) error {
 
 	if nCtx == nil {
 		return errors.New("nCtx is nil")

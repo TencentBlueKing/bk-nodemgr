@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -52,7 +52,7 @@ func NewActionGenManualCommand(capability *Capability) action.Definition {
 
 // ActParamGenManualBootstrapCommand defines the action parameter.
 type ActParamGenManualBootstrapCommand struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionGenManualBootstrapCommand struct {
@@ -116,7 +116,7 @@ func (act *actionGenManualBootstrapCommand) Do(ctx *action.InstanceContext) (err
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (act *actionGenManualBootstrapCommand) Do(ctx *action.InstanceContext) (err
 	return nil
 }
 
-func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeaction.NodeActionStandarder) error {
 	callbackSvrEndpoints, downloadSvrEndpoints, err := act.selectServiceEndpoints(std)
 	if err != nil {
 		return fmt.Errorf("failed to select service endpoints: %w", err)
@@ -147,11 +147,11 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 
 	var callbackSvrAddress, downloadSvrAddress string
 	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
-		callbackSvrAddress = nodeUtils.SelectOneServerV4URL(callbackSvrEndpoints)
+		callbackSvrAddress = nodeaction.SelectOneServerV4URL(callbackSvrEndpoints)
 		downloadSvrAddress, err = act.selectDownloadServerV4URL(std, downloadSvrEndpoints)
 	}
 	if (callbackSvrAddress == "" || downloadSvrAddress == "") && len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
-		callbackSvrAddress = nodeUtils.SelectOneServerV6URL(callbackSvrEndpoints)
+		callbackSvrAddress = nodeaction.SelectOneServerV6URL(callbackSvrEndpoints)
 		downloadSvrAddress, err = act.selectDownloadServerV6URL(std, downloadSvrEndpoints)
 	}
 	if err != nil {
@@ -209,28 +209,28 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 }
 
 func (act *actionGenManualBootstrapCommand) selectDownloadServerV4URL(
-	std *nodeUtils.NodeActionStandarder, endpoints []discover.Endpoint) (string, error) {
+	std *nodeaction.NodeActionStandarder, endpoints []discover.Endpoint) (string, error) {
 
 	if !std.DeployInfo().InstallOptions.DirectInstall {
-		return nodeUtils.SelectOneServerV4URL(endpoints), nil
+		return nodeaction.SelectOneServerV4URL(endpoints), nil
 	}
 
-	return nodeUtils.SelectOneDownloadServerV4URL(std.Context(), endpoints)
+	return nodeaction.SelectOneDownloadServerV4URL(std.Context(), endpoints)
 }
 
 func (act *actionGenManualBootstrapCommand) selectDownloadServerV6URL(
-	std *nodeUtils.NodeActionStandarder, endpoints []discover.Endpoint) (string, error) {
+	std *nodeaction.NodeActionStandarder, endpoints []discover.Endpoint) (string, error) {
 
 	if !std.DeployInfo().InstallOptions.DirectInstall {
-		return nodeUtils.SelectOneServerV6URL(endpoints), nil
+		return nodeaction.SelectOneServerV6URL(endpoints), nil
 	}
 
-	return nodeUtils.SelectOneDownloadServerV6URL(std.Context(), endpoints)
+	return nodeaction.SelectOneDownloadServerV6URL(std.Context(), endpoints)
 }
 
 // selectServiceEndpoints selects service endpoints for download and callback servers.
 // Returns: (callback endpoints, download endpoints, error).
-func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeUtils.NodeActionStandarder) (
+func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeaction.NodeActionStandarder) (
 	[]discover.Endpoint, []discover.Endpoint, error) {
 
 	if !std.DeployInfo().InstallOptions.DirectInstall {
@@ -239,7 +239,7 @@ func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeUtil
 			return nil, nil, fmt.Errorf("failed to get selected relay info: %w", err)
 		}
 
-		callbacks, downloads := nodeUtils.RelayToEndpoints(relay)
+		callbacks, downloads := nodeaction.RelayToEndpoints(relay)
 
 		return callbacks, downloads, nil
 	}
@@ -248,7 +248,7 @@ func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeUtil
 	callbackSvrEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
-		nodeUtils.DefaultEndpointSelectionCount,
+		nodeaction.DefaultEndpointSelectionCount,
 		randSelector)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to select backend callback endpoint: %w", err)
@@ -257,7 +257,7 @@ func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeUtil
 	downloadSvrEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileDownload,
-		nodeUtils.DefaultEndpointSelectionCount,
+		nodeaction.DefaultEndpointSelectionCount,
 		randSelector)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to select file download endpoint: %w", err)

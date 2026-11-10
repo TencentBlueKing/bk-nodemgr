@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
@@ -52,7 +52,7 @@ func NewActionPrepareDebugProcess(capability *Capability) action.Definition {
 
 // ActionParamPrepareDebugProcess defines parameters for debug process preparation.
 type ActionParamPrepareDebugProcess struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actPrepareDebugProcess struct {
@@ -103,7 +103,7 @@ func (act *actPrepareDebugProcess) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (act *actPrepareDebugProcess) DisplayNameEn() string {
 	return "Prepare Debug Process"
 }
 
-func buildDebugCommand(std *pluginUtils.PluginActionStandarder, debugAction string, runCmd string) (string, error) {
+func buildDebugCommand(std *pluginaction.PluginActionStandarder, debugAction string, runCmd string) (string, error) {
 	process := std.DeployInfo().Process
 	installerFileName, err := tool.FormatInstallerName(process.Platform.OS, process.Platform.Arch)
 	if err != nil {

@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -49,7 +49,7 @@ func NewActionInstallNodeByWindowsAuto(capability *Capability) action.Definition
 
 // ActParamInstallAgentByWindowsAuto defines the action parameter.
 type ActParamInstallAgentByWindowsAuto struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallNodeByWindowsAuto struct {
@@ -118,7 +118,7 @@ func (act *actionInstallNodeByWindowsAuto) Do(ctx *action.InstanceContext) (err 
 		return err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (act *actionInstallNodeByWindowsAuto) Do(ctx *action.InstanceContext) (err 
 	return nil
 }
 
-func (act *actionInstallNodeByWindowsAuto) saveWaitInstallerPrivateData(std *nodeUtils.NodeActionStandarder) error {
+func (act *actionInstallNodeByWindowsAuto) saveWaitInstallerPrivateData(std *nodeaction.NodeActionStandarder) error {
 	return saveWaitInstallerPrivateData(
 		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
 		false, true,

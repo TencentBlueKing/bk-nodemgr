@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -62,7 +62,7 @@ func NewActionPagentDetectInfoByWindowsSSH(capability *Capability) action.Defini
 
 // ActParamPagentDetectInfoByWindowsSSH defines the action parameter.
 type ActParamPagentDetectInfoByWindowsSSH struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionPagentDetectInfoByWindowsSSH struct {
@@ -133,7 +133,7 @@ func (act *actionPagentDetectInfoByWindowsSSH) Do(ctx *action.InstanceContext) (
 		return err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (act *actionPagentDetectInfoByWindowsSSH) Do(ctx *action.InstanceContext) (
 		}
 	}()
 
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -213,7 +213,7 @@ func (act *actionPagentDetectInfoByWindowsSSH) Do(ctx *action.InstanceContext) (
 }
 
 func (act *actionPagentDetectInfoByWindowsSSH) notifyRelayToDetect(
-	std *nodeUtils.NodeActionStandarder, cKey string,
+	std *nodeaction.NodeActionStandarder, cKey string,
 ) error {
 
 	event := protoRelay.DetectInfoByWindowsSSHReq{
@@ -256,7 +256,7 @@ func (act *actionPagentDetectInfoByWindowsSSH) notifyRelayToDetect(
 // waitForRelayReportDetect wait for relay to report the detect result.
 // nolint: gocognit
 func (act *actionPagentDetectInfoByWindowsSSH) waitForRelayReportDetect(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 ) (criteria.OSType, criteria.CPUArch, error) {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)

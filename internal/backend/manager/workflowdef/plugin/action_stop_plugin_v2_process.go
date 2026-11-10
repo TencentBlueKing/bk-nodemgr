@@ -24,7 +24,7 @@ import (
 	"time"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -57,7 +57,7 @@ func NewActionStopPluginV2Process(capability *Capability) action.Definition {
 
 // ActParamStopPluginV2Process defines the parameters for actionStopPluginV2Process.
 type ActParamStopPluginV2Process struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionStopPluginV2Process struct {
@@ -123,7 +123,7 @@ func (act *actionStopPluginV2Process) Do(ctx *action.InstanceContext) (err error
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (act *actionStopPluginV2Process) Do(ctx *action.InstanceContext) (err error
 	return nil
 }
 
-func (act *actionStopPluginV2Process) launchStopPluginV2Workflow(std *pluginUtils.PluginActionStandarder) (string, error) {
+func (act *actionStopPluginV2Process) launchStopPluginV2Workflow(std *pluginaction.PluginActionStandarder) (string, error) {
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
 
@@ -202,7 +202,7 @@ func (act *actionStopPluginV2Process) saveSubWorkflowRefs(
 	)
 }
 
-func (act *actionStopPluginV2Process) waitWorkflow(std *pluginUtils.PluginActionStandarder,
+func (act *actionStopPluginV2Process) waitWorkflow(std *pluginaction.PluginActionStandarder,
 	subWorkflowRefs []types.SubWorkflowRef) error {
 
 	nCtx := std.Context()
@@ -245,7 +245,7 @@ func (act *actionStopPluginV2Process) waitWorkflow(std *pluginUtils.PluginAction
 }
 
 func (act *actionStopPluginV2Process) checkPluginWorkflowStatus(
-	std *pluginUtils.PluginActionStandarder, subWorkflowRef types.SubWorkflowRef) error {
+	std *pluginaction.PluginActionStandarder, subWorkflowRef types.SubWorkflowRef) error {
 
 	workflowID := subWorkflowRef.WorkflowID
 

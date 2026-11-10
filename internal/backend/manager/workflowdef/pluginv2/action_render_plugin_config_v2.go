@@ -24,7 +24,7 @@ import (
 	"maps"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer"
@@ -49,7 +49,7 @@ func NewActionRenderPluginConfigV2(capability *Capability) action.Definition {
 
 // ActParamRenderPluginConfigV2 ...
 type ActParamRenderPluginConfigV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 // actionRenderPluginConfigV2 ...
@@ -102,7 +102,7 @@ func (act *actionRenderPluginConfigV2) Do(ctx *action.InstanceContext) (err erro
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (act *actionRenderPluginConfigV2) Do(ctx *action.InstanceContext) (err erro
 // upsertMainConfigs persists the rendered main config files of the v2 plugin.
 // Only the main config is stored, the sub configs are pushed to the host by the push plugin config action.
 func (act *actionRenderPluginConfigV2) upsertMainConfigs(
-	std *pluginV2Utils.PluginActionStandarder, pluginConf *types.PluginDeploymentPluginConf) error {
+	std *pluginv2action.PluginActionStandarder, pluginConf *types.PluginDeploymentPluginConf) error {
 
 	mainConfigs := make([]*types.ProcessConfig, 0, len(pluginConf.ConfigFilesDetail))
 	for _, detail := range pluginConf.ConfigFilesDetail {
@@ -184,7 +184,7 @@ func (act *actionRenderPluginConfigV2) upsertMainConfigs(
 	return nil
 }
 
-func (act *actionRenderPluginConfigV2) renderPluginConf(std *pluginV2Utils.PluginActionStandarder,
+func (act *actionRenderPluginConfigV2) renderPluginConf(std *pluginv2action.PluginActionStandarder,
 	pluginConf *types.PluginDeploymentPluginConf) error {
 
 	customContext := pluginConf.CustomConfigContext

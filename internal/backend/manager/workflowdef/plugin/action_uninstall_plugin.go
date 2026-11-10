@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -59,7 +59,7 @@ func NewActionUninstallPlugin(capability *Capability) action.Definition {
 
 // ActParamUninstallPlugin ...
 type ActParamUninstallPlugin struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 // actionUninstallPlugin ...
@@ -117,7 +117,7 @@ func (act *actionUninstallPlugin) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ type pluginUninstallParams struct {
 }
 
 func (act *actionUninstallPlugin) buildUninstallParams(
-	std *pluginUtils.PluginActionStandarder,
+	std *pluginaction.PluginActionStandarder,
 	targetHost *types.Host,
 	targetPlugin *types.Plugin,
 ) (*pluginUninstallParams, error) {
@@ -207,7 +207,7 @@ func (act *actionUninstallPlugin) buildUninstallParams(
 		return nil, err
 	}
 
-	callbackEndpoints, _, err := pluginUtils.GeneratePluginInstallerServerEndpoints(std.Context(),
+	callbackEndpoints, _, err := pluginaction.GeneratePluginInstallerServerEndpoints(std.Context(),
 		act.provider, act.daoHost, act.daoNetworkUnit, act.daoProcess,
 		std.DeployInfo().Process.HostID)
 	if err != nil {
@@ -229,7 +229,7 @@ func (act *actionUninstallPlugin) buildUninstallParams(
 			},
 			PluginGroup:     targetPlugin.Group,
 			PluginName:      targetPlugin.Name,
-			CallbackSvrAddr: pluginUtils.BuildServerURLs(callbackEndpoints...),
+			CallbackSvrAddr: pluginaction.BuildServerURLs(callbackEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 			RenewSubConfig:  std.DeployInfo().InstallOptions.RenewSubConfig,

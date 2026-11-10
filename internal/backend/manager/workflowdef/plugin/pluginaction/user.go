@@ -17,7 +17,7 @@
  */
 
 // nolint: revive
-package utils
+package pluginaction
 
 import (
 	"fmt"

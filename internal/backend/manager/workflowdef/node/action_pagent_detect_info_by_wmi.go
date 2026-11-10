@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -72,7 +72,7 @@ func NewActionPagentDetectInfoByWMI(capability *Capability) action.Definition {
 
 // ActParamPagentDetectInfoByWMI ...
 type ActParamPagentDetectInfoByWMI struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionPagentDetectInfoByWMI struct {
@@ -145,7 +145,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 	}()
 
 	// get wmi credit.
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	_, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get wmi credit: %w", err)
@@ -229,7 +229,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 }
 
 func (act *actionPagentDetectInfoByWMI) notifyRelayToDetect(
-	std *nodeUtils.NodeActionStandarder, cKey string) error {
+	std *nodeaction.NodeActionStandarder, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoByWMIReq{
 		ActionName: std.InstanceData().Name,
@@ -270,7 +270,7 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetect(
 // waitForRelayReportDetect wait for relay to report the detect result.
 // nolint: gocognit
 func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
-	std *nodeUtils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, error) {
+	std *nodeaction.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, error) {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeoutWMI)
 	defer cancel()

@@ -24,7 +24,7 @@ import (
 	"time"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -94,7 +94,7 @@ func (act *actionApplyComposedPluginSubConfig) Do(ctx *action.InstanceContext) e
 	if err := param.SourceOperation.Validate(); err != nil {
 		return err
 	}
-	std := pluginUtils.NewPluginActionStandarder(act.storagePlugin)
+	std := pluginaction.NewPluginActionStandarder(act.storagePlugin)
 	if err := std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (act *actionApplyComposedPluginSubConfig) Do(ctx *action.InstanceContext) e
 	return saveAndWaitCompositionChild(act, act.storagePlugin, act.storageAction, std, workflowID)
 }
 
-func (act *actionApplyComposedPluginSubConfig) launchTarget(std *pluginUtils.PluginActionStandarder) (string, error) {
+func (act *actionApplyComposedPluginSubConfig) launchTarget(std *pluginaction.PluginActionStandarder) (string, error) {
 	info := std.DeployInfo()
 	options := info.ApplyPluginSubConfigOptions
 	source, err := act.storagePlugin.GetProcess(std.Context(), info.Process.HostID, info.Process.PluginName)

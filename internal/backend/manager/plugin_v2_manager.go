@@ -23,7 +23,7 @@ import (
 	"time"
 
 	pluginv2 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2"
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -146,7 +146,7 @@ func (mgr *Manager) getPluginEnsurePluginV2OperationDef(
 ) operation.Definition {
 
 	return pluginv2.NewOperPluginEnsurePluginV2(pluginv2.OperParamPluginEnsurePluginV2{
-		PluginActionStandardParam: pluginV2Utils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginv2action.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -259,7 +259,7 @@ func (mgr *Manager) createUninstallPluginV2Oper(
 
 func (mgr *Manager) getPluginUninstallV2OperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return pluginv2.NewOperUninstallPluginV2(pluginv2.OperParamUninstallPluginV2{
-		PluginActionStandardParam: pluginV2Utils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginv2action.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -368,7 +368,7 @@ func (mgr *Manager) createStopPluginV2Oper(
 
 func (mgr *Manager) getPluginStopV2OperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return pluginv2.NewOperStopPluginV2(pluginv2.OperParamStopPluginV2{
-		PluginActionStandardParam: pluginV2Utils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginv2action.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,

@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -57,7 +57,7 @@ func NewActionReconfigProxy(capability *Capability) action.Definition {
 
 // ActionParamReconfigProxy defines the action param.
 type ActionParamReconfigProxy struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionReconfigProxy struct {
@@ -123,7 +123,7 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) (err error) {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		CallbackSvrAddr:   nodeUtils.BuildServerURLs(proxyEndpoint),
+		CallbackSvrAddr:   nodeaction.BuildServerURLs(proxyEndpoint),
 		DeployToken:       std.Token(),
 		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
@@ -191,7 +191,7 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) (err error) {
 }
 
 // nolint: perfsprint
-func (act *actionReconfigProxy) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+func (act *actionReconfigProxy) doReconfigUnix(std *nodeaction.NodeActionStandarder, param *installer.NodeReconfigParams) error {
 	_, reconfigCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render proxy reconfig script: %w", err)
@@ -226,7 +226,7 @@ func (act *actionReconfigProxy) doReconfigUnix(std *nodeUtils.NodeActionStandard
 }
 
 // nolint: perfsprint
-func (act *actionReconfigProxy) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+func (act *actionReconfigProxy) doReconfigWindows(std *nodeaction.NodeActionStandarder, param *installer.NodeReconfigParams) error {
 	_, reconfigCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render proxy reconfig script: %w", err)

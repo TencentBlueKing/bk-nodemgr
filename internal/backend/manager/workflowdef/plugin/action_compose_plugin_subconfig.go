@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -31,7 +31,7 @@ import (
 )
 
 func saveAndWaitCompositionChild(act action.Definition, storagePlugin pluginStg.IStorage,
-	storageAction workflow.IStorageActionInstance, std *pluginUtils.PluginActionStandarder, workflowID string) error {
+	storageAction workflow.IStorageActionInstance, std *pluginaction.PluginActionStandarder, workflowID string) error {
 
 	// Empty workflow ID means no source operation was requested.
 	if workflowID == "" {
@@ -56,7 +56,7 @@ func saveAndWaitCompositionChild(act action.Definition, storagePlugin pluginStg.
 	return nil
 }
 
-func waitCompositionChild(storagePlugin pluginStg.IStorage, std *pluginUtils.PluginActionStandarder,
+func waitCompositionChild(storagePlugin pluginStg.IStorage, std *pluginaction.PluginActionStandarder,
 	workflowID string, timeout time.Duration) error {
 
 	var status types.PluginWorkflowStatus

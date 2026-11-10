@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
@@ -56,7 +56,7 @@ type actionEnsureDefaultPlugin struct {
 
 // ActionParamEnsureDefaultPlugin defines the default plugin reconciliation action parameters.
 type ActionParamEnsureDefaultPlugin struct {
-	utils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 // Name returns the name.
@@ -112,7 +112,7 @@ func (act *actionEnsureDefaultPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std := utils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}

@@ -24,7 +24,7 @@ import (
 	"math/rand"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -50,7 +50,7 @@ func NewActionSelectRelayHost(capability *Capability) action.Definition {
 
 // ActParamSelectRelayHost ...
 type ActParamSelectRelayHost struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 // actionSelectRelayHost ...
@@ -114,7 +114,7 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
-	std *nodeUtils.NodeActionStandarder) (types.RelayInfo, error) {
+	std *nodeaction.NodeActionStandarder) (types.RelayInfo, error) {
 
 	currentHostID := std.DeployInfo().Host.HostID
 

@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -66,7 +66,7 @@ func NewActionRemovePluginSubConfig(capability *Capability) action.Definition {
 
 // ActParamRemovePluginSubConfig defines the parameters for actionRemovePluginSubConfig.
 type ActParamRemovePluginSubConfig struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionRemovePluginSubConfig struct {
@@ -120,7 +120,7 @@ func (act *actionRemovePluginSubConfig) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -224,7 +224,7 @@ func (act *actionRemovePluginSubConfig) Do(ctx *action.InstanceContext) (err err
 }
 
 func (act *actionRemovePluginSubConfig) executeRemoveSubConfigScript(
-	std *pluginUtils.PluginActionStandarder, fullPaths []string) error {
+	std *pluginaction.PluginActionStandarder, fullPaths []string) error {
 
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
@@ -349,7 +349,7 @@ func quoteShellArg(arg string) string {
 func (act *actionRemovePluginSubConfig) buildRemoveSubConfigFullPaths(
 	subConfigDir string, osType criteria.OSType, configs []*types.ProcessConfig) ([]string, error) {
 
-	if err := pluginUtils.CheckDirPathSafe(subConfigDir, osType); err != nil {
+	if err := pluginaction.CheckDirPathSafe(subConfigDir, osType); err != nil {
 		return nil, fmt.Errorf("check sub config dir safe failed, dir(%s): %w", subConfigDir, err)
 	}
 

@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	workflowStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -32,7 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 )
 
 const (
@@ -51,7 +51,7 @@ func NewActionRunDebugPlugin(capability *Capability) action.Definition {
 
 // ActionParamRunDebugPlugin defines parameters for running plugin debug.
 type ActionParamRunDebugPlugin struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actRunDebugPlugin struct {
@@ -103,7 +103,7 @@ func (act *actRunDebugPlugin) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (act *actRunDebugPlugin) Do(ctx *action.InstanceContext) (err error) {
 	}
 }
 
-func logTerminalDebugTaskStatus(std *pluginUtils.PluginActionStandarder, result *types.ScriptResult) {
+func logTerminalDebugTaskStatus(std *pluginaction.PluginActionStandarder, result *types.ScriptResult) {
 	log := std.InstanceData().Log().
 		Zh("插件调试任务已结束, 调试任务状态(%s), 错误码(%d), 错误信息(%s)", result.Status, result.ErrorCode, result.ErrorMessage).
 		En("plugin debug task ended, status(%s)， error-code(%d), error-message(%s)", result.Status, result.ErrorCode, result.ErrorMessage)
@@ -201,7 +201,7 @@ func logTerminalDebugTaskStatus(std *pluginUtils.PluginActionStandarder, result 
 }
 
 // stopDebugRequested reports whether a debug stop signal was stored for the run action instance.
-func (act *actRunDebugPlugin) stopDebugRequested(std *pluginUtils.PluginActionStandarder) (bool, error) {
+func (act *actRunDebugPlugin) stopDebugRequested(std *pluginaction.PluginActionStandarder) (bool, error) {
 	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 		std.Context(), std.InstanceData().OperationInstanceID, ActionNameRunDebugPlugin)
 	if err != nil {
@@ -216,7 +216,7 @@ func (act *actRunDebugPlugin) stopDebugRequested(std *pluginUtils.PluginActionSt
 // pollDebugTaskOnce queries the debug task once, streams any new output, and returns the latest task status.
 // An empty status means the task has no result yet.
 func (act *actRunDebugPlugin) pollDebugTaskOnce(
-	std *pluginUtils.PluginActionStandarder, taskID string, endpoint types.Endpoint, outputOffset *uint, pendingOutput *string) (
+	std *pluginaction.PluginActionStandarder, taskID string, endpoint types.Endpoint, outputOffset *uint, pendingOutput *string) (
 	*types.ScriptResult, error) {
 
 	results, err := act.gseHandler.QueryScriptExecutionResult(
@@ -241,17 +241,17 @@ func (act *actRunDebugPlugin) pollDebugTaskOnce(
 	return result, nil
 }
 
-func (act *actRunDebugPlugin) storeDebugOutput(std *pluginUtils.PluginActionStandarder, output string, flush bool, pending *string) error {
+func (act *actRunDebugPlugin) storeDebugOutput(std *pluginaction.PluginActionStandarder, output string, flush bool, pending *string) error {
 	bufferedOutput := *pending + output
 	lines, remainder := splitDebugOutput(bufferedOutput, flush)
 
-	messages := make([]common.Message, 0, len(lines))
+	messages := make([]execution.Message, 0, len(lines))
 	now := time.Now()
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		messages = append(messages, common.Message{Time: now, TextZh: line, TextEn: line, Level: "INFO"})
+		messages = append(messages, execution.Message{Time: now, TextZh: line, TextEn: line, Level: "INFO"})
 	}
 	if len(messages) == 0 {
 		*pending = remainder
@@ -298,7 +298,7 @@ func isTerminalDebugTaskStatus(status types.ScriptStatus) bool {
 	}
 }
 
-func (act *actRunDebugPlugin) terminateDebugTask(std *pluginUtils.PluginActionStandarder, taskID string, endpoint types.Endpoint) error {
+func (act *actRunDebugPlugin) terminateDebugTask(std *pluginaction.PluginActionStandarder, taskID string, endpoint types.Endpoint) error {
 	terminateTaskID, err := act.gseHandler.TerminateScriptExecution(std.Context(), taskID, &endpoint)
 	if err != nil {
 		return fmt.Errorf("failed to terminate debug task: %w", err)

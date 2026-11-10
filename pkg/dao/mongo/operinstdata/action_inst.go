@@ -26,7 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 )
 
 // IActionInstData defines the interface for action instance data operations.
@@ -38,7 +38,7 @@ type IActionInstData interface {
 	UpdateActionInstData(nCtx contextx.IContext, data *action.InstanceData) error
 
 	// UpdateActInstMsg updates action inst data messages.
-	UpdateActInstMsg(nCtx contextx.IContext, operInstID, actionName string, msgs []common.Message) error
+	UpdateActInstMsg(nCtx contextx.IContext, operInstID, actionName string, msgs []execution.Message) error
 
 	// GetActInstLifecycle get action inst data lifecycle.
 	GetActInstLifecycle(nCtx contextx.IContext, operInstID string, actionName string) (*action.Lifecycle, error)
@@ -47,7 +47,7 @@ type IActionInstData interface {
 	UpdateActInstLifecycle(nCtx contextx.IContext, operInstID, actionName string, lifecycle *action.Lifecycle) error
 
 	// PushActionInstanceMessage push a message to the action_inst_data's msg queue.
-	PushActionInstanceMessage(nCtx contextx.IContext, operInstID string, actionName string, msgs ...common.Message) error
+	PushActionInstanceMessage(nCtx contextx.IContext, operInstID string, actionName string, msgs ...execution.Message) error
 
 	// GetActInstPrivateData get action inst data private data.
 	GetActInstPrivateData(nCtx contextx.IContext, operInstID string, actionName string) (map[string]any, error)
@@ -63,7 +63,7 @@ type IActionInstData interface {
 }
 
 // UpdateActInstMsg update action inst msg.
-func (h *Handler) UpdateActInstMsg(nCtx contextx.IContext, operInstID, actionName string, msgs []common.Message) error {
+func (h *Handler) UpdateActInstMsg(nCtx contextx.IContext, operInstID, actionName string, msgs []execution.Message) error {
 	if nCtx == nil {
 		return errors.New("nCtx is nil")
 	}
@@ -180,7 +180,7 @@ func (h *Handler) PushActInstPrivateData(
 
 // PushActionInstanceMessage push act inst msg.
 func (h *Handler) PushActionInstanceMessage(
-	nCtx contextx.IContext, operationInstanceID, actionName string, messages ...common.Message) error {
+	nCtx contextx.IContext, operationInstanceID, actionName string, messages ...execution.Message) error {
 
 	if nCtx == nil {
 		return errors.New("nCtx is nil")
@@ -365,7 +365,7 @@ func (h *Handler) GetActionInstData(
 	}
 
 	for _, msg := range actionInstData.Messages {
-		data.Messages = append(data.Messages, common.Message{
+		data.Messages = append(data.Messages, execution.Message{
 			Time:   msg.Time,
 			TextZh: msg.TextZh,
 			TextEn: msg.TextEn,

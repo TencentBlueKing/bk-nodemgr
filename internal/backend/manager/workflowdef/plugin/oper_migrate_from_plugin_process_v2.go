@@ -21,7 +21,7 @@ package plugin
 import (
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -42,7 +42,7 @@ type operMigrateProcessFromPluginV2 struct {
 
 // OperParamMigratePluginProcessFromV2 defines the parameters for operMigrateProcessFromPluginV2.
 type OperParamMigratePluginProcessFromV2 struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 // Name returns the name.

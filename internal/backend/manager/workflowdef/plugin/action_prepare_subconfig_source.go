@@ -23,7 +23,7 @@ import (
 	"time"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -87,7 +87,7 @@ func (act *actionPrepareSubConfigSource) Do(ctx *action.InstanceContext) error {
 	if err := param.SourceOperation.Validate(); err != nil {
 		return err
 	}
-	std := pluginUtils.NewPluginActionStandarder(act.storagePlugin)
+	std := pluginaction.NewPluginActionStandarder(act.storagePlugin)
 	if err := std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (act *actionPrepareSubConfigSource) Do(ctx *action.InstanceContext) error {
 	return saveAndWaitCompositionChild(act, act.storagePlugin, act.storageAction, std, workflowID)
 }
 
-func (act *actionPrepareSubConfigSource) launchSource(std *pluginUtils.PluginActionStandarder,
+func (act *actionPrepareSubConfigSource) launchSource(std *pluginaction.PluginActionStandarder,
 	sourceOperation types.PluginSubConfigSourceOperation) (string, error) {
 
 	if sourceOperation == types.PluginSubConfigSourceNone {

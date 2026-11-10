@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -52,7 +52,7 @@ func NewActionGenOperSyncHost(capability *Capability) action.Definition {
 
 // ActionParamGenOperSyncHost defines the action's param.
 type ActionParamGenOperSyncHost struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 type actionGenOperSyncHost struct {
@@ -106,7 +106,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -210,7 +210,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 
 // executeOper create an operation to sync all host from cmdb and then execute it.
 func (act *actionGenOperSyncHost) executeOper(
-	std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, biz *types.Business) error {
+	std *syncdataaction.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, biz *types.Business) error {
 
 	operationDef := NewOperSyncHost(OperParamSyncHost{
 		TenantID: biz.TenantID,

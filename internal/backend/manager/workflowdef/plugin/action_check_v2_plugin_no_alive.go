@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -53,7 +53,7 @@ func NewActionCheckV2PluginNoAlive(capability *Capability) action.Definition {
 
 // ActParamCheckV2PluginNoAlive defines the parameters for checking the V2 plugin's running status.
 type ActParamCheckV2PluginNoAlive struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionCheckV2PluginNoAlive struct {
@@ -106,7 +106,7 @@ func (act *actionCheckV2PluginNoAlive) Do(ctx *action.InstanceContext) (err erro
 		return fmt.Errorf("failed to decode V2 plugin precheck parameters: %w", err)
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return fmt.Errorf("failed to initialize V2 plugin precheck: %w", err)
 	}

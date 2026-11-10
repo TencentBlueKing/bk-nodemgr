@@ -22,7 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
@@ -48,7 +48,7 @@ type IStorageActionInstance interface {
 	UpsertActionInstancePrivateData(ctx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error
 
 	// PushActionInstanceMessage pushes action instance message.
-	PushActionInstanceMessage(ctx contextx.IContext, operationInstanceID, actionName string, messages ...common.Message) error
+	PushActionInstanceMessage(ctx contextx.IContext, operationInstanceID, actionName string, messages ...execution.Message) error
 
 	// GetActionInstancePrivateData gets action instance private data.
 	GetActionInstancePrivateData(ctx contextx.IContext, operationInstanceID, actionName string) (map[string]any, error)
@@ -138,7 +138,7 @@ type IStorageOperationInstance interface {
 	UpdateOperationLatestActionInstBriefData(ctx contextx.IContext, operationInstanceID string, briefData *action.InstanceBriefData) error
 
 	// UpdateOperationInstanceExtraExecutionMessages updates operation instance extra execution messages.
-	UpdateOperationInstanceExtraExecutionMessages(ctx contextx.IContext, operationInstanceID string, messages ...common.Message) error
+	UpdateOperationInstanceExtraExecutionMessages(ctx contextx.IContext, operationInstanceID string, messages ...execution.Message) error
 
 	// WatchOperInstStopping watches operation instance stopping.
 	WatchOperInstStopping(ctx contextx.IContext, operationInstanceID string) <-chan struct{}

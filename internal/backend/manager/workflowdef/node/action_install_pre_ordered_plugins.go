@@ -24,7 +24,7 @@ import (
 	"time"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -61,12 +61,12 @@ func NewActionInstallPreOrderedPlugins(capability *Capability) action.Definition
 
 // ActParamInstallPreOrderedPlugins ...
 type ActParamInstallPreOrderedPlugins struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 // InstallPreOrderedPluginsParams this struct defines the parameters for installing agent.
 type InstallPreOrderedPluginsParams struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPreOrderedPlugins struct {
@@ -136,7 +136,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err 
 	return nil
 }
 
-func (act *actionInstallPreOrderedPlugins) expectedWorkflowCount(std *nodeUtils.NodeActionStandarder) int {
+func (act *actionInstallPreOrderedPlugins) expectedWorkflowCount(std *nodeaction.NodeActionStandarder) int {
 	deployInfo := std.DeployInfo()
 	if !deployInfo.InstallOptions.InstallPreOrderedPlugins {
 		return 0
@@ -232,7 +232,7 @@ func (act *actionInstallPreOrderedPlugins) expectedWorkflowCount(std *nodeUtils.
 	return workflowCount
 }
 
-func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtils.NodeActionStandarder) (string, error) {
+func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeaction.NodeActionStandarder) (string, error) {
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
 
@@ -348,7 +348,7 @@ func getPreOrderedPlugins() map[types.NodeRole][]string {
 	}
 }
 
-func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUtils.NodeActionStandarder) (string, error) {
+func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeaction.NodeActionStandarder) (string, error) {
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
 
@@ -457,7 +457,7 @@ func getPreOrderedPluginV2s(nodeRole types.NodeRole) []string {
 	return preOrderedPluginV2s
 }
 
-func (act *actionInstallPreOrderedPlugins) waitWorkflow(std *nodeUtils.NodeActionStandarder,
+func (act *actionInstallPreOrderedPlugins) waitWorkflow(std *nodeaction.NodeActionStandarder,
 	subWorkflowRefs []types.SubWorkflowRef) (int, error) {
 
 	nCtx := std.Context()
@@ -508,7 +508,7 @@ func (act *actionInstallPreOrderedPlugins) waitWorkflow(std *nodeUtils.NodeActio
 }
 
 func (act *actionInstallPreOrderedPlugins) checkPluginWorkflowStatus(
-	std *nodeUtils.NodeActionStandarder, subWorkflowRef types.SubWorkflowRef) error {
+	std *nodeaction.NodeActionStandarder, subWorkflowRef types.SubWorkflowRef) error {
 
 	workflowID := subWorkflowRef.WorkflowID
 

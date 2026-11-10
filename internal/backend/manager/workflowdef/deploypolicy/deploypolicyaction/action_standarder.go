@@ -16,28 +16,28 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package utils
+package deploypolicyaction
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewScheduleActionStandarder creates a new ScheduleActionStandarder.
-func NewScheduleActionStandarder() *ScheduleActionStandarder {
-	return &ScheduleActionStandarder{}
+// NewDeployPolicyActionStandarder creates a new DeployPolicyActionStandarder.
+func NewDeployPolicyActionStandarder() *DeployPolicyActionStandarder {
+	return &DeployPolicyActionStandarder{}
 }
 
-// ScheduleActionStandarder defines the standard parameters of node action.
-type ScheduleActionStandarder struct {
+// DeployPolicyActionStandarder defines the standard parameters of deploy policy action.
+type DeployPolicyActionStandarder struct {
 	instanceContext *action.InstanceContext
-	param           ScheduleActionStandardParam
+	param           DeployPolicyActionStandardParam
 
 	ctx contextx.IContext
 }
 
-// Initialize initializes the NodeActionStandarder.
-func (std *ScheduleActionStandarder) Initialize(instanceContext *action.InstanceContext, param ScheduleActionStandardParam) error {
+// Initialize initializes the DeployPolicyActionStandarder.
+func (std *DeployPolicyActionStandarder) Initialize(instanceContext *action.InstanceContext, param DeployPolicyActionStandardParam) error {
 	std.instanceContext = instanceContext
 	std.param = param
 
@@ -47,33 +47,27 @@ func (std *ScheduleActionStandarder) Initialize(instanceContext *action.Instance
 }
 
 // Context returns the tenant user context.
-func (std *ScheduleActionStandarder) Context() contextx.IContext {
+func (std *DeployPolicyActionStandarder) Context() contextx.IContext {
 	return std.ctx
 }
 
-// WorkflowID returns the workflow ID.
-func (std *ScheduleActionStandarder) WorkflowID() string {
-	return std.param.WorkflowID
-}
-
 // TenantID returns the tenant ID.
-func (std *ScheduleActionStandarder) TenantID() string {
+func (std *DeployPolicyActionStandarder) TenantID() string {
 	return std.param.TenantID
 }
 
 // Operator returns the operator.
-func (std *ScheduleActionStandarder) Operator() string {
+func (std *DeployPolicyActionStandarder) Operator() string {
 	return std.param.Operator
 }
 
 // InstanceData returns the instance data.
-func (std *ScheduleActionStandarder) InstanceData() *action.InstanceData {
+func (std *DeployPolicyActionStandarder) InstanceData() *action.InstanceData {
 	return std.instanceContext.Data
 }
 
-// ScheduleActionStandardParam defines the standard parameters of sync data action.
-type ScheduleActionStandardParam struct {
-	WorkflowID string `json:"workflow_id"`
-	TenantID   string `json:"tenant_id"`
-	Operator   string `json:"operator"`
+// DeployPolicyActionStandardParam defines the standard parameters of deploy policy action.
+type DeployPolicyActionStandardParam struct {
+	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }

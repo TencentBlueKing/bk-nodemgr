@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -56,7 +56,7 @@ func NewActionEnsureAndUpdatePluginConfigDetails(capability *Capability) action.
 
 // ActParamEnsureAndUpdatePluginConfigDetails ...
 type ActParamEnsureAndUpdatePluginConfigDetails struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 // actionEnsureAndUpdatePluginConfigDetails ...
@@ -110,7 +110,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 		return err
 	}
 
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -126,10 +126,10 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	}
 	// the login user is only the SSH authentication identity at install time;
 	// GSE channel process/file operations use the host operate user instead.
-	if err = pluginUtils.EnsureHostLoginUser(std, hostInfo); err != nil {
+	if err = pluginaction.EnsureHostLoginUser(std, hostInfo); err != nil {
 		return err
 	}
-	if err = pluginUtils.EnsureHostOperateUser(std, hostInfo); err != nil {
+	if err = pluginaction.EnsureHostOperateUser(std, hostInfo); err != nil {
 		return err
 	}
 	configSourceHostInfo := getConfigSourceHostInfo(std.DeployInfo(), hostInfo)
@@ -187,7 +187,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	return nil
 }
 
-func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *pluginUtils.PluginActionStandarder, pluginRelease *types.ReleasePlugin,
+func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *pluginaction.PluginActionStandarder, pluginRelease *types.ReleasePlugin,
 	pluginConf *types.PluginDeploymentPluginConf) error {
 
 	templateMap := make(map[types.PluginPkgConfigTemplateKey]types.PluginPkgConfigTemplate, len(pluginRelease.ConfigTemplates))
@@ -408,7 +408,7 @@ const (
 )
 
 func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemConfigContext(
-	std *pluginUtils.PluginActionStandarder, hostInfo *types.Host,
+	std *pluginaction.PluginActionStandarder, hostInfo *types.Host,
 	portRange types.PluginPkgAvailablePortRange,
 ) map[string]any {
 
@@ -561,7 +561,7 @@ const (
 
 // nolint: funlen
 func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigContext(
-	std *pluginUtils.PluginActionStandarder,
+	std *pluginaction.PluginActionStandarder,
 	runtimeHostInfo *types.Host,
 	configSourceHostInfo *types.Host,
 	portRange types.PluginPkgAvailablePortRange,
@@ -607,7 +607,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 	}
 
 	// notice: in v2 plugin, subconfig_path still need provide, and the path is fixed
-	if err = pluginUtils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
+	if err = pluginaction.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
 		return nil, fmt.Errorf("check subconfig dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
 	}
 
@@ -679,7 +679,7 @@ type hostRenderData struct {
 }
 
 func (act *actionEnsureAndUpdatePluginConfigDetails) generateHostRenderData(
-	std *pluginUtils.PluginActionStandarder, hostInfo *types.Host) (hostRenderData, error) {
+	std *pluginaction.PluginActionStandarder, hostInfo *types.Host) (hostRenderData, error) {
 
 	var (
 		innerIP   string

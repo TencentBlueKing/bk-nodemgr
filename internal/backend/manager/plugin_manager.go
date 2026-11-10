@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
@@ -175,7 +175,7 @@ func (mgr *Manager) getPluginInstallOperationDef(
 ) operation.Definition {
 
 	return plugin.NewOperInstallPlugin(plugin.OperParamInstallPlugin{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -289,7 +289,7 @@ func (mgr *Manager) createUpgradePluginOper(
 
 func (mgr *Manager) getPluginUpgradeOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return plugin.NewOperUpgradePlugin(plugin.OperParamUpgradePlugin{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -408,7 +408,7 @@ func (mgr *Manager) createUninstallPluginOper(
 
 func (mgr *Manager) getPluginUninstallOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return plugin.NewOperUninstallPlugin(plugin.OperParamUninstallPlugin{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -477,7 +477,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 			}
 
 			operationDef := plugin.NewOperApplyPluginSubConfig(plugin.OperParamApplyPluginSubConfig{
-				PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+				PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 					Token:    deploy.Token,
 					TenantID: deploy.Info.Process.TenantID,
 					Operator: param.Operator,
@@ -581,7 +581,7 @@ func (mgr *Manager) LaunchRemovePluginSubConfig(nCtx contextx.IContext, param ty
 			}
 
 			operationDef := plugin.NewOperRemovePluginSubConfig(plugin.OperParamRemovePluginSubConfig{
-				PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+				PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 					Token:    deploy.Token,
 					TenantID: deploy.Info.Process.TenantID,
 					Operator: param.Operator,
@@ -728,7 +728,7 @@ func (mgr *Manager) createStartProcessOper(
 
 func (mgr *Manager) getPluginStartOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return plugin.NewOperStartProcess(plugin.OperParamStartProcess{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -841,7 +841,7 @@ func (mgr *Manager) createRestartProcessOper(
 
 func (mgr *Manager) getPluginRestartOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return plugin.NewOperRestartProcess(plugin.OperParamRestartProcess{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -962,7 +962,7 @@ func (mgr *Manager) getPluginMigrateFromV2OperationDef(
 ) operation.Definition {
 
 	return plugin.NewOperMigratePluginProcessFromV2(plugin.OperParamMigratePluginProcessFromV2{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -1075,7 +1075,7 @@ func (mgr *Manager) createStopProcessOper(
 
 func (mgr *Manager) getProcessStopOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return plugin.NewOperStopProcess(plugin.OperParamStopProcess{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,
@@ -1188,7 +1188,7 @@ func (mgr *Manager) createStartDebugProcessOper(
 
 func (mgr *Manager) getProcessStartDebugOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return plugin.NewOperDebugPlugin(plugin.OperParamDebugPlugin{
-		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+		PluginActionStandardParam: pluginaction.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,
 			Operator: operator,

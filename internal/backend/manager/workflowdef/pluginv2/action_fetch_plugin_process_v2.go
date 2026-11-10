@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -52,7 +52,7 @@ func NewActionFetchPluginProcessV2(capability *Capability) action.Definition {
 
 // ActParamFetchPluginProcessV2 defines the parameters for actionFetchPluginProcessV2.
 type ActParamFetchPluginProcessV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 type actionFetchPluginProcessV2 struct {
@@ -106,7 +106,7 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) (err erro
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) (err erro
 		return err
 	}
 
-	if err := pluginV2Utils.EnsureHostLoginUser(std, host); err != nil {
+	if err := pluginv2action.EnsureHostLoginUser(std, host); err != nil {
 		std.InstanceData().Log().
 			Zh("获取主机登录用户失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
 			En("fetch host login user failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).
@@ -136,7 +136,7 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) (err erro
 
 		return err
 	}
-	if err := pluginV2Utils.EnsureHostOperateUser(std, host); err != nil {
+	if err := pluginv2action.EnsureHostOperateUser(std, host); err != nil {
 		std.InstanceData().Log().
 			Zh("获取主机操作用户失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
 			En("fetch host operate user failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).

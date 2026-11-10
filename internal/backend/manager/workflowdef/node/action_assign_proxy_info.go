@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 
@@ -46,7 +46,7 @@ func NewActionAssignProxyInfo(capability *Capability) action.Definition {
 
 // ActParamAssignProxyInfo defines the action parameter.
 type ActParamAssignProxyInfo struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 	NetworkUnitID                     int64    `json:"network_unit_id"`
 	RelayCallbackPort                 int64    `json:"relay_callback_port"`
 	RelayDownloadPort                 int64    `json:"relay_download_port"`
@@ -111,7 +111,7 @@ func (act *actionAssignProxyInfo) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// Initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, nil)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, nil)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

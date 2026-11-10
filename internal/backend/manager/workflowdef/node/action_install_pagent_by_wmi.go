@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -68,7 +68,7 @@ func NewActionInstallPagentByWMI(capability *Capability) action.Definition {
 
 // ActParamInstallPagentBywmi ...
 type ActParamInstallPagentBywmi struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPagentByWMI struct {
@@ -140,7 +140,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// get wmi credit.
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	_, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get wmi credit: %w", err)
@@ -200,7 +200,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	return nil
 }
 
-func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeActionStandarder) (string, string, error) {
+func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeaction.NodeActionStandarder) (string, string, error) {
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
 		std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -218,7 +218,7 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeA
 }
 
 func (act *actionInstallPagentByWMI) notifyRelayToInstall(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	cKey string,
 	toolsName string,
 	installCmd string,
@@ -260,7 +260,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 
 // nolint: gocognit
 func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
-	std *nodeUtils.NodeActionStandarder) error {
+	std *nodeaction.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeoutWMI)
 	defer cancel()
@@ -323,11 +323,11 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 }
 
 func (act *actionInstallPagentByWMI) buildInstallCmd(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	installerPath string) (string, error) {
 
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
-		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay)
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeaction.NodeInstallerEndpointSourceRelay)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
@@ -343,8 +343,8 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
 		InstallerPath:          installerPath,
-		DownloadSvrAddr:        nodeUtils.BuildServerURLs(downloadEndpoints...),
-		CallbackSvrAddr:        nodeUtils.BuildServerURLs(callbackEndpoints...),
+		DownloadSvrAddr:        nodeaction.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr:        nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:            std.Token(),
 		NodeVersion:            std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:             std.InstanceData().OperationInstanceID,

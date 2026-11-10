@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -44,7 +44,7 @@ func NewActionCorrectUnknownProcessStatus(capability *Capability) action.Definit
 
 // ActionParamCorrectUnknownProcessStatus defines the process expiry check scope.
 type ActionParamCorrectUnknownProcessStatus struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 
 	HostIDs []int64 `json:"host_ids"`
 }
@@ -97,7 +97,7 @@ func (act *actionCorrectUnknownProcessStatus) Do(ctx *action.InstanceContext) er
 	if len(param.HostIDs) == 0 {
 		return errors.New("host IDs are required for process status correction")
 	}
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}

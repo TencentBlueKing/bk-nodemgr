@@ -26,7 +26,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -54,7 +54,7 @@ func NewActionWaitGseReady(capability *Capability) action.Definition {
 // ActParamWaitGseReady defines the action param for waiting GSE ready.
 // Restart timing fields are loaded from the wait_gse_ready action private data.
 type ActParamWaitGseReady struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionWaitGseReady struct {
@@ -122,7 +122,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func ensureStateReady(std *nodeUtils.NodeActionStandarder, state *types.AgentState) error {
+func ensureStateReady(std *nodeaction.NodeActionStandarder, state *types.AgentState) error {
 	std.DeployInfo().Host.Dynamic.NodeStatus = state.NodeStatus
 	if state.NodeStatus != types.NodeStatusRunning {
 		return fmt.Errorf("agent state is not running, status(%s)", state.NodeStatus)
@@ -222,7 +222,7 @@ func ensureStateReady(std *nodeUtils.NodeActionStandarder, state *types.AgentSta
 	return nil
 }
 
-func (act *actionWaitGseReady) verifyRestartStartTime(nCtx contextx.IContext, std *nodeUtils.NodeActionStandarder,
+func (act *actionWaitGseReady) verifyRestartStartTime(nCtx contextx.IContext, std *nodeaction.NodeActionStandarder,
 	state *types.AgentState, preRestartNodeStartTimeSec int64, preRestartNodeStartTime time.Time) error {
 
 	if preRestartNodeStartTimeSec == 0 {

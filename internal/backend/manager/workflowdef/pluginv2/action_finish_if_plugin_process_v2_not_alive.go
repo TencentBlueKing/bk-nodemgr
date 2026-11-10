@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -51,7 +51,7 @@ func NewActionFinishIfPluginProcessV2NotAlive(capability *Capability) action.Def
 
 // ActParamFinishIfPluginProcessV2NotAlive defines the parameters for actionFinishIfPluginProcessV2NotAlive.
 type ActParamFinishIfPluginProcessV2NotAlive struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 type actionFinishIfPluginProcessV2NotAlive struct {
@@ -106,7 +106,7 @@ func (act *actionFinishIfPluginProcessV2NotAlive) Do(ctx *action.InstanceContext
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (act *actionFinishIfPluginProcessV2NotAlive) Do(ctx *action.InstanceContext
 
 		std.InstanceData().Content = conv.StructToMapIgnoreError(param)
 
-		if err := pluginV2Utils.FinishOperationInstance(std, act.daoOperationInstance, act.daoActionInstance); err != nil {
+		if err := pluginv2action.FinishOperationInstance(std, act.daoOperationInstance, act.daoActionInstance); err != nil {
 			return fmt.Errorf("failed to finish operation instance: %w", err)
 		}
 	}

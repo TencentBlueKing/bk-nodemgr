@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
-	deployPolicyUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/deploypolicyaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -51,7 +51,7 @@ func NewActionGenOperExecuteDeployPolicy(capability *Capability) action.Definiti
 
 // ActionParamGenOperExecuteDeployPolicy the action's param.
 type ActionParamGenOperExecuteDeployPolicy struct {
-	deployPolicyUtils.DeployPolicyActionStandardParam
+	deploypolicyaction.DeployPolicyActionStandardParam
 }
 
 type actionGenOperExecuteDeployPolicy struct {
@@ -115,7 +115,7 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 	}
 
 	// initialize standard data.
-	std := deployPolicyUtils.NewDeployPolicyActionStandarder()
+	std := deploypolicyaction.NewDeployPolicyActionStandarder()
 	if err = std.Initialize(ctx, param.DeployPolicyActionStandardParam); err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 	return nil
 }
 
-func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.DeployPolicyActionStandarder, trigCtl workflow.ITriggerCtl,
+func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deploypolicyaction.DeployPolicyActionStandarder, trigCtl workflow.ITriggerCtl,
 	policyIDs ...int64) error {
 
 	operationDef := NewOperExecuteDeployPolicy(OperParamExecuteDeployPolicy{

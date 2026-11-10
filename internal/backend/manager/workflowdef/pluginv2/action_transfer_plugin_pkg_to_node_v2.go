@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"time"
 
-	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/pluginv2action"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -56,7 +56,7 @@ func NewActionTransferPluginPkgToNodeV2(capability *Capability) action.Definitio
 
 // ActParamTransferPluginPkgToNodeV2 defines the action param.
 type ActParamTransferPluginPkgToNodeV2 struct {
-	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+	pluginv2action.PluginActionStandardParam `json:",inline"`
 }
 
 type actionTransferPluginPkgToNodeV2 struct {
@@ -112,7 +112,7 @@ func (act *actionTransferPluginPkgToNodeV2) Do(ctx *action.InstanceContext) (err
 	}
 
 	// initialize standard data.
-	std := pluginV2Utils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginv2action.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -135,10 +135,10 @@ func (act *actionTransferPluginPkgToNodeV2) Do(ctx *action.InstanceContext) (err
 
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.DisableReleasePackage {
-		if err = pluginV2Utils.EnsureHostLoginUser(std, targetHost); err != nil {
+		if err = pluginv2action.EnsureHostLoginUser(std, targetHost); err != nil {
 			return err
 		}
-		if err = pluginV2Utils.EnsureHostOperateUser(std, targetHost); err != nil {
+		if err = pluginv2action.EnsureHostOperateUser(std, targetHost); err != nil {
 			return err
 		}
 
@@ -172,7 +172,7 @@ func (act *actionTransferPluginPkgToNodeV2) Do(ctx *action.InstanceContext) (err
 	return nil
 }
 
-func (act *actionTransferPluginPkgToNodeV2) transferRelease(std *pluginV2Utils.PluginActionStandarder,
+func (act *actionTransferPluginPkgToNodeV2) transferRelease(std *pluginv2action.PluginActionStandarder,
 	targetHost *types.Host) error {
 
 	info := std.DeployInfo()
@@ -236,7 +236,7 @@ func (act *actionTransferPluginPkgToNodeV2) transferRelease(std *pluginV2Utils.P
 	return nil
 }
 
-func (act *actionTransferPluginPkgToNodeV2) transferInstaller(std *pluginV2Utils.PluginActionStandarder, targetHost *types.Host) error {
+func (act *actionTransferPluginPkgToNodeV2) transferInstaller(std *pluginv2action.PluginActionStandarder, targetHost *types.Host) error {
 	info := std.DeployInfo()
 	nCtx := std.Context()
 
@@ -294,7 +294,7 @@ func (act *actionTransferPluginPkgToNodeV2) transferInstaller(std *pluginV2Utils
 // pushOfflinePluginConfig pushes plugin config files to ConfigDir via GSE in offline mode.
 // In offline mode, installer cannot callback to fetch config, so we push it beforehand.
 func (act *actionTransferPluginPkgToNodeV2) pushOfflinePluginConfig(
-	std *pluginV2Utils.PluginActionStandarder,
+	std *pluginv2action.PluginActionStandarder,
 	targetHost *types.Host,
 ) error {
 
@@ -308,7 +308,7 @@ func (act *actionTransferPluginPkgToNodeV2) pushOfflinePluginConfig(
 		configDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName, "config")
 	}
 
-	if err := pluginV2Utils.CheckDirPathSafe(configDir, info.Process.Platform.OS); err != nil {
+	if err := pluginv2action.CheckDirPathSafe(configDir, info.Process.Platform.OS); err != nil {
 		return fmt.Errorf("check config store dir safe failed, dir(%s): %w", configDir, err)
 	}
 

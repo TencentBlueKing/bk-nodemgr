@@ -30,7 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"go.opentelemetry.io/otel/attribute"
@@ -401,7 +401,7 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 
 	// check if this action should be executed.
 	if err := actionInstData.NeedExecuted(); err != nil {
-		if errors.Is(err, common.ErrActionAlreadySucceeded()) || errors.Is(err, common.ErrActionSkipped()) {
+		if errors.Is(err, execution.ErrActionAlreadySucceeded()) || errors.Is(err, execution.ErrActionSkipped()) {
 			span.AddEvent(spanEventActionSkipped, trace.WithAttributes(
 				attribute.String(attributeKeySkipReason, err.Error())))
 

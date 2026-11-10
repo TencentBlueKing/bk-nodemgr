@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -52,7 +52,7 @@ func NewActionCleanOrphanProcess(capability *Capability) action.Definition {
 
 // ActionParamCleanOrphanProcess defines the action's param.
 type ActionParamCleanOrphanProcess struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 	Processes []*types.Process `json:"processes"`
 }
 
@@ -106,7 +106,7 @@ func (act *actionCleanOrphanProcess) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (act *actionCleanOrphanProcess) Do(ctx *action.InstanceContext) error {
 }
 
 // cleanOrphanProcesses deletes supplied processes with missing hosts and schedules correction for existing hosts.
-func (act *actionCleanOrphanProcess) cleanOrphanProcesses(std *syncDataUtils.SyncDataActionStandarder, processes []*types.Process) error {
+func (act *actionCleanOrphanProcess) cleanOrphanProcesses(std *syncdataaction.SyncDataActionStandarder, processes []*types.Process) error {
 	if len(processes) == 0 {
 		return nil
 	}
@@ -178,7 +178,7 @@ func (act *actionCleanOrphanProcess) cleanOrphanProcesses(std *syncDataUtils.Syn
 }
 
 func (act *actionCleanOrphanProcess) createCorrectionOperation(
-	std *syncDataUtils.SyncDataActionStandarder, hostIDs []int64) error {
+	std *syncdataaction.SyncDataActionStandarder, hostIDs []int64) error {
 
 	if len(hostIDs) == 0 {
 		return nil

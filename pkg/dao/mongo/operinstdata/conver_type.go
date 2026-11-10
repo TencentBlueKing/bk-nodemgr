@@ -24,7 +24,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -172,7 +172,7 @@ func ConvActionInstDataMapToDB(commData map[string]*action.InstanceData) (map[st
 }
 
 // convMessageToDB convert message to db.
-func convMessageToDB(msgs []common.Message) []Message {
+func convMessageToDB(msgs []execution.Message) []Message {
 	dbData := make([]Message, len(msgs))
 	for idx, msg := range msgs {
 		dbData[idx] = Message{
@@ -187,10 +187,10 @@ func convMessageToDB(msgs []common.Message) []Message {
 }
 
 // convMessageFromDB convert message from db.
-func convMessageFromDB(msgs []Message) []common.Message {
-	data := make([]common.Message, len(msgs))
+func convMessageFromDB(msgs []Message) []execution.Message {
+	data := make([]execution.Message, len(msgs))
 	for idx, msg := range msgs {
-		data[idx] = common.Message{
+		data[idx] = execution.Message{
 			Time:   msg.Time,
 			TextZh: msg.TextZh,
 			TextEn: msg.TextEn,

@@ -16,8 +16,8 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package common defines workflow common things.
-package common
+// Package execution defines workflow execution errors and message contracts.
+package execution
 
 import "errors"
 

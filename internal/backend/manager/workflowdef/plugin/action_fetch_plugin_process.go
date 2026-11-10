@@ -22,7 +22,7 @@ import (
 	"errors"
 	"time"
 
-	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -45,7 +45,7 @@ func NewActionFetchPluginProcess(capability *Capability) action.Definition {
 
 // ActParamFetchPluginProcess defines the parameters for actionFetchPluginProcess.
 type ActParamFetchPluginProcess struct {
-	pluginUtils.PluginActionStandardParam `json:",inline"`
+	pluginaction.PluginActionStandardParam `json:",inline"`
 }
 
 type actionFetchPluginProcess struct {
@@ -98,7 +98,7 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// initialize standard data.
-	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	std := pluginaction.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) (err error)
 
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
-	process, err := pluginUtils.GetActualExistingProcess(
+	process, err := pluginaction.GetActualExistingProcess(
 		nCtx,
 		act.daoProcess,
 		act.daoHost,

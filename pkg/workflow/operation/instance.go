@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/execution"
 )
 
 // InstanceMetadata defines the metadata of operation instance.
@@ -41,7 +41,7 @@ type InstanceMetadata struct {
 	InitContent            map[string]any
 	ExtraExecutionName     string
 	ExtraExecutionMutex    sync.Mutex
-	ExtraExecutionMessages []common.Message
+	ExtraExecutionMessages []execution.Message
 }
 
 // SetMessage sets the extra execution message for the operation instance.
@@ -49,7 +49,7 @@ func (data *InstanceMetadata) SetMessage(zhMsg, enMsg, level string) {
 	data.ExtraExecutionMutex.Lock()
 	defer data.ExtraExecutionMutex.Unlock()
 
-	data.ExtraExecutionMessages = append(data.ExtraExecutionMessages, common.Message{
+	data.ExtraExecutionMessages = append(data.ExtraExecutionMessages, execution.Message{
 		Time:   time.Now(),
 		TextZh: zhMsg,
 		TextEn: enMsg,
@@ -58,8 +58,8 @@ func (data *InstanceMetadata) SetMessage(zhMsg, enMsg, level string) {
 }
 
 // Log returns a new LogBuilder for chainable bilingual logging.
-func (data *InstanceMetadata) Log() *common.LogBuilder {
-	return common.NewLogBuilder(data)
+func (data *InstanceMetadata) Log() *execution.LogBuilder {
+	return execution.NewLogBuilder(data)
 }
 
 // InstanceBriefData defines the brief data of operation instance.

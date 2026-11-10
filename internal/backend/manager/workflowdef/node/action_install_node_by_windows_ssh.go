@@ -27,7 +27,7 @@ import (
 	"time"
 	"unicode/utf16"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -74,7 +74,7 @@ func NewActionInstallNodeByWindowsSSH(capability *Capability) action.Definition 
 
 // ActParamInstallAgentByWindowsSSH defines the action parameter.
 type ActParamInstallAgentByWindowsSSH struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallNodeByWindowsSSH struct {
@@ -144,7 +144,7 @@ func (act *actionInstallNodeByWindowsSSH) Do(ctx *action.InstanceContext) (err e
 		return err
 	}
 
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func (cmd *windowsSSHInstallCommand) Close() {
 }
 
 func (act *actionInstallNodeByWindowsSSH) prepareWindowsSSHInstall(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 ) (*windowsSSHInstallCommand, error) {
 	client, err := act.newWindowsSSHClient(std)
 	if err != nil {
@@ -212,7 +212,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareWindowsSSHInstall(
 }
 
 func (act *actionInstallNodeByWindowsSSH) launchWindowsSSHInstall(
-	std *nodeUtils.NodeActionStandarder, installCmd *windowsSSHInstallCommand,
+	std *nodeaction.NodeActionStandarder, installCmd *windowsSSHInstallCommand,
 ) error {
 	stdout, stderr, err := installCmd.client.RunCommand(installCmd.launchCmd)
 	if err != nil {
@@ -229,8 +229,8 @@ func (act *actionInstallNodeByWindowsSSH) launchWindowsSSHInstall(
 	return nil
 }
 
-func (act *actionInstallNodeByWindowsSSH) newWindowsSSHClient(std *nodeUtils.NodeActionStandarder) (*sshx.Client, error) {
-	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+func (act *actionInstallNodeByWindowsSSH) newWindowsSSHClient(std *nodeaction.NodeActionStandarder) (*sshx.Client, error) {
+	credit := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ssh credit: %w", err)
@@ -266,7 +266,7 @@ func (act *actionInstallNodeByWindowsSSH) newWindowsSSHClient(std *nodeUtils.Nod
 	return client, nil
 }
 
-func (act *actionInstallNodeByWindowsSSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
+func (act *actionInstallNodeByWindowsSSH) ensureWorkspace(std *nodeaction.NodeActionStandarder, client *sshx.Client) error {
 	workDir := std.DeployInfo().InstallerRuntime.WorkDir
 	command := buildPowerShellCommand(fmt.Sprintf(
 		"New-Item -ItemType Directory -Force -Path %s | Out-Null",
@@ -288,7 +288,7 @@ func (act *actionInstallNodeByWindowsSSH) ensureWorkspace(std *nodeUtils.NodeAct
 	return nil
 }
 
-func (act *actionInstallNodeByWindowsSSH) ensureInstallerTool(std *nodeUtils.NodeActionStandarder, client *sshx.Client) (string, error) {
+func (act *actionInstallNodeByWindowsSSH) ensureInstallerTool(std *nodeaction.NodeActionStandarder, client *sshx.Client) (string, error) {
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return "", fmt.Errorf("failed to format installer tool name: %w", err)
@@ -314,7 +314,7 @@ func (act *actionInstallNodeByWindowsSSH) ensureInstallerTool(std *nodeUtils.Nod
 
 // openInstallerReader returns a reader for the installer binary, using the local
 // file cache when available to avoid redundant downloads across workflow retries.
-func (act *actionInstallNodeByWindowsSSH) openInstallerReader(std *nodeUtils.NodeActionStandarder) (io.ReadCloser, error) {
+func (act *actionInstallNodeByWindowsSSH) openInstallerReader(std *nodeaction.NodeActionStandarder) (io.ReadCloser, error) {
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 	cpuArch := std.DeployInfo().Host.Dynamic.NodeCPUArch
 
@@ -354,7 +354,7 @@ func (act *actionInstallNodeByWindowsSSH) openInstallerReader(std *nodeUtils.Nod
 }
 
 func (act *actionInstallNodeByWindowsSSH) prepareInstallCommand(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client, profile string,
+	std *nodeaction.NodeActionStandarder, client *sshx.Client, profile string,
 ) (string, error) {
 
 	switch profile {
@@ -386,7 +386,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareInstallCommand(
 }
 
 func (act *actionInstallNodeByWindowsSSH) ensureCygwinWorkspace(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client,
+	std *nodeaction.NodeActionStandarder, client *sshx.Client,
 ) error {
 
 	workDir := winpath.ToSlash(winpath.Clean(std.DeployInfo().InstallerRuntime.WorkDir))
@@ -408,7 +408,7 @@ func (act *actionInstallNodeByWindowsSSH) ensureCygwinWorkspace(
 }
 
 func (act *actionInstallNodeByWindowsSSH) prepareNativeInstallCommand(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string,
+	std *nodeaction.NodeActionStandarder, client *sshx.Client, installerPath string,
 ) (string, error) {
 
 	installParams, err := act.buildNodeInstallParams(std, installerPath)
@@ -434,7 +434,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareNativeInstallCommand(
 }
 
 func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string,
+	std *nodeaction.NodeActionStandarder, client *sshx.Client, installerPath string,
 ) (string, error) {
 
 	installParams, err := act.buildNodeInstallParams(std, installerPath)
@@ -460,15 +460,15 @@ func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
 }
 
 func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
-	std *nodeUtils.NodeActionStandarder, installerPath string,
+	std *nodeaction.NodeActionStandarder, installerPath string,
 ) (*installer.NodeInstallParams, error) {
 
-	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
+	endpointSource := nodeaction.SelectInstallEndpointSource(std)
+	callbackEndpoints, downloadEndpoints, err := nodeaction.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
-	downloadSvrAddr, err := nodeUtils.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
+	downloadSvrAddr, err := nodeaction.BuildDownloadServerURLs(std.Context(), downloadEndpoints...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build download server urls: %w", err)
 	}
@@ -485,7 +485,7 @@ func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
 		},
 		InstallerPath:   installerPath,
 		DownloadSvrAddr: downloadSvrAddr,
-		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
+		CallbackSvrAddr: nodeaction.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,

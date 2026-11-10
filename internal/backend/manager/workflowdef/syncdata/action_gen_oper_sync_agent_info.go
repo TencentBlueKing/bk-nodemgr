@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/syncdataaction"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -59,7 +59,7 @@ func NewActionGenOperSyncAgentInfo(capability *Capability) action.Definition {
 
 // ActionParamGenOperSyncAgentInfo defines the action's param.
 type ActionParamGenOperSyncAgentInfo struct {
-	syncDataUtils.SyncDataActionStandardParam
+	syncdataaction.SyncDataActionStandardParam
 }
 
 type actionGenOperSyncAgentInfo struct {
@@ -113,7 +113,7 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := syncDataUtils.NewSyncDataActionStandarder()
+	std := syncdataaction.NewSyncDataActionStandarder()
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionGenOperSyncAgentInfo) createOperForBusiness(std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl,
+func (act *actionGenOperSyncAgentInfo) createOperForBusiness(std *syncdataaction.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl,
 	biz *types.Business) (int, error) {
 
 	// find alive nodes and sync agent info. skip the empty-agent-id nodes.
@@ -238,7 +238,7 @@ func (act *actionGenOperSyncAgentInfo) createOperForBusiness(std *syncDataUtils.
 
 // executeOper create an operation to sync agent info for the given hosts and then execute it.
 func (act *actionGenOperSyncAgentInfo) executeOper(
-	std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, hosts ...*types.Host) error {
+	std *syncdataaction.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, hosts ...*types.Host) error {
 
 	hostAgentID := make([]*HostIDAgentID, 0, len(hosts))
 	for _, host := range hosts {

@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
@@ -69,7 +69,7 @@ func NewActionEnsurePkgToRelay(capability *Capability) action.Definition {
 
 // ActParamEnsurePkgToRelay ...
 type ActParamEnsurePkgToRelay struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionEnsurePkgToRelay struct {
@@ -141,7 +141,7 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionEnsurePkgToRelay) getRequiredPackages(
-	std *nodeUtils.NodeActionStandarder) (*types.Release, fileiface.File, error) {
+	std *nodeaction.NodeActionStandarder) (*types.Release, fileiface.File, error) {
 
 	releasePkg, err := act.getReleasePackageInfo(std.Context(), std)
 	if err != nil {
@@ -231,7 +231,7 @@ func (act *actionEnsurePkgToRelay) getRequiredPackages(
 	return releasePkg, installPkg, nil
 }
 
-func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *nodeUtils.NodeActionStandarder,
+func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *nodeaction.NodeActionStandarder,
 	files []protoRelay.FileInfo, relayInfo *types.RelayInfo) error {
 
 	event := protoRelay.CheckPkgStateReq{
@@ -263,7 +263,7 @@ func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *nodeUtils.NodeAct
 
 // nolint: gocognit
 func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
-	std *nodeUtils.NodeActionStandarder, files []protoRelay.FileInfo) (map[string]bool, string, error) {
+	std *nodeaction.NodeActionStandarder, files []protoRelay.FileInfo) (map[string]bool, string, error) {
 
 	results := make(map[string]bool, len(files))
 	for _, file := range files {
@@ -341,7 +341,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 	return results, fileStorageDir, nil
 }
 
-func (act *actionEnsurePkgToRelay) getReleasePackageInfo(nCtx contextx.IContext, std *nodeUtils.NodeActionStandarder) (*types.Release, error) {
+func (act *actionEnsurePkgToRelay) getReleasePackageInfo(nCtx contextx.IContext, std *nodeaction.NodeActionStandarder) (*types.Release, error) {
 	var release *types.Release
 	switch std.DeployInfo().Host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
@@ -381,7 +381,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(nCtx contextx.IContext,
 }
 
 func (act *actionEnsurePkgToRelay) getInstallerFile(
-	nCtx contextx.IContext, std *nodeUtils.NodeActionStandarder) (fileiface.File, error) {
+	nCtx contextx.IContext, std *nodeaction.NodeActionStandarder) (fileiface.File, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -402,7 +402,7 @@ func (act *actionEnsurePkgToRelay) getInstallerFile(
 }
 
 func (act *actionEnsurePkgToRelay) transferMissingPackages(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	releasePkg *types.Release,
 	installPkg fileiface.File,
 	pkgStates map[string]bool) ([]protoRelay.FileInfo, error) {
@@ -469,7 +469,7 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 	return transferred, nil
 }
 
-func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeUtils.NodeActionStandarder,
+func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeaction.NodeActionStandarder,
 	rt types.ReleaseType) error {
 
 	std.InstanceData().Log().
@@ -521,7 +521,7 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeUtils.NodeActionS
 }
 
 func (act *actionEnsurePkgToRelay) transferInstaller(
-	std *nodeUtils.NodeActionStandarder) error {
+	std *nodeaction.NodeActionStandarder) error {
 
 	std.InstanceData().Log().
 		Zh("准备传输 installer 包, relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
@@ -570,7 +570,7 @@ func (act *actionEnsurePkgToRelay) transferInstaller(
 }
 
 func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
-	std *nodeUtils.NodeActionStandarder, files []protoRelay.FileInfo, relayInfo *types.RelayInfo) error {
+	std *nodeaction.NodeActionStandarder, files []protoRelay.FileInfo, relayInfo *types.RelayInfo) error {
 
 	// FileList carries the expected MD5 so the relay can prove the transfer completed before
 	// caching it. A relay that receives no MD5 refuses to store the package.
@@ -600,7 +600,7 @@ func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
 }
 
 func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
-	std *nodeUtils.NodeActionStandarder) error {
+	std *nodeaction.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()

@@ -23,7 +23,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/pluginaction"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -79,7 +79,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	}, len(operations))
 
 	for idx, op := range operations {
-		param := new(utils.PluginActionStandardParam)
+		param := new(pluginaction.PluginActionStandardParam)
 
 		if err := conv.MapToStruct(op.Param.InitContent, param); err != nil {
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/packageaction"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -47,7 +47,7 @@ type actionPackagePublishPluginV3Pkg struct {
 
 // ActionParamImportPackagePublish defines the publish action's param.
 type ActionParamImportPackagePublish struct {
-	pkgUtils.PackageActionStandardParam
+	packageaction.PackageActionStandardParam
 }
 
 func (act *actionPackagePublishPluginV3Pkg) Name() string {
@@ -93,7 +93,7 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 		return err
 	}
 
-	std := pkgUtils.NewPackageActionStandarder(act.storagePackage)
+	std := packageaction.NewPackageActionStandarder(act.storagePackage)
 	if err := std.Initialize(ctx, param.PackageActionStandardParam); err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 			uploadInfo.Name, uploadInfo.Version)
 	}
 
-	if err := pkgUtils.ComparePlatforms(uploadInfo.Platforms, pkgs); err != nil {
+	if err := packageaction.ComparePlatforms(uploadInfo.Platforms, pkgs); err != nil {
 		std.InstanceData().Log().
 			Zh("已发布的V3插件包平台集合与上传包的预期平台集合不匹配: %s", err).
 			En("published v3 package platform set does not match the uploaded package: %s", err).

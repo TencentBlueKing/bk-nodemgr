@@ -25,7 +25,7 @@ import (
 	"path"
 	"time"
 
-	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -60,7 +60,7 @@ func NewActionWaitInstallerComplete(capability *Capability) action.Definition {
 
 // ActionWaitInstallerComplete defines the action param.
 type ActionWaitInstallerComplete struct {
-	nodeUtils.NodeActionStandardParam `json:",inline"`
+	nodeaction.NodeActionStandardParam `json:",inline"`
 }
 
 type actionWaitInstallerComplete struct {
@@ -126,7 +126,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
+	std := nodeaction.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) (err err
 }
 
 // doCallbackPolling is the original callback-based polling logic.
-func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeUtils.NodeActionStandarder, ensureAgentID bool,
+func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeaction.NodeActionStandarder, ensureAgentID bool,
 ) error {
 
 	instanceID := std.InstanceData().OperationInstanceID
@@ -185,10 +185,10 @@ func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeUtils.NodeAct
 }
 
 // doOfflinePolling implements the SSH polling branch for cross-unit proxy installations.
-func (act *actionWaitInstallerComplete) doOfflinePolling(std *nodeUtils.NodeActionStandarder, ensureAgentID bool,
+func (act *actionWaitInstallerComplete) doOfflinePolling(std *nodeaction.NodeActionStandarder, ensureAgentID bool,
 ) error {
 
-	creditHandler := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	creditHandler := nodeaction.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := creditHandler.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit for polling: %w", err)
@@ -264,7 +264,7 @@ func (act *actionWaitInstallerComplete) doOfflinePolling(std *nodeUtils.NodeActi
 
 // handleInstallerResult processes the final installer result for both polling modes.
 func (act *actionWaitInstallerComplete) handleInstallerResult(
-	std *nodeUtils.NodeActionStandarder,
+	std *nodeaction.NodeActionStandarder,
 	instanceID string,
 	result installer.ProcessState,
 ) error {
@@ -295,7 +295,7 @@ func (act *actionWaitInstallerComplete) handleInstallerResult(
 	}
 }
 
-func (act *actionWaitInstallerComplete) waitInstallerField(std *nodeUtils.NodeActionStandarder, key string) (string, error) {
+func (act *actionWaitInstallerComplete) waitInstallerField(std *nodeaction.NodeActionStandarder, key string) (string, error) {
 	ticker := time.NewTicker(waitInstallerCompleteInterval)
 	defer ticker.Stop()
 
@@ -317,7 +317,7 @@ func (act *actionWaitInstallerComplete) waitInstallerField(std *nodeUtils.NodeAc
 	}
 }
 
-func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionStandarder, key string) (string, error) {
+func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeaction.NodeActionStandarder, key string) (string, error) {
 	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 		std.Context(),
 		std.InstanceData().OperationInstanceID,

@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/packageaction"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -88,7 +88,7 @@ func (act *actionPackagePublishPluginV2Pkg) Do(ctx *action.InstanceContext) (err
 		return err
 	}
 
-	std := pkgUtils.NewPackageActionStandarder(act.storagePackage)
+	std := packageaction.NewPackageActionStandarder(act.storagePackage)
 	if err := std.Initialize(ctx, param.PackageActionStandardParam); err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (act *actionPackagePublishPluginV2Pkg) Do(ctx *action.InstanceContext) (err
 			"plugin package name: %s, version: %s", uploadInfo.Name, uploadInfo.Version)
 	}
 
-	if err := pkgUtils.ComparePlatforms(uploadInfo.Platforms, pkgReleases); err != nil {
+	if err := packageaction.ComparePlatforms(uploadInfo.Platforms, pkgReleases); err != nil {
 		std.InstanceData().Log().
 			Zh("已发布的V2插件包平台集合与上传包的预期平台集合不匹配: %s", err).
 			En("published v2 package platform set does not match the uploaded package: %s", err).

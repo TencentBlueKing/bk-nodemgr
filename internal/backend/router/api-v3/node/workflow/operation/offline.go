@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/nodeaction"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
 	cffmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
@@ -82,7 +82,7 @@ func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, 
 	}
 
 	// extract token and load node deployment data.
-	param := new(utils.NodeActionStandardParam)
+	param := new(nodeaction.NodeActionStandardParam)
 	if err = conv.MapToStruct(oper.Param.InitContent, param); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get offline install info, failed to extract token")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
