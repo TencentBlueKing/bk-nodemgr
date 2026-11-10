@@ -40,8 +40,14 @@ type MemoryCache struct {
 
 // NewMemoryCache creates a MemoryCache with the given default expiration.
 func NewMemoryCache(defaultExpiration time.Duration) *MemoryCache {
+	return NewMemoryCacheWithConfig(defaultExpiration, 0)
+}
+
+// NewMemoryCacheWithConfig creates a MemoryCache with the given default expiration and cleanup
+// interval; a positive cleanupInterval starts a janitor that proactively purges expired entries.
+func NewMemoryCacheWithConfig(defaultExpiration, cleanupInterval time.Duration) *MemoryCache {
 	return &MemoryCache{
-		cache: gocache.New(defaultExpiration, 0),
+		cache: gocache.New(defaultExpiration, cleanupInterval),
 	}
 }
 

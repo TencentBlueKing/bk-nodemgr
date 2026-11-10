@@ -22,6 +22,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -39,6 +40,12 @@ func TestDisabledHandler(t *testing.T) {
 		allowed, err := h.IsAllowed(ctx, req)
 		if allowed || !errors.Is(err, ErrDisabled) {
 			t.Fatalf("IsAllowed() = %v, %v; want false, ErrDisabled", allowed, err)
+		}
+	})
+	t.Run("IsAllowedWithCache", func(t *testing.T) {
+		allowed, err := h.IsAllowedWithCache(ctx, req, time.Minute)
+		if allowed || !errors.Is(err, ErrDisabled) {
+			t.Fatalf("IsAllowedWithCache() = %v, %v; want false, ErrDisabled", allowed, err)
 		}
 	})
 	t.Run("ResourcesAllowed", func(t *testing.T) {
