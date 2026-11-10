@@ -46,7 +46,7 @@ Glossary 的目标不是翻译所有词，而是减少同一概念多种叫法�
 | Deploy Policy         | 部署状态、部署策略和部署目标 spec                                     | 讨论部署范围、目标规格、策略和部署结果语义时。                |
 | Plugin Runtime        | 插件包、插件和进程                                                    | 讨论 plugin package、tenant plugin 或 process 语义时。        |
 | Ownership             | 租户和业务                                                            | 讨论资源归属、租户边界或 CMDB 业务维度时。                    |
-| Host Credentials      | 主机凭证和 historical `credit`                                        | 讨论安装凭证、host credential vault 或历史命名时。            |
+| Host Credentials      | 主机账号、凭证和 historical `credit`                                  | 讨论登录用户、GSE 操作用户、安装凭证或历史命名时。            |
 
 ### Host Context
 
@@ -154,6 +154,14 @@ Glossary 的目标不是翻译所有词，而是减少同一概念多种叫法�
 | `Proposed` | Biz      | Business 的常用缩写，主要保留在代码、API 字段和 CMDB 语境中。 | `Biz`、`bk_biz_id` | 在自然语言中用 Biz 替代所有 Business | `Business` 是完整术语；Biz 是代码/API 常见缩写。   | `bk_biz_id`、`biz_id`           | `docs/concepts/node/host.md`、`front/src/constants/auth.ts`          |
 
 ### Host Credentials
+
+#### Login User / Operate User / Admin User
+
+| Status     | Term         | Definition                                                                                          | Preferred forms                 | Avoid forms                            | Distinguish from                                                        | Code/API mapping                                                     | Source                                                             |
+| ---------- | ------------ | --------------------------------------------------------------------------------------------------- | ------------------------------- | -------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `Accepted` | Login User   | 安装及主机信息探测时，通过 SSH/WMI 认证登录目标主机的操作系统账号。                                 | `LoginUser`、登录用户           | GSE 操作用户                           | `OperateUser` 用于 GSE 插件管理；请求用户和资产维护人不是主机登录身份。 | `Host.Dynamic.LoginUser`、`login_user`                               | `docs/concepts/node/user.md`、`pkg/types/host.go`                  |
+| `Accepted` | Operate User | GSE 通道操作插件进程和文件时使用的主机操作系统身份，默认 Unix-like 为 `root`、Windows 为 `system`。 | `OperateUser`、GSE 操作用户     | 登录用户                               | `LoginUser` 用于登录认证；模板 `account` 仍取配置来源主机的登录用户。   | `Host.Dynamic.OperateUser`、`operate_user`、`gse.DefaultOperateUser` | `docs/concepts/node/user.md`、`pkg/thirdparty/gse/operate_user.go` |
+| `Accepted` | Admin User   | 按操作系统选择的默认系统管理员账号，用于补全空的登录用户。                                          | `AdminUser`、默认系统管理员账号 | 把默认管理员当成所有主机的固定登录用户 | 默认值规则不是独立 Host 字段，也不等于 GSE 操作身份。                   | `criteria.AdminUser`、`criteria.DefaultAdminUser`                    | `docs/concepts/node/user.md`、`pkg/runtime/criteria/admin_user.go` |
 
 #### Credential / historical credit
 
