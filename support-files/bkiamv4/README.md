@@ -2,7 +2,7 @@
 
 本目录存放 bk-nodemgr 的 IAM V4 权限模型模板、渲染工具和迁移工具。
 
-使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。支持 `upsert_system`、`upsert_resource_type`、`upsert_action` 和 `upsert_role`：不存在时注册，已存在时有限更新；不自动展开操作依赖，不处理用户组授权、资源范围分配或审批。
+使用流程：配置变量 → 渲染模板 → 预检查 → 执行迁移。支持 `upsert_system`、`upsert_resource_type`、`upsert_action` 和 `upsert_role`：不存在时注册，已存在时有限更新。另提供显式的 `replace_action`，用于经确认后删除并重建资源绑定发生变化的 Action；默认模板不包含此操作。不自动展开操作依赖，不分配用户组授权或资源范围，不处理审批。
 
 ## 文件说明
 
@@ -209,6 +209,66 @@ flowchart TD
 绑定本系统 `biz` 的 13 个操作为：`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、`plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`。先执行 `0002` 注册 `biz`，再执行 `0003`；已有 Action 的绑定冲突仍按上表报错，不自动改绑。
 
 本工具仅补齐模型初始化，Provider、资源查询与运行时鉴权链路需另行建设和验证。**模型注册成功不代表业务权限链路已就绪。** V3 模型及已有授权数据不变，不自动迁移 V3 的操作依赖、分组和创建者授权配置。
+
+### 显式替换 Action 绑定
+
+普通 `upsert_action` 始终拒绝绑定变化，不会隐式删除。确需替换时，单独准备迁移文件，使用 `replace_action` 声明预期旧绑定和目标绑定。该操作可能清除已有权限，执行前确认目标系统、租户、受影响角色和授权范围；旧授权不会自动转换到新维度。
+
+`data` 必须提供 `id`、`name`、`resource_type_id`（目标绑定）和 `expected_resource_type_id`（预期旧绑定）；无资源绑定用 `""` 表示，旧绑定与目标绑定必须不同。可选 `cascade` 是去重的字符串数组，默认不级联，只允许下列值，不支持 `all`：
+
+| cascade 值 | 删除影响 |
+| ---------- | -------- |
+| `role` | 从引用该 Action 的角色中移除该成员，保留角色本身；不会自动恢复成员 |
+| `rbac_authorization` | 清理以该 Action 为末级维度的 RBAC 授权，权限立即失效；后台清理完成前可能无法重建或重新加入同名 Action |
+| `abac_authorization` | 从显式引用该 Action 的 ABAC 策略范围移除该成员并更新版本；范围为空时删除策略并使其绑定失效，通配范围不在此清理范围内 |
+
+未声明的依赖或不可级联依赖会使 IAM 返回 HTTP 409，工具立即停止，不自动扩大 `cascade`、重试删除或回滚。dry-run 只检查本地规则和当前模型，输出旧绑定、目标绑定与级联范围，不调用删除接口，不能证明服务端不存在依赖。
+
+| 远端状态 | 行为 |
+| -------- | ---- |
+| 绑定等于预期旧绑定 | 先验证目标资源和名称，再删除旧 Action 并创建目标 Action |
+| 绑定已等于目标绑定 | 按普通 upsert 更新名称或跳过，不再次删除 |
+| Action 不存在 | 创建目标 Action，也可用于删除成功后创建失败的恢复 |
+| 绑定既不是预期旧绑定也不是目标绑定 | 拒绝执行，不删除 |
+
+以下命令在 `support-files/bkiamv4` 目录执行，以 `package_history_view` 从 `package` 改为 `package_type` 为例。替换网关、应用和租户参数，并通过环境注入 `BK_APP_SECRET`。示例不授权清理已有 RBAC/ABAC 授权，仅声明角色成员清理；如 IAM 返回依赖冲突，应先评估具体依赖，不要直接添加全部级联项。
+
+```bash
+make -C migrate build
+cat > replace-package-history.json <<'JSON'
+{
+  "system_id": "bk_nodemgr",
+  "operations": [
+    {
+      "operation": "replace_action",
+      "data": {
+        "id": "package_history_view",
+        "name": "查看资源包历史",
+        "expected_resource_type_id": "package",
+        "resource_type_id": "package_type",
+        "cascade": ["role"]
+      }
+    }
+  ]
+}
+JSON
+
+./migrate/iam-migrate \
+  --gateway-url "https://bkapi.example.com/api/bkiam/prod/" \
+  --app-code "bk-nodemgr" \
+  --tenant-id "example-tenant" \
+  --file replace-package-history.json \
+  --dry-run
+
+# Execute only after reviewing the target, plan, and cascade effects.
+./migrate/iam-migrate \
+  --gateway-url "https://bkapi.example.com/api/bkiam/prod/" \
+  --app-code "bk-nodemgr" \
+  --tenant-id "example-tenant" \
+  --file replace-package-history.json
+```
+
+删除成功但创建失败时，错误会明确提示部分完成，不自动回滚。先查询 IAM 当前模型和后台清理状态，再按上表恢复；不要在结果未知时盲目重试。重建成功后，重新渲染并检查普通模板，先以 `--dir output --dry-run` 预检查，再按「执行迁移」同步，恢复模板中声明的角色成员与新维度；不在模板中的角色成员需单独处理。重新加入角色成员不等于完成旧授权迁移，仍需核验新维度的实际授权。
 
 ### Role 更新规则
 

@@ -52,6 +52,7 @@ const (
 	requestTimeout              = 30 * time.Second
 	operationUpsertResourceType = "upsert_resource_type"
 	operationUpsertAction       = "upsert_action"
+	operationReplaceAction      = "replace_action"
 	operationUpsertRole         = "upsert_role"
 	fieldName                   = "name"
 	fieldID                     = "id"
@@ -74,12 +75,13 @@ type migration struct {
 }
 
 type operation struct {
-	Operation string                     `json:"operation"`
-	Data      map[string]json.RawMessage `json:"data"`
-	fields    iamv4.SystemFields
-	resource  iamv4.ResourceType
-	action    iamv4.Action
-	role      iamv4.Role
+	Operation   string                     `json:"operation"`
+	Data        map[string]json.RawMessage `json:"data"`
+	fields      iamv4.SystemFields
+	resource    iamv4.ResourceType
+	action      iamv4.Action
+	replacement actionReplacement
+	role        iamv4.Role
 }
 
 func main() {
@@ -274,6 +276,9 @@ func loadMigration(file, appCode string) (migration, error) {
 		if op.Operation == operationUpsertRole {
 			target = &item.Operations[index].role
 		}
+		if op.Operation == operationReplaceAction {
+			target = &item.Operations[index].replacement
+		}
 		if err := json.Unmarshal(data, target); err != nil {
 			return item, fmt.Errorf("%s operation %d: decode model fields: %w", file, index+1, err)
 		}
@@ -283,6 +288,9 @@ func loadMigration(file, appCode string) (migration, error) {
 }
 
 func validateOperation(systemID string, op operation, appCode string) error {
+	if op.Operation == operationReplaceAction {
+		return validateActionReplacement(op.Data)
+	}
 	if op.Operation == operationUpsertRole {
 		return validateRole(op.Data)
 	}
@@ -364,6 +372,13 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 	roles := make(map[string]map[string]iamv4.Role)
 	for _, item := range migrations {
 		for index, op := range item.Operations {
+			if op.Operation == operationReplaceAction {
+				if err := item.executeActionReplacement(ctx, handler, op, actions, resourceTypes, roles, dryRun, out); err != nil {
+					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
+				}
+
+				continue
+			}
 			if op.Operation == operationUpsertRole {
 				if err := item.executeRole(ctx, handler, op, roles, actions, resourceTypes, dryRun, out); err != nil {
 					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)

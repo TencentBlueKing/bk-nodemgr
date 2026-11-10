@@ -124,3 +124,37 @@ func narrowReleaseCondition(
 
 	return condition
 }
+
+// narrowPackageEventCondition narrows history queries by authorized package types.
+// The boolean reports an empty intersection, which must not be queried as an unrestricted filter.
+func (h *handler) narrowPackageEventCondition(
+	rCtx restserver.IContext, condition *types.PackageEventCondition,
+) (*types.PackageEventCondition, bool, error) {
+
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPackageHistoryView, types.AuthResourceTypePackageType)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if condition == nil {
+		condition = &types.PackageEventCondition{}
+	}
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.PackageEventExactFields{}
+	}
+	releaseTypes, scopeIsAny, _, err := auth.ResolveAuthorizedResourceIDsString(
+		scope, types.ReleaseTypeListToStringList(condition.ExactInclude.ReleaseType), types.AuthResourceTypePackageType,
+	)
+	if err != nil {
+		return nil, false, err
+	}
+	if scopeIsAny {
+		return condition, false, nil
+	}
+	if len(releaseTypes) == 0 {
+		return condition, true, nil
+	}
+	condition.ExactInclude.ReleaseType = types.StringListToReleaseTypeList(releaseTypes)
+
+	return condition, false, nil
+}

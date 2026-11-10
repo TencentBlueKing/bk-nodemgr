@@ -178,6 +178,16 @@ type UpdateActionReq struct {
 // UpdateActionResp represents the absence of data on a successful HTTP 204.
 type UpdateActionResp struct{}
 
+// DeleteActionReq identifies an action and the explicitly selected dependency cleanup scopes.
+type DeleteActionReq struct {
+	SystemID string   `json:"-"`
+	ActionID string   `json:"-"`
+	Cascade  []string `json:"-"`
+}
+
+// DeleteActionResp represents the absence of data on a successful HTTP 204.
+type DeleteActionResp struct{}
+
 // Role describes an IAM role and its member actions.
 type Role struct {
 	ID          string       `json:"id"`

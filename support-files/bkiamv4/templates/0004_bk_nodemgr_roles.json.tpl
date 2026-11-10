@@ -151,7 +151,7 @@
           {"id": "package_type_upload", "resource_type_id": "package_type"},
           {"id": "package_view", "resource_type_id": "package"},
           {"id": "package_manage", "resource_type_id": "package"},
-          {"id": "package_history_view", "resource_type_id": "package"}
+          {"id": "package_history_view", "resource_type_id": "package_type"}
         ]
       }
     },
@@ -207,7 +207,7 @@
         "actions": [
           {"id": "system_access", "resource_type_id": ""},
           {"id": "package_view", "resource_type_id": "package"},
-          {"id": "package_history_view", "resource_type_id": "package"}
+          {"id": "package_history_view", "resource_type_id": "package_type"}
         ]
       }
     }

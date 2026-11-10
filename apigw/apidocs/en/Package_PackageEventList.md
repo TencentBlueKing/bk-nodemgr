@@ -1,8 +1,8 @@
 ### Description
 
 - API Version: v3.0.1-alpha.13+.
-- Required Permission: None.
-- Function: Query package operation events with pagination.
+- Required Permission: package_history_view (View Package History).
+- Function: Query package operation events with pagination. History permissions are scoped to package types and cover all packages of each authorized type. An empty result is returned when the requested types do not intersect the authorized types.
 
 ### URL
 
