@@ -19,7 +19,10 @@
 package iamv4
 
 import (
+	"crypto/md5" //nolint:gosec // MD5 is used for cache key generation, not security
 	"crypto/subtle"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -33,6 +36,18 @@ import (
 // IAM docs recommend caching queried system token, but token query protocol exposes no expiration;
 // this 1min value is a conservative bk-nodemgr local TTL, not official IAM token lifetime.
 const systemTokenCacheExpiration = time.Minute
+
+// defaultAuthCacheExpiration is only the container default of the auth result cache; entries are
+// always written with the caller-provided TTL via SetWithExpiration.
+const defaultAuthCacheExpiration = 5 * time.Minute
+
+// defaultAuthCacheCleanupInterval is the interval at which expired auth cache entries are purged;
+// auth results accumulate per user/action/resource and expired entries are rarely read again, so
+// lookup-time expiration alone would never reclaim their memory.
+const defaultAuthCacheCleanupInterval = 10 * time.Minute
+
+// authCacheAllowedValue is the cached representation of an allowed auth result.
+const authCacheAllowedValue = "1"
 
 // ErrInvalidCredentials identifies callback credential mismatches, not token-service failures.
 var ErrInvalidCredentials = errors.New("invalid IAM v4 callback credentials")
@@ -48,6 +63,10 @@ type IHandler interface {
 type IHandlerAuth interface {
 	// IsAllowed checks if a user is allowed to perform an action on an optional resource.
 	IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (bool, error)
+	// IsAllowedWithCache checks permission like IsAllowed, caching allowed results for ttl.
+	// Denied results and IAM errors are never cached, so newly granted permissions take effect
+	// immediately; the deny caching policy is tracked separately.
+	IsAllowedWithCache(ctx contextx.IContext, req types.IAMCheckRequest, ttl time.Duration) (bool, error)
 	// ResourcesAllowed checks if a user is allowed to perform one action on multiple resources.
 	ResourcesAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (map[string]bool, error)
 	// ActionsAllowed checks if a user is allowed to perform multiple actions on an optional resource.
@@ -78,6 +97,7 @@ type IHandlerRole interface {
 type Handler struct {
 	cli        *cli
 	tokenCache cache.ICache
+	authCache  cache.ICache
 }
 
 var _ IHandler = (*Handler)(nil)
@@ -92,6 +112,7 @@ func New(c *restclient.Capability, conf *Config) (*Handler, error) {
 	return &Handler{
 		cli:        cli,
 		tokenCache: cache.NewMemoryCache(systemTokenCacheExpiration),
+		authCache:  cache.NewMemoryCacheWithConfig(defaultAuthCacheExpiration, defaultAuthCacheCleanupInterval),
 	}, nil
 }
 
@@ -124,6 +145,65 @@ func (h *Handler) IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (b
 		ActionID: req.ActionID,
 		Resource: firstResource(req.Resources),
 	})
+}
+
+// IsAllowedWithCache checks permission like IsAllowed, caching allowed results for ttl.
+// Denied results and IAM errors are never cached, so newly granted permissions take effect
+// immediately; the deny caching policy is tracked separately.
+func (h *Handler) IsAllowedWithCache(ctx contextx.IContext, req types.IAMCheckRequest, ttl time.Duration) (bool, error) {
+	cacheKey, err := h.authCacheKey(ctx, req)
+	if err != nil {
+		// If cache key generation fails, fall back to non-cached check
+		return h.IsAllowed(ctx, req)
+	}
+
+	data, err := h.authCache.Get(ctx, cacheKey)
+	if err == nil && string(data) == authCacheAllowedValue {
+		return true, nil
+	}
+
+	allowed, err := h.IsAllowed(ctx, req)
+	if err != nil {
+		return false, err
+	}
+	if !allowed {
+		return false, nil
+	}
+
+	// Caching is best-effort: a cache write failure must not fail an IAM-allowed request;
+	// the result is cached on the next allowed check.
+	_ = h.authCache.SetWithExpiration(ctx, cacheKey, []byte(authCacheAllowedValue), ttl)
+
+	return true, nil
+}
+
+// authCacheKey builds the auth result cache key covering tenant, user, system, action, and
+// resource attributes, so entries are never shared across different requests.
+func (h *Handler) authCacheKey(ctx contextx.IContext, req types.IAMCheckRequest) (string, error) {
+	key := struct {
+		SystemID string    `json:"system_id"`
+		TenantID string    `json:"tenant_id"`
+		Username string    `json:"username"`
+		ActionID string    `json:"action_id"`
+		Resource *Resource `json:"resource,omitempty"`
+	}{
+		SystemID: req.SystemID,
+		TenantID: ctx.TenantID(),
+		Username: req.Username,
+		ActionID: req.ActionID,
+		Resource: firstResource(req.Resources),
+	}
+
+	// encoding/json sorts map keys, so identical resource attributes always marshal to the
+	// same bytes and produce a deterministic cache key.
+	b, err := json.Marshal(key)
+	if err != nil {
+		return "", err
+	}
+
+	sum := md5.Sum(b) //nolint:gosec // MD5 is used for cache key generation, not security
+
+	return "iamv4:auth:" + hex.EncodeToString(sum[:]), nil
 }
 
 // GrantRole grants a role to req.Username, using the context's operator and tenant.

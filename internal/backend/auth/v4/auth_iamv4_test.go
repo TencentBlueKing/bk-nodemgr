@@ -21,6 +21,7 @@ package v4
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/v4/provider"
@@ -42,6 +43,12 @@ type fakeIAMV4Handler struct {
 }
 
 func (h *fakeIAMV4Handler) IsAllowed(_ contextx.IContext, _ types.IAMCheckRequest) (bool, error) {
+	return false, nil
+}
+
+func (h *fakeIAMV4Handler) IsAllowedWithCache(
+	_ contextx.IContext, _ types.IAMCheckRequest, _ time.Duration,
+) (bool, error) {
 	return false, nil
 }
 

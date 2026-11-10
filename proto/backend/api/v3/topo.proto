@@ -1187,6 +1187,105 @@ service Topo {
   }
 }
 
+// 开放入口的业务拓扑、管控区域、管控单元、接入点及主机查询接口。
+service OpenTopo {
+  // 查询业务列表。
+  rpc OpenTopoBusinessList(TopoBusinessListReq) returns (TopoBusinessListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/business/list"
+      body : "*"
+    };
+  }
+
+  // 按业务统计主机数量。
+  rpc OpenTopoBusinessHostCountGet(TopoBusinessHostCountGetReq)
+      returns (TopoBusinessHostCountGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/business/host_count/get"
+      body : "*"
+    };
+  }
+
+  // 查询业务实例拓扑。
+  rpc OpenTopoBusinessInstTopoGet(TopoBusinessInstTopoGetReq)
+      returns (TopoBusinessInstTopoGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/business/inst_topo/get"
+      body : "*"
+    };
+  }
+
+  // 查询管控区域列表。
+  rpc OpenTopoNetworkAreaList(TopoNetworkAreaListReq)
+      returns (TopoNetworkAreaListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/networkarea/list"
+      body : "*"
+    };
+  }
+
+  // 按 ID 查询管控区域详情。
+  rpc OpenTopoNetworkAreaGet(TopoNetworkAreaGetReq)
+      returns (TopoNetworkAreaGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/networkarea/get"
+      body : "*"
+    };
+  }
+
+  // 查询管控单元列表。
+  rpc OpenTopoNetworkUnitList(TopoNetworkUnitListReq)
+      returns (TopoNetworkUnitListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/networkunit/list"
+      body : "*"
+    };
+  }
+
+  // 按 ID 查询管控单元详情。
+  rpc OpenTopoNetworkUnitGet(TopoNetworkUnitGetReq)
+      returns (TopoNetworkUnitGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/networkunit/get"
+      body : "*"
+    };
+  }
+
+  // 查询接入点列表及其 endpoints。
+  rpc OpenTopoAccessPointList(TopoAccessPointListReq)
+      returns (TopoAccessPointListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/accesspoint/list"
+      body : "*"
+    };
+  }
+
+  // 查询接入点简表，不返回 endpoints。
+  rpc OpenTopoAccessPointListBrief(TopoAccessPointListBriefReq)
+      returns (TopoAccessPointListBriefResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/accesspoint/list/brief"
+      body : "*"
+    };
+  }
+
+  // 查询管控单元图节点及健康信息。
+  rpc OpenTopoGraphNodeGet(TopoGraphNodeGetReq) returns (TopoGraphNodeGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/graph_node/get"
+      body : "*"
+    };
+  }
+
+  // 查询主机列表。
+  rpc OpenTopoHostList(TopoHostListReq) returns (TopoHostListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/topo/host/list"
+      body : "*"
+    };
+  }
+}
+
 // TopoNetworkUnitCreateDefaultMultiReq describes the request body when
 // creating empty non-direct network units in multiple network areas.
 message TopoNetworkUnitCreateDefaultMultiReq {

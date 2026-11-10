@@ -20,6 +20,7 @@ package iamv4
 
 import (
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -43,6 +44,11 @@ func (h *DisabledHandler) IsAllowed(_ contextx.IContext, _ types.IAMCheckRequest
 	return false, ErrDisabled
 }
 
+// IsAllowedWithCache returns false and ErrDisabled without accessing a cache.
+func (h *DisabledHandler) IsAllowedWithCache(_ contextx.IContext, _ types.IAMCheckRequest, _ time.Duration) (bool, error) {
+	return false, ErrDisabled
+}
+
 // ResourcesAllowed returns no authorization results and ErrDisabled.
 func (h *DisabledHandler) ResourcesAllowed(_ contextx.IContext, _ types.IAMCheckRequest) (map[string]bool, error) {
 	return nil, ErrDisabled
@@ -57,6 +63,7 @@ func (h *DisabledHandler) ActionsAllowed(_ contextx.IContext, _ types.IAMMultiAc
 func (h *DisabledHandler) ListAuthorizedResources(
 	_ contextx.IContext, _ types.IAMAuthorizedInstancesRequest,
 ) ([]AuthorizedResourceResponse, error) {
+
 	return nil, ErrDisabled
 }
 

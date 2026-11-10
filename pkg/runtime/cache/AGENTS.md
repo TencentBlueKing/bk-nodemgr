@@ -7,7 +7,7 @@
 |OVERVIEW:Boundary=business-agnostic cache primitives only; callers own key design, value encoding, TTL policy, security policy, and backend selection
 |Structure:pkg/runtime/cache:{iface.go,memory.go,memory_test.go,README.md,AGENTS.md}
 |WHERE TO LOOK:public contracts:iface.go:{ICache,IKeyGenerator,NewDefaultKeyGenerator}
-|WHERE TO LOOK:in-memory implementation:memory.go:{MemoryCache,NewMemoryCache,Get,Set,SetNX,SetNXWithExpiration,SetWithExpiration,Exists,Delete}
+|WHERE TO LOOK:in-memory implementation:memory.go:{MemoryCache,NewMemoryCache,NewMemoryCacheWithConfig,Get,Set,SetNX,SetNXWithExpiration,SetWithExpiration,Exists,Delete}
 |WHERE TO LOOK:behavior coverage:memory_test.go|copy semantics, TTL expiration, zero-expiration behavior, SetNX semantics, Exists/Delete, nil context
 |WHERE TO LOOK:package intent:README.md|high-level cache interface purpose
 |CONVENTIONS:Keep this package dependency-light and runtime-only; do not import internal/*, service packages, router packages, storage, IAM, or business-domain types
@@ -15,7 +15,7 @@
 |CONVENTIONS:MemoryCache stores []byte values only and must clone bytes on read/write to avoid caller mutation, secret aliasing, and data races
 |CONVENTIONS:Explicit zero expiration in SetWithExpiration/SetNXWithExpiration means no expiration; default-expiration methods must keep using backend default TTL
 |CONVENTIONS:SetNX behavior should remain atomic for implementations whose backend supports it; keep MemoryCache based on go-cache Add rather than Get→Set when preserving atomicity matters
-|CONVENTIONS:Do not start background cleanup goroutines from MemoryCache unless a current caller needs proactive cleanup; lookup-time expiration is sufficient for current process-local use
+|CONVENTIONS:Lookup-time expiration is the default; start a janitor only via NewMemoryCacheWithConfig when a caller demonstrates expired-entry memory pressure (e.g. pkg/thirdparty/iamv4 authCache)
 |CONVENTIONS:When changing cache semantics, update memory_test.go and compare pkg/rediscache behavior before adjusting shared interface expectations
 |ANTI-PATTERNS:Do not put IAM token rules, permission policy, tenant decisions, logging, metrics, secret handling policy, or feature-specific cache keys in this package
 |ANTI-PATTERNS:Do not change ICache signatures, error meaning, or TTL semantics without coordinating all implementations and callers
