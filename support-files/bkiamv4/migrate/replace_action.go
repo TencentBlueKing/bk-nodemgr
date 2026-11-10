@@ -27,6 +27,7 @@ import (
 	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/support-files/bkiamv4/migrate/iamv4"
 )
 
@@ -129,6 +130,10 @@ func (item migration) executeActionReplacement(
 		replacement.ResourceTypeID, replacement.Cascade, dryRun); err != nil {
 		return fmt.Errorf("write action replacement plan: %w", err)
 	}
+	logger.G.Sys().Ctx(ctx).With("system-id", item.SystemID, "action-id", replacement.ID,
+		"old-resource-type-id", current.ResourceTypeID, "resource-type-id", replacement.ResourceTypeID,
+		"cascade", replacement.Cascade, "dry-run", dryRun).
+		Warn("action replacement deletes and recreates the action; existing authorizations are not migrated")
 	if !dryRun {
 		if err := handler.DeleteAction(ctx, item.SystemID, replacement.ID, replacement.Cascade); err != nil {
 			return fmt.Errorf("replace action %s: deletion failed or outcome is unknown; no create attempted, check remote state: %w",

@@ -40,6 +40,19 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 | image.tag        | string | Chart对应的既定版本号      | 服务镜像标签 |
 | image.pullPolicy | string | IfNotPresent               | 镜像拉取策略 |
 
+#### IAM V4 模型同步
+
+`iamV4.option.allowActionReplace` 默认为 `false`。设为 `true` 后，同步 Job 在 Action 资源绑定冲突时自动复用 `replace_action` 的默认行为：删除旧 Action 后重建，不级联清理依赖。日志输出旧/新绑定及替换风险；IAM 拒绝删除时立即停止，不自动扩大级联范围或回滚。已有授权不会自动迁移，启用前需确认目标租户和受影响权限。
+
+```yaml
+iamV4:
+  enabled: true
+  option:
+    allowActionReplace: true
+```
+
+详细说明见 [IAM V4 迁移工具](../../../support-files/bkiamv4/README.md)。
+
 #### 公共组件配置
 
 **外置Etcd配置**
@@ -89,17 +102,17 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 自监控组件默认关闭，按需启用。Grafana 只负责展示，需要同时启用至少一个内嵌数据源：`tempo.enabled=true`、`prometheus.enabled=true`、`loki.enabled=true` 或 `pyroscope.enabled=true`。采集服务 trace 时，推荐启用 `opentelemetryGateway.enabled=true` 作为统一 OTLP Gateway，再由 Gateway 转发到 Tempo。
 
-| 参数                         | 类型   | 默认值 | 描述                                                                  |
-| ---------------------------- | ------ | ------ | --------------------------------------------------------------------- |
-| tempo.enabled                | bool   | false  | 启用内嵌 Tempo，用于存储和查询链路追踪数据                            |
-| pyroscope.enabled            | bool   | false  | 启用内嵌 Pyroscope，未显式配置 profiling.enabled 的服务自动开始采集 |
+| 参数                         | 类型   | 默认值 | 描述                                                                   |
+| ---------------------------- | ------ | ------ | ---------------------------------------------------------------------- |
+| tempo.enabled                | bool   | false  | 启用内嵌 Tempo，用于存储和查询链路追踪数据                             |
+| pyroscope.enabled            | bool   | false  | 启用内嵌 Pyroscope，未显式配置 profiling.enabled 的服务自动开始采集    |
 | opentelemetryGateway.enabled | bool   | false  | 启用 OpenTelemetry Collector Gateway，作为服务 trace 的推荐入口        |
-| prometheus.enabled           | bool   | false  | 启用内嵌 Prometheus，用于采集 bk-nodemgr 服务指标                     |
-| loki.enabled                 | bool   | false  | 启用内嵌 Loki，用于存储并查询 Alloy 采集的 Kubernetes Pod 日志        |
-| alloy.enabled                | bool   | false  | 启用内嵌 Alloy，以 DaemonSet 采集 Kubernetes Pod 日志并写入内嵌 Loki  |
-| grafana.enabled              | bool   | false  | 启用内嵌 Grafana，用于查看 Tempo、Prometheus、Loki 和 Pyroscope 数据源           |
-| grafana.rootURL              | string | 空     | Grafana 访问地址，启用 Grafana 时必填，需包含结尾 `/`                 |
-| grafana.adminUser            | string | admin  | Grafana 管理员用户名                                                  |
+| prometheus.enabled           | bool   | false  | 启用内嵌 Prometheus，用于采集 bk-nodemgr 服务指标                      |
+| loki.enabled                 | bool   | false  | 启用内嵌 Loki，用于存储并查询 Alloy 采集的 Kubernetes Pod 日志         |
+| alloy.enabled                | bool   | false  | 启用内嵌 Alloy，以 DaemonSet 采集 Kubernetes Pod 日志并写入内嵌 Loki   |
+| grafana.enabled              | bool   | false  | 启用内嵌 Grafana，用于查看 Tempo、Prometheus、Loki 和 Pyroscope 数据源 |
+| grafana.rootURL              | string | 空     | Grafana 访问地址，启用 Grafana 时必填，需包含结尾 `/`                  |
+| grafana.adminUser            | string | admin  | Grafana 管理员用户名                                                   |
 
 完整自监控推荐启用示例：
 
@@ -128,12 +141,12 @@ grafana:
 
 启用后，四类信号按以下链路进入 Grafana：
 
-| 信号    | 采集入口                         | 存储/查询后端 | Grafana datasource uid  |
-| ------- | -------------------------------- | ------------- | ----------------------- |
-| Metrics | 服务 `info-http` 端口 `/metrics` | Prometheus    | `bk-nodemgr-prometheus` |
-| Traces  | OpenTelemetry Gateway OTLP       | Tempo         | `bk-nodemgr-tempo`      |
-| Logs    | Alloy DaemonSet 采集 Pod 日志    | Loki          | `bk-nodemgr-loki`       |
-| Profiles | 服务 profiling SDK 直接上报    | Pyroscope     | `bk-nodemgr-pyroscope`  |
+| 信号     | 采集入口                         | 存储/查询后端 | Grafana datasource uid  |
+| -------- | -------------------------------- | ------------- | ----------------------- |
+| Metrics  | 服务 `info-http` 端口 `/metrics` | Prometheus    | `bk-nodemgr-prometheus` |
+| Traces   | OpenTelemetry Gateway OTLP       | Tempo         | `bk-nodemgr-tempo`      |
+| Logs     | Alloy DaemonSet 采集 Pod 日志    | Loki          | `bk-nodemgr-loki`       |
+| Profiles | 服务 profiling SDK 直接上报      | Pyroscope     | `bk-nodemgr-pyroscope`  |
 
 Profiling 最小启用示例：
 
@@ -147,13 +160,13 @@ grafana:
 
 `application.config.profiling`、`backend.config.profiling`、`file.config.profiling` 分别控制服务采集。启用状态和上报地址独立解析，用户显式配置优先：
 
-| 配置 | 解析规则 |
-| --- | --- |
-| `enabled` 显式为 `true` 或 `false` | 严格使用指定值 |
-| 未指定 `enabled` | 跟随 `pyroscope.enabled`；仅填写地址不会启用采集 |
-| `serverAddress` 非空 | 保留用户地址 |
-| `serverAddress` 为空且内嵌 Pyroscope 开启 | 注入内嵌 Service 的 HTTP 地址 |
-| 最终启用但没有可用地址 | Helm 渲染报错 |
+| 配置                                      | 解析规则                                         |
+| ----------------------------------------- | ------------------------------------------------ |
+| `enabled` 显式为 `true` 或 `false`        | 严格使用指定值                                   |
+| 未指定 `enabled`                          | 跟随 `pyroscope.enabled`；仅填写地址不会启用采集 |
+| `serverAddress` 非空                      | 保留用户地址                                     |
+| `serverAddress` 为空且内嵌 Pyroscope 开启 | 注入内嵌 Service 的 HTTP 地址                    |
+| 最终启用但没有可用地址                    | Helm 渲染报错                                    |
 
 ```mermaid
 flowchart TD
@@ -224,13 +237,13 @@ $ kubectl get secret -n <namespace> bk-nodemgr-grafana -o jsonpath='{.data.admin
 
 自监控开启后，`application.config.tracing`、`backend.config.tracing`、`file.config.tracing` 控制三个服务的 trace exporter。推荐路径是服务先发往内嵌 OpenTelemetry Collector Gateway，再由 Gateway 转发到 Tempo。若 `opentelemetryGateway.enabled=true` 且对应服务未显式配置 `otlpEndpoint`，Chart 会自动将 trace 发往 Gateway；只有在未启用 Gateway、但启用了 `tempo.enabled=true` 时，才会回退为服务直连内嵌 Tempo。自动配置链路追踪上报时会写入 `exporterType: "otlp"`、`otlpProtocol: "grpc"`、`otlpInsecure: true`。
 
-| 参数                                        | 类型   | 默认值 | 描述                                                                 |
-| ------------------------------------------- | ------ | ------ | -------------------------------------------------------------------- |
-| `<service>.config.tracing.exporterType`     | string | stdout | trace exporter 类型；可设为 `otlp` 发往 OTLP backend                  |
-| `<service>.config.tracing.otlpEndpoint`     | string | 空     | OTLP endpoint；为空时可根据已启用的内嵌自监控组件自动填充                      |
-| `<service>.config.tracing.otlpProtocol`     | string | grpc   | OTLP 协议；合法值为 `grpc` 或 `http`，非法非空值会导致服务启动失败   |
-| `<service>.config.tracing.otlpInsecure`     | bool   | false  | 是否关闭 OTLP TLS 校验；自动配置上报至内嵌自监控组件时为 `true`                |
-| `<service>.config.tracing.otlpHeaders`      | object | {}     | 发送 OTLP 请求时附加的 HTTP/gRPC metadata，例如鉴权 header           |
+| 参数                                    | 类型   | 默认值 | 描述                                                               |
+| --------------------------------------- | ------ | ------ | ------------------------------------------------------------------ |
+| `<service>.config.tracing.exporterType` | string | stdout | trace exporter 类型；可设为 `otlp` 发往 OTLP backend               |
+| `<service>.config.tracing.otlpEndpoint` | string | 空     | OTLP endpoint；为空时可根据已启用的内嵌自监控组件自动填充          |
+| `<service>.config.tracing.otlpProtocol` | string | grpc   | OTLP 协议；合法值为 `grpc` 或 `http`，非法非空值会导致服务启动失败 |
+| `<service>.config.tracing.otlpInsecure` | bool   | false  | 是否关闭 OTLP TLS 校验；自动配置上报至内嵌自监控组件时为 `true`    |
+| `<service>.config.tracing.otlpHeaders`  | object | {}     | 发送 OTLP 请求时附加的 HTTP/gRPC metadata，例如鉴权 header         |
 
 `<service>` 可替换为 `application`、`backend` 或 `file`。`otlpProtocol` 配置错误时，服务启动校验会返回 `otlp protocol is invalid`。启用自监控时，优先由 Chart 自动配置服务 trace 上报至 Gateway；需要转发到外部 OTLP HTTP backend 时，应配置 `opentelemetryGateway.alternateConfig`，由 Gateway 负责外发。`alternateConfig` 会完整替换 Collector 配置，因此需要同时声明 receiver、processor、exporter 和 pipeline。
 

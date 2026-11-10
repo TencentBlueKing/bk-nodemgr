@@ -59,13 +59,14 @@ const (
 )
 
 type options struct {
-	gatewayURL string
-	appCode    string
-	appSecret  string
-	tenantID   string
-	file       string
-	directory  string
-	dryRun     bool
+	gatewayURL         string
+	appCode            string
+	appSecret          string
+	tenantID           string
+	file               string
+	directory          string
+	dryRun             bool
+	allowActionReplace bool
 }
 
 type migration struct {
@@ -104,6 +105,8 @@ func run(args []string) error {
 	flags.StringVar(&opts.file, "file", "", "Rendered migration JSON file")
 	flags.StringVar(&opts.directory, "dir", "", "Directory of numbered migration JSON files")
 	flags.BoolVar(&opts.dryRun, "dry-run", false, "Query remote state and print the plan without writing")
+	flags.BoolVar(&opts.allowActionReplace, "allow-action-replace", false,
+		"Allow deleting and recreating actions with changed resource bindings (no cascading deletion)")
 	// Do not let flag.PrintDefaults expose the environment-provided secret.
 	flags.Lookup("app-secret").DefValue = ""
 	if err := flags.Parse(args); err != nil {
@@ -159,7 +162,7 @@ func run(args []string) error {
 		return err
 	}
 
-	return executeMigrations(nCtx, handler, migrations, opts.dryRun, os.Stdout)
+	return executeMigrations(nCtx, handler, migrations, opts.dryRun, opts.allowActionReplace, os.Stdout)
 }
 
 func parseHTTPURL(raw string) (*url.URL, error) {
@@ -364,7 +367,9 @@ func validateSystemMembers(field string, raw json.RawMessage, appCode string) er
 }
 
 //nolint:gocognit // Keep ordered execution and dry-run state transitions together.
-func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations []migration, dryRun bool, out io.Writer) error {
+func executeMigrations(
+	ctx contextx.IContext, handler iamv4.IHandler, migrations []migration, dryRun, allowActionReplace bool, out io.Writer,
+) error {
 	// Track virtual creates during dry-run so later operations see the planned system.
 	plannedSystems := make(map[string]bool)
 	resourceTypes := make(map[string]map[string]iamv4.ResourceType)
@@ -387,7 +392,7 @@ func executeMigrations(ctx contextx.IContext, handler iamv4.IHandler, migrations
 				continue
 			}
 			if op.Operation == operationUpsertAction {
-				if err := item.executeAction(ctx, handler, op, actions, resourceTypes, dryRun, out); err != nil {
+				if err := item.executeActionUpsert(ctx, handler, op, actions, resourceTypes, roles, allowActionReplace, dryRun, out); err != nil {
 					return fmt.Errorf("%s operation %d: %w", item.filename, index+1, err)
 				}
 
