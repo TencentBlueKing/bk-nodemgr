@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "Topo"
+    },
+    {
+      "name": "OpenTopo"
     }
   ],
   "consumes": [
@@ -16,6 +19,379 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/open/topo/accesspoint/list": {
+      "post": {
+        "summary": "查询接入点列表及其 endpoints。",
+        "operationId": "OpenTopo_OpenTopoAccessPointList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoAccessPointListReq describes the HTTP request body when list accesspoint\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/accesspoint/list/brief": {
+      "post": {
+        "summary": "查询接入点简表，不返回 endpoints。",
+        "operationId": "OpenTopo_OpenTopoAccessPointListBrief",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListBriefResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoAccessPointListBriefReq describes the HTTP request body when list\naccesspoint brief in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListBriefReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/business/host_count/get": {
+      "post": {
+        "summary": "按业务统计主机数量。",
+        "operationId": "OpenTopo_OpenTopoBusinessHostCountGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessHostCountGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoBusinessHostCountGetReq describes the HTTP request body when get host\ncount of business in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessHostCountGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/business/inst_topo/get": {
+      "post": {
+        "summary": "查询业务实例拓扑。",
+        "operationId": "OpenTopo_OpenTopoBusinessInstTopoGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessInstTopoGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoBusinessInstTopoGetReq describes the HTTP request body when get business\ninstance topology in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessInstTopoGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/business/list": {
+      "post": {
+        "summary": "查询业务列表。",
+        "operationId": "OpenTopo_OpenTopoBusinessList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoBusinessListReq describes the HTTP request body when list business in\ntopo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/graph_node/get": {
+      "post": {
+        "summary": "查询管控单元图节点及健康信息。",
+        "operationId": "OpenTopo_OpenTopoGraphNodeGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphNodeGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphNodeGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/host/list": {
+      "post": {
+        "summary": "查询主机列表。",
+        "operationId": "OpenTopo_OpenTopoHostList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostListReq describes the HTTP request body when list host in topo\nservice.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/networkarea/get": {
+      "post": {
+        "summary": "按 ID 查询管控区域详情。",
+        "operationId": "OpenTopo_OpenTopoNetworkAreaGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaGetReq describes the HTTP request body when get network-area\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/networkarea/list": {
+      "post": {
+        "summary": "查询管控区域列表。",
+        "operationId": "OpenTopo_OpenTopoNetworkAreaList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaListReq describes the HTTP request body when list network-area\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/networkunit/get": {
+      "post": {
+        "summary": "按 ID 查询管控单元详情。",
+        "operationId": "OpenTopo_OpenTopoNetworkUnitGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
+    "/api/v3/open/topo/networkunit/list": {
+      "post": {
+        "summary": "查询管控单元列表。",
+        "operationId": "OpenTopo_OpenTopoNetworkUnitList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitListReq describes the HTTP request body when list network-unit\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenTopo"
+        ]
+      }
+    },
     "/api/v3/topo/accesspoint/list": {
       "post": {
         "summary": "AccessPointList provides access-point listing.",

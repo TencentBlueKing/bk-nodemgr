@@ -34514,3 +34514,2347 @@ paths:
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
         descriptionEn:
+  /api/v3/open/topo/business/list:
+    post:
+      operationId: OpenTopo_OpenTopoBusinessList
+      description: 查询业务列表。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_biz_id:
+                              type: integer
+                              format: int64
+                            tenant_id:
+                              type: string
+                            bk_biz_name:
+                              type: string
+                          description: Business describes the business informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessListResp describes the HTTP response body when list business in
+                  topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    bk_biz_name:
+                      type: array
+                      items:
+                        type: string
+              description: |-
+                TopoBusinessListReq describes the HTTP request body when list business in
+                topo service.
+        required: true
+        description: |-
+          TopoBusinessListReq describes the HTTP request body when list business in
+          topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/business/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/business/host_count/get:
+    post:
+      operationId: OpenTopo_OpenTopoBusinessHostCountGet
+      description: 按业务统计主机数量。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_biz_id:
+                              type: integer
+                              format: int64
+                            host_count:
+                              type: integer
+                              format: int64
+                          description: BusinessHostCount describes the host count of business in topo service.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessHostCountGetResp describes the HTTP response body when get host
+                  count of business in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_biz_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                node_role:
+                  type: array
+                  items:
+                    type: string
+              description: |-
+                TopoBusinessHostCountGetReq describes the HTTP request body when get host
+                count of business in topo service.
+        required: true
+        description: |-
+          TopoBusinessHostCountGetReq describes the HTTP request body when get host
+          count of business in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/business/host_count/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/business/inst_topo/get:
+    post:
+      operationId: OpenTopo_OpenTopoBusinessInstTopoGet
+      description: 查询业务实例拓扑。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties: {}
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessInstTopoGetResp describes the HTTP response body when get
+                  business instance topology in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_biz_id:
+                  type: integer
+                  format: int64
+                node_role:
+                  type: array
+                  items:
+                    type: string
+              description: |-
+                TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+                instance topology in topo service.
+        required: true
+        description: |-
+          TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+          instance topology in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/business/inst_topo/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkarea/list:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkAreaList
+      description: 查询管控区域列表。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            tenant_id:
+                              type: string
+                            cloud_vendor:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkarea_name:
+                              type: string
+                          description: NetworkArea describes the network area informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkAreaListResp describes the HTTP response body when list
+                  network-area in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    cloud_vendor:
+                      type: array
+                      items:
+                        type: string
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    bk_networkarea_name:
+                      type: array
+                      items:
+                        type: string
+              description: |-
+                TopoNetworkAreaListReq describes the HTTP request body when list network-area
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkAreaListReq describes the HTTP request body when list network-area
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkarea/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkarea/get:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkAreaGet
+      description: 按 ID 查询管控区域详情。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      tenant_id:
+                        type: string
+                      cloud_vendor:
+                        type: string
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkarea_name:
+                        type: string
+                    description: NetworkArea describes the network area informations.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkAreaGetResp describe the HTTP response body when get network-area
+                  in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkarea_id:
+                  type: integer
+                  format: int64
+              description: |-
+                TopoNetworkAreaGetReq describes the HTTP request body when get network-area
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkAreaGetReq describes the HTTP request body when get network-area
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkarea/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkunit/list:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkUnitList
+      description: 查询管控单元列表。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            links:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                                file:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                                cluster:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                              description: Links describes the network unit links.
+                            is_direct:
+                              type: boolean
+                            tenant_id:
+                              type: string
+                            generation:
+                              type: integer
+                              format: int64
+                            accesspoints:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            direct_endpoints:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: string
+                                file:
+                                  type: array
+                                  items:
+                                    type: string
+                                cluster:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: Endpoints describes the links real address.
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_name:
+                              type: string
+                            custom_deploy_config:
+                              type: object
+                              additionalProperties:
+                                type: object
+                                properties:
+                                  node_runtime:
+                                    type: object
+                                    properties:
+                                      city_id:
+                                        type: string
+                                      log_dir:
+                                        type: string
+                                      zone_id:
+                                        type: string
+                                      data_ipc:
+                                        type: string
+                                      plugin_ipc:
+                                        type: string
+                                      base_deploy_dir:
+                                        type: string
+                                    description: NodeRuntime describes the node runtime config.
+                                  plugin_runtime:
+                                    type: object
+                                    properties:
+                                      log_dir:
+                                        type: string
+                                      base_deploy_dir:
+                                        type: string
+                                    description: PluginRuntime describes the custom plugin runtime config.
+                                  installer_runtime:
+                                    type: object
+                                    properties:
+                                      firewall:
+                                        type: object
+                                        properties:
+                                          features:
+                                            type: array
+                                            items:
+                                              type: string
+                                          remote_ips:
+                                            type: array
+                                            items:
+                                              type: string
+                                        description: Firewall describes the local firewall setup before installation.
+                                      base_work_dir:
+                                        type: string
+                                    description: InstallerRuntime describes the installer runtime config.
+                                description: CustomDeployConfig describes the deploy config for host deployment.
+                          description: NetworkUnit describes the network unit informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkUnitListResp describes the HTTP response body when list
+                  network-unit in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    is_direct:
+                      type: array
+                      items:
+                        type: boolean
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+              description: |-
+                TopoNetworkUnitListReq describes the HTTP request body when list network-unit
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkUnitListReq describes the HTTP request body when list network-unit
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkunit/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/networkunit/get:
+    post:
+      operationId: OpenTopo_OpenTopoNetworkUnitGet
+      description: 按 ID 查询管控单元详情。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      links:
+                        type: object
+                        properties:
+                          data:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                          file:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                          cluster:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                        description: Links describes the network unit links.
+                      is_direct:
+                        type: boolean
+                      tenant_id:
+                        type: string
+                      generation:
+                        type: integer
+                        format: int64
+                      accesspoints:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            endpoints:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: string
+                                file:
+                                  type: array
+                                  items:
+                                    type: string
+                                cluster:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: Endpoints describes the links real address.
+                            tenant_id:
+                              type: string
+                            accesspoint_id:
+                              type: integer
+                              format: int64
+                            accesspoint_name:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                          description: AccessPoint describes the access point informations.
+                      direct_endpoints:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              type: string
+                          file:
+                            type: array
+                            items:
+                              type: string
+                          cluster:
+                            type: array
+                            items:
+                              type: string
+                        description: Endpoints describes the links real address.
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_name:
+                        type: string
+                      custom_deploy_config:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            node_runtime:
+                              type: object
+                              properties:
+                                city_id:
+                                  type: string
+                                log_dir:
+                                  type: string
+                                zone_id:
+                                  type: string
+                                data_ipc:
+                                  type: string
+                                plugin_ipc:
+                                  type: string
+                                base_deploy_dir:
+                                  type: string
+                              description: NodeRuntime describes the node runtime config.
+                            plugin_runtime:
+                              type: object
+                              properties:
+                                log_dir:
+                                  type: string
+                                base_deploy_dir:
+                                  type: string
+                              description: PluginRuntime describes the custom plugin runtime config.
+                            installer_runtime:
+                              type: object
+                              properties:
+                                firewall:
+                                  type: object
+                                  properties:
+                                    features:
+                                      type: array
+                                      items:
+                                        type: string
+                                    remote_ips:
+                                      type: array
+                                      items:
+                                        type: string
+                                  description: Firewall describes the local firewall setup before installation.
+                                base_work_dir:
+                                  type: string
+                              description: InstallerRuntime describes the installer runtime config.
+                          description: CustomDeployConfig describes the deploy config for host deployment.
+                    description: |-
+                      NetworkUnitDetail describes the network unit detail informations.
+                      contains full access point objects.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
+                  in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkunit_id:
+                  type: integer
+                  format: int64
+              description: |-
+                TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
+                in topo service.
+        required: true
+        description: |-
+          TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/networkunit/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/accesspoint/list:
+    post:
+      operationId: OpenTopo_OpenTopoAccessPointList
+      description: 查询接入点列表及其 endpoints。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            endpoints:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: string
+                                file:
+                                  type: array
+                                  items:
+                                    type: string
+                                cluster:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: Endpoints describes the links real address.
+                            tenant_id:
+                              type: string
+                            accesspoint_id:
+                              type: integer
+                              format: int64
+                            accesspoint_name:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                          description: AccessPoint describes the access point informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoAccessPointListResp describes the HTTP response body when list
+                  accesspoint in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    accesspoint_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+              description: |-
+                TopoAccessPointListReq describes the HTTP request body when list accesspoint
+                in topo service.
+        required: true
+        description: |-
+          TopoAccessPointListReq describes the HTTP request body when list accesspoint
+          in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/accesspoint/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/accesspoint/list/brief:
+    post:
+      operationId: OpenTopo_OpenTopoAccessPointListBrief
+      description: 查询接入点简表，不返回 endpoints。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            accesspoint_id:
+                              type: integer
+                              format: int64
+                            accesspoint_name:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                          description: |-
+                            AccessPointBrief describes the brief access point (no endpoints for
+                            sensitivity).
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoAccessPointListBriefResp describes the HTTP response body when list
+                  accesspoint brief in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    accesspoint_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+              description: |-
+                TopoAccessPointListBriefReq describes the HTTP request body when list
+                accesspoint brief in topo service.
+        required: true
+        description: |-
+          TopoAccessPointListBriefReq describes the HTTP request body when list
+          accesspoint brief in topo service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/accesspoint/list/brief
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/graph_node/get:
+    post:
+      operationId: OpenTopo_OpenTopoGraphNodeGet
+      description: 查询管控单元图节点及健康信息。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: TopoGraphNodeGetResp describes the HTTP response body when get node
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      graph_node_info:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            is_healthy:
+                              type: boolean
+                            cycle_times:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  time:
+                                    type: string
+                                  bk_host_id:
+                                    type: integer
+                                    format: int64
+                                  bk_agent_id:
+                                    type: string
+                                  bk_host_innerip_list:
+                                    type: array
+                                    items:
+                                      type: string
+                                  bk_host_innerip_v6_list:
+                                    type: array
+                                    items:
+                                      type: string
+                                description: CycleTime describes the cycle time of a node in topo graph.
+                            total_agent:
+                              type: integer
+                              format: int64
+                            total_proxy:
+                              type: integer
+                              format: int64
+                            running_agent:
+                              type: integer
+                              format: int64
+                            running_proxy:
+                              type: integer
+                              format: int64
+                            bk_networkunit_id:
+                              type: integer
+                              format: int64
+                          description: GraphNodeInfo describes the node information in topo graph.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: TopoGraphNodeGetReq describes the HTTP request body when get node
+              properties:
+                bk_networkunit_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/graph_node/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/open/topo/host/list:
+    post:
+      operationId: OpenTopo_OpenTopoHostList
+      description: 查询主机列表。
+      tags:
+      - OpenTopo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            info:
+                              type: object
+                              properties:
+                                bk_mac:
+                                  type: string
+                                os_type:
+                                  type: string
+                                cpu_arch:
+                                  type: string
+                                login_ip:
+                                  type: string
+                                bk_biz_id:
+                                  type: integer
+                                  format: int64
+                                dept_name:
+                                  type: string
+                                export_ip:
+                                  type: string
+                                login_mode:
+                                  type: string
+                                login_port:
+                                  type: integer
+                                  format: int64
+                                login_user:
+                                  type: string
+                                advertise_ip:
+                                  type: string
+                                bk_host_name:
+                                  type: string
+                                export_ip_v6:
+                                  type: string
+                                bk_addressing:
+                                  type: string
+                                advertise_ip_v6:
+                                  type: string
+                                bk_networkarea_id:
+                                  type: integer
+                                  format: int64
+                                bk_networkunit_id:
+                                  type: integer
+                                  format: int64
+                                login_credit_valid:
+                                  type: boolean
+                                relay_callback_port:
+                                  type: integer
+                                  format: int64
+                                relay_download_port:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_host_outerip_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_host_innerip_v6_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_host_outerip_v6_list:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: |-
+                                HostInfo describes the host info informations. Usually contains static
+                                configs.
+                            state:
+                              type: object
+                              properties:
+                                node_role:
+                                  type: string
+                                proxy_tags:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_agent_id:
+                                  type: string
+                                node_status:
+                                  type: string
+                                last_sync_at:
+                                  type: integer
+                                  format: int64
+                                node_version:
+                                  type: string
+                                node_generation:
+                                  type: integer
+                                  format: int64
+                              description: |-
+                                HostState describes the host state informations. Usually contains
+                                agent-related things.
+                            create_at:
+                              type: string
+                              format: uint64
+                            tenant_id:
+                              type: string
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                            updated_at:
+                              type: string
+                              format: uint64
+                          description: Host describes the host informations.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoHostListResp describes the HTTP response body when list host in topo
+                  service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    arch:
+                      type: array
+                      items:
+                        type: string
+                    os_type:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    node_role:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
+                    bk_agent_id:
+                      type: array
+                      items:
+                        type: string
+                    node_status:
+                      type: array
+                      items:
+                        type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    node_version:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    node_generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                  description: TopoHostExactConditions describes host exact conditions.
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    dept_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_outerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_outerip_v6:
+                      type: array
+                      items:
+                        type: string
+                  description: TopoHostFuzzyConditions describes host fuzzy conditions.
+              description: |-
+                TopoHostListReq describes the HTTP request body when list host in topo
+                service.
+        required: true
+        description: |-
+          TopoHostListReq describes the HTTP request body when list host in topo
+          service.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/topo/host/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
