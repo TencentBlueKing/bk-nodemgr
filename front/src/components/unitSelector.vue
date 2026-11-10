@@ -134,13 +134,16 @@ const handleApplyPermission = async (unitId: number | string) => {
 // ===== 数据加载 =====
 const localLoading = ref(false);
 const unitList = ref<any[]>([]);
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 const internalValue = ref<string>(props.modelValue !== undefined ? String(props.modelValue) : '');
 
 /** 是否使用外部传入的 options */
 const useExternalOptions = computed(() => Array.isArray(props.options));
 
 const filteredList = computed(() => {
-  let list = useExternalOptions.value ? props.options! : unitList.value;
+  const sourceList = useExternalOptions.value ? props.options! : unitList.value;
+  let list = sourceList.filter((item: any) => Number(item.bk_networkunit_id) === -1
+    || Number(item.bk_networkarea_id) !== unassignedAreaId);
   if (props.filterByAreaIds && props.filterByAreaIds.length > 0) {
     list = list.filter((item: any) => props.filterByAreaIds!.includes(item.bk_networkarea_id));
   } else if (props.filterByAreaId !== undefined && props.filterByAreaId !== '') {
@@ -188,10 +191,12 @@ watch(() => props.modelValue, (val) => {
 });
 
 const handleSelectChange = (val: any) => {
+  const sourceList = useExternalOptions.value ? props.options! : unitList.value;
+  const target = sourceList.find((item: any) => String(item.bk_networkunit_id) === String(val));
+  if (target && Number(target.bk_networkunit_id) !== -1
+    && Number(target.bk_networkarea_id) === unassignedAreaId) return;
   const numVal = val === '-1' ? '-1' : Number(val);
   emit('update:modelValue', numVal);
-  const sourceList = useExternalOptions.value ? props.options! : unitList.value;
-  const target = sourceList.find((item: any) => String(item.bk_networkunit_id) === val);
   emit('change', numVal, target || null);
 };
 </script>

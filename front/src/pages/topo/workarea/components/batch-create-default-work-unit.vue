@@ -171,6 +171,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const workareaStore = useWorkareaStore();
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 const loading = ref(false);
 const submitLoading = ref(false);
 const formRef = ref();
@@ -208,6 +209,7 @@ const validateUpstream = () => {
   const { bk_networkarea_id, bk_networkunit_id, accesspoint_id } = form.upstream;
   return (
     Number(bk_networkarea_id) >= 0
+    && Number(bk_networkarea_id) !== unassignedAreaId
     && Number(bk_networkunit_id) >= 0
     && Number(accesspoint_id) >= 0
   );
@@ -259,6 +261,11 @@ const handleConfirm = async () => {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid && !isResultMode.value) return;
   if (props.selectedAreas.length === 0) return;
+  if (props.selectedAreas.some(area => area.bk_networkarea_id === unassignedAreaId)
+    || form.upstream.bk_networkarea_id === unassignedAreaId) {
+    Message({ theme: 'warning', message: t('topoManager.workArea.batchCreate.unassignedAreaDisabled') });
+    return;
+  }
 
   submitLoading.value = true;
   try {

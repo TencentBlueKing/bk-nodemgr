@@ -43,9 +43,11 @@
             :title="isRowSelectable(row)
               ? undefined
               : $t(
-                row.bk_networkarea_id === 0
-                  ? 'topoManager.workArea.batchCreate.defaultAreaDisabled'
-                  : 'topoManager.workArea.batchCreate.createPermissionDisabled',
+                row.bk_networkarea_id === unassignedAreaId
+                  ? 'topoManager.workArea.batchCreate.unassignedAreaDisabled'
+                  : row.bk_networkarea_id === 0
+                    ? 'topoManager.workArea.batchCreate.defaultAreaDisabled'
+                    : 'topoManager.workArea.batchCreate.createPermissionDisabled',
               )"
             @change="(checked: boolean) => handleRowSelection(row, checked)"
           />
@@ -81,7 +83,11 @@
               </i>
             </Button>
             <span
-              v-if="!isAreaAuthorized(row.bk_networkarea_id)"
+              v-if="row.bk_networkarea_id === unassignedAreaId"
+              class="text-[#C4C6CC] truncate"
+            >{{ row.bk_networkarea_name }}</span>
+            <span
+              v-else-if="!isAreaAuthorized(row.bk_networkarea_id)"
               class="text-[#C4C6CC] cursor-pointer truncate"
               @click="handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_view')"
               @mouseenter="viewMouseEnter($event, false)"
@@ -255,7 +261,7 @@ const isCurrentPageIndeterminate = computed(() => (
 ));
 
 function isRowSelectable(row: INetWorkArea): boolean {
-  if (row.bk_networkarea_id === 0) return false;
+  if (row.bk_networkarea_id === 0 || row.bk_networkarea_id === unassignedAreaId) return false;
   if (!authStore.hasAuthorizedResource('networkunit_create', row.bk_networkarea_id)) return false;
   return true;
 }

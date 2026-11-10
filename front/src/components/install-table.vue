@@ -1486,6 +1486,7 @@ const handleBatchEdit = (field: string, value: any) => {
   }
 
   tableData.value?.forEach((item: any, index: number) => {
+    if (field === 'bk_networkunit_id' && Number(item.bk_networkarea_id) === unassignedAreaId) return;
     // Linux 不支持 WMI：批量选择 WMI 时跳过非 Windows 行
     if (field === 'install_method' && value === 'wmi' && item.os_type === 'linux') {
       return;
@@ -1550,7 +1551,9 @@ const handleAutoAssign = async () => {
       res.items.forEach((result: any, index: number) => {
         if (index >= tableData.value!.length) return;
         const row = tableData.value![index];
-        row.bk_networkunit_id = result.bk_networkunit_id === -1 ? '' : String(result.bk_networkunit_id);
+        row.bk_networkunit_id = result.bk_networkunit_id === -1
+          || ('bk_networkarea_id' in row && Number(row.bk_networkarea_id) === unassignedAreaId)
+          ? '' : String(result.bk_networkunit_id);
         clearError(index, 'bk_networkunit_id');
       });
     }
@@ -1647,7 +1650,8 @@ const tableValidate = async () => {
     if (props.isReinstall && settings.checked.includes('bk_biz_id') && !row.bk_biz_id) {
       setError(i, 'bk_biz_id', t('validate.required')); rowValid = false;
     }
-    if (props.isReinstall && !row.bk_networkunit_id) {
+    if ((props.isReinstall && !row.bk_networkunit_id)
+      || (row.bk_networkunit_id && 'bk_networkarea_id' in row && Number(row.bk_networkarea_id) === unassignedAreaId)) {
       setError(i, 'bk_networkunit_id', t('validate.required')); rowValid = false;
     }
 
@@ -1722,6 +1726,7 @@ const tableValidate = async () => {
 };
 
 // --- 管控单元 ---
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 const networkUnitList = ref<any[]>([]);
 const networkUnitGroupMap = ref<Record<number, any[]>>({});
 const networkUnitLoading = ref(false);
@@ -1739,8 +1744,8 @@ const getNetworkUnitList = async () => {
       console.error(err);
       return { total: 0, items: [] };
     });
-    networkUnitList.value = res.items;
-    networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
+    networkUnitList.value = res.items.filter((unit: any) => Number(unit.bk_networkarea_id) !== unassignedAreaId);
+    networkUnitGroupMap.value = groupBy(networkUnitList.value, 'bk_networkarea_id');
   } finally {
     networkUnitLoading.value = false;
   }
@@ -1868,6 +1873,11 @@ const handleNetworkUnitChange = async (val: string, row: any, rowIndex: number) 
   if (!val) return;
   const networkUnit = networkUnitList.value.find((unit: any) => String(unit.bk_networkunit_id) === val);
   const target: any = tableData.value?.[rowIndex] || row;
+  if (Number(row.bk_networkarea_id) === unassignedAreaId) {
+    target.bk_networkunit_id = '';
+    row.bk_networkunit_id = '';
+    return;
+  }
   target.bk_networkunit_id = val;
   if (networkUnit) target.bk_networkunit_name = networkUnit.bk_networkunit_name;
   // 表内联动：切换单元后按新单元重新计算该行安装源

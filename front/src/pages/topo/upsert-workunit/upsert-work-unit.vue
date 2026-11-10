@@ -197,6 +197,7 @@ const workareaStore = useWorkareaStore();
 const { t } = useI18n();
 const route = useRoute();
 const workareaId = Number(route.params.workarea);
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 
 const type = ref('not_direct');
 const isDirect = ref(false);
@@ -360,6 +361,7 @@ function validateLink(
   // 判断是否所有必填字段都有值
   const isAllFieldsValid = (
     link.bk_networkarea_id !== undefined
+    && link.bk_networkarea_id !== unassignedAreaId
     && link.bk_networkunit_id !== undefined
     && link.accesspoint_id !== undefined
   );

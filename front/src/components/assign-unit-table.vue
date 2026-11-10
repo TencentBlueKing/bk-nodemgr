@@ -282,6 +282,7 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
   clearError(rowIndex, field);
 };
 
+const unassignedAreaId = Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID);
 const networkUnitList = ref<any[]>([]);
 const networkUnitGroupMap = ref<Record<number, any[]>>({});
 const networkUnitLoading = ref(false);
@@ -300,7 +301,8 @@ const handleAutoAssign = async () => {
       res.items.forEach((result: any, index: number) => {
         if (index >= tableData.value!.length) return;
         const row = tableData.value![index];
-        row.bk_networkunit_id = result.bk_networkunit_id === -1 ? '' : String(result.bk_networkunit_id);
+        row.bk_networkunit_id = result.bk_networkunit_id === -1 || Number(row.bk_networkarea_id) === unassignedAreaId
+          ? '' : String(result.bk_networkunit_id);
         clearError(index, 'bk_networkunit_id');
       });
     }
@@ -319,8 +321,8 @@ const getNetworkUnitList = async () => {
         bk_networkarea_id: tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || [],
       },
     }).catch(() => ({ total: 0, items: [] }));
-    networkUnitList.value = res.items;
-    networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
+    networkUnitList.value = res.items.filter((unit: any) => Number(unit.bk_networkarea_id) !== unassignedAreaId);
+    networkUnitGroupMap.value = groupBy(networkUnitList.value, 'bk_networkarea_id');
     tableData.value?.forEach((row: any) => {
       if (row.bk_networkunit_id) return;
       const options = getNetworkUnitsByAreaId(row.bk_networkarea_id)
@@ -359,6 +361,7 @@ const networkUnitBatchOptions = computed(() => {
 
 const handleBatchEdit = (value: string) => {
   tableData.value?.forEach((item: any, index: number) => {
+    if (Number(item.bk_networkarea_id) === unassignedAreaId) return;
     item.bk_networkunit_id = value;
     const networkUnit = networkUnitList.value.find((unit: any) => String(unit.bk_networkunit_id) === value);
     if (networkUnit) {
@@ -370,6 +373,10 @@ const handleBatchEdit = (value: string) => {
 
 const handleNetworkUnitChange = (val: string, row: any) => {
   if (!val) return;
+  if (Number(row.bk_networkarea_id) === unassignedAreaId) {
+    row.bk_networkunit_id = '';
+    return;
+  }
   const networkUnit = networkUnitList.value.find((unit: any) => String(unit.bk_networkunit_id) === val);
   if (networkUnit) {
     row.bk_networkunit_name = networkUnit.bk_networkunit_name;
@@ -386,7 +393,7 @@ const tableValidate = async () => {
   let firstErrorRowIndex = -1;
 
   for (let i = 0; i < data.length; i++) {
-    if (!data[i].bk_networkunit_id) {
+    if (!data[i].bk_networkunit_id || Number(data[i].bk_networkarea_id) === unassignedAreaId) {
       setError(i, 'bk_networkunit_id', t('validate.required'));
       isValid = false;
       if (firstErrorRowIndex === -1) firstErrorRowIndex = i;

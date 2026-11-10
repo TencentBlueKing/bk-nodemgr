@@ -481,6 +481,7 @@ topoManager:
       createdUnit: 'Network Unit ID: {id}'
       retry: Retry Failed Items
       allSuccess: Default network units created successfully
+      unassignedAreaDisabled: The unassigned network area does not support network unit management or configuration
       defaultAreaDisabled: The default network area cannot be initialized in batch
       createPermissionDisabled: You do not have permission to create a network unit in this network area
       filterEmpty: Empty network area
