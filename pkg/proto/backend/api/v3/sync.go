@@ -111,6 +111,24 @@ func (x *SyncAllAlivePluginProcessInfoReq) Validate() error {
 }
 
 // AutoConvert auto convert.
+func (x *SyncStoppedPluginProcessInfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncStoppedPluginProcessInfoReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncAllStoppedPluginProcessInfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAllStoppedPluginProcessInfoReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
 func (x *CorrectUnknownProcessStatusReq) AutoConvert() {}
 
 // Validate check body.

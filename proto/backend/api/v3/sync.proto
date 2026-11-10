@@ -168,6 +168,40 @@ message SyncAllAlivePluginProcessInfoResp {
   Data data = 5;
 }
 
+// SyncStoppedPluginProcessInfoReq describes the HTTP request body when syncing
+// stopped plugin process info.
+message SyncStoppedPluginProcessInfoReq { repeated int64 host_ids = 1; }
+
+// SyncStoppedPluginProcessInfoResp describes the HTTP response body when
+// syncing stopped plugin process info.
+message SyncStoppedPluginProcessInfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// SyncAllStoppedPluginProcessInfoReq describes the HTTP request body when
+// syncing all stopped plugin process info.
+message SyncAllStoppedPluginProcessInfoReq {}
+
+// SyncAllStoppedPluginProcessInfoResp describes the HTTP response body when
+// syncing all stopped plugin process info.
+message SyncAllStoppedPluginProcessInfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
 // CorrectUnknownProcessStatusReq describes the HTTP request body when
 // correcting unknown process status.
 message CorrectUnknownProcessStatusReq { repeated int64 host_ids = 1; }
@@ -320,7 +354,7 @@ service Sync {
   rpc SyncAlivePluginProcessInfo(SyncAlivePluginProcessInfoReq)
       returns (SyncAlivePluginProcessInfoResp) {
     option (google.api.http) = {
-      post : "/api/v3/sync/gse/plugin/process/info"
+      post : "/api/v3/sync/gse/plugin/process/info/alive"
       body : "*"
     };
   }
@@ -328,7 +362,23 @@ service Sync {
   rpc SyncAllAlivePluginProcessInfo(SyncAllAlivePluginProcessInfoReq)
       returns (SyncAllAlivePluginProcessInfoResp) {
     option (google.api.http) = {
-      post : "/api/v3/sync/gse/plugin/process/info/all"
+      post : "/api/v3/sync/gse/plugin/process/info/alive/all"
+      body : "*"
+    };
+  }
+
+  rpc SyncStoppedPluginProcessInfo(SyncStoppedPluginProcessInfoReq)
+      returns (SyncStoppedPluginProcessInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process/info/stopped"
+      body : "*"
+    };
+  }
+
+  rpc SyncAllStoppedPluginProcessInfo(SyncAllStoppedPluginProcessInfoReq)
+      returns (SyncAllStoppedPluginProcessInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process/info/stopped/all"
       body : "*"
     };
   }

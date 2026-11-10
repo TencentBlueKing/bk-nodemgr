@@ -53,8 +53,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/gse/agent/info", restserver.Handler(h.SyncAgentInfo))
 	h.rg.POST("/gse/agent/correct_agent_id", restserver.Handler(h.SyncCorrectAgentID))
 	h.rg.POST("/gse/agent/info/alive", restserver.Handler(h.SyncAliveHostAgentInfo))
-	h.rg.POST("/gse/plugin/process/info", restserver.Handler(h.SyncAlivePluginProcessInfo))
-	h.rg.POST("/gse/plugin/process/info/all", restserver.Handler(h.SyncAllAlivePluginProcessInfo))
+	h.rg.POST("/gse/plugin/process/info/alive", restserver.Handler(h.SyncAlivePluginProcessInfo))
+	h.rg.POST("/gse/plugin/process/info/alive/all", restserver.Handler(h.SyncAllAlivePluginProcessInfo))
+	h.rg.POST("/gse/plugin/process/info/stopped", restserver.Handler(h.SyncStoppedPluginProcessInfo))
+	h.rg.POST("/gse/plugin/process/info/stopped/all", restserver.Handler(h.SyncAllStoppedPluginProcessInfo))
 	h.rg.POST("/gse/plugin/process/correct_unknown_status", restserver.Handler(h.CorrectUnknownProcessStatus))
 	h.rg.POST("/gse/plugin/process/correct_unknown_status/all", restserver.Handler(h.CorrectAllUnknownProcessStatus))
 

@@ -1,12 +1,12 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.60+。
+- 该接口提供版本：v3.0.1-alpha.107+。
 - 该接口所需权限：无。
 - 该接口功能描述：触发同步全部存活插件进程信息。
 
 ### URL
 
-POST /api/v3/sync/gse/plugin/process/info/all
+POST /api/v3/sync/gse/plugin/process/info/alive/all
 
 ### 输入参数
 

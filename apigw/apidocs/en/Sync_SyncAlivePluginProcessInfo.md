@@ -1,12 +1,12 @@
 ### Description
 
-- API Version: v3.0.1-alpha.60+.
+- API Version: v3.0.1-alpha.107+.
 - Required Permission: None.
 - Function: Trigger synchronization of alive plugin process information for specified hosts.
 
 ### URL
 
-POST /api/v3/sync/gse/plugin/process/info
+POST /api/v3/sync/gse/plugin/process/info/alive
 
 ### Input Parameters
 
