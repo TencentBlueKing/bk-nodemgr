@@ -418,7 +418,7 @@ const { maxHeight } = useDynamicsHeight(tableOffset);
 
 const handleToWorkareaDetail = (bk_networkarea_id: number) => {
   router.push({
-    name: 'workareaDetail',
+    name: 'networkareaDetail',
     params: {
       workarea: bk_networkarea_id,
     },

@@ -537,13 +537,13 @@ const checkDeleteDisabled = async () => {
  */
 async function refreshPageAuthorized() {
   const items = [
-    ...getPageAuthorizedItems('workareaDetail'),
+    ...getPageAuthorizedItems('networkareaDetail'),
     { action: 'networkunit_use_for_proxy', resource_type: 'networkunit' },
     // proxy_view / proxy_operate 后端资源类型为 biz，与组件内 useAuthLock 的 biz 判断保持一致
     { action: 'proxy_view', resource_type: 'biz' },
     { action: 'proxy_operate', resource_type: 'biz' },
   ];
-  await authStore.fetchAuthorized(items, 'page:workareaDetail', { force: true }).catch(() => {});
+  await authStore.fetchAuthorized(items, 'page:networkareaDetail', { force: true }).catch(() => {});
 }
 
 onMounted(async () => {

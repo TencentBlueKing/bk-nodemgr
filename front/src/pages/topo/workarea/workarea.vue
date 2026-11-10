@@ -189,7 +189,7 @@ const handleUpdate = async () => {
   await Promise.all([
     getTableData(),
     // 新建/编辑区域成功后强制刷新授权：新区域 ID 不在授权缓存中会被行级误判无权限
-    authStore.fetchAuthorized(getPageAuthorizedItems('workarea'), 'page:workarea', { force: true }).catch(() => {}),
+    authStore.fetchAuthorized(getPageAuthorizedItems('networkarea'), 'page:networkarea', { force: true }).catch(() => {}),
   ]);
 };
 
@@ -312,7 +312,7 @@ watch(() => workareaStore.workareaList, () =>  {
 }, { deep: true });
 onMounted(async () => {
   // networkarea_view 等 view 权限按页面 items 兜底加载（App.vue 已按需加载，内容级去重避免重复）
-  const pageItems = getPageAuthorizedItems('workarea');
+  const pageItems = getPageAuthorizedItems('networkarea');
   await Promise.all([
     authStore.fetchAuthorized(pageItems, 'page:workarea').catch(() => {}),
     authStore.batchVerify(
