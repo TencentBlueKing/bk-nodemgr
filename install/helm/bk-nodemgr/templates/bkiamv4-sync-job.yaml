@@ -87,6 +87,9 @@ spec:
               "${BKIAMV4_DIR}/migrate/iam-migrate" \
                 --gateway-url "${IAM_GATEWAY_URL}" \
                 --app-code "${APP_CODE}" \
+                {{- if .Values.iamV4.option.allowActionReplace }}
+                --allow-action-replace \
+                {{- end }}
                 --tenant-id "${IAM_TENANT_ID}" --dir "${OUTPUT_DIR}"
           volumeMounts:
             - name: bkiamv4-vars

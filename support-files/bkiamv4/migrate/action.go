@@ -68,6 +68,32 @@ func validateAction(data map[string]json.RawMessage) error {
 	return nil
 }
 
+func (item migration) executeActionUpsert(
+	ctx contextx.IContext, handler iamv4.IHandler, op operation,
+	states map[string]map[string]iamv4.Action, resourceTypes map[string]map[string]iamv4.ResourceType,
+	roleStates map[string]map[string]iamv4.Role, allowReplace, dryRun bool, out io.Writer,
+) error {
+
+	if !allowReplace {
+		return item.executeAction(ctx, handler, op, states, resourceTypes, dryRun, out)
+	}
+	actions, err := loadActions(ctx, handler, item.SystemID, states)
+	if err != nil {
+		return err
+	}
+	current, exists := actions[op.action.ID]
+	_, supplied := op.Data["resource_type_id"]
+	if !exists || !supplied || current.ResourceTypeID == op.action.ResourceTypeID {
+		return item.executeAction(ctx, handler, op, states, resourceTypes, dryRun, out)
+	}
+	op.replacement = actionReplacement{Action: op.action, ExpectedResourceTypeID: current.ResourceTypeID}
+	if _, supplied := op.Data[fieldName]; !supplied {
+		op.replacement.Name = current.Name
+	}
+
+	return item.executeActionReplacement(ctx, handler, op, states, resourceTypes, roleStates, dryRun, out)
+}
+
 func (item migration) executeAction(
 	ctx contextx.IContext, handler iamv4.IHandler, op operation,
 	states map[string]map[string]iamv4.Action, resourceTypes map[string]map[string]iamv4.ResourceType,
@@ -122,7 +148,8 @@ func prepareAction(op operation, actions map[string]iamv4.Action) (iamv4.Action,
 	current, exists := actions[action.ID]
 	if exists {
 		if _, supplied := op.Data["resource_type_id"]; supplied && action.ResourceTypeID != current.ResourceTypeID {
-			return action, fmt.Errorf("action %s resource binding differs from remote state; automatic binding changes are not supported", action.ID)
+			return action, fmt.Errorf("action %s resource binding differs from remote state; "+
+				"use --allow-action-replace to allow deletion and recreation without cascading dependencies, or use explicit replace_action", action.ID)
 		}
 		action.ResourceTypeID = current.ResourceTypeID
 		if _, supplied := op.Data[fieldName]; !supplied {

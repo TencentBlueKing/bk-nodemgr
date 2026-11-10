@@ -2554,6 +2554,9 @@ iamV3:
 iamV4:
   enabled: false
   # Gateway endpoint and application credentials come from backend.config.iamV4.
+  option:
+    # Allow deleting and recreating actions with changed bindings, without cascading dependencies.
+    allowActionReplace: false
   syncJob:
     ttlSecondsAfterFinished: 600
     backoffLimit: 3
