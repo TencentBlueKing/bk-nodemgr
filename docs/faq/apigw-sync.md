@@ -151,3 +151,28 @@ kubectl get configmap -n <namespace> <fullname>-apigw-sync-definition -o yaml
 ```
 
 重点检查 `definition.yaml` 里的 `stages[].name`、后端 `host`、`grant_permissions` 是否和预期一致。
+
+## 6. 已设置 `BK_APP_TENANT_ID=system`，为什么还反复提示设置租户 ID？
+
+### 现象与原因
+
+同步日志反复出现以下提示，但请求头中的租户 ID 已经是 `system`：
+
+```text
+[warn] if the syncing to apigateway failed, and your app(bk-nodemgr) is a global tenant app, please set the environment variable BK_APP_TENANT_ID to `system` (or set django settings.BK_APP_TENANT_ID to `system`) and try again. the current value [X-Bk-Tenant-Id=system].
+```
+
+**这条 warning 本身不表示租户配置错误，也不表示同步失败。** 在 `apigw-manager:4.2.4` 中，未设置
+`BKPAAS_APP_TENANT_ID` 时，SDK 会读取 `BK_APP_TENANT_ID`，并无条件输出这条提示；即使值已经是 `system` 也会输出。
+每次构造 API 请求都会经过该逻辑，因此一次同步可能重复出现多次。
+
+Helm 和 docker-compose 通过 `BK_APP_TENANT_ID` 传入应用租户 ID，属于该版本 SDK 支持的独立部署方式，
+不需要因为这条提示改用 PaaS 的配置入口。
+
+### 如何处理
+
+- 如果 `X-Bk-Tenant-Id` 与应用所属租户一致，且最终同步成功，可以忽略这条提示，无需修改配置或重跑 Job。
+- 不要仅为消除 warning 而添加 `BKPAAS_APP_TENANT_ID`：它会优先于 `BK_APP_TENANT_ID` 生效，且空字符串表示全租户应用，
+  SDK 会将其转换为 `system`，并非单纯的日志开关。也不要全局屏蔽 WARNING，以免隐藏其他告警。
+- 如果同步确实失败，应结合接口错误码和错误信息排查；遇到 `1640302 Cross tenant forbidden` 时，按第 2 节核对租户配置。
+  不要只凭这条 warning 判断失败原因。
