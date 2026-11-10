@@ -34,17 +34,17 @@ stages:
           提供节点管理拓扑的只读查询能力，用于查询业务拓扑、网络区域、网络单元、
           接入点、图节点及主机信息，不提供创建、修改或删除操作。
         resource_names:
-          - "Topo_BusinessList"
-          - "Topo_BusinessHostCountGet"
-          - "Topo_BusinessInstTopoGet"
-          - "Topo_NetworkAreaList"
-          - "Topo_NetworkAreaGet"
-          - "Topo_NetworkUnitList"
-          - "Topo_NetworkUnitGet"
-          - "Topo_AccessPointList"
-          - "Topo_AccessPointListBrief"
-          - "Topo_TopoGraphNodeGetReq"
-          - "Topo_HostList"
+          - "OpenTopo_OpenTopoBusinessList"
+          - "OpenTopo_OpenTopoBusinessHostCountGet"
+          - "OpenTopo_OpenTopoBusinessInstTopoGet"
+          - "OpenTopo_OpenTopoNetworkAreaList"
+          - "OpenTopo_OpenTopoNetworkAreaGet"
+          - "OpenTopo_OpenTopoNetworkUnitList"
+          - "OpenTopo_OpenTopoNetworkUnitGet"
+          - "OpenTopo_OpenTopoAccessPointList"
+          - "OpenTopo_OpenTopoAccessPointListBrief"
+          - "OpenTopo_OpenTopoGraphNodeGet"
+          - "OpenTopo_OpenTopoHostList"
         protocol_type: "streamable_http"
         is_public: false
         status: 0
