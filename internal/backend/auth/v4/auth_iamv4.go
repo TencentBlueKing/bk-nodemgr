@@ -40,6 +40,9 @@ const (
 	iamv4BatchLimit      = 20
 	iamv4BatchTimeout    = 30 * time.Second
 	iamv4AuthorizedAnyID = "*"
+	// iamCacheTTL is the local TTL for cached allowed auth results, aligned with the IAM V3
+	// resource-free check cache; it is a bk-nodemgr local policy, not an IAM official lifetime.
+	iamCacheTTL = 5 * time.Minute
 )
 
 type iamv4Authorizer struct {
@@ -165,7 +168,8 @@ func (authorizer *iamv4Authorizer) collectDeniedResources(
 	}
 
 	if len(resources) == 0 {
-		allowed, err := authorizer.handler.IsAllowed(ctx, authorizer.newCheckRequest(ctx, action, nil))
+		req := authorizer.newCheckRequest(ctx, action, nil)
+		allowed, err := authorizer.handler.IsAllowedWithCache(ctx, req, iamCacheTTL)
 		if err != nil {
 			return nil, false, err
 		}

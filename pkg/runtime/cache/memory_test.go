@@ -463,3 +463,22 @@ func waitForMissing(t *testing.T, c ICache, ctx context.Context, key string, tim
 
 	t.Fatalf("key %q still existed after %s", key, timeout)
 }
+
+func TestNewMemoryCacheWithConfigPurgesExpiredEntries(t *testing.T) {
+	ctx := context.Background()
+	c := NewMemoryCacheWithConfig(20*time.Millisecond, 10*time.Millisecond)
+
+	if err := c.Set(ctx, "key", []byte("value")); err != nil {
+		t.Fatalf("Set() unexpected error: %v", err)
+	}
+
+	// The janitor goroutine outlives the test, so this cannot run inside a synctest bubble;
+	// poll ItemCount (which does not lazily evict) until the janitor purges the expired entry.
+	deadline := time.Now().Add(2 * time.Second)
+	for c.cache.ItemCount() != 0 {
+		if time.Now().After(deadline) {
+			t.Fatal("expired entry was not purged by the janitor within 2s")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
