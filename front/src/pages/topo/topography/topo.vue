@@ -940,7 +940,7 @@ async function handleNodeClick(evt: any) {
     if (className === 'linkIcon-unit-direct' || className === 'linkIcon-unit-proxy') {
       textTooltip.hide(true); // 立即隐藏提示气泡
       router.push({
-        name: 'workareaDetail',
+        name: 'networkareaDetail',
         params: {
           workarea: workareaId,
           workUnit: workUnitId,

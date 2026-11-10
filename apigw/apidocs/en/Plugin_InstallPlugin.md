@@ -51,7 +51,8 @@ POST /api/v3/plugin/install
 
 - `plugin`: At least one plugin item must be provided, otherwise request validation fails.
 - `bk_host_id`: Provide a valid positive host ID. Omitting it or passing `0` or a negative value fails.
-- `custom_config_context`: Custom variables for template rendering. Reserved top-level keys are forbidden, including
+- `custom_config_context`: Custom variables for template rendering. All main configuration files of the plugin share this single
+  render context. Reserved top-level keys are forbidden, including
   `PluginInfo`, `NodeInfo`, `PreDefinitionConstants`, `CustomContext`, `plugin_path`, `nodeman`, `cmdb_instance`,
   `target`, and `control_info`.
 - `custom_spec`: When omitted, defaults and matched configuration policies are used. When provided, it replaces both resource and monitoring policies in full, without field-by-field merging. Omitted objects or numeric fields become zero values, and an omitted `restart_type` becomes an empty string. Provide both groups in full when using this field.

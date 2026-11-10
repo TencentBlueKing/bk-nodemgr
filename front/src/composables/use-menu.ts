@@ -68,7 +68,7 @@ const navList = [
         title: i18n.global.t('menu.topoGroup'),
         children: [
           {
-            routeName: 'workarea',
+            routeName: 'networkarea',
             icon: 'nodeman-icon nc-workarea',
             title: i18n.global.t('topoManager.workArea.title'),
           },

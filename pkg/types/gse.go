@@ -256,6 +256,7 @@ type ISimpleTransferHandler interface {
 
 // SimpleTransferResult represents the simple transfer result.
 type SimpleTransferResult struct {
+	FileName      string
 	Mode          TransferMode
 	ErrorCode     int
 	ErrorMessage  string
@@ -269,6 +270,7 @@ type SimpleTransferResult struct {
 // ConvertTransferResultToSimple convert transfer result to simple transfer result.
 func ConvertTransferResultToSimple(result *TransferResult) *SimpleTransferResult {
 	return &SimpleTransferResult{
+		FileName:     result.TargetFileName,
 		Mode:         result.Mode,
 		ErrorCode:    result.ErrorCode,
 		ErrorMessage: result.ErrorMessage,
