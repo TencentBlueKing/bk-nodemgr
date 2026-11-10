@@ -140,7 +140,7 @@ const rules = ref({
 const handleConfigureUnit = () => {
   if (!createdWorkareaID.value) return;
   router.push({
-    name: 'workareaDetail',
+    name: 'networkareaDetail',
     params: { workarea: String(createdWorkareaID.value) },
     // createUnit=1：详情页挂载后自动打开「新建管控单元」抽屉
     query: { createUnit: '1' },

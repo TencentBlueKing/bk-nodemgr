@@ -188,11 +188,11 @@ const routes = setupLayouts([
       {
         name: 'topoManager',
         path: 'topo-manager',
-        redirect: { name: 'workarea' },
+        redirect: { name: 'networkarea' },
         children: [
           {
-            name: 'workarea',
-            path: 'workarea',
+            name: 'networkarea',
+            path: 'networkarea',
             component: WorkArea,
             meta: {
               title: i18n.global.t('route.workarea'),
@@ -202,14 +202,14 @@ const routes = setupLayouts([
             },
           },
           {
-            name: 'workareaDetail',
-            path: 'workarea-detail/:workarea/:workUnit?',
+            name: 'networkareaDetail',
+            path: 'networkarea-detail/:workarea/:workUnit?',
             component: WorkareaDetail,
             meta: {
               back: true,
               mainMenu: 'topoManager',
               title: i18n.global.t('route.workareaDetail'),
-              parentName: 'workarea',
+              parentName: 'networkarea',
             },
           },
           {
@@ -403,9 +403,9 @@ export const install: UserModule = ({ app }) => {
     cancelRequest();
 
     if (to.name === '403' || to.name === '404') return true;
-    if (to.name === 'workareaDetail'
+    if (to.name === 'networkareaDetail'
       && Number(to.params.workarea) === Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID)) {
-      return { name: 'workarea', replace: true };
+      return { name: 'networkarea', replace: true };
     }
 
     const authStore = useAuthStore();

@@ -67,7 +67,7 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
   { id: 'plugin_history_view', action: 'plugin_history_view', resourceType: 'biz', routes: ['history', 'taskDetail', 'log'], activeScopes: ['plugin'] },
 
   // topoManager — non-biz pages
-  { id: 'networkarea_view', action: 'networkarea_view', resourceType: 'networkarea', routes: ['workareaDetail'] },
+  { id: 'networkarea_view', action: 'networkarea_view', resourceType: 'networkarea', routes: ['networkareaDetail'] },
   // networkunit_view 路由级校验已移除（后端 starts_with 兼容问题，由组件内权限控制替代）
   { id: 'networkarea_history_view', action: 'networkarea_history_view', resourceType: 'networkarea', routes: ['record'] },
 
@@ -214,13 +214,13 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
     { action: 'plugin_history_view', resource_type: 'biz' },
   ],
   // ===== topoManager =====
-  workarea: [
+  networkarea: [
     { action: 'networkarea_view', resource_type: 'networkarea' },
     { action: 'networkarea_edit', resource_type: 'networkarea' },
     { action: 'networkarea_delete', resource_type: 'networkarea' },
     { action: 'networkunit_create', resource_type: 'networkarea' },
   ],
-  workareaDetail: [
+  networkareaDetail: [
     { action: 'networkarea_view', resource_type: 'networkarea' },
     { action: 'networkunit_view', resource_type: 'networkunit' },
     { action: 'networkarea_history_view', resource_type: 'networkarea' },

@@ -299,7 +299,7 @@ const ensureCurrentRoutePermission = async () => {
       return getPkgTypeIdFromRoute();
     }
     if (matched.resourceType === 'networkarea') {
-      // workareaDetail 路由：workarea-detail/:workarea/:workUnit?
+      // networkareaDetail 路由：networkarea-detail/:workarea/:workUnit?
       return route.params?.workarea ? Number(route.params.workarea) : undefined;
     }
     return undefined;
