@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release from tag annotation
+    runs-on: self-hosted
+    steps:
+      - name: Check out tag
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Read tag annotation
+        env:
+          TAG_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$(git cat-file -t "$TAG_REF")" != "tag" ]; then
+            echo "::error::Release requires an annotated tag."
+            exit 1
+          fi
+          git cat-file tag "$TAG_REF" |
+            sed '1,/^$/d; /^-----BEGIN PGP SIGNATURE-----$/,$d' > "$RUNNER_TEMP/release-notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/release-notes.md"; then
+            echo "::error::Tag annotation must not be empty."
+            exit 1
+          fi
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: ${{ runner.temp }}/release-notes.md
+          draft: false
+          prerelease: false
+
+  sign-release:
+    needs: release
+    uses: ./.github/workflows/sign-release.yml
+    with:
+      tag_name: ${{ github.ref_name }}
+    secrets: inherit
