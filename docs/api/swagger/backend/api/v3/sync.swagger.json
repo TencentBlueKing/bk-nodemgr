@@ -349,7 +349,7 @@
         ]
       }
     },
-    "/api/v3/sync/gse/plugin/process/info": {
+    "/api/v3/sync/gse/plugin/process/info/alive": {
       "post": {
         "operationId": "Sync_SyncAlivePluginProcessInfo",
         "responses": {
@@ -381,7 +381,7 @@
         ]
       }
     },
-    "/api/v3/sync/gse/plugin/process/info/all": {
+    "/api/v3/sync/gse/plugin/process/info/alive/all": {
       "post": {
         "operationId": "Sync_SyncAllAlivePluginProcessInfo",
         "responses": {
@@ -405,6 +405,72 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3SyncAllAlivePluginProcessInfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/gse/plugin/process/info/stopped": {
+      "post": {
+        "operationId": "Sync_SyncStoppedPluginProcessInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncStoppedPluginProcessInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncStoppedPluginProcessInfoReq describes the HTTP request body when syncing\nstopped plugin process info.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncStoppedPluginProcessInfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/gse/plugin/process/info/stopped/all": {
+      "post": {
+        "operationId": "Sync_SyncAllStoppedPluginProcessInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllStoppedPluginProcessInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncAllStoppedPluginProcessInfoReq describes the HTTP request body when\nsyncing all stopped plugin process info.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllStoppedPluginProcessInfoReq"
             }
           }
         ],
@@ -1060,6 +1126,43 @@
         }
       }
     },
+    "v3SyncAllStoppedPluginProcessInfoReq": {
+      "type": "object",
+      "description": "SyncAllStoppedPluginProcessInfoReq describes the HTTP request body when\nsyncing all stopped plugin process info."
+    },
+    "v3SyncAllStoppedPluginProcessInfoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncAllStoppedPluginProcessInfoRespData"
+        }
+      },
+      "description": "SyncAllStoppedPluginProcessInfoResp describes the HTTP response body when\nsyncing all stopped plugin process info."
+    },
+    "v3SyncAllStoppedPluginProcessInfoRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
     "v3SyncCmdbConstantsReq": {
       "type": "object",
       "description": "SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\nconstants."
@@ -1247,6 +1350,52 @@
       "description": "SyncSharedReleasesResp describes the HTTP response body when syncing shared\nreleases."
     },
     "v3SyncSharedReleasesRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncStoppedPluginProcessInfoReq": {
+      "type": "object",
+      "properties": {
+        "host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "SyncStoppedPluginProcessInfoReq describes the HTTP request body when syncing\nstopped plugin process info."
+    },
+    "v3SyncStoppedPluginProcessInfoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncStoppedPluginProcessInfoRespData"
+        }
+      },
+      "description": "SyncStoppedPluginProcessInfoResp describes the HTTP response body when\nsyncing stopped plugin process info."
+    },
+    "v3SyncStoppedPluginProcessInfoRespData": {
       "type": "object",
       "properties": {
         "trigger_id": {

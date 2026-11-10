@@ -213,6 +213,8 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionWatchCMDBResource(syncdataCap),
 		syncdata.NewActionSyncAlivePluginProcessInfo(syncdataCap),
 		syncdata.NewActionGenOperSyncAlivePluginProcessInfo(syncdataCap),
+		syncdata.NewActionSyncStoppedPluginProcessInfo(syncdataCap),
+		syncdata.NewActionGenOperSyncStoppedPluginProcessInfo(syncdataCap),
 		// The v2 compatible plugin processes are synced by their own scheduled workflow.
 		syncdata.NewActionSyncAlivePluginProcessV2Info(syncdataCap),
 		syncdata.NewActionGenOperSyncAlivePluginProcessV2Info(syncdataCap),

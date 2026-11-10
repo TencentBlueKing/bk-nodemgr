@@ -173,6 +173,48 @@ func (h *handler) SyncAllAlivePluginProcessInfo(rCtx restserver.IContext) (any, 
 	return resp, nil
 }
 
+// SyncStoppedPluginProcessInfo start an operation to sync stopped host plugin process info from gse.
+func (h *handler) SyncStoppedPluginProcessInfo(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncStoppedPluginProcessInfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync stopped plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncStoppedPluginProcessInfo(rCtx, req.GetHostIds()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync stopped plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncStoppedPluginProcessInfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
+// SyncAllStoppedPluginProcessInfo start an operation to sync all stopped host plugin process info from gse.
+func (h *handler) SyncAllStoppedPluginProcessInfo(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncAllStoppedPluginProcessInfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync all stopped plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncAllStoppedPluginProcessInfo(rCtx)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync all stopped plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncAllStoppedPluginProcessInfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
 // CorrectUnknownProcessStatus starts an operation to mark expired plugin process observations unknown.
 func (h *handler) CorrectUnknownProcessStatus(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.CorrectUnknownProcessStatusReq)

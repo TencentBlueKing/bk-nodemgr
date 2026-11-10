@@ -385,6 +385,71 @@ func (mgr *Manager) LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (
 	return triggerCtl.GetTriggerID(), nil
 }
 
+// LaunchSyncStoppedPluginProcessInfo launch a task to sync stopped plugin process info.
+func (mgr *Manager) LaunchSyncStoppedPluginProcessInfo(ctx contextx.IContext, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncStoppedPluginProcessInfo(syncdata.OperParamSyncStoppedPluginProcessInfo{
+		TenantID: tenantID,
+		Operator: operator,
+		HostIDs:  hostIDs,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync stopped plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAllStoppedPluginProcessInfo launch a task to sync all stopped plugin process info.
+func (mgr *Manager) LaunchSyncAllStoppedPluginProcessInfo(ctx contextx.IContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAllStoppedPluginProcessInfo(syncdata.OperParamSyncAllStoppedPluginProcessInfo{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync all stopped plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
 // LaunchCorrectUnknownProcessStatus launches a task to correct unknown process status.
 func (mgr *Manager) LaunchCorrectUnknownProcessStatus(ctx contextx.IContext, hostIDs ...int64) (string, error) {
 	if len(hostIDs) == 0 {
