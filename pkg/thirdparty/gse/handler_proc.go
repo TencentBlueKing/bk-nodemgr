@@ -45,6 +45,10 @@ type IHandlerProc interface {
 	// @return map[processName] -> []types.ProcessInfo
 	QueryMultiProcessInfoMany(nCtx contextx.IContext, procAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error)
 
+	// QueryMultiProcessInfoManyStream emits one terminal result per plugin and agent, then closes the channel.
+	// Callers that stop consuming must cancel nCtx. Failed queries do not contain confirmed process info.
+	QueryMultiProcessInfoManyStream(nCtx contextx.IContext, groups ...*types.ProcessAgentGroup) <-chan ProcessInfoResult
+
 	// TrusteeshipProcess order the gse_agent to trusteeship the process.
 	TrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
 
