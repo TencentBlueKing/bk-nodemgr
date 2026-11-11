@@ -16,8 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package header provide the middleware for bksass header.
-
+// Package header provides BK SaaS request ID headers and middleware.
 package header
 
 import "net/http"

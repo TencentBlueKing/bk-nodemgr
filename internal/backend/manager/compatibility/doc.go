@@ -16,4 +16,5 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
+// Package compatibility evaluates plugin compatibility policies for tenants and businesses.
 package compatibility
