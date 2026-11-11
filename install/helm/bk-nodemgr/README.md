@@ -42,7 +42,7 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 #### IAM V4 模型同步
 
-`iamV4.option.allowActionReplace` 默认为 `false`。设为 `true` 后，同步 Job 在 Action 资源绑定冲突时自动复用 `replace_action` 的默认行为：删除旧 Action 后重建，不级联清理依赖。日志输出旧/新绑定及替换风险；IAM 拒绝删除时立即停止，不自动扩大级联范围或回滚。已有授权不会自动迁移，启用前需确认目标租户和受影响权限。
+`iamV4.option.allowActionReplace` 默认为 `false`。设为 `true` 后，同步 Job 在 Action 资源绑定冲突时自动复用 `replace_action`，以 `cascade: ["role"]` 清理角色中的旧 Action 成员，再删除重建 Action，后续角色同步恢复模板中声明的成员。自定义角色中未在模板声明的成员不会自动恢复；不级联清理 RBAC/ABAC 授权。日志输出旧/新绑定及替换风险；IAM 拒绝删除时立即停止，不自动扩大级联范围或回滚。已有授权不会自动迁移，启用前需确认目标租户和受影响权限。此行为需要使用包含角色级联清理逻辑的工具镜像。
 
 ```yaml
 iamV4:

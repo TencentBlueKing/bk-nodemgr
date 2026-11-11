@@ -106,7 +106,7 @@ func run(args []string) error {
 	flags.StringVar(&opts.directory, "dir", "", "Directory of numbered migration JSON files")
 	flags.BoolVar(&opts.dryRun, "dry-run", false, "Query remote state and print the plan without writing")
 	flags.BoolVar(&opts.allowActionReplace, "allow-action-replace", false,
-		"Allow deleting and recreating actions with changed resource bindings (no cascading deletion)")
+		"Allow deleting and recreating actions with changed resource bindings, cascading role membership cleanup")
 	// Do not let flag.PrintDefaults expose the environment-provided secret.
 	flags.Lookup("app-secret").DefValue = ""
 	if err := flags.Parse(args); err != nil {

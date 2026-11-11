@@ -86,7 +86,9 @@ func (item migration) executeActionUpsert(
 	if !exists || !supplied || current.ResourceTypeID == op.action.ResourceTypeID {
 		return item.executeAction(ctx, handler, op, states, resourceTypes, dryRun, out)
 	}
-	op.replacement = actionReplacement{Action: op.action, ExpectedResourceTypeID: current.ResourceTypeID}
+	op.replacement = actionReplacement{
+		Action: op.action, ExpectedResourceTypeID: current.ResourceTypeID, Cascade: []string{"role"},
+	}
 	if _, supplied := op.Data[fieldName]; !supplied {
 		op.replacement.Name = current.Name
 	}
@@ -149,7 +151,7 @@ func prepareAction(op operation, actions map[string]iamv4.Action) (iamv4.Action,
 	if exists {
 		if _, supplied := op.Data["resource_type_id"]; supplied && action.ResourceTypeID != current.ResourceTypeID {
 			return action, fmt.Errorf("action %s resource binding differs from remote state; "+
-				"use --allow-action-replace to allow deletion and recreation without cascading dependencies, or use explicit replace_action", action.ID)
+				"use --allow-action-replace to allow deletion and recreation with cascading role membership cleanup, or use explicit replace_action", action.ID)
 		}
 		action.ResourceTypeID = current.ResourceTypeID
 		if _, supplied := op.Data[fieldName]; !supplied {
