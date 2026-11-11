@@ -24,13 +24,13 @@ import (
 )
 
 const (
-	configFileJsonPrefix = ""
-	configFileJsonIndent = "    "
+	configFileJSONPrefix = ""
+	configFileJSONIndent = "    "
 )
 
 // FormatConfigFileJson formats the config file content as a JSON string.
 func FormatConfigFileJson(configFileContent json.Marshaler) ([]byte, error) {
-	jsonBytes, err := json.MarshalIndent(configFileContent, configFileJsonPrefix, configFileJsonIndent)
+	jsonBytes, err := json.MarshalIndent(configFileContent, configFileJSONPrefix, configFileJSONIndent)
 	if err != nil {
 		return nil, err
 	}

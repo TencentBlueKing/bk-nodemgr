@@ -21,7 +21,7 @@ package errf
 import "net/http"
 
 var (
-	codeHttpStatus = map[Code]int{
+	codeHTTPStatus = map[Code]int{
 		// retain status code.
 		OK:               http.StatusOK,
 		PermissionDenied: http.StatusForbidden,
@@ -48,7 +48,7 @@ var (
 
 // HttpStatusCode returns the http status code.
 func (code Code) HttpStatusCode() int {
-	httpStatus, ok := codeHttpStatus[code]
+	httpStatus, ok := codeHTTPStatus[code]
 	if !ok {
 		return http.StatusInternalServerError
 	}
