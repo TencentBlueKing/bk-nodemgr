@@ -100,7 +100,7 @@ ConfigMap 将 `provider.host` 和 `provider.path` 拼为 `system.callback_url`�
 
 Job 在 `post-install,post-upgrade` 执行，weight 为 `10`，先渲染再按 System → ResourceType → Action → Role 迁移。租户遵循 V3 Job：`backend.config.tenantMode=single` 使用 `default`，其他模式使用 `system`，不遍历租户。
 
-`iamV4.option.allowActionReplace` 默认 `false`；确认允许绑定冲突的 Action 自动删除重建时设为 `true`，Job 会传入 `--allow-action-replace`。此开关不改变 `replace_action` 默认不级联的行为，IAM 依赖冲突仍会阻塞同步；旧授权不会自动迁移。启用需要同时使用包含该参数的新工具镜像。
+`iamV4.option.allowActionReplace` 默认 `false`；确认允许绑定冲突的 Action 自动删除重建时设为 `true`，Job 会传入 `--allow-action-replace`。自动替换以 `cascade: ["role"]` 清理角色中的旧 Action 成员，后续角色同步恢复模板中声明的成员；不级联清理 RBAC/ABAC 授权，旧授权不会自动迁移。显式 `replace_action` 未提供 `cascade` 时仍不级联。启用需要同时使用包含角色级联清理逻辑的工具镜像。
 
 `iamV4.syncJob` 默认 `backoffLimit=3`、`parallelism=1`、`ttlSecondsAfterFinished=600`。成功后删除 Job；下次 hook 执行前清理旧 Job。失败会阻塞 Helm 发布，但不会回滚已经写入 IAM 的模型；Job 重试会重新执行整个迁移流程，排障后重跑仍需检查远端状态。TTL 是完成后的清理时间，不是执行超时。
 
@@ -122,16 +122,16 @@ Job 在 `post-install,post-upgrade` 执行，weight 为 `10`，先渲染再按 S
 
 ## 迁移参数
 
-| 参数                     | 说明                                                                                          |
-| ------------------------ | --------------------------------------------------------------------------------------------- |
-| `--gateway-url`          | 完整网关入口，包含网关名 `bkiam` 和 stage，如 `/api/bkiam/prod/`                              |
-| `--app-code`             | 调用应用编码，必填                                                                            |
-| `--app-secret`           | 调用应用密钥；未传时读取 `BK_APP_SECRET`，两者不能都为空                                      |
-| `--tenant-id`            | 目标租户 ID，必填；不是环境名称，单次只处理一个租户                                           |
-| `--file`                 | 单个已渲染 JSON 文件，与 `--dir` 二选一                                                       |
-| `--dir`                  | 已渲染 JSON 文件目录，与 `--file` 二选一                                                      |
-| `--dry-run`              | 只查询和输出计划，不写入                                                                      |
-| `--allow-action-replace` | 默认关闭；允许绑定冲突的 `upsert_action` 按 `replace_action` 默认行为删除重建，不级联清理依赖 |
+| 参数                     | 说明                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| `--gateway-url`          | 完整网关入口，包含网关名 `bkiam` 和 stage，如 `/api/bkiam/prod/`                             |
+| `--app-code`             | 调用应用编码，必填                                                                           |
+| `--app-secret`           | 调用应用密钥；未传时读取 `BK_APP_SECRET`，两者不能都为空                                     |
+| `--tenant-id`            | 目标租户 ID，必填；不是环境名称，单次只处理一个租户                                          |
+| `--file`                 | 单个已渲染 JSON 文件，与 `--dir` 二选一                                                      |
+| `--dir`                  | 已渲染 JSON 文件目录，与 `--file` 二选一                                                     |
+| `--dry-run`              | 只查询和输出计划，不写入                                                                     |
+| `--allow-action-replace` | 默认关闭；允许绑定冲突的 `upsert_action` 删除重建，并以 `cascade: ["role"]` 清理角色成员引用 |
 
 建议通过 `BK_APP_SECRET` 提供密钥，避免在命令历史和进程参数中留下明文。显式传入的 `--app-secret` 优先，即使传入空字符串也不会回退到环境变量。
 
@@ -197,15 +197,15 @@ flowchart TD
 
 `data` 仅接受 `id`、`name`、`resource_type_id`；ID 格式与 ResourceType 一致，显式提供的 `name` 不得为空或仅含空白，所有字段都不接受 `null`。
 
-| 场景                                 | 处理方式                                                                               |
-| ------------------------------------ | -------------------------------------------------------------------------------------- |
-| 操作不存在                           | 要求 `name`，通过批量创建接口提交单元素数组；省略绑定或提供 `""` 均表示无资源          |
-| 新操作绑定非空资源类型               | 资源类型必须在远端或前序计划中存在，不自动创建                                         |
-| 操作已存在，未提供名称或绑定         | 保留对应远端值                                                                         |
-| 显式绑定与远端不同，包括用 `""` 清空 | 默认报错停止；开启 `--allow-action-replace` 后按默认无级联的 `replace_action` 删除重建 |
-| 名称改变                             | 只提交 `name`，不发送 `id` 或 `resource_type_id`                                       |
-| 名称相同且绑定无冲突                 | 跳过写入                                                                               |
-| 名称被其他操作占用                   | 报错停止                                                                               |
+| 场景                                 | 处理方式                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| 操作不存在                           | 要求 `name`，通过批量创建接口提交单元素数组；省略绑定或提供 `""` 均表示无资源 |
+| 新操作绑定非空资源类型               | 资源类型必须在远端或前序计划中存在，不自动创建                                |
+| 操作已存在，未提供名称或绑定         | 保留对应远端值                                                                |
+| 显式绑定与远端不同，包括用 `""` 清空 | 默认报错停止；开启 `--allow-action-replace` 后以 `cascade: ["role"]` 删除重建 |
+| 名称改变                             | 只提交 `name`，不发送 `id` 或 `resource_type_id`                              |
+| 名称相同且绑定无冲突                 | 跳过写入                                                                      |
+| 名称被其他操作占用                   | 报错停止                                                                      |
 
 每个系统的 Action 按 `page_size=100` 读取全部分页，完整性检查通过后再决定写入。创建响应必须是 HTTP 201 且只返回对应 ID，更新必须是 HTTP 204。dry-run 复用前序 System、ResourceType 和 Action 的虚拟状态；实际成功写入也对后续操作可见。单独执行 `0003` 时，System 和所需 ResourceType 必须已存在。
 
@@ -215,7 +215,7 @@ flowchart TD
 
 ### 显式替换 Action 绑定
 
-普通 `upsert_action` 默认拒绝绑定变化。确认允许自动替换时，在预检查和执行命令中都加上 `--allow-action-replace`；工具使用本次读取的旧绑定作为预期值，复用 `replace_action` 默认不级联的删除重建流程，未提供名称时保留当前名称。计划及警告日志包含系统、Action、旧/新绑定、级联范围和 dry-run 状态。若有角色或授权等依赖导致 IAM 拒绝删除，工具仍停止，不自动清理依赖。
+普通 `upsert_action` 默认拒绝绑定变化。确认允许自动替换时，在预检查和执行命令中都加上 `--allow-action-replace`；工具使用本次读取的旧绑定作为预期值，以 `cascade: ["role"]` 复用 `replace_action` 的删除重建流程，未提供名称时保留当前名称。角色中的旧 Action 成员自动清理，后续 `upsert_role` 恢复模板中声明的成员；自定义角色中未在模板声明的成员不会自动恢复。计划及警告日志包含系统、Action、旧/新绑定、级联范围和 dry-run 状态。若有未覆盖的依赖导致 IAM 拒绝删除，工具仍停止，不自动扩大级联范围。
 
 需要固定预期旧绑定或显式声明级联范围时，单独准备迁移文件，使用 `replace_action` 声明预期旧绑定和目标绑定；显式操作不受上述开关限制。该操作可能清除已有权限，执行前确认目标系统、租户、受影响角色和授权范围；旧授权不会自动转换到新维度。
 
