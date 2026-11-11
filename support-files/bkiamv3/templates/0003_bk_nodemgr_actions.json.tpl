@@ -789,12 +789,12 @@
         "related_resource_types": [
           {
             "system_id": "{{ .system.id }}",
-            "id": "package",
+            "id": "package_type",
             "selection_mode": "instance",
             "related_instance_selections": [
               {
                 "system_id": "{{ .system.id }}",
-                "id": "package_instance_selection"
+                "id": "package_type_instance_selection"
               }
             ]
           }

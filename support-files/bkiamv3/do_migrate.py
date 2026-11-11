@@ -10,7 +10,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 from __future__ import unicode_literals
 
 import argparse
@@ -27,7 +26,9 @@ __version__ = "1.0.0"
 # no more useless warning
 urllib3.disable_warnings()
 
-BK_APIGATEWAY_URL = os.getenv("BK_IAM_APIGATEWAY_URL", "https://bkapi.example.com/api/bk-iam/prod/")
+BK_APIGATEWAY_URL = os.getenv(
+    "BK_IAM_APIGATEWAY_URL", "https://bkapi.example.com/api/bk-iam/prod/"
+)
 
 APP_CODE = ""
 APP_SECRET = ""
@@ -60,36 +61,75 @@ def _gen_header():
     return headers
 
 
-def _http_request(method, url, headers=None, data=None, timeout=None, verify=False, cert=None, cookies=None):
+def _http_request(
+    method,
+    url,
+    headers=None,
+    data=None,
+    timeout=None,
+    verify=False,
+    cert=None,
+    cookies=None,
+):
     try:
         if method == "GET":
             resp = requests.get(
-                url=url, headers=headers, params=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
+                url=url,
+                headers=headers,
+                params=data,
+                timeout=timeout,
+                verify=verify,
+                cert=cert,
+                cookies=cookies,
             )
         elif method == "HEAD":
-            resp = requests.head(url=url, headers=headers, verify=verify, cert=cert, cookies=cookies)
+            resp = requests.head(
+                url=url, headers=headers, verify=verify, cert=cert, cookies=cookies
+            )
         elif method == "POST":
             resp = requests.post(
-                url=url, headers=headers, json=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
+                url=url,
+                headers=headers,
+                json=data,
+                timeout=timeout,
+                verify=verify,
+                cert=cert,
+                cookies=cookies,
             )
         elif method == "DELETE":
             resp = requests.delete(
-                url=url, headers=headers, json=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
+                url=url,
+                headers=headers,
+                json=data,
+                timeout=timeout,
+                verify=verify,
+                cert=cert,
+                cookies=cookies,
             )
         elif method == "PUT":
             resp = requests.put(
-                url=url, headers=headers, json=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
+                url=url,
+                headers=headers,
+                json=data,
+                timeout=timeout,
+                verify=verify,
+                cert=cert,
+                cookies=cookies,
             )
         else:
             return False, {"error": "method not supported"}
     except requests.exceptions.RequestException as e:
-        print("http request error! method: %s, url: %s, data: %s! err=%s" % (method, url, data, e))
+        print(
+            "http request error! method: %s, url: %s, data: %s! err=%s"
+            % (method, url, data, e)
+        )
         return False, {"error": str(e)}
     else:
         if resp.status_code != 200:
             content = resp.content[:100] if resp.content else ""
             error_msg = (
-                "http request fail! method: %s, url: %s, data: %s, " "response_status_code: %s, response_content: %s"
+                "http request fail! method: %s, url: %s, data: %s, "
+                "response_status_code: %s, response_content: %s"
             )
             print(error_msg % (method, url, str(data), resp.status_code, content))
             return False, {"error": "status_code is %d, not 200" % resp.status_code}
@@ -97,35 +137,71 @@ def _http_request(method, url, headers=None, data=None, timeout=None, verify=Fal
         return True, resp.json()
 
 
-def http_get(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def http_get(
+    url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None
+):
     if not headers:
         headers = _gen_header()
     return _http_request(
-        method="GET", url=url, headers=headers, data=data, verify=verify, cert=cert, timeout=timeout, cookies=cookies
+        method="GET",
+        url=url,
+        headers=headers,
+        data=data,
+        verify=verify,
+        cert=cert,
+        timeout=timeout,
+        cookies=cookies,
     )
 
 
-def http_post(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def http_post(
+    url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None
+):
     if not headers:
         headers = _gen_header()
     return _http_request(
-        method="POST", url=url, headers=headers, data=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
+        method="POST",
+        url=url,
+        headers=headers,
+        data=data,
+        timeout=timeout,
+        verify=verify,
+        cert=cert,
+        cookies=cookies,
     )
 
 
-def http_put(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def http_put(
+    url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None
+):
     if not headers:
         headers = _gen_header()
     return _http_request(
-        method="PUT", url=url, headers=headers, data=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
+        method="PUT",
+        url=url,
+        headers=headers,
+        data=data,
+        timeout=timeout,
+        verify=verify,
+        cert=cert,
+        cookies=cookies,
     )
 
 
-def http_delete(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def http_delete(
+    url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None
+):
     if not headers:
         headers = _gen_header()
     return _http_request(
-        method="DELETE", url=url, headers=headers, data=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
+        method="DELETE",
+        url=url,
+        headers=headers,
+        data=data,
+        timeout=timeout,
+        verify=verify,
+        cert=cert,
+        cookies=cookies,
     )
 
 
@@ -133,11 +209,19 @@ def http_delete(url, data, headers=None, verify=False, cert=None, timeout=None, 
 
 
 class Client(object):
-    def __init__(self, app_code, app_secret, bk_apigateway_url, bk_tenant_id=""):
+    def __init__(
+        self,
+        app_code,
+        app_secret,
+        bk_apigateway_url,
+        bk_tenant_id="",
+        allow_action_replace=False,
+    ):
         self.app_code = app_code
         self.app_secret = app_secret
         self.bk_apigateway_url = bk_apigateway_url.rstrip("/")
         self.bk_tenant_id = bk_tenant_id
+        self.allow_action_replace = allow_action_replace
         self.system_id_set = set()
         self.resource_id_set = set()
         self.action_id_set = set()
@@ -145,7 +229,9 @@ class Client(object):
     # 调用权限中心方法
     def _call_iam_api(self, http_func, path, data):
         headers = {
-            "X-Bkapi-Authorization": json.dumps({"bk_app_code": self.app_code, "bk_app_secret": self.app_secret}),
+            "X-Bkapi-Authorization": json.dumps(
+                {"bk_app_code": self.app_code, "bk_app_secret": self.app_secret}
+            ),
         }
         if self.bk_tenant_id:
             headers["X-Bk-Tenant-Id"] = self.bk_tenant_id
@@ -168,7 +254,15 @@ class Client(object):
                 and message.startswith("not found:system(")
                 and message.endswith(") not exists")
             ):
-                print("_call_iam_api fail.", "method:", http_func.__name__, "path:", path, "error:", message)
+                print(
+                    "_call_iam_api fail.",
+                    "method:",
+                    http_func.__name__,
+                    "path:",
+                    path,
+                    "error:",
+                    message,
+                )
 
             return False, message, None
 
@@ -241,7 +335,9 @@ class Client(object):
     # ---------- resource_type
 
     def api_batch_add_resource_types(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/resource-types".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/resource-types".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_post, path, data)
         # if alreay exists, return true
         return ok, message
@@ -254,14 +350,18 @@ class Client(object):
         return ok, message
 
     def api_batch_delete_resource_types(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/resource-types?check_existence=false".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/resource-types?check_existence=false".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_delete, path, data)
         return ok, message
 
     # ---------- instance_selection
 
     def api_batch_add_instance_selections(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/instance-selections".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/instance-selections".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_post, path, data)
         # if alreay exists, return true
         return ok, message
@@ -274,7 +374,9 @@ class Client(object):
         return ok, message
 
     def api_batch_delete_instance_selections(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/instance-selections?check_existence=false".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/instance-selections?check_existence=false".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_delete, path, data)
         return ok, message
 
@@ -287,67 +389,99 @@ class Client(object):
         return ok, message
 
     def api_update_action(self, system_id, action_id, data):
-        path = "/api/v1/model/systems/{system_id}/actions/{action_id}".format(system_id=system_id, action_id=action_id)
+        path = "/api/v1/model/systems/{system_id}/actions/{action_id}".format(
+            system_id=system_id, action_id=action_id
+        )
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
     def api_batch_delete_actions(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/actions?check_existence=false".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/actions?check_existence=false".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_delete, path, data)
         return ok, message
 
     # ---------- action_groups
     def api_add_action_groups(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/action_groups".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/configs/action_groups".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_post, path, data)
         return ok, message
 
     def api_update_action_groups(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/action_groups".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/configs/action_groups".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
     # ---------- resource_creator_actions
     def api_add_resource_creator_actions(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/resource_creator_actions".format(system_id=system_id)
+        path = (
+            "/api/v1/model/systems/{system_id}/configs/resource_creator_actions".format(
+                system_id=system_id
+            )
+        )
         ok, message, data = self._call_iam_api(http_post, path, data)
         return ok, message
 
     def api_update_resource_creator_actions(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/resource_creator_actions".format(system_id=system_id)
+        path = (
+            "/api/v1/model/systems/{system_id}/configs/resource_creator_actions".format(
+                system_id=system_id
+            )
+        )
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
     # ---------- common_actions
     def api_add_common_actions(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/common_actions".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/configs/common_actions".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_post, path, data)
         return ok, message
 
     def api_update_common_actions(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/common_actions".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/configs/common_actions".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
     # ---------- feature_shield_rules
     def api_add_feature_shield_rules(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_post, path, data)
         return ok, message
 
     def api_update_feature_shield_rules(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(system_id=system_id)
+        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(
+            system_id=system_id
+        )
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
     # ---------- custom_frontend_settings
     def api_add_custom_frontend_settings(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/custom_frontend_settings".format(system_id=system_id)
+        path = (
+            "/api/v1/model/systems/{system_id}/configs/custom_frontend_settings".format(
+                system_id=system_id
+            )
+        )
         ok, message, data = self._call_iam_api(http_post, path, data)
         return ok, message
 
     def api_update_custom_frontend_settings(self, system_id, data):
-        path = "/api/v1/model/systems/{system_id}/configs/custom_frontend_settings".format(system_id=system_id)
+        path = (
+            "/api/v1/model/systems/{system_id}/configs/custom_frontend_settings".format(
+                system_id=system_id
+            )
+        )
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
@@ -419,7 +553,9 @@ class Client(object):
             return False, "the field `id` required"
 
         data.pop("id")
-        return self.api_update_instance_selection(system_id, d_instance_selection_id, data)
+        return self.api_update_instance_selection(
+            system_id, d_instance_selection_id, data
+        )
 
     def delete_instance_selection(self, system_id, data):
         d_instance_selection_id = data.get("id")
@@ -507,14 +643,129 @@ class Client(object):
             return self.add_instance_selection(system_id, data)
         return self.update_instance_selection(system_id, data)
 
-    def upsert_action(self, system_id, data):
-        d_action_id = data.get("id")
-        if not d_action_id:
-            return False, "the field `id` required"
+    @staticmethod
+    def action_resource_bindings(resources):
+        # IAM compares the ordered system/type pairs, not instance selection metadata.
+        if not isinstance(resources, list):
+            raise ValueError("related_resource_types must be an array")
+        bindings = []
+        for resource in resources:
+            if not isinstance(resource, dict):
+                raise ValueError("each related resource type must be an object")
+            system_id, resource_id = resource.get("system_id"), resource.get("id")
+            if (
+                not isinstance(system_id, str)
+                or not system_id
+                or not isinstance(resource_id, str)
+                or not resource_id
+            ):
+                raise ValueError(
+                    "each related resource type requires nonempty system_id and id"
+                )
+            bindings.append((system_id, resource_id))
+        return bindings
 
-        if d_action_id not in self.action_id_set:
-            return self.add_action(system_id, data)
-        return self.update_action(system_id, data)
+    def upsert_action(self, system_id, data):
+        action = dict(data)
+        action_id = action.get("id")
+        if not action_id:
+            return False, "the field `id` required"
+        if action_id not in self.action_id_set:
+            return self.add_action(system_id, action)
+        # Omitted bindings preserve the existing definition; [] explicitly clears them.
+        if "related_resource_types" not in action:
+            return self.update_action(system_id, action)
+        try:
+            target_bindings = self.action_resource_bindings(
+                action["related_resource_types"]
+            )
+        except ValueError as error:
+            return False, str(error)
+
+        # Query fresh state and fail closed: the initial model query tolerates missing systems.
+        ok, message, model = self.api_query(system_id)
+        if not ok:
+            return False, message
+        if not isinstance(model, dict) or not isinstance(model.get("actions"), list):
+            return False, "upsert_action requires a complete action model"
+        current = next(
+            (item for item in model["actions"] if item.get("id") == action_id), None
+        )
+        if current is None:
+            return self.add_action(system_id, action)
+        try:
+            current_bindings = self.action_resource_bindings(
+                current.get("related_resource_types")
+            )
+        except ValueError as error:
+            return False, "invalid current action binding: %s" % error
+        if current_bindings == target_bindings:
+            return self.update_action(system_id, action)
+        if not self.allow_action_replace:
+            return (
+                False,
+                "action %s binding changes from %s to %s; use --allow-action-replace to delete its policies before updating"
+                % (action_id, current_bindings, target_bindings),
+            )
+        for field in ("name", "name_en"):
+            if field not in action:
+                action[field] = current.get(field)
+            if not isinstance(action[field], str) or not action[field]:
+                return False, "action replacement requires nonempty %s" % field
+
+        resource_types = model.get("resource_types")
+        if not isinstance(resource_types, list):
+            return False, "action replacement requires a complete resource type model"
+        resource_ids = {item["id"] for item in resource_types}
+        if any(
+            owner == system_id and resource_id not in resource_ids
+            for owner, resource_id in target_bindings
+        ):
+            return False, "target resource type is not registered; refusing replacement"
+        selections = model.get("instance_selections")
+        if not isinstance(selections, list):
+            return (
+                False,
+                "action replacement requires a complete instance selection model",
+            )
+        selection_ids = {item["id"] for item in selections}
+        for resource in action["related_resource_types"]:
+            for selection in resource.get("related_instance_selections", []):
+                if (
+                    selection.get("system_id") == system_id
+                    and selection.get("id") not in selection_ids
+                ):
+                    return (
+                        False,
+                        "target instance selection is not registered; refusing replacement",
+                    )
+        if any(
+            item.get("id") != action_id and item.get("name") == action["name"]
+            for item in model["actions"]
+        ):
+            return False, "target action name is already used; refusing replacement"
+        print(
+            "WARNING: upsert_action %s/%s binding=%s -> %s; deleting this action's policies, no authorization migration"
+            % (system_id, action_id, current_bindings, target_bindings)
+        )
+        path = "/api/v1/model/systems/{system_id}/actions/{action_id}/policies".format(
+            system_id=system_id, action_id=action_id
+        )
+        ok, message, _ = self._call_iam_api(http_delete, path, None)
+        if not ok:
+            return (
+                False,
+                "policy deletion failed or outcome is unknown; no action update attempted, check remote state: %s"
+                % message,
+            )
+        ok, message = self.update_action(system_id, action)
+        if not ok:
+            return (
+                False,
+                "policies deleted but action update failed or outcome is unknown; no rollback, check remote state: %s"
+                % message,
+            )
+        return True, message
 
     def query_all_models(self, system_id):
         ok, message, data = self.api_query(system_id)
@@ -549,7 +800,9 @@ class Client(object):
 
         return getattr(self, self.operation_funcs[op])(system_id, data)
 
-    def setup_models(self, system_id_set, resource_id_set, action_id_set, instance_selection_id_set):
+    def setup_models(
+        self, system_id_set, resource_id_set, action_id_set, instance_selection_id_set
+    ):
         self.system_id_set = system_id_set
         self.resource_id_set = resource_id_set
         self.action_id_set = action_id_set
@@ -592,7 +845,14 @@ def get_migration_files(directory):
     return migration_files
 
 
-def do_migrate(data, bk_apigateway_url=BK_APIGATEWAY_URL, app_code=APP_CODE, app_secret=APP_SECRET, bk_tenant_id=""):
+def do_migrate(
+    data,
+    bk_apigateway_url=BK_APIGATEWAY_URL,
+    app_code=APP_CODE,
+    app_secret=APP_SECRET,
+    bk_tenant_id="",
+    allow_action_replace=False,
+):
     system_id = data.get("system_id")
     if not system_id:
         print("invald json. [system_id] required, and should not be empty")
@@ -605,12 +865,22 @@ def do_migrate(data, bk_apigateway_url=BK_APIGATEWAY_URL, app_code=APP_CODE, app
 
     print("do migrate")
 
-    client = Client(app_code, app_secret, bk_apigateway_url, bk_tenant_id=bk_tenant_id)
+    client = Client(
+        app_code,
+        app_secret,
+        bk_apigateway_url,
+        bk_tenant_id=bk_tenant_id,
+        allow_action_replace=allow_action_replace,
+    )
 
     # 1. query all data of the system
-    system_ids, resource_type_ids, action_ids, instance_selection_ids = client.query_all_models(system_id)
+    system_ids, resource_type_ids, action_ids, instance_selection_ids = (
+        client.query_all_models(system_id)
+    )
 
-    client.setup_models(system_ids, resource_type_ids, action_ids, instance_selection_ids)
+    client.setup_models(
+        system_ids, resource_type_ids, action_ids, instance_selection_ids
+    )
 
     for op in operations:
         operation = op.get("operation")
@@ -622,7 +892,10 @@ def do_migrate(data, bk_apigateway_url=BK_APIGATEWAY_URL, app_code=APP_CODE, app
 
         data = op.get("data")
         if not data:
-            print("no `data` in the json body or the `data` is empty, operation=%s" % operation)
+            print(
+                "no `data` in the json body or the `data` is empty, operation=%s"
+                % operation
+            )
             return False
 
         op_data_id = ""
@@ -631,7 +904,10 @@ def do_migrate(data, bk_apigateway_url=BK_APIGATEWAY_URL, app_code=APP_CODE, app
 
         ok, message = client.do_operation(operation, system_id, data)
         if not ok:
-            print("execute operation [%s] %s fail, error message: %s" % (operation, message, op_data_id))
+            print(
+                "execute operation [%s] %s fail, error message: %s"
+                % (operation, message, op_data_id)
+            )
             return False
         print("execute operation [%s] %s success!" % (operation, op_data_id))
 
@@ -664,16 +940,31 @@ if __name__ == "__main__":
         help="directory containing migration files (files matching pattern: 0001_*.json, 0002_*.json, ...)",
     )
 
-    p.add_argument("-a", action="store", dest="app_code", help="app code", required=True)
-    p.add_argument("-s", action="store", dest="app_secret", help="app secret", required=True)
     p.add_argument(
-        "--bk_tenant_id", action="store", dest="bk_tenant_id", help="blueking tenant id", default="", required=False
+        "-a", action="store", dest="app_code", help="app code", required=True
+    )
+    p.add_argument(
+        "-s", action="store", dest="app_secret", help="app secret", required=True
+    )
+    p.add_argument(
+        "--bk_tenant_id",
+        action="store",
+        dest="bk_tenant_id",
+        help="blueking tenant id",
+        default="",
+        required=False,
     )
     p.add_argument(
         "--dry-run",
         action="store_true",
         dest="dry_run",
         help="list files to migrate without executing",
+    )
+
+    p.add_argument(
+        "--allow-action-replace",
+        action="store_true",
+        help="allow upsert_action binding changes by irreversibly deleting affected action policies before updating",
     )
 
     args = p.parse_args()
@@ -692,20 +983,28 @@ if __name__ == "__main__":
     # Build list of files to migrate
     if args.json_data_file:
         # Single file mode
-        files_to_migrate = [(0, os.path.basename(args.json_data_file), args.json_data_file)]
+        files_to_migrate = [
+            (0, os.path.basename(args.json_data_file), args.json_data_file)
+        ]
     else:
         # Directory mode
         files_to_migrate = get_migration_files(args.migration_dir)
         if not files_to_migrate:
             print("no migration files found in directory: %s" % args.migration_dir)
             exit(1)
-        print("found %d migration files in directory: %s" % (len(files_to_migrate), args.migration_dir))
+        print(
+            "found %d migration files in directory: %s"
+            % (len(files_to_migrate), args.migration_dir)
+        )
         for num, filename, _ in files_to_migrate:
             print("  - %s" % filename)
 
     # Dry-run mode: only list files without executing
     if args.dry_run:
-        print("\n[dry-run] would migrate %d file(s), exiting without execution" % len(files_to_migrate))
+        print(
+            "\n[dry-run] would migrate %d file(s), exiting without execution"
+            % len(files_to_migrate)
+        )
         exit(0)
 
     # Execute migration files sequentially
@@ -723,7 +1022,14 @@ if __name__ == "__main__":
             print("do migrate [%s] fail: failed to load data" % filename)
             exit(1)
 
-        ok = do_migrate(data, BK_APIGATEWAY_URL, APP_CODE, APP_SECRET, bk_tenant_id=bk_tenant_id)
+        ok = do_migrate(
+            data,
+            BK_APIGATEWAY_URL,
+            APP_CODE,
+            APP_SECRET,
+            bk_tenant_id=bk_tenant_id,
+            allow_action_replace=args.allow_action_replace,
+        )
         if not ok:
             print("do migrate [%s] fail" % filename)
             exit(1)
