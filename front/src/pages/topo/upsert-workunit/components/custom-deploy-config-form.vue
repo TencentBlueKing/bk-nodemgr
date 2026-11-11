@@ -27,12 +27,18 @@
               <div class="w-[140px] shrink-0 text-[12px] leading-[20px] text-[#4D4F56] text-right">
                 {{ $t('topoManager.workUnit.form.baseWorkDir') }}
               </div>
-              <Input
-                v-model="currentConfig.installer_runtime.base_work_dir"
-                class="flex-1"
-                clearable
-                :placeholder="defaultConfig?.installer_runtime?.base_work_dir || ''"
-              />
+              <Validate
+                class="flex-1 min-w-0"
+                :class="{ 'custom-deploy-path-error': getPathError(currentConfig.installer_runtime.base_work_dir) }"
+                :message="getPathError(currentConfig.installer_runtime.base_work_dir)"
+                error-display-type="normal"
+              >
+                <Input
+                  v-model="currentConfig.installer_runtime.base_work_dir"
+                  clearable
+                  :placeholder="defaultConfig?.installer_runtime?.base_work_dir || ''"
+                />
+              </Validate>
             </div>
           </div>
         </div>
@@ -46,13 +52,19 @@
               <div class="w-[140px] shrink-0 text-[12px] leading-[20px] text-[#4D4F56] text-right">
                 {{ field.label }}
               </div>
-              <Input
-                v-model="currentConfig.node_runtime[field.key]"
-                class="flex-1"
-                :clearable="!isReadonlyIpcField(field.key)"
-                :disabled="isReadonlyIpcField(field.key)"
-                :placeholder="getNodeFieldPlaceholder(field.key)"
-              />
+              <Validate
+                class="flex-1 min-w-0"
+                :class="{ 'custom-deploy-path-error': getNodePathError(field.key) }"
+                :message="getNodePathError(field.key)"
+                error-display-type="normal"
+              >
+                <Input
+                  v-model="currentConfig.node_runtime[field.key]"
+                  :clearable="!isReadonlyIpcField(field.key)"
+                  :disabled="isReadonlyIpcField(field.key)"
+                  :placeholder="getNodeFieldPlaceholder(field.key)"
+                />
+              </Validate>
             </div>
           </div>
         </div>
@@ -66,12 +78,18 @@
               <div class="w-[140px] shrink-0 text-[12px] leading-[20px] text-[#4D4F56] text-right">
                 {{ field.label }}
               </div>
-              <Input
-                v-model="currentConfig.plugin_runtime[field.key]"
-                class="flex-1"
-                clearable
-                :placeholder="defaultConfig?.plugin_runtime?.[field.key] || ''"
-              />
+              <Validate
+                class="flex-1 min-w-0"
+                :class="{ 'custom-deploy-path-error': getPathError(currentConfig.plugin_runtime[field.key]) }"
+                :message="getPathError(currentConfig.plugin_runtime[field.key])"
+                error-display-type="normal"
+              >
+                <Input
+                  v-model="currentConfig.plugin_runtime[field.key]"
+                  clearable
+                  :placeholder="defaultConfig?.plugin_runtime?.[field.key] || ''"
+                />
+              </Validate>
             </div>
           </div>
         </div>
@@ -91,7 +109,9 @@ import { Form, Input } from 'bkui-vue';
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { validateCustomDeployConfigAllOrNothing } from '../custom-deploy-config';
+import { validateCustomDeployConfigAllOrNothing, validateCustomDeployPath } from '../custom-deploy-config';
+
+import Validate from '@/components/validate.vue';
 
 const configs = defineModel<Record<string, CustomDeployConfig>>('configs', { required: true });
 const activeOs = defineModel<string>('activeOs', { required: true });
@@ -166,6 +186,17 @@ const currentConfig = computed(() => {
   }
   return configs.value?.[activeOs.value];
 });
+
+const getPathError = (value: string): string => {
+  if (validateCustomDeployPath(value, activeOs.value)) return '';
+  return t(`topoManager.workUnit.form.${activeOs.value === 'windows' ? 'windowsPathInvalid' : 'unixPathInvalid'}`);
+};
+
+const getNodePathError = (fieldKey: keyof NodeRuntime): string => {
+  if (!currentConfig.value || fieldKey === 'zone_id' || fieldKey === 'city_id') return '';
+  if (activeOs.value === 'windows' && (fieldKey === 'data_ipc' || fieldKey === 'plugin_ipc')) return '';
+  return getPathError(currentConfig.value.node_runtime[fieldKey]);
+};
 
 const hasPartialInput = computed(() => {
   if (!currentConfig.value) {

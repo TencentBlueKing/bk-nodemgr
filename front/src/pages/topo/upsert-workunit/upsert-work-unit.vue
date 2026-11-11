@@ -153,7 +153,7 @@
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Input, Message, Radio, Sideslider } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -165,6 +165,7 @@ import {
   deployConfigMapFromApi,
   normalizeCustomDeployConfigs,
   validateCustomDeployConfigAllOrNothing,
+  validateCustomDeployConfigPaths,
 } from './custom-deploy-config';
 import { buildNetworkUnitPayload } from './network-unit-payload';
 
@@ -431,6 +432,16 @@ const handleConfirm = async () => {
       scrollToFirstErrorByClassNames();
       return;
     };
+
+    const invalidPathConfig = Object.entries(form.custom_deploy_configs)
+      .find(([os, config]) => !validateCustomDeployConfigPaths(config, os));
+    if (invalidPathConfig) {
+      if (!isExpand.value) toggleExpand();
+      [activeCustomDeployOs.value] = invalidPathConfig;
+      await nextTick();
+      scrollToFirstErrorByClassNames(['.custom-deploy-path-error']);
+      return;
+    }
 
     // Validate all-or-nothing constraint for custom deploy configs
     const partialConfigs = Object.entries(form.custom_deploy_configs)
