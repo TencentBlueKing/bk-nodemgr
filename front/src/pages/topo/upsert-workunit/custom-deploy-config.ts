@@ -88,6 +88,38 @@ export const validateCustomDeployConfigAllOrNothing = (config: DeployConfig): bo
   return filledCount === 0 || filledCount === values.length;
 };
 
+// Validate the trimmed value sent by serializeCustomDeployConfigs; empty fields
+// remain subject to the existing all-or-nothing rule.
+export const validateCustomDeployPath = (value: string, osType: string): boolean => {
+  if (value === '') return true;
+  if (Array.from(value).some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) return false;
+  const path = value.trim();
+  if (osType !== 'windows') return path.startsWith('/');
+
+  const hasDrive = /^[a-z]:[/\\]/i.test(path);
+  const isUnc = /^[/\\]{2}[^/\\]+[/\\][^/\\]+(?:[/\\]|$)/.test(path);
+  if (!hasDrive && !isUnc) return false;
+  const pathWithoutDrive = hasDrive ? path.slice(2) : path;
+  if (/[<>:"|?*]/.test(pathWithoutDrive)) return false;
+  return pathWithoutDrive.split(/[/\\]/).every((segment) => {
+    if (!segment || segment === '.' || segment === '..') return true;
+    return !/[. ]$/.test(segment) && !/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/i.test(segment);
+  });
+};
+
+// Windows IPC values are ports, not filesystem paths.
+export const validateCustomDeployConfigPaths = (config: CustomDeployConfig, osType: string): boolean => {
+  const paths = [
+    config.installer_runtime.base_work_dir,
+    config.node_runtime.base_deploy_dir,
+    config.node_runtime.log_dir,
+    config.plugin_runtime.base_deploy_dir,
+    config.plugin_runtime.log_dir,
+  ];
+  if (osType !== 'windows') paths.push(config.node_runtime.data_ipc, config.node_runtime.plugin_ipc);
+  return paths.every(path => validateCustomDeployPath(path, osType));
+};
+
 // deployConfigArrayToMap converts a DeployConfig[] from the API into a map
 // keyed by os_type for internal UI use.
 export const deployConfigArrayToMap = (configs: DeployConfig[] = []): DeployConfigMap => (
