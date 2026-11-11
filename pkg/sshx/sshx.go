@@ -185,7 +185,7 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 
 	sshConf := &ssh.ClientConfig{
 		User: config.User,
-		HostKeyCallback: func(_ string, remote net.Addr, key ssh.PublicKey) error {
+		HostKeyCallback: func(_ string, _ net.Addr, _ ssh.PublicKey) error {
 			return nil
 		},
 		BannerCallback: func(message string) error {
