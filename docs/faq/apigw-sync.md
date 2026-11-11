@@ -89,7 +89,7 @@ Helm 会根据 `backend.config.tenantMode` 自动注入 `BK_APP_TENANT_ID`：`si
 基于支持多租户的 `apigw-manager` 版本，再检查该变量是否按租户模式设置。
 
 > notice: 一个环境的 `BK_API_URL_TMPL` 可以通过我们注册到 bk-apigw 后生成的 API 地址来获取。比如我们生成的 API 地址是
-`https://bk-nodemgr.apigw.example.com/api/v1/nodemgr/nodes`，那么 BK_API_URL_TMPL 就是 `https://bk-nodemgr.apigw.example.com/api/{api_name}`。
+> `https://bk-nodemgr.apigw.example.com/api/v1/nodemgr/nodes`，那么 BK_API_URL_TMPL 就是 `https://bk-nodemgr.apigw.example.com/api/{api_name}`。
 
 ## 3. `NO_PUB=true` 是否表示一定不会发布？
 
@@ -176,3 +176,62 @@ Helm 和 docker-compose 通过 `BK_APP_TENANT_ID` 传入应用租户 ID，属于
   SDK 会将其转换为 `system`，并非单纯的日志开关。也不要全局屏蔽 WARNING，以免隐藏其他告警。
 - 如果同步确实失败，应结合接口错误码和错误信息排查；遇到 `1640302 Cross tenant forbidden` 时，按第 2 节核对租户配置。
   不要只凭这条 warning 判断失败原因。
+
+## 7. MCP 同步报 `mcp_servers: 该字段是必填项` 怎么处理？
+
+### 现象与原因
+
+用户开启 `ENABLE_SYNC_MCP_SERVERS=true`，并在环境 values 中显式覆盖 `apigwSync.config.stages`，但没有为覆盖后的 stage
+配置 `mcp_servers` 时，同步 Job 在 MCP 同步步骤报错：
+
+```text
+Response: {"error":{"code":"INVALID_ARGUMENT","message":"校验失败: mcp_servers: 该字段是必填项。","data":null}}
+```
+
+先检查环境 values 是否重新定义了 `apigwSync.config.stages`。**Helm 对列表采用整体替换，不会按 `name` 合并列表项内的字段。**
+即使没有显式设置 `mcp_servers`，只要覆盖了 `stages`，Chart 默认 stage 中的 MCP 配置也不会自动保留。例如：
+
+```yaml
+apigwSync:
+  config:
+    stages:
+      - name: "prod"
+        description: "正式环境"
+        description_en: "Production"
+        backends:
+          - name: "default"
+            config:
+              timeout: 60
+              loadbalance: "roundrobin"
+              hosts:
+                - host: "https://<bk-nodemgr-backend-host>"
+                  weight: 100
+```
+
+上面的覆盖结果只有后端配置，没有 `mcp_servers`。当前 Chart 模板会省略空或缺失的 `mcp_servers`，而 MCP 同步命令会遍历
+`stages` 发起请求，不会自动跳过缺少该字段的环境，因此接口返回必填项错误。
+
+### 排查与修复
+
+1. 查看失败 Job 使用的网关定义，而不只是仓库中的 `apigw/definition.yaml`：
+
+   ```bash
+   kubectl get configmap -n <namespace> <fullname>-apigw-sync-definition \
+     -o jsonpath='{.data.definition\.yaml}'
+   ```
+
+   检查 `stages` 下每个环境的 `mcp_servers` 是否存在且非空，并与部署时所有 values 文件及覆盖参数核对。
+   如果同步 Pod 仍在运行，也可以查看其实际挂载文件：
+
+   ```bash
+   kubectl exec -n <namespace> <apigw-sync-pod> -- cat /data/definition.yaml
+   ```
+
+2. 从**实际部署版本**的 Chart `values.yaml` 中复制完整的 `apigwSync.config.stages[].mcp_servers`，补到环境 values
+   对应的 stage 下，与 `backends` 同级。保留已有环境名、后端地址及其他所需配置；多个 stage 都需要分别检查。
+   不要仅补 `mcp_servers: []`，当前模板同样会省略空列表。
+3. 确认 `apigwSync.config.spec_version` 为 `2`，且 `mcp_servers[].resource_names` 引用的资源已发布到对应网关环境。
+   Helm Job 会用 ConfigMap 覆盖镜像内的 `/data/definition.yaml`，因此只修改仓库的 `apigw/definition.yaml` 无法修复此类 values 覆盖问题。
+4. 使用实际部署的 Chart 和完整覆盖参数重新渲染，确认生成的 `definition.yaml` 保留了各 stage 的 MCP 配置，再按原部署流程更新并重新执行同步 Job。
+   重试前检查 `RELEASE_STAGES`、`NO_PUB` 和资源变更范围：同步脚本不只处理 MCP，还会同步资源（带 `--delete`）并可能发布版本，
+   不能把重跑整个 Job 当作只读验证。完成后检查 Job 日志和网关对应环境的 MCP Server 配置，确认同步成功。
