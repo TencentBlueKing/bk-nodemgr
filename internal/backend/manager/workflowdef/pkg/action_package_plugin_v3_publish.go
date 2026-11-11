@@ -126,6 +126,7 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 			Generation: []types.Generation{types.Generation2},
 			Name:       []string{uploadInfo.Name},
 			Version:    []string{uploadInfo.Version},
+			Platform:   uploadInfo.Platforms,
 		},
 	}
 	pkgs, _, err := act.fileHandler.ListReleasePlugin(nCtx, types.UnlimitedPage(), cond)
@@ -135,13 +136,14 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 
 	if len(pkgs) == 0 {
 		std.InstanceData().Log().
-			Zh("找不到已发布的插件包，请检查插件包名称或版本是否正确, 插件包名称: %s, 版本: %s", uploadInfo.Name, uploadInfo.Version).
-			En("no plugin package found, please check the plugin package name or version is correct, plugin package name: %s, version: %s",
-				uploadInfo.Name, uploadInfo.Version).
+			Zh("找不到已发布的插件包，请检查插件包名称、版本或平台是否正确, 插件包名称: %s, 版本: %s, 平台: %+v",
+				uploadInfo.Name, uploadInfo.Version, uploadInfo.Platforms).
+			En("no plugin package found, please check the plugin package name, version or platform is correct, "+
+				"plugin package name: %s, version: %s, platforms: %+v", uploadInfo.Name, uploadInfo.Version, uploadInfo.Platforms).
 			Error()
 
-		return fmt.Errorf("no plugin package found, please check the plugin package name or version is correct, plugin package name: %s, version: %s",
-			uploadInfo.Name, uploadInfo.Version)
+		return fmt.Errorf("no plugin package found, please check the plugin package name, version or platform is correct, "+
+			"plugin package name: %s, version: %s, platforms: %+v", uploadInfo.Name, uploadInfo.Version, uploadInfo.Platforms)
 	}
 
 	if err := pkgUtils.ComparePlatforms(uploadInfo.Platforms, pkgs); err != nil {
