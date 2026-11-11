@@ -504,7 +504,7 @@ func (act *actionSyncHost) fillDefaultUsers(ctx *action.InstanceContext, hosts, 
 		preserveDBUsers(host, dbHostMap[host.HostID])
 
 		loginRepaired := fillDefaultLoginUser(host)
-		operateRepaired := fillDefaultOperateUser(host)
+		operateRepaired := resetOperateUser(host)
 		if loginRepaired || operateRepaired {
 			backfillHosts = append(backfillHosts, host)
 		}
@@ -518,16 +518,16 @@ func (act *actionSyncHost) fillDefaultUsers(ctx *action.InstanceContext, hosts, 
 	return backfillHosts
 }
 
-// preserveDBUsers keeps the login user and operate user already stored in db.
+// preserveDBUsers keeps the login user already stored in db.
+// The operate user is not preserved: it is fully determined by the host os type and
+// is always overwritten with the os default, so a stale value left over from a previous
+// os installation never survives the sync.
 func preserveDBUsers(host, dbHost *types.Host) {
 	if dbHost == nil {
 		return
 	}
 	if dbHost.Dynamic.LoginUser != "" {
 		host.Dynamic.LoginUser = dbHost.Dynamic.LoginUser
-	}
-	if dbHost.Dynamic.OperateUser != "" {
-		host.Dynamic.OperateUser = dbHost.Dynamic.OperateUser
 	}
 }
 
@@ -550,13 +550,11 @@ func fillDefaultLoginUser(host *types.Host) bool {
 	return true
 }
 
-// fillDefaultOperateUser fills the host operate user with the os default when empty,
-// returning whether the host is repaired.
-func fillDefaultOperateUser(host *types.Host) bool {
-	if host.Dynamic.OperateUser != "" {
-		return false
-	}
-
+// resetOperateUser overwrites the host operate user with the os default, returning
+// whether the value changed. The operate user is fully determined by the os type, so the
+// stored value is never reused: overwriting on every sync keeps it consistent even after
+// the host is reinstalled with another os.
+func resetOperateUser(host *types.Host) bool {
 	defaultUser, err := gse.DefaultOperateUser(criteria.OSType(host.Static.OSType))
 	if err != nil {
 		logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default operate user for synced host")
@@ -564,7 +562,17 @@ func fillDefaultOperateUser(host *types.Host) bool {
 		return false
 	}
 
-	host.Dynamic.OperateUser = string(defaultUser)
+	if host.Dynamic.OperateUser == defaultUser.String() {
+		return false
+	}
+
+	if host.Dynamic.OperateUser != "" {
+		logger.G.Sys().
+			With("host-id", host.HostID, "operate-user", host.Dynamic.OperateUser, "os-type", host.Static.OSType).
+			Warn("host operate user mismatches os type, reset to default operate user(%s)", defaultUser)
+	}
+
+	host.Dynamic.OperateUser = defaultUser.String()
 
 	return true
 }
