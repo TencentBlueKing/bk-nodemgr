@@ -309,6 +309,7 @@ func (h *Handler) initEnumKeepers() error {
 	return nil
 }
 
+// SearchBusiness returns a page of CMDB businesses mapped to the current tenant.
 func (h *Handler) SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Business, error) {
 	req := &SearchBusinessReq{
 		Page: Page{

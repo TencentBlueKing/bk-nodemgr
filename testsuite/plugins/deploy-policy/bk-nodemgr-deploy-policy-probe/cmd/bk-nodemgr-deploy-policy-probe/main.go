@@ -16,6 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
+// Package main runs a signal-driven probe for plugin deployment policy testing.
 package main
 
 import (
