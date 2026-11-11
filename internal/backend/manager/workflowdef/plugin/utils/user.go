@@ -53,28 +53,28 @@ func EnsureHostLoginUser(std *PluginActionStandarder, host *types.Host) error {
 	return nil
 }
 
-// EnsureHostOperateUser ensures host operate user is set for plugin action runtime.
+// EnsureHostOperateUser resolves host operate user for plugin action runtime.
 // The operate user is the identity that the GSE channel uses to operate plugin processes
-// and files on the host (root on unix, system on windows); it is written with a default
-// value at host sync time, and falls back to the default here for legacy hosts.
+// and files on the host (root on unix, system on windows); it is fully determined by the
+// node os type, so it is always resolved from the current os type and any stored value is
+// ignored, as it may be left over from a previous os installation.
 func EnsureHostOperateUser(std *PluginActionStandarder, host *types.Host) error {
-	if host.Dynamic.OperateUser != "" {
-		return nil
-	}
-
 	defaultUser, err := gse.DefaultOperateUser(host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get default operate user, host-id(%d), os-type(%s): %w",
 			host.HostID, host.Dynamic.NodeOsType, err)
 	}
 
+	if host.Dynamic.OperateUser != "" && host.Dynamic.OperateUser != defaultUser.String() {
+		std.InstanceData().Log().
+			Zh("主机(%d)操作用户(%s)与操作系统类型(%s)不匹配, 已按操作系统类型解析为(%s)",
+				host.HostID, host.Dynamic.OperateUser, host.Dynamic.NodeOsType, defaultUser).
+			En("host(%d) operate user(%s) mismatches os type(%s), resolved to(%s) by os type.",
+				host.HostID, host.Dynamic.OperateUser, host.Dynamic.NodeOsType, defaultUser).
+			Warn()
+	}
+
 	host.Dynamic.OperateUser = defaultUser.String()
-	std.InstanceData().Log().
-		Zh("主机(%d)操作用户为空, 已根据操作系统类型(%s)回退为默认操作用户(%s)",
-			host.HostID, host.Dynamic.NodeOsType, host.Dynamic.OperateUser).
-		En("host(%d) operate user is empty, fallback to default operate user(%s) by os type(%s).",
-			host.HostID, host.Dynamic.OperateUser, host.Dynamic.NodeOsType).
-		Info()
 
 	return nil
 }
