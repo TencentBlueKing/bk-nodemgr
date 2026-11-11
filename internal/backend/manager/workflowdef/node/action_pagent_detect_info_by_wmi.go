@@ -123,6 +123,11 @@ func (act *actionPagentDetectInfoByWMI) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionPagentDetectInfoByWMI) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionPagentDetectInfoByWMI) MaxRetryCount() uint {
 	return 5 // nolint: mnd

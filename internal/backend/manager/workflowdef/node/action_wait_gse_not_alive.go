@@ -95,6 +95,11 @@ func (act *actionWaitGseNotAlive) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionWaitGseNotAlive) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionWaitGseNotAlive) MaxRetryCount() uint {
 	return 0

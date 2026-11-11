@@ -62,7 +62,6 @@ type IManager interface {
 }
 
 const (
-	queueNameDefault                       = "operation_inst_engine_queue"
 	resultsExpireInDefault                 = 3600
 	defaultGracefulShutdownTimeoutDuration = 60 * time.Second
 )
@@ -71,7 +70,7 @@ const (
 func NewManager(workerNum int, opts ...OptionsFunc) (IManager, error) {
 	mgr := &manager{
 		mConfig: &machineryConfig.Config{
-			DefaultQueue:    queueNameDefault,
+			DefaultQueue:    string(action.QueueDefault),
 			ResultsExpireIn: resultsExpireInDefault,
 			// notice: this is used to prevent the worker from being terminated by the SIGTERM signal.
 			// we will handle the graceful shutdown in the manager.
@@ -82,7 +81,6 @@ func NewManager(workerNum int, opts ...OptionsFunc) (IManager, error) {
 		registeredOperExtraExecutionDefs: make(map[string]operation.ExtraExecution),
 		WorkerNum:                        workerNum,
 		gracefulShutdownTimeout:          defaultGracefulShutdownTimeoutDuration,
-		launchWorkerErr:                  make(chan error, 1),
 		handlerTail:                      make(chan struct{}),
 	}
 
@@ -221,6 +219,13 @@ func WithGracefulShutdownTimeout(timeout time.Duration) OptionsFunc {
 	}
 }
 
+// WithConsumeQueues sets the machinery queue names consumed by this manager's workers.
+func WithConsumeQueues(queues []string) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.consumeQueues = queues
+	}
+}
+
 type manager struct {
 	mConfig *machineryConfig.Config
 
@@ -232,6 +237,10 @@ type manager struct {
 
 	// WorkerNum defines the number of workers.
 	WorkerNum int
+
+	// consumeQueues defines the machinery queue names consumed by this manager's workers.
+	// empty means consuming the default queue and the dedicated queues of all registered actions.
+	consumeQueues []string
 
 	// gracefulShutdownTimeout defines how long running tasks can drain before manager context is cancelled.
 	gracefulShutdownTimeout time.Duration
@@ -245,8 +254,8 @@ type manager struct {
 	ctx    contextx.IContext
 	cancel context.CancelFunc
 
-	server *machinery.Server
-	worker *machinery.Worker
+	server  *machinery.Server
+	workers []*machinery.Worker
 
 	stgTrigger           IStorageTrigger
 	stgOperation         IStorageOperation
@@ -258,7 +267,7 @@ type manager struct {
 	registeredActionDefs             map[string]action.Definition
 	registeredOperExtraExecutionDefs map[string]operation.ExtraExecution
 
-	launchWorkerErr chan error
+	launchWorkerErrs []chan error
 
 	// trigger handler.
 	triggerHandler *triggerHandler
@@ -313,12 +322,13 @@ func (mgr *manager) GracefulShutdown() error {
 		}
 	}()
 
-	mgr.worker.Quit()
-	workerErr := <-mgr.launchWorkerErr
-	if workerErr != nil {
-		// notice: we don't use machinery.ErrWorkerQuitGracefully to check the error,
-		// because we set NoUnixSignals to true in the manager config, so the worker will not return this error.
-		return workerErr
+	for idx, worker := range mgr.workers {
+		worker.Quit()
+		if workerErr := <-mgr.launchWorkerErrs[idx]; workerErr != nil {
+			// notice: we don't use machinery.ErrWorkerQuitGracefully to check the error,
+			// because we set NoUnixSignals to true in the manager config, so the worker will not return this error.
+			return workerErr
+		}
 	}
 
 	return nil
@@ -334,8 +344,8 @@ func (mgr *manager) CheckHealth() error {
 		return errors.New("machinery server is not initialized")
 	}
 
-	if mgr.worker == nil {
-		return errors.New("worker is not initialized")
+	if len(mgr.workers) == 0 {
+		return errors.New("workers are not initialized")
 	}
 
 	return nil

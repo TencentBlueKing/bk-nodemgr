@@ -106,6 +106,11 @@ func (act *actionSyncHost) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncHost) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do the action.
 func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamSyncHost)

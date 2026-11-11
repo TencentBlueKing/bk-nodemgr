@@ -91,6 +91,11 @@ func (act *actionSyncBusiness) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncBusiness) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do the action.
 func (act *actionSyncBusiness) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamSyncBusiness)

@@ -84,6 +84,11 @@ func (act *actionPackageImportPluginV3PkgFetchAndUpload) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionPackageImportPluginV3PkgFetchAndUpload) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 func (act *actionPackageImportPluginV3PkgFetchAndUpload) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionPackageImportPluginV3PkgFetchAndUpload)
 	err = conv.MapToStruct(ctx.Data.Content, param)

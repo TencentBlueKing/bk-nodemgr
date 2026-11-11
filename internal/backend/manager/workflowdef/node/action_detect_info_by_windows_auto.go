@@ -106,6 +106,11 @@ func (act *actionDetectInfoByWindowsAuto) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionDetectInfoByWindowsAuto) Queue() action.Queue {
+	return action.QueueRemoteHostConnector
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionDetectInfoByWindowsAuto) MaxRetryCount() uint {
 	return 3 // nolint: mnd

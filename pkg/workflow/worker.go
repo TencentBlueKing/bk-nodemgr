@@ -29,6 +29,7 @@ import (
 	"github.com/RichardKnop/machinery/v2/tasks"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
@@ -59,17 +60,40 @@ func (mgr *manager) launchWorker() error {
 		}
 	}
 
-	mgr.worker = mgr.server.NewWorker(consumerTag, mgr.WorkerNum)
+	queueNames := mgr.resolveConsumeQueueNames()
 
-	mgr.worker.SetErrorHandler(func(err error) {
-		logger.G.Sys().WithErr(err).Error("worker error")
-	})
-	mgr.worker.SetPreTaskHandler(func(_ *tasks.Signature) {})
-	mgr.worker.SetPostTaskHandler(func(_ *tasks.Signature) {})
+	for _, name := range queueNames {
+		worker := mgr.server.NewCustomQueueWorker(consumerTag, mgr.WorkerNum, name)
 
-	mgr.worker.LaunchAsync(mgr.launchWorkerErr)
+		worker.SetErrorHandler(func(err error) {
+			logger.G.Sys().WithErr(err).Error("worker error")
+		})
+		worker.SetPreTaskHandler(func(_ *tasks.Signature) {})
+		worker.SetPostTaskHandler(func(_ *tasks.Signature) {})
+
+		launchErr := make(chan error, 1)
+		mgr.launchWorkerErrs = append(mgr.launchWorkerErrs, launchErr)
+		mgr.workers = append(mgr.workers, worker)
+		worker.LaunchAsync(launchErr)
+	}
 
 	return nil
+}
+
+// resolveConsumeQueueNames resolves the machinery queue names consumed by this manager's workers.
+// When mgr.consumeQueues is empty, the queues of all registered actions are consumed;
+// otherwise only the configured queues are consumed.
+func (mgr *manager) resolveConsumeQueueNames() []string {
+	if len(mgr.consumeQueues) != 0 {
+		return conv.SliceUnique(mgr.consumeQueues)
+	}
+
+	queueNames := make([]string, 0, len(mgr.registeredActionDefs))
+	for _, actionDef := range mgr.registeredActionDefs {
+		queueNames = append(queueNames, string(actionDef.Queue()))
+	}
+
+	return conv.SliceUnique(queueNames)
 }
 
 // do executes the action defined by actionName for the operation instance with operationInstanceID.

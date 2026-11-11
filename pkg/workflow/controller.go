@@ -547,9 +547,16 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 
 	signatures := make([]*tasks.Signature, len(actionNames))
 	for idx, actionName := range actionNames {
+		// dispatch the action to its queue.
+		var routingKey string
+		if actionDef, ok := ctl.mgr.registeredActionDefs[actionName]; ok {
+			routingKey = string(actionDef.Queue())
+		}
+
 		signatures[idx] = &tasks.Signature{
-			UUID: identifier.GenActionInstanceID(),
-			Name: actionName,
+			UUID:       identifier.GenActionInstanceID(),
+			Name:       actionName,
+			RoutingKey: routingKey,
 			Args: []tasks.Arg{
 				{
 					Name:  "action",

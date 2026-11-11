@@ -85,6 +85,11 @@ func (act *actPrepareDebugProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actPrepareDebugProcess) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count.
 func (act *actPrepareDebugProcess) MaxRetryCount() uint {
 	return 3 // nolint: mnd

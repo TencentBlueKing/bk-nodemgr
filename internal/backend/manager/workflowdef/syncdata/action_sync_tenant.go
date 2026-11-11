@@ -91,6 +91,11 @@ func (act *actionSyncTenant) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncTenant) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do the action.
 // nolint: funlen,gocognit
 func (act *actionSyncTenant) Do(ctx *action.InstanceContext) error {

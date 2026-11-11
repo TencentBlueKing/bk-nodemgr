@@ -760,8 +760,9 @@ func (conf TLSConfig) IsEnabled() bool {
 // Workflow the config of workflow.
 type Workflow struct {
 	TraceService                   `yaml:",inline"`
-	WorkerNum                      int `yaml:"workerNum" usage:"worker num of workflow"`
-	GracefulShutdownTimeoutSeconds int `yaml:"gracefulShutdownTimeoutSeconds" usage:"graceful shutdown timeout in seconds of workflow"`
+	WorkerNum                      int      `yaml:"workerNum" usage:"worker num of workflow"`
+	GracefulShutdownTimeoutSeconds int      `yaml:"gracefulShutdownTimeoutSeconds" usage:"graceful shutdown timeout in seconds of workflow"`
+	ConsumeQueues                  []string `yaml:"consumeQueues" usage:"action queues consumed by workflow workers, empty means consuming all queues"`
 }
 
 // Validate validates the config.

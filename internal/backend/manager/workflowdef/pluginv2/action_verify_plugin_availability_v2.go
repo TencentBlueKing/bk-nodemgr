@@ -85,6 +85,11 @@ func (act *actionVerifyPluginAvailabilityV2) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionVerifyPluginAvailabilityV2) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionVerifyPluginAvailabilityV2) MaxRetryCount() uint {
 	return 1 // nolint: mnd

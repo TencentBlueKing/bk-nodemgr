@@ -79,6 +79,11 @@ func (act *actionFetchPluginProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionFetchPluginProcess) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionFetchPluginProcess) MaxRetryCount() uint {
 	return 3 // nolint: mnd

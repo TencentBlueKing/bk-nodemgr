@@ -92,6 +92,11 @@ func (act *actionSyncSharedReleases) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncSharedReleases) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do synchronizes shared releases for the workflow tenant.
 func (act *actionSyncSharedReleases) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamSyncSharedReleases)

@@ -93,6 +93,11 @@ func (act *actionGenOperCorrectUnknownProcessStatus) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionGenOperCorrectUnknownProcessStatus) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // Do creates one correction operation per host batch, including hosts without an AgentID.
 func (act *actionGenOperCorrectUnknownProcessStatus) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamGenOperCorrectUnknownProcessStatus)

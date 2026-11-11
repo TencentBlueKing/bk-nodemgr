@@ -106,6 +106,11 @@ func (act *actionWaitInstallerComplete) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionWaitInstallerComplete) Queue() action.Queue {
+	return action.QueueRemoteHostConnector
+}
+
 // MaxRetryCount this func define how many times this action will retry.
 func (act *actionWaitInstallerComplete) MaxRetryCount() uint {
 	return 0

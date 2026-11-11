@@ -969,6 +969,7 @@ func (svc *Service) initialManager() error {
 			WorkNodeNum:             svc.conf.Workflow.WorkerNum,
 			GracefulShutdownTimeout: time.Duration(svc.conf.Workflow.GracefulShutdownTimeoutSeconds) * time.Second,
 			Redis:                   svc.conf.Redis,
+			ConsumeQueues:           svc.conf.Workflow.ConsumeQueues,
 		},
 		TraceService: traceSvc,
 	})

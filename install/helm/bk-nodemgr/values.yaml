@@ -1729,6 +1729,11 @@ backend:
       # gracefulShutdownTimeoutSeconds is the max seconds to wait running workflow tasks before cancelling them.
       # When absent, Helm injects backend.terminationGracePeriodSeconds / 2.
       # gracefulShutdownTimeoutSeconds: 60
+      # consumeQueues is the list of queue names consumed by the workflow workers.
+      # When absent, the default queue and the dedicated queues of all registered actions are consumed.
+      # consumeQueues:
+      #   - default
+      #   - remote_host_connector
       traceServiceName: "workflow"
       traceSampleRate: 0
 
@@ -2124,6 +2129,32 @@ backend:
       globalService:
         traceServiceName: "backend"
         traceSampleRate: 0
+
+## backend extra worker use same config as backend. except replicas and workflows.
+backend_extra_worker:
+  enabled: false
+  replicaCount: 1
+
+  ## @param nodeSelector specify node labels for task pod assignment.
+  ## NOTE: would be combined with the top nodeSelector in values.
+  nodeSelector: {}
+
+  ## @param tolerations module pod tolerations.
+  tolerations: []
+
+  config:
+    workflow:
+      workerNum: 4096
+      # gracefulShutdownTimeoutSeconds is the max seconds to wait running workflow tasks before cancelling them.
+      # When absent, Helm injects backend.terminationGracePeriodSeconds / 2.
+      # gracefulShutdownTimeoutSeconds: 60
+      # consumeQueues is the list of queue names consumed by the workflow workers.
+      # When absent, the default queue and the dedicated queues of all registered actions are consumed.
+      # consumeQueues:
+      #   - default
+      #   - remote_host_connector
+      traceServiceName: "workflow"
+      traceSampleRate: 0
 
 ## Nodemgr file
 ##

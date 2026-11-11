@@ -95,6 +95,11 @@ func (act *actionSelectRelayHost) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSelectRelayHost) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionSelectRelayHost) MaxRetryCount() uint {
 	return 3 //nolint: mnd

@@ -80,6 +80,11 @@ func (act *actionSyncNetworkArea) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionSyncNetworkArea) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount returns the retry count of the action.
 func (act *actionSyncNetworkArea) MaxRetryCount() uint {
 	return 3 // nolint: mnd

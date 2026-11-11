@@ -90,6 +90,11 @@ func (act *actionGenOperSyncStoppedPluginProcessInfo) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionGenOperSyncStoppedPluginProcessInfo) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount this action creates a large number of synchronization tasks,
 // therefore does not allow the system to automatically retry.
 func (act *actionGenOperSyncStoppedPluginProcessInfo) MaxRetryCount() uint {

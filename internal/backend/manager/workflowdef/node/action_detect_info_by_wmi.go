@@ -104,6 +104,11 @@ func (act *actionDetectInfoByWMI) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
+// Queue returns the queue of the action.
+func (act *actionDetectInfoByWMI) Queue() action.Queue {
+	return action.QueueRemoteHostConnector
+}
+
 // MaxRetryCount returns the max retry count of the action.
 func (act *actionDetectInfoByWMI) MaxRetryCount() uint {
 	return 3 // nolint: mnd
