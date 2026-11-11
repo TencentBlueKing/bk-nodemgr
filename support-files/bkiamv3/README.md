@@ -40,13 +40,42 @@ python do_migrate.py \
 
 `system_access` 直接包含在现有模型模板中，按 `0003`、`0004`、`0005` 的顺序同步：
 
-- `templates/0003_bk_nodemgr_actions.json.tpl` 注册无资源绑定的 `system_access`（系统访问），`related_resource_types` 为 `[]`。该权限仅用于系统准入，不替代具体功能和资源权限。原有 32 个 Action 均增加 `system_access` 依赖，保留已有依赖和资源绑定。
+- `templates/0003_bk_nodemgr_actions.json.tpl` 注册无资源绑定的 `system_access`（系统访问），`related_resource_types` 为 `[]`。该权限仅用于系统准入，不替代具体功能和资源权限。原有 32 个 Action 均增加 `system_access` 依赖，保留已有依赖；除下述 `package_history_view` 改绑外，其余资源绑定不变。
 - `templates/0004_bk_nodemgr_action_groups.json.tpl` 增加“系统”操作分组，保留原有分组及成员。
 - `templates/0005_bk_nodemgr_common_actions.json.tpl` 为全部四个常用操作组合增加 `system_access`，保留原有成员。
 
 已完成历史同步的环境也需重新执行上述模板，使远端模型包含 `system_access` 及其依赖、分组和常用操作配置。
 
 `related_actions` 用于申请权限时同时创建依赖权限，不是运行时自动鉴权，也不会为已有用户自动补授权。常用操作组合是申请权限的快捷配置，不等同于 V4 Role。接入系统访问中间件前，应先确认已有用户获得 `system_access`，避免原有功能权限仍有效但系统准入被拒绝。本迁移不包含中间件或用户授权变更。
+
+## 显式替换 Action 资源绑定
+
+模板继续使用 `upsert_action` 和 IAM Action API 字段，不增加替换操作或迁移控制字段。工具在更新前重新查询当前绑定，按顺序比较 `related_resource_types` 的 `(system_id, id)`；只修改实例选择器等元数据不会触发策略清理。缺省该字段表示不修改绑定，显式 `[]` 表示清空绑定。
+
+- Action 不存在：直接创建目标定义。
+- 资源绑定不变：普通更新，不删除策略。
+- 资源绑定变化：默认停止；只有显式传入 `--allow-action-replace`，才校验目标资源类型、实例选择器及名称，清理该 Action 的策略后原位更新。查询或校验失败时停止，不清理策略。
+
+`--allow-action-replace` 适用于本次文件或目录执行中所有发生绑定变化的 `upsert_action`，不限定为 `package_history_view`，也不改变显式 `update_action` 的行为。执行前检查选定模板的全部绑定变更；需要缩小范围时使用 `-f`：
+
+```bash
+python do_migrate.py \
+  -t "https://bkapi.example.com/api/bk-iam/prod/" \
+  -f "output/0003_bk_nodemgr_actions.json" \
+  -a "bk-nodemgr" \
+  -s "your-app-secret" \
+  --allow-action-replace
+```
+
+Action 本身不会删除，操作分组、常用操作和新建关联等引用保留。该流程没有事务或自动回滚；策略清理失败或结果未知时不继续更新，清理成功但更新失败时会报告部分完成，应先检查远端状态再恢复，不要盲目重试。
+
+**授权影响：** 策略删除不可逆，旧的资源包级授权不会转换为资源包类型级授权。执行前确认系统、租户和受影响的用户／用户组；执行后重新配置并验证 `package_type` 维度的权限。策略删除接口要求 IAM SaaS ≥ 1.4.15、后台 ≥ 1.7.7；不支持时迁移停止，不回退到其他删除方式。
+
+`0003` 中的 `package_history_view` 直接声明最终 `package_type` 绑定，并保留 `system_access` 依赖；旧环境首次改绑需显式传入 `--allow-action-replace`。全目录迁移不会先写回 `package` 再替换，因此完成迁移后重跑不会再次清理该 Action 的策略。重新渲染时使用空输出目录，避免已删除模板对应的旧 JSON 文件残留。
+
+`--dry-run` 仍然只列出迁移文件，不查询模型、验证依赖或输出操作级计划，不能据此确认策略清理的影响范围。
+
+参考：[Action API](https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/02-Model/13-Action.md)、[Action Policy API](https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/02-Model/20-ActionPolicy.md)。
 
 ## 变量配置
 
