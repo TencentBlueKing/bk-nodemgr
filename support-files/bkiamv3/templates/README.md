@@ -32,7 +32,7 @@
 
 - `upsert_action` / `add_action` / `update_action` / `delete_action`
 - 结构参考：<https://raw.githubusercontent.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/02-Model/13-Action.md>
-- 模板使用标准 `upsert_action` 与目标 Action 定义，不增加迁移控制字段。资源绑定变化默认拒绝；显式使用 `--allow-action-replace` 时才清理该 Action 的策略并原位更新，绑定不变时不清理策略。开关范围、契约及风险见 [迁移工具说明](../README.md#显式替换-action-资源绑定)。
+- 模板使用标准 `upsert_action` 与目标 Action 定义，不增加迁移控制字段。资源绑定变化默认拒绝；显式使用 `--allow-action-replace` 时才提交策略清理、删除旧 Action，确认已不存在后按目标定义重建；绑定不变时普通更新，不清理策略或删除 Action。开关范围、契约及风险见 [迁移工具说明](../README.md#显式替换-action-资源绑定)。
 - 策略删除接口：<https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/02-Model/20-ActionPolicy.md>
 
 ### action_groups
