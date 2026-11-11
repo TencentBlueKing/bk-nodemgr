@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import re
+import time
 
 import requests
 import urllib3
@@ -704,13 +705,27 @@ class Client(object):
         if not self.allow_action_replace:
             return (
                 False,
-                "action %s binding changes from %s to %s; use --allow-action-replace to delete its policies before updating"
+                "action %s binding changes from %s to %s; use --allow-action-replace to delete its policies and recreate the action"
                 % (action_id, current_bindings, target_bindings),
             )
+        # Recreating must preserve writable fields omitted by a partial upsert.
+        for field in (
+            "name",
+            "name_en",
+            "description",
+            "description_en",
+            "type",
+            "auth_type",
+            "hidden",
+            "sensitivity",
+            "version",
+            "related_actions",
+            "related_environments",
+        ):
+            if field not in action and field in current:
+                action[field] = current[field]
         for field in ("name", "name_en"):
-            if field not in action:
-                action[field] = current.get(field)
-            if not isinstance(action[field], str) or not action[field]:
+            if not isinstance(action.get(field), str) or not action[field]:
                 return False, "action replacement requires nonempty %s" % field
 
         resource_types = model.get("resource_types")
@@ -740,12 +755,13 @@ class Client(object):
                         "target instance selection is not registered; refusing replacement",
                     )
         if any(
-            item.get("id") != action_id and item.get("name") == action["name"]
+            item.get("id") != action_id
+            and any(item.get(field) == action[field] for field in ("name", "name_en"))
             for item in model["actions"]
         ):
             return False, "target action name is already used; refusing replacement"
         print(
-            "WARNING: upsert_action %s/%s binding=%s -> %s; deleting this action's policies, no authorization migration"
+            "WARNING: upsert_action %s/%s binding=%s -> %s; deleting policies and recreating this action, no authorization migration"
             % (system_id, action_id, current_bindings, target_bindings)
         )
         path = "/api/v1/model/systems/{system_id}/actions/{action_id}/policies".format(
@@ -755,14 +771,42 @@ class Client(object):
         if not ok:
             return (
                 False,
-                "policy deletion failed or outcome is unknown; no action update attempted, check remote state: %s"
+                "policy deletion failed or outcome is unknown; no action deletion attempted, check remote state: %s"
                 % message,
             )
-        ok, message = self.update_action(system_id, action)
+        ok, message = self.delete_action(system_id, {"id": action_id})
         if not ok:
             return (
                 False,
-                "policies deleted but action update failed or outcome is unknown; no rollback, check remote state: %s"
+                "policy deletion requested but action deletion failed or outcome is unknown; no rollback, check remote state: %s"
+                % message,
+            )
+        # Delete can be accepted before the action disappears; wait before recreating it.
+        for _ in range(60):
+            ok, message, model = self.api_query(system_id)
+            if (
+                not ok
+                or not isinstance(model, dict)
+                or not isinstance(model.get("actions"), list)
+            ):
+                return (
+                    False,
+                    "action deletion requested but remote state query failed; no recreate attempted, check remote state: %s"
+                    % message,
+                )
+            if all(item.get("id") != action_id for item in model["actions"]):
+                break
+            time.sleep(2)
+        else:
+            return (
+                False,
+                "action deletion is not complete after 60 checks; no recreate attempted, check remote state",
+            )
+        ok, message = self.add_action(system_id, action)
+        if not ok:
+            return (
+                False,
+                "action deleted but recreation failed or outcome is unknown; no rollback, check remote state: %s"
                 % message,
             )
         return True, message
@@ -964,7 +1008,7 @@ if __name__ == "__main__":
     p.add_argument(
         "--allow-action-replace",
         action="store_true",
-        help="allow upsert_action binding changes by irreversibly deleting affected action policies before updating",
+        help="allow upsert_action binding changes by irreversibly deleting affected action policies and recreating the action",
     )
 
     args = p.parse_args()
