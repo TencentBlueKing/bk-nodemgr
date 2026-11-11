@@ -41,7 +41,7 @@ const (
 
 var (
 	versionRegex       = regexp.MustCompile(`^v(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|rc)\.(\d+))?(?:-(\d+))?$`)
-	changelogFileRegex = regexp.MustCompile(`^v(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|rc)\.(\d+))?(?:-(\d+))?_(\d{4}-\d{2}-\d{2})\.md$`)
+	changelogFileRegex = regexp.MustCompile(`^(v[^_]+)_(\d{4}-\d{2}-\d{2})\.md$`)
 )
 
 type parsedVersion struct {
@@ -64,8 +64,12 @@ func normalizeLanguage(lang string) string {
 	}
 }
 
-func isValidVersion(version string) bool {
-	return versionRegex.MatchString(version)
+func isValidVersion(rawVersion string) bool {
+	if _, ok := version.ParseRelease(rawVersion); ok {
+		return true
+	}
+
+	return versionRegex.MatchString(rawVersion)
 }
 
 func buildVersionLogEntry(filename string) (*protoApplication.VersionLogEntry, bool) {
@@ -74,27 +78,25 @@ func buildVersionLogEntry(filename string) (*protoApplication.VersionLogEntry, b
 		return nil, false
 	}
 
-	separatorIndex := strings.LastIndex(filename, "_")
-	if separatorIndex < 0 {
+	versionName := matches[1]
+	if !isValidVersion(versionName) {
 		return nil, false
 	}
 
-	versionName := filename[:separatorIndex]
-
 	return &protoApplication.VersionLogEntry{
 		Version:   versionName,
-		Date:      matches[7],
+		Date:      matches[2],
 		IsCurrent: versionName == version.VERSION,
 	}, true
 }
 
 func extractChangelogDate(filename string) string {
 	matches := changelogFileRegex.FindStringSubmatch(filename)
-	if len(matches) == 0 {
+	if len(matches) == 0 || !isValidVersion(matches[1]) {
 		return ""
 	}
 
-	return matches[7]
+	return matches[2]
 }
 
 func findChangelogFilename(entries []fs.DirEntry, version string) string {
@@ -145,9 +147,20 @@ func versionTagOrder(tag string) int {
 	}
 }
 
-func parseVersion(version string) parsedVersion {
+func parseVersion(rawVersion string) parsedVersion {
+	if release, ok := version.ParseRelease(rawVersion); ok {
+		return parsedVersion{
+			major:    parseVersionNumber(release.Major),
+			minor:    parseVersionNumber(release.Minor),
+			patch:    parseVersionNumber(release.Patch),
+			tag:      release.Phase,
+			tagPatch: parseVersionNumber(release.Serial),
+			mark:     parseVersionNumber(release.Mark),
+		}
+	}
+
 	parsed := parsedVersion{tag: stableTag}
-	matches := versionRegex.FindStringSubmatch(version)
+	matches := versionRegex.FindStringSubmatch(rawVersion)
 	if len(matches) == 0 {
 		return parsed
 	}

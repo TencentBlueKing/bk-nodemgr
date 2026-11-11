@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/TencentBlueKing/bk-nodemgr/support-files/changelog"
 )
 
@@ -36,6 +37,7 @@ func (h *handler) VersionLogsList(rCtx restserver.IContext) (interface{}, error)
 		return &protoApplication.VersionLogsListResp_Data{VersionLogs: []*protoApplication.VersionLogEntry{}}, nil
 	}
 
+	currentVersion, filterByPhase := version.ParseRelease(version.VERSION)
 	versionLogs := make([]*protoApplication.VersionLogEntry, 0, len(entries))
 	for _, entry := range entries {
 		if entry.IsDir() {
@@ -45,6 +47,15 @@ func (h *handler) VersionLogsList(rCtx restserver.IContext) (interface{}, error)
 		versionLog, ok := buildVersionLogEntry(entry.Name())
 		if !ok {
 			continue
+		}
+
+		if filterByPhase && currentVersion.Phase != "alpha" {
+			logVersion, valid := version.ParseRelease(versionLog.GetVersion())
+			samePhase := logVersion.Phase == currentVersion.Phase
+			betaCanSeeRelease := currentVersion.Phase == "beta" && logVersion.Phase == "release"
+			if !valid || (!samePhase && !betaCanSeeRelease) {
+				continue
+			}
 		}
 
 		versionLogs = append(versionLogs, versionLog)
