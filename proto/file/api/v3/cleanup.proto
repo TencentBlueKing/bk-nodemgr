@@ -1,0 +1,83 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
+
+import "google/api/annotations.proto";
+
+// 指定要清理的上传文件类别；清理范围为请求上下文中的租户。
+message CleanupUploadReq {
+  // 必填。上传类别，可选值：origin_agent、origin_server、origin_proxy、origin_cert、origin_bin_tool、origin_plugin_bin_tool、origin_plugin_v2、origin_external_plugin_v2、origin_plugin_v3。
+  string category = 1;
+}
+
+// 上传文件清理结果，清理同步完成后返回，data 为空。
+message CleanupUploadResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // 空响应数据。
+  message Data {}
+  Data data = 4;
+}
+
+// 指定要清理的安装包类型；清理范围为请求上下文中的租户。
+message CleanupReleaseReq {
+  // 必填。安装包类型，可选值：agent、proxy、plugin。
+  string release_type = 1;
+}
+
+// 安装包清理结果，清理同步完成后返回，data 为空。
+message CleanupReleaseResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // 空响应数据。
+  message Data {}
+  Data data = 4;
+}
+
+// 导出文件清理请求，无需参数；清理范围为请求上下文中的租户。
+message CleanupExportReq {}
+
+// 导出文件清理结果，清理同步完成后返回，data 为空。
+message CleanupExportResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  // 空响应数据。
+  message Data {}
+  Data data = 4;
+}
+
+// Cleanup 提供上传文件、安装包与导出文件的按需同步清理能力。
+service Cleanup {
+  // 清理当前租户指定类别的过期上传文件。
+  //
+  // 同步清理当前租户指定类别下未被上传记录引用、且最后修改时间早于执行时间前两个自然月的上传文件；遇错即停，失败后可直接重试。
+  rpc CleanupUpload(CleanupUploadReq) returns (CleanupUploadResp) {
+    option (google.api.http) = {
+      post : "/api/v3/cleanup/upload"
+      body : "*"
+    };
+  }
+
+  // 清理当前租户指定类型的过期安装包文件。
+  //
+  // 同步清理当前租户指定类型下未被安装包版本引用、且最后修改时间早于执行时间前两个自然月的安装包文件；遇错即停，失败后可直接重试。
+  rpc CleanupRelease(CleanupReleaseReq) returns (CleanupReleaseResp) {
+    option (google.api.http) = {
+      post : "/api/v3/cleanup/release"
+      body : "*"
+    };
+  }
+
+  // 清理当前租户的过期导出文件。
+  //
+  // 同步清理当前租户未被导出记录引用、且最后修改时间早于执行时间前两个自然月的导出文件；遇错即停，失败后可直接重试。
+  rpc CleanupExport(CleanupExportReq) returns (CleanupExportResp) {
+    option (google.api.http) = {
+      post : "/api/v3/cleanup/export"
+      body : "*"
+    };
+  }
+}

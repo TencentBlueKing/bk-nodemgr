@@ -1,0 +1,245 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "cleanup.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Cleanup"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/cleanup/export": {
+      "post": {
+        "summary": "清理当前租户的过期导出文件。",
+        "description": "同步清理当前租户未被导出记录引用、且最后修改时间早于执行时间前两个自然月的导出文件；遇错即停，失败后可直接重试。",
+        "operationId": "Cleanup_CleanupExport",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3CleanupExportResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3CleanupExportReq"
+            }
+          }
+        ],
+        "tags": [
+          "Cleanup"
+        ]
+      }
+    },
+    "/api/v3/cleanup/release": {
+      "post": {
+        "summary": "清理当前租户指定类型的过期安装包文件。",
+        "description": "同步清理当前租户指定类型下未被安装包版本引用、且最后修改时间早于执行时间前两个自然月的安装包文件；遇错即停，失败后可直接重试。",
+        "operationId": "Cleanup_CleanupRelease",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3CleanupReleaseResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3CleanupReleaseReq"
+            }
+          }
+        ],
+        "tags": [
+          "Cleanup"
+        ]
+      }
+    },
+    "/api/v3/cleanup/upload": {
+      "post": {
+        "summary": "清理当前租户指定类别的过期上传文件。",
+        "description": "同步清理当前租户指定类别下未被上传记录引用、且最后修改时间早于执行时间前两个自然月的上传文件；遇错即停，失败后可直接重试。",
+        "operationId": "Cleanup_CleanupUpload",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3CleanupUploadResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3CleanupUploadReq"
+            }
+          }
+        ],
+        "tags": [
+          "Cleanup"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3CleanupExportReq": {
+      "type": "object",
+      "title": "导出文件清理请求，无需参数；清理范围为请求上下文中的租户。"
+    },
+    "v3CleanupExportResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3CleanupExportRespData"
+        }
+      },
+      "title": "导出文件清理结果，清理同步完成后返回，data 为空。"
+    },
+    "v3CleanupExportRespData": {
+      "type": "object",
+      "title": "空响应数据。"
+    },
+    "v3CleanupReleaseReq": {
+      "type": "object",
+      "properties": {
+        "release_type": {
+          "type": "string",
+          "title": "必填。安装包类型，可选值：agent、proxy、plugin。"
+        }
+      },
+      "title": "指定要清理的安装包类型；清理范围为请求上下文中的租户。"
+    },
+    "v3CleanupReleaseResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3CleanupReleaseRespData"
+        }
+      },
+      "title": "安装包清理结果，清理同步完成后返回，data 为空。"
+    },
+    "v3CleanupReleaseRespData": {
+      "type": "object",
+      "title": "空响应数据。"
+    },
+    "v3CleanupUploadReq": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "title": "必填。上传类别，可选值：origin_agent、origin_server、origin_proxy、origin_cert、origin_bin_tool、origin_plugin_bin_tool、origin_plugin_v2、origin_external_plugin_v2、origin_plugin_v3。"
+        }
+      },
+      "title": "指定要清理的上传文件类别；清理范围为请求上下文中的租户。"
+    },
+    "v3CleanupUploadResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3CleanupUploadRespData"
+        }
+      },
+      "title": "上传文件清理结果，清理同步完成后返回，data 为空。"
+    },
+    "v3CleanupUploadRespData": {
+      "type": "object",
+      "title": "空响应数据。"
+    }
+  }
+}
