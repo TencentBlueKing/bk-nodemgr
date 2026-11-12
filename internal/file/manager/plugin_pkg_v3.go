@@ -630,7 +630,8 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 	pluginPkgName := detail.PluginPkgName
 	pluginPkgVersion := detail.Version
 
-	releasesMap := make(map[string]*types.ReleasePlugin)
+	// releasePkgs never repeats a platform guaranteed by the origin package check
+	releases := make([]*types.ReleasePlugin, len(releasePkgs))
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() (retErr error) {
@@ -704,7 +705,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 				},
 			}
 
-			releasesMap[pkg.platform.String()] = pluginInfo
+			releases[idx] = pluginInfo
 
 			// record publish event.
 			m.recordPublishEvent(nCtx, &pluginInfo.Release)
@@ -719,7 +720,7 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 	}
 
 	// upsert release plugin package v3.
-	if err = m.storageRelease.UpsertManyReleasePlugin(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleasePlugin(nCtx, releases); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v3, failed to upsert release plugin package v3")
 
 		return err
@@ -758,7 +759,8 @@ func (m *Manager) generatePluginV3Pkg(nCtx contextx.IContext,
 
 	gp := gopool.NewPool()
 
-	result := make(map[string]*releasePluginPkg)
+	// originDetail.Platforms never repeats a platform guaranteed by the origin package check
+	result := make([]*releasePluginPkg, len(originDetail.Platforms))
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
@@ -857,7 +859,7 @@ func (m *Manager) generatePluginV3Pkg(nCtx contextx.IContext,
 				return fmt.Errorf("failed to generate tgz from origin packages: %w", err)
 			}
 
-			result[plat.String()] = &releasePluginPkg{
+			result[idx] = &releasePluginPkg{
 				platform:     plat,
 				tempFileName: tempFileName,
 			}
@@ -870,7 +872,7 @@ func (m *Manager) generatePluginV3Pkg(nCtx contextx.IContext,
 		return nil, fmt.Errorf("failed to generate plugin packages: %w", err)
 	}
 
-	return conv.MapValueToSlice(result), nil
+	return result, nil
 }
 
 const (
