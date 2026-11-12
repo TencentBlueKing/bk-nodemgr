@@ -159,10 +159,7 @@ func (act *actionSyncStoppedPluginProcessInfo) Do(ctx *action.InstanceContext) e
 		return err
 	}
 
-	processInfoDeltas, err := act.queryProcessInfoDeltas(std.Context(), hostIDAgentIDMap, agentIDHostIDMap, agentAliveProcesses)
-	if err != nil {
-		return err
-	}
+	processInfoDeltas, queryErr := act.queryProcessInfoDeltas(std.Context(), hostIDAgentIDMap, agentIDHostIDMap, agentAliveProcesses)
 
 	// The recorded stopped state of these processes can no longer be confirmed, so it is downgraded to unknown.
 	agentNotAliveDeltas := conv.SliceToSlice(agentNotAliveProcesses, func(proc *types.Process) *types.ProcessInfoDelta {
@@ -171,6 +168,10 @@ func (act *actionSyncStoppedPluginProcessInfo) Do(ctx *action.InstanceContext) e
 	processInfoDeltas = slices.Concat(processInfoDeltas, agentNotAliveDeltas)
 
 	if len(processInfoDeltas) == 0 {
+		if queryErr != nil {
+			return queryErr
+		}
+
 		logger.G.Sys().Ctx(std.Context()).
 			With("stopped-proc-count", len(stoppedProcesses)).
 			Info("no stopped plugin process info needs update")
@@ -178,11 +179,15 @@ func (act *actionSyncStoppedPluginProcessInfo) Do(ctx *action.InstanceContext) e
 		return nil
 	}
 
-	if err = batchHandleProcessInfoDeltas(std.Context(), processInfoDeltas,
+	if err = batchHandleProcessInfoDeltas(std.Context(), agentNotAliveDeltas,
 		func(processInfoDeltas ...*types.ProcessInfoDelta) error {
 			return act.processStg.UpdateManyProcessInfo(std.Context(), processInfoDeltas)
 		}); err != nil {
 		return err
+	}
+
+	if queryErr != nil {
+		return queryErr
 	}
 
 	logger.G.Sys().Ctx(std.Context()).
@@ -254,8 +259,7 @@ func (act *actionSyncStoppedPluginProcessInfo) splitProcessesByAgentState(
 	return agentAliveProcesses, agentNotAliveProcesses, nil
 }
 
-// queryProcessInfoDeltas queries the process info of the given stopped processes from GSE. A process that GSE no longer
-// reports is marked unknown, consistent with the alive sync: an absent record cannot confirm the recorded stopped state.
+// queryProcessInfoDeltas retains confirmed process info and reports failed or unfinished queries separately.
 func (act *actionSyncStoppedPluginProcessInfo) queryProcessInfoDeltas(
 	nCtx contextx.IContext,
 	hostIDAgentIDMap map[int64]string,
@@ -279,36 +283,11 @@ func (act *actionSyncStoppedPluginProcessInfo) queryProcessInfoDeltas(
 		})
 	}
 
-	procInfos, err := act.gseHandler.NewHandlerProc().QueryMultiProcessInfoMany(nCtx, agentGroups...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query stopped plugin process info from gse: %w", err)
-	}
+	results := act.gseHandler.NewHandlerProc().QueryMultiProcessInfoManyStream(nCtx, agentGroups...)
 
-	underControlledDeltas := make([]*types.ProcessInfoDelta, 0)
-	underControlledProcessMap := make(map[types.ProcessUniqueKey]struct{})
-	for pluginName, infos := range procInfos {
-		for idx := range infos {
-			delta := &types.ProcessInfoDelta{
-				HostID:      agentIDHostIDMap[infos[idx].AgentID],
-				PluginName:  pluginName,
-				ProcessInfo: infos[idx],
-			}
-
-			underControlledProcessMap[delta.GetUniqueKey()] = struct{}{}
-			underControlledDeltas = append(underControlledDeltas, delta)
-		}
-	}
-
-	lostControlledDeltas := make([]*types.ProcessInfoDelta, 0)
-	for _, proc := range processes {
-		if _, ok := underControlledProcessMap[proc.GetUniqueKey()]; ok {
-			continue
-		}
-
-		lostControlledDeltas = append(lostControlledDeltas, newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID]))
-	}
-
-	return slices.Concat(underControlledDeltas, lostControlledDeltas), nil
+	return collectProcessInfoDeltas(nCtx, results, agentIDHostIDMap, func(deltas ...*types.ProcessInfoDelta) error {
+		return act.processStg.UpdateManyProcessInfo(nCtx, deltas)
+	})
 }
 
 // DisplayNameZh returns the Chinese display name of the action.

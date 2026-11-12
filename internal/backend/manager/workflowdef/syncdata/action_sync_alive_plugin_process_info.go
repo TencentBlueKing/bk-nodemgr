@@ -151,20 +151,21 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 			return err
 		}
 
-		needUpdateProcInfos, err := act.checkAliveProcess(std.Context(), hostIDAgentIDMap, agentIDHostIDMap, agentAliveProcess)
-		if err != nil {
-			return err
-		}
+		needUpdateProcInfos, queryErr := act.checkAliveProcess(std.Context(), hostIDAgentIDMap, agentIDHostIDMap, agentAliveProcess)
 
 		agentNotAliveProcInfos := conv.SliceToSlice(agentNotAliveProcess, func(proc *types.Process) *types.ProcessInfoDelta {
 			return newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID])
 		})
 		needUpdateProcInfos = slices.Concat(needUpdateProcInfos, agentNotAliveProcInfos)
 
-		if err = batchHandleProcessInfoDeltas(std.Context(), needUpdateProcInfos, func(processInfoDeltas ...*types.ProcessInfoDelta) error {
+		if err = batchHandleProcessInfoDeltas(std.Context(), agentNotAliveProcInfos, func(processInfoDeltas ...*types.ProcessInfoDelta) error {
 			return act.processStg.UpdateManyProcessInfo(std.Context(), processInfoDeltas)
 		}); err != nil {
 			return err
+		}
+
+		if queryErr != nil {
+			return queryErr
 		}
 
 		logger.G.Sys().Ctx(std.Context()).
@@ -252,45 +253,11 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(
 		})
 	}
 
-	procInfos, err := act.gseHandler.NewHandlerProc().QueryMultiProcessInfoMany(nCtx, pluginNameAgentIDList...)
-	if err != nil {
-		return nil, err
-	}
+	results := act.gseHandler.NewHandlerProc().QueryMultiProcessInfoManyStream(nCtx, pluginNameAgentIDList...)
 
-	underControlledProcInfos := make([]*types.ProcessInfoDelta, 0)
-	for pluginName, infos := range procInfos {
-		for idx := range infos {
-			processInfo := infos[idx]
-			hostID := agentIDHostIDMap[processInfo.AgentID]
-			processInfoDelta := &types.ProcessInfoDelta{
-				HostID:      hostID,
-				PluginName:  pluginName,
-				ProcessInfo: processInfo,
-			}
-
-			underControlledProcInfos = append(underControlledProcInfos, processInfoDelta)
-		}
-	}
-
-	underControlledProcessMap, _ := conv.SliceToMap(underControlledProcInfos,
-		func(v *types.ProcessInfoDelta) types.ProcessUniqueKey {
-			return v.GetUniqueKey()
-		})
-
-	lostControlledProcInfos := make([]*types.ProcessInfoDelta, 0)
-	for _, proc := range aliveProcess {
-		if _, ok := underControlledProcessMap[proc.GetUniqueKey()]; ok {
-			// proc is under controlled, skip it.
-			continue
-		}
-
-		processInfoDelta := newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID])
-		lostControlledProcInfos = append(lostControlledProcInfos, processInfoDelta)
-	}
-
-	needUpdateProcInfos := slices.Concat(underControlledProcInfos, lostControlledProcInfos)
-
-	return needUpdateProcInfos, nil
+	return collectProcessInfoDeltas(nCtx, results, agentIDHostIDMap, func(deltas ...*types.ProcessInfoDelta) error {
+		return act.processStg.UpdateManyProcessInfo(nCtx, deltas)
+	})
 }
 
 func (act *actionSyncAlivePluginProcessInfo) splitProcessesByAgentState(

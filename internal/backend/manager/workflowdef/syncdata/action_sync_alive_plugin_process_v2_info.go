@@ -20,7 +20,6 @@ package syncdata
 
 import (
 	"fmt"
-	"slices"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -159,20 +158,23 @@ func (act *actionSyncAlivePluginProcessV2Info) Do(ctx *action.InstanceContext) e
 		return err
 	}
 
-	processInfoDeltas, err := act.queryProcessInfoDeltas(std.Context(), hostIDAgentIDMap, agentIDHostIDMap, agentAliveProcesses)
-	if err != nil {
-		return err
-	}
+	processInfoDeltas, queryErr := act.queryProcessInfoDeltas(std.Context(), hostIDAgentIDMap, agentIDHostIDMap, agentAliveProcesses)
 
+	agentNotAliveDeltas := make([]*types.ProcessInfoDelta, 0, len(agentNotAliveProcesses))
 	for _, proc := range agentNotAliveProcesses {
-		processInfoDeltas = append(processInfoDeltas, newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID]))
+		agentNotAliveDeltas = append(agentNotAliveDeltas, newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID]))
 	}
+	processInfoDeltas = append(processInfoDeltas, agentNotAliveDeltas...)
 
-	if err = batchHandleProcessInfoDeltas(std.Context(), processInfoDeltas,
+	if err = batchHandleProcessInfoDeltas(std.Context(), agentNotAliveDeltas,
 		func(processInfoDeltas ...*types.ProcessInfoDelta) error {
 			return act.processStg.UpdateManyProcessInfoV2(std.Context(), processInfoDeltas)
 		}); err != nil {
 		return err
+	}
+
+	if queryErr != nil {
+		return queryErr
 	}
 
 	logger.G.Sys().Ctx(std.Context()).
@@ -282,40 +284,12 @@ func (act *actionSyncAlivePluginProcessV2Info) queryProcessInfoDeltas(
 		})
 	}
 
-	procInfos, err := act.gseHandler.NewHandlerProc(gse.WithProcNameSpace(v2PluginProcNameSpace)).
-		QueryMultiProcessInfoMany(nCtx, agentGroups...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query v2 plugin process info from gse: %w", err)
-	}
+	results := act.gseHandler.NewHandlerProc(gse.WithProcNameSpace(v2PluginProcNameSpace)).
+		QueryMultiProcessInfoManyStream(nCtx, agentGroups...)
 
-	underControlledDeltas := make([]*types.ProcessInfoDelta, 0)
-	underControlledProcessMap := make(map[types.ProcessUniqueKey]struct{})
-	for pluginName, infos := range procInfos {
-		for idx := range infos {
-			hostID := agentIDHostIDMap[infos[idx].AgentID]
-			delta := &types.ProcessInfoDelta{
-				HostID:      hostID,
-				PluginName:  pluginName,
-				ProcessInfo: infos[idx],
-			}
-
-			underControlledProcessMap[delta.GetUniqueKey()] = struct{}{}
-			underControlledDeltas = append(underControlledDeltas, delta)
-		}
-	}
-
-	lostControlledDeltas := make([]*types.ProcessInfoDelta, 0)
-	for _, proc := range processes {
-		if _, ok := underControlledProcessMap[proc.GetUniqueKey()]; ok {
-			continue
-		}
-
-		// The agent is alive but GSE has no record of the process, so the process is no longer under control.
-		lostControlledDeltas = append(lostControlledDeltas,
-			newUnknownProcessInfoDelta(proc, hostIDAgentIDMap[proc.HostID]))
-	}
-
-	return slices.Concat(underControlledDeltas, lostControlledDeltas), nil
+	return collectProcessInfoDeltas(nCtx, results, agentIDHostIDMap, func(deltas ...*types.ProcessInfoDelta) error {
+		return act.processStg.UpdateManyProcessInfoV2(nCtx, deltas)
+	})
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
