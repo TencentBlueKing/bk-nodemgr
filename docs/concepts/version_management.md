@@ -11,7 +11,7 @@ v{major}.{minor}.{patch}-{phase}.{serial}[-{mark}]
 ### 正则
 
 ```text
-^v(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)-(?P<phase>[a-zA-Z]+)\.(?P<serial>\d+)(?:-(?P<mark>[a-zA-Z0-9][a-zA-Z0-9.-]*))?$
+^v(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)-(?P<phase>alpha|beta|release)\.(?P<serial>\d+)(?:-(?P<mark>[a-zA-Z0-9][a-zA-Z0-9.-]*))?$
 ```
 
 ### 字段
@@ -28,7 +28,7 @@ v{major}.{minor}.{patch}-{phase}.{serial}[-{mark}]
 ### 迭代规则
 
 - `major`、`minor`、`patch` 共同描述基础版本。
-- `phase` 表示当前发布阶段，不同阶段的语义由发布流程约定。
+- `phase` 仅支持 `alpha`、`beta`、`release`，发布阶段按 `alpha → beta → release` 演进。
 - `serial` 在同一基础版本和阶段内递增。
 - `mark` 为可选字段，仅用于补充说明，不参与基础版本定义。
 

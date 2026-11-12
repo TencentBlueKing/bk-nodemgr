@@ -78,7 +78,7 @@ func TestCompareVersions(t *testing.T) {
 		expected int
 	}{
 		{name: "newer stable first", left: "v3.0.1", right: "v3.0.0", expected: -1},
-		{name: "prerelease before stable", left: "v3.0.1-rc.1", right: "v3.0.1", expected: -1},
+		{name: "release before legacy unphased version", left: "v3.0.1-release.1", right: "v3.0.1", expected: -1},
 		{name: "higher prerelease rank first", left: "v3.0.1-beta.1", right: "v3.0.1-alpha.1", expected: -1},
 		{name: "lower mark first", left: "v3.0.1-1", right: "v3.0.1-2", expected: -1},
 	}
