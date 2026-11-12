@@ -136,11 +136,11 @@ func compareVersions(leftVersion, rightVersion string) int {
 
 func versionTagOrder(tag string) int {
 	switch tag {
-	case "rc":
+	case version.PhaseRC:
 		return rcTagOrder
-	case "beta":
+	case version.PhaseBeta:
 		return betaTagOrder
-	case "alpha":
+	case version.PhaseAlpha:
 		return alphaTagOrder
 	default:
 		return stableTagOrder

@@ -20,6 +20,17 @@ package version
 
 import "regexp"
 
+const (
+	// PhaseAlpha identifies the alpha release phase.
+	PhaseAlpha = "alpha"
+	// PhaseBeta identifies the beta release phase.
+	PhaseBeta = "beta"
+	// PhaseRC identifies the release candidate phase.
+	PhaseRC = "rc"
+	// PhaseRelease identifies the release phase.
+	PhaseRelease = "release"
+)
+
 var releaseVersionRegex = regexp.MustCompile(
 	`^v(\d+)\.(\d+)\.(\d+)-([a-zA-Z]+)\.(\d+)(?:-([a-zA-Z0-9][a-zA-Z0-9.-]*))?$`,
 )

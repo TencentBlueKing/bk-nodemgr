@@ -49,10 +49,10 @@ func (h *handler) VersionLogsList(rCtx restserver.IContext) (interface{}, error)
 			continue
 		}
 
-		if filterByPhase && currentVersion.Phase != "alpha" {
+		if filterByPhase && currentVersion.Phase != version.PhaseAlpha {
 			logVersion, valid := version.ParseRelease(versionLog.GetVersion())
 			samePhase := logVersion.Phase == currentVersion.Phase
-			betaCanSeeRelease := currentVersion.Phase == "beta" && logVersion.Phase == "release"
+			betaCanSeeRelease := currentVersion.Phase == version.PhaseBeta && logVersion.Phase == version.PhaseRelease
 			if !valid || (!samePhase && !betaCanSeeRelease) {
 				continue
 			}
