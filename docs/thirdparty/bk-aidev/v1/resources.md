@@ -1,291 +1,86 @@
 # 依赖资源与引用
 
-本文说明角色、APIGW MCP、Skill、子智能体和知识库的定义、准备与关联规则。先维护依赖资源，再通过 Agent 的 `spec` 引用；片段合并到同一 `spec` 下，不重复声明或覆盖其它配置。
-
-命名和清单见 [Package 与 Agent 协议](agent-package.md)，同步与发布行为见[运行参数与执行](execution.md)。Tools 暂不支持，Manifest 中保留 `tools: []`。
-
-## 角色 Collection
-
-使用角色引用时，在 `collections/` 定义 Collection 并加入 `bkai.yaml.resources`，先创建或更新角色，再同步 Agent。
-
-`collections/job_role.yaml`：
-
-```yaml
-apiVersion: bkai.tencent.com/v1
-kind: Collection
-metadata:
-  code: bk_job_role
-  name: 蓝鲸作业专家
-spec:
-  collection_type: role
-  generate_type: space
-  is_public: false
-  tag_names: []
-  content:
-    - role: system
-      content: |
-        你是蓝鲸作业专家，仅回答与作业平台相关的问题。
-    - role: user
-      content: 如何查询作业执行状态？
-    - role: assistant
-      content: 我可以帮助你查询作业执行状态，请提供作业 ID。
-```
-
-| 字段                               | 类型或约束                             | 说明                                                                                                            |
-| ---------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `apiVersion` / `kind`              | `bkai.tencent.com/v1` / `Collection`   | 加入清单                                                                                                        |
-| `metadata.code` / `name`           | 必填 string                            | 重复同步使用 code 定位已有角色                                                                                  |
-| `spec.icon`                        | 可选 string / null，最长 1024 字符     | 省略遵循平台默认或更新规则                                                                                      |
-| `spec.collection_type`             | 仅 `role`，默认 `role`                 | 只管理角色资源                                                                                                  |
-| `spec.content`                     | 非空消息数组                           | 每项 `role`、`content`，保持顺序，不合并为单段字符串                                                            |
-| `spec.content[].role`              | `system` / `user` / `assistant`        | 首条必须为 system，且只能有一条 system                                                                          |
-| `spec.content[].content`           | 非空 string                            | 固定消息，不支持角色运行时变量；部署文件变量见[变量替换](execution.md#变量替换)                                 |
-| `spec.generate_type` / `is_public` | `space` / `public` / `global`；boolean | 默认选 space；public 强制公开，space 使用 is_public；global 约束见[资源生成范围](agent-package.md#资源生成范围) |
-| `spec.tag_names`                   | 二维 string 数组，默认 `[]`            | 每项为一条标签路径                                                                                              |
-
-角色不定义变量和默认模型，模型统一在 Agent 中配置。code 小写、字母开头、最长 64 位，允许下划线和中划线。
-
-### Agent 角色引用
-
-用以下片段替换内联 Prompt，其它配置不变：
-
-```yaml
-spec:
-  prompt:
-    type: collection
-    code: bk_job_role
-```
-
-- 清单内 Collection 先同步，再解析 `prompt.code`；不在清单中的角色仅引用已有资源。
-- 只填角色 code，不填平台 ID，不支持引用含模板变量的角色。
-- collection 模式只填 `type`、`code`；inline 模式只填 `type`、`content`。切换 inline 时平台清空角色关联与快照。
-- 更新角色后需重新同步引用它的 Agent，已有 Agent 不会自动使用新正文；对外生效还需另行发布。
-
-### 定位与更新保护
-
-在目标租户、空间按 code 定位，不存在创建，存在更新。其它空间同 code、软删除占用等冲突会报错，不擅自迁移、恢复或覆盖。
-
-通过 `validate` / `sync` / `show` / `plan` 管理，重点检查消息正文与顺序、角色类型、标签、公开配置；无法回读的字段不能视为一致。
-
-`--exclude-resource collection/bk_job_role` 只跳过角色写入，Agent 仍可引用线上角色；不希望刷新 Agent 快照时需同时排除 Agent。角色同步失败先修正配置或权限，再重试依赖它的 Agent，不假设已有成功事项会回滚。
+Node Manager 按实际功能选择依赖，不为复现 Demo 同时引入所有资源。MCP 服务由 APIGW 路径维护，其余需要同步的资源加入 Package 清单，再由 Agent 按 code 关联。命名与 Agent 基础约束见 [Package 约束](agent-package.md)。
 
 ## APIGW MCP
 
-接入方先创建、发布 APIGW MCP Server，并完成接入应用及目标智能体所需授权，再在 `spec.mcps` 中引用。公开和非公开 MCP 都要提前授权；公开可见、已发布不等于允许初始化工具或目标 Agent 使用。
+项目已有拓扑只读 MCP 声明，但声明存在不代表目标环境已发布或授权。项目 APIGW 入口、Chart 覆盖与执行顺序见[集成方案](integration.md#与-apigwmcp-的依赖关系)。
 
-```yaml
-spec:
-  mcps:
-    - type: apigw
-      code: bk-job-apigw-mcp
-      is_selected_all: false
-      selected_tools:
-        - tool_name: get_job_status
-```
+- 接入前创建、发布 APIGW MCP，并完成接入应用及目标 Agent 所需授权；公开 MCP 也不免授权。工具只引用，不创建、不审批、不授予权限。
+- `spec.mcps[].type` 固定 `apigw`，`code` 填网关返回的完整准确编码，不填 URL、平台 ID 或仅声明短名。`id` 禁止填写，包括 null。
+- 需要固定工具范围时，填 `is_selected_all: false` 和 `selected_tools: [{tool_name: ...}]`，工具名称以实际发布 MCP 为准；不从本地 RPC 名推断。
+- 默认全选：省略开关且未选工具或列表为空时为 true，只有非空工具列表时为 false；显式开关优先。全选会包含后续新增工具，不能用于保证长期固定的只读范围。
+- 网关 `target_app_codes` 可用于主动授权应用，但具体支持以目标网关版本为准，不把现有 `grant_permissions` 等同于此能力。MCP 查询成功也不证明运行调用授权已验证。
 
-| 字段                     | 类型或约束        | 说明                                                                                                               |
-| ------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `mcps[].type` / `code`   | `apigw` / string  | 只支持 APIGW，填网关返回的完整准确 MCP Server code，不填地址或平台 ID                                              |
-| `mcps[].is_selected_all` | boolean，默认全选 | 显式 true / false 优先；省略且未选工具或为空列表时为 true，只提供非空 selected_tools 时为 false；plan 与 sync 一致 |
-| `mcps[].selected_tools`  | 对象数组          | 每项 `tool_name: string`；全选时建议省略或 `[]`，固定范围时填写 false 与工具清单                                   |
-| `mcps[].id`              | 禁止              | 包括 null，传入即报错，不接受环境相关 ID                                                                           |
+工具以 Agent 的 `metadata.code` 作为 `agent_code` 查询 MCP，不要求它与调用应用编码相同。目标租户和空间来自调用参数：
 
-默认全选只填 `type`、`code` 即可，也可显式 `is_selected_all: true`。全选包含 MCP 后续新增工具，需要限制范围时显式 false 并列出工具。
+| 当前租户内的 Agent | 初始化规则                                                                   |
+| ------------------ | ---------------------------------------------------------------------------- |
+| 尚不存在           | 校验应用对目标空间的权限后查询 MCP；目标平台需支持此规则，不要求先创建 Agent |
+| 已存在             | 应用需有 Agent 所在空间权限，该空间须与本次 `--space` 一致                   |
 
-code 须小写、字母开头、最长 64 位，允许下划线和中划线。先完成网关授权及平台应用权限配置再 `plan` / `sync`；查询不到或权限不足时停止，不绕过授权。工具不创建 MCP、不自动申请或授予权限。
+其它租户的同名 Agent 不影响上述存在性判断。查询不到或无权访问时停止，不创建空壳 Agent、不使用其它环境的 ID 绕过。
 
-### 初始化与空间校验
+## 角色 Collection
 
-MCP 创建、更新和主动授权由接入方完成，不属于 Package 同步。网关同步配置的 `target_app_codes` 可主动授权应用，`spec.mcps[].code` 使用网关返回的完整编码；支持项以目标网关版本为准。
+内联 Prompt 已满足需求时无需独立角色。需要角色复用时，在 `collections/` 维护 Collection，并加入清单：
 
-初始化工具使用 Agent 的 `metadata.code` 作为 `agent_code` 查询 MCP，目标租户与空间来自 `--tenant-id`、`--space`，无需新增配置开关，不要求 Agent code 与调用应用 code 相同。
+- `apiVersion: bkai.tencent.com/v1`、`kind: Collection`，metadata 提供 code 和 name，`spec.collection_type` 为 `role`。
+- `spec.content` 为有序的非空消息数组，每项使用 `role`、`content`；首项必须为 system，且只能有一个 system，其余为 user / assistant。不合并为单段字符串，不使用角色运行时变量。
+- `spec.generate_type` 默认 space；public 强制公开，space 使用 `is_public`。全租户约束见 [Agent 约束](agent-package.md#prompt模型与使用范围)。`tag_names` 为二维字符串数组，每项一条标签路径。
+- Agent 用 `prompt: {type: collection, code: ...}` 引用；清单内角色先同步，不在清单内的角色仅引用线上资源。角色不定义默认模型，模型仍由 Agent 配置。
+- 更新角色后必须重新同步引用它的 Agent 才刷新正文；切回 inline 时平台清空角色关联和快照。需要对外生效时另行发布。
 
-| 当前租户的 Agent 状态 | 接入规则                                                                  |
-| --------------------- | ------------------------------------------------------------------------- |
-| 尚未创建              | 校验调用应用对目标空间的权限后，按 APIGW 数据查询 MCP，不要求先创建 Agent |
-| 已经创建              | 应用需有 Agent 所在空间权限，且该空间必须与 `--space` 相同，不匹配则停止  |
-
-是否创建只按当前租户判断，其它租户同名 Agent 不影响初始化。目标平台需支持此规则；查询成功不代表运行调用已验证，授权要求不变。
+仅排除角色资源，Agent 仍可引用线上角色并刷新快照；要保护平台手工维护的 Agent，应同时排除 Agent。
 
 ## Skill
 
-先通过清单同步 Skill，再在 Agent 的 `spec.skills` 中关联。
+只有需要脚本或特定执行环境时才交付 Skill。每个 Skill 目录包含 `SKILL.md` 和根目录 `skill.yaml`，后者使用 `kind: Skill`、metadata 的 code/name，以及 spec 的生成范围、可见性与标签；环境变量依赖由 Skill 声明。
 
-`skills/job_skill/skill.yaml`：
+### 镜像与版本
 
-```yaml
-apiVersion: bkai.tencent.com/v1
-kind: Skill
-metadata:
-  code: job_skill
-  name: 作业查询 Skill
-  description: 查询作业执行信息
-spec:
-  generate_type: space
-  is_public: false
-  tag_names: []
-```
+Skill 执行镜像不同于运行 `bkai-init` 的初始化镜像。自定义镜像须先进入目标环境仓库，通过模块 Chart 上报并由平台开白；本目录不定义尚未实现的上报 values。
 
-目录必须包含 `SKILL.md`，内容与环境变量依赖声明由接入方维护。code 小写、字母开头、最长 64 位，允许下划线和中划线，Agent 引用相同 code。
-
-### 版本与镜像
-
-版本可省略，不以 Package 版本兜底。平台按 ZIP hash 决定版本：
-
-- 首次创建为 `0.0.1`；内容变化时在最新版本上加补丁号，未变化则覆盖当前版本。
-- 无法取得旧 ZIP hash 时按版本覆盖处理；无法读取新上传 ZIP 时停止。
-- 显式版本须为 `x.x.x`，支持同版本覆盖，版本快照不存在时由平台创建。
-
-仅在 Skill 根目录已有 Dockerfile 引用镜像，不提供 `spec.base_image`，不自动生成 Dockerfile：
+仅支持 Skill 根目录已有 Dockerfile 引用基础镜像，不提供 `spec.base_image`，不自动生成 Dockerfile。如下仅为模板机制示例：
 
 ```dockerfile
 FROM {{ BKAI_AGENT_IMAGE_REPO | required }}/skill:1.0
 ```
 
-自定义镜像先同步到环境仓库，由模块 Helm Chart 上报、平台开白。核对渲染后的完整镜像名与目标环境有效允许列表；仓库变量不带末尾 `/`，替换规则见[变量替换](execution.md#变量替换)。
+`BKAI_AGENT_IMAGE_REPO` 通过 `--var` 显式传入且不带末尾 `/`；完整镜像名必须在目标环境有效允许列表内。修改 Skill 文件或 Dockerfile 后重新构建模块资源镜像。
 
-### Agent 关联与环境变量
+Skill 版本可省略，不以 Package 版本兜底。平台比较 ZIP hash：首次为 `0.0.1`，内容变化递增最新补丁号，未变化覆盖当前版本；取不到旧 hash 时按覆盖处理，新上传 ZIP 读不到则停止。显式版本须为 `x.x.x`，可同版本覆盖；版本快照不存在时平台创建。
 
-```yaml
-spec:
-  skills:
-    - code: job_skill
-      envs:
-        - key: BK_JOB_MODULE
-          value: bk-job
-```
+### Agent 关联
 
-| 字段                    | 类型或约束                | 说明                                                                                          |
-| ----------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `skills[].code`         | 必填 string               | Skill 已同步且在目标租户、空间可访问                                                          |
-| `skills[].envs`         | 可选对象数组，可为 `[]`   | 每项 key 与可选 value                                                                         |
-| `skills[].envs[].key`   | 必填 string，最长 64 字符 | 同一 Skill 下不可重复，须在 Skill 环境变量依赖中声明                                          |
-| `skills[].envs[].value` | 可选 string，允许空字符串 | 保留首尾空白；省略不被 CLI 转为空字符串                                                       |
-| `skills[].version`      | 不纳入关联输入            | 不在 Agent YAML 中指定；只要求 Skill 存在可访问，不要求 SkillVersion 快照；平台需部署对应修复 |
+Agent 的 `spec.skills` 按 code 关联当前 Skill 版本，不填写 version，不要求 SkillVersion 快照存在；目标平台需支持此关联行为。
 
-示例 `BK_JOB_MODULE` 须先在 Skill 依赖中声明，仓库只保存非敏感值。`envs` 省略、`[]`、缺少 value、空字符串语义不同；`[]` 不代表清空全部变量，最终取值须满足依赖声明。Agent 关联使用当前 Skill 版本；仅排除 Skill 资源不能阻止 Agent 内关联或 envs 更新。
+- `envs` 每项 key 必填、最长 64 字符，同一 Skill 不重复，且必须已在 Skill 依赖中声明。
+- value 可省略或为空字符串，保留首尾空白；省略、空串、默认值与 `envs: []` 语义不同，`[]` 不表示清空全部变量，最终需满足依赖声明。
+- 仓库仅保存非敏感值；排除 Skill 资源不能阻止 Agent 内的关联和 envs 更新。
+- 明确返回“已有版本正在发布”时工具跳过本次更新，其它错误仍停止；跳过不证明新内容已生效。
 
 ## 子智能体
 
-`spec.subagents` 填子智能体 code，规则与主智能体相同：`ai-` 开头，总长 5–16 位。同包本轮使用 `--publish` 时先同步子智能体、提交发布，再继续主智能体，不等待部署；来源指令使用本轮已同步配置。包外或本轮未发布的来源须可访问且有可用发布版本，指令须存在于该版本。
+只有存在独立职责或指令复用需求时才拆分子 Agent，不要求沿用 Demo 的主子结构。Agent 在 `spec.subagents` 按 code 引用，来源指令在 `conversation_settings.commands` 中用 `agent_code + id` 定位，不填平台 ID。
 
-`agents/bk_job_exec.yaml`：
-
-```yaml
-apiVersion: bkai.tencent.com/aidev-agent/v1
-kind: Agent
-metadata:
-  code: ai-job-exec
-  name: 作业执行助手
-spec:
-  prompt:
-    type: inline
-    content: 你是作业执行助手，帮助用户理解任务信息。
-  model:
-    llm_code: aidev-chat-auto
-    context_window: 16
-  conversation_settings:
-    commands:
-      - id: execute_job
-        name: 分析作业执行
-        icon: null
-        content: 请分析任务 {{ task_id }} 的执行信息。
-        components:
-          - type: text
-            key: task_id
-            name: 任务 ID
-            required: true
-  tools: []
-```
-
-主 Agent 的关联与可选来源指令引用：
-
-```yaml
-spec:
-  subagents:
-    - code: ai-job-exec
-  conversation_settings:
-    commands:
-      - id: execute_job
-        agent_code: ai-job-exec
-        alias: 作业执行助手
-```
-
-来源需有 ID 为 `execute_job` 的指令；仅关联子 Agent 时不必添加 commands 项。
-
-| 字段               | 说明                                                           |
-| ------------------ | -------------------------------------------------------------- |
-| `subagents[].code` | 必填 string，名称、平台 ID 和关联信息由工具获取                |
-| 来源 `commands[]`  | 工具读取 `id`、`name`、`agent_id`，`status` 可选，无需重复填写 |
-
-首次推荐整包 `sync --confirm --publish --publish_config_only=0`；单独同步主 Agent 时，包外或未选中的子 Agent 仍需已发布版本。指令展开与失败规则见[引用与展开规则](agent-package.md#引用与展开规则)。
+同包本轮 `--publish` 按先子后主提交，不等待子 Agent 部署，来源指令取本轮已同步配置。包外、未选中或本轮未发布的子 Agent 必须可访问并已有可用发布版本，指令须在该版本存在。首次主子初始化使用整包常规发布，不能假定仅同步草稿就能关联从未发布的来源。
 
 ## 知识库
 
-每个知识库独立目录，维护根配置、Markdown 和图片。code 小写英文字母开头，仅小写英文、数字、下划线，最长 64 位，不支持中划线。
+只有需要检索项目文档时才交付知识库。每个目录包含根 `knowledgebase.yaml` 和完整 Markdown/图片树：
 
-`knowledgebases/bk_job_docs/knowledgebase.yaml`：
+- 配置使用 `apiVersion: bkai.tencent.com/v1`、`kind: KnowledgeBase`；metadata 的 code 仅小写字母、数字、下划线，字母开头、最长 64 位，不能使用中划线。未填 code 时用目录名。
+- spec 维护生成范围、公开属性、标签和平台支持的 `config`；Agent 的检索策略单独位于 `spec.knowledgebases`，不能混入知识库资源 config。
+- Agent 用 `items[].code` 关联。`retriever_code`、`query_function`、`recall_channels`、`rrf_weights`、`document_fragment_count`、`polish`、`origin`、`is_response_when_no_knowledgebase_match`、`rejection_message` 直接放在 knowledgebases 下，统一作用于关联列表，不增加 retrieval 层。
+- `query_function` 的 semantic / mixed / sql 须与 dense / sparse 召回通道及平台能力匹配，不代表所有知识库支持 SQL；RRF 权重每项 0–1，不要求总和为 1。是否允许未命中时通识回答需按业务明确，不默认照搬 Demo。
 
-```yaml
-apiVersion: bkai.tencent.com/v1
-kind: KnowledgeBase
-metadata:
-  code: bk_job_docs
-  name: 作业平台知识库
-  description: 作业平台使用文档
-spec:
-  generate_type: space
-  is_public: false
-  config: {}
-  tag_names: []
-```
+### 文档同步与验收
 
-`metadata` 定义标识、名称和描述；`spec` 定义可见性、知识库 config 和标签，具体 config 按目标平台能力填写，不与 Agent 检索配置混用。未指定 code 时使用目录名。
+先同步知识库配置，再按目录相对路径打包 Markdown 和图片，申请临时上传 URL 直传 BKRepo，由平台检查状态、大小及摘要后提交 ZIP 导入。工具取得任务 ID 即继续，不等待导入或向量处理完成。
 
-### Agent 检索配置
+**含文档时按完整目录镜像同步，删除线上多余内容；无文档时只同步配置，不清空线上文档。** 不用不完整目录更新线上知识库，`show` / `plan` 不比较文档内容。
 
-```yaml
-spec:
-  knowledgebases:
-    items:
-      - code: bk_job_docs
-    retriever_code: ""
-    query_function: mixed
-    recall_channels: [dense, sparse]
-    rrf_weights:
-      dense: 0.7
-      sparse: 0.3
-    document_fragment_count: 20
-    polish: true
-    origin: false
-    is_response_when_no_knowledgebase_match: true
-    rejection_message: 未找到相关作业文档，请补充问题信息。
-```
+仅接受 Markdown、图片，排除根目录 `knowledgebase.yaml`、`.DS_Store`、`.git`、`__pycache__`，拒绝符号链接和其它文件类型。ZIP 最大 500 MiB，文件总大小最大 2 GiB，最多 10000 个文件，平台继续校验路径及解压安全。
 
-字段直接位于 `knowledgebases` 下，`items` 是关联列表，其余配置作用于全部关联知识库，不增加 `retrieval` 层。
-
-| 字段                                      | 类型或约束                   | 说明                                                               |
-| ----------------------------------------- | ---------------------------- | ------------------------------------------------------------------ |
-| `items[].code`                            | string                       | 已同步知识库编码，遵循知识库命名规则                               |
-| `retriever_code`                          | 可选 string                  | 检索器编码                                                         |
-| `query_function`                          | `semantic` / `mixed` / `sql` | 兼容检索方式，不代表所有知识库支持 SQL，须与召回通道一致           |
-| `recall_channels`                         | `dense` / `sparse` 数组      | 与 query_function 一致                                             |
-| `rrf_weights`                             | string → number 对象         | 每项 0–1，示例为 dense、sparse，不要求总和为 1                     |
-| `document_fragment_count`                 | integer                      | 返回片段数，示例 20                                                |
-| `polish` / `origin`                       | boolean / boolean            | 结果处理开关，首次按示例填写，再结合目标平台版本的具体返回效果调整 |
-| `is_response_when_no_knowledgebase_match` | boolean                      | 未命中时是否允许根据通识回答                                       |
-| `rejection_message`                       | string，可为空               | 拒答文案                                                           |
-
-建议显式填写需要的检索配置，更新前看差异，不通过省略字段假设保留线上原值。
-
-### 文档 ZIP 同步
-
-1. 同步知识库配置，打包目录内 Markdown 与图片，保留相对路径。
-2. 向平台申请临时上传 URL，直接上传 BKRepo，再由平台核对上传状态、大小和摘要。
-3. 提交 ZIP 导入，取得任务 ID 后继续后续资源，不等待后台完成。“已提交，后台处理中”不代表导入成功。
-4. 按任务 ID 在平台确认导入状态，核对目录和文档；无查询入口时交由平台维护方核实。失败、部分成功、结果未知均不算成功，CLI 正常退出不能替代验收。
-5. 单独检查向量处理及问答、检索效果，导入完成不代表这些步骤已通过。
-
-包含文档时按整个知识库根目录镜像同步，**删除线上多余内容**；本地目录必须完整。没有文档时只同步配置，不清空线上文档。`show` / `plan` 不比较文档内容。
-
-仅接受 Markdown、图片，排除根目录 `knowledgebase.yaml`、`.DS_Store`、`.git`、`__pycache__`；拒绝符号链接与其它文件类型。ZIP 最大 **500 MiB**，文件总大小最大 **2 GiB**，最多 **10000** 个文件；平台继续校验路径与解压安全。
+导入需按任务 ID 确认，无查询入口时交由平台维护方核实；失败、部分成功或未知均不算成功。导入完成后还需验证向量处理、检索与实际问答效果，不能用 CLI 正常退出替代验收。

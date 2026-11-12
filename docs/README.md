@@ -33,4 +33,4 @@
 存放依赖平台的协议与接入参考：
 
 - [BK IAM V4 协议参考](thirdparty/bk-iam/v4/README.md)
-- [AIDEV Agent Package v1 接入参考](thirdparty/bk-aidev/v1/README.md)
+- [Node Manager 接入 AIDEV：镜像交付与 Agent Package v1](thirdparty/bk-aidev/v1/README.md)
