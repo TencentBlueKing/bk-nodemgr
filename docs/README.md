@@ -27,3 +27,10 @@
 ### [developer](developer)
 
 存放 bk-nodemgr 相关的**开发手册**，包括开发环境搭建、代码规范、编译构建、插件开发等。
+
+### thirdparty
+
+存放依赖平台的协议与接入参考：
+
+- [BK IAM V4 协议参考](thirdparty/bk-iam/v4/README.md)
+- [AIDEV Agent Package v1 接入参考](thirdparty/bk-aidev/v1/README.md)
