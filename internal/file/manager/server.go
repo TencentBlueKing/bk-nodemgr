@@ -30,7 +30,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -411,7 +410,7 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 
 	gp := gopool.NewPool()
 
-	releasesMap := make(map[string]*types.ReleaseProxy)
+	releases := make([]*types.ReleaseProxy, len(releasePkgs))
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() (retErr error) {
@@ -492,7 +491,7 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 				}
 			}
 
-			releasesMap[pkg.platform.String()] = proxyRelease
+			releases[idx] = proxyRelease
 
 			// record publish event.
 			m.recordPublishEvent(nCtx, &proxyRelease.Release)
@@ -507,7 +506,7 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyReleaseProxy(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseProxy(nCtx, releases); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release server, failed to upsert release server")
 
 		return err
@@ -544,7 +543,7 @@ func (m *Manager) generateProxyPkgByServer(nCtx contextx.IContext, originDetail 
 
 	gp := gopool.NewPool()
 
-	result := make(map[string]*releaseProxyPkg)
+	result := make([]*releaseProxyPkg, len(originDetail.Platforms))
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
@@ -705,7 +704,7 @@ func (m *Manager) generateProxyPkgByServer(nCtx contextx.IContext, originDetail 
 				return fmt.Errorf("failed to generate tgz from origin packages by server: %w", err)
 			}
 
-			result[plat.String()] = &releaseProxyPkg{
+			result[idx] = &releaseProxyPkg{
 				platform:     plat,
 				tempFileName: tempFileName,
 			}
@@ -718,5 +717,5 @@ func (m *Manager) generateProxyPkgByServer(nCtx contextx.IContext, originDetail 
 		return nil, fmt.Errorf("failed to generate proxy packages by server: %w", err)
 	}
 
-	return conv.MapValueToSlice(result), nil
+	return result, nil
 }

@@ -401,7 +401,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 	gp := gopool.NewPool()
 	gen := types.Generation2
 
-	releasesMap := make(map[string]*types.ReleaseAgent)
+	releases := make([]*types.ReleaseAgent, len(releasePkgs))
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() (retErr error) {
@@ -467,7 +467,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 				},
 			}
 
-			releasesMap[pkg.platform.String()] = agentInfo
+			releases[idx] = agentInfo
 
 			// record package events.
 			m.recordPublishEvent(nCtx, &agentInfo.Release)
@@ -482,7 +482,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyReleaseAgent(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseAgent(nCtx, releases); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release agent, failed to upsert release agent")
 
 		return err
@@ -571,7 +571,7 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 
 	gp := gopool.NewPool()
 
-	result := make(map[string]*releaseAgentPkg)
+	result := make([]*releaseAgentPkg, len(originDetail.Platforms))
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
@@ -679,7 +679,7 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 				return fmt.Errorf("failed to generate tgz from origin packages: %w", err)
 			}
 
-			result[plat.String()] = &releaseAgentPkg{
+			result[idx] = &releaseAgentPkg{
 				platform:     plat,
 				tempFileName: tempFileName,
 			}
@@ -692,7 +692,7 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 		return nil, fmt.Errorf("failed to generate agent packages: %w", err)
 	}
 
-	return conv.MapValueToSlice(result), nil
+	return result, nil
 }
 
 const (
