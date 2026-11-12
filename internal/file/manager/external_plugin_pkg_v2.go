@@ -559,6 +559,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 	pluginPkgName := detail.PluginPkgName
 	pluginPkgVersion := detail.Version
 
+	// releasePkgs never repeats a platform guaranteed by the origin package check
 	releases := make([]*types.ReleasePlugin, len(releasePkgs))
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
@@ -677,6 +678,7 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 
 	gp := gopool.NewPool()
 
+	// originDetail.Platforms never repeats a platform guaranteed by the origin package check
 	result := make([]*releaseExternalPluginPkg, len(originDetail.Platforms))
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]

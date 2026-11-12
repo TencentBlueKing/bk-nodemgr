@@ -410,6 +410,7 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 
 	gp := gopool.NewPool()
 
+	// releasePkgs never repeats a platform guaranteed by the origin package check
 	releases := make([]*types.ReleaseProxy, len(releasePkgs))
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
@@ -543,6 +544,7 @@ func (m *Manager) generateProxyPkgByServer(nCtx contextx.IContext, originDetail 
 
 	gp := gopool.NewPool()
 
+	// originDetail.Platforms never repeats a platform guaranteed by the origin package check
 	result := make([]*releaseProxyPkg, len(originDetail.Platforms))
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]

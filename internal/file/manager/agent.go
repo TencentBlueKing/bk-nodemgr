@@ -401,6 +401,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string, i
 	gp := gopool.NewPool()
 	gen := types.Generation2
 
+	// releasePkgs never repeats a platform guaranteed by the origin package check
 	releases := make([]*types.ReleaseAgent, len(releasePkgs))
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
@@ -571,6 +572,7 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 
 	gp := gopool.NewPool()
 
+	// originDetail.Platforms never repeats a platform guaranteed by the origin package check
 	result := make([]*releaseAgentPkg, len(originDetail.Platforms))
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]

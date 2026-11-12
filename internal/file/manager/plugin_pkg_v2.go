@@ -626,6 +626,7 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 	pluginPkgName := detail.PluginPkgName
 	pluginPkgVersion := detail.Version
 
+	// releasePkgs never repeats a platform guaranteed by the origin package check
 	releases := make([]*types.ReleasePlugin, len(releasePkgs))
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
@@ -753,6 +754,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 
 	gp := gopool.NewPool()
 
+	// originDetail.Platforms never repeats a platform guaranteed by the origin package check
 	result := make([]*releasePluginV2Pkg, len(originDetail.Platforms))
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
