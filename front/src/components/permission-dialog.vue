@@ -51,7 +51,7 @@ const authStore = useAuthStore();
 
 const systemName = computed(() => permissionStore.data?.system_name ?? '');
 const actions = computed(() => permissionStore.data?.actions ?? []);
-const applyUrl = computed(() => permissionStore.data?.apply_url ?? '');
+const applyUrl = computed(() => permissionStore.data?.apply_url || window.PROJECT_CONFIG?.BK_IAM_SAAS_HOST || '');
 
 function formatResourceInstance(instance: {
   type_name: string;
