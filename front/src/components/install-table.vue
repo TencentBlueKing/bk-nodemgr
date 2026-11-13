@@ -271,7 +271,10 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+              <span
+                class="mr-[5px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >
                 {{ $t('components.installTable.innerIPv4') }}
               </span>
               <template #content>
@@ -280,7 +283,14 @@
                 </div>
               </template>
             </Popover>
-            <span v-else>{{ $t('components.installTable.innerIPv4') }}</span>
+            <span v-else class="mr-[5px]">{{ $t('components.installTable.innerIPv4') }}</span>
+            <BatchEdit
+              v-if="!isReinstall && !isUpgrade"
+              :title="$t('components.installTable.batchAddInnerIPv4')"
+              type="textarea"
+              :placeholder="$t('components.installTable.batchIpPlaceholder')"
+              @confirm="(value) => handleBatchAddIps('bk_host_innerip', value)"
+            />
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip')">
@@ -321,7 +331,10 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+              <span
+                class="mr-[5px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >
                 {{ $t('components.installTable.innerIPv6') }}
               </span>
               <template #content>
@@ -330,7 +343,14 @@
                 </div>
               </template>
             </Popover>
-            <span v-else>{{ $t('components.installTable.innerIPv6') }}</span>
+            <span v-else class="mr-[5px]">{{ $t('components.installTable.innerIPv6') }}</span>
+            <BatchEdit
+              v-if="!isReinstall && !isUpgrade"
+              :title="$t('components.installTable.batchAddInnerIPv6')"
+              type="textarea"
+              :placeholder="$t('components.installTable.batchIpPlaceholder')"
+              @confirm="(value) => handleBatchAddIps('bk_host_innerip_v6', value)"
+            />
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip_v6')">
@@ -1333,18 +1353,26 @@ function getInitData() {
   return cloneDeep(initData);
 }
 
+const applyNewInstallDefaults = (row: ReturnType<typeof getInitData>) => {
+  if (props.isReinstall) return;
+  if (!row.os_type) row.os_type = 'linux';
+  if (!row.login_port) row.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+  if (!row.login_user) row.login_user = 'root';
+};
+
+const createNewRow = () => {
+  const newRow = getInitData();
+  applyNewInstallDefaults(newRow);
+  return newRow;
+};
+
 // ----------------------------------------------------------------
 // 问题二：加号新增行自动进入编辑状态；加号去掉 isReinstall 限制由业务决定
 // 减号简化 disabled 条件
 // ----------------------------------------------------------------
 const handleAddRow = (index: number) => {
   if (!Array.isArray(tableData.value)) return;
-  const newRow = cloneDeep(initData);
-  if (props.releaseType === 'proxy' && !props.isReinstall) {
-    if (!newRow.os_type) newRow.os_type = 'linux';
-    if (!newRow.login_port) newRow.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
-    if (!newRow.login_user) newRow.login_user = 'root';
-  }
+  const newRow = createNewRow();
   tableData.value.splice(index + 1, 0, newRow);
   shiftErrors(index, 1);
   // 新增行自动进入编辑状态
@@ -1535,6 +1563,29 @@ const handleBatchEdit = (field: string, value: any) => {
       if (networkUnit) item.bk_networkunit_name = networkUnit.bk_networkunit_name;
       clearError(index, 'bk_networkunit_id');
     }
+  });
+};
+
+const handleBatchAddIps = (field: 'bk_host_innerip' | 'bk_host_innerip_v6', value: string) => {
+  if (props.isReinstall || props.isUpgrade || !Array.isArray(tableData.value) || !value) return;
+  const ips = value.split(/[\s,]+/).filter(Boolean);
+  if (!ips.length) return;
+
+  const data = tableData.value;
+  const canReuseEmptyRow = data.length === 1
+    && !data[0].bk_host_innerip
+    && !data[0].bk_host_innerip_v6;
+
+  ips.forEach((ip, index) => {
+    const reuseRow = canReuseEmptyRow && index === 0;
+    const row = reuseRow ? data[0] : createNewRow();
+    if (reuseRow) applyNewInstallDefaults(row);
+    if (!reuseRow) data.push(row);
+    const rowIndex = reuseRow ? 0 : data.length - 1;
+
+    row[field] = ip;
+    if (field === 'bk_host_innerip') handleChangeIPv4(ip, row, rowIndex);
+    handleFieldBlur(rowIndex, field, ip);
   });
 };
 

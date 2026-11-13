@@ -1236,6 +1236,9 @@ components:
     hostIp: Host IP
     innerIPv4: Private IPv4
     innerIPv6: Private IPv6
+    batchAddInnerIPv4: Batch Add Private IPv4 Addresses
+    batchAddInnerIPv6: Batch Add Private IPv6 Addresses
+    batchIpPlaceholder: Enter multiple IPs separated by spaces, commas, or line breaks. Each IP represents one host.
     proxyInnerIPTooltip: If multiple IPs are entered, only the first one is the actual private IP used to communicate with P-Agent.
     osType: OS
     batchEditOsType: Batch Edit OS

@@ -11,6 +11,14 @@
     <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
     <template #content>
       <Input v-if="type === 'input'" v-model="batchValue" class="mb-[15px]" />
+      <Input
+        v-if="type === 'textarea'"
+        v-model="batchValue"
+        type="textarea"
+        :rows="4"
+        :placeholder="placeholder"
+        class="mb-[15px]"
+      />
       <Switcher v-if="type === 'switcher'" v-model="batchValue" class="mb-[15px]" />
       <Select
         v-if="type === 'select'"
@@ -70,7 +78,7 @@
 import { Input, PopConfirm, Popover, Select, Switcher, Upload } from 'bkui-vue';
 import { ref, watch } from 'vue';
 
-type batchEditType = 'input' | 'credit' | 'switcher' | 'select';
+type batchEditType = 'input' | 'textarea' | 'credit' | 'switcher' | 'select';
 
 interface IOptions {
   id: string | number
@@ -86,12 +94,14 @@ interface IProps {
   disabled?: boolean
   disabledTip?: string
   allowCreate?: boolean
+  placeholder?: string
 }
 
 const props = withDefaults(defineProps<IProps>(), {
   disabled: false,
   disabledTip: '',
   allowCreate: false,
+  placeholder: '',
 });
 
 const emit = defineEmits(['confirm']);
