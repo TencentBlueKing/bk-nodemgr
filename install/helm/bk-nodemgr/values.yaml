@@ -1628,7 +1628,8 @@ backend:
     ## Product user Wiki links. Only github mode is supported.
     wiki:
       mode: github
-      githubRepositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
+      github:
+        repositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
 
     ## defines the related settings of installer file group.
     installerFileGroup:

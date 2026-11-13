@@ -49,7 +49,8 @@ backend:
   config:
     wiki:
       mode: github
-      githubRepositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
+      github:
+        repositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
 ```
 
 当前仅支持 `github` 模式。仓库地址不包含 tag 或文档目录；backend 根据自身版本解析结果构建发布 tag，文档位于该 tag 的 `support-files/wiki/zh/` 和 `support-files/wiki/en/` 下，中文、英文任务提示分别链接到对应语言的文档。构建标记不作为 tag 的一部分；`debug` 等无法解析为发布版本的构建回退到 `master`，此时文档可能与运行版本不同。旧配置未指定 `wiki` 时使用上述默认值。

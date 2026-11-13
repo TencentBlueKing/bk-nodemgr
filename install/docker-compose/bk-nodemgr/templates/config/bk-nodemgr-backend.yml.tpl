@@ -7,7 +7,8 @@ tenantMode: single
 # Product user Wiki links. Only github mode is supported.
 wiki:
   mode: github
-  githubRepositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
+  github:
+    repositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
 
 # infoServer defines self info http server settings.
 infoServer:

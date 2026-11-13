@@ -223,8 +223,10 @@ func NewBackendService() *BackendService {
 		RunMode:    defaultBackendRunMode,
 		TenantMode: defaultBackendTenantMode,
 		Wiki: Wiki{
-			Mode:                wiki.ModeGitHub,
-			GitHubRepositoryURL: "https://github.com/TencentBlueKing/bk-nodemgr",
+			Mode: wiki.ModeGitHub,
+			GitHub: WikiGitHub{
+				RepositoryURL: "https://github.com/TencentBlueKing/bk-nodemgr",
+			},
 		},
 		CMDB: CMDB{
 			APIGatewayClient: APIGatewayClient{

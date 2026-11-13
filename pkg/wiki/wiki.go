@@ -21,11 +21,7 @@ package wiki
 
 import (
 	"fmt"
-	"net/url"
-	"strings"
 	"sync"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 )
 
 // Mode identifies the source of product user documentation.
@@ -53,50 +49,56 @@ const SSHConnectionFailed Document = "troubleshooting/ssh-connection-failed.md"
 
 // Config defines the inputs used to build product Wiki links.
 type Config struct {
-	Mode                Mode
-	GitHubRepositoryURL string
+	Mode   Mode
+	GitHub GitHubConfig
 }
 
-// Validate checks the supported mode and repository URL without network access.
+// Validate checks the supported mode and its source-specific inputs without network access.
 func (conf Config) Validate() error {
-	if conf.Mode != ModeGitHub {
+	switch conf.Mode {
+	case ModeGitHub:
+		return conf.GitHub.Validate()
+	default:
 		return fmt.Errorf("unsupported wiki mode: %s", conf.Mode)
 	}
+}
 
-	repository, err := url.Parse(conf.GitHubRepositoryURL)
-	if err != nil {
-		return fmt.Errorf("invalid wiki github repository url: %w", err)
+// IHandler builds localized links to product Wiki documents.
+type IHandler interface {
+	// URL returns the link to a document in the requested language.
+	URL(document Document, language Language) string
+}
+
+// New creates a Wiki handler for the configured source.
+func New(conf Config) (IHandler, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to create wiki handler: %w", err)
 	}
-	if (repository.Scheme != "https" && repository.Scheme != "http") || repository.Host == "" ||
-		repository.User != nil || repository.RawQuery != "" || repository.Fragment != "" ||
-		len(strings.Split(strings.Trim(repository.Path, "/"), "/")) != 2 {
 
-		return fmt.Errorf("wiki github repository url must be an http(s) repository address without credentials, query or fragment")
+	switch conf.Mode {
+	case ModeGitHub:
+		return newGitHubHandler(conf.GitHub), nil
+	default:
+		return nil, fmt.Errorf("unsupported wiki mode: %s", conf.Mode)
 	}
-
-	return nil
 }
 
 // nolint: gochecknoglobals
 var linkConfig struct {
 	sync.Once
-	prefix string
+	handler IHandler
 }
 
 // SetConfig initializes Wiki links once, before serving requests or starting workers.
 // Release builds use their parsed release tag; other versions use master.
 func SetConfig(conf Config) error {
-	if err := conf.Validate(); err != nil {
+	handler, err := New(conf)
+	if err != nil {
 		return fmt.Errorf("failed to set wiki config: %w", err)
 	}
 
-	tag := "master"
-	if release, ok := version.ParseRelease(version.VERSION); ok {
-		tag = fmt.Sprintf("v%s.%s.%s-%s.%s", release.Major, release.Minor, release.Patch, release.Phase, release.Serial)
-	}
-
 	linkConfig.Do(func() {
-		linkConfig.prefix = strings.TrimRight(conf.GitHubRepositoryURL, "/") + "/blob/" + tag + "/support-files/wiki/"
+		linkConfig.handler = handler
 	})
 
 	return nil
@@ -105,9 +107,9 @@ func SetConfig(conf Config) error {
 // URL returns the configured link to a document.
 // An empty result means Wiki configuration has not been initialized.
 func URL(document Document, language Language) string {
-	if linkConfig.prefix == "" {
+	if linkConfig.handler == nil {
 		return ""
 	}
 
-	return linkConfig.prefix + string(language) + "/" + string(document)
+	return linkConfig.handler.URL(document, language)
 }
