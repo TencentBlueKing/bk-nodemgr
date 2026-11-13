@@ -1,9 +1,9 @@
 ---
-name: changelog-doc
-description: Use when writing versioned bk-nodemgr changelog, release notes, or changelog markdown under `support-files/changelog/{zh,en}/` from tags, diffs, PR facts, issue summaries, or reference templates. Trigger when the user asks to write changelog, 发布说明, 版本变更记录, compare `from-tag...to-tag`, add a `Full Changelog` link, generate versioned changelog files, or prepare markdown for the changelog API/page.
+name: bk-nodemgr-changelog-doc
+description: Use when writing or reviewing bk-nodemgr changelog, release notes, 发布说明, 版本变更记录, Full Changelog links, or localized version files under support-files/changelog/{zh,en}, based on tag diffs or release facts. Not for other projects, pure version alignment, Helm publishing, GitHub Release/tag operations, PR descriptions, or API references.
 ---
 
-# Changelog 文档编写 Skill
+# bk-nodemgr Changelog
 
 为 bk-nodemgr 编写 changelog / release note Markdown；核实发布事实后写入 **`support-files/changelog/{zh,en}/` 下的版本化 Markdown 文件**，供 changelog API 和前端页面直接消费。
 
@@ -26,17 +26,34 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 - 用户给出版本号、tag 范围、PR facts 或 issue 摘要，希望整理成版本化 Markdown
 - 用户要求生成版本化 changelog 文件、兼容性说明、已知问题，或明确提到 `support-files/changelog/zh`、`support-files/changelog/en`、changelog 页面 / changelog API
 - 用户要求参考 GitHub Releases 或外部 release note 模板，为 bk-nodemgr 生成统一格式
-- 用户明确提到 `Full Changelog` compare 链接、`from-tag...to-tag`、版本间 diff
+- 用户要求审阅已有 bk-nodemgr changelog，或基于 `Full Changelog` compare 链接、`from-tag...to-tag`、版本间 diff 编写发布说明
 
 不要用于：
 
 - 纯 API 参数/reference 文档，优先 `api-doc`
 - 纯 PR 描述、提单摘要、合并说明，优先 `bk-nodemgr-create-github-pr`
 - 纯代码目录 README 整理且不涉及版本变更，优先 `bk-nodemgr-code-readme`
+- 其他项目的发布说明；本 skill 的目录、术语、模板和消费契约仅适用于 bk-nodemgr
+- 纯版本字段对齐或发布准备，交给 `release-version-alignment`；只有需要编写 changelog 时才组合使用
+- Helm 打包/推送、GitHub Release 创建或 tag 操作；编写发布说明不授权执行发布、push 或移动 tag
+- changelog API / Frontend 功能实现；本 skill 只维护 Markdown 内容，不修改消费链路
+
+## Source Anchors
+
+执行前读取适用的 `AGENTS.md`，再按声明类型检索以下项目锚点：
+
+- `support-files/changelog/{zh,en}/`：读取至少一组同版本双语文件及一个同类版本；沿用章节、组件名和正式发布语气，不把历史条目当作本次发布事实。
+- `docs/concepts/glossary.md`：核对 Agent、Plugin、Plugin Package、Process 及插件 V2/V3 等领域术语。
+- 用户确认的起止 tag、发布日期及范围内的实际 diff：证明变化属于目标版本；HEAD 中存在某能力不能证明它在本次发布中新增。
+- `support-files/changelog/embed.go`、`internal/application/router/api-v3/version_log/helper.go`：涉及文件布局、文件名可识别性或 API 消费约束时读取，不复制解析逻辑到新脚本。
+- `bk-nodemgr-audience-boundary`：正文读者是发布人员、运维人员和对接方；核验事项的读者是编写者，两者分开交付。
+- `release-version-alignment`：需要完整发布准备或版本一致性核对时交接；本 skill 不维护 Helm、镜像 tag 或 API Gateway 发布元数据。
+
+本地 changelog 是格式基线。外部 release note 仅作为用户明确要求的风格参考，不能替代本项目输出契约；IAM 迁移说明和 API reference 模板不是 changelog 模板。
 
 ## 核心原则
 
-- 中文主述，English technical terms 保持稳定：`Agent`、`Plugin`、`Package`、`Backend`、`Control Plane`、`Installer`、`compatibility`
+- 交流中文主述；`zh` 正文用中文，`en` 正文用英文，English technical terms 保持稳定：`Agent`、`Plugin`、`Package`、`Backend`、`Control Plane`、`Installer`、`compatibility`
 - 面向发布执行者和使用方写，不写研发内部实现流水账
 - **changelog 是概要，不是详细变更说明**。用户应该点击 `Full Changelog` compare 链接查看详细内容
 - 先写“影响和动作”，再写“变化内容”
@@ -52,7 +69,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 
 按以下 7 步执行：
 
-1. **确定范围**：确认目标版本、起止 tag、受影响组件、目标读者、输出语言（`zh` / `en`）、是模板/正文/版本化文件
+1. **确定范围**：读取项目规则与本地同类 changelog，确认目标版本、起止 tag、受影响组件、目标读者、输出语言（`zh` / `en`）、是模板/正文/版本化文件；完整发布需双语，显式单语请求不擅自扩写另一语言
 2. **收集证据**：按优先级读取用户资料、tag diff、现有 release/changelog 文档、PR/issue 摘要、必要实现上下文
 3. **归类变更**：收敛到固定分类：新增功能 / 功能优化 / 缺陷修复 / 兼容性 / 已知问题
 4. **确定承载形态**：明确是单个版本文件、双语文件、还是用户显式要求的 `release.md` 兼容输出
@@ -66,7 +83,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 
 1. **用户给定资料**：版本号、日期、起止 tag、PR、issue、发布单、外部参考模板
 2. **tag diff / compare range**：`from-tag...to-tag` 的 commit 和文件变化，这是 changelog 的核心证据
-3. **仓库内模板与既有 changelog 文档**：`support-files/changelog/`、`support-files/`、`docs/`、历史 `release.md`
+3. **仓库内既有 changelog 文档**：`support-files/changelog/{zh,en}/` 的同版本双语与同类版本文件，用于确认格式、术语和历史升级约束；历史 `release.md` 仅用于显式兼容请求
 4. **PR / issue / 发布记录**：用于补充语义、确认影响对象
 5. **必要实现上下文**：只用于确认影响范围、兼容性；不要把实现细节直接搬进 changelog
 
@@ -137,6 +154,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - Plugin:
 - Package:
 - Backend/Control Plane:
+- Application/Frontend:
 - Installer/Deployment:
 
 **新增功能**
@@ -172,6 +190,23 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - 文件名中的 version/date 同时是 API 列表与详情的重要元数据来源；不确定时不要猜，也不要创建最终版本文件，向编写者核实
 - 如果用户只要正文不要求落盘，正文内容仍应保持可直接放入上述版本文件的形态
 
+## Locale Contract
+
+完整版本发布交付同名的 zh/en 文件；显式只要一种语言或模板时遵守请求范围。双语文件的 version、date、compare range、章节取舍、条目事实、风险、前置条件和操作要求必须一致，不在翻译时增加或删除事实。英文正文沿用以下栏目名，顺序与中文一致；空章节按同一规则删除。
+
+| zh                                     | en                                               |
+| -------------------------------------- | ------------------------------------------------ |
+| 重要提示                               | Important notes                                  |
+| 发布范围                               | Release scope                                    |
+| 新增功能                               | New features                                     |
+| 功能优化                               | Improvements                                     |
+| 缺陷修复                               | Bug fixes                                        |
+| Agent / Plugin / Package compatibility | Agent / Plugin / Package compatibility           |
+| 组件依赖与升级前置条件                 | Component dependencies and upgrade prerequisites |
+| 已知问题                               | Known issues                                     |
+
+组件标签沿用 `Agent`、`Plugin`、`Package`、`Backend/Control Plane`、`Application/Frontend`、`Installer/Deployment`，不随语言切换改写。标题与 `Full Changelog` 链接在两个语言文件中保持相同。
+
 ## API / 前端消费兼容性
 
 - 输出应视为 **raw markdown 内容**，可被 changelog API 返回并由前端页面直接渲染
@@ -191,7 +226,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 
 ### 发布范围
 
-- 至少判断 `Agent`、`Plugin`、`Package`、`Backend/Control Plane`、`Installer/Deployment`
+- 至少判断 `Agent`、`Plugin`、`Package`、`Backend/Control Plane`、`Application/Frontend`、`Installer/Deployment`；只列有实际影响的组件，不把前端变化硬归入 Backend 或 Installer
 - 没有影响可写“无”或删除该行，但全文策略保持一致
 - 这一节用于回答“这次到底动了什么层”
 
@@ -266,7 +301,9 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - [ ] 是否生成正确的 `Full Changelog` compare 链接
 - [ ] 是否确认输出目标是 `support-files/changelog/{zh,en}/` 版本化文件，或用户显式要求的旧式 `release.md`
 - [ ] 版本和日期是否足以确定 `<version>_<YYYY-MM-DD>.md` 文件名
-- [ ] 是否写清发布范围
+- [ ] 是否读取适用规则、本地同版本双语与同类版本文件，且只把目标发布窗口内的变化归入本次版本
+- [ ] 是否写清实际受影响组件，包含适用的 `Application/Frontend`，而非套用空范围
+- [ ] 双语交付是否使用同名文件、对应栏目和一致的事实、风险及动作；单语请求是否保持原范围
 - [ ] 是否区分新增 / 优化 / 修复
 - [ ] 是否覆盖 compatibility 与前置条件
 - [ ] 未核实的关键事实是否单独交给编写者、未进入正文；是否暂缓写入最终发布路径
@@ -287,9 +324,12 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 6. **版本文件正确**：需要落盘时，优先输出到 `support-files/changelog/{zh,en}/<version>_<date>.md` 形态，而不是默认回退到 `release.md`
 7. **Markdown 可消费**：输出能被 changelog API 返回并由前端页面直接渲染，不依赖复杂 HTML
 
-## 参考资料
+## Evals
 
-- `support-files/bkiamv3/README.md`
-- `support-files/bkiamv3/templates/README.md`
-- `docs/developer/api_doc_template.md`
-- 外部参考：[bk-cmdb release.md](https://github.com/TencentBlueKing/bk-cmdb/blob/master/docs/support-file/changelog/release.md)
+`evals/evals.json` 覆盖模板、事实归类、缺口分流、tag diff、compare link、Application/Frontend 双语、发布操作边界及 HEAD 归属检查。运行产物保留在 `/tmp/opencode/`，不写入发布目录。
+
+## Cross-References
+
+- `bk-nodemgr-audience-boundary`：读者正文与编写者核验事项分流；不静默改写已发布历史文档。
+- `bk-nodemgr-agent-information-architecture`：changelog、docs、API reference 与 agent workflow 的承载边界。
+- `release-version-alignment`：完整发布版本字段及本地双语 changelog 的一致性检查；缺失内容由本 skill 补齐后交回，不代替用户确认。

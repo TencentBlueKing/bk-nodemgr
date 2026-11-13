@@ -97,7 +97,7 @@ Do not put broad API design rationale or developer workflow here; use `docs/api/
 - Full Changelog links
 - zh/en changelog page content
 
-Use `.agents/skills/changelog-doc/SKILL.md` for changelog writing and `.agents/skills/release-version-alignment/SKILL.md` for release version alignment.
+Use `.agents/skills/bk-nodemgr-changelog-doc/SKILL.md` for changelog writing and `.agents/skills/release-version-alignment/SKILL.md` for release version alignment.
 
 Do not put evergreen design or operation docs here.
 

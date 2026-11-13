@@ -249,7 +249,7 @@ The verifier checks:
 If any check fails:
 
 - For file scope, version alignment, diff sanity, or gateway resource sync failures: stop and report the mismatch.
-- For changelog failures: delegate changelog generation using `changelog-doc`, wait for user confirmation, then resume verification.
+- For changelog failures: delegate changelog generation using `bk-nodemgr-changelog-doc`, wait for user confirmation, then resume verification.
 
 Do not over-expand verification into unrelated Helm template analysis unless edited files themselves show a real problem.
 
@@ -263,10 +263,10 @@ If Step 6 Check 4 fails for a complete release PR:
    ```text
    task(
      category="writing",
-     load_skills=["changelog-doc"],
+     load_skills=["bk-nodemgr-changelog-doc"],
      run_in_background=false,
      description="Generate changelog for version",
-     prompt="Generate zh/en versioned changelog files for {TARGET_VERSION} under support-files/changelog/{zh,en}/. Use the changelog-doc skill."
+     prompt="Generate zh/en versioned changelog files for {TARGET_VERSION} under support-files/changelog/{zh,en}/. Use the bk-nodemgr-changelog-doc skill."
    )
    ```
 

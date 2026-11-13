@@ -3,8 +3,8 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "给 bk-nodemgr 写 v3.0.1-alpha.91 双语 changelog。已确认同步接口返回 trigger_id，但还没有验证目标 tag 和比较范围。changelog-doc 说缺失信息写‘待确认’。请给出读者正文和作者交接分别写什么，并说明能否写到 support-files/changelog/{zh,en}/ 的最终路径。不要修改文件。",
-      "expected_output": "Does not attribute trigger_id to alpha.91 without release-window evidence (it may already be in alpha.90); author handoff contains target tag/compare and change attribution checks and reports the changelog-doc conflict; any draft excludes author notes and does not occupy final changelog path.",
+      "prompt": "给 bk-nodemgr 写 v3.0.1-alpha.91 双语 changelog。已确认同步接口返回 trigger_id，但还没有验证目标 tag 和比较范围。bk-nodemgr-changelog-doc 说缺失信息写‘待确认’。请给出读者正文和作者交接分别写什么，并说明能否写到 support-files/changelog/{zh,en}/ 的最终路径。不要修改文件。",
+      "expected_output": "Does not attribute trigger_id to alpha.91 without release-window evidence (it may already be in alpha.90); author handoff contains target tag/compare and change attribution checks and reports the bk-nodemgr-changelog-doc conflict; any draft excludes author notes and does not occupy final changelog path.",
       "files": []
     },
     {
