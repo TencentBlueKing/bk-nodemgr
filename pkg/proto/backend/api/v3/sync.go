@@ -129,6 +129,42 @@ func (x *SyncAllStoppedPluginProcessInfoReq) Validate() error {
 }
 
 // AutoConvert auto convert.
+func (x *SyncAlivePluginProcessV2InfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAlivePluginProcessV2InfoReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncAllAlivePluginProcessV2InfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAllAlivePluginProcessV2InfoReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncStoppedPluginProcessV2InfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncStoppedPluginProcessV2InfoReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncAllStoppedPluginProcessV2InfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAllStoppedPluginProcessV2InfoReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
 func (x *CorrectUnknownProcessStatusReq) AutoConvert() {}
 
 // Validate check body.

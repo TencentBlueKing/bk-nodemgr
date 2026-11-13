@@ -161,6 +161,20 @@ type ISyncManager interface {
 	// LaunchSyncAllStoppedPluginProcessInfo launch a task to sync all stopped plugin process info. returns the trigger-id.
 	LaunchSyncAllStoppedPluginProcessInfo(ctx contextx.IContext) (string, error)
 
+	// LaunchSyncAlivePluginProcessV2Info launch a task to sync alive v2 plugin process info. returns the trigger-id.
+	LaunchSyncAlivePluginProcessV2Info(ctx contextx.IContext, hostIDs ...int64) (string, error)
+
+	// LaunchSyncAllAlivePluginProcessV2Info launch a task to sync all alive v2 plugin process info.
+	// returns the trigger-id.
+	LaunchSyncAllAlivePluginProcessV2Info(ctx contextx.IContext) (string, error)
+
+	// LaunchSyncStoppedPluginProcessV2Info launch a task to sync stopped v2 plugin process info. returns the trigger-id.
+	LaunchSyncStoppedPluginProcessV2Info(ctx contextx.IContext, hostIDs ...int64) (string, error)
+
+	// LaunchSyncAllStoppedPluginProcessV2Info launch a task to sync all stopped v2 plugin process info.
+	// returns the trigger-id.
+	LaunchSyncAllStoppedPluginProcessV2Info(ctx contextx.IContext) (string, error)
+
 	// LaunchCorrectUnknownProcessStatus launches a task to correct unknown process status. returns the workflow-id.
 	LaunchCorrectUnknownProcessStatus(ctx contextx.IContext, hostIDs ...int64) (string, error)
 

@@ -218,6 +218,8 @@ func (mgr *Manager) registerDefSyncData() error {
 		// The v2 compatible plugin processes are synced by their own scheduled workflow.
 		syncdata.NewActionSyncAlivePluginProcessV2Info(syncdataCap),
 		syncdata.NewActionGenOperSyncAlivePluginProcessV2Info(syncdataCap),
+		syncdata.NewActionSyncStoppedPluginProcessV2Info(syncdataCap),
+		syncdata.NewActionGenOperSyncStoppedPluginProcessV2Info(syncdataCap),
 		syncdata.NewActionGenOperCorrectUnknownProcessStatus(syncdataCap),
 		syncdata.NewActionCorrectUnknownProcessStatus(syncdataCap),
 		syncdata.NewActionGenOperCleanOrphanProcess(syncdataCap),

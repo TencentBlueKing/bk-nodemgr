@@ -450,6 +450,138 @@ func (mgr *Manager) LaunchSyncAllStoppedPluginProcessInfo(ctx contextx.IContext)
 	return triggerCtl.GetTriggerID(), nil
 }
 
+// LaunchSyncAlivePluginProcessV2Info launch a task to sync alive v2 plugin process info.
+func (mgr *Manager) LaunchSyncAlivePluginProcessV2Info(ctx contextx.IContext, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAlivePluginProcessV2Info(syncdata.OperParamSyncAlivePluginProcessV2Info{
+		TenantID: tenantID,
+		Operator: operator,
+		HostIDs:  hostIDs,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync alive v2 plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAllAlivePluginProcessV2Info launch a task to sync all alive v2 plugin process info.
+func (mgr *Manager) LaunchSyncAllAlivePluginProcessV2Info(ctx contextx.IContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAllAlivePluginProcessV2Info(
+		syncdata.OperParamSyncAllAlivePluginProcessV2Info{
+			TenantID: tenantID,
+			Operator: operator,
+		})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync all alive v2 plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncStoppedPluginProcessV2Info launch a task to sync stopped v2 plugin process info.
+func (mgr *Manager) LaunchSyncStoppedPluginProcessV2Info(ctx contextx.IContext, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncStoppedPluginProcessV2Info(syncdata.OperParamSyncStoppedPluginProcessV2Info{
+		TenantID: tenantID,
+		Operator: operator,
+		HostIDs:  hostIDs,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync stopped v2 plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAllStoppedPluginProcessV2Info launch a task to sync all stopped v2 plugin process info.
+func (mgr *Manager) LaunchSyncAllStoppedPluginProcessV2Info(ctx contextx.IContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAllStoppedPluginProcessV2Info(
+		syncdata.OperParamSyncAllStoppedPluginProcessV2Info{
+			TenantID: tenantID,
+			Operator: operator,
+		})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync all stopped v2 plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
 // LaunchCorrectUnknownProcessStatus launches a task to correct unknown process status.
 func (mgr *Manager) LaunchCorrectUnknownProcessStatus(ctx contextx.IContext, hostIDs ...int64) (string, error) {
 	if len(hostIDs) == 0 {
