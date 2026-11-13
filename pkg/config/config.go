@@ -27,7 +27,19 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
 )
+
+// Wiki configures product user documentation links.
+type Wiki struct {
+	Mode                wiki.Mode `yaml:"mode" usage:"wiki source mode, currently github"`
+	GitHubRepositoryURL string    `yaml:"githubRepositoryURL" usage:"github repository address without tag or wiki path"`
+}
+
+// Validate checks the Wiki mode and its source-specific inputs.
+func (conf Wiki) Validate() error {
+	return (wiki.Config{Mode: conf.Mode, GitHubRepositoryURL: conf.GitHubRepositoryURL}).Validate()
+}
 
 // Etcd the config of etcd.
 type Etcd struct {

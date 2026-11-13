@@ -87,6 +87,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/extra/redisotel/v9"
@@ -182,6 +183,12 @@ func (svc *Service) initialStaticsConfigs() error {
 
 	// initial access virtual user.
 	access.SetVirtualUser(svc.conf.Access.VirtualUser)
+
+	if err := wiki.SetConfig(wiki.Config{
+		Mode: svc.conf.Wiki.Mode, GitHubRepositoryURL: svc.conf.Wiki.GitHubRepositoryURL,
+	}); err != nil {
+		return fmt.Errorf("failed to initialize wiki config: %w", err)
+	}
 
 	// initial gse deploy conf.
 	for idx := range svc.conf.GSEDeployConfs {
