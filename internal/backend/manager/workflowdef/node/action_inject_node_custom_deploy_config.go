@@ -28,6 +28,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -160,7 +161,12 @@ func (act *actionInjectNodeCustomDeployConfig) Do(ctx *action.InstanceContext) (
 
 	// installer workdir priority: user specified in info > network unit custom deploy config > deploy constant default.
 	std.DeployInfo().InstallerRuntime.BaseWorkDir = deployConstant.BaseWorkDir
-	std.DeployInfo().InstallerRuntime.WorkDir = deployConstant.GenerateWorkDir()
+	loginWorkDir, operateWorkDir, err := nodeWorkDirs(std, deployConstant)
+	if err != nil {
+		return err
+	}
+	std.DeployInfo().InstallerRuntime.LoginWorkDir = loginWorkDir
+	std.DeployInfo().InstallerRuntime.OperateWorkDir = operateWorkDir
 	std.DeployInfo().InstallerRuntime.HTTPProxyOverride = deployConstant.HTTPProxyOverride
 	std.DeployInfo().InstallerRuntime.HTTPProxyAddress = deployConstant.HTTPProxyAddress
 
@@ -208,4 +214,26 @@ func effectiveFirewall(
 	}
 
 	return &normalized, nil
+}
+
+// nodeWorkDirs returns the two installer workspaces of a deployment, one per operation
+// channel: the login workdir for login-channel actions (SSH/WMI/manual installs), isolated
+// under the host login user, and the operate workdir for GSE-channel actions, isolated
+// under the operate user. Each action picks the one matching the channel it physically
+// uses, so file ownership never crosses between channels. The login workspace carries a
+// "_sudo" suffix when the install escalates through sudo, since its artifacts differ from
+// a sudo-less install.
+func nodeWorkDirs(std *nodeUtils.NodeActionStandarder, deployConf deployconstant.NodeDeployConf) (string, string, error) {
+	host := std.DeployInfo().Host.Dynamic
+	loginKey := host.LoginUser
+	if std.DeployInfo().InstallOptions.IsSudo {
+		loginKey += "_sudo"
+	}
+
+	operateUser, err := gse.DefaultOperateUser(host.NodeOsType)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get default operate user, os-type(%s): %w", host.NodeOsType, err)
+	}
+
+	return deployConf.GenerateWorkDir(loginKey), deployConf.GenerateWorkDir(operateUser.String()), nil
 }

@@ -387,7 +387,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		},
 		InstallerRuntime: types.PluginDeploymentInstallerRuntime{
 			BaseWorkDir:       info.InstallerRuntime.BaseWorkDir,
-			WorkDir:           info.InstallerRuntime.WorkDir,
+			OperateWorkDir:    info.InstallerRuntime.OperateWorkDir,
 			HTTPProxyOverride: info.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  info.InstallerRuntime.HTTPProxyAddress,
 		},
@@ -510,7 +510,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 		},
 		InstallerRuntime: installerRuntime{
 			BaseWorkDir:       info.InstallerRuntime.BaseWorkDir,
-			WorkDir:           info.InstallerRuntime.WorkDir,
+			OperateWorkDir:    info.InstallerRuntime.OperateWorkDir,
 			HTTPProxyOverride: info.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  info.InstallerRuntime.HTTPProxyAddress,
 		},

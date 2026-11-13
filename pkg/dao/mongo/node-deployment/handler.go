@@ -196,7 +196,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 		},
 		InstallerRuntime: types.DeploymentInstallerRuntime{
 			BaseWorkDir:       info.InstallerRuntime.BaseWorkDir,
-			WorkDir:           info.InstallerRuntime.WorkDir,
+			LoginWorkDir:      info.InstallerRuntime.LoginWorkDir,
+			OperateWorkDir:    info.InstallerRuntime.OperateWorkDir,
 			HTTPProxyOverride: info.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  info.InstallerRuntime.HTTPProxyAddress,
 			Firewall:          info.InstallerRuntime.Firewall.convertToTypes(),
@@ -483,7 +484,8 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		ProxyInstallOriginUnitID: info.Host.Dynamic.ProxyInstallOriginUnitID,
 		InstallerRuntime: InstallerRuntime{
 			BaseWorkDir:       info.InstallerRuntime.BaseWorkDir,
-			WorkDir:           info.InstallerRuntime.WorkDir,
+			LoginWorkDir:      info.InstallerRuntime.LoginWorkDir,
+			OperateWorkDir:    info.InstallerRuntime.OperateWorkDir,
 			HTTPProxyOverride: info.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  info.InstallerRuntime.HTTPProxyAddress,
 			Firewall:          convertFirewallFromTypes(info.InstallerRuntime.Firewall),

@@ -95,14 +95,6 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, fmt.Errorf("%s is empty", nodeflag.BaseDeployDir)
 	}
 
-	baseWorkDir, err := cmd.Flags().GetString(nodeflag.BaseWorkDir)
-	if err != nil {
-		return nil, err
-	}
-	if baseWorkDir == "" {
-		return nil, fmt.Errorf("%s is empty", nodeflag.BaseWorkDir)
-	}
-
 	deployEnv, err := cmd.Flags().GetString(nodeflag.DeployEnv)
 	if err != nil {
 		return nil, err
@@ -111,13 +103,21 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, fmt.Errorf("%s is empty", nodeflag.DeployEnv)
 	}
 
+	workDir, err := cmd.Flags().GetString(nodeflag.WorkDir)
+	if err != nil {
+		return nil, err
+	}
+	if workDir == "" {
+		return nil, fmt.Errorf("%s is empty", nodeflag.WorkDir)
+	}
+
 	return &Variables{
 		Generation: types.Generation(generation),
 		NodeRole:   types.NodeRole(nodeRole),
 		DeployEnv:  deployEnv,
 		DeployDir:  filepath.Join(baseDeployDir, deployEnv),
-		WorkDir:    filepath.Join(baseWorkDir, deployEnv),
-		DataDir:    filepath.Join(baseWorkDir, deployEnv, "data"),
-		ConfigDir:  filepath.Join(baseWorkDir, deployEnv, "data", "config"),
+		WorkDir:    workDir,
+		DataDir:    filepath.Join(workDir, "data"),
+		ConfigDir:  filepath.Join(workDir, "data", "config"),
 	}, nil
 }

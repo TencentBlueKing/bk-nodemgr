@@ -206,8 +206,6 @@ func (act *actionUpgradePluginV2) Do(ctx *action.InstanceContext) (err error) {
 
 type pluginUpgradeParams struct {
 	installer.PluginUpgradeParams
-
-	InstallerWorkDir string
 }
 
 func (act *actionUpgradePluginV2) buildUpgradeParams(
@@ -248,7 +246,7 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 	params := &pluginUpgradeParams{
 		PluginUpgradeParams: installer.PluginUpgradeParams{
 			PluginCommonParams: installer.PluginCommonParams{
-				InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
+				InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 				InstallerFileName: toolName,
 				BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 				BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
@@ -267,7 +265,6 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline || len(callbackEndpoints) == 0,
 			SkipDownload:    std.DeployInfo().InstallOptions.IsOffline || len(downloadEndpoints) == 0,
 		},
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}
 	pluginRelease, err := act.fileHandler.GetReleasePlugin(std.Context(), types.ReleasePluginKey{
 		Generation: std.DeployInfo().Process.Generation,

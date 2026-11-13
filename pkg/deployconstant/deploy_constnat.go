@@ -110,7 +110,13 @@ func (conf DeployConf) GenerateDeployDir() string {
 	return tool.JoinPath(conf.OsType, conf.BaseDeployDir, system.GetEnv())
 }
 
-// GenerateWorkDir generates the work dir for the deployment configuration.
-func (conf DeployConf) GenerateWorkDir() string {
-	return tool.JoinPath(conf.OsType, conf.BaseWorkDir, system.GetEnv())
+// GenerateWorkDir generates the work dir for the deployment configuration. workDirKey is the
+// per-user isolation segment appended under the env dir (the login or operate user); an empty
+// key keeps the legacy {base}/{env} layout.
+func (conf DeployConf) GenerateWorkDir(workDirKey string) string {
+	if workDirKey == "" {
+		return tool.JoinPath(conf.OsType, conf.BaseWorkDir, system.GetEnv())
+	}
+
+	return tool.JoinPath(conf.OsType, conf.BaseWorkDir, system.GetEnv(), workDirKey)
 }

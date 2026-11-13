@@ -99,12 +99,12 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, fmt.Errorf("%s is empty", pluginV2Flag.BaseDeployDir)
 	}
 
-	baseWorkDir, err := cmd.Flags().GetString(pluginV2Flag.BaseWorkDir)
+	workDir, err := cmd.Flags().GetString(pluginV2Flag.WorkDir)
 	if err != nil {
 		return nil, err
 	}
-	if baseWorkDir == "" {
-		return nil, fmt.Errorf("%s is empty", pluginV2Flag.BaseWorkDir)
+	if workDir == "" {
+		return nil, fmt.Errorf("%s is empty", pluginV2Flag.WorkDir)
 	}
 
 	return &Variables{
@@ -113,8 +113,8 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		PluginPkgName: pluginPkgName,
 		DeployEnv:     deployEnv,
 		DeployDir:     filepath.Join(baseDeployDir, deployEnv),
-		WorkDir:       filepath.Join(baseWorkDir, deployEnv),
-		DataDir:       filepath.Join(baseWorkDir, deployEnv, "data", "plugin", "v2", pluginName),
-		ConfigDir:     filepath.Join(baseWorkDir, deployEnv, "data", "plugin", "v2", pluginName, "config"),
+		WorkDir:       workDir,
+		DataDir:       filepath.Join(workDir, "data", "plugin", "v2", pluginName),
+		ConfigDir:     filepath.Join(workDir, "data", "plugin", "v2", pluginName, "config"),
 	}, nil
 }

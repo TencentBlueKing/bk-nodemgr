@@ -163,11 +163,11 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
-		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
 		DownloadSvrAddr:   nodeUtils.BuildServerURLs(downloadEndpoints...),
 		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
@@ -213,8 +213,8 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarde
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > upgrade.sh && sh upgrade.sh`,
-			param.InstallWorkDir,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
+			param.InstallerWorkDir,
 			upgradeCmd),
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{
@@ -249,7 +249,7 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
 			upgradeCmd),
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{

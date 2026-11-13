@@ -28,7 +28,7 @@ import (
 func TestPluginInstallCPULimitScript(t *testing.T) {
 	base := PluginInstallParams{
 		PluginCommonParams: PluginCommonParams{
-			InstallWorkDir:    "/opt",
+			InstallerWorkDir:  "/opt",
 			InstallerFileName: "installer",
 			BaseDeployDir:     "/data",
 			BaseWorkDir:       "/var/lib",
@@ -74,7 +74,7 @@ func TestPluginInstallCPULimitScript(t *testing.T) {
 func TestPluginUpgradeCPULimitScript(t *testing.T) {
 	params := PluginUpgradeParams{
 		PluginCommonParams: PluginCommonParams{
-			InstallWorkDir:    "/opt",
+			InstallerWorkDir:  "/opt",
 			InstallerFileName: "installer",
 			BaseDeployDir:     "/data",
 			BaseWorkDir:       "/var/lib",

@@ -38,8 +38,9 @@ const (
 	// BaseDeployDir defines the base dir flag.
 	BaseDeployDir = "base_deploy_dir"
 
-	// BaseWorkDir defines the base work dir flag.
-	BaseWorkDir = "base_work_dir"
+	// WorkDir defines the work dir flag: the full installer workspace carrying the per-user
+	// isolation segment, assigned by the orchestrator.
+	WorkDir = "work_dir"
 
 	// LogDir defines the log dir flag.
 	LogDir = "log_dir"

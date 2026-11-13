@@ -239,7 +239,7 @@ func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeUtils.NodeAct
 		return fmt.Errorf("failed to format installer name: %w", err)
 	}
 
-	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.WorkDir, installerName))
+	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, installerName))
 	installerCmd, err := act.buildSSHOnlyProxyInstallCmd(std, installerPath)
 	if err != nil {
 		return err
@@ -279,6 +279,7 @@ func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.N
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.LoginWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
@@ -325,11 +326,12 @@ func (act *actionInstallProxyBySSH) notifyRelayToInstallProxyBySSH(
 		User:             std.DeployInfo().Host.Dynamic.LoginUser,
 		LoginMode:        string(std.DeployInfo().Host.Dynamic.LoginMode),
 		Password:         cKey,
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
+		InstallerWorkDir: std.DeployInfo().InstallerRuntime.LoginWorkDir,
 		InstallerName:    installerName,
 		ReleaseName:      releaseName,
 		Token:            std.Token(),
 		InstallerCmd:     installerCmd,
+		IsSudo:           std.DeployInfo().InstallOptions.IsSudo,
 	}
 	data, err := json.Marshal(event)
 	if err != nil {

@@ -51,6 +51,10 @@ const (
 	// pluginV2FlagBaseWorkDir plugin flag name defines the base work dir.
 	pluginV2FlagBaseWorkDir pluginV2FlagName = "base_work_dir"
 
+	// pluginV2FlagWorkDir plugin flag name defines the work dir overriding the base/env derived one.
+	// SYNC: tools/cmd/installer/pluginv2/flag.WorkDir.
+	pluginV2FlagWorkDir pluginV2FlagName = "work_dir"
+
 	// pluginV2FlagLogDir plugin flag name defines the log dir.
 	pluginV2FlagLogDir pluginV2FlagName = "log_dir"
 
@@ -95,7 +99,7 @@ const (
 
 // PluginV2CommonParams defines the common params of installer.
 type PluginV2CommonParams struct {
-	InstallWorkDir    string
+	InstallerWorkDir  string
 	InstallerFileName string
 
 	BaseDeployDir string
@@ -121,7 +125,7 @@ func (params *PluginV2CommonParams) Validate() error {
 		return fmt.Errorf("base work dir is empty")
 	}
 
-	if params.InstallWorkDir == "" {
+	if params.InstallerWorkDir == "" {
 		return fmt.Errorf("install work dir is empty")
 	}
 
@@ -216,7 +220,7 @@ func (params *PluginV2InstallParams) Validate() error {
 func (params *PluginV2InstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginV2FlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginV2FlagBaseWorkDir, params.BaseWorkDir),
+		fmt.Sprintf("--%s %s", pluginV2FlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginName, params.PluginName),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginVersion, params.PluginVersion),
@@ -263,13 +267,13 @@ func (params *PluginV2InstallParams) ToUnixScript() (string, string, error) {
 	args := params.buildArgs()
 
 	// build original cmd.
-	installerFilePath := filepath.Join(params.InstallWorkDir, params.InstallerFileName)
+	installerFilePath := filepath.Join(params.InstallerWorkDir, params.InstallerFileName)
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginV2CmdFullInstall, strings.Join(args, " "))
 
 	// wrap cmd with stdout.
 	scriptName := fmt.Sprintf("pluginv2_install_%s_%s.sh", params.PluginGroup, params.PluginName)
 
-	stdoutPath := filepath.Join(params.InstallWorkDir, fmt.Sprintf("%s.stdout", scriptName))
+	stdoutPath := filepath.Join(params.InstallerWorkDir, fmt.Sprintf("%s.stdout", scriptName))
 	scriptContent := fmt.Sprintf("%s >%s 2>&1 &", cmdStr, stdoutPath)
 
 	return scriptName, scriptContent, nil
@@ -284,7 +288,7 @@ func (params *PluginV2InstallParams) ToWindowsScript() (string, string, error) {
 	args := params.buildArgs()
 
 	// build original cmd.
-	installerFilePath := winpath.Join(params.InstallWorkDir, params.InstallerFileName)
+	installerFilePath := winpath.Join(params.InstallerWorkDir, params.InstallerFileName)
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginV2CmdFullInstall, strings.Join(args, " "))
 
 	// wrap cmd with stdout.
@@ -365,7 +369,7 @@ func (params *PluginV2UpgradeParams) Validate() error {
 func (params *PluginV2UpgradeParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginV2FlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginV2FlagBaseWorkDir, params.BaseWorkDir),
+		fmt.Sprintf("--%s %s", pluginV2FlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginName, params.PluginName),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginVersion, params.PluginVersion),
@@ -395,13 +399,13 @@ func (params *PluginV2UpgradeParams) ToUnixScript() (string, string, error) {
 	args := params.buildArgs()
 
 	// build original cmd.
-	installerFilePath := filepath.Join(params.InstallWorkDir, params.InstallerFileName)
+	installerFilePath := filepath.Join(params.InstallerWorkDir, params.InstallerFileName)
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginV2CmdFullUpgrade, strings.Join(args, " "))
 
 	// wrap cmd with stdout.
 	scriptName := fmt.Sprintf("pluginv2_upgrade_%s_%s.sh", params.PluginGroup, params.PluginName)
 
-	stdoutPath := filepath.Join(params.InstallWorkDir, fmt.Sprintf("%s.stdout", scriptName))
+	stdoutPath := filepath.Join(params.InstallerWorkDir, fmt.Sprintf("%s.stdout", scriptName))
 	scriptContent := fmt.Sprintf("%s >%s 2>&1 &", cmdStr, stdoutPath)
 
 	return scriptName, scriptContent, nil
@@ -416,7 +420,7 @@ func (params *PluginV2UpgradeParams) ToWindowsScript() (string, string, error) {
 	args := params.buildArgs()
 
 	// build original cmd.
-	installerFilePath := winpath.Join(params.InstallWorkDir, params.InstallerFileName)
+	installerFilePath := winpath.Join(params.InstallerWorkDir, params.InstallerFileName)
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginV2CmdFullUpgrade, strings.Join(args, " "))
 
 	// wrap cmd with stdout.
@@ -471,7 +475,7 @@ func (params *PluginV2UninstallParams) Validate() error {
 func (params *PluginV2UninstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginV2FlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginV2FlagBaseWorkDir, params.BaseWorkDir),
+		fmt.Sprintf("--%s %s", pluginV2FlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginName, params.PluginName),
 		fmt.Sprintf("--%s %s", pluginV2FlagDeployEnv, params.DeployEnv),
@@ -496,13 +500,13 @@ func (params *PluginV2UninstallParams) ToUnixScript() (string, string, error) {
 	args := params.buildArgs()
 
 	// build original cmd.
-	installerFilePath := filepath.Join(params.InstallWorkDir, params.InstallerFileName)
+	installerFilePath := filepath.Join(params.InstallerWorkDir, params.InstallerFileName)
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginV2CmdFullUninstall, strings.Join(args, " "))
 
 	// wrap cmd with stdout.
 	scriptName := fmt.Sprintf("pluginv2_uninstall_%s_%s.sh", params.PluginGroup, params.PluginName)
 
-	stdoutPath := filepath.Join(params.InstallWorkDir, fmt.Sprintf("%s.stdout", scriptName))
+	stdoutPath := filepath.Join(params.InstallerWorkDir, fmt.Sprintf("%s.stdout", scriptName))
 	scriptContent := fmt.Sprintf("%s >%s 2>&1 &", cmdStr, stdoutPath)
 
 	return scriptName, scriptContent, nil
@@ -517,7 +521,7 @@ func (params *PluginV2UninstallParams) ToWindowsScript() (string, string, error)
 	args := params.buildArgs()
 
 	// build original cmd.
-	installerFilePath := winpath.Join(params.InstallWorkDir, params.InstallerFileName)
+	installerFilePath := winpath.Join(params.InstallerWorkDir, params.InstallerFileName)
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginV2CmdFullUninstall, strings.Join(args, " "))
 
 	// wrap cmd with stdout.

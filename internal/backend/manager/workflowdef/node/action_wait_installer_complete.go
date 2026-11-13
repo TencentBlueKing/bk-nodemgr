@@ -221,7 +221,7 @@ func (act *actionWaitInstallerComplete) doOfflinePolling(std *nodeUtils.NodeActi
 		}(),
 	}
 
-	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
+	dataDir := path.Join(std.DeployInfo().InstallerRuntime.OperateWorkDir, "data")
 	statusPath := path.Join(dataDir, installer.StatusFileName)
 	dataPath := path.Join(dataDir, installer.DataFileName)
 	logPath := path.Join(dataDir, "logs", "installer_*.log")

@@ -191,8 +191,6 @@ func (act *actionUninstallPluginV2) Do(ctx *action.InstanceContext) (err error) 
 
 type pluginV2UninstallParams struct {
 	installer.PluginV2UninstallParams
-
-	InstallerWorkDir string
 }
 
 func (act *actionUninstallPluginV2) buildUninstallParams(
@@ -220,7 +218,7 @@ func (act *actionUninstallPluginV2) buildUninstallParams(
 	params := &pluginV2UninstallParams{
 		PluginV2UninstallParams: installer.PluginV2UninstallParams{
 			PluginV2CommonParams: installer.PluginV2CommonParams{
-				InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
+				InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 				InstallerFileName: toolName,
 				BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 				BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
@@ -234,7 +232,6 @@ func (act *actionUninstallPluginV2) buildUninstallParams(
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 		},
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}
 
 	return params, nil

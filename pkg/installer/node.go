@@ -135,6 +135,10 @@ const (
 	// nodeFlagFirewallRemoteIPs node flag name defines the firewall remote IP CIDRs of a full install.
 	// SYNC: tools/cmd/installer/node/flag.FirewallRemoteIPs.
 	nodeFlagFirewallRemoteIPs nodeFlagName = "firewall_remote_ips"
+
+	// nodeFlagWorkDir node flag name defines the work dir overriding the base/env derived one.
+	// SYNC: tools/cmd/installer/node/flag.WorkDir.
+	nodeFlagWorkDir nodeFlagName = "work_dir"
 )
 
 // NodeCommonParams defines the common installer-facing params shared by node commands.
@@ -144,6 +148,11 @@ type NodeCommonParams struct {
 	NodeRole      string
 	BaseWorkDir   string
 	BaseDeployDir string
+
+	// InstallerWorkDir is the full installer workdir carrying the per-user isolation segment;
+	// when set, it is passed to the installer via --work_dir so the host-side workspace
+	// matches the orchestrator instead of the legacy base/env derived one.
+	InstallerWorkDir string
 
 	// HTTPProxyOverride whether the installer overrides the target host's env proxy settings.
 	HTTPProxyOverride bool
@@ -185,14 +194,36 @@ func (params *NodeCommonParams) buildArgs() []string {
 		fmt.Sprintf("--%s %s", nodeFlagDeployEnv, params.DeployEnv),
 		fmt.Sprintf("--%s %d", nodeFlagGeneration, params.Generation),
 		fmt.Sprintf("--%s %s", nodeFlagNodeRole, params.NodeRole),
-		fmt.Sprintf("--%s %s", nodeFlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", nodeFlagBaseDeployDir, params.BaseDeployDir),
 	}
 	if params.HTTPProxyOverride {
 		args = append(args, fmt.Sprintf(`--%s="%s"`, nodeFlagHTTPProxy, params.HTTPProxyAddress))
 	}
+	if params.InstallerWorkDir != "" {
+		args = append(args, fmt.Sprintf("--%s %s", nodeFlagWorkDir, params.InstallerWorkDir))
+	}
 
 	return args
+}
+
+// unixWorkDir returns the unix workdir of the params, preferring the explicit
+// InstallerWorkDir over the legacy base/env derived one.
+func (params *NodeCommonParams) unixWorkDir() string {
+	if params.InstallerWorkDir != "" {
+		return params.InstallerWorkDir
+	}
+
+	return fmt.Sprintf("%s/%s", params.BaseWorkDir, params.DeployEnv)
+}
+
+// windowsWorkDir returns the windows workdir of the params, preferring the explicit
+// InstallerWorkDir over the legacy base/env derived one.
+func (params *NodeCommonParams) windowsWorkDir() string {
+	if params.InstallerWorkDir != "" {
+		return params.InstallerWorkDir
+	}
+
+	return winpath.Join(params.BaseWorkDir, params.DeployEnv)
 }
 
 // NodeInstallParams defines the params for a full node install command.
@@ -298,7 +329,6 @@ func (params *NodeInstallParams) buildServerFirstArgs() []string {
 type NodeUpgradeParams struct {
 	NodeCommonParams
 
-	InstallWorkDir    string
 	InstallerFileName string
 
 	DownloadSvrAddr string
@@ -324,7 +354,7 @@ func (params *NodeUpgradeParams) Validate() error {
 		return err
 	}
 
-	if err := validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName); err != nil {
+	if err := validateNodeInstallerFile(params.InstallerWorkDir, params.InstallerFileName); err != nil {
 		return err
 	}
 
@@ -377,7 +407,6 @@ func (params *NodeUpgradeParams) buildArgs() []string {
 type NodeReconfigParams struct {
 	NodeCommonParams
 
-	InstallWorkDir    string
 	InstallerFileName string
 
 	CallbackSvrAddr string
@@ -400,7 +429,7 @@ func (params *NodeReconfigParams) Validate() error {
 		return err
 	}
 
-	if err := validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName); err != nil {
+	if err := validateNodeInstallerFile(params.InstallerWorkDir, params.InstallerFileName); err != nil {
 		return err
 	}
 
@@ -435,7 +464,6 @@ func (params *NodeReconfigParams) buildArgs() []string {
 type NodeUninstallParams struct {
 	NodeCommonParams
 
-	InstallWorkDir    string
 	InstallerFileName string
 
 	CallbackSvrAddr string
@@ -456,7 +484,7 @@ func (params *NodeUninstallParams) Validate() error {
 		return err
 	}
 
-	if err := validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName); err != nil {
+	if err := validateNodeInstallerFile(params.InstallerWorkDir, params.InstallerFileName); err != nil {
 		return err
 	}
 
@@ -491,7 +519,6 @@ func (params *NodeUninstallParams) buildArgs() []string {
 type NodeStepRestartParams struct {
 	NodeCommonParams
 
-	InstallWorkDir    string
 	InstallerFileName string
 
 	Force bool
@@ -503,14 +530,13 @@ func (params *NodeStepRestartParams) Validate() error {
 		return err
 	}
 
-	return validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName)
+	return validateNodeInstallerFile(params.InstallerWorkDir, params.InstallerFileName)
 }
 
 // NodeStepCleanTmpParams defines the params for a clean temporary installer files step command.
 type NodeStepCleanTmpParams struct {
 	NodeCommonParams
 
-	InstallWorkDir    string
 	InstallerFileName string
 }
 
@@ -520,7 +546,7 @@ func (params *NodeStepCleanTmpParams) Validate() error {
 		return err
 	}
 
-	return validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName)
+	return validateNodeInstallerFile(params.InstallerWorkDir, params.InstallerFileName)
 }
 
 func (params *NodeStepRestartParams) buildArgs() []string {
@@ -537,7 +563,7 @@ func (params *NodeStepRestartParams) ToUnixScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := filepath.Clean(filepath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "restart.sh"
@@ -553,7 +579,7 @@ func (params *NodeStepRestartParams) ToWindowsScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := winpath.Clean(winpath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "restart.bat"
@@ -575,7 +601,7 @@ func (params *NodeStepCleanTmpParams) ToUnixScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := filepath.Clean(filepath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "clean.sh"
@@ -591,7 +617,7 @@ func (params *NodeStepCleanTmpParams) ToWindowsScript() (string, string, error) 
 	}
 
 	args := params.buildArgs()
-	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := winpath.Clean(winpath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "clean.bat"
@@ -668,7 +694,7 @@ func (params *NodeOfflineInstallParams) ToUnixScriptOffline() (string, string, e
 		return "", "", err
 	}
 
-	dataDir := fmt.Sprintf("%s/%s/data", params.BaseWorkDir, params.DeployEnv)
+	dataDir := fmt.Sprintf("%s/data", params.unixWorkDir())
 	lines := []string{
 		"#!/bin/bash",
 		`set -e`,
@@ -752,7 +778,7 @@ func (params *NodeInstallParams) ToWindowsScript() (string, string, error) {
 	}
 	scriptName := "install.bat"
 	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))
-	scriptContent := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1", winpath.Join(params.BaseWorkDir, params.DeployEnv), params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
+	scriptContent := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1", params.windowsWorkDir(), params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
 
 	return scriptName, scriptContent, nil
 }
@@ -772,7 +798,7 @@ func (params *NodeInstallParams) ToWindowsShellScript() (string, string, error) 
 		args = shellParams.buildDownloadBeforeCallbackArgs()
 	}
 	scriptName := "install.sh"
-	workDir := winpath.ToSlash(winpath.Clean(winpath.Join(params.BaseWorkDir, params.DeployEnv)))
+	workDir := winpath.ToSlash(winpath.Clean(params.windowsWorkDir()))
 	installerPath := winpath.ToSlash(winpath.Clean(params.InstallerPath))
 	stdoutPath := winpath.ToSlash(winpath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath)))
 	scriptContent := fmt.Sprintf(
@@ -811,7 +837,7 @@ func (params *NodeInstallParams) ToWindowsScriptManual() (string, string, error)
 	args := params.buildServerFirstArgs()
 
 	scriptName := "install.bat"
-	scriptContent := fmt.Sprintf("cd %s && %s %s %s", winpath.Join(params.BaseWorkDir, params.DeployEnv), params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "))
+	scriptContent := fmt.Sprintf("cd %s && %s %s %s", params.windowsWorkDir(), params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "))
 
 	return scriptName, scriptContent, nil
 }
@@ -823,7 +849,7 @@ func (params *NodeUpgradeParams) ToUnixScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := filepath.Clean(filepath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "upgrade.sh"
@@ -839,7 +865,7 @@ func (params *NodeUpgradeParams) ToWindowsScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := winpath.Clean(winpath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "upgrade.bat"
@@ -855,7 +881,7 @@ func (params *NodeReconfigParams) ToUnixScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := filepath.Clean(filepath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "reconfig.sh"
@@ -871,7 +897,7 @@ func (params *NodeReconfigParams) ToWindowsScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := winpath.Clean(winpath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "reconfig.bat"
@@ -887,7 +913,7 @@ func (params *NodeUninstallParams) ToUnixScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := filepath.Clean(filepath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "uninstall.sh"
@@ -903,7 +929,7 @@ func (params *NodeUninstallParams) ToWindowsScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
-	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	installerPath := winpath.Clean(winpath.Join(params.InstallerWorkDir, params.InstallerFileName))
 	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
 	scriptName := "uninstall.bat"

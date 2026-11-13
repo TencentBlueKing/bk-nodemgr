@@ -146,11 +146,11 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
-		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
 	}
 
@@ -177,8 +177,8 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > clean.sh && sh clean.sh`,
-			param.InstallWorkDir,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
+			param.InstallerWorkDir,
 			cleanCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
@@ -212,7 +212,7 @@ func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandar
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
 			cleanCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{

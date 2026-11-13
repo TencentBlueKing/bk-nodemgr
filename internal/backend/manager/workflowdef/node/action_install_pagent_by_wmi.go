@@ -212,7 +212,7 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeA
 		return "", "", fmt.Errorf("failed to format tools name: %w", err)
 	}
 
-	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
+	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, toolName))
 
 	std.InstanceData().Log().
 		Zh("设置安装工具, 工具名(%s), 安装器路径(%s)", toolName, installerPath).
@@ -237,7 +237,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 		User:             std.DeployInfo().Host.Dynamic.LoginUser,
 		LoginMode:        string(std.DeployInfo().Host.Dynamic.LoginMode),
 		Password:         cKey,
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
+		InstallerWorkDir: std.DeployInfo().InstallerRuntime.LoginWorkDir,
 		ToolsName:        toolsName,
 		InstallerCmd:     installCmd,
 		InstallerBatName: installBatName,
@@ -343,6 +343,7 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.LoginWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,

@@ -189,11 +189,11 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
-		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
 		CallbackSvrAddr:   callbackSvrAddr,
 		DeployToken:       std.Token(),
@@ -232,8 +232,8 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
-			param.InstallWorkDir,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
+			param.InstallerWorkDir,
 			reconfigCmd),
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
@@ -267,7 +267,7 @@ func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStanda
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
 			reconfigCmd),
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{

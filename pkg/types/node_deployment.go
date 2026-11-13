@@ -83,7 +83,12 @@ func (mode LoginMode) Validate() error {
 // DeploymentInstallerRuntime this is the installer runtime for node deployment.
 type DeploymentInstallerRuntime struct {
 	BaseWorkDir string
-	WorkDir     string
+	// LoginWorkDir is the installer workspace of the login channel (SSH/WMI/manual
+	// installs), isolated under the host login user.
+	LoginWorkDir string
+	// OperateWorkDir is the installer workspace of the GSE channel (upgrade, restart,
+	// reconfig, uninstall and other agent operations), isolated under the operate user.
+	OperateWorkDir string
 	// HTTPProxyOverride whether the installer overrides the target host's env proxy settings.
 	HTTPProxyOverride bool
 	// HTTPProxyAddress is the proxy URL applied when HTTPProxyOverride is true.
@@ -115,12 +120,12 @@ type DeploymentInstallOptions struct {
 	// IsSudo escalates the installer invocation through `sudo -n`, for non-root login
 	// users whose sudoers entry allows passwordless escalation. Only honored by
 	// SSH-executed and manually-executed install flows, not by GSE job flows.
-	IsSudo                   bool
-	DirectInstall            bool
-	IsManual                 bool
-	IsOffline                bool
-	EnableCompatibilityMode  bool
-	InstallMethod            NodeInstallMethod
+	IsSudo                  bool
+	DirectInstall           bool
+	IsManual                bool
+	IsOffline               bool
+	EnableCompatibilityMode bool
+	InstallMethod           NodeInstallMethod
 }
 
 // DeploymentUpgradeOptions this is the options for node upgrade.

@@ -184,11 +184,12 @@ func (act *actionTransferPkgToNode) transferRelease(std *nodeUtils.NodeActionSta
 		return fmt.Errorf("unsupported node role: %s", info.Host.Dynamic.NodeRole)
 	}
 
+	workDir := info.InstallerRuntime.OperateWorkDir
 	var dataDir string
 	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerRuntime.WorkDir, "data")
+		dataDir = winpath.Join(workDir, "data")
 	} else {
-		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data")
+		dataDir = filepath.Join(workDir, "data")
 	}
 
 	std.InstanceData().Log().
@@ -258,7 +259,7 @@ func (act *actionTransferPkgToNode) transferInstaller(std *nodeUtils.NodeActionS
 			OS:   info.Host.Dynamic.NodeOsType,
 			Arch: info.Host.Dynamic.NodeCPUArch,
 		},
-		info.InstallerRuntime.WorkDir,
+		info.InstallerRuntime.OperateWorkDir,
 		&info.Host)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.Host.HostID, err)

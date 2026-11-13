@@ -216,9 +216,10 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeAct
 		User:             std.DeployInfo().Host.Dynamic.LoginUser,
 		LoginMode:        string(std.DeployInfo().Host.Dynamic.LoginMode),
 		Password:         cKey,
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
+		InstallerWorkDir: std.DeployInfo().InstallerRuntime.LoginWorkDir,
 		ToolsName:        toolsName,
 		InstallerCmd:     installCmd,
+		IsSudo:           std.DeployInfo().InstallOptions.IsSudo,
 	}
 	data, err := json.Marshal(event)
 	if err != nil {
@@ -311,7 +312,7 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *nodeUtils.NodeA
 		return "", "", fmt.Errorf("failed to format tools name: %w", err)
 	}
 
-	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
+	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, toolName))
 
 	std.InstanceData().Log().
 		Zh("设置安装工具, 工具名(%s), 安装器路径(%s)", toolName, installerPath).
@@ -331,12 +332,15 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 		return "", fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
+	// pagent install transfers through the relay SSH login channel, so use the login workdir.
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
 			DeployEnv:         system.GetEnv(),
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  workDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
@@ -366,8 +370,8 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 
 	result := fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		std.DeployInfo().InstallerRuntime.WorkDir,
-		std.DeployInfo().InstallerRuntime.WorkDir,
+		workDir,
+		workDir,
 		installCmd)
 
 	std.InstanceData().Log().
