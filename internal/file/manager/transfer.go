@@ -33,6 +33,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -312,7 +313,14 @@ func (m *Manager) transferPkg(nCtx contextx.IContext, srcFilePath, dstDir string
 }
 
 func (m *Manager) getCurrentGSEEndpoint(nCtx contextx.IContext) (string, error) {
-	host, err := m.storageTopo.GetDirectNetworkAreaHostByAnyInnerIP(nCtx, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
+	// get GSE endpoint for current file-server instance, must be in system tenant.
+	tenantID := tenant.SingleModeTenantID
+	if tenant.GetMode() == tenant.ModeMultiple {
+		tenantID = tenant.SystemTenantID
+	}
+	sysCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
+
+	host, err := m.storageTopo.GetDirectNetworkAreaHostByAnyInnerIP(sysCtx, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
 	if err != nil {
 		return "", fmt.Errorf("failed to get local file server host by advertise ip, ipv4(%s), ipv6(%s): %w",
 			m.hostAdvertiseIPV4, m.hostAdvertiseIPV6, err)
