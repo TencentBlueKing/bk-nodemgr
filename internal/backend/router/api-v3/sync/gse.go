@@ -17,6 +17,7 @@
  */
 
 // Package sync ...
+// nolint: revive // the package name follows the router layout.
 package sync
 
 import (
@@ -209,6 +210,90 @@ func (h *handler) SyncAllStoppedPluginProcessInfo(rCtx restserver.IContext) (any
 	}
 
 	resp := &protoBackend.SyncAllStoppedPluginProcessInfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
+// SyncAlivePluginProcessV2Info start an operation to sync alive host v2 plugin process info from gse.
+func (h *handler) SyncAlivePluginProcessV2Info(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncAlivePluginProcessV2InfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync alive v2 plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncAlivePluginProcessV2Info(rCtx, req.GetHostIds()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync alive v2 plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncAlivePluginProcessV2InfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
+// SyncAllAlivePluginProcessV2Info start an operation to sync all alive host v2 plugin process info from gse.
+func (h *handler) SyncAllAlivePluginProcessV2Info(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncAllAlivePluginProcessV2InfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync all alive v2 plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncAllAlivePluginProcessV2Info(rCtx)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync all alive v2 plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncAllAlivePluginProcessV2InfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
+// SyncStoppedPluginProcessV2Info start an operation to sync stopped host v2 plugin process info from gse.
+func (h *handler) SyncStoppedPluginProcessV2Info(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncStoppedPluginProcessV2InfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync stopped v2 plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncStoppedPluginProcessV2Info(rCtx, req.GetHostIds()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync stopped v2 plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncStoppedPluginProcessV2InfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
+// SyncAllStoppedPluginProcessV2Info start an operation to sync all stopped host v2 plugin process info from gse.
+func (h *handler) SyncAllStoppedPluginProcessV2Info(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncAllStoppedPluginProcessV2InfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync all stopped v2 plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncAllStoppedPluginProcessV2Info(rCtx)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync all stopped v2 plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncAllStoppedPluginProcessV2InfoResp_Data{
 		TriggerId: triggerID,
 	}
 

@@ -17,6 +17,7 @@
  */
 
 // Package sync is use to sync data.
+// nolint: revive // the package name follows the router layout.
 package sync
 
 import (
@@ -57,6 +58,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/gse/plugin/process/info/alive/all", restserver.Handler(h.SyncAllAlivePluginProcessInfo))
 	h.rg.POST("/gse/plugin/process/info/stopped", restserver.Handler(h.SyncStoppedPluginProcessInfo))
 	h.rg.POST("/gse/plugin/process/info/stopped/all", restserver.Handler(h.SyncAllStoppedPluginProcessInfo))
+	h.rg.POST("/gse/plugin/process_v2/info/alive", restserver.Handler(h.SyncAlivePluginProcessV2Info))
+	h.rg.POST("/gse/plugin/process_v2/info/alive/all", restserver.Handler(h.SyncAllAlivePluginProcessV2Info))
+	h.rg.POST("/gse/plugin/process_v2/info/stopped", restserver.Handler(h.SyncStoppedPluginProcessV2Info))
+	h.rg.POST("/gse/plugin/process_v2/info/stopped/all", restserver.Handler(h.SyncAllStoppedPluginProcessV2Info))
 	h.rg.POST("/gse/plugin/process/correct_unknown_status", restserver.Handler(h.CorrectUnknownProcessStatus))
 	h.rg.POST("/gse/plugin/process/correct_unknown_status/all", restserver.Handler(h.CorrectAllUnknownProcessStatus))
 

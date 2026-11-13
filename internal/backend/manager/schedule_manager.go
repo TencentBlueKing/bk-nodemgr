@@ -48,6 +48,7 @@ const (
 	scheduledWorkflowSyncAlivePluginProcessInfo     = "sync_alive_plugin_process_info"
 	scheduledWorkflowSyncAlivePluginProcessV2Info   = "sync_alive_plugin_process_v2_info"
 	scheduledWorkflowSyncStoppedPluginProcessInfo   = "sync_stopped_plugin_process_info"
+	scheduledWorkflowSyncStoppedPluginProcessV2Info = "sync_stopped_plugin_process_v2_info"
 	scheduledWorkflowCorrectAllUnknownProcessStatus = "correct_all_unknown_process_status"
 	scheduledWorkflowWatchAndApplyCMDBResource      = "watch_and_apply_cmdb_resource"
 	scheduledWorkflowExecuteDeployPolicy            = "execute_deploy_policy"
@@ -73,6 +74,7 @@ func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWork
 		scheduledWorkflowSyncAlivePluginProcessInfo:     mgr.initSWSyncAlivePluginProcessInfo,
 		scheduledWorkflowSyncAlivePluginProcessV2Info:   mgr.initSWSyncAlivePluginProcessV2Info,
 		scheduledWorkflowSyncStoppedPluginProcessInfo:   mgr.initSWSyncStoppedPluginProcessInfo,
+		scheduledWorkflowSyncStoppedPluginProcessV2Info: mgr.initSWSyncStoppedPluginProcessV2Info,
 		scheduledWorkflowCorrectAllUnknownProcessStatus: mgr.initSWCorrectAllUnknownProcessStatus,
 		scheduledWorkflowWatchAndApplyCMDBResource:      mgr.initSWWatchAndApplyCMDBResource,
 		scheduledWorkflowExecuteDeployPolicy:            mgr.initSWExecuteDeployPolicy,
@@ -92,6 +94,7 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 		scheduledWorkflowSyncAlivePluginProcessInfo:     mgr.syncSWSyncAlivePluginProcessInfo,
 		scheduledWorkflowSyncAlivePluginProcessV2Info:   mgr.syncSWSyncAlivePluginProcessV2Info,
 		scheduledWorkflowSyncStoppedPluginProcessInfo:   mgr.syncSWSyncStoppedPluginProcessInfo,
+		scheduledWorkflowSyncStoppedPluginProcessV2Info: mgr.syncSWSyncStoppedPluginProcessV2Info,
 		scheduledWorkflowCorrectAllUnknownProcessStatus: mgr.syncSWCorrectAllUnknownProcessStatus,
 		scheduledWorkflowWatchAndApplyCMDBResource:      mgr.syncSWWatchAndApplyCMDBResource,
 		scheduledWorkflowExecuteDeployPolicy:            mgr.syncSWExecuteDeployPolicy,
@@ -562,6 +565,22 @@ func (mgr *Manager) syncSWSyncStoppedPluginProcessInfo(nCtx contextx.IContext, s
 
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncStoppedPluginProcessInfo(
 		schedule.OperParamSyncStoppedPluginProcessInfo{
+			ScheduleActionStandardParam: standardParam,
+		}))
+}
+
+func (mgr *Manager) initSWSyncStoppedPluginProcessV2Info(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncStoppedPluginProcessV2Info, scheduler.Every10m)
+}
+
+func (mgr *Manager) syncSWSyncStoppedPluginProcessV2Info(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow sync stopped v2 plugin process info: %w", err)
+	}
+
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncStoppedPluginProcessV2Info(
+		schedule.OperParamSyncStoppedPluginProcessV2Info{
 			ScheduleActionStandardParam: standardParam,
 		}))
 }

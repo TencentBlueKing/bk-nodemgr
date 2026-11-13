@@ -202,6 +202,72 @@ message SyncAllStoppedPluginProcessInfoResp {
   Data data = 5;
 }
 
+// 同步指定主机上 V2 兼容插件的存活进程信息。
+message SyncAlivePluginProcessV2InfoReq {
+  // host_ids 为待同步的主机 ID 列表。
+  repeated int64 host_ids = 1;
+}
+
+// 同步任务创建结果，trigger_id 用于追踪工作流。
+message SyncAlivePluginProcessV2InfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// 同步全部主机上 V2 兼容插件的存活进程信息。
+message SyncAllAlivePluginProcessV2InfoReq {}
+
+// 同步任务创建结果，trigger_id 用于追踪工作流。
+message SyncAllAlivePluginProcessV2InfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// 同步指定主机上 V2 兼容插件的已停止进程信息。
+message SyncStoppedPluginProcessV2InfoReq {
+  // host_ids 为待同步的主机 ID 列表。
+  repeated int64 host_ids = 1;
+}
+
+// 同步任务创建结果，trigger_id 用于追踪工作流。
+message SyncStoppedPluginProcessV2InfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// 同步全部主机上 V2 兼容插件的已停止进程信息。
+message SyncAllStoppedPluginProcessV2InfoReq {}
+
+// 同步任务创建结果，trigger_id 用于追踪工作流。
+message SyncAllStoppedPluginProcessV2InfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
 // CorrectUnknownProcessStatusReq describes the HTTP request body when
 // correcting unknown process status.
 message CorrectUnknownProcessStatusReq { repeated int64 host_ids = 1; }
@@ -379,6 +445,42 @@ service Sync {
       returns (SyncAllStoppedPluginProcessInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/plugin/process/info/stopped/all"
+      body : "*"
+    };
+  }
+
+  // 同步指定主机上 V2 兼容插件的存活进程信息。
+  rpc SyncAlivePluginProcessV2Info(SyncAlivePluginProcessV2InfoReq)
+      returns (SyncAlivePluginProcessV2InfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process_v2/info/alive"
+      body : "*"
+    };
+  }
+
+  // 同步全部主机上 V2 兼容插件的存活进程信息。
+  rpc SyncAllAlivePluginProcessV2Info(SyncAllAlivePluginProcessV2InfoReq)
+      returns (SyncAllAlivePluginProcessV2InfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process_v2/info/alive/all"
+      body : "*"
+    };
+  }
+
+  // 同步指定主机上 V2 兼容插件的已停止进程信息。
+  rpc SyncStoppedPluginProcessV2Info(SyncStoppedPluginProcessV2InfoReq)
+      returns (SyncStoppedPluginProcessV2InfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process_v2/info/stopped"
+      body : "*"
+    };
+  }
+
+  // 同步全部主机上 V2 兼容插件的已停止进程信息。
+  rpc SyncAllStoppedPluginProcessV2Info(SyncAllStoppedPluginProcessV2InfoReq)
+      returns (SyncAllStoppedPluginProcessV2InfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process_v2/info/stopped/all"
       body : "*"
     };
   }

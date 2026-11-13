@@ -479,6 +479,138 @@
         ]
       }
     },
+    "/api/v3/sync/gse/plugin/process_v2/info/alive": {
+      "post": {
+        "summary": "同步指定主机上 V2 兼容插件的存活进程信息。",
+        "operationId": "Sync_SyncAlivePluginProcessV2Info",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncAlivePluginProcessV2InfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncAlivePluginProcessV2InfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/gse/plugin/process_v2/info/alive/all": {
+      "post": {
+        "summary": "同步全部主机上 V2 兼容插件的存活进程信息。",
+        "operationId": "Sync_SyncAllAlivePluginProcessV2Info",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllAlivePluginProcessV2InfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllAlivePluginProcessV2InfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/gse/plugin/process_v2/info/stopped": {
+      "post": {
+        "summary": "同步指定主机上 V2 兼容插件的已停止进程信息。",
+        "operationId": "Sync_SyncStoppedPluginProcessV2Info",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncStoppedPluginProcessV2InfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncStoppedPluginProcessV2InfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/gse/plugin/process_v2/info/stopped/all": {
+      "post": {
+        "summary": "同步全部主机上 V2 兼容插件的已停止进程信息。",
+        "operationId": "Sync_SyncAllStoppedPluginProcessV2Info",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllStoppedPluginProcessV2InfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllStoppedPluginProcessV2InfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
     "/api/v3/sync/plugin/ensure_default": {
       "post": {
         "summary": "EnsureDefaultPlugin ensures default plugins.",
@@ -1052,6 +1184,53 @@
         }
       }
     },
+    "v3SyncAlivePluginProcessV2InfoReq": {
+      "type": "object",
+      "properties": {
+        "host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": "host_ids 为待同步的主机 ID 列表。"
+        }
+      },
+      "title": "同步指定主机上 V2 兼容插件的存活进程信息。"
+    },
+    "v3SyncAlivePluginProcessV2InfoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncAlivePluginProcessV2InfoRespData"
+        }
+      },
+      "title": "同步任务创建结果，trigger_id 用于追踪工作流。"
+    },
+    "v3SyncAlivePluginProcessV2InfoRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
     "v3SyncAllAgentStateReq": {
       "type": "object",
       "description": "SyncAllAgentStateReq describes the HTTP request body when sync all agent\nstate."
@@ -1126,6 +1305,43 @@
         }
       }
     },
+    "v3SyncAllAlivePluginProcessV2InfoReq": {
+      "type": "object",
+      "title": "同步全部主机上 V2 兼容插件的存活进程信息。"
+    },
+    "v3SyncAllAlivePluginProcessV2InfoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncAllAlivePluginProcessV2InfoRespData"
+        }
+      },
+      "title": "同步任务创建结果，trigger_id 用于追踪工作流。"
+    },
+    "v3SyncAllAlivePluginProcessV2InfoRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
     "v3SyncAllStoppedPluginProcessInfoReq": {
       "type": "object",
       "description": "SyncAllStoppedPluginProcessInfoReq describes the HTTP request body when\nsyncing all stopped plugin process info."
@@ -1156,6 +1372,43 @@
       "description": "SyncAllStoppedPluginProcessInfoResp describes the HTTP response body when\nsyncing all stopped plugin process info."
     },
     "v3SyncAllStoppedPluginProcessInfoRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncAllStoppedPluginProcessV2InfoReq": {
+      "type": "object",
+      "title": "同步全部主机上 V2 兼容插件的已停止进程信息。"
+    },
+    "v3SyncAllStoppedPluginProcessV2InfoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncAllStoppedPluginProcessV2InfoRespData"
+        }
+      },
+      "title": "同步任务创建结果，trigger_id 用于追踪工作流。"
+    },
+    "v3SyncAllStoppedPluginProcessV2InfoRespData": {
       "type": "object",
       "properties": {
         "trigger_id": {
@@ -1396,6 +1649,53 @@
       "description": "SyncStoppedPluginProcessInfoResp describes the HTTP response body when\nsyncing stopped plugin process info."
     },
     "v3SyncStoppedPluginProcessInfoRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncStoppedPluginProcessV2InfoReq": {
+      "type": "object",
+      "properties": {
+        "host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": "host_ids 为待同步的主机 ID 列表。"
+        }
+      },
+      "title": "同步指定主机上 V2 兼容插件的已停止进程信息。"
+    },
+    "v3SyncStoppedPluginProcessV2InfoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncStoppedPluginProcessV2InfoRespData"
+        }
+      },
+      "title": "同步任务创建结果，trigger_id 用于追踪工作流。"
+    },
+    "v3SyncStoppedPluginProcessV2InfoRespData": {
       "type": "object",
       "properties": {
         "trigger_id": {
