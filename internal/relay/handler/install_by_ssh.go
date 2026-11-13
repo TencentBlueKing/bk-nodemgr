@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -71,8 +72,13 @@ func (h *handler) InstallPagentBySSH(nCtx contextx.IContext, payload []byte) {
 	defer func() { _ = client.Close() }()
 	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("connect to host successfully")
 
-	// ensure the workspace dir
-	stdoutResult, stderrResult, err := client.RunCommand("mkdir -p " + event.InstallerWorkDir)
+	// ensure the workspace dir; in sudo-mode the workdir is created via sudo and handed
+	// to the login user, with parent dirs opened so every user gets its own workspace.
+	prepareCmd := installer.EnsureUserWorkDirCmd(event.InstallerWorkDir)
+	if event.IsSudo {
+		prepareCmd = installer.SudoEnsureUserWorkDirCmd(event.InstallerWorkDir, event.User)
+	}
+	stdoutResult, stderrResult, err := client.RunCommand(prepareCmd)
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("dir", event.InstallerWorkDir).Error("failed to make dir")
 

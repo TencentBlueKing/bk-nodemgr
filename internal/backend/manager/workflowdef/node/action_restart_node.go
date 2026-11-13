@@ -239,11 +239,11 @@ func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionSta
 			Generation:        int(info.Host.Dynamic.NodeGeneration),
 			NodeRole:          string(info.Host.Dynamic.NodeRole),
 			BaseWorkDir:       info.InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  info.InstallerRuntime.OperateWorkDir,
 			BaseDeployDir:     info.BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: info.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  info.InstallerRuntime.HTTPProxyAddress,
 		},
-		InstallWorkDir:    info.InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
 		Force:             true,
 	}
@@ -271,8 +271,8 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > restart.sh && sh restart.sh`,
-			param.InstallWorkDir,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
+			param.InstallerWorkDir,
 			restartCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
@@ -306,7 +306,7 @@ func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeAc
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
 			restartCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{

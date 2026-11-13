@@ -301,10 +301,13 @@ func buildOfflineInstallScript(
 
 	params := &installer.NodeOfflineInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:         system.GetEnv(),
-			Generation:        int(deployInfo.Host.Dynamic.NodeGeneration),
-			NodeRole:          string(deployInfo.Host.Dynamic.NodeRole),
-			BaseWorkDir:       baseWorkDir,
+			DeployEnv:   system.GetEnv(),
+			Generation:  int(deployInfo.Host.Dynamic.NodeGeneration),
+			NodeRole:    string(deployInfo.Host.Dynamic.NodeRole),
+			BaseWorkDir: baseWorkDir,
+			// the offline bundle is executed manually by the login user, so it uses the
+			// login-channel workspace, not the GSE-channel one.
+			InstallerWorkDir:    deployInfo.InstallerRuntime.LoginWorkDir,
 			BaseDeployDir:     baseDeployDir,
 			HTTPProxyOverride: deployInfo.InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  deployInfo.InstallerRuntime.HTTPProxyAddress,

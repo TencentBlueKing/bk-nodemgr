@@ -93,6 +93,7 @@ func NewNodeCommand() *cobra.Command {
 	nodeCommand.PersistentFlags().IntP(nodeflag.Generation, nodeflag.GenerationS, int(types.Generation2), "the generation of this node, 1 or 2")
 	nodeCommand.PersistentFlags().String(nodeflag.BaseDeployDir, defaultBaseDeployDir(), "base deployed directory of this node, the deploy dir will be created under this directory with deploy-env")
 	nodeCommand.PersistentFlags().String(nodeflag.BaseWorkDir, defaultBaseWorkDir(), "base work directory of this node, the work dir will be created under this directory with deploy-env")
+	nodeCommand.PersistentFlags().String(nodeflag.WorkDir, "", "work directory of this node, overrides the default derived from base-work-dir and deploy-env")
 	nodeCommand.PersistentFlags().String(nodeflag.HTTPProxy, "",
 		"override the http proxy for all http requests in the installer, empty value means skipping the proxy")
 

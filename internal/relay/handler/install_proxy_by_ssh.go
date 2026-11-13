@@ -137,7 +137,14 @@ func (h *handler) prepareProxyInstallTarget(
 	}
 
 	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("connect to host successfully")
-	stdoutResult, stderrResult, err := client.RunCommand("mkdir -p " + configDir)
+
+	// ensure the workspace dir; in sudo-mode the workdir is created via sudo and handed
+	// to the login user, with parent dirs opened so every user gets its own workspace.
+	prepareCmd := installer.EnsureUserWorkDirCmd(event.InstallerWorkDir) + " && mkdir -p " + configDir
+	if event.IsSudo {
+		prepareCmd = installer.SudoEnsureUserWorkDirCmd(event.InstallerWorkDir, event.User) + " && mkdir -p " + configDir
+	}
+	stdoutResult, stderrResult, err := client.RunCommand(prepareCmd)
 	if err != nil {
 		_ = client.Close()
 

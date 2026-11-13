@@ -28,6 +28,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -172,7 +173,13 @@ func (act *actionInjectPluginCustomDeployConfig) Do(ctx *action.InstanceContext)
 
 	// installer workdir priority: user specified in info > network unit custom deploy config > deploy constant default.
 	std.DeployInfo().InstallerRuntime.BaseWorkDir = pluginConstant.BaseWorkDir
-	std.DeployInfo().InstallerRuntime.WorkDir = pluginConstant.GenerateWorkDir()
+	// plugin operations always run through the GSE channel, so the workdir is isolated
+	// under the operate user, away from the login user's install workspace.
+	operateUser, err := gse.DefaultOperateUser(host.Dynamic.NodeOsType)
+	if err != nil {
+		return fmt.Errorf("failed to get default operate user, os-type(%s): %w", host.Dynamic.NodeOsType, err)
+	}
+	std.DeployInfo().InstallerRuntime.OperateWorkDir = pluginConstant.GenerateWorkDir(operateUser.String())
 	std.DeployInfo().InstallerRuntime.HTTPProxyOverride = pluginConstant.HTTPProxyOverride
 	std.DeployInfo().InstallerRuntime.HTTPProxyAddress = pluginConstant.HTTPProxyAddress
 

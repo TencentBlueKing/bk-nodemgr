@@ -223,10 +223,11 @@ func (act *actionInstallNodeByWMI) installByWMI(std *nodeUtils.NodeActionStandar
 }
 
 func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *wmix.Client) error {
-	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+std.DeployInfo().InstallerRuntime.WorkDir)
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
+	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+workDir)
 	if err != nil {
 		return fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
-			std.DeployInfo().InstallerRuntime.WorkDir, stdout, stderr, err)
+			workDir, stdout, stderr, err)
 	}
 
 	std.InstanceData().Log().
@@ -265,13 +266,14 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 		}
 	}()
 
-	stdout, stderr, err := client.UploadFile(std.Context(), tmpInstallerFile.Path(), std.DeployInfo().InstallerRuntime.WorkDir)
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
+	stdout, stderr, err := client.UploadFile(std.Context(), tmpInstallerFile.Path(), workDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host, stdout(%s), stderr(%s): %w",
 			stdout, stderr, err)
 	}
 
-	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
+	installerPath := winpath.Clean(winpath.Join(workDir, toolName))
 	std.InstanceData().Log().
 		Zh("已传输安装器到主机, 路径(%s)", installerPath).
 		En("transferred installer to host, path(%s)", installerPath).
@@ -338,6 +340,7 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.LoginWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
@@ -382,12 +385,13 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		}
 	}()
 
-	_, _, err = client.UploadFile(std.Context(), tmpInstallBat.Path(), std.DeployInfo().InstallerRuntime.WorkDir)
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
+	_, _, err = client.UploadFile(std.Context(), tmpInstallBat.Path(), workDir)
 	if err != nil {
 		return fmt.Errorf("failed to transfer bat file for wmi execution: %w", err)
 	}
 
-	installCMD := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, installBatName))
+	installCMD := winpath.Clean(winpath.Join(workDir, installBatName))
 	stdout, stderr, err := client.RunSilentCommand(std.Context(), installCMD)
 	if err != nil {
 		return fmt.Errorf("failed to run install node: %w", err)

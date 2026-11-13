@@ -32,6 +32,10 @@ const (
 	// BaseWorkDir defines the base work dir flag.
 	BaseWorkDir = "base_work_dir"
 
+	// WorkDir defines the work dir flag. When set, it overrides the work dir derived from
+	// base_work_dir and deploy_env, so the orchestrator can isolate the workspace per user.
+	WorkDir = "work_dir"
+
 	// LogDir defines the log dir flag.
 	LogDir = "log_dir"
 

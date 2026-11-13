@@ -87,7 +87,8 @@ type Info struct {
 // InstallerRuntime this is the installer runtime for node deployment.
 type InstallerRuntime struct {
 	BaseWorkDir       string    `json:"base_work_dir" bson:"base_work_dir"`
-	WorkDir           string    `json:"work_dir" bson:"work_dir"`
+	LoginWorkDir      string    `json:"login_work_dir" bson:"login_work_dir"`
+	OperateWorkDir    string    `json:"operate_work_dir" bson:"operate_work_dir"`
 	HTTPProxyOverride bool      `json:"http_proxy_override" bson:"http_proxy_override"`
 	HTTPProxyAddress  string    `json:"http_proxy_address" bson:"http_proxy_address"`
 	Firewall          *Firewall `json:"firewall,omitempty" bson:"firewall,omitempty"`

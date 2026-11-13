@@ -115,7 +115,10 @@ type PluginDeploymentInfo struct {
 // PluginDeploymentInstallerRuntime this is the installer runtime for plugin deployment.
 type PluginDeploymentInstallerRuntime struct {
 	BaseWorkDir string
-	WorkDir     string
+	// OperateWorkDir is the installer workspace of the GSE channel, isolated under the
+	// operate user; plugin operations only run through the GSE channel, so there is no
+	// login workdir here. Named after the node deployment's OperateWorkDir for alignment.
+	OperateWorkDir string
 	// HTTPProxyOverride whether the installer overrides the target host's env proxy settings.
 	HTTPProxyOverride bool
 	// HTTPProxyAddress is the proxy URL applied when HTTPProxyOverride is true.

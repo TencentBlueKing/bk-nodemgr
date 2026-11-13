@@ -185,9 +185,9 @@ func (act *actionTransferPluginPkgToNodeV2) transferRelease(std *pluginV2Utils.P
 
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName)
+		dataDir = winpath.Join(info.InstallerRuntime.OperateWorkDir, "data", "plugin", "v2", info.Process.PluginPkgName)
 	} else {
-		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName)
+		dataDir = filepath.Join(info.InstallerRuntime.OperateWorkDir, "data", "plugin", "v2", info.Process.PluginPkgName)
 	}
 
 	std.InstanceData().Log().
@@ -256,7 +256,7 @@ func (act *actionTransferPluginPkgToNodeV2) transferInstaller(std *pluginV2Utils
 			OS:   targetHost.Dynamic.NodeOsType,
 			Arch: targetHost.Dynamic.NodeCPUArch,
 		},
-		info.InstallerRuntime.WorkDir,
+		info.InstallerRuntime.OperateWorkDir,
 		targetHost)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer installer, host-id(%d): %w", targetHost.HostID, err)
@@ -308,9 +308,9 @@ func (act *actionTransferPluginPkgToNodeV2) pushOfflinePluginConfig(
 
 	var configDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		configDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName, "config")
+		configDir = winpath.Join(info.InstallerRuntime.OperateWorkDir, "data", "plugin", "v2", info.Process.PluginPkgName, "config")
 	} else {
-		configDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", "v2", info.Process.PluginPkgName, "config")
+		configDir = filepath.Join(info.InstallerRuntime.OperateWorkDir, "data", "plugin", "v2", info.Process.PluginPkgName, "config")
 	}
 
 	if err := pluginV2Utils.CheckDirPathSafe(configDir, info.Process.Platform.OS); err != nil {

@@ -182,12 +182,15 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		return fmt.Errorf("failed to build download server urls: %w", err)
 	}
 
+	// manual install is executed by the login user, so use the login workdir.
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
+
 	// generate download URL and commands
 	var installerPath string
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
-		installerPath = winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
+		installerPath = winpath.Clean(winpath.Join(workDir, toolName))
 	} else {
-		installerPath = path.Clean(path.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
+		installerPath = path.Clean(path.Join(workDir, toolName))
 	}
 
 	// build install params
@@ -197,6 +200,7 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  workDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,

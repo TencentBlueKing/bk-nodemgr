@@ -80,6 +80,7 @@ func NewPluginCommand() *cobra.Command {
 	pluginCommand.PersistentFlags().String(pluginFlag.PluginPkgName, "", "plugin package name, this will be used to download the plugin package")
 	pluginCommand.PersistentFlags().String(pluginFlag.BaseDeployDir, defaultBaseDeployDir(), "base deployed directory of this node, the deploy dir will be created under this directory with deploy-env")
 	pluginCommand.PersistentFlags().String(pluginFlag.BaseWorkDir, defaultBaseWorkDir(), "base work directory of this node, the work dir will be created under this directory with deploy-env")
+	pluginCommand.PersistentFlags().String(pluginFlag.WorkDir, "", "work directory of this plugin operation, overrides the default derived from base-work-dir and deploy-env")
 	pluginCommand.PersistentFlags().String(pluginFlag.HTTPProxy, "",
 		"override the http proxy for all http requests in the installer, empty value means skipping the proxy")
 

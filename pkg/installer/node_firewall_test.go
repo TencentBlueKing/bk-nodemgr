@@ -95,16 +95,16 @@ func TestNodeOfflineInstallParamsFirewallArgs(t *testing.T) {
 
 func TestNodeLifecycleParamsFirewallArgs(t *testing.T) {
 	common := NodeCommonParams{
-		DeployEnv:     "test",
-		Generation:    2,
-		NodeRole:      "agent",
-		BaseWorkDir:   "/var/lib",
-		BaseDeployDir: "/opt",
+		DeployEnv:        "test",
+		Generation:       2,
+		NodeRole:         "agent",
+		BaseWorkDir:      "/var/lib",
+		BaseDeployDir:    "/opt",
+		InstallerWorkDir: "/tmp",
 	}
 
 	upgrade := &NodeUpgradeParams{
 		NodeCommonParams:  common,
-		InstallWorkDir:    "/tmp",
 		InstallerFileName: "installer",
 		CallbackSvrAddr:   "http://127.0.0.1",
 		DeployToken:       "token",
@@ -115,7 +115,6 @@ func TestNodeLifecycleParamsFirewallArgs(t *testing.T) {
 	}
 	reconfig := &NodeReconfigParams{
 		NodeCommonParams:  common,
-		InstallWorkDir:    "/tmp",
 		InstallerFileName: "installer",
 		CallbackSvrAddr:   "http://127.0.0.1",
 		DeployToken:       "token",
@@ -125,7 +124,6 @@ func TestNodeLifecycleParamsFirewallArgs(t *testing.T) {
 	}
 	uninstall := &NodeUninstallParams{
 		NodeCommonParams:  common,
-		InstallWorkDir:    "/tmp",
 		InstallerFileName: "installer",
 		CallbackSvrAddr:   "http://127.0.0.1",
 		DeployToken:       "token",

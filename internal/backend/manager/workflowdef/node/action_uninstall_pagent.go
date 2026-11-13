@@ -165,11 +165,11 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) (err error) {
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
-		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
 		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
@@ -213,8 +213,8 @@ func (act *actionUninstallPagent) doUninstallUnix(std *nodeUtils.NodeActionStand
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > uninstall.sh && sh uninstall.sh`,
-			param.InstallWorkDir,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
+			param.InstallerWorkDir,
 			uninstallCmd),
 		uninstallPagentScriptTimeout,
 		&types.EndpointWithAuth{
@@ -248,7 +248,7 @@ func (act *actionUninstallPagent) doUninstallWindows(std *nodeUtils.NodeActionSt
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
 			uninstallCmd),
 		uninstallPagentScriptTimeout,
 		&types.EndpointWithAuth{

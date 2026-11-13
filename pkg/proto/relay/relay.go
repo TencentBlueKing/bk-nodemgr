@@ -223,6 +223,11 @@ type InstallPagentBySSHReq struct {
 	InstallerWorkDir string `json:"installer_work_dir"`
 	ToolsName        string `json:"tools_name"`
 	InstallerCmd     string `json:"installer_cmd"`
+
+	// IsSudo marks sudo-mode install: the workdir is prepared via sudo (created as root,
+	// handed to the login user, parents opened to 1777) before transferring files as the
+	// login user. False means the legacy direct prepare.
+	IsSudo bool `json:"is_sudo,omitempty"`
 }
 
 // InstallPagentByWindowsSSHReq defines the install pagent by windows ssh request.
@@ -260,6 +265,11 @@ type InstallProxyBySSHReq struct {
 	ReleaseName      string `json:"release_name"`
 	Token            string `json:"token"`
 	InstallerCmd     string `json:"installer_cmd"`
+
+	// IsSudo marks sudo-mode install: the workdir is prepared via sudo (created as root,
+	// handed to the login user, parents opened to 1777) before transferring files as the
+	// login user. False means the legacy direct prepare.
+	IsSudo bool `json:"is_sudo,omitempty"`
 }
 
 // InstallPagentByWMIReq defines the install pagent by wmi request.

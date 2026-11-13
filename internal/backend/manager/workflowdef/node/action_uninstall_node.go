@@ -246,11 +246,11 @@ func (act *actionUninstallNodeBase) buildUninstallParamsBase(
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
 		},
-		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
 		DeployToken:       std.Token(),
 		OperInstID:        std.InstanceData().OperationInstanceID,
@@ -286,8 +286,8 @@ func (act *actionUninstallNodeBase) doUninstallUnix(
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > uninstall.sh && sh uninstall.sh`,
-			param.InstallWorkDir,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
+			param.InstallerWorkDir,
 			uninstallCmd),
 		uninstallScriptTimeout,
 		&types.EndpointWithAuth{
@@ -323,7 +323,7 @@ func (act *actionUninstallNodeBase) doUninstallWindows(
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallWorkDir,
+			param.InstallerWorkDir,
 			uninstallCmd),
 		uninstallScriptTimeout,
 		&types.EndpointWithAuth{

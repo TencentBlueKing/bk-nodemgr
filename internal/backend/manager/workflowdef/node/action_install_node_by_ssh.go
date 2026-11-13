@@ -267,7 +267,7 @@ func (act *actionInstallNodeBySSH) ensureProxyArtifacts(std *nodeUtils.NodeActio
 		return fmt.Errorf("failed to get node conf: %w", err)
 	}
 
-	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
+	dataDir := path.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, "data")
 	configDir := path.Join(dataDir, "config")
 	if _, stderr, err := client.RunCommand("mkdir -p " + configDir); err != nil {
 		return fmt.Errorf("failed to mkdir config dir, stderr(%s): %w", stderr, err)
@@ -358,7 +358,7 @@ func (act *actionInstallNodeBySSH) pushProxyReleasePackage(std *nodeUtils.NodeAc
 		return fmt.Errorf("failed to get release package: %w", err)
 	}
 
-	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
+	dataDir := path.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, "data")
 	remotePath := path.Join(dataDir, installerPkgName)
 	if err := client.TransferFile(reader, remotePath); err != nil {
 		return fmt.Errorf("failed to transfer release package: %w", err)
@@ -424,12 +424,15 @@ func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeUtils.NodeActionSt
 func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 
+	// ssh-only proxy install runs through the login channel, so use the login workdir.
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
 			DeployEnv:         system.GetEnv(),
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  workDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
@@ -463,8 +466,8 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 
 	outStr, _, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		std.DeployInfo().InstallerRuntime.WorkDir,
-		std.DeployInfo().InstallerRuntime.WorkDir,
+		workDir,
+		workDir,
 		installCmd),
 	)
 	if err != nil {
@@ -480,10 +483,16 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 }
 
 func (act *actionInstallNodeBySSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
-	if _, stderr, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerRuntime.WorkDir); err != nil {
-		err = fmt.Errorf("failed to run command. command(mkdir -p %s), stderr(%s): %w", std.DeployInfo().InstallerRuntime.WorkDir, stderr, err)
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
+	// in sudo-mode the workdir is created via sudo and handed to the login user, with
+	// parent dirs opened so every user gets its own workspace.
+	prepareCmd := installer.EnsureUserWorkDirCmd(workDir)
+	if std.DeployInfo().InstallOptions.IsSudo {
+		prepareCmd = installer.SudoEnsureUserWorkDirCmd(workDir, std.DeployInfo().Host.Dynamic.LoginUser)
+	}
 
-		return err
+	if _, stderr, err := client.RunCommand(prepareCmd); err != nil {
+		return fmt.Errorf("failed to run command. command(%s), stderr(%s): %w", prepareCmd, stderr, err)
 	}
 
 	return nil
@@ -503,7 +512,7 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 
 	// TransferFile accepts io.ReadCloser and closes it via its own defer,
 	// so we must not close toolReader here to avoid a double-close.
-	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
+	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, toolName))
 	if err = client.TransferFile(toolReader, installerPath); err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host: %w", err)
 	}
@@ -564,6 +573,8 @@ func (act *actionInstallNodeBySSH) openInstallerReader(std *nodeUtils.NodeAction
 }
 
 func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
+	// direct SSH install runs through the login channel, so use the login workdir.
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
 	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
 	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
@@ -580,6 +591,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  workDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,
@@ -614,8 +626,8 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 	// exec install command.
 	outStr, stderr, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		std.DeployInfo().InstallerRuntime.WorkDir,
-		std.DeployInfo().InstallerRuntime.WorkDir,
+		workDir,
+		workDir,
 		installCmd),
 	)
 	if err != nil {

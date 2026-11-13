@@ -111,13 +111,21 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, fmt.Errorf("%s is empty", nodeflag.DeployEnv)
 	}
 
+	workDir, err := cmd.Flags().GetString(nodeflag.WorkDir)
+	if err != nil {
+		return nil, err
+	}
+	if workDir == "" {
+		workDir = filepath.Join(baseWorkDir, deployEnv)
+	}
+
 	return &Variables{
 		Generation: types.Generation(generation),
 		NodeRole:   types.NodeRole(nodeRole),
 		DeployEnv:  deployEnv,
 		DeployDir:  filepath.Join(baseDeployDir, deployEnv),
-		WorkDir:    filepath.Join(baseWorkDir, deployEnv),
-		DataDir:    filepath.Join(baseWorkDir, deployEnv, "data"),
-		ConfigDir:  filepath.Join(baseWorkDir, deployEnv, "data", "config"),
+		WorkDir:    workDir,
+		DataDir:    filepath.Join(workDir, "data"),
+		ConfigDir:  filepath.Join(workDir, "data", "config"),
 	}, nil
 }

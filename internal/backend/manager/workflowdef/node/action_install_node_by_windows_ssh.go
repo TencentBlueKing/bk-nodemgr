@@ -272,7 +272,7 @@ func (act *actionInstallNodeByWindowsSSH) newWindowsSSHClient(std *nodeUtils.Nod
 }
 
 func (act *actionInstallNodeByWindowsSSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
-	workDir := std.DeployInfo().InstallerRuntime.WorkDir
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
 	command := buildPowerShellCommand(fmt.Sprintf(
 		"New-Item -ItemType Directory -Force -Path %s | Out-Null",
 		powerShellSingleQuote(workDir),
@@ -304,7 +304,7 @@ func (act *actionInstallNodeByWindowsSSH) ensureInstallerTool(std *nodeUtils.Nod
 		return "", err
 	}
 
-	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
+	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, toolName))
 	if err = client.TransferFile(content, windowsSSHTransferPath(installerPath)); err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host: %w", err)
 	}
@@ -394,7 +394,7 @@ func (act *actionInstallNodeByWindowsSSH) ensureCygwinWorkspace(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client,
 ) error {
 
-	workDir := winpath.ToSlash(winpath.Clean(std.DeployInfo().InstallerRuntime.WorkDir))
+	workDir := winpath.ToSlash(winpath.Clean(std.DeployInfo().InstallerRuntime.LoginWorkDir))
 	command := fmt.Sprintf("mkdir -p %s", shellDoubleQuote(workDir))
 
 	stdout, stderr, err := client.RunCommand(command)
@@ -430,12 +430,13 @@ func (act *actionInstallNodeByWindowsSSH) prepareNativeInstallCommand(
 		En("install node cmd: %s", installBat).
 		Info()
 
-	installBatPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, installBatName))
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
+	installBatPath := winpath.Clean(winpath.Join(workDir, installBatName))
 	if err := client.TransferFile(io.NopCloser(strings.NewReader(installBat)), windowsSSHTransferPath(installBatPath)); err != nil {
 		return "", fmt.Errorf("failed to transfer bat file for windows ssh execution: %w", err)
 	}
 
-	return buildWindowsSSHNativeInstallCommand(std.DeployInfo().InstallerRuntime.WorkDir, installBatPath), nil
+	return buildWindowsSSHNativeInstallCommand(workDir, installBatPath), nil
 }
 
 func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
@@ -456,12 +457,13 @@ func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
 		En("cygwin install node cmd: %s", installShell).
 		Info()
 
-	installShellPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, installShellName))
+	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
+	installShellPath := winpath.Clean(winpath.Join(workDir, installShellName))
 	if err := client.TransferFile(io.NopCloser(strings.NewReader(installShell)), windowsSSHTransferPath(installShellPath)); err != nil {
 		return "", fmt.Errorf("failed to transfer shell file for cygwin windows ssh execution: %w", err)
 	}
 
-	return buildWindowsSSHCygwinInstallCommand(std.DeployInfo().InstallerRuntime.WorkDir), nil
+	return buildWindowsSSHCygwinInstallCommand(workDir), nil
 }
 
 func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
@@ -484,6 +486,7 @@ func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
 			Generation:        int(std.DeployInfo().Host.Dynamic.NodeGeneration),
 			NodeRole:          string(std.DeployInfo().Host.Dynamic.NodeRole),
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.LoginWorkDir,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			HTTPProxyOverride: std.DeployInfo().InstallerRuntime.HTTPProxyOverride,
 			HTTPProxyAddress:  std.DeployInfo().InstallerRuntime.HTTPProxyAddress,

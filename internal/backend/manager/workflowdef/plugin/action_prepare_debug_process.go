@@ -154,7 +154,7 @@ func buildDebugCommand(std *pluginUtils.PluginActionStandarder, debugAction stri
 
 	params := &installer.PluginDebugParams{
 		PluginCommonParams: installer.PluginCommonParams{
-			InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
+			InstallerWorkDir:  std.DeployInfo().InstallerRuntime.OperateWorkDir,
 			InstallerFileName: installerFileName,
 			BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
 			BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
