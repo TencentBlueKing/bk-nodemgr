@@ -220,7 +220,6 @@ func (params *PluginV2InstallParams) Validate() error {
 func (params *PluginV2InstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginV2FlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginV2FlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginName, params.PluginName),
@@ -370,7 +369,6 @@ func (params *PluginV2UpgradeParams) Validate() error {
 func (params *PluginV2UpgradeParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginV2FlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginV2FlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginName, params.PluginName),
@@ -477,7 +475,6 @@ func (params *PluginV2UninstallParams) Validate() error {
 func (params *PluginV2UninstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginV2FlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginV2FlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginV2FlagPluginName, params.PluginName),

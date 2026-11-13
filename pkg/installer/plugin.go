@@ -283,7 +283,6 @@ func validateInstallCPULimit(limit float64) error {
 func (params *PluginInstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginFlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", pluginFlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginFlagPluginName, params.PluginName),
@@ -440,7 +439,6 @@ func (params *PluginUpgradeParams) Validate() error {
 func (params *PluginUpgradeParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginFlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", pluginFlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginFlagPluginName, params.PluginName),
@@ -567,7 +565,6 @@ func (params *PluginUninstallParams) Validate() error {
 func (params *PluginUninstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, params.BaseDeployDir),
-		fmt.Sprintf("--%s %s", pluginFlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", pluginFlagWorkDir, params.InstallerWorkDir),
 		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginFlagPluginName, params.PluginName),

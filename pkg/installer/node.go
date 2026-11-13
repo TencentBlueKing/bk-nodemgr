@@ -194,7 +194,6 @@ func (params *NodeCommonParams) buildArgs() []string {
 		fmt.Sprintf("--%s %s", nodeFlagDeployEnv, params.DeployEnv),
 		fmt.Sprintf("--%s %d", nodeFlagGeneration, params.Generation),
 		fmt.Sprintf("--%s %s", nodeFlagNodeRole, params.NodeRole),
-		fmt.Sprintf("--%s %s", nodeFlagBaseWorkDir, params.BaseWorkDir),
 		fmt.Sprintf("--%s %s", nodeFlagBaseDeployDir, params.BaseDeployDir),
 	}
 	if params.HTTPProxyOverride {

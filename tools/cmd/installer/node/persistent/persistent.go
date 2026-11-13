@@ -95,14 +95,6 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, fmt.Errorf("%s is empty", nodeflag.BaseDeployDir)
 	}
 
-	baseWorkDir, err := cmd.Flags().GetString(nodeflag.BaseWorkDir)
-	if err != nil {
-		return nil, err
-	}
-	if baseWorkDir == "" {
-		return nil, fmt.Errorf("%s is empty", nodeflag.BaseWorkDir)
-	}
-
 	deployEnv, err := cmd.Flags().GetString(nodeflag.DeployEnv)
 	if err != nil {
 		return nil, err
@@ -116,7 +108,7 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, err
 	}
 	if workDir == "" {
-		workDir = filepath.Join(baseWorkDir, deployEnv)
+		return nil, fmt.Errorf("%s is empty", nodeflag.WorkDir)
 	}
 
 	return &Variables{
