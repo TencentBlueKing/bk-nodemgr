@@ -24,7 +24,7 @@
     {
       "id": 5,
       "prompt": "准备 v3.1.0 的发布说明和 Full Changelog 链接，这个能直接写到 docs/operation 里吗？",
-      "expected_output": "Treats versioned release notes as support-files/changelog/{zh,en}, not normal docs, and hands off writing to changelog-doc or release-version-alignment when version alignment is involved."
+      "expected_output": "Treats versioned release notes as support-files/changelog/{zh,en}, not normal docs, and hands off writing to bk-nodemgr-changelog-doc or release-version-alignment when version alignment is involved."
     },
     {
       "id": 6,

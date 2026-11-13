@@ -80,7 +80,7 @@ Classify by reason-to-change:
 | Human needs a stable entrypoint or usage overview                                          | `README.md`                                                                    |
 | Content explains durable domain, architecture, operation, integration, or support behavior | concrete `docs/<subarea>`                                                      |
 | Content is API Gateway endpoint reference                                                  | `apigw/apidocs/{zh,en}` and `api-doc` handoff                                  |
-| Content is versioned changelog or release note                                             | `support-files/changelog/{zh,en}` and `changelog-doc` handoff                  |
+| Content is versioned changelog or release note                                             | `support-files/changelog/{zh,en}` and `bk-nodemgr-changelog-doc` handoff       |
 | Content is a reusable project agent workflow                                               | `.agents/skills/<name>`                                                        |
 | Content changes which project skills to load                                               | `.agents/skills/bk-nodemgr-how-to/SKILL.md` only when routing semantics change |
 | Content is temporary plan, progress, or unfinished status                                  | issue/task/plan/conversation, not README/docs as durable truth                 |
@@ -120,7 +120,7 @@ This skill decides placement and synchronization boundaries. When actual writing
 - scoped `AGENTS.md`: `.agents/skills/scoped-agentsmd/SKILL.md`
 - Code-directory README: `.agents/skills/bk-nodemgr-code-readme/SKILL.md`
 - Proto API Gateway reference docs: `.agents/skills/api-doc/SKILL.md`
-- changelog or release notes: `.agents/skills/changelog-doc/SKILL.md`
+- changelog or release notes: `.agents/skills/bk-nodemgr-changelog-doc/SKILL.md`
 - release version alignment: `.agents/skills/release-version-alignment/SKILL.md`
 
 ## Conflict Resolution
@@ -177,7 +177,7 @@ bk-nodemgr 锚点：
 | Putting agent-only instructions in README                         | Put them in root or scoped `AGENTS.md`, or a skill if they are a reusable workflow                   |
 | Putting durable concepts in `AGENTS.md`                           | Put them in the concrete `docs/<subarea>` and link from rules only if agents must know where to look |
 | Putting API Gateway reference pages under `docs/api/`             | Use `apigw/apidocs/{zh,en}` and hand off to `api-doc`                                                |
-| Putting release notes under normal docs                           | Use `support-files/changelog/{zh,en}` and hand off to `changelog-doc`                                |
+| Putting release notes under normal docs                           | Use `support-files/changelog/{zh,en}` and hand off to `bk-nodemgr-changelog-doc`                     |
 | Making every repeated note a skill                                | Require trigger, workflow, output contract, validation, and repeated reuse                           |
 | Updating `bk-nodemgr-how-to` for every new skill                  | Update only when routing semantics change                                                            |
 | Recommending scoped `AGENTS.md` without reading `scoped-agentsmd` | Read the scoped AGENTS workflow first                                                                |

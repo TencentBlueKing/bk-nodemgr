@@ -1,5 +1,5 @@
 {
-  "skill_name": "changelog-doc",
+  "skill_name": "bk-nodemgr-changelog-doc",
   "evals": [
     {
       "id": 1,
@@ -18,12 +18,12 @@
       "id": 2,
       "eval_name": "release-note-from-change-facts",
       "prompt": "我准备发一个版本，变更包括：优化 Linux Agent 安装速度；修复 Windows 插件下发失败；新增插件包校验；要求补一份发布说明。请按 bk-nodemgr 风格生成 changelog。",
-      "expected_output": "A concrete release note that classifies the supplied facts into feature/optimization/fix sections and includes release scope plus compatibility considerations.",
+      "expected_output": "A reader-facing draft that classifies supplied change leads into feature/optimization/fix sections without inventing release attribution or compatibility; missing version, date, range, and prerequisites are reported separately to the author, with no final file written.",
       "files": [],
       "expectations": [
         "Output classifies the supplied facts into feature, optimization, and fix style sections instead of listing them flatly.",
         "Output identifies the affected release scope, including Agent, Plugin, or Package when relevant.",
-        "Output includes compatibility-impact framing rather than only restating implementation changes.",
+        "Output reports unverified compatibility and release-window details separately to the author, does not invent conclusions, and does not write a final release file.",
         "Output uses release-facing wording instead of raw engineering detail."
       ]
     },
@@ -64,6 +64,44 @@
         "Link text uses the exact same `from-tag...to-tag` range as the URL target.",
         "Output keeps the compare range as `v3.0.1-alpha.15...v3.0.1-alpha.16` without rewriting or truncating it.",
         "If the range is uncertain, the skill reports the link gap to the author instead of putting `待确认` in the document; a planned target-tag link is verified at the publication gate."
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "frontend-only-bilingual-release",
+      "prompt": "为 bk-nodemgr 写一个仅 Application/Frontend 变化的双语 changelog 模板，不要落盘。请先列出应读取的本地规则和格式锚点，说明 zh/en 标题、文件名、风险及条目的一致性要求，再给出两种语言的空骨架。不要把无关 Agent/Plugin 变更或兼容性结论补进去。",
+      "expected_output": "Uses local changelog pairs and glossary, recognizes Application/Frontend as an independent release scope, and provides matching zh/en skeletons without invented release facts.",
+      "files": [],
+      "expectations": [
+        "Reads applicable AGENTS.md and at least one same-version zh/en pair plus a comparable release, not IAM or API reference templates.",
+        "Uses Application/Frontend for the affected scope rather than classifying frontend-only changes as Backend or Installer.",
+        "Uses the locale-specific heading mapping, including Release scope, New features, Improvements, and Bug fixes where retained.",
+        "Requires identical version/date filenames, compare ranges, facts, risks, prerequisites, and actions across locales; no files are written."
+      ]
+    },
+    {
+      "id": 7,
+      "eval_name": "exclude-version-and-publish-operations",
+      "prompt": "本次只核对 bk-nodemgr Helm 版本字段，然后准备创建 GitHub Release/tag；我没有要求编写 changelog。这个 changelog skill 应如何划分职责？不要修改文件，也不要执行发布。另一个仓库的 release note 能否直接套用它？",
+      "expected_output": "Routes pure version alignment to release-version-alignment, excludes other projects and publish operations, and does not generate changelog or treat writing as authorization to publish.",
+      "files": [],
+      "expectations": [
+        "Identifies this skill as bk-nodemgr-only Markdown authoring/review, not a generic cross-project release skill.",
+        "Hands version alignment to release-version-alignment without generating unsolicited changelog.",
+        "Does not create, push, move tags, or publish a GitHub Release or Helm chart."
+      ]
+    },
+    {
+      "id": 8,
+      "eval_name": "head-is-not-release-attribution",
+      "prompt": "HEAD 已经有插件 V3 子配置组合能力，直接记到目标版本 v3.0.1-alpha.107 的正式双语 changelog。起止 tag、日期和升级要求还没核实，先按今天补齐，写入 support-files/changelog/{zh,en}/，顺手更新 Helm 镜像 tag。请判断并给出安全交付方式；不要实际改文件。",
+      "expected_output": "Rejects invented release attribution/date and scope expansion, keeps any supported draft outside publication paths, and separates author verification from reader content.",
+      "files": [],
+      "expectations": [
+        "Explains that presence in HEAD does not establish introduction in the target release window.",
+        "Does not infer the release date from today or invent tags, compatibility, or upgrade requirements.",
+        "Keeps essential gaps in author handoff, outside reader body, footnotes, frontmatter, and final publication paths.",
+        "Leaves Helm and image tags to release-version-alignment rather than modifying them as part of changelog writing."
       ]
     }
   ]

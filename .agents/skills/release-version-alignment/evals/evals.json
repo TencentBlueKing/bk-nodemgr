@@ -156,7 +156,7 @@
       {
         "scenario": "验证发现 localized changelog 缺失",
         "input": "complete release verification finds no support-files/changelog/en/v3.0.1-alpha.40_*.md or zh counterpart",
-        "expected_action": "stop workflow, delegate to changelog-doc skill to generate localized versioned changelog files, wait for user confirmation, then resume verification",
+        "expected_action": "stop workflow, delegate to bk-nodemgr-changelog-doc skill to generate localized versioned changelog files, wait for user confirmation, then resume verification",
         "reason": "complete release requires zh/en versioned changelog files, not release.md"
       },
       {
@@ -210,7 +210,7 @@
       },
       {
         "aspect": "changelog handling",
-        "expected": "delegate to changelog-doc skill when localized changelog files are missing, wait for user confirmation",
+        "expected": "delegate to bk-nodemgr-changelog-doc skill when localized changelog files are missing, wait for user confirmation",
         "anti_pattern": "skip changelog check or write release.md as the default target"
       }
     ]

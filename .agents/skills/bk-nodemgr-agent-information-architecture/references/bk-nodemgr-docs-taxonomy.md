@@ -55,7 +55,7 @@ Choose this target when the content is:
 - a Full Changelog link
 - zh/en changelog page content
 
-Hand off actual writing to `.agents/skills/changelog-doc/SKILL.md`. Use `.agents/skills/release-version-alignment/SKILL.md` when the task is preparing or validating a release version.
+Hand off actual writing to `.agents/skills/bk-nodemgr-changelog-doc/SKILL.md`. Use `.agents/skills/release-version-alignment/SKILL.md` when the task is preparing or validating a release version.
 
 Do not choose normal docs for release notes unless the user is writing a durable release process guide rather than a specific version artifact.
 
