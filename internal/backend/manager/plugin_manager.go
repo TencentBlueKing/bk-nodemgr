@@ -183,6 +183,132 @@ func (mgr *Manager) getPluginInstallOperationDef(
 	})
 }
 
+// LaunchInstallPluginNoStart launch a task to install plugin package without starting the plugin process.
+// It returns the workflow-id.
+func (mgr *Manager) LaunchInstallPluginNoStart(
+	nCtx contextx.IContext,
+	param types.InstallPluginParam,
+) (string, error) {
+
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginInstallMaxConcurrencyNum,
+		globalsettings.OperPluginInstallMaxConcurrencyNumDefault,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		HostIDs:         param.HostIDs,
+		BizIDs:          param.BizIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StoragePlugin.UpdatePluginWorkflowStatus(nCtx, workflowID, types.PluginWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark plugin workflow as failed after launch failure")
+		}
+	}()
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+
+		gp.Go(func() error {
+			return mgr.createInstallPluginNoStartOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch install plugin no start task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	needRollback = false
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createInstallPluginNoStartOper(
+	nCtx contextx.IContext,
+	operator string,
+	triggerCtl workflow.ITriggerCtl,
+	deploy *types.PluginDeployment,
+) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPluginInstallNoStartOperationDef(deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to launch install plugin no start task.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("plugin-token", deploy.Token).
+		Info("launched install plugin no start task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPluginInstallNoStartOperationDef(
+	deploy *types.PluginDeployment,
+	operator string,
+) operation.Definition {
+
+	return plugin.NewOperInstallPluginNoStart(plugin.OperParamInstallPluginNoStart{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
+}
+
 // LaunchUpgradePlugin launch a task to upgrade plugin. returns the workflow-id.
 func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.UpgradePluginParam) (string, error) {
 	triggerCtl, err := mgr.createOrderedPluginTrigger(

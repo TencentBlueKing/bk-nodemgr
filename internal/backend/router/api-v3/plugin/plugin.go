@@ -73,6 +73,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/install", restserver.Handler(h.Install))
+	h.rg.POST("/install_no_start", restserver.Handler(h.InstallNoStart))
 	h.rg.POST("/upgrade", restserver.Handler(h.Upgrade))
 	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))
 	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))

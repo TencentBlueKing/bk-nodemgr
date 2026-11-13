@@ -1057,3 +1057,80 @@ func (x *PluginStopReq) GetHostIDs() []int64 {
 		return item.GetBkHostId()
 	})
 }
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginInstallNoStartReq_InstallInfo) Validate() error {
+	if x.GetBkHostId() <= 0 {
+		return errors.New("bk_host_id must be positive")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginInstallNoStartReq_InstallInfo) AutoConvert() {}
+
+// Validate check body.
+func (x *PluginInstallNoStartReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginInstallNoStartReq) AutoConvert() {}
+
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
+func (x *PluginInstallNoStartReq) ConvertParamToTypesWithHostTopoMapping(
+	hostTopoMapping map[int64]types.HostTopoRelation,
+) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginInstallNoStartReq_InstallInfo) *types.PluginDeploymentParam {
+		var customSpec *types.PluginSpec
+		if plugin.GetCustomSpec() != nil {
+			customSpec = &types.PluginSpec{
+				Resource: types.ProcessResource{
+					CPULimitPercent: plugin.GetCustomSpec().GetResource().GetCpuLimitPercent(),
+					MemLimitPercent: plugin.GetCustomSpec().GetResource().GetMemLimitPercent(),
+				},
+				MonitorPolicy: types.ProcessMonitorPolicy{
+					RestartType:    types.ProcessRestartType(plugin.GetCustomSpec().GetMonitorPolicy().GetRestartType()),
+					StartCheckSecs: plugin.GetCustomSpec().GetMonitorPolicy().GetStartCheckSeconds(),
+					StopCheckSecs:  plugin.GetCustomSpec().GetMonitorPolicy().GetStopCheckSeconds(),
+					OpTimeoutSecs:  plugin.GetCustomSpec().GetMonitorPolicy().GetOperateTimeoutSeconds(),
+				},
+			}
+		}
+
+		return &types.PluginDeploymentParam{
+			HostID:              plugin.GetBkHostId(),
+			BizID:               hostTopoMapping[plugin.GetBkHostId()].BizID,
+			PluginName:          plugin.GetPluginName(),
+			Version:             plugin.GetVersion(),
+			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
+			CustomSpec:          customSpec,
+			// The plugin is installed from scratch, so the installer must not restore the sub configs of a previous installation.
+			RenewSubConfig: true,
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginInstallNoStartReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginInstallNoStartReq_InstallInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
