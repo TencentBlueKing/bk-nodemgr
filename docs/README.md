@@ -12,6 +12,10 @@
 
 存放 bk-nodemgr 相关的概念文档。
 
+### [slides](slides)
+
+存放 bk-nodemgr 产品介绍幻灯片（单文件 HTML，浏览器直接打开演示）。
+
 ### [img](img)
 
 存放 bk-nodemgr 相关的图片。
