@@ -4,4 +4,4 @@
 
 ## 问题排查
 
-- [SSH 连接失败](troubleshooting/ssh-connection-failed.md)
+- [Unix SSH 连接失败](troubleshooting/unix-ssh-connection-failed.md)

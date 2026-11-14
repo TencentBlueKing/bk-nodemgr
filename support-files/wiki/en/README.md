@@ -4,4 +4,4 @@ Use these guides to resolve problems encountered while using Node Manager.
 
 ## Troubleshooting
 
-- [SSH connection failures](troubleshooting/ssh-connection-failed.md)
+- [Unix SSH connection failures](troubleshooting/unix-ssh-connection-failed.md)

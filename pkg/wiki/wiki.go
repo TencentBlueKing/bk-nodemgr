@@ -65,8 +65,8 @@ func (document Document) En() string {
 	return URL(document, LanguageEn)
 }
 
-// SSHConnectionFailed explains how to troubleshoot SSH connection failures.
-const SSHConnectionFailed Document = "troubleshooting/ssh-connection-failed.md"
+// UnixSSHConnectionFailed explains how to troubleshoot Unix SSH connection failures.
+const UnixSSHConnectionFailed Document = "troubleshooting/unix-ssh-connection-failed.md"
 
 // Config defines the inputs used to build product Wiki links.
 type Config struct {
