@@ -12,7 +12,7 @@
 |Where to look:collection+document contract+unique key:table.go:{TableName,Data,UniqueFields,UniqueKey}
 |Where to look:BSON field keys:constants.go:{FieldKeyUploadID,FieldKeySavedName,FieldKeyCategory}
 |Where to look:shared Mongo rules:pkg/dao/mongo/base/AGENTS.md|peer refs:pkg/dao/mongo/{release,host,packageevent}/AGENTS.md
-|Where to look:callers:internal/file/storage/upload:{storage.go,iface.go,dao_*.go}|internal/file/periodictask/clean_packages.go binding check
+|Where to look:callers:internal/file/storage/upload:{storage.go,iface.go,dao_*.go}|internal/file/manager/cleanup.go binding check
 |Conventions:upload collections are category-wide and shared across tenants|never filter them by tenant or infer record ownership from saved names
 |Conventions:distinct projections live in IDistinctor and are named `Distinct<Field>`|mirrored from pkg/dao/mongo/{release,host,packageevent}
 |Conventions:DistinctSavedName skips an empty candidate list instead of widening the filter into a full scan

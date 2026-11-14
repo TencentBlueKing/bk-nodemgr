@@ -8,7 +8,7 @@
 |Where to look:contracts:proto/file/api/v3/_.proto:source of truth for request/response fields and RPC contracts
 |Where to look:generated files:pkg/proto/file/api/v3/_.pb.go:read-only generated artifacts
 |Where to look:shared helpers:pkg/proto/file/api/v3:{common.go}
-|Where to look:domain helpers:pkg/proto/file/api/v3:{download.go,upload.go,publish.go,transfer.go}|info/export wire models live only in _.pb.go (no handwritten domain helper)
+|Where to look:domain helpers:pkg/proto/file/api/v3:{cleanup.go,download.go,upload.go,publish.go,transfer.go}|info/export wire models live only in _.pb.go (no handwritten domain helper)
 |Where to look:usage guide:pkg/proto/file/api/v3/README.md:proto lifecycle confinement and package intent
 |Conventions:edit handwritten .go files only unless contract changes require proto edit+regen
 |Conventions:proto lifecycle stays here=proto→pkg/types before business logic|pkg/types→proto for responses
