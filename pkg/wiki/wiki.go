@@ -44,6 +44,27 @@ const (
 // Paths are shared link contracts and must remain stable after publication.
 type Document string
 
+// IURL provides a document URL for every supported Wiki language.
+// Adding a language requires every implementation to provide its URL method.
+type IURL interface {
+	// Zh returns the simplified Chinese document URL.
+	Zh() string
+	// En returns the English document URL.
+	En() string
+}
+
+var _ IURL = Document("")
+
+// Zh returns the configured simplified Chinese URL, or an empty string before initialization.
+func (document Document) Zh() string {
+	return URL(document, LanguageZh)
+}
+
+// En returns the configured English URL, or an empty string before initialization.
+func (document Document) En() string {
+	return URL(document, LanguageEn)
+}
+
 // SSHConnectionFailed explains how to troubleshoot SSH connection failures.
 const SSHConnectionFailed Document = "troubleshooting/ssh-connection-failed.md"
 
