@@ -225,6 +225,16 @@ type ComposePluginSubConfigParam struct {
 	SourceOperation PluginSubConfigSourceOperation
 }
 
+// ComposeProjectedPluginSubConfigsParam defines a remote projection batch on one execution host.
+// Sources are prepared together; each source's target is applied in input order.
+type ComposeProjectedPluginSubConfigsParam struct {
+	HostID            int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
+	SourceOperation   PluginSubConfigSourceOperation
+}
+
 // RemovePluginSubConfigParam define the param of LaunchRemovePluginSubConfig.
 type RemovePluginSubConfigParam struct {
 	Type              PluginWorkflowType
