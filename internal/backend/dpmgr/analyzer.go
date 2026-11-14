@@ -215,12 +215,14 @@ func (analyzer *Analyzer) analyzeSpecifyPluginSubConfig(nCtx contextx.IContext, 
 			continue
 		}
 
-		missingDetails := findMissingSubConfigDetails(desiredDetails, deployPolicyConfigMap[target.Host.HostID])
-		if len(missingDetails) == 0 {
+		applyDetails := findSubConfigDetailsToApply(
+			desiredDetails, deployPolicyConfigMap[target.Host.HostID], param.CustomConfigContext,
+		)
+		if len(applyDetails) == 0 {
 			continue
 		}
 
-		applySpec, err := newSpecifyPluginSubConfigSpec(param.PluginName, missingDetails, param.CustomConfigContext)
+		applySpec, err := newSpecifyPluginSubConfigSpec(param.PluginName, applyDetails, param.CustomConfigContext)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create specify plugin sub config spec: %w", err)
 		}

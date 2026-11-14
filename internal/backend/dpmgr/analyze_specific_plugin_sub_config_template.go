@@ -293,20 +293,25 @@ func selectSubConfigTemplateDeleteTarget(hostID int64, targetMap map[int64]*type
 	}
 }
 
-func findMissingSubConfigDetails(
-	desiredDetails []*types.PluginConfigDetail, currentConfigMap map[string]*types.ProcessConfig) []*types.PluginConfigDetail {
+func findSubConfigDetailsToApply(
+	desiredDetails []*types.PluginConfigDetail,
+	currentConfigMap map[string]*types.ProcessConfig,
+	customConfigContext map[string]any,
+) []*types.PluginConfigDetail {
 
-	missingDetails := make([]*types.PluginConfigDetail, 0)
+	applyDetails := make([]*types.PluginConfigDetail, 0)
 	for _, detail := range desiredDetails {
 		if detail == nil {
 			continue
 		}
-		if _, ok := currentConfigMap[genProcessConfigUniqueID(detail.Name, detail.IsMainConfig)]; ok {
+
+		currentConfig := currentConfigMap[genProcessConfigUniqueID(detail.Name, detail.IsMainConfig)]
+		if currentConfig != nil && sameCustomConfigContext(currentConfig.CustomConfigContext, customConfigContext) {
 			continue
 		}
 
-		missingDetails = append(missingDetails, detail)
+		applyDetails = append(applyDetails, detail)
 	}
 
-	return missingDetails
+	return applyDetails
 }
