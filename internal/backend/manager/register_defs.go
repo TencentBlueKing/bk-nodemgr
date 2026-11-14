@@ -288,6 +288,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionCheckPluginProcessAlive(pluginCap),
 		plugin.NewActionEnsureAndUpdatePluginConfigDetails(pluginCap),
 		plugin.NewActionUpdateProcess(pluginCap),
+		plugin.NewActionMarkPluginProcessStopped(pluginCap),
 		plugin.NewActionDeleteProcess(pluginCap),
 		plugin.NewActionStartProcess(pluginCap),
 		plugin.NewActionStopProcess(pluginCap),

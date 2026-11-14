@@ -38,6 +38,50 @@ message PluginInstallResp {
   Data data = 5;
 }
 
+// 批量下发 V3 插件包但不启动进程的请求，包含目标主机、插件版本和自定义配置。
+message PluginInstallNoStartReq {
+  // 自定义进程资源限制和监控策略。
+  message DeploymentSpec {
+    // 进程资源限制。
+    optional ProcessResource resource = 1;
+    // 进程监控策略。
+    optional ProcessMonitorPolicy monitor_policy = 2;
+  }
+
+  // 一台目标主机上的插件包、版本和自定义配置。
+  message InstallInfo {
+    // 目标主机 ID，必须为正整数。
+    int64 bk_host_id = 1;
+    // 插件名称。
+    string plugin_name = 2;
+    // 待下发插件版本；为空时使用该插件当前默认发布版本。
+    string version = 3;
+    // 配置模板渲染上下文；禁止使用系统保留顶层键。
+    optional google.protobuf.Struct custom_config_context = 4;
+    // 自定义进程资源与监控策略。
+    // 传入时整体覆盖默认配置，未提供的字段按零值处理。
+    optional DeploymentSpec custom_spec = 5;
+  }
+
+  // 待下发插件的目标列表，至少包含一个元素。
+  repeated InstallInfo plugin = 1;
+}
+
+// 插件下发任务的响应，返回可用于查询任务状态的工作流 ID。
+message PluginInstallNoStartResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // 插件下发任务流 ID。
+    string workflow_id = 1;
+  }
+  Data data = 5;
+}
+
 // PluginUpgradeReq describes the plugin upgrade request.
 message PluginUpgradeReq {
   message UpgradeInfo {
@@ -362,6 +406,20 @@ service Plugin {
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/install"
+      body : "*"
+    };
+  }
+
+  // 批量下发 V3 插件包并渲染配置，但不启动插件进程。
+  //
+  // 若目标主机上的插件进程正在运行，会先停止该进程。
+  // 任务成功结束后进程保持 stopped 状态。
+  // 该接口不参与 V2/V3 兼容性处理，不会停止 V2 插件。
+  // 也不会写入兼容性配置。
+  rpc InstallPluginNoStart(PluginInstallNoStartReq)
+      returns (PluginInstallNoStartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/install_no_start"
       body : "*"
     };
   }

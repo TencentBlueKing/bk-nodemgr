@@ -84,6 +84,40 @@
         ]
       }
     },
+    "/api/v3/plugin/install_no_start": {
+      "post": {
+        "summary": "批量下发 V3 插件包并渲染配置，但不启动插件进程。",
+        "description": "若目标主机上的插件进程正在运行，会先停止该进程。\n任务成功结束后进程保持 stopped 状态。\n该接口不参与 V2/V3 兼容性处理，不会停止 V2 插件。\n也不会写入兼容性配置。",
+        "operationId": "Plugin_InstallPluginNoStart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginInstallNoStartResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginInstallNoStartReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/list": {
       "post": {
         "summary": "ListPlugins lists plugins based on the given conditions.",
@@ -509,7 +543,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -526,38 +560,6 @@
         }
       }
     },
-    "PluginInstallReqDeploymentSpec": {
-      "type": "object",
-      "properties": {
-        "resource": {
-          "$ref": "#/definitions/v3ProcessResource"
-        },
-        "monitor_policy": {
-          "$ref": "#/definitions/v3ProcessMonitorPolicy"
-        }
-      }
-    },
-    "PluginInstallReqInstallInfo": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "custom_config_context": {
-          "type": "object"
-        },
-        "custom_spec": {
-          "$ref": "#/definitions/PluginInstallReqDeploymentSpec"
-        }
-      }
-    },
     "PluginListConfigFilesRespConfigFile": {
       "type": "object",
       "properties": {
@@ -571,7 +573,7 @@
           "type": "string"
         },
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "set": {
@@ -612,7 +614,7 @@
         "visible_biz_ids": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -656,7 +658,7 @@
         "visible_biz_ids": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -666,7 +668,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -678,7 +680,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -704,7 +706,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -739,7 +741,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -751,7 +753,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -763,7 +765,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -775,7 +777,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -942,6 +944,95 @@
         }
       }
     },
+    "v3PluginInstallNoStartReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginInstallNoStartReqInstallInfo"
+          },
+          "title": "待下发插件的目标列表，至少包含一个元素。"
+        }
+      },
+      "title": "批量下发 V3 插件包但不启动进程的请求，包含目标主机、插件版本和自定义配置。"
+    },
+    "v3PluginInstallNoStartReqDeploymentSpec": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "$ref": "#/definitions/v3ProcessResource",
+          "title": "进程资源限制。"
+        },
+        "monitor_policy": {
+          "$ref": "#/definitions/v3ProcessMonitorPolicy",
+          "title": "进程监控策略。"
+        }
+      },
+      "title": "自定义进程资源限制和监控策略。"
+    },
+    "v3PluginInstallNoStartReqInstallInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "string",
+          "format": "int64",
+          "title": "目标主机 ID，必须为正整数。"
+        },
+        "plugin_name": {
+          "type": "string",
+          "title": "插件名称。"
+        },
+        "version": {
+          "type": "string",
+          "title": "待下发插件版本；为空时使用该插件当前默认发布版本。"
+        },
+        "custom_config_context": {
+          "type": "object",
+          "title": "配置模板渲染上下文；禁止使用系统保留顶层键。"
+        },
+        "custom_spec": {
+          "$ref": "#/definitions/v3PluginInstallNoStartReqDeploymentSpec",
+          "title": "自定义进程资源与监控策略。\n传入时整体覆盖默认配置，未提供的字段按零值处理。"
+        }
+      },
+      "title": "一台目标主机上的插件包、版本和自定义配置。"
+    },
+    "v3PluginInstallNoStartResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginInstallNoStartRespData"
+        }
+      },
+      "title": "插件下发任务的响应，返回可用于查询任务状态的工作流 ID。"
+    },
+    "v3PluginInstallNoStartRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "title": "插件下发任务流 ID。"
+        }
+      }
+    },
     "v3PluginInstallReq": {
       "type": "object",
       "properties": {
@@ -949,11 +1040,43 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/PluginInstallReqInstallInfo"
+            "$ref": "#/definitions/v3PluginInstallReqInstallInfo"
           }
         }
       },
       "description": "PluginInstallReq describes the plugin install request."
+    },
+    "v3PluginInstallReqDeploymentSpec": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "$ref": "#/definitions/v3ProcessResource"
+        },
+        "monitor_policy": {
+          "$ref": "#/definitions/v3ProcessMonitorPolicy"
+        }
+      }
+    },
+    "v3PluginInstallReqInstallInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "custom_config_context": {
+          "type": "object"
+        },
+        "custom_spec": {
+          "$ref": "#/definitions/v3PluginInstallReqDeploymentSpec"
+        }
+      }
     },
     "v3PluginInstallResp": {
       "type": "object",
@@ -992,7 +1115,7 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "plugin_name": {
@@ -1085,7 +1208,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -1539,15 +1662,15 @@
           "type": "string"
         },
         "start_check_seconds": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "stop_check_seconds": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "operate_timeout_seconds": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -1615,7 +1738,7 @@
           "type": "string"
         },
         "bk_biz_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "filter": {
@@ -1624,7 +1747,7 @@
         "instance_ids": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
