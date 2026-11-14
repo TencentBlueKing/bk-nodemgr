@@ -40,6 +40,23 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 | image.tag        | string | Chart对应的既定版本号      | 服务镜像标签 |
 | image.pullPolicy | string | IfNotPresent               | 镜像拉取策略 |
 
+#### 用户 Wiki 指引链接
+
+`backend.config.wiki` 配置 backend 用户可见任务日志中的产品 Wiki 链接：
+
+```yaml
+backend:
+  config:
+    wiki:
+      mode: github
+      github:
+        repositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
+```
+
+当前仅支持 `github` 模式。仓库地址不包含 tag 或文档目录；backend 根据自身版本解析结果构建发布 tag，文档位于该 tag 的 `support-files/wiki/zh/` 和 `support-files/wiki/en/` 下，中文、英文任务提示分别链接到对应语言的文档。构建标记不作为 tag 的一部分；`debug` 等无法解析为发布版本的构建回退到 `master`，此时文档可能与运行版本不同。旧配置未指定 `wiki` 时使用上述默认值。
+
+当前尚不支持 application 内嵌访问；无法访问 GitHub 的环境不能通过该模式阅读指引。
+
 #### IAM V4 模型同步
 
 `iamV4.option.allowActionReplace` 默认为 `false`。设为 `true` 后，同步 Job 在 Action 资源绑定冲突时自动复用 `replace_action`，以 `cascade: ["role"]` 清理角色中的旧 Action 成员，再删除重建 Action，后续角色同步恢复模板中声明的成员。自定义角色中未在模板声明的成员不会自动恢复；不级联清理 RBAC/ABAC 授权。日志输出旧/新绑定及替换风险；IAM 拒绝删除时立即停止，不自动扩大级联范围或回滚。已有授权不会自动迁移，启用前需确认目标租户和受影响权限。此行为需要使用包含角色级联清理逻辑的工具镜像。

@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -175,6 +176,11 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		}(),
 	}, sshx.DefaultTimeout)
 	if err != nil {
+		std.InstanceData().Log().
+			Zh("SSH 连接失败，排查指引：%s", wiki.UnixSSHConnectionFailed.Zh()).
+			En("SSH connection failed, troubleshooting guide: %s", wiki.UnixSSHConnectionFailed.En()).
+			Error()
+
 		return fmt.Errorf("failed to generate new ssh client: %w", err)
 	}
 

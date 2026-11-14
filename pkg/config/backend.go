@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
 	"gopkg.in/yaml.v2"
 )
 
@@ -192,6 +193,7 @@ type BackendService struct {
 	NetworkUnit        NetworkUnit       `yaml:"networkUnit" usage:"network unit config of backend service"`
 	Tracing            Tracing           `yaml:"tracing" usage:"tracing config of backend service"`
 	Profiling          Profiling         `yaml:"profiling" usage:"profiling config of backend service"`
+	Wiki               Wiki              `yaml:"wiki" usage:"product user wiki link config"`
 }
 
 // BackendFileCache configures the local artifact file cache used by backend SSH install flows.
@@ -220,6 +222,12 @@ func NewBackendService() *BackendService {
 	return &BackendService{
 		RunMode:    defaultBackendRunMode,
 		TenantMode: defaultBackendTenantMode,
+		Wiki: Wiki{
+			Mode: wiki.ModeGitHub,
+			GitHub: WikiGitHub{
+				RepositoryURL: "https://github.com/TencentBlueKing/bk-nodemgr",
+			},
+		},
 		CMDB: CMDB{
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
@@ -468,6 +476,10 @@ func (svc *BackendService) Validate() error {
 
 	if err := svc.TenantMode.Validate(); err != nil {
 		return fmt.Errorf("failed to validate tenant mode config: %w", err)
+	}
+
+	if err := svc.Wiki.Validate(); err != nil {
+		return fmt.Errorf("failed to validate wiki config: %w", err)
 	}
 
 	if err := svc.Workflow.Validate(); err != nil {

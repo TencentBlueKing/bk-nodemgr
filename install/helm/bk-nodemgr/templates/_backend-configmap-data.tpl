@@ -16,6 +16,8 @@ Params: dict "root" . "workflow" <workflow config values>
 
     system: {{ .root.Values.backend.config.system | toYaml | nindent 6 }}
 
+    wiki: {{ .root.Values.backend.config.wiki | toYaml | nindent 6 }}
+
     cryptoType: {{ .root.Values.backend.config.cryptoType | default "CLASSIC" | quote }}
 
     encryptKey: {{ .root.Values.backend.config.encryptKey | quote }}
