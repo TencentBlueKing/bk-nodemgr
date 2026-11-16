@@ -86,8 +86,8 @@
     },
     "/api/v3/plugin/install_no_start": {
       "post": {
-        "summary": "批量下发 V3 插件包并渲染配置，但不启动插件进程。",
-        "description": "若目标主机上的插件进程正在运行，会先停止该进程。\n任务成功结束后进程保持 stopped 状态。\n该接口不参与 V2/V3 兼容性处理，不会停止 V2 插件。\n也不会写入兼容性配置。",
+        "summary": "仅批量下发并安装 V3 插件包，完成配置渲染，但不启动插件进程。",
+        "description": "若目标主机上的插件进程正在运行，会先停止该进程。\n任务成功结束后进程保持 stopped 状态。",
         "operationId": "Plugin_InstallPluginNoStart",
         "responses": {
           "200": {

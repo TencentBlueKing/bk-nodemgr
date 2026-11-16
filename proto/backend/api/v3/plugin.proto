@@ -435,12 +435,10 @@ service Plugin {
     };
   }
 
-  // 批量下发 V3 插件包并渲染配置，但不启动插件进程。
+  // 仅批量下发并安装 V3 插件包，完成配置渲染，但不启动插件进程。
   //
   // 若目标主机上的插件进程正在运行，会先停止该进程。
   // 任务成功结束后进程保持 stopped 状态。
-  // 该接口不参与 V2/V3 兼容性处理，不会停止 V2 插件。
-  // 也不会写入兼容性配置。
   rpc InstallPluginNoStart(PluginInstallNoStartReq)
       returns (PluginInstallNoStartResp) {
     option (google.api.http) = {

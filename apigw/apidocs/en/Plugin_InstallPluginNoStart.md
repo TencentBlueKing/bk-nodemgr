@@ -2,9 +2,9 @@
 
 - API Version: v3.0.1+.
 - Required Permission: plugin_operate (Operate Plugin).
-- Function: Batch deliver the V3 plugin packages and render their configs on specified hosts **without** starting
-  the plugin processes. If the plugin process on a target host is running, the workflow stops it first. This API does
-  not take part in V2/V3 compatibility handling: it neither stops V2 plugins nor writes compatibility configs.
+- Function: Only delivers and installs V3 plugin packages on specified hosts and renders their configs **without**
+  starting the plugin processes. It applies when plugins need to be delivered first and started later. If the
+  plugin process on a target host is running, the workflow stops it first.
 
 ### URL
 
