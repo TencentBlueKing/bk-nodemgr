@@ -29,7 +29,7 @@ stages:
               weight: 100
     mcp_servers:
       - name: "topo"
-        title: "节点管理拓扑查询"
+        title: "节点管理-拓扑查询"
         description: >-
           提供节点管理拓扑的只读查询能力，用于查询业务拓扑、网络区域、网络单元、
           接入点、图节点及主机信息，不提供创建、修改或删除操作。
