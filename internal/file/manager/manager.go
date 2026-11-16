@@ -75,6 +75,7 @@ type IManager interface {
 	IPluginV3
 	IExport
 	IPackageEvent
+	ICleanup
 
 	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.

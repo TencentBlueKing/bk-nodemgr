@@ -10,6 +10,7 @@ Gin-based HTTP router for the file service. Handles package upload, publish, dow
 router/
 ├── api-v3/
 │   ├── api-v3.go              # LoadBasicAPIs, LoadDownloadAPIs (separate middleware chains)
+│   ├── cleanup/               # On-demand cleanup of unbound upload/release/export files
 │   ├── download/              # Binary file download (agent/proxy/plugin/cert/bintool/installer)
 │   ├── publish/               # Release publishing (upload → release record creation)
 │   ├── transfer/              # Cross-node file transfer launch + query
@@ -72,13 +73,13 @@ func (h *handler) Action(rCtx restserver.IContext) (interface{}, error) {
 
 ### Two Entry Points
 
-- `LoadBasicAPIs` — full API surface (download + publish + transfer + upload) with auth middleware.
+- `LoadBasicAPIs` — full API surface (download + cleanup + publish + transfer + upload) with auth middleware.
 - `LoadDownloadAPIs` — download-only subset, potentially with different/lighter middleware.
 
 ### Error Codes
 
 - `resterrf.InvalidParameter` — bad request / parse failure.
-- `resterrf.Aborted` — manager operation failed (upload/publish/transfer).
+- `resterrf.Aborted` — manager operation failed (upload/publish/transfer/cleanup).
 
 ### Transfer Domain
 

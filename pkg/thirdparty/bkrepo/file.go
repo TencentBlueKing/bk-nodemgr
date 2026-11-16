@@ -20,10 +20,14 @@ package bkrepo
 
 import (
 	"io"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
+
+// nodeTimeLayoutNoOffset is BKRepo's node timestamp, e.g. 2026-09-23T19:10:53.113.
+const nodeTimeLayoutNoOffset = "2006-01-02T15:04:05"
 
 // File is the file object.
 type File struct {
@@ -56,7 +60,18 @@ func (f File) Info() fileiface.FileInfo {
 		Size:        int64(f.info.Size),
 		MD5:         f.info.Md5,
 		Description: desc,
+		ModTime:     parseNodeTime(f.info.LastModifiedDate),
 	}
+}
+
+// parseNodeTime parses a node timestamp and returns zero for unknown formats.
+func parseNodeTime(value string) time.Time {
+	parsed, err := time.Parse(nodeTimeLayoutNoOffset, value)
+	if err != nil {
+		return time.Time{}
+	}
+
+	return parsed
 }
 
 // AbsDirs the func will return the abs dirs of file.
