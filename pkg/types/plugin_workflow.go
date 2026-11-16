@@ -48,6 +48,9 @@ const (
 	// PluginWorkflowTypeInstall is the operation type for install plugin.
 	PluginWorkflowTypeInstall PluginWorkflowType = "install_plugin"
 
+	// PluginWorkflowTypeInstallNoStart is the operation type for delivering plugin package without starting process.
+	PluginWorkflowTypeInstallNoStart PluginWorkflowType = "install_plugin_no_start"
+
 	// PluginWorkflowTypeUpgrade is the operation type for upgrade plugin.
 	PluginWorkflowTypeUpgrade PluginWorkflowType = "upgrade_plugin"
 
@@ -95,6 +98,7 @@ const (
 func (pluginWorkflowType PluginWorkflowType) Validate() error {
 	switch pluginWorkflowType {
 	case PluginWorkflowTypeInstall,
+		PluginWorkflowTypeInstallNoStart,
 		PluginWorkflowTypeUpgrade,
 		PluginWorkflowTypeUninstall,
 		PluginWorkflowTypeReconfig,
