@@ -38,6 +38,7 @@ import (
 	applicationapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/wiki"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
 	tenantStorage "github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
@@ -612,6 +613,7 @@ func (svc *Service) registerBasicServer() error {
 		},
 		restserver.WithPing(),
 		withWeb(svc.Cap),
+		withWiki(),
 		withAPIV3Basic(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
@@ -648,6 +650,13 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 func withWeb(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		web.Load(rg, capability, middleware...)
+	}
+}
+
+// withWiki loads the embedded product user Wiki.
+func withWiki() restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		wiki.Load(rg)
 	}
 }
 

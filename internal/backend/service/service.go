@@ -184,12 +184,11 @@ func (svc *Service) initialStaticsConfigs() error {
 	// initial access virtual user.
 	access.SetVirtualUser(svc.conf.Access.VirtualUser)
 
-	if err := wiki.SetConfig(wiki.Config{
-		Mode: svc.conf.Wiki.Mode,
-		GitHub: wiki.GitHubConfig{
-			RepositoryURL: svc.conf.Wiki.GitHub.RepositoryURL,
-		},
-	}); err != nil {
+	wikiConfig, err := svc.conf.Wiki.ToWikiConfig()
+	if err != nil {
+		return fmt.Errorf("failed to resolve wiki config: %w", err)
+	}
+	if err := wiki.SetConfig(wikiConfig); err != nil {
 		return fmt.Errorf("failed to initialize wiki config: %w", err)
 	}
 

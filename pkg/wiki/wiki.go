@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package wiki provides version-aware links to the product user Wiki.
+// Package wiki provides localized product Wiki links and embedded content access.
 package wiki
 
 import (
@@ -27,8 +27,12 @@ import (
 // Mode identifies the source of product user documentation.
 type Mode string
 
-// ModeGitHub serves documentation from the configured GitHub repository.
-const ModeGitHub Mode = "github"
+const (
+	// ModeGitHub serves documentation from the configured GitHub repository.
+	ModeGitHub Mode = "github"
+	// ModePrefix builds documentation links under a configured root URL.
+	ModePrefix Mode = "prefix"
+)
 
 // Language identifies the language directory of a product Wiki document.
 type Language string
@@ -72,6 +76,7 @@ const UnixSSHConnectionFailed Document = "troubleshooting/unix-ssh-connection-fa
 type Config struct {
 	Mode   Mode
 	GitHub GitHubConfig
+	Prefix PrefixConfig
 }
 
 // Validate checks the supported mode and its source-specific inputs without network access.
@@ -79,6 +84,8 @@ func (conf Config) Validate() error {
 	switch conf.Mode {
 	case ModeGitHub:
 		return conf.GitHub.Validate()
+	case ModePrefix:
+		return conf.Prefix.Validate()
 	default:
 		return fmt.Errorf("unsupported wiki mode: %s", conf.Mode)
 	}
@@ -99,6 +106,8 @@ func New(conf Config) (IHandler, error) {
 	switch conf.Mode {
 	case ModeGitHub:
 		return newGitHubHandler(conf.GitHub), nil
+	case ModePrefix:
+		return newPrefixHandler(conf.Prefix), nil
 	default:
 		return nil, fmt.Errorf("unsupported wiki mode: %s", conf.Mode)
 	}
@@ -111,7 +120,7 @@ var linkConfig struct {
 }
 
 // SetConfig initializes Wiki links once, before serving requests or starting workers.
-// Release builds use their parsed release tag; other versions use master.
+// GitHub links use the parsed release tag, or master for non-release builds.
 func SetConfig(conf Config) error {
 	handler, err := New(conf)
 	if err != nil {
