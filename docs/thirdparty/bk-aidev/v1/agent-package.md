@@ -32,7 +32,7 @@ apiVersion: bkai.tencent.com/aidev-agent/v1
 kind: Agent
 metadata:
   code: ai-nodemgr
-  name: 节点管理助手
+  name: 节点管理-助手
   description: 协助理解节点管理信息
 spec:
   prompt:
@@ -50,7 +50,12 @@ spec:
 
 ## code 与资源定位
 
-code 是创建、更新和关联的稳定标识，不是展示名称，全部使用小写；`name` 可以使用中文。
+code 是创建、更新和关联的稳定标识，不是展示名称，全部使用小写；中文展示名遵循以下项目规范：
+
+- MCP、Skill 和 AI 智能体（含子 Agent）统一使用 `{产品名称}-{资源名称}`，以半角 `-` 分隔。
+- 本项目产品名称使用“节点管理”，不加“蓝鲸”前缀；资源名称表达实际能力或角色，例如 `节点管理-拓扑查询`、`节点管理-助手`。
+- Agent、Skill 在 `metadata.name` 中维护展示名；APIGW MCP 在网关声明的 `title` 中维护，并同步 Chart 中对应的 MCP 声明，Agent Package 只按 code 引用。
+- 中文展示名调整不改变 code、文件名、工具名称或资源引用；Package 名称及其它资源类型不在本规范范围内。
 
 | 资源               | 完整匹配正则                | 约束                                   |
 | ------------------ | --------------------------- | -------------------------------------- |
