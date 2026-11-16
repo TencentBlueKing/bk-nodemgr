@@ -357,6 +357,31 @@ message PluginMigrateFromV2Resp {
   Data data = 5;
 }
 
+// PluginStopV2Req 描述批量停止 V2 插件进程的请求。
+message PluginStopV2Req {
+  message StopV2Info {
+    // 目标主机 ID，必须为正整数。
+    int64 bk_host_id = 1;
+    // 待停止的 V2 插件名称。
+    string plugin_name = 2;
+  }
+
+  // 待停止的 V2 插件列表，至少包含一个元素。
+  repeated StopV2Info plugin = 1;
+}
+
+// PluginStopV2Resp 描述批量停止 V2 插件进程的响应。
+message PluginStopV2Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 service Plugin {
   // InstallPlugin installs a plugin on specified hosts.
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
@@ -448,6 +473,16 @@ service Plugin {
   rpc StopPlugin(PluginStopReq) returns (PluginStopResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/stop"
+      body : "*"
+    };
+  }
+
+  // 批量停止指定主机上的 V2 插件进程。
+  //
+  // 该接口异步执行停止任务并返回工作流 ID，可通过插件工作流接口查询执行结果。
+  rpc StopPluginV2(PluginStopV2Req) returns (PluginStopV2Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/stop_v2"
       body : "*"
     };
   }

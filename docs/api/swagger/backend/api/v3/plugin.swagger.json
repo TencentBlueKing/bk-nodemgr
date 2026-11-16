@@ -424,6 +424,40 @@
         ]
       }
     },
+    "/api/v3/plugin/stop_v2": {
+      "post": {
+        "summary": "批量停止指定主机上的 V2 插件进程。",
+        "description": "该接口异步执行停止任务并返回工作流 ID，可通过插件工作流接口查询执行结果。",
+        "operationId": "Plugin_StopPluginV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginStopV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginStopV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/uninstall": {
       "post": {
         "summary": "UninstallPlugin uninstalls a plugin on specified hosts.",
@@ -756,6 +790,20 @@
         },
         "plugin_name": {
           "type": "string"
+        }
+      }
+    },
+    "PluginStopV2ReqStopV2Info": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "目标主机 ID，必须为正整数。"
+        },
+        "plugin_name": {
+          "type": "string",
+          "title": "待停止的 V2 插件名称。"
         }
       }
     },
@@ -1433,6 +1481,53 @@
       "description": "PluginStopResp describes the plugin stop response."
     },
     "v3PluginStopRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PluginStopV2Req": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PluginStopV2ReqStopV2Info"
+          },
+          "title": "待停止的 V2 插件列表，至少包含一个元素。"
+        }
+      },
+      "title": "PluginStopV2Req 描述批量停止 V2 插件进程的请求。"
+    },
+    "v3PluginStopV2Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginStopV2RespData"
+        }
+      },
+      "title": "PluginStopV2Resp 描述批量停止 V2 插件进程的响应。"
+    },
+    "v3PluginStopV2RespData": {
       "type": "object",
       "properties": {
         "workflow_id": {

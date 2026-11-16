@@ -85,6 +85,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/migrate_from_v2", restserver.Handler(h.MigrateFromV2))
 	h.rg.POST("/stop", restserver.Handler(h.Stop))
 
+	h.rg.POST("/stop_v2", restserver.Handler(h.StopV2))
+
 	h.rg.POST("/start_debug", restserver.Handler(h.StartDebug))
 	h.rg.POST("/stop_debug", restserver.Handler(h.StopDebug))
 

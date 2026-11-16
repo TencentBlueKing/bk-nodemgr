@@ -1057,3 +1057,85 @@ func (x *PluginStopReq) GetHostIDs() []int64 {
 		return item.GetBkHostId()
 	})
 }
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginStopV2Req_StopV2Info) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be negative")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginStopV2Req_StopV2Info) AutoConvert() {}
+
+// Validate check body.
+func (x *PluginStopV2Req) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginStopV2Req) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginStopV2Req) ConvertParamFromTypes(stopParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(stopParam, func(param *types.PluginDeploymentParam) *PluginStopV2Req_StopV2Info {
+		item := &PluginStopV2Req_StopV2Info{}
+		item.BkHostId = param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginStopV2Req) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginStopV2Req_StopV2Info) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}
+
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
+func (x *PluginStopV2Req) ConvertParamToTypesWithHostTopoMapping(
+	hostTopoMapping map[int64]types.HostTopoRelation,
+) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginStopV2Req_StopV2Info) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+			BizID:      hostTopoMapping[plugin.GetBkHostId()].BizID,
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginStopV2Req) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginStopV2Req_StopV2Info) int64 {
+		return item.GetBkHostId()
+	})
+}
