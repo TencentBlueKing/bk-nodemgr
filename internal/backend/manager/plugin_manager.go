@@ -38,11 +38,13 @@ import (
 )
 
 // createOrderedPluginTrigger creates an ordered trigger whose max concurrency is read from the given global setting.
+// nolint: unparam
 func (mgr *Manager) createOrderedPluginTrigger(
 	nCtx contextx.IContext,
 	settingName string,
 	settingDefault string,
 ) (workflow.ITriggerCtl, error) {
+
 	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(nCtx, settingName, settingDefault))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse %s: %w", settingName, err)
