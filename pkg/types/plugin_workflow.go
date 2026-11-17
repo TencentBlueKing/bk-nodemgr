@@ -69,6 +69,9 @@ const (
 	// PluginWorkflowTypeComposePluginSubConfig prepares a source plugin and applies target configs.
 	PluginWorkflowTypeComposePluginSubConfig PluginWorkflowType = "compose_plugin_subconfig"
 
+	// PluginWorkflowTypeComposeProjectedPluginSubConfigs projects multiple sources on one execution host.
+	PluginWorkflowTypeComposeProjectedPluginSubConfigs PluginWorkflowType = "compose_projected_plugin_subconfigs"
+
 	// PluginWorkflowTypeRemovePluginSubConfig is the workflow type that removes plugin sub config.
 	PluginWorkflowTypeRemovePluginSubConfig PluginWorkflowType = "remove_plugin_subconfig"
 
@@ -108,6 +111,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeApplyPluginConfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
 		PluginWorkflowTypeComposePluginSubConfig,
+		PluginWorkflowTypeComposeProjectedPluginSubConfigs,
 		PluginWorkflowTypeRemovePluginSubConfig,
 		PluginWorkflowTypeStart,
 		PluginWorkflowTypeRestart,
