@@ -520,6 +520,129 @@ func (x *ProcessDistinctResp) ConvertResultToTypes() (*types.ProcessDistinctResu
 }
 
 // Validate check body.
+func (x *ProcessV2ListReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ProcessV2ListReq) AutoConvert() {}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *ProcessV2ListReq) ConvertConditionsToTypes() *types.ProcessCondition {
+	return convertProcessConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// PageLimit return page limit.
+func (x *ProcessV2ListReq) PageLimit() int {
+	return maxProcessLimit
+}
+
+// ConvertPageToTypes converts page to types.
+func (x *ProcessV2ListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
+}
+
+// ConvertProcessFromTypes converts process from types.
+func (x *ProcessV2ListResp) ConvertProcessFromTypes(total int64, process []*types.Process) {
+	items := make([]*ProcessV2ListResp_Process, len(process))
+	for idx, proc := range process {
+		item := newEmptyProcessV2()
+		*item.TenantId = proc.TenantID
+		*item.BkHostId = proc.HostID
+		*item.BkBizId = proc.BizID
+		*item.PluginName = proc.PluginName
+		*item.PluginPkgName = proc.PluginPkgName
+		*item.PluginGroup = proc.PluginGroup
+		item.Platform.OsType = proc.Platform.OS.String()
+		item.Platform.CpuArch = proc.Platform.Arch.String()
+		*item.Generation = int64(proc.Generation)
+		*item.ProcessInfo.Pid = int32(proc.Info.Pid)
+		*item.ProcessInfo.Version = proc.Info.Version
+		*item.ProcessInfo.AgentId = proc.Info.AgentID
+		*item.ProcessInfo.AutoStart = proc.Info.AutoStart
+		*item.ProcessInfo.Status = proc.Info.Status.String()
+		*item.ProcessInfo.LastSyncAt = timeToUnixMilli(proc.Info.LastSyncAt)
+		*item.ProcessIdentity.Name = proc.Identity.Name
+		*item.ProcessIdentity.SetupPath = proc.Identity.SetupPath
+		*item.ProcessIdentity.PidPath = proc.Identity.PidPath
+		*item.ProcessIdentity.ConfigPath = proc.Identity.ConfigPath
+		*item.ProcessIdentity.LogPath = proc.Identity.LogPath
+		*item.ProcessIdentity.User = proc.Identity.User
+		*item.ProcessController.StartCmd = proc.Controller.StartCmd
+		*item.ProcessController.StopCmd = proc.Controller.StopCmd
+		*item.ProcessController.RestartCmd = proc.Controller.RestartCmd
+		*item.ProcessController.ReloadCmd = proc.Controller.ReloadCmd
+		*item.ProcessController.KillCmd = proc.Controller.KillCmd
+		*item.ProcessController.VersionCmd = proc.Controller.VersionCmd
+		*item.ProcessController.HealthCmd = proc.Controller.HealthCmd
+		*item.ProcessResource.CpuLimitPercent = proc.Resource.CPULimitPercent
+		*item.ProcessResource.MemLimitPercent = proc.Resource.MemLimitPercent
+		*item.ProcessMonitorPolicy.RestartType = proc.MonitorPolicy.RestartType.String()
+		*item.ProcessMonitorPolicy.StartCheckSeconds = proc.MonitorPolicy.StartCheckSecs
+		*item.ProcessMonitorPolicy.StopCheckSeconds = proc.MonitorPolicy.StopCheckSecs
+		*item.ProcessMonitorPolicy.OperateTimeoutSeconds = proc.MonitorPolicy.OpTimeoutSecs
+
+		items[idx] = item
+	}
+
+	x.Data = &ProcessV2ListResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+func newEmptyProcessV2() *ProcessV2ListResp_Process {
+	return &ProcessV2ListResp_Process{
+		TenantId:      new(string),
+		BkHostId:      new(int64),
+		BkBizId:       new(int64),
+		PluginName:    new(string),
+		PluginPkgName: new(string),
+		PluginGroup:   new(string),
+		Platform: &Platform{
+			OsType:  "",
+			CpuArch: "",
+		},
+		Generation: new(int64),
+		ProcessInfo: &ProcessInfo{
+			Pid:        new(int32),
+			Version:    new(string),
+			AgentId:    new(string),
+			AutoStart:  new(bool),
+			Status:     new(string),
+			LastSyncAt: new(int64),
+		},
+		ProcessIdentity: &ProcessIdentity{
+			Name:       new(string),
+			SetupPath:  new(string),
+			PidPath:    new(string),
+			ConfigPath: new(string),
+			LogPath:    new(string),
+			User:       new(string),
+		},
+		ProcessController: &ProcessController{
+			StartCmd:   new(string),
+			StopCmd:    new(string),
+			RestartCmd: new(string),
+			ReloadCmd:  new(string),
+			KillCmd:    new(string),
+			VersionCmd: new(string),
+			HealthCmd:  new(string),
+		},
+		ProcessResource: &ProcessResource{
+			CpuLimitPercent: new(float64),
+			MemLimitPercent: new(float64),
+		},
+		ProcessMonitorPolicy: &ProcessMonitorPolicy{
+			RestartType:           new(string),
+			StartCheckSeconds:     new(int64),
+			StopCheckSeconds:      new(int64),
+			OperateTimeoutSeconds: new(int64),
+		},
+	}
+}
+
+// Validate check body.
 func (x *ProcessV2CompatibleListReq) Validate() error {
 	if len(x.GetBkBizId()) == 0 {
 		return fmt.Errorf("bk_biz_id is required")

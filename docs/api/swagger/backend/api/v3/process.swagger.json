@@ -152,6 +152,40 @@
         ]
       }
     },
+    "/api/v3/process/list_v2": {
+      "post": {
+        "summary": "分页查询节点管理 V2 兼容模式的进程列表。",
+        "description": "请求和响应字段与 V3 进程列表一致，但使用独立的 Req/Resp 消息；数据来源为 V2\n兼容进程记录。",
+        "operationId": "Process_ListV2Processes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ProcessV2ListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ProcessV2ListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Process"
+        ]
+      }
+    },
     "/api/v3/process/list_v2_compatible": {
       "post": {
         "summary": "查询主机上的插件进程状态，兼容节点管理 V2 的插件检索返回内容。",
@@ -196,53 +230,6 @@
         },
         "message": {
           "type": "string"
-        }
-      }
-    },
-    "ProcessListRespProcess": {
-      "type": "object",
-      "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "plugin_pkg_name": {
-          "type": "string"
-        },
-        "plugin_group": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "process_info": {
-          "$ref": "#/definitions/v3ProcessInfo"
-        },
-        "process_identity": {
-          "$ref": "#/definitions/v3ProcessIdentity"
-        },
-        "process_controller": {
-          "$ref": "#/definitions/v3ProcessController"
-        },
-        "process_resource": {
-          "$ref": "#/definitions/v3ProcessResource"
-        },
-        "process_monitor_policy": {
-          "$ref": "#/definitions/v3ProcessMonitorPolicy"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
@@ -793,8 +780,55 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/ProcessListRespProcess"
+            "$ref": "#/definitions/v3ProcessListRespProcess"
           }
+        }
+      }
+    },
+    "v3ProcessListRespProcess": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_pkg_name": {
+          "type": "string"
+        },
+        "plugin_group": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "process_info": {
+          "$ref": "#/definitions/v3ProcessInfo"
+        },
+        "process_identity": {
+          "$ref": "#/definitions/v3ProcessIdentity"
+        },
+        "process_controller": {
+          "$ref": "#/definitions/v3ProcessController"
+        },
+        "process_resource": {
+          "$ref": "#/definitions/v3ProcessResource"
+        },
+        "process_monitor_policy": {
+          "$ref": "#/definitions/v3ProcessMonitorPolicy"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -934,6 +968,112 @@
         }
       },
       "title": "Host 主机及其插件进程状态。"
+    },
+    "v3ProcessV2ListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ProcessExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ProcessFuzzyConditions"
+        }
+      },
+      "title": "ProcessV2ListReq 查询节点管理 V2 兼容进程列表的请求。"
+    },
+    "v3ProcessV2ListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ProcessV2ListRespData"
+        }
+      },
+      "title": "ProcessV2ListResp 节点管理 V2 兼容进程列表的响应。"
+    },
+    "v3ProcessV2ListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ProcessV2ListRespProcess"
+          }
+        }
+      }
+    },
+    "v3ProcessV2ListRespProcess": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_pkg_name": {
+          "type": "string"
+        },
+        "plugin_group": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "process_info": {
+          "$ref": "#/definitions/v3ProcessInfo"
+        },
+        "process_identity": {
+          "$ref": "#/definitions/v3ProcessIdentity"
+        },
+        "process_controller": {
+          "$ref": "#/definitions/v3ProcessController"
+        },
+        "process_resource": {
+          "$ref": "#/definitions/v3ProcessResource"
+        },
+        "process_monitor_policy": {
+          "$ref": "#/definitions/v3ProcessMonitorPolicy"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
     },
     "v3RelatedResourceType": {
       "type": "object",

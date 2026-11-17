@@ -64,5 +64,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/list", restserver.Handler(h.List))
 
+	h.rg.POST("/list_v2", restserver.Handler(h.ListV2))
 	h.rg.POST("/list_v2_compatible", restserver.Handler(h.ListV2Compatible))
 }
