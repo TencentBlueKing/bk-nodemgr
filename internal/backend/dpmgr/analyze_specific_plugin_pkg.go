@@ -59,6 +59,11 @@ func (analyzer *Analyzer) analyzeSpecifyPluginPkg(nCtx contextx.IContext, params
 		return nil, fmt.Errorf("failed to convert processes to map, processes(%+v): %w", processes, err)
 	}
 
+	mainConfigMap, err := analyzer.listPluginMainConfigMap(nCtx, processMap)
+	if err != nil {
+		return nil, err
+	}
+
 	changeTasks := make([]*ChangeTask, 0)
 	for _, target := range params.Targets {
 		pluginName := genPluginNameForSpecifyPluginPkg(param.PluginPkgName, params.DeployPolicyID, target.ServiceInstance.ModuleID)
@@ -91,7 +96,18 @@ func (analyzer *Analyzer) analyzeSpecifyPluginPkg(nCtx contextx.IContext, params
 			continue
 		}
 
-		// everything ok, do nothing.
+		if pluginMainConfigContextChanged(
+			mainConfigMap[genProcessUniqueID(target.Host.HostID, pluginName)], param.CustomConfigContext,
+		) {
+
+			changeTasks = append(changeTasks, &ChangeTask{
+				DeployPolicyID: params.DeployPolicyID,
+				Action:         ChangeActionPluginApplyConfig,
+				Spec:           params.Spec,
+				Target:         target,
+				ConfigSource:   target,
+			})
+		}
 	}
 
 	return changeTasks, nil

@@ -182,6 +182,16 @@ type StopDebugPluginParam struct {
 	WorkflowID string
 }
 
+// ApplyPluginConfigParam defines the param of LaunchApplyPluginConfig.
+type ApplyPluginConfigParam struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	DeployPolicyIDs   []int64
+	PluginDeployments []*PluginDeployment
+}
+
 // ApplyPluginSubConfigParam define the param of LaunchApplyPluginSubConfig.
 type ApplyPluginSubConfigParam struct {
 	Type              PluginWorkflowType

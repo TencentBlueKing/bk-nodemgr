@@ -42,6 +42,11 @@ func (analyzer *Analyzer) analyzeProjectPluginPkgToHosts(nCtx contextx.IContext,
 		return nil, err
 	}
 
+	mainConfigMap, err := analyzer.listPluginMainConfigMap(nCtx, processMap)
+	if err != nil {
+		return nil, err
+	}
+
 	changeTasks := make([]*ChangeTask, 0)
 	for _, sourceTarget := range params.Targets {
 		if err := validateProjectPluginPkgSourceTarget(sourceTarget); err != nil {
@@ -74,6 +79,21 @@ func (analyzer *Analyzer) analyzeProjectPluginPkgToHosts(nCtx contextx.IContext,
 				changeTasks = append(changeTasks, &ChangeTask{
 					DeployPolicyID: params.DeployPolicyID,
 					Action:         ChangeActionPluginPkgUpgrade,
+					Spec:           params.Spec,
+					Target:         target,
+					ConfigSource:   sourceTarget,
+				})
+
+				continue
+			}
+
+			if pluginMainConfigContextChanged(
+				mainConfigMap[genProcessUniqueID(placementHostID, pluginName)], param.CustomConfigContext,
+			) {
+
+				changeTasks = append(changeTasks, &ChangeTask{
+					DeployPolicyID: params.DeployPolicyID,
+					Action:         ChangeActionPluginApplyConfig,
 					Spec:           params.Spec,
 					Target:         target,
 					ConfigSource:   sourceTarget,

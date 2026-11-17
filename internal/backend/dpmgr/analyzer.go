@@ -139,6 +139,11 @@ func (analyzer *Analyzer) analyzeSpecifyPlugin(nCtx contextx.IContext, params *A
 		return nil, fmt.Errorf("failed to convert processes to map, processes(%+v): %w", processes, err)
 	}
 
+	mainConfigMap, err := analyzer.listPluginMainConfigMap(nCtx, processMap)
+	if err != nil {
+		return nil, err
+	}
+
 	changeTasks := make([]*ChangeTask, 0)
 	for _, target := range params.Targets {
 		//  Only one process with the same name will be used on a host.
@@ -169,7 +174,18 @@ func (analyzer *Analyzer) analyzeSpecifyPlugin(nCtx contextx.IContext, params *A
 			continue
 		}
 
-		// everything ok, do nothing.
+		if pluginMainConfigContextChanged(
+			mainConfigMap[genProcessUniqueID(target.Host.HostID, param.PluginName)], param.CustomConfigContext,
+		) {
+
+			changeTasks = append(changeTasks, &ChangeTask{
+				DeployPolicyID: params.DeployPolicyID,
+				Action:         ChangeActionPluginApplyConfig,
+				Spec:           params.Spec,
+				Target:         target,
+				ConfigSource:   target,
+			})
+		}
 	}
 
 	return changeTasks, nil

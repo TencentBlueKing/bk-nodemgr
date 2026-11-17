@@ -82,7 +82,7 @@ func (action ChangeAction) isPolicyScopedChildWorkflowAction() bool {
 	switch action {
 	case ChangeActionAgentInstall, ChangeActionAgentUninstall, ChangeActionAgentUpgrade,
 		ChangeActionPluginInstall, ChangeActionPluginUninstall, ChangeActionPluginUpgrade,
-		ChangeActionPluginApplySubConfig, ChangeActionPluginDeleteSubConfig,
+		ChangeActionPluginApplyConfig, ChangeActionPluginApplySubConfig, ChangeActionPluginDeleteSubConfig,
 		ChangeActionPluginPkgInstall, ChangeActionPluginPkgUpgrade, ChangeActionPluginPkgUninstall:
 		return true
 	default:
@@ -175,6 +175,11 @@ func (executor *Executor) Execute(nCtx contextx.IContext, execution ExecutionPar
 			}
 		case ChangeActionPluginUpgrade:
 			err := executor.executeChangeActionPluginUpgrade(nCtx, execution, tasks)
+			if err != nil {
+				return fmt.Errorf("failed to schedule and execute change action: %w", err)
+			}
+		case ChangeActionPluginApplyConfig:
+			err := executor.executeChangeActionPluginApplyConfig(nCtx, execution, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}

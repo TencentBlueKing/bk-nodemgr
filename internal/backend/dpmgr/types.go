@@ -59,6 +59,8 @@ const (
 	ChangeActionPluginUninstall ChangeAction = "plugin_uninstall"
 	// ChangeActionPluginUpgrade plugin upgrade.
 	ChangeActionPluginUpgrade ChangeAction = "plugin_upgrade"
+	// ChangeActionPluginApplyConfig applies main configs without upgrading the plugin.
+	ChangeActionPluginApplyConfig ChangeAction = "apply_plugin_config"
 
 	// ChangeActionPluginPkgInstall plugin pkg install.
 	ChangeActionPluginPkgInstall ChangeAction = "plugin_pkg_install"
