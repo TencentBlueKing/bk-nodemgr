@@ -371,6 +371,13 @@ const rules = {
     },
   ],
   bk_biz_id: [{ required: true, message: t('agentStrategy.validate.businessRequired'), trigger: 'change' }],
+  scopes: [
+    {
+      message: t('agentStrategy.validate.networkUnitRequired'),
+      trigger: 'change',
+      validator: (val: IScope[]) => val.every(item => String(item.bk_networkunit_id ?? '').trim() !== ''),
+    },
+  ],
 };
 
 const originData = ref(cloneDeep(formData));
@@ -652,7 +659,7 @@ const handleSubmit = async () => {
 const handleSingleChange = (item: any, id: string, rows: any[]) => {
   // 单选通常用于表单赋值
   item.bk_networkarea_id = id;
-  item.bk_networkunit_id = '';
+  item.bk_networkunit_id = '-1';
   item.bk_networkarea_name = rows[0].bk_networkarea_name;
 };
 

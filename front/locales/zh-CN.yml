@@ -1001,6 +1001,7 @@ agentStrategy:
     configNameLength: 配置名称长度在1-50个字符之间
     businessRequired: 业务不能为空
     pluginRequired: 请选择插件
+    networkUnitRequired: 请选择管控单元
 pluginPackage:
   title: 插件包管理
   upload: 包上传
