@@ -32,6 +32,7 @@ proto/
 |Language Policy:caller-facing Proto documentation comments use Chinese, overriding the general English-comment default for this scope; identifiers and established technical terms remain unchanged
 |Proto documentation:explain caller-relevant purpose, business meaning, and verified limits; no symbol-name restatement or lint-filler comments; never invent requiredness/defaults/enums from types alone
 |Proto workflow:use `bk-nodemgr-proto` when adding/changing/reviewing contracts, comments, naming, tags, or Swagger/APIGW projection|Reference:.agents/skills/bk-nodemgr-proto/SKILL.md
+|Proto contract pairing:every RPC owns one dedicated request message and one dedicated response message|never reuse another RPC's Req/Resp even when fields are identical|shared common messages such as Page/Error/Permission/Platform/ProcessInfo are allowed
 |Scope control:apply to new/changed interfaces and relevant comments, not historical bulk cleanup; preserve existing tags/categories; fix documentation at its Proto source and inspect generated Swagger content, not only generation success
 
 ## ANTI-PATTERNS

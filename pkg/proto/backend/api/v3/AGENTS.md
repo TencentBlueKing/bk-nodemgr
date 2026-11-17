@@ -13,6 +13,7 @@
 |Conventions:edit handwritten .go files only unless contract changes require proto edit+regen
 |Conventions:proto lifecycle stays here=proto→pkg/types before business logic|pkg/types→proto for responses
 |Conventions:pkg/proto/** only handles transport conversion (proto <-> pkg/types); business decisions/result construction must stay in internal/<service> layers
+|Conventions:each RPC owns dedicated request/response messages|never reuse another RPC's Req/Resp even when fields are identical|shared nested/common messages are allowed
 |Conventions:before adding converters/helpers, search this directory for analogous implementations and extend existing message methods over parallel logic
 |Conventions:prefer generated-message methods/helpers over brand-new mirror types
 |Conventions:semantic defaults belong in AutoConvert or conversion helpers; normalize nil vs zero explicitly
