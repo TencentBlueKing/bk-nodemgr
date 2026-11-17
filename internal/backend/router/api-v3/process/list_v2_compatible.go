@@ -21,10 +21,12 @@ package process
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -35,6 +37,10 @@ import (
 const (
 	// pluginNameMonitorbeat is the v2 plugin name of monitor collection.
 	pluginNameMonitorbeat = "bkmonitorbeat"
+
+	listV2CompatibleHostPageSize    = 5000
+	listV2CompatibleProcessPageSize = 500
+	listV2CompatibleQueryTimeout    = 1 * time.Minute
 )
 
 // ListV2Compatible defines the handler to list the plugin processes of hosts for node manager v2 compatibility.
@@ -60,11 +66,20 @@ func (h *handler) ListV2Compatible(rCtx restserver.IContext) (interface{}, error
 
 	condition := req.ConvertConditionsToTypes()
 	condition.StaticExactInclude.BizID = narrowedBizIDs
-	hosts, total, err := h.daoHost.ListHost(rCtx, types.UnlimitedPage(), condition)
+
+	executor := pageexecutor.NewPageExecutor[*types.Host](listV2CompatibleHostPageSize, listV2CompatibleQueryTimeout)
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.Host, error) {
+		hosts, _, err := h.daoHost.ListHost(nCtx, page, condition)
+
+		return hosts, err
+	}
+	pageResult, err := executor.Execute(rCtx, types.UnlimitedPage(), fn)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list v2 plugin processes, failed to list hosts.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
+	hosts := pageResult.Items
+	total := int64(pageResult.Total)
 
 	processes, err := h.listV2Processes(rCtx, hosts)
 	if err != nil {
@@ -99,13 +114,20 @@ func (h *handler) listV2Processes(nCtx contextx.IContext, hosts []*types.Host) (
 	condition := &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{HostID: hostIDs},
 	}
-	processes, _, err := h.daoProcessV2.ListProcessesV2(nCtx, types.UnlimitedPage(), condition)
+
+	executor := pageexecutor.NewPageExecutor[*types.Process](listV2CompatibleProcessPageSize, listV2CompatibleQueryTimeout)
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.Process, error) {
+		processes, _, err := h.daoProcessV2.ListProcessesV2(nCtx, page, condition)
+
+		return processes, err
+	}
+	pageResult, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list v2 plugin processes: %w", err)
 	}
 
-	processInfos := make(map[int64]types.ProcessInfo, len(processes))
-	for _, process := range processes {
+	processInfos := make(map[int64]types.ProcessInfo, len(pageResult.Items))
+	for _, process := range pageResult.Items {
 		if process.PluginName != pluginNameMonitorbeat {
 			continue
 		}

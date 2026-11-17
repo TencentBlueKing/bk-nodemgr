@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -205,10 +206,18 @@ func (act *actionSyncStoppedPluginProcessV2Info) listProcessesToSync(nCtx contex
 	condition := &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{HostID: hostIDs},
 	}
-	processes, _, err := act.processStg.ListProcessesV2(nCtx, types.UnlimitedPage(), condition)
+
+	executor := pageexecutor.NewPageExecutor[*types.Process](stoppedProcessSyncListMaxPageSize, act.Timeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.Process, error) {
+		processes, _, err := act.processStg.ListProcessesV2(nCtx, page, condition)
+
+		return processes, err
+	}
+	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list v2 processes: %w", err)
 	}
+	processes := result.Items
 
 	stoppedProcesses := make([]*types.Process, 0, len(processes))
 	for _, proc := range processes {
