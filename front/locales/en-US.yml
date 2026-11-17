@@ -294,6 +294,7 @@ platform:
         uninstall_proxy: Proxy Uninstallation
         assign_proxy_unit: Assign Proxy Network Unit
         install_plugin: Plugin Installation
+        install_plugin_no_start: Plugin Installation (No Start)
         start_plugin: Plugin Start
         debug_plugin: Plugin Debugging
         ensure_plugin_v2: Ensure V2 Plugin

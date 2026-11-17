@@ -294,6 +294,7 @@ platform:
         uninstall_proxy: Proxy 卸载
         assign_proxy_unit: Proxy 分配管控单元
         install_plugin: 插件安装
+        install_plugin_no_start: 插件安装（不启动）
         start_plugin: 插件启动
         debug_plugin: 插件调试
         ensure_plugin_v2: 确保 V2 插件
