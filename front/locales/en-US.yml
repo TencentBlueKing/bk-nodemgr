@@ -997,6 +997,7 @@ agentStrategy:
     configNameLength: Length must be 1-50 characters
     businessRequired: Business is required
     pluginRequired: Please select a plugin
+    networkUnitRequired: Please select a network unit
 pluginPackage:
   title: Plugin Packages
   upload: Upload Package

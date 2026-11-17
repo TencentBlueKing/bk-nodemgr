@@ -305,6 +305,13 @@ const rules = {
   ],
   bk_biz_id: [{ required: true, message: t('agentStrategy.validate.businessRequired'), trigger: 'change' }],
   target_plugin_name: [{ required: true, message: t('agentStrategy.validate.pluginRequired'), trigger: 'change' }],
+  scopes: [
+    {
+      message: t('agentStrategy.validate.networkUnitRequired'),
+      trigger: 'change',
+      validator: (val: IScope[]) => val.every(item => String(item.bk_networkunit_id ?? '').trim() !== ''),
+    },
+  ],
 };
 
 const originData = ref(cloneDeep(formData));
@@ -439,7 +446,7 @@ const handleSubmit = async () => {
   if (res) emit('save');
 };
 
-const handleSingleChange = (item: any, id: string, rows: any[]) => { item.bk_networkarea_id = id; item.bk_networkunit_id = ''; item.bk_networkarea_name = rows[0].bk_networkarea_name; };
+const handleSingleChange = (item: any, id: string, rows: any[]) => { item.bk_networkarea_id = id; item.bk_networkunit_id = '-1'; item.bk_networkarea_name = rows[0].bk_networkarea_name; };
 const handleUnitChange = (item: any, id: number | string, row: any) => { item.bk_networkunit_id = id; if (row) item.bk_networkunit_name = row.bk_networkunit_name; };
 
 const osTypeList = ref<{ value: string; label: string }[]>([]);
