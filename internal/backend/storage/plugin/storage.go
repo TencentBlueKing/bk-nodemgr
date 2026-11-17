@@ -115,6 +115,7 @@ const (
 	metricOperationUpdateProcessInfoV2     = "update_process_info_v2"
 	metricOperationGetProcessV2            = "get_process_v2"
 	metricOperationListProcessV2           = "list_process_v2"
+	metricOperationCountProcessV2          = "count_process_v2"
 	metricOperationUpdateManyProcessInfoV2 = "update_many_process_info_v2"
 	metricOperationDeleteProcessV2         = "delete_process_v2"
 
@@ -1191,8 +1192,8 @@ func (s *Storage) GetProcessV2(nCtx contextx.IContext, hostID int64, pluginName 
 	return process, err
 }
 
-// ListProcessesV2 list the v2 compatible processes of the given hosts.
-func (s *Storage) ListProcessesV2(nCtx contextx.IContext, page types.Page, hostIDs []int64) ([]*types.Process, int64, error) {
+// ListProcessesV2 lists the v2 compatible processes by page and conditions.
+func (s *Storage) ListProcessesV2(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) ([]*types.Process, int64, error) {
 	var (
 		processes []*types.Process
 		total     int64
@@ -1200,12 +1201,29 @@ func (s *Storage) ListProcessesV2(nCtx contextx.IContext, page types.Page, hostI
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListProcessV2, func(nCtx contextx.IContext) error {
-		processes, total, err = s.listProcessesV2(nCtx, page, hostIDs)
+		processes, total, err = s.listProcessesV2(nCtx, page, conditions...)
 
 		return err
 	})
 
 	return processes, total, err
+}
+
+// CountProcessesV2 counts the v2 compatible processes by conditions.
+func (s *Storage) CountProcessesV2(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (int64, error) {
+	var (
+		count int64
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationCountProcessV2, func(nCtx contextx.IContext) error {
+		var err error
+		count, err = s.countProcessesV2(nCtx, conditions...)
+
+		return err
+	})
+
+	return count, err
 }
 
 // UpdateManyProcessInfoV2 batch update the process info of v2 compatible processes.

@@ -36,6 +36,9 @@ type IHandler interface {
 	// Create create a new v2 process.
 	Create(nCtx contextx.IContext, process *types.Process) error
 
+	// Count counts v2 processes by conditions.
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
+
 	// List lists v2 processes by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Process, int64, error)
 
@@ -108,6 +111,25 @@ func (h *Handler) Create(nCtx contextx.IContext, process *types.Process) error {
 	}
 
 	return nil
+}
+
+// Count counts v2 processes by conditions.
+func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return 0, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	count, err := h.tenantDao(nCtx.TenantID()).Count(nCtx, filter)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count process v2, err: %w", err)
+	}
+
+	return count, nil
 }
 
 // List lists v2 processes by page and conditions.

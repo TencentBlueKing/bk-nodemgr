@@ -96,7 +96,10 @@ func (h *handler) listV2Processes(nCtx contextx.IContext, hosts []*types.Host) (
 		return map[int64]types.ProcessInfo{}, nil
 	}
 
-	processes, _, err := h.daoProcessV2.ListProcessesV2(nCtx, types.UnlimitedPage(), hostIDs)
+	condition := &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{HostID: hostIDs},
+	}
+	processes, _, err := h.daoProcessV2.ListProcessesV2(nCtx, types.UnlimitedPage(), condition)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list v2 plugin processes: %w", err)
 	}

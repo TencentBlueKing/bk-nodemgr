@@ -19,6 +19,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -115,24 +116,84 @@ func (s *Storage) updateProcessInfoV2(
 	return nil
 }
 
-func (s *Storage) listProcessesV2(nCtx contextx.IContext, page types.Page, hostIDs []int64) (
-	[]*types.Process, int64, error) {
-
+func (s *Storage) listProcessesV2(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) ([]*types.Process, int64, error) {
 	if nCtx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}
 
-	// no host means no v2 process to read, the caller gets an empty page instead of a full table scan.
-	if len(hostIDs) == 0 {
-		return nil, 0, nil
+	opts, err := convertProcessV2ConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, 0, err
 	}
 
-	processes, total, err := s.daoProcessV2.List(nCtx, page, daoProcessV2.WithHostID(hostIDs...))
+	processes, total, err := s.daoProcessV2.List(nCtx, page, opts...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list processes v2: %w", err)
 	}
 
 	return processes, total, nil
+}
+
+func (s *Storage) countProcessesV2(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (int64, error) {
+	if nCtx == nil {
+		return 0, base.ErrInvalidContext()
+	}
+
+	opts, err := convertProcessV2ConditionsToOptions(conditions...)
+	if err != nil {
+		return 0, err
+	}
+
+	count, err := s.daoProcessV2.Count(nCtx, opts...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count processes v2: %w", err)
+	}
+
+	return count, nil
+}
+
+func convertProcessV2ConditionsToOptions(conditions ...*types.ProcessCondition) ([]daoProcessV2.OptFn, error) {
+	opts := make([]daoProcessV2.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				daoProcessV2.WithHostID(condition.ExactInclude.HostID...),
+				daoProcessV2.WithBizID(condition.ExactInclude.BizID...),
+				daoProcessV2.WithGroup(condition.ExactInclude.PluginGroup...),
+				daoProcessV2.WithGeneration(condition.ExactInclude.Generation...),
+				daoProcessV2.WithPlatformOS(condition.ExactInclude.PlatformOS...),
+				daoProcessV2.WithPlatformArch(condition.ExactInclude.PlatformArch...),
+				daoProcessV2.WithInfoStatus(condition.ExactInclude.InfoStatus...),
+				daoProcessV2.WithInfoTrusteeship(condition.ExactInclude.InfoTrusteeship...),
+				daoProcessV2.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
+				daoProcessV2.WithInfoVersion(condition.ExactInclude.InfoVersion...),
+				daoProcessV2.WithPluginName(condition.ExactInclude.PluginName...),
+				daoProcessV2.WithPkgName(condition.ExactInclude.PluginPkgName...))
+			if condition.ExactInclude.InfoLastSyncAtBefore != nil {
+				opts = append(opts, daoProcessV2.WithInfoLastSyncAtBefore(*condition.ExactInclude.InfoLastSyncAtBefore))
+			}
+		}
+
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				daoProcessV2.WithFuzzyName(condition.FuzzyInclude.Name...),
+				daoProcessV2.WithFuzzyPkgName(condition.FuzzyInclude.PkgName...))
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
 }
 
 func (s *Storage) updateManyProcessInfoV2(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error {
