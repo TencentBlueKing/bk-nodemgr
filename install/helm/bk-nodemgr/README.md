@@ -42,7 +42,7 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 #### 用户 Wiki 指引链接
 
-`backend.config.wiki` 配置 backend 用户可见任务日志中的产品 Wiki 链接：
+`backend.config.wiki` 配置 backend 用户可见任务日志中的产品 Wiki 链接，默认为 `github` 模式：
 
 ```yaml
 backend:
@@ -53,9 +53,22 @@ backend:
         repositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
 ```
 
-当前仅支持 `github` 模式。仓库地址不包含 tag 或文档目录；backend 根据自身版本解析结果构建发布 tag，文档位于该 tag 的 `support-files/wiki/zh/` 和 `support-files/wiki/en/` 下，中文、英文任务提示分别链接到对应语言的文档。构建标记不作为 tag 的一部分；`debug` 等无法解析为发布版本的构建回退到 `master`，此时文档可能与运行版本不同。旧配置未指定 `wiki` 时使用上述默认值。
+`github` 模式的仓库地址不包含 tag 或文档目录；backend 根据自身版本解析结果构建发布 tag，文档位于该 tag 的 `support-files/wiki/zh/` 和 `support-files/wiki/en/` 下，中文、英文任务提示分别链接到对应语言的文档。构建标记不作为 tag 的一部分；`debug` 等无法解析为发布版本的构建回退到 `master`，此时文档可能与运行版本不同。旧配置未指定 `wiki` 时使用上述默认值。阅读该模式的指引需要用户能够访问 GitHub。
 
-当前尚不支持 application 内嵌访问；无法访问 GitHub 的环境不能通过该模式阅读指引。
+无法访问 GitHub 的环境可切换为 `application` 模式，使用 application 服务随产品提供的文档，无需访问外网：
+
+```yaml
+backend:
+  config:
+    wiki:
+      mode: application
+      application:
+        prefixURL: https://nodemgr.example.com/wiki/
+```
+
+`application.prefixURL` 必须配置为用户可访问的绝对文档 URL 前缀，而不是集群内服务地址；默认空值仅适用于 `github` 模式。application 服务在固定的 `/wiki/` 路径托管文档，不需要额外的 application 启动配置。请确保用户访问入口将 `/wiki/` 路径转发至 application 服务，并将前缀设置为对应的外部地址。
+
+backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`。application 返回原始 Markdown，不提供 HTML 渲染；文档可免登录访问，请勿在产品 Wiki 中放置敏感信息。
 
 #### IAM V4 模型同步
 

@@ -29,7 +29,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
 	"gopkg.in/yaml.v2"
 )
 
@@ -223,7 +222,7 @@ func NewBackendService() *BackendService {
 		RunMode:    defaultBackendRunMode,
 		TenantMode: defaultBackendTenantMode,
 		Wiki: Wiki{
-			Mode: wiki.ModeGitHub,
+			Mode: WikiModeGitHub,
 			GitHub: WikiGitHub{
 				RepositoryURL: "https://github.com/TencentBlueKing/bk-nodemgr",
 			},

@@ -30,10 +30,21 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
 )
 
+// WikiMode identifies the deployment source of product user documentation.
+type WikiMode string
+
+const (
+	// WikiModeGitHub selects version-aware GitHub links.
+	WikiModeGitHub WikiMode = "github"
+	// WikiModeApplication selects the user-accessible application Wiki endpoint.
+	WikiModeApplication WikiMode = "application"
+)
+
 // Wiki configures product user documentation links.
 type Wiki struct {
-	Mode   wiki.Mode  `yaml:"mode" usage:"wiki source mode, currently github"`
-	GitHub WikiGitHub `yaml:"github" usage:"github wiki source settings"`
+	Mode        WikiMode        `yaml:"mode" usage:"wiki source mode: github or application"`
+	GitHub      WikiGitHub      `yaml:"github" usage:"github wiki source settings"`
+	Application WikiApplication `yaml:"application" usage:"application wiki source settings"`
 }
 
 // WikiGitHub configures the GitHub repository used for product user documentation.
@@ -41,14 +52,43 @@ type WikiGitHub struct {
 	RepositoryURL string `yaml:"repositoryURL" usage:"github repository address without tag or wiki path"`
 }
 
+// WikiApplication configures the user-accessible application Wiki prefix.
+type WikiApplication struct {
+	PrefixURL string `yaml:"prefixURL" usage:"user-accessible application wiki prefix including the wiki path"`
+}
+
 // Validate checks the Wiki mode and its source-specific inputs.
 func (conf Wiki) Validate() error {
-	return (wiki.Config{
-		Mode: conf.Mode,
-		GitHub: wiki.GitHubConfig{
-			RepositoryURL: conf.GitHub.RepositoryURL,
-		},
-	}).Validate()
+	_, err := conf.ToWikiConfig()
+	return err
+}
+
+// ToWikiConfig maps the deployment source to the shared Wiki link configuration.
+func (conf Wiki) ToWikiConfig() (wiki.Config, error) {
+	var result wiki.Config
+	switch conf.Mode {
+	case WikiModeGitHub:
+		result = wiki.Config{
+			Mode: wiki.ModeGitHub,
+			GitHub: wiki.GitHubConfig{
+				RepositoryURL: conf.GitHub.RepositoryURL,
+			},
+		}
+	case WikiModeApplication:
+		result = wiki.Config{
+			Mode: wiki.ModePrefix,
+			Prefix: wiki.PrefixConfig{
+				PrefixURL: conf.Application.PrefixURL,
+			},
+		}
+	default:
+		return wiki.Config{}, fmt.Errorf("unsupported wiki mode: %s", conf.Mode)
+	}
+	if err := result.Validate(); err != nil {
+		return wiki.Config{}, fmt.Errorf("invalid wiki %s config: %w", conf.Mode, err)
+	}
+
+	return result, nil
 }
 
 // Etcd the config of etcd.

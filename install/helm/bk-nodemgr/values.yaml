@@ -1625,11 +1625,13 @@ backend:
       env: gse2
       edition: ce
 
-    ## Product user Wiki links. Only github mode is supported.
+    ## Product user Wiki links. Supported modes: github (default), application.
     wiki:
       mode: github
       github:
         repositoryURL: https://github.com/TencentBlueKing/bk-nodemgr
+      application:
+        prefixURL: ""
 
     ## defines the related settings of installer file group.
     installerFileGroup:
