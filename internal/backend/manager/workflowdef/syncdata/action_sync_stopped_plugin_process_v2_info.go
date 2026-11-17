@@ -197,10 +197,15 @@ func (act *actionSyncStoppedPluginProcessV2Info) Do(ctx *action.InstanceContext)
 }
 
 // listProcessesToSync lists the stopped v2 processes whose runtime state still needs to be confirmed from GSE.
-func (act *actionSyncStoppedPluginProcessV2Info) listProcessesToSync(
-	nCtx contextx.IContext, hostIDs []int64) ([]*types.Process, error) {
+func (act *actionSyncStoppedPluginProcessV2Info) listProcessesToSync(nCtx contextx.IContext, hostIDs []int64) ([]*types.Process, error) {
+	if len(hostIDs) == 0 {
+		return nil, nil
+	}
 
-	processes, _, err := act.processStg.ListProcessesV2(nCtx, types.UnlimitedPage(), hostIDs)
+	condition := &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{HostID: hostIDs},
+	}
+	processes, _, err := act.processStg.ListProcessesV2(nCtx, types.UnlimitedPage(), condition)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list v2 processes: %w", err)
 	}

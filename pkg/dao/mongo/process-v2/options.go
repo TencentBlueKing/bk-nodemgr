@@ -19,7 +19,11 @@
 package processv2
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn provides filtering options.
@@ -30,7 +34,78 @@ func WithHostID(hostIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyHostID, hostIDs...)
 }
 
+// WithBizID filters by biz-id.
+func WithBizID(bizIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyBizID, bizIDs...)
+}
+
 // WithPluginName filters by plugin name.
 func WithPluginName(pluginNames ...string) OptFn {
 	return base.WithValues(FieldKeyPluginName, pluginNames...)
+}
+
+// WithFuzzyName filters by fuzzy name.
+func WithFuzzyName(names ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyPluginName, names...)
+}
+
+// WithGroup filters by group.
+func WithGroup(groups ...string) OptFn {
+	return base.WithValues(FieldKeyGroup, groups...)
+}
+
+// WithPkgName filters by package name.
+func WithPkgName(pkgNames ...string) OptFn {
+	return base.WithValues(FieldKeyPkgName, pkgNames...)
+}
+
+// WithFuzzyPkgName filters by fuzzy package name.
+func WithFuzzyPkgName(pkgNames ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyPkgName, pkgNames...)
+}
+
+// WithGeneration filters by generation.
+func WithGeneration(generations ...int64) OptFn {
+	return base.WithValues(FieldKeyGeneration, generations...)
+}
+
+// WithPlatformOS filters by platform OS.
+func WithPlatformOS(osList ...string) OptFn {
+	return base.WithValues(FieldKeyPlatformOS, osList...)
+}
+
+// WithPlatformArch filters by platform architecture.
+func WithPlatformArch(archs ...string) OptFn {
+	return base.WithValues(FieldKeyPlatformArch, archs...)
+}
+
+// WithInfoStatus filters by info status.
+func WithInfoStatus(statuses ...types.ProcessStatus) OptFn {
+	return base.WithValues(FieldKeyInfoStatus, statuses...)
+}
+
+// WithInfoTrusteeship filters by whether the process is trusteeship by GSE.
+func WithInfoTrusteeship(trusteeship ...bool) OptFn {
+	return base.WithValues(FieldKeyInfoTrusteeship, trusteeship...)
+}
+
+// WithInfoLastSyncAtBefore filters processes whose last sync time is stale or absent.
+func WithInfoLastSyncAtBefore(deadline time.Time) OptFn {
+	return func(filter bson.D) bson.D {
+		return append(filter, bson.E{Key: "$or", Value: bson.A{
+			bson.D{{Key: FieldKeyInfoLastSyncAt, Value: bson.D{{Key: "$lt", Value: deadline}}}},
+			bson.D{{Key: FieldKeyInfoLastSyncAt, Value: bson.D{{Key: "$exists", Value: false}}}},
+			bson.D{{Key: FieldKeyInfoLastSyncAt, Value: nil}},
+		}})
+	}
+}
+
+// WithInfoAgentID filters by info agent ID.
+func WithInfoAgentID(agentIDs ...string) OptFn {
+	return base.WithValues(FieldKeyInfoAgentID, agentIDs...)
+}
+
+// WithInfoVersion filters by info version.
+func WithInfoVersion(versions ...string) OptFn {
+	return base.WithValues(FieldKeyInfoVersion, versions...)
 }

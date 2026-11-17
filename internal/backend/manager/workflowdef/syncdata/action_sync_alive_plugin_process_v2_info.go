@@ -186,7 +186,14 @@ func (act *actionSyncAlivePluginProcessV2Info) Do(ctx *action.InstanceContext) e
 
 // listProcessesToSync lists the v2 processes whose runtime state still needs to be confirmed from GSE.
 func (act *actionSyncAlivePluginProcessV2Info) listProcessesToSync(nCtx contextx.IContext, hostIDs []int64) ([]*types.Process, error) {
-	processes, _, err := act.processStg.ListProcessesV2(nCtx, types.UnlimitedPage(), hostIDs)
+	if len(hostIDs) == 0 {
+		return nil, nil
+	}
+
+	condition := &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{HostID: hostIDs},
+	}
+	processes, _, err := act.processStg.ListProcessesV2(nCtx, types.UnlimitedPage(), condition)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list v2 processes: %w", err)
 	}

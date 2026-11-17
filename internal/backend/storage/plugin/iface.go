@@ -210,8 +210,11 @@ type IDaoProcessV2 interface {
 	// UpdateProcessInfoV2 update the process info of a v2 compatible process.
 	UpdateProcessInfoV2(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error
 
-	// ListProcessesV2 list the v2 compatible processes of the given hosts.
-	ListProcessesV2(nCtx contextx.IContext, page types.Page, hostIDs []int64) ([]*types.Process, int64, error)
+	// ListProcessesV2 lists the v2 compatible processes by page and conditions.
+	ListProcessesV2(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) ([]*types.Process, int64, error)
+
+	// CountProcessesV2 counts the v2 compatible processes by conditions.
+	CountProcessesV2(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (int64, error)
 
 	// UpdateManyProcessInfoV2 batch update the process info of the v2 compatible processes.
 	UpdateManyProcessInfoV2(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
