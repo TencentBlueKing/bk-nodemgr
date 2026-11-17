@@ -60,6 +60,9 @@ const (
 	// PluginWorkflowTypeReconfig is the operation type for reconfig plugin.
 	PluginWorkflowTypeReconfig PluginWorkflowType = "reconfig_plugin"
 
+	// PluginWorkflowTypeApplyPluginConfig is the operation type for applying plugin config.
+	PluginWorkflowTypeApplyPluginConfig PluginWorkflowType = "apply_plugin_config"
+
 	// PluginWorkflowTypeApplyPluginSubConfig is the operation type for apply plugin sub config.
 	PluginWorkflowTypeApplyPluginSubConfig PluginWorkflowType = "apply_plugin_subconfig"
 
@@ -102,6 +105,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeUpgrade,
 		PluginWorkflowTypeUninstall,
 		PluginWorkflowTypeReconfig,
+		PluginWorkflowTypeApplyPluginConfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
 		PluginWorkflowTypeComposePluginSubConfig,
 		PluginWorkflowTypeRemovePluginSubConfig,

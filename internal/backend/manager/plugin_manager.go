@@ -544,6 +544,94 @@ func (mgr *Manager) getPluginUninstallOperationDef(deploy *types.PluginDeploymen
 	})
 }
 
+// LaunchApplyPluginConfig launches a task to apply plugin config and returns the workflow ID.
+func (mgr *Manager) LaunchApplyPluginConfig(nCtx contextx.IContext, param types.ApplyPluginConfigParam) (string, error) {
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginApplySubConfigMaxConcurrencyNum,
+		globalsettings.OperPluginApplySubConfigMaxConcurrencyNumDefault,
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to create apply plugin config trigger: %w", err)
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err := mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		HostIDs:         param.HostIDs,
+		BizIDs:          param.BizIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", fmt.Errorf("failed to create apply plugin config workflow: %w", err)
+	}
+
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StoragePlugin.UpdatePluginWorkflowStatus(nCtx, workflowID, types.PluginWorkflowStatusFailed); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark plugin workflow as failed after launch failure")
+		}
+	}()
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+		gp.Go(func() error {
+			return mgr.createApplyPluginConfigOper(nCtx, triggerCtl, param.Operator, deploy)
+		})
+	}
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch apply plugin config task: %w", err)
+	}
+
+	if err := triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", fmt.Errorf("failed to activate apply plugin config trigger: %w", err)
+	}
+	needRollback = false
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createApplyPluginConfigOper(
+	nCtx contextx.IContext, triggerCtl workflow.ITriggerCtl, operator string, deploy *types.PluginDeployment,
+) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		return fmt.Errorf("failed to create plugin deployment for token %s: %w", deploy.Token, err)
+	}
+
+	operationDef := plugin.NewOperApplyPluginConfig(plugin.OperParamApplyPluginConfig{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+		OnlyPushSubConfig: false,
+	})
+	if _, err := triggerCtl.CreateOperation(nCtx, operationDef, operationDef.DefaultParameters()); err != nil {
+		return fmt.Errorf("failed to create apply plugin config operation for token %s: %w", deploy.Token, err)
+	}
+
+	return nil
+}
+
 // LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
 func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error) {
 	triggerCtl, err := mgr.createOrderedPluginTrigger(

@@ -85,6 +85,9 @@ type iPluginManagerPlugin interface {
 	// LaunchUninstallPlugin launch a task to uninstall plugin. returns the workflow-id.
 	LaunchUninstallPlugin(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error)
 
+	// LaunchApplyPluginConfig launches a task to apply plugin config and returns the workflow ID.
+	LaunchApplyPluginConfig(nCtx contextx.IContext, param types.ApplyPluginConfigParam) (string, error)
+
 	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
 	LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error)
 
