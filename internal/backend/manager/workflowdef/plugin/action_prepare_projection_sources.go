@@ -70,6 +70,11 @@ func (act *actionPrepareProjectionSources) Timeout() time.Duration { return 10 *
 // Tags returns action tags.
 func (act *actionPrepareProjectionSources) Tags() []action.Tag { return []action.Tag{} }
 
+// Queue returns the queue of the action.
+func (act *actionPrepareProjectionSources) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount disables automatic relaunch while children may still be running.
 func (act *actionPrepareProjectionSources) MaxRetryCount() uint { return 0 }
 

@@ -72,6 +72,11 @@ func (act *actionApplyProjectedPluginSubConfigs) Timeout() time.Duration { retur
 // Tags returns action tags.
 func (act *actionApplyProjectedPluginSubConfigs) Tags() []action.Tag { return []action.Tag{} }
 
+// Queue returns the queue of the action.
+func (act *actionApplyProjectedPluginSubConfigs) Queue() action.Queue {
+	return action.QueueDefault
+}
+
 // MaxRetryCount prevents automatic replay after an uncertain child outcome.
 func (act *actionApplyProjectedPluginSubConfigs) MaxRetryCount() uint { return 0 }
 
