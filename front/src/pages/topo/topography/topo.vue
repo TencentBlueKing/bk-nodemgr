@@ -22,6 +22,7 @@
         all-option-id="all"
         collapse-tags
         filterable
+        :filter-option="filterOption"
         multiple
         show-all
         @change="handleSelectChange"
@@ -383,6 +384,19 @@ const loadMissingAreaUnits = async () => {
     ? authStore.getAuthorizedResourceIds('networkunit_view')
     : null;  // null：store 内部走 allAuthorized 拉数据，UI 权限仍由 has_unit_auth 独立判断
   await handleFetchAllWorkUnit(missingIds, authorizedIds).catch(() => {});
+};
+
+const filterOption = (
+  input: any,
+  options: { id?: number | string; value?: number | string; name?: string; label?: string },
+) => {
+  const keyword = String(input).trim()
+    .toLowerCase();
+  if (!keyword) return true;
+  const name = String(options.name ?? options.label ?? '')
+    .toLowerCase();
+  const id = String(options.id ?? options.value ?? '');
+  return name.includes(keyword) || id.includes(keyword);
 };
 
 async function handleSelectChange() {

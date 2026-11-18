@@ -6,6 +6,7 @@
     :loading="localLoading"
     :clearable="false"
     :filterable="true"
+    :filter-option="filterOption"
     :disabled="disabled"
     auto-focus
     @change="handleSelectChange"
@@ -189,6 +190,19 @@ watch(() => props.modelValue, (val) => {
     internalValue.value = String(val);
   }
 });
+
+const filterOption = (
+  input: any,
+  options: { id?: number | string; value?: number | string; name?: string; label?: string },
+) => {
+  const keyword = String(input).trim()
+    .toLowerCase();
+  if (!keyword) return true;
+  const name = String(options.name ?? options.label ?? '')
+    .toLowerCase();
+  const id = String(options.id ?? options.value ?? '');
+  return name.includes(keyword) || id.includes(keyword);
+};
 
 const handleSelectChange = (val: any) => {
   const sourceList = useExternalOptions.value ? props.options! : unitList.value;
