@@ -2,23 +2,23 @@
 
 ## 现象
 
-多租户模式（`tenantMode=multiple`）下，用户管理侧已修改虚拟用户的 `bk_username` 映射，节点管理查询同一登录名时仍可能返回旧值。多副本部署时，不同副本的解析结果可能短暂不一致。
+使用默认的 `userManager.useLegacyUsername=false` 时，无论单租户还是多租户模式，用户管理侧修改虚拟用户的 `bk_username` 映射后，节点管理查询同一登录名仍可能返回旧值。多副本部署时，不同副本的解析结果可能短暂不一致。
 
 该现象可能影响当前虚拟用户解析和 APIGateway 客户端凭据解析。不能仅凭变更后的短暂不一致，就判定为配置错误或鉴权故障。
 
 ## 原因与适用范围
 
-- 多租户下，`login_name` 到 `bk_username` 的成功解析结果按 `(tenantID, loginName)` 缓存在进程内存中，副本之间不共享。
+- 未开启旧版用户名兼容时，`login_name` 到 `bk_username` 的成功解析结果按 `(tenantID, loginName)` 缓存在进程内存中，副本之间不共享。
 - 缓存有效期为写入后的 1 分钟，命中缓存不会延长有效期。缓存过期或未命中时，由下一次请求回源查询用户管理，不会定时刷新。
 - 用户管理侧修改映射后，已缓存的旧值在剩余有效期内仍可能被使用。各副本写入缓存的时间不同，因此可能短暂返回不同结果。
 - 查询失败、用户不存在、匹配到多个用户或 `bk_username` 为空时，均不会写入缓存。新增此前查不到的用户后，下次查询会再次访问用户管理，无需等待失败结果过期。
-- 单租户模式直接使用登录名，不经过该虚拟用户查询缓存。
+- 仅显式设置 `userManager.useLegacyUsername=true` 的旧版单租户兼容模式直接使用登录名，不经过该查询及缓存。蓝鲸 7.3 单租户模式应保持 `false`；蓝鲸 7.2 才启用该兼容开关。
 
 1 分钟限制的是本地缓存条目的有效期，并不保证用户管理侧的变更一定在 1 分钟内端到端生效；还需考虑上游是否已返回新值、回源请求是否成功等因素。
 
 ## 确认方法
 
-1. 确认受影响服务使用 `tenantMode=multiple`，核对请求中的租户 ID 和登录名。
+1. 确认受影响服务使用 `userManager.useLegacyUsername=false`，核对请求中的租户 ID 和登录名；单租户的默认租户 ID 为 `default`。
 2. 确认用户管理对该租户、登录名已返回预期的非空 `bk_username`。若上游结果不符合预期，先排查用户映射或查询错误。
 3. 结合现有请求日志，记录请求时间、租户、登录名和处理请求的副本，对比同一租户、同一登录名在不同副本上的结果。
 4. 确认上游结果后，等待超过 1 分钟再发起相同查询，并尽可能覆盖各受影响副本。缓存过期后需要新的查询触发回源，仅等待不会主动获取新值。
@@ -32,7 +32,7 @@
 
 ## 相关实现
 
-- [用户管理适配层](../../../pkg/thirdparty/usermanager/handler.go)：`NewHandlerMultiTenant`、`GetBKUsernameByLoginName` 和 `refreshVirtualUser` 定义缓存策略；`HandlerSingle` 不经过该查询。
+- [用户管理适配层](../../../pkg/thirdparty/usermanager/handler.go)：两个 Handler 共用 `virtualUserResolver` 的查询和缓存策略；仅旧版用户名兼容模式绕过该查询。
 - [内存缓存](../../../pkg/runtime/cache/memory.go)：进程内存储与默认过期行为。
 - [当前虚拟用户解析](../../../pkg/access/access.go)、[APIGateway 客户端凭据解析](../../../pkg/thirdparty/apigw/client/config.go)：虚拟用户解析的调用方。
 - [安装部署](../installation.md)：`tenantMode` 和 `userManager` 连接配置。

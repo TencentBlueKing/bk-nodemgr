@@ -482,6 +482,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 			apiGwClientCapability,
 			&usermanager.Config{
 				VirtualUserConfig: virtualUserConfig,
+				UseLegacyUsername: svc.conf.UserManager.UseLegacyUsername,
 			},
 		)
 		if err != nil {
@@ -492,6 +493,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 			apiGwClientCapability,
 			&usermanager.Config{
 				VirtualUserConfig: virtualUserConfig,
+				UseLegacyUsername: svc.conf.UserManager.UseLegacyUsername,
 			},
 		)
 		if err != nil {

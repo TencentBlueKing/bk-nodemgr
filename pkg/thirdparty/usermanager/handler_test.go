@@ -186,7 +186,7 @@ func TestHandlerMultiTenantGetBKUsernameByLoginNameValidation(t *testing.T) {
 }
 
 func TestHandlerSingleGetBKUsernameByLoginName(t *testing.T) {
-	h := &HandlerSingle{}
+	h := &HandlerSingle{useLegacyUsername: true}
 
 	bkUsername, err := h.GetBKUsernameByLoginName(contextx.New(context.Background()), "bk-nodemgr")
 	require.NoError(t, err)
@@ -195,6 +195,67 @@ func TestHandlerSingleGetBKUsernameByLoginName(t *testing.T) {
 	_, err = h.GetBKUsernameByLoginName(contextx.New(context.Background()), "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "login name is empty")
+}
+
+func TestHandlerSingleUsernameCompatibility(t *testing.T) {
+	for _, legacy := range []bool{false, true} {
+		t.Run(fmt.Sprintf("legacy_%t", legacy), func(t *testing.T) {
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				calls.Add(1)
+				assert.Equal(t, "/api/v3/open/tenant/virtual-users/-/lookup/", req.URL.Path)
+				assert.Equal(t, tenant.SingleModeTenantID, req.Header.Get(restheader.BKTenantIDKey))
+				assert.Equal(t, "bk-nodemgr", req.URL.Query().Get("lookups"))
+				assert.Equal(t, lookupFieldLoginName, req.URL.Query().Get("lookup_field"))
+				rw.Header().Set("Content-Type", "application/json")
+				_, _ = rw.Write([]byte(`{"data":[{"bk_username":"virtual-user-id","login_name":"bk-nodemgr"}]}`))
+			}))
+			defer server.Close()
+
+			h, err := NewHandlerSingle(newHTTPTestCapability(t, server.URL), &Config{UseLegacyUsername: legacy})
+			require.NoError(t, err)
+			nCtx := contextx.New(context.Background(), contextx.WithTenantID(tenant.SingleModeTenantID))
+			tenants, err := h.ListALLTenants(nCtx)
+			require.NoError(t, err)
+			require.Len(t, tenants, 1)
+			assert.Equal(t, tenant.SingleModeTenantID, tenants[0].ID)
+			assert.True(t, tenants[0].Enabled)
+			assert.Zero(t, calls.Load())
+
+			want := "virtual-user-id"
+			wantCalls := int32(1)
+			if legacy {
+				want = "bk-nodemgr"
+				wantCalls = 0
+			}
+			for range 2 {
+				username, err := h.GetBKUsernameByLoginName(nCtx, "bk-nodemgr")
+				require.NoError(t, err)
+				assert.Equal(t, want, username)
+			}
+			assert.Equal(t, wantCalls, calls.Load())
+		})
+	}
+}
+
+func TestHandlerSingleLookupFailureDoesNotFallBackToLoginName(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"data":[]}`))
+	}))
+	defer server.Close()
+
+	h, err := NewHandlerSingle(newHTTPTestCapability(t, server.URL), &Config{})
+	require.NoError(t, err)
+	username, err := h.GetBKUsernameByLoginName(
+		contextx.New(context.Background(), contextx.WithTenantID(tenant.SingleModeTenantID)), "bk-nodemgr")
+	require.ErrorContains(t, err, "virtual user not found")
+	assert.Empty(t, username)
+}
+
+func TestHandlerMultiTenantRejectsLegacyUsername(t *testing.T) {
+	_, err := NewHandlerMultiTenant(nil, &Config{UseLegacyUsername: true})
+	require.ErrorContains(t, err, "legacy username only supports single-tenant mode")
 }
 
 func TestHandlerMultiTenantGetBKUsernameByLoginNameResponseHandling(t *testing.T) {
@@ -266,18 +327,24 @@ func TestHandlerMultiTenantGetBKUsernameByLoginNameResponseHandling(t *testing.T
 func newHTTPTestHandler(t *testing.T, endpoint string) *HandlerMultiTenant {
 	t.Helper()
 
+	h, err := NewHandlerMultiTenant(newHTTPTestCapability(t, endpoint), &Config{})
+	require.NoError(t, err)
+
+	return h
+}
+
+func newHTTPTestCapability(t *testing.T, endpoint string) *restclient.Capability {
+	t.Helper()
+
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
 	require.NoError(t, err)
 
-	h, err := NewHandlerMultiTenant(&restclient.Capability{
+	return &restclient.Capability{
 		Name:                 "usermanager-test",
 		HTTPClient:           httpClient,
 		Discover:             restdiscovery.NewDiscovery("usermanager-test", []string{endpoint}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
 		TraceSvc:             testTraceService{},
-	}, &Config{})
-	require.NoError(t, err)
-
-	return h
+	}
 }
