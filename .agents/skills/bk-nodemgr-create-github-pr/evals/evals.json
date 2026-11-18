@@ -8,7 +8,7 @@
       "expected_output": "复用匹配的长期 Issue，PR 标题满足英文 subject 和 --issue=#N，正文使用 refs 而不是 closes，并说明 workflow 触发范围、权限和验证。",
       "expectations": [
         "将 .github/workflows/** 识别为 kind/ci 并说明 workflow 影响",
-        "优先查找和复用已有 DAILY/长期 Issue，不创建重复 Issue",
+        "使用 bk-nodemgr-issue 查找和确认复用已有 DAILY/长期 Issue，接收编号、范围、状态、长期属性和写操作状态，不创建重复 Issue",
         "对长期 Issue 使用 refs 或 related to，不使用 closes/fixes/resolves",
         "PR 正文使用当前双语模板并记录真实测试结果或未测试原因"
       ]

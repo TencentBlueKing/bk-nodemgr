@@ -1,0 +1,53 @@
+{
+  "skill_name": "bk-nodemgr-issue",
+  "evals": [
+    {
+      "id": 1,
+      "name": "existing-issue-incomplete-evidence",
+      "prompt": "帮我补充现有 bk-nodemgr Issue 的描述，整理一下，别提交。现场偶发失败，还不能稳定复现，版本没收集，怀疑是 auth 边界问题。请写出下一步与缺失信息处理。",
+      "expected_output": "先读取目标 Issue，保留已有事实，只提供更新草稿；将 auth 猜测与确定事实区分，缺失版本和复现证据在对话中询问，不伪造必选检查项。",
+      "expectations": [
+        "读取现有 Issue 的 title/body/state/labels；没有编号时询问目标，而非新建",
+        "不把 auth 猜测写成已确认根因，不声称稳定复现或已知环境",
+        "将材料缺口与公开正文分开，未获支持的 checklist 保持未勾选，不宣称可提交",
+        "不执行 Issue 创建、编辑、评论或其他远端写入"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "pr-daily-handoff",
+      "prompt": "只改 .github/workflows 日常 CI，给我准备 PR；尚无明确 Issue，已有长期 DAILY 跟踪，别新建或关闭。",
+      "expected_output": "PR workflow 委托 bk-nodemgr-issue 查询和确认匹配 DAILY，再由 PR workflow 依据交付范围使用 refs；不创建 Issue，不执行远端写操作。",
+      "expectations": [
+        "PR workflow 使用 bk-nodemgr-issue 处理 Issue 查询/复用，不另行运行通用创建流程",
+        "核验 DAILY 的当前状态和范围，候选不因关键词命中就自动绑定",
+        "Issue handoff 包含编号/URL、覆盖范围、状态、长期跟踪属性和写操作状态",
+        "PR workflow 自行决定 refs 而非 closes，并保持 preflight 无远端写入"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "undecided-design-discussion",
+      "prompt": "我想讨论跨服务权限边界，方案没定，帮我整理 Issue，不要先写实现方案。",
+      "expected_output": "选择 discussion.yml，对照现有边界补齐问题事实与决策点；保持模板标签/字段/多选值，不擅自承诺接口或共享包改造。",
+      "expectations": [
+        "选择 discussion.yml 并使用其准确标题前缀和字段顺序",
+        "涉及架构和 API 时按证据选择现有多选选项，不强制虚构选择",
+        "正文聚焦问题、影响、风险边界和待讨论的决策，不编造实现方案或收益数字",
+        "先查项目事实与重复 Issue，缺失材料只问与当前表单和问题有关的具体问题"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "form-label-and-create-retry",
+      "prompt": "模拟提交检查：已确认的 Feature 草稿准备创建，但远端不存在表单默认 label；创建请求随后超时，无法判断是否成功。不要真的调用 GitHub。说明各阶段应该怎么处理。",
+      "expected_output": "缺失标签应先阻断并确认，不能隐式建标签或替换；假设授权问题已解决后发生超时，先查远端资源再决定是否重试，读回比较已批准草稿。",
+      "expectations": [
+        "模板 label 缺失时先报告并确认，不静默省略、创建或替换",
+        "创建前展示准确仓库、模板、标题/正文和标签，确认独立于文本审阅或 PR 授权",
+        "不在未知创建结果时盲目重试，先检查远端是否已有相同资源",
+        "实际写入后使用 gh issue view 核对 title/body/url/labels/state，修正另需确认"
+      ]
+    }
+  ]
+}
