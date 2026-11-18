@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
 )
 
@@ -515,6 +516,22 @@ func (conf GSE) Validate() error {
 // UserManager the config of user manager.
 type UserManager struct {
 	APIGatewayClient `yaml:",inline" usage:"api-gateway config of user manager"`
+
+	// UseLegacyUsername keeps login_name as bk_username in legacy single-tenant platforms. Defaults to false.
+	UseLegacyUsername bool `yaml:"useLegacyUsername" usage:"use login name as bk username in legacy single-tenant platforms"`
+}
+
+// ValidateForTenantMode validates the client config and username compatibility for the tenant mode.
+func (conf UserManager) ValidateForTenantMode(mode tenant.Mode) error {
+	if err := conf.Validate(); err != nil {
+		return err
+	}
+
+	if conf.UseLegacyUsername && mode != tenant.ModeSingle {
+		return errors.New("legacy username only supports single-tenant mode")
+	}
+
+	return nil
 }
 
 // Validate validates the config.

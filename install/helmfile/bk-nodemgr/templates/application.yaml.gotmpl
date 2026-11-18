@@ -71,6 +71,11 @@ externalMongodb:
 {{- $_ := set $current "endpoints" (dig "endpoints" (list $endpoint) $gateway) }}
 {{- $_ := set $config $configName $current }}
 {{- end }}
+{{- $userManager := deepCopy (dig "userManager" dict $config) }}
+{{- if not (hasKey $userManager "useLegacyUsername") }}
+{{- $_ := set $userManager "useLegacyUsername" false }}
+{{- end }}
+{{- $_ := set $config "userManager" $userManager }}
 {{- $bkSaaS := deepCopy (dig "bkSaaS" dict $config) }}
 {{- $bkLogin := deepCopy (dig "bkLogin" dict $bkSaaS) }}
 {{- $_ := set $bkLogin "appCode" (dig "global" "appCode" "" .Values) }}

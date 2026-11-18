@@ -7,6 +7,7 @@
     :clearable="false"
     :multiple="multiple"
     :filterable="true"
+    :filter-option="filterOption"
     collapse-tags
     :show-all="multiple"
     :all-option-id="multiple ? 'all' : undefined"
@@ -258,6 +259,19 @@ const handleCollect = (id: number) => {
 const handleTextMouseenter = (e: MouseEvent, id: number) => {
   const el = e.target as HTMLElement;
   textOverflowMap[id] = el.scrollWidth > el.clientWidth;
+};
+
+const filterOption = (
+  input: any,
+  options: { id?: number | string; value?: number | string; name?: string; label?: string },
+) => {
+  const keyword = String(input).trim()
+    .toLowerCase();
+  if (!keyword) return true;
+  const name = String(options.name ?? options.label ?? '')
+    .toLowerCase();
+  const id = String(options.id ?? options.value ?? '');
+  return name.includes(keyword) || id.includes(keyword);
 };
 
 // 核心：数据回传时还原类型

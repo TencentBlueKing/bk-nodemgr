@@ -523,7 +523,7 @@ const filterOption = (input: any, options: { id: number; name: string }) => {
 
   return keywords.some((keyword) => {
     const lowerKeyword = keyword.toLowerCase();
-    return lowerName.includes(lowerKeyword) || idStr === keyword.trim();
+    return lowerName.includes(lowerKeyword) || idStr.includes(keyword.trim());
   });
 };
 

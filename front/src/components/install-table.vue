@@ -186,6 +186,7 @@
                 v-model="row.bk_networkunit_id"
                 auto-focus
                 filterable
+                :filter-option="filterOption"
                 transfer
                 @change="(val: any) => { clearError(rowIndex, 'bk_networkunit_id'); handleNetworkUnitChange(val, row, rowIndex); }"
                 @toggle="(val: any) => !val && handleFieldBlur(rowIndex, 'bk_networkunit_id', row.bk_networkunit_id)"
@@ -1800,6 +1801,19 @@ const getNetworkUnitList = async () => {
   } finally {
     networkUnitLoading.value = false;
   }
+};
+
+const filterOption = (
+  input: any,
+  options: { id?: number | string; value?: number | string; name?: string; label?: string },
+) => {
+  const keyword = String(input).trim()
+    .toLowerCase();
+  if (!keyword) return true;
+  const name = String(options.name ?? options.label ?? '')
+    .toLowerCase();
+  const id = String(options.id ?? options.value ?? '');
+  return name.includes(keyword) || id.includes(keyword);
 };
 
 const getNetworkUnitsByAreaId = (bkNetworkAreaId: number | string) => {

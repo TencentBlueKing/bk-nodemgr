@@ -20,13 +20,61 @@ package config
 
 import (
 	"encoding/base64"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestUserManagerValidateForTenantMode(t *testing.T) {
+	for _, mode := range []tenant.Mode{tenant.ModeSingle, tenant.ModeMultiple} {
+		for _, legacy := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s_legacy_%t", mode, legacy), func(t *testing.T) {
+				conf := UserManager{
+					APIGatewayClient: APIGatewayClient{
+						Endpoints: []string{"https://bk-user.example.com"},
+						AppCode:   "bk-nodemgr",
+						AppSecret: "app-secret",
+						AuthMode:  "un",
+					},
+					UseLegacyUsername: legacy,
+				}
+				err := conf.ValidateForTenantMode(mode)
+				if legacy && mode == tenant.ModeMultiple {
+					require.ErrorContains(t, err, "legacy username only supports single-tenant mode")
+					return
+				}
+
+				require.NoError(t, err)
+			})
+		}
+	}
+}
+
+func TestServicesLoadLegacyUsername(t *testing.T) {
+	assert.False(t, NewBackendService().UserManager.UseLegacyUsername)
+	assert.False(t, NewApplicationService().UserManager.UseLegacyUsername)
+
+	for _, legacy := range []bool{false, true} {
+		t.Run(fmt.Sprintf("legacy_%t", legacy), func(t *testing.T) {
+			configPath := filepath.Join(t.TempDir(), "config.yaml")
+			content := []byte(fmt.Sprintf("userManager:\n  useLegacyUsername: %t\n", legacy))
+			require.NoError(t, os.WriteFile(configPath, content, 0o600))
+
+			backend := NewBackendService()
+			require.NoError(t, backend.LoadFromFile(configPath))
+			assert.Equal(t, legacy, backend.UserManager.UseLegacyUsername)
+
+			application := NewApplicationService()
+			require.NoError(t, application.LoadFromFile(configPath))
+			assert.Equal(t, legacy, application.UserManager.UseLegacyUsername)
+		})
+	}
+}
 
 func TestApplicationService_LoadFromFileReadsHelmRenderedKeys(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")

@@ -362,7 +362,7 @@ func (svc *ApplicationService) Validate() error {
 		return fmt.Errorf("failed to validate backend config: %w", err)
 	}
 
-	if err := svc.UserManager.Validate(); err != nil {
+	if err := svc.UserManager.ValidateForTenantMode(svc.TenantMode); err != nil {
 		return fmt.Errorf("failed to validate user manager config: %w", err)
 	}
 
