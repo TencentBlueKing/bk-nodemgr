@@ -506,3 +506,43 @@ service NodeWorkflow {
     };
   }
 }
+
+// 用户态的节点执行历史与步骤日志查询接口。
+service OpenNodeWorkflow {
+  // 查询节点工作流列表及执行状态。
+  rpc OpenNodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/workflow/list"
+      body : "*"
+    };
+  }
+
+  // 查询节点工作流的执行对象、操作状态及执行实例信息。
+  rpc OpenNodeWorkflowOperationList(NodeWorkflowOperationListReq)
+      returns (NodeWorkflowOperationListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+  // 按节点操作 ID 查询执行实例及历史执行状态。
+  rpc OpenNodeWorkflowOperationInstanceList(
+      NodeWorkflowOperationInstanceListReq)
+      returns (NodeWorkflowOperationInstanceListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/workflow/operation/instance/list"
+      body : "*"
+    };
+  }
+
+  // 按节点执行实例 ID 查询步骤状态、日志及子工作流引用。
+  rpc OpenNodeWorkflowOperationInstanceLogGet(
+      NodeWorkflowOperationInstanceLogGetReq)
+      returns (NodeWorkflowOperationInstanceLogGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/node/workflow/operation/instance/log/get"
+      body : "*"
+    };
+  }
+}

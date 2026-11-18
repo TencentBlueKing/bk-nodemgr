@@ -370,3 +370,44 @@ service PluginWorkflow {
     };
   }
 }
+
+// 用户态的插件执行历史与步骤日志查询接口。
+service OpenPluginWorkflow {
+  // 查询插件工作流列表及执行状态。
+  rpc OpenPluginWorkflowList(PluginWorkflowListReq)
+      returns (PluginWorkflowListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/plugin/workflow/list"
+      body : "*"
+    };
+  }
+
+  // 查询插件工作流的执行对象、操作状态及执行实例信息。
+  rpc OpenPluginWorkflowOperationList(PluginWorkflowOperationListReq)
+      returns (PluginWorkflowOperationListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/plugin/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+  // 按插件操作 ID 查询执行实例及历史执行状态。
+  rpc OpenPluginWorkflowOperationInstanceList(
+      PluginWorkflowOperationInstanceListReq)
+      returns (PluginWorkflowOperationInstanceListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/plugin/workflow/operation/instance/list"
+      body : "*"
+    };
+  }
+
+  // 按插件执行实例 ID 查询步骤状态、日志及子工作流引用。
+  rpc OpenPluginWorkflowOperationInstanceLogGet(
+      PluginWorkflowOperationInstanceLogGetReq)
+      returns (PluginWorkflowOperationInstanceLogGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/plugin/workflow/operation/instance/log/get"
+      body : "*"
+    };
+  }
+}

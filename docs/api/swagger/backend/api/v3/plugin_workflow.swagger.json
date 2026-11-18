@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "PluginWorkflow"
+    },
+    {
+      "name": "OpenPluginWorkflow"
     }
   ],
   "consumes": [
@@ -16,6 +19,142 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/open/plugin/workflow/list": {
+      "post": {
+        "summary": "查询插件工作流列表及执行状态。",
+        "operationId": "OpenPluginWorkflow_OpenPluginWorkflowList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginWorkflowListReq describes the plugin workflow list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenPluginWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/plugin/workflow/operation/instance/list": {
+      "post": {
+        "summary": "按插件操作 ID 查询执行实例及历史执行状态。",
+        "operationId": "OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenPluginWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/plugin/workflow/operation/instance/log/get": {
+      "post": {
+        "summary": "按插件执行实例 ID 查询步骤状态、日志及子工作流引用。",
+        "operationId": "OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceLogGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceLogGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginWorkflowOperationInstanceLogGetReq describes the node operation\ninstance log request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceLogGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenPluginWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/plugin/workflow/operation/list": {
+      "post": {
+        "summary": "查询插件工作流的执行对象、操作状态及执行实例信息。",
+        "operationId": "OpenPluginWorkflow_OpenPluginWorkflowOperationList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginWorkflowOperationListReq describes the node operation list\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenPluginWorkflow"
+        ]
+      }
+    },
     "/api/v3/plugin/workflow/distinct": {
       "post": {
         "summary": "PluginWorkflowDistinct provides plugin workflow distinct.",

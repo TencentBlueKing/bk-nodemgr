@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "NodeWorkflow"
+    },
+    {
+      "name": "OpenNodeWorkflow"
     }
   ],
   "consumes": [
@@ -418,6 +421,142 @@
         ],
         "tags": [
           "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/node/workflow/list": {
+      "post": {
+        "summary": "查询节点工作流列表及执行状态。",
+        "operationId": "OpenNodeWorkflow_OpenNodeWorkflowList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowListReq describes the node workflow list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/node/workflow/operation/instance/list": {
+      "post": {
+        "summary": "按节点操作 ID 查询执行实例及历史执行状态。",
+        "operationId": "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/node/workflow/operation/instance/log/get": {
+      "post": {
+        "summary": "按节点执行实例 ID 查询步骤状态、日志及子工作流引用。",
+        "operationId": "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/node/workflow/operation/list": {
+      "post": {
+        "summary": "查询节点工作流的执行对象、操作状态及执行实例信息。",
+        "operationId": "OpenNodeWorkflow_OpenNodeWorkflowOperationList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeWorkflow"
         ]
       }
     }

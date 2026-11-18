@@ -38786,3 +38786,1876 @@ paths:
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
         descriptionEn:
+  /api/v3/open/node/workflow/list:
+    post:
+      operationId: OpenNodeWorkflow_OpenNodeWorkflowList
+      description: 查询节点工作流列表及执行状态。
+      tags:
+        - OpenNodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            tenant_id:
+                              type: string
+                            workflow_id:
+                              type: string
+                            trigger_id:
+                              type: string
+                            type:
+                              type: string
+                            bk_biz_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            bk_networkarea_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            bk_networkunit_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            operator:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            finish_time:
+                              type: integer
+                              format: int64
+                            status:
+                              type: string
+                            node_role:
+                              type: array
+                              items:
+                                type: string
+                            deploy_policy_ids:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                          description: NodeWorkflowInfo describes the node workflow information.
+                description: NodeWorkflowListResp describes the node workflow list response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                    node_role:
+                      type: array
+                      items:
+                        type: string
+                    deploy_policy_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                  description: 'NodeWorkflowExactConditions describes the exact conditions of node workflow
+
+                    list request.'
+                fuzzy_include_conditions:
+                  type: object
+                  description: 'NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow
+
+                    list request.'
+                operate_time_range:
+                  type: object
+                  properties:
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+              description: NodeWorkflowListReq describes the node workflow list request.
+        required: true
+        description: NodeWorkflowListReq describes the node workflow list request.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/node/workflow/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query node workflows and their execution states.
+  /api/v3/open/node/workflow/operation/list:
+    post:
+      operationId: OpenNodeWorkflow_OpenNodeWorkflowOperationList
+      description: 查询节点工作流的执行对象、操作状态及执行实例信息。
+      tags:
+        - OpenNodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      operations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                            instance_ids:
+                              type: array
+                              items:
+                                type: string
+                            operator:
+                              type: string
+                            create_time:
+                              type: integer
+                              format: int64
+                            node_deployment_info:
+                              type: object
+                              properties:
+                                bk_host_id:
+                                  type: integer
+                                  format: int64
+                                bk_biz_id:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_host_innerip_v6_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_networkarea_id:
+                                  type: integer
+                                  format: int64
+                                bk_networkunit_id:
+                                  type: integer
+                                  format: int64
+                                node_version:
+                                  type: string
+                            latest_oper_inst_brief_data:
+                              type: object
+                              properties:
+                                life_cycle:
+                                  type: object
+                                  properties:
+                                    state:
+                                      type: string
+                                    create_time:
+                                      type: integer
+                                      format: int64
+                                    start_time:
+                                      type: integer
+                                      format: int64
+                                    end_time:
+                                      type: integer
+                                      format: int64
+                                    stop_time:
+                                      type: integer
+                                      format: int64
+                                  description: WorkflowLifeCycle describes the workflow life cycle.
+                                latest_action_inst_brief_data:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                    tags:
+                                      type: array
+                                      items:
+                                        type: string
+                                  description: 'WorkflowActionInstBriefData describes the workflow action instance
+                                    brief
+
+                                    data.'
+                      total:
+                        type: integer
+                        format: int64
+                description: 'NodeWorkflowOperationListResp describes the node operation list by
+
+                  workflow-id response.'
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                workflow_id:
+                  type: string
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    node_version:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    state:
+                      type: array
+                      items:
+                        type: string
+                fuzzy_include_conditions:
+                  type: object
+              description: 'NodeWorkflowOperationListReq describes the node operation list
+
+                request.'
+        required: true
+        description: 'NodeWorkflowOperationListReq describes the node operation list
+
+          request.'
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/node/workflow/operation/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query execution targets, operation states, and instance IDs in a node workflow.
+  /api/v3/open/node/workflow/operation/instance/list:
+    post:
+      operationId: OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList
+      description: 按节点操作 ID 查询执行实例及历史执行状态。
+      tags:
+        - OpenNodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                            oper_inst_id:
+                              type: string
+                            oper_inst_status:
+                              type: string
+                            operation_def_name:
+                              type: string
+                            parent_operation_id:
+                              type: string
+                            action_names:
+                              type: array
+                              items:
+                                type: string
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                create_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            latest_action_inst_brief_data:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                tags:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: 'WorkflowActionInstBriefData describes the workflow action instance brief
+
+                                data.'
+                          description: WorflowOperationInstanceData describes the workflow operation instance data.
+                description: 'NodeWorkflowOperationInstanceListResp describes the node operation instance
+
+                  list by operation-id response.'
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+                oper_inst_id:
+                  type: array
+                  items:
+                    type: string
+              description: 'NodeWorkflowOperationInstanceListReq describes the node operation instance
+
+                list by operation-id request.'
+        required: true
+        description: 'NodeWorkflowOperationInstanceListReq describes the node operation instance
+
+          list by operation-id request.'
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/node/workflow/operation/instance/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query execution instances and historical states by node operation ID.
+  /api/v3/open/node/workflow/operation/instance/log/get:
+    post:
+      operationId: OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet
+      description: 按节点执行实例 ID 查询步骤状态、日志及子工作流引用。
+      tags:
+        - OpenNodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      oper_inst_logs:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                create_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            message:
+                              type: object
+                              properties:
+                                logs:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      time:
+                                        type: integer
+                                        format: int64
+                                      level:
+                                        type: string
+                                      text_zh:
+                                        type: string
+                                        title: Chinese log content
+                                      text_en:
+                                        type: string
+                                        title: English log content
+                              description: WorkflowActionMessage describes the workflow action message logs.
+                            display_name_zh:
+                              type: string
+                              title: Chinese display name
+                            display_name_en:
+                              type: string
+                              title: English display name
+                            sub_workflow_refs:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  workflow_id:
+                                    type: string
+                                  workflow_domain:
+                                    type: string
+                                description: SubWorkflowRef describes a child workflow reference surfaced in action
+                                  logs.
+                          description: WorkflowActionData describes the workflow action data.
+                      extra_execution_logs:
+                        type: object
+                        properties:
+                          logs:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                time:
+                                  type: integer
+                                  format: int64
+                                level:
+                                  type: string
+                                text_zh:
+                                  type: string
+                                  title: Chinese log content
+                                text_en:
+                                  type: string
+                                  title: English log content
+                        description: WorkflowActionMessage describes the workflow action message logs.
+                description: 'NodeWorkflowOperationInstanceLogGetResp describes the node operation action
+
+                  instance log response.'
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oper_inst_id:
+                  type: string
+              description: 'NodeWorkflowOperationInstanceLogGetReq describes the node operation instance
+
+                log request.'
+        required: true
+        description: 'NodeWorkflowOperationInstanceLogGetReq describes the node operation instance
+
+          log request.'
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/node/workflow/operation/instance/log/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query action states, logs, and sub-workflow references by node operation instance ID.
+  /api/v3/open/plugin/workflow/list:
+    post:
+      operationId: OpenPluginWorkflow_OpenPluginWorkflowList
+      description: 查询插件工作流列表及执行状态。
+      tags:
+        - OpenPluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            tenant_id:
+                              type: string
+                            workflow_id:
+                              type: string
+                            trigger_id:
+                              type: string
+                            type:
+                              type: string
+                            bk_host_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            operator:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            finish_time:
+                              type: integer
+                              format: int64
+                            status:
+                              type: string
+                            bk_biz_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            deploy_policy_ids:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                          description: PluginWorkflowInfo describes the plugin workflow information.
+                description: PluginWorkflowListResp describes the plugin workflow list response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    deploy_policy_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                  description: 'PluginWorkflowExactConditions describes the exact conditions of plugin
+
+                    workflow list request.'
+                fuzzy_include_conditions:
+                  type: object
+                  description: 'PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin
+
+                    workflow list request.'
+                operate_time_range:
+                  type: object
+                  properties:
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+              description: PluginWorkflowListReq describes the plugin workflow list request.
+        required: true
+        description: PluginWorkflowListReq describes the plugin workflow list request.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/plugin/workflow/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query plugin workflows and their execution states.
+  /api/v3/open/plugin/workflow/operation/list:
+    post:
+      operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationList
+      description: 查询插件工作流的执行对象、操作状态及执行实例信息。
+      tags:
+        - OpenPluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      operations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                            instance_ids:
+                              type: array
+                              items:
+                                type: string
+                            operator:
+                              type: string
+                            create_time:
+                              type: integer
+                              format: int64
+                            plugin_deployment_info:
+                              type: object
+                              properties:
+                                bk_host_id:
+                                  type: integer
+                                  format: int64
+                                bk_biz_id:
+                                  type: integer
+                                  format: int64
+                                bk_networkarea_id:
+                                  type: integer
+                                  format: int64
+                                bk_networkunit_id:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_host_innerip_v6_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                plugin_name:
+                                  type: string
+                                plugin_version:
+                                  type: string
+                            latest_oper_inst_brief_data:
+                              type: object
+                              properties:
+                                life_cycle:
+                                  type: object
+                                  properties:
+                                    state:
+                                      type: string
+                                    create_time:
+                                      type: integer
+                                      format: int64
+                                    start_time:
+                                      type: integer
+                                      format: int64
+                                    end_time:
+                                      type: integer
+                                      format: int64
+                                    stop_time:
+                                      type: integer
+                                      format: int64
+                                  description: WorkflowLifeCycle describes the workflow life cycle.
+                                latest_action_inst_brief_data:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                    tags:
+                                      type: array
+                                      items:
+                                        type: string
+                                  description: 'WorkflowActionInstBriefData describes the workflow action instance
+                                    brief
+
+                                    data.'
+                      total:
+                        type: integer
+                        format: int64
+                description: 'PluginWorkflowOperationListResp describes the node operation list by
+
+                  workflow-id response.'
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                workflow_id:
+                  type: string
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    plugin_name:
+                      type: array
+                      items:
+                        type: string
+                    plugin_version:
+                      type: array
+                      items:
+                        type: string
+                    state:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+              description: 'PluginWorkflowOperationListReq describes the node operation list
+
+                request.'
+        required: true
+        description: 'PluginWorkflowOperationListReq describes the node operation list
+
+          request.'
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/plugin/workflow/operation/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query execution targets, operation states, and instance IDs in a plugin workflow.
+  /api/v3/open/plugin/workflow/operation/instance/list:
+    post:
+      operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList
+      description: 按插件操作 ID 查询执行实例及历史执行状态。
+      tags:
+        - OpenPluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                            oper_inst_id:
+                              type: string
+                            oper_inst_status:
+                              type: string
+                            operation_def_name:
+                              type: string
+                            parent_operation_id:
+                              type: string
+                            action_names:
+                              type: array
+                              items:
+                                type: string
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                create_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            latest_action_inst_brief_data:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                tags:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: 'WorkflowActionInstBriefData describes the workflow action instance brief
+
+                                data.'
+                          description: WorflowOperationInstanceData describes the workflow operation instance data.
+                description: 'PluginWorkflowOperationInstanceListResp describes the node operation instance
+
+                  list by operation-id response.'
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+              description: 'PluginWorkflowOperationInstanceListReq describes the node operation instance
+
+                list by operation-id request.'
+        required: true
+        description: 'PluginWorkflowOperationInstanceListReq describes the node operation instance
+
+          list by operation-id request.'
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/plugin/workflow/operation/instance/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query execution instances and historical states by plugin operation ID.
+  /api/v3/open/plugin/workflow/operation/instance/log/get:
+    post:
+      operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceLogGet
+      description: 按插件执行实例 ID 查询步骤状态、日志及子工作流引用。
+      tags:
+        - OpenPluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      oper_inst_logs:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                create_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            message:
+                              type: object
+                              properties:
+                                logs:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      time:
+                                        type: integer
+                                        format: int64
+                                      level:
+                                        type: string
+                                      text_zh:
+                                        type: string
+                                        title: Chinese log content
+                                      text_en:
+                                        type: string
+                                        title: English log content
+                              description: WorkflowActionMessage describes the workflow action message logs.
+                            display_name_zh:
+                              type: string
+                              title: Chinese display name
+                            display_name_en:
+                              type: string
+                              title: English display name
+                            sub_workflow_refs:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  workflow_id:
+                                    type: string
+                                  workflow_domain:
+                                    type: string
+                                description: SubWorkflowRef describes a child workflow reference surfaced in action
+                                  logs.
+                          description: WorkflowActionData describes the workflow action data.
+                      extra_execution_logs:
+                        type: object
+                        properties:
+                          logs:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                time:
+                                  type: integer
+                                  format: int64
+                                level:
+                                  type: string
+                                text_zh:
+                                  type: string
+                                  title: Chinese log content
+                                text_en:
+                                  type: string
+                                  title: English log content
+                        description: WorkflowActionMessage describes the workflow action message logs.
+                description: 'PluginWorkflowOperationInstanceLogGetResp describes the node operation action
+
+                  instance log response.'
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oper_inst_id:
+                  type: string
+              description: 'PluginWorkflowOperationInstanceLogGetReq describes the node operation
+
+                instance log request.'
+        required: true
+        description: 'PluginWorkflowOperationInstanceLogGetReq describes the node operation
+
+          instance log request.'
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/plugin/workflow/operation/instance/log/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query action states, logs, and sub-workflow references by plugin operation instance ID.
