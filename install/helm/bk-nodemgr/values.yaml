@@ -1289,6 +1289,9 @@ application:
 
     # defines the user manager (BK API gateway) related settings.
     userManager:
+      # Enable only on BlueKing platform 7.2 where bk_username equals login_name.
+      # Keep false on BlueKing 7.3 in both single and multiple tenant modes.
+      useLegacyUsername: false
       # endpoints is a seed list of host:port addresses of user manager apigw nodes.
       endpoints:
         - "https://example.com/api/bk-user/prod"
@@ -1839,6 +1842,9 @@ backend:
         encKeyFile: ""
 
     userManager:
+      # Enable only on BlueKing platform 7.2 where bk_username equals login_name.
+      # Keep false on BlueKing 7.3 in both single and multiple tenant modes.
+      useLegacyUsername: false
       # endpoints is a seed list of host:port addresses of esb nodes.
       endpoints:
         - "https://example.com/api/bk-user/prod"

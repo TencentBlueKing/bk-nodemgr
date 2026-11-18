@@ -58,6 +58,11 @@ application:
 {{- $_ := set $current "endpoints" (dig "endpoints" (list $endpoint) $gateway) }}
 {{- $_ := set $config $name $current }}
 {{- end }}
+{{- $userManager := deepCopy (dig "userManager" dict $config) }}
+{{- if not (hasKey $userManager "useLegacyUsername") }}
+{{- $_ := set $userManager "useLegacyUsername" false }}
+{{- end }}
+{{- $_ := set $config "userManager" $userManager }}
 {{- $iamV4 := deepCopy (dig "iamV4" dict $config) }}
 {{- $_ := set $iamV4 "authMode" (dig "global" "authMode" "un" .Values) }}
 {{- $_ := set $config "iamV4" $iamV4 }}

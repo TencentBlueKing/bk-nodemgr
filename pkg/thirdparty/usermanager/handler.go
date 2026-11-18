@@ -44,6 +44,8 @@ var _ IHandler = &HandlerMultiTenant{}
 // Config handler config of user manager.
 type Config struct {
 	VirtualUserConfig apigwclient.VirtualUserConfig
+	// UseLegacyUsername keeps login_name as bk_username for legacy BlueKing platforms.
+	UseLegacyUsername bool
 }
 
 // Validate validate config.
@@ -53,6 +55,10 @@ func (conf *Config) Validate() error {
 
 // HandlerMultiTenant handler of user manager.
 type HandlerMultiTenant struct {
+	virtualUserResolver
+}
+
+type virtualUserResolver struct {
 	cli              *cli
 	virtualUserCache cache.ICache
 }
@@ -62,14 +68,20 @@ type OptionFnMultiTenant func(*HandlerMultiTenant)
 
 // NewHandlerMultiTenant initialize a new user manager Handler.
 func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...OptionFnMultiTenant) (*HandlerMultiTenant, error) {
+	if conf.UseLegacyUsername {
+		return nil, errors.New("legacy username only supports single-tenant mode")
+	}
+
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err
 	}
 
 	handler := &HandlerMultiTenant{
-		cli:              cli,
-		virtualUserCache: cache.NewMemoryCache(time.Minute),
+		virtualUserResolver: virtualUserResolver{
+			cli:              cli,
+			virtualUserCache: cache.NewMemoryCache(time.Minute),
+		},
 	}
 
 	for _, opt := range opts {
@@ -108,7 +120,7 @@ func (h HandlerMultiTenant) ListALLTenants(nCtx contextx.IContext) ([]*types.Ten
 // GetBKUsernameByLoginName gets the tenant-scoped bk_username by login_name, cached locally for one minute.
 //
 //nolint:varnamelen // h is the conventional handler receiver name.
-func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, loginName string) (string, error) {
+func (h virtualUserResolver) GetBKUsernameByLoginName(nCtx contextx.IContext, loginName string) (string, error) {
 	if nCtx == nil {
 		return "", errors.New("context is nil")
 	}
@@ -129,7 +141,7 @@ func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, log
 }
 
 //nolint:varnamelen // h is the conventional handler receiver name.
-func (h HandlerMultiTenant) refreshVirtualUser(nCtx contextx.IContext, loginName, cacheKey string) (string, error) {
+func (h virtualUserResolver) refreshVirtualUser(nCtx contextx.IContext, loginName, cacheKey string) (string, error) {
 	virtualUsers, err := h.cli.batchLookupVirtualUser(nCtx, loginName)
 	if err != nil {
 		return "", fmt.Errorf("failed to get bk username by login name: %w", err)
@@ -169,7 +181,8 @@ func (h HandlerMultiTenant) refreshVirtualUser(nCtx contextx.IContext, loginName
 
 // HandlerSingle handler of user manager.
 type HandlerSingle struct {
-	cli *cli
+	virtualUserResolver
+	useLegacyUsername bool
 }
 
 var _ IHandler = &HandlerSingle{}
@@ -185,7 +198,11 @@ func NewHandlerSingle(c *restclient.Capability, conf *Config, opts ...OptionFnSi
 	}
 
 	handler := &HandlerSingle{
-		cli: cli,
+		virtualUserResolver: virtualUserResolver{
+			cli:              cli,
+			virtualUserCache: cache.NewMemoryCache(time.Minute),
+		},
+		useLegacyUsername: conf.UseLegacyUsername,
 	}
 
 	for _, opt := range opts {
@@ -208,11 +225,17 @@ func (h HandlerSingle) ListALLTenants(_ contextx.IContext) ([]*types.Tenant, err
 	return tenants, nil
 }
 
-// GetBKUsernameByLoginName returns loginName as bk_username in single tenant mode.
-func (h HandlerSingle) GetBKUsernameByLoginName(_ contextx.IContext, loginName string) (string, error) {
-	if loginName == "" {
-		return "", errors.New("login name is empty")
+// GetBKUsernameByLoginName resolves bk_username unless legacy username compatibility is enabled.
+//
+//nolint:varnamelen // h is the conventional handler receiver name.
+func (h HandlerSingle) GetBKUsernameByLoginName(nCtx contextx.IContext, loginName string) (string, error) {
+	if h.useLegacyUsername {
+		if loginName == "" {
+			return "", errors.New("login name is empty")
+		}
+
+		return loginName, nil
 	}
 
-	return loginName, nil
+	return h.virtualUserResolver.GetBKUsernameByLoginName(nCtx, loginName)
 }
