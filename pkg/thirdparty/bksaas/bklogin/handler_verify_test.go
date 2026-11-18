@@ -46,7 +46,7 @@ func TestHandlerVerify(t *testing.T) {
 	switch mode {
 	case tenant.ModeSingle:
 		t.Run("single_bk_token_uses_legacy_api", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
+			h := newTestHandler(t, CookieKeyBKToken, true, func(rw http.ResponseWriter, req *http.Request) {
 				require.Equal(t, "/accounts/get_user/", req.URL.Path)
 				require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
 
@@ -60,9 +60,32 @@ func TestHandlerVerify(t *testing.T) {
 			require.Equal(t, "token_user", bkUsername)
 			require.Equal(t, "token_user", loginName)
 		})
+		t.Run("single_bk_token_uses_gateway_by_default", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, req *http.Request) {
+				if req.URL.Path != "/login/api/v3/open/bk-tokens/userinfo/" {
+					t.Errorf("unexpected request path: %s", req.URL.Path)
+				}
+				if req.URL.Query().Get(CookieKeyBKToken) != "token-value" {
+					t.Error("bk_token query parameter is missing")
+				}
+				if req.Header.Get(apigwheader.BKGWTenantIDKey) != tenant.SystemTenantID {
+					t.Error("gateway system tenant header is missing")
+				}
+				if req.Header.Get(apigwheader.BKGWAuthKey) == "" {
+					t.Error("gateway authentication header is missing")
+				}
+				_, _ = rw.Write([]byte(`{"data":{"bk_username":"token_user","tenant_id":"system","login_name":"admin"}}`))
+			})
+
+			tenantID, bkUsername, loginName, err := h.Verify(nCtx, "token-value")
+			require.NoError(t, err)
+			require.Equal(t, tenant.SingleModeTenantID, tenantID)
+			require.Equal(t, "token_user", bkUsername)
+			require.Equal(t, "admin", loginName)
+		})
 	case tenant.ModeMultiple:
 		t.Run("multiple_bk_token_uses_multiple_tenant_mode_api", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
+			h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, req *http.Request) {
 				require.Equal(t, "/login/api/v3/open/bk-tokens/userinfo/", req.URL.Path)
 				require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
 				require.JSONEq(t, `{
@@ -92,7 +115,7 @@ func TestHandlerVerify(t *testing.T) {
 		})
 
 		t.Run("multiple_bk_token_maps_multiple_tenant_mode_error", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, _ *http.Request) {
+			h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, _ *http.Request) {
 				rw.WriteHeader(http.StatusBadRequest)
 				_, err := rw.Write([]byte(`{"error":{"code":"VALIDATION_ERROR","message":"登录态已过期"}}`))
 				require.NoError(t, err)
@@ -119,7 +142,7 @@ func TestHandlerVerifyUsesClientEndpointAndKeepsLoginURL(t *testing.T) {
 	}))
 	t.Cleanup(backendSrv.Close)
 
-	h := newTestHandlerWithEndpoint(t, CookieKeyBKTicket, backendSrv.URL)
+	h := newTestHandlerWithEndpoint(t, CookieKeyBKTicket, false, backendSrv.URL)
 	require.Equal(t, "https://bklogin.example.com/login", h.GetLoginURL())
 
 	_, _, _, err := h.Verify(contextx.New(context.Background()), "ticket-value")

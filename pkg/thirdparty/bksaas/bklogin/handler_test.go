@@ -60,21 +60,22 @@ func (testTraceService) TracerPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
 }
 
-func newTestHandler(t *testing.T, authType string, h http.HandlerFunc) *Handler {
+func newTestHandler(t *testing.T, authType string, useLegacyAPI bool, h http.HandlerFunc) *Handler {
 	t.Helper()
 
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
 
-	return newTestHandlerWithEndpoint(t, authType, srv.URL)
+	return newTestHandlerWithEndpoint(t, authType, useLegacyAPI, srv.URL)
 }
 
-func newTestHandlerWithEndpoint(t *testing.T, authType string, endpoint string) *Handler {
+func newTestHandlerWithEndpoint(t *testing.T, authType string, useLegacyAPI bool, endpoint string) *Handler {
 	t.Helper()
 
 	conf := &Config{
-		LoginURL: "https://bklogin.example.com/login",
-		AuthType: authType,
+		LoginURL:     "https://bklogin.example.com/login",
+		AuthType:     authType,
+		UseLegacyAPI: useLegacyAPI,
 		VirtualUserConfig: apigwclient.VirtualUserConfig{
 			AppConfig: apigwclient.NewAppConfig([]string{endpoint}, "bk-nodemgr", "app-secret"),
 			AuthMode:  apigwclient.AuthModeUn,
@@ -126,6 +127,29 @@ func configuredTenantMode(t *testing.T) (tenant.Mode, bool) {
 	return mode, true
 }
 
+func TestConfigValidate(t *testing.T) {
+	mode, ok := configuredTenantMode(t)
+	if !ok {
+		for _, mode := range []tenant.Mode{tenant.ModeSingle, tenant.ModeMultiple} {
+			t.Run(string(mode), func(t *testing.T) {
+				runTenantModeTest(t, "TestConfigValidate", mode)
+			})
+		}
+		return
+	}
+
+	conf := &Config{LoginURL: "https://bklogin.example.com/login", AuthType: CookieKeyBKToken}
+	require.Error(t, conf.Validate(), "the default bk_token API requires gateway credentials in both tenant modes")
+
+	conf.UseLegacyAPI = true
+	if mode == tenant.ModeMultiple {
+		require.ErrorContains(t, conf.Validate(), "legacy bk_token API only supports single-tenant mode")
+		return
+	}
+
+	require.NoError(t, conf.Validate())
+}
+
 func TestHandlerGetWebUserInfo(t *testing.T) {
 	mode, ok := configuredTenantMode(t)
 	if !ok {
@@ -142,7 +166,7 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 	switch mode {
 	case tenant.ModeSingle:
 		t.Run("bk_ticket_success", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKTicket, func(rw http.ResponseWriter, req *http.Request) {
+			h := newTestHandler(t, CookieKeyBKTicket, false, func(rw http.ResponseWriter, req *http.Request) {
 				if req.URL.Path != "/user/get_info/" {
 					t.Fatalf("unexpected request path: %s", req.URL.Path)
 				}
@@ -159,8 +183,8 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 			}
 		})
 
-		t.Run("bk_token_single_success", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
+		t.Run("bk_token_legacy_success", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKToken, true, func(rw http.ResponseWriter, req *http.Request) {
 				if req.URL.Path != "/accounts/get_user/" {
 					t.Fatalf("unexpected request path: %s", req.URL.Path)
 				}
@@ -177,8 +201,24 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 			}
 		})
 
+		t.Run("bk_token_uses_gateway_by_default", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, req *http.Request) {
+				if req.URL.Path != "/login/api/v3/open/bk-tokens/userinfo/" {
+					t.Errorf("unexpected request path: %s", req.URL.Path)
+				}
+				_, _ = rw.Write([]byte(`{"data":{"bk_username":"token_user","login_name":"admin","tenant_id":"system","time_zone":"Asia/Shanghai"}}`))
+			})
+
+			info, err := h.GetWebUserInfo(nCtx, "token-value")
+			require.NoError(t, err)
+			require.Equal(t, "token_user", info.BKUsername)
+			require.Equal(t, "admin", info.LoginName)
+			require.Equal(t, tenant.SingleModeTenantID, info.TenantID)
+			require.Equal(t, "Asia/Shanghai", info.TimeZone)
+		})
+
 		t.Run("upstream_failed", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKTicket, func(rw http.ResponseWriter, _ *http.Request) {
+			h := newTestHandler(t, CookieKeyBKTicket, false, func(rw http.ResponseWriter, _ *http.Request) {
 				_, _ = rw.Write([]byte(`{"ret":1,"msg":"invalid","data":{}}`))
 			})
 
@@ -190,8 +230,8 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 		})
 
 		t.Run("missing_username", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, _ *http.Request) {
-				_, _ = rw.Write([]byte(`{"result":true,"code":"00","message":"ok","data":{}}`))
+			h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, _ *http.Request) {
+				_, _ = rw.Write([]byte(`{"data":{"bk_username":"token_user","tenant_id":"system"}}`))
 			})
 
 			_, err := h.GetWebUserInfo(nCtx, "token-value")
@@ -217,7 +257,7 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 		})
 
 		t.Run("invalid_context", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, _ *http.Request) {
+			h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, _ *http.Request) {
 				_, _ = rw.Write([]byte(`{"result":true,"code":"00","message":"ok","data":{"username":"token_user"}}`))
 			})
 
@@ -229,7 +269,7 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 		})
 	case tenant.ModeMultiple:
 		t.Run("bk_token_multiple_success", func(t *testing.T) {
-			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
+			h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, req *http.Request) {
 				require.Equal(t, "/login/api/v3/open/bk-tokens/userinfo/", req.URL.Path)
 				require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
 

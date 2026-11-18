@@ -1442,6 +1442,9 @@ application:
         # accessToken is the BlueKing access token used in 'at' auth mode.
         accessToken: ""
         authType: "bk_token"
+        # Use /accounts/get_user/ for bk_token authentication (single-tenant only).
+        # The default uses /open/bk-tokens/userinfo/ in all tenant modes; bk_ticket is unchanged.
+        useLegacyAPI: false
         # trace service name for BK login client
         traceServiceName: "application-client-bklogin"
         # trace sample rate for BK login client

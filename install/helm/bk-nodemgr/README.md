@@ -320,6 +320,21 @@ opentelemetryGateway:
 
 仅在不启用 Gateway、且确实需要服务直连外部 OTLP backend 时，才直接配置 `<service>.config.tracing.otlpEndpoint` 和 `otlpProtocol`。服务进程的 OTLP HTTP endpoint 使用 `host:port`，trace 默认路径为 `/v1/traces`。
 
+#### Application 登录接口
+
+`application.config.bkSaaS.bkLogin.useLegacyAPI` 默认为 `false`。保持默认值且 `authType=bk_token` 时，所有租户模式均使用 `/open/bk-tokens/userinfo/`，需要配置可访问该接口的 `endpoints` 和网关应用凭证 `appCode`、`appSecret`，以及所选 `authMode` 所需的认证参数。`loginURL` 仍用于浏览器登录跳转，不能代替 API 网关地址。
+
+仍依赖 `/accounts/get_user/` 的旧版单租户环境升级时，必须显式设置 `useLegacyAPI: true`；该兼容模式仅支持 `application.config.tenantMode=single`，不支持多租户。`authType=bk_ticket` 的接口与认证行为不变。
+
+```yaml
+application:
+  config:
+    tenantMode: single
+    bkSaaS:
+      bkLogin:
+        useLegacyAPI: true
+```
+
 #### Ingress 访问配置
 
 Ingress 默认关闭。按访问对象区分为三类：`application.ingress` 用于节点管理 Web/API 服务入口，`backend.ingress` 用于 backend TCP 服务入口，`grafana.ingress` 用于自监控 Grafana 入口。

@@ -756,9 +756,10 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 	bkloginHandler, err := bksaasbklogin.New(
 		clientCap,
 		&bksaasbklogin.Config{
-			LoginURL: conf.LoginURL,
-			AppCode:  conf.AppCode,
-			AuthType: conf.AuthType.String(),
+			LoginURL:     conf.LoginURL,
+			AppCode:      conf.AppCode,
+			AuthType:     conf.AuthType.String(),
+			UseLegacyAPI: conf.UseLegacyAPI,
 			VirtualUserConfig: apigwclient.VirtualUserConfig{
 				AppConfig:   newAPIGWAppConfig(&conf.APIGatewayClient),
 				AuthMode:    apigwclient.AuthMode(conf.AuthMode),
