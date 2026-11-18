@@ -21,3 +21,7 @@ Release 源码包 GPG signature 验证方法，包括 public key、fingerprint �
 ### [troubleshooting](troubleshooting/README.md)
 
 疑难问题和复杂故障的现象、根因、确认方法与处理原则。
+
+### [migrate](migrate/README.md)
+
+跨系统数据迁移手册。
