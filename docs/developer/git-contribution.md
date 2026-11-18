@@ -133,4 +133,4 @@ State whether each link changed or was verified unchanged; do not only list file
 - PR body fields: update `.github/PULL_REQUEST_TEMPLATE.md` and synchronize the relevant section here.
 - The actual PR title CI rule: update `.github/workflows/pr-title-lint.yml` and synchronize the format here.
 - Issue fields, title prefixes, and default labels: update the relevant `.github/ISSUE_TEMPLATE/*.yml` and synchronize the explanation here.
-- Agent-only draft mode, remote-write confirmation, `gh` invocation, and retry safety: keep those rules in `.agents/skills/bk-nodemgr-create-github-pr/SKILL.md`.
+- Agent-only draft mode, remote-write confirmation, `gh` invocation, and retry safety: keep Issue execution in `.agents/skills/bk-nodemgr-issue/SKILL.md` and PR execution in `.agents/skills/bk-nodemgr-create-github-pr/SKILL.md`.
