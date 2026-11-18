@@ -49,7 +49,7 @@ func newClient(capability *restclient.Capability, conf *Config) (*cli, error) {
 		client: restCli,
 		config: conf,
 	}
-	if tenant.GetMode() != tenant.ModeMultiple || conf.AuthType != CookieKeyBKToken {
+	if conf.UseLegacyAPI || conf.AuthType != CookieKeyBKToken {
 		return client, nil
 	}
 

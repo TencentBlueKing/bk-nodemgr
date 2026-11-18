@@ -426,7 +426,15 @@ func (svc *ApplicationService) validateBKLogin() error {
 		return fmt.Errorf("failed to validate bksaas config: %w", err)
 	}
 
-	if svc.TenantMode != tenant.ModeMultiple || svc.BKSaas.BKLogin.AuthType != LoginAuthTypeBKToken {
+	if svc.BKSaas.BKLogin.AuthType != LoginAuthTypeBKToken {
+		return nil
+	}
+
+	if svc.BKSaas.BKLogin.UseLegacyAPI {
+		if svc.TenantMode != tenant.ModeSingle {
+			return errors.New("failed to validate bklogin config: legacy bk_token API only supports single-tenant mode")
+		}
+
 		return nil
 	}
 

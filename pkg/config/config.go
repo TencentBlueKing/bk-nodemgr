@@ -1011,6 +1011,9 @@ type BKLogin struct {
 
 	// AuthType defines the auth type of bklogin, support 'bk_token' and 'bk_ticket'.
 	AuthType LoginAuthType `yaml:"authType" usage:"auth type of bklogin, support 'bk_token' and 'bk_ticket'"`
+
+	// UseLegacyAPI selects the legacy bk_token API, which only supports single-tenant mode. Defaults to false.
+	UseLegacyAPI bool `yaml:"useLegacyAPI" usage:"use the legacy bk_token API in single-tenant mode"`
 }
 
 // Validate validates the config.
