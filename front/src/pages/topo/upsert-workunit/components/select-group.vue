@@ -4,6 +4,7 @@
       v-model="link.bk_networkarea_id"
       class="mr-[8px] w-[164px]"
       :allow-empty-values="[0]"
+      filterable
       @change="handleWorkareaChange"
       :disabled="disabled">
       <Select.Option
@@ -17,6 +18,7 @@
       v-model="link.bk_networkunit_id"
       class="mr-[8px] w-[154px]"
       :allow-empty-values="[0]"
+      filterable
       @change="handleWorkUnitChange"
       :disabled="disabled">
       <Select.Option
@@ -41,6 +43,7 @@
       v-model="link.accesspoint_id"
       class="mr-[8px] w-[154px]"
       :allow-empty-values="[0]"
+      filterable
       :disabled="disabled">
       <Select.Option
         v-for="item in curAccessPointList"

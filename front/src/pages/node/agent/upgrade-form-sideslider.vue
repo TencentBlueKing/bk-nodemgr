@@ -17,6 +17,7 @@
               v-model="formData.bk_networkunit_id"
               clearable
               filterable
+              :filter-option="filterOption"
               :placeholder="$t('platform.nodeMan.installAgentPage.placeholder.selectCloudUnit')"
               :loading="unitLoading"
             >
@@ -199,6 +200,19 @@ const getNetworkUnitList = async () => {
   }).catch(() => ({ total: 0, items: [] }));
   unitLoading.value = false;
   networkUnitList.value = res.items;
+};
+
+const filterOption = (
+  input: any,
+  options: { id?: number | string; value?: number | string; name?: string; label?: string },
+) => {
+  const keyword = String(input).trim()
+    .toLowerCase();
+  if (!keyword) return true;
+  const name = String(options.name ?? options.label ?? '')
+    .toLowerCase();
+  const id = String(options.id ?? options.value ?? '');
+  return name.includes(keyword) || id.includes(keyword);
 };
 
 const systemData = ref<Array<{ os: string; version: string }>>([]);

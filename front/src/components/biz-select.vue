@@ -224,7 +224,7 @@ const filterOption = (input: any, options: { id: number; name: string }) => {
     const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return options.name?.match(new RegExp(safeKeyword, 'i'));
   });
-  const idMatch = keywords.some(keyword => String(keyword).trim() === String(options.id));
+  const idMatch = keywords.some(keyword => String(options.id).includes(String(keyword).trim()));
   return nameMatch || idMatch;
 };
 
