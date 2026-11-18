@@ -67,8 +67,10 @@ func (h *Handler) GetAuthType() string {
 type Config struct {
 	LoginURL string
 	// AppCode is the BlueKing app code, used to build the bklogin redirect url.
-	AppCode           string
-	AuthType          string
+	AppCode  string
+	AuthType string
+	// UseLegacyAPI selects the legacy bk_token API in single-tenant mode.
+	UseLegacyAPI      bool
 	VirtualUserConfig apigwclient.VirtualUserConfig
 }
 
@@ -85,10 +87,20 @@ func (conf *Config) Validate() error {
 		return fmt.Errorf("failed to validate bklogin config: unsupported auth type: %s", conf.AuthType)
 	}
 
-	if tenant.GetMode() == tenant.ModeMultiple && conf.AuthType == CookieKeyBKToken {
-		if err := conf.VirtualUserConfig.Validate(); err != nil {
-			return fmt.Errorf("failed to validate bklogin api-gateway config: %w", err)
+	if conf.AuthType != CookieKeyBKToken {
+		return nil
+	}
+
+	if conf.UseLegacyAPI {
+		if tenant.GetMode() != tenant.ModeSingle {
+			return errors.New("failed to validate bklogin config: legacy bk_token API only supports single-tenant mode")
 		}
+
+		return nil
+	}
+
+	if err := conf.VirtualUserConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bklogin api-gateway config: %w", err)
 	}
 
 	return nil
@@ -136,9 +148,7 @@ func (h *Handler) Verify(nCtx contextx.IContext, token string) (tenantID string,
 
 		return tenant.SingleModeTenantID, resp.Username, resp.Username, nil
 	case CookieKeyBKToken:
-		tenantMode := tenant.GetMode()
-		switch tenantMode {
-		case tenant.ModeSingle:
+		if h.conf.UseLegacyAPI {
 			req := &GetUserInfoByBKTokenSingleTenantModeReq{BKToken: token}
 			resp, err := h.cli.getUserInfoByBKTokenSingleTenantMode(nCtx, req)
 			if err != nil {
@@ -146,17 +156,19 @@ func (h *Handler) Verify(nCtx contextx.IContext, token string) (tenantID string,
 			}
 
 			return tenant.SingleModeTenantID, resp.Username, resp.Username, nil
-		case tenant.ModeMultiple:
-			req := &GetUserInfoByBKTokenMultipleTenantModeReq{BKToken: token}
-			resp, err := h.cli.getUserInfoByBKTokenMultipleTenantMode(nCtx, req)
-			if err != nil {
-				return "", "", "", fmt.Errorf("failed to verify bk_token: %w", err)
-			}
-
-			return resp.TenantID, resp.BKUsername, resp.LoginName, nil
-		default:
-			return "", "", "", fmt.Errorf("failed to verify token: unsupported tenant mode: %s", tenantMode)
 		}
+
+		req := &GetUserInfoByBKTokenMultipleTenantModeReq{BKToken: token}
+		resp, err := h.cli.getUserInfoByBKTokenMultipleTenantMode(nCtx, req)
+		if err != nil {
+			return "", "", "", fmt.Errorf("failed to verify bk_token: %w", err)
+		}
+
+		if tenant.GetMode() == tenant.ModeSingle {
+			return tenant.SingleModeTenantID, resp.BKUsername, resp.LoginName, nil
+		}
+
+		return resp.TenantID, resp.BKUsername, resp.LoginName, nil
 	default:
 		return "", "", "", fmt.Errorf("failed to verify token: unsupported auth type: %s", h.conf.AuthType)
 	}
@@ -205,9 +217,7 @@ func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*types.W
 			return nil, fmt.Errorf("failed to get web user info: unsupported tenant mode: %s", tenantMode)
 		}
 	case CookieKeyBKToken:
-		tenantMode := tenant.GetMode()
-		switch tenantMode {
-		case tenant.ModeSingle:
+		if h.conf.UseLegacyAPI {
 			req := &GetUserInfoByBKTokenSingleTenantModeReq{BKToken: token}
 			resp, err := h.cli.getUserInfoByBKTokenSingleTenantMode(nCtx, req)
 			if err != nil {
@@ -216,18 +226,21 @@ func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*types.W
 			info.BKUsername = resp.Username
 			info.LoginName = resp.Username
 			info.TenantID = tenant.SingleModeTenantID
-		case tenant.ModeMultiple:
-			req := &GetUserInfoByBKTokenMultipleTenantModeReq{BKToken: token}
-			resp, err := h.cli.getUserInfoByBKTokenMultipleTenantMode(nCtx, req)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get web user info by bk_token: %w", err)
-			}
-			info.BKUsername = resp.BKUsername
-			info.LoginName = resp.LoginName
-			info.TimeZone = resp.TimeZone
-			info.TenantID = resp.TenantID
-		default:
-			return nil, fmt.Errorf("failed to get web user info: unsupported tenant mode: %s", tenantMode)
+
+			break
+		}
+
+		req := &GetUserInfoByBKTokenMultipleTenantModeReq{BKToken: token}
+		resp, err := h.cli.getUserInfoByBKTokenMultipleTenantMode(nCtx, req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get web user info by bk_token: %w", err)
+		}
+		info.BKUsername = resp.BKUsername
+		info.LoginName = resp.LoginName
+		info.TimeZone = resp.TimeZone
+		info.TenantID = resp.TenantID
+		if tenant.GetMode() == tenant.ModeSingle {
+			info.TenantID = tenant.SingleModeTenantID
 		}
 
 	default:

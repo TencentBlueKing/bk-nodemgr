@@ -172,6 +172,8 @@ bkSaaS:
     authMode: "un"
     accessToken: ""
     authType: __BK_NODEMGR_APPLICATION_AUTH_TYPE__
+    # Enable only for older single-tenant environments using /accounts/get_user/.
+    useLegacyAPI: false
     # trace service name for BK login client
     traceServiceName: "application-client-bklogin"
     # trace sample rate for BK login client

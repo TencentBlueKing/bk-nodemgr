@@ -35,24 +35,50 @@ func TestApplicationService_validateBKLogin(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		tenantMode tenant.Mode
-		authType   LoginAuthType
-		client     APIGatewayClient
-		wantErr    string
+		name         string
+		tenantMode   tenant.Mode
+		authType     LoginAuthType
+		useLegacyAPI bool
+		client       APIGatewayClient
+		wantErr      string
 	}{
 		{
-			name:       "single bk_token does not require gateway credentials",
-			tenantMode: tenant.ModeSingle,
-			authType:   LoginAuthTypeBKToken,
+			name:         "single legacy bk_token does not require gateway credentials",
+			tenantMode:   tenant.ModeSingle,
+			authType:     LoginAuthTypeBKToken,
+			useLegacyAPI: true,
 			client: APIGatewayClient{
 				Endpoints: []string{"https://bklogin.example.com"},
 			},
 		},
 		{
-			name:       "multiple bk_ticket does not require gateway credentials",
-			tenantMode: tenant.ModeMultiple,
-			authType:   LoginAuthTypeBKTicket,
+			name:       "single bk_token requires gateway credentials by default",
+			tenantMode: tenant.ModeSingle,
+			authType:   LoginAuthTypeBKToken,
+			client: APIGatewayClient{
+				Endpoints: []string{"https://bklogin.example.com/api/bk-login/prod"},
+			},
+			wantErr: "app code of api-gateway is empty",
+		},
+		{
+			name:       "single bk_token accepts full gateway config",
+			tenantMode: tenant.ModeSingle,
+			authType:   LoginAuthTypeBKToken,
+			client:     validAPIGatewayClient,
+		},
+		{
+			name:         "multiple bk_token rejects legacy API",
+			tenantMode:   tenant.ModeMultiple,
+			authType:     LoginAuthTypeBKToken,
+			useLegacyAPI: true,
+			client:       validAPIGatewayClient,
+			wantErr:      "legacy bk_token API only supports single-tenant mode",
+		},
+		{
+			name:         "multiple bk_ticket does not require gateway credentials",
+			useLegacyAPI: true,
+			tenantMode:   tenant.ModeMultiple,
+			authType:     LoginAuthTypeBKTicket,
 			client: APIGatewayClient{
 				Endpoints: []string{"https://bklogin.example.com"},
 			},
@@ -93,6 +119,7 @@ func TestApplicationService_validateBKLogin(t *testing.T) {
 				BKSaas: BKSaas{BKLogin: BKLogin{
 					LoginURL:         "https://bklogin.example.com/login",
 					AuthType:         tt.authType,
+					UseLegacyAPI:     tt.useLegacyAPI,
 					APIGatewayClient: tt.client,
 				}},
 			}
