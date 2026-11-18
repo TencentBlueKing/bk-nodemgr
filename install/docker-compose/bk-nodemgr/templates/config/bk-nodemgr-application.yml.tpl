@@ -89,6 +89,9 @@ backend:
 
 # user manager settings.
 userManager:
+  # Enable only on BlueKing platform 7.2; keep both services in sync.
+  # BlueKing 7.3 requires lookup in both single and multiple tenant modes.
+  useLegacyUsername: false
   endpoints:
     - "__BK_NODEMGR_USER_MANAGER_ENDPOINT__"
   appCode: __BK_NODEMGR_APPCODE__

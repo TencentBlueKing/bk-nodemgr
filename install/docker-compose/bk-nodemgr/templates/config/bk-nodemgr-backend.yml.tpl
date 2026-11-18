@@ -156,6 +156,9 @@ cmdb:
 
 # defines the UserManager (bk-apigw) related settings.
 userManager:
+  # Enable only on BlueKing platform 7.2; keep both services in sync.
+  # BlueKing 7.3 requires lookup in both single and multiple tenant modes.
+  useLegacyUsername: false
   supplierAccount: "0"
   endpoints:
     - "__BK_NODEMGR_USER_MANAGER_ENDPOINT__"

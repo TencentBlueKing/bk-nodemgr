@@ -12,7 +12,7 @@
 |Conventions:IHandler embeds access.ITenantVirtualUserResolver and exposes ListALLTenants; do not add raw endpoint-shaped methods for callers
 |Conventions:multi-tenant tenant listing uses contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID)) before bk-user /open/tenants/
 |Conventions:virtual-user lookup uses caller tenant from contextx.IContext via X-Bk-Tenant-Id and /open/tenant/virtual-users/-/lookup/?lookups=<loginName>&lookup_field=login_name
-|Conventions:HandlerSingle keeps identity behavior for GetBKUsernameByLoginName and returns the default tenant list only
+|Conventions:HandlerSingle returns the default tenant list only;GetBKUsernameByLoginName uses the shared cached lookup by default and keeps login_name as bk_username only with UseLegacyUsername=true|HandlerMultiTenant rejects legacy usernames|tenant mode does not identify the BlueKing platform version
 |Conventions:handler layer validates context/login input and maps bk-user response payloads into pkg/types or stable tenant resolver semantics
 |Conventions:private bk-user response type names should avoid collisions with imported project packages such as pkg/tenant
 |Anti-patterns:do not expose bk-user response structs or BaseBroker outside this package
