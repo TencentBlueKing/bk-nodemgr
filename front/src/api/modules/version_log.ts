@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { VersionLogsListReq, VersionLogsListResp, VersionLogDetailReq, VersionLogDetailResp } from '@/@types/version_log';
+import type { VersionLogDetailReq, VersionLogDetailResp, VersionLogsListReq, VersionLogsListResp } from '@/@types/version_log';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
