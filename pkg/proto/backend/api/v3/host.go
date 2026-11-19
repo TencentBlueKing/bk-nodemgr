@@ -46,6 +46,11 @@ func (x *TopoHostListReq) PageLimit() int {
 	return maxHostLimit
 }
 
+// PageTimeout return page timeout.
+func (x *TopoHostListReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
 // ConvertPageToTypes convert page to types.
 func (x *TopoHostListReq) ConvertPageToTypes() (types.Page, error) {
 	return convPageToTypes(x.GetPage(), x.PageLimit())
