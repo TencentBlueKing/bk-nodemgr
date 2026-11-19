@@ -1,8 +1,14 @@
-﻿<template>
+<template>
     <div class="ops-setting pt-[24px] pb-[48px]">
         <div class="m-[24px]">
             <p class="text-[14px] text-[#63656E] mb-[16px]">{{ $t('platform.nodeMan.agentNodeStatus.opsSettingPageDesc') }}
             </p>
+
+      <div class="mb-[12px]">
+        <Button theme="primary" @click="handleOpenExcelImport">
+          {{ $t('platform.nodeMan.agentNodeStatus.opsSettingExcelImport') }}
+        </Button>
+      </div>
 
             <Loading :loading="loading">
                 <VxeTable ref="xTableRef" :data="tableData" :size="'medium'" :border="true" :max-height="600"
@@ -304,6 +310,42 @@
             @close-dialog="isShowOpsConsoleHostSelector = false"
         />
 
+    <!-- Excel 导入弹窗 -->
+    <Dialog
+      :is-show="isShowExcelImport"
+      :width="1048"
+      :title="$t('platform.nodeMan.agentNodeStatus.opsSettingExcelImport')"
+      @closed="handleExcelImportClosed"
+    >
+      <UploadExcel type="ops" ref="uploadExcelRef" @upload="handleExcelUpload" />
+      <div v-if="importErrors.length" class="mt-[12px]">
+        <p class="text-[12px] text-[#FF5656] mb-[6px]">
+          {{ $t('platform.nodeMan.agentNodeStatus.opsSettingImportErrors', { count: importErrors.length }) }}
+        </p>
+        <div class="max-h-[160px] overflow-auto border border-[#DCDEE5] rounded-[2px] p-[8px]">
+          <p
+            v-for="item in importErrors"
+            :key="item.row_index"
+            class="text-[12px] text-[#63656E] leading-[20px]"
+          >
+            {{ $t('platform.nodeMan.agentNodeStatus.opsSettingImportErrorRow',
+                  { row: item.row_index, message: item.error_message }) }}
+          </p>
+        </div>
+      </div>
+      <template #footer>
+        <Button
+          theme="primary"
+          class="mr-[8px]"
+          :disabled="!importResult"
+          @click="handleExcelImportConfirm"
+        >
+          {{ $t('action.confirm') }}
+        </Button>
+        <Button @click="isShowExcelImport = false">{{ $t('action.cancel') }}</Button>
+      </template>
+    </Dialog>
+
         <!-- 底部提交栏 -->
         <div :class="['h-[48px] w-full flex items-center pl-[24px]', { 'fixed bottom-[0] bg-[#fff] z-[100]': isAtBottom }]"
             ref="footerRef">
@@ -316,7 +358,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Input, Loading, Message, Popover, Select } from 'bkui-vue';
+import { Button, Dialog, Input, Loading, Message, Popover, Select } from 'bkui-vue';
 import { Done, Error, Plus } from 'bkui-vue/lib/icon';
 import { debounce } from 'lodash';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -325,11 +367,13 @@ import { useRouter } from 'vue-router';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 
+import type { ExcelOpsTemplateParsedInfo } from '@/@types/excel';
 import type { NodeOpsInfo } from '@/@types/ops';
 import { OpsService } from '@/api/modules/ops';
 import { TopoService } from '@/api/modules/topo';
 import BatchEdit from '@/components/batch-edit.vue';
 import IpSelector from '@/components/IpSelector';
+import UploadExcel from '@/components/upload-excel.vue';
 import * as IpSelectorService from '@/services/ip-selector';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -443,6 +487,80 @@ const handleBatchProtocolEdit = (value: string) => {
     for (const row of tableData.value) {
         handleProtocolChange(row, value);
     }
+};
+
+// ======== Excel 导入 ========
+const isShowExcelImport = ref(false);
+const uploadExcelRef = ref<InstanceType<typeof UploadExcel> | null>(null);
+const importResult = ref<ExcelOpsTemplateParsedInfo[] | null>(null);
+const importErrors = computed(() => (importResult.value || []).filter(item => item.error_message));
+
+const handleOpenExcelImport = () => {
+  importResult.value = null;
+  isShowExcelImport.value = true;
+};
+
+const handleExcelUpload = (data: { items?: ExcelOpsTemplateParsedInfo[] } | null) => {
+  importResult.value = data?.items || null;
+};
+
+const handleExcelImportClosed = () => {
+  importResult.value = null;
+  uploadExcelRef.value?.handleDelete();
+};
+
+// 确认导入：成功行按 bk_host_id 合并进表格（已有行更新带外字段，新主机追加行），
+// 失败行保留在弹窗错误列表中，不阻塞成功行。
+const handleExcelImportConfirm = () => {
+  const items = importResult.value || [];
+  const succeeded = items.filter(item => !item.error_message && item.bk_host_id > 0);
+  if (!succeeded.length) {
+    Message({ theme: 'warning', message: t('platform.nodeMan.agentNodeStatus.opsSettingImportNone') });
+    return;
+  }
+
+  const rowsByHostId = new Map<number, any>(tableData.value.map(row => [Number(row.bk_host_id), row]));
+  for (const item of succeeded) {
+    let row = rowsByHostId.get(item.bk_host_id);
+    if (!row) {
+      row = {
+        bk_host_id: item.bk_host_id,
+        bk_biz_id: item.bk_biz_id,
+        bk_networkarea_id: item.bk_networkarea_id,
+        bk_networkarea_name: item.bk_networkarea_name,
+        bk_host_innerip: item.bk_host_innerip,
+        bk_host_innerip_v6: item.bk_host_innerip_v6,
+      };
+      tableData.value.push(row);
+      rowsByHostId.set(item.bk_host_id, row);
+    }
+    row.ops_console_host_id = item.ops_console_host_id || undefined;
+    row.ops_console_host_ip = item.ops_console_host_ip || undefined;
+    row.ops_out_band_type = item.ops_out_band_type;
+    row.ops_out_band_protocol = item.ops_out_band_protocol;
+    row.ops_out_band_ip = item.ops_out_band_ip;
+    row.ops_out_band_port = item.ops_out_band_port;
+    if (item.ops_console_host_id > 0) {
+      opsConsoleHostMap.value.set(item.ops_console_host_id, {
+        hostId: item.ops_console_host_id,
+        ip: item.ops_console_host_ip,
+        ipv6: '',
+      });
+    }
+    const protocol = item.ops_out_band_protocol;
+    if (protocol && !opsOutBandProtocols.value.some(entry => entry.name === protocol)) {
+      opsOutBandProtocols.value.push({ name: protocol, port: 0, description: '' });
+    }
+  }
+
+  const failedCount = items.length - succeeded.length;
+  Message({
+    theme: failedCount ? 'warning' : 'success',
+    message: t('platform.nodeMan.agentNodeStatus.opsSettingImportDone', { success: succeeded.length, failed: failedCount }),
+  });
+  if (!failedCount) {
+    isShowExcelImport.value = false;
+  }
 };
 
 // ======== 主控机 IP 选择器（表格回显 IP，提交转 host-id，不预设 node role 限制） ========

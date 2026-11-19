@@ -58,11 +58,9 @@
     <template #tip>
       <div class="flex items-center gap-[3px]">
         <span>{{ $t('components.uploadExcel.tip') }}</span>
-        <a :href="downloadUrl" download="bk_nodemgr_info.xlsx">
-          <Button text theme="primary">
-            {{ $t('components.uploadExcel.templateFile') }}
-          </Button>
-        </a>
+        <Button text theme="primary" :loading="downloadLoading" @click="handleDownload">
+          {{ $t('components.uploadExcel.templateFile') }}
+        </Button>
       </div>
     </template>
   </Upload>
@@ -78,13 +76,16 @@ import { bytesToMegabytes } from '@/common/util';
 const { t } = useI18n();
 const emit = defineEmits(['upload', 'cancel', 'loading']);
 const props = withDefaults(defineProps<{
-  type?: 'agent' | 'proxy';
+  type?: 'agent' | 'proxy' | 'ops';
 }>(), {
   type: 'agent',
 });
 const uploader = ref(null);
-const url = computed(() => `${window.location.origin}/api/v3/node/${props.type}/install_template/upload`);
-const downloadUrl = computed(() => `${window.location.origin}/api/v3/node/${props.type}/install_template/download`);
+const tenantId = window.PROJECT_CONFIG.BK_TENANT || 'single';
+const templatePath = computed(() => (props.type === 'ops' ? 'ops_template' : `${props.type}_install_template`));
+const url = computed(() => `${window.location.origin}/api/v3/excel/${templatePath.value}/upload`);
+const downloadUrl = computed(() => `${window.location.origin}/api/v3/excel/${templatePath.value}/download`);
+const downloadLoading = ref(false);
 const curFile = reactive({
   file: null as File | null,
   progress: 0,
@@ -124,7 +125,7 @@ const handleUpload = () => {
 
   const xhr = new XMLHttpRequest();
   xhr.open('POST', url.value, true);
-  xhr.setRequestHeader('X-Bk-Tenant-Id', 'single');
+  xhr.setRequestHeader('X-Bk-Tenant-Id', tenantId);
 
   // 上传进度事件监听器
   xhr.upload.onprogress = (event) => {
@@ -210,6 +211,44 @@ const handleCancel = () => {
 const handleDelete = () => {
   curFile.data = null;
   uploader.value?.handleRemove(curFile);
+};
+
+const handleDownload = async () => {
+  downloadLoading.value = true;
+  try {
+    const response = await window.fetch(downloadUrl.value, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Bk-Tenant-Id': tenantId,
+      },
+      body: '{}',
+    });
+    if (!response.ok) {
+      const parsed = await response.json().catch(() => ({}));
+      Message({
+        theme: 'error',
+        message: parsed?.message || parsed?.error?.message || response.statusText || t('components.uploadExcel.error'),
+      });
+      return;
+    }
+
+    const blob = await response.blob();
+    const objectUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = 'bk_nodemgr_info.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(objectUrl);
+  } catch (error) {
+    console.error('Download excel template error:', error);
+    Message({ theme: 'error', message: t('components.uploadExcel.error') });
+  } finally {
+    downloadLoading.value = false;
+  }
 };
 
 defineExpose({
