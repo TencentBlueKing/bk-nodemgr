@@ -224,6 +224,10 @@ linters:
           alias: apigwheader
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3
           alias: applicationapiv3
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher
+          alias: ciphersuite
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/version_log
+          alias: versionlog
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3
           alias: backendapiv3
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3

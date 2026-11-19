@@ -22,8 +22,9 @@ package apiv3
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/auth"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher"
+	ciphersuite "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/excel"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/notice"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg"
@@ -31,7 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/process"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/version_log"
+	versionlog "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/version_log"
 	"github.com/gin-gonic/gin"
 )
 
@@ -66,4 +67,5 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	auth.Load(h.rg, capability)
 	notice.Load(h.rg, capability)
 	versionlog.Load(h.rg, capability)
+	excel.Load(h.rg, capability)
 }
