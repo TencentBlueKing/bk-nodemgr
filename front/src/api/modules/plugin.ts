@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PluginInstallReq, PluginInstallResp, PluginUpgradeReq, PluginUpgradeResp, PluginUninstallReq, PluginUninstallResp, PluginApplySubConfigReq, PluginApplySubConfigResp, PluginListReq, PluginListResp, PluginSetMemoReq, PluginSetMemoResp, PluginListPermittedOperationReq, PluginListPermittedOperationResp, PluginStartReq, PluginStartResp, PluginRestartReq, PluginRestartResp, PluginStopReq, PluginStopResp } from '@/@types/plugin';
+import type { PluginApplySubConfigReq, PluginApplySubConfigResp, PluginInstallReq, PluginInstallResp, PluginListPermittedOperationReq, PluginListPermittedOperationResp, PluginListReq, PluginListResp, PluginRestartReq, PluginRestartResp, PluginSetMemoReq, PluginSetMemoResp, PluginStartReq, PluginStartResp, PluginStopReq, PluginStopResp, PluginUninstallReq, PluginUninstallResp, PluginUpgradeReq, PluginUpgradeResp } from '@/@types/plugin';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

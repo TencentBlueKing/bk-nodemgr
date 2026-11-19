@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PluginWorkflowListReq, PluginWorkflowListResp, PluginWorkflowStatisticsReq, PluginWorkflowStatisticsResp, PluginWorkflowDistinctReq, PluginWorkflowDistinctResp, PluginWorkflowOperationListReq, PluginWorkflowOperationListResp, PluginWorkflowOperationDistinctReq, PluginWorkflowOperationDistinctResp, PluginWorkflowOperationInstanceListReq, PluginWorkflowOperationInstanceListResp, PluginWorkflowOperationInstanceLogGetReq, PluginWorkflowOperationInstanceLogGetResp, PluginWorkflowOperationRetryReq, PluginWorkflowOperationRetryResp, PluginWorkflowOperationTerminateReq, PluginWorkflowOperationTerminateResp } from '@/@types/plugin_workflow';
+import type { PluginWorkflowDistinctReq, PluginWorkflowDistinctResp, PluginWorkflowListReq, PluginWorkflowListResp, PluginWorkflowOperationDistinctReq, PluginWorkflowOperationDistinctResp, PluginWorkflowOperationInstanceListReq, PluginWorkflowOperationInstanceListResp, PluginWorkflowOperationInstanceLogGetReq, PluginWorkflowOperationInstanceLogGetResp, PluginWorkflowOperationListReq, PluginWorkflowOperationListResp, PluginWorkflowOperationRetryReq, PluginWorkflowOperationRetryResp, PluginWorkflowOperationTerminateReq, PluginWorkflowOperationTerminateResp, PluginWorkflowStatisticsReq, PluginWorkflowStatisticsResp } from '@/@types/plugin_workflow';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

@@ -1282,9 +1282,6 @@ message PackageReleasePluginBinToolDownloadReq {
   string name = 2;
 }
 
-// FileChunk describes the file chunk data.
-message FileChunk { bytes content = 1; }
-
 // PackageEventExactConditions describes the conditions when list event.
 message PackageEventExactConditions {
   repeated int64 generation = 1;

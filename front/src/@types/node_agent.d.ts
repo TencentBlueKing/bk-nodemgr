@@ -20,6 +20,8 @@ export interface AgentInstallInfo {
   renew_gse_task: boolean;
   renew_gse_proc: boolean;
   install_method: string;
+  // 登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n
+  // 提权执行；默认为 false
   is_sudo: boolean;
 }
 
@@ -267,7 +269,6 @@ export interface AgentInstallParsedInfo {
   bk_addressing: string;
   install_pre_ordered_plugins: boolean;
   re_register: boolean;
-  is_sudo: boolean;
 }
 
 // UploadAgentInstallTemplateResp ...

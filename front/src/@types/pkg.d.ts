@@ -1332,11 +1332,6 @@ export interface PackageReleasePluginBinToolDownloadReq {
   name: string;
 }
 
-// FileChunk describes the file chunk data.
-export interface FileChunk {
-  content: bytes;
-}
-
 // PackageEventExactConditions describes the conditions when list event.
 export interface PackageEventExactConditions {
   generation: number[];
