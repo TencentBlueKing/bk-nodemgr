@@ -615,7 +615,7 @@ func (svc *Service) registerBasicServer() error {
 		},
 		restserver.WithPing(),
 		withWeb(svc.Cap),
-		withWiki(),
+		withWiki(svc.conf.Wiki.Enabled),
 		withAPIV3Basic(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
@@ -656,8 +656,12 @@ func withWeb(capability *options.Capability, middleware ...gin.HandlerFunc) rest
 }
 
 // withWiki loads the embedded product user Wiki.
-func withWiki() restserver.OptionFunc {
+func withWiki(enabled bool) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
+		if !enabled {
+			return
+		}
+
 		wiki.Load(rg)
 	}
 }

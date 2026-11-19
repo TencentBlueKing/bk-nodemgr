@@ -128,6 +128,11 @@ func (n *Notice) Validate() error {
 	return n.APIGatewayClient.Validate()
 }
 
+// ApplicationWiki controls whether application serves the embedded product Wiki; disabled by default.
+type ApplicationWiki struct {
+	Enabled bool `yaml:"enabled" usage:"enable embedded product Wiki"`
+}
+
 // ApplicationService the config of application service.
 type ApplicationService struct {
 	RunMode            RunMode            `yaml:"runMode" usage:"run mode of service"`
@@ -136,6 +141,7 @@ type ApplicationService struct {
 	BKSaas             BKSaas             `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	BKPaas             BKPaaS             `yaml:"bkPaaS" usage:"bk paas config of application service"`
 	Front              Front              `yaml:"front" usage:"front config of application service"`
+	Wiki               ApplicationWiki    `yaml:"wiki" usage:"embedded product Wiki settings"`
 	Backend            Backend            `yaml:"backend" usage:"backend gateway config"`
 	UserManager        UserManager        `yaml:"userManager" usage:"user manager config of application service"`
 	Access             Access             `yaml:"access" usage:"access config of application service"`

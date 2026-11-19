@@ -4,6 +4,10 @@ runMode: debug
 # tenantMode single/multiple.
 tenantMode: single
 
+# Serve the embedded product Wiki at /wiki/ only when explicitly enabled.
+wiki:
+  enabled: false
+
 # front settings.
 front:
   # password vault related settings.
