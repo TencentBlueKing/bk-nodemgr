@@ -41,8 +41,8 @@ Node Manager 以独立同步镜像交付 Agent Package，在部署流程中调�
 当前入口及其边界：
 
 - [同步脚本](../../../../install/images/bk-nodemgr-apigw-sync/support-files/bin/sync-apigateway.sh) 仅在 `ENABLE_SYNC_MCP_SERVERS=true` 时同步 MCP；[Chart 默认配置](../../../../install/helm/bk-nodemgr/values.yaml) 关闭该开关，且 `apigwSync.enabled` 默认关闭。
-- [仓库定义](../../../../apigw/definition.yaml) 与 Chart 中的 MCP 声明均包含 `status: 0`，不能由“有声明”认定目标 MCP 已发布。APIGW 的环境发布还受 `RELEASE_STAGES` 控制，默认配置不保证已经发布。
-- Helm 用 [ConfigMap](../../../../install/helm/bk-nodemgr/templates/apigw-sync-configmap.yaml) 渲染的定义覆盖镜像内 `/data/definition.yaml`。仓库定义与 Chart 的 MCP `resource_names` 当前不同，接入时应核对实际渲染输入及其与发布资源名称的对应，不能只检查 `apigw/definition.yaml`。
+- [产品 MCP 清单](../../../../apigw/mcp_servers.yaml) 独立于网关环境配置。开启 `apigwSync.mcp.enabled` 后，未显式覆写的 stage 使用该清单并设置 `status: 1`；显式列表保持原样，显式 `[]` 跳过。配置存在或状态启用不代表目标资源已发布或调用权限已满足。
+- Helm 用 [ConfigMap](../../../../install/helm/bk-nodemgr/templates/apigw-sync-configmap.yaml) 渲染的定义覆盖镜像内 `/data/definition.yaml`；同步脚本结合内置清单生成 `/data/mcp-definition.yaml`。接入时应核对该实际输入及其与已发布资源名称的对应，不能只检查仓库文件或 Helm 渲染结果。APIGW 的环境发布仍受 `RELEASE_STAGES` 控制。
 - 当前 `grant_permissions` 声明是网关资源授权，不是 MCP 主动授权配置。MCP 创建、发布、应用与目标 Agent 所需授权须分别落实；`bkai-init` 不代办审批或授权。完整引用规则见 [MCP](resources.md#apigw-mcp)。
 
 首次初始化 Agent 尚不存在时，目标平台需支持按应用空间权限查询 MCP 的初始化规则；不要提前创建空壳 Agent 绕过校验。Agent 已存在时，其空间仍须与本次目标空间一致。
