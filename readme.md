@@ -27,6 +27,7 @@
 ## Getting started
 
 * [安装部署](docs/operation/installation.md)
+* [AI 助手 Skills：选择、安装与使用](skills/README.md)
 
 ## Roadmap
 
