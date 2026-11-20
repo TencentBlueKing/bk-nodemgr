@@ -12,4 +12,4 @@
 |Conventions:separate immediate API response from eventual system effect|state observable outputs and limitations explicitly
 |Conventions:evidence hierarchy=concept docs + proto/swagger > directly inspected public behavior > explicit unknown/待确认
 |Anti-patterns:no router/service/storage/workflow/DAO call-chain docs|no internal implementation as user contract|no invented file paths/reload behavior/health checks/status APIs/timing/idempotency/retry guarantees
-|Child AGENTS:docs/integration/deploy_policy/AGENTS.md
+|Child AGENTS:docs/integration/deploy_policy/AGENTS.md|docs/integration/plugin_migration/AGENTS.md
