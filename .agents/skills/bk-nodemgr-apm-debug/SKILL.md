@@ -1,6 +1,8 @@
 ---
 name: bk-nodemgr-apm-debug
-description: Use when investigating bk-nodemgr APM/debug issues: trace_id, span_id, request_id, message_id, workflow_id, trigger_id, operation_id, operation_instance_id, task_id, bk_host_id, bk_agent_id, plugin_name, deploy_policy_id, slow or failing APIs, workflow/action failures, or when choosing runtime evidence from gcx/Grafana and BlueKing Monitor MCP. This is a bk-nodemgr investigation lens, not a generic APM tutorial.
+metadata:
+  internal: true
+description: "Use when investigating bk-nodemgr APM/debug issues: trace_id, span_id, request_id, message_id, workflow_id, trigger_id, operation_id, operation_instance_id, task_id, bk_host_id, bk_agent_id, plugin_name, deploy_policy_id, slow or failing APIs, workflow/action failures, or when choosing runtime evidence from gcx/Grafana and BlueKing Monitor MCP. This is a bk-nodemgr investigation lens, not a generic APM tutorial."
 ---
 
 # bk-nodemgr APM Debug

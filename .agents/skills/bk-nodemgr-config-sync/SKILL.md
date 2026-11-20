@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-config-sync
+metadata:
+  internal: true
 description: Use when editing or reviewing bk-nodemgr service startup config in pkg/config, Helm values/templates, helmfile environment templates, or docker-compose config templates; especially when pkg/config fields, YAML tags, defaults, validation, or deployment config surfaces may drift.
 ---
 

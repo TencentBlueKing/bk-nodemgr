@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-testsuite-support
+metadata:
+  internal: true
 description: Use when adding package-level integration tests in bk-nodemgr that should use testsuite/support helpers, especially RequireMongoDatabase, RequireMongoClient, RequireRedisClient, RequireRedisClientWithKeyPrefix, NODEMGR_TEST_ENV_SOURCE, NODEMGR_TEST_DOCKER_NETWORK, or testsuite/integration.env.
 ---
 

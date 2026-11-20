@@ -19,24 +19,24 @@
 准备 [skills CLI 支持的 AI 助手](https://github.com/vercel-labs/skills#supported-agents)，以及 Node.js 22.20 或更高版本。在需要使用 Skill 的项目目录中运行：
 
 ```bash
-npx skills add TencentBlueKing/bk-nodemgr --skill <skill-name>
+npx skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills --skill <skill-name>
 ```
 
 将 `<skill-name>` 替换为上表中的技能名称。例如，安装部署助手：
 
 ```bash
-npx skills add TencentBlueKing/bk-nodemgr --skill bk-nodemgr-deploy
+npx skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills --skill bk-nodemgr-deploy
 ```
 
 按提示选择目标 AI 助手。默认只安装到当前项目；如需跨项目使用，可添加 `-g` 进行全局安装。
 
-如需查看仓库中可发现的 Skills，而不安装它们：
+如需查看面向用户的 Skills，而不安装它们：
 
 ```bash
-npx skills add TencentBlueKing/bk-nodemgr --list
+npx skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills --list
 ```
 
-仓库的 `.agents/skills/` 中还包含面向贡献者的开发技能，CLI 也可能发现它们。请结合上表，通过 `--skill` 按名称选择面向用户的技能。
+以上命令将发现范围限定在官方仓库 `master` 分支的 `skills/` 目录，不包含 `.agents/skills/` 中面向贡献者的开发技能。
 
 ## 使用
 

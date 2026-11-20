@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-dpmgr-test-debug
+metadata:
+  internal: true
 description: Use when testing or debugging bk-nodemgr dpmgr deploy policy behavior with bk-nodemgr-deploy-policy-probe, especially when users ask for standard JSON fragments, Bruno JSON, deploy policy create/update/execute payload parts, plugin package import payloads, config filename checks, trigger_id/workflow tracing, or logs for specify_plugin_sub_config and related plugin deploy specs.
 ---
 

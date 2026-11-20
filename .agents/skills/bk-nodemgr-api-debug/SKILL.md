@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-api-debug
+metadata:
+  internal: true
 description: Use when a development agent inside the bk-nodemgr repository needs to call or debug the Node Manager API Gateway with bk-cli, prepare dry-run requests from local apidocs, query hosts or plugins, execute authorized operations, or trace workflow results. Not for implementing endpoints, publishing gateways, or calling unrelated BlueKing systems.
 ---
 

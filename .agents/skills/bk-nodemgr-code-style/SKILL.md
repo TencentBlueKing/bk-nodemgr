@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-code-style
+metadata:
+  internal: true
 description: Use when writing, reviewing, or refactoring Go code in bk-nodemgr for project-specific readability, control flow, layering, comments, initialization, error/log style, or consistency with mature Node Manager code.
 ---
 

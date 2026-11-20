@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-iamv4
+metadata:
+  internal: true
 description: Use when editing, reviewing, explaining, or designing bk-nodemgr IAM V4 runtime authorization, resource callbacks, manager role grants, IAM V4 model sync, bkiamv4 render/migrate files, callback URL Helm wiring, or boundaries between auth/v4, router/api-v3/iam/v4, pkg/thirdparty/iamv4, and support-files/bkiamv4.
 ---
 
