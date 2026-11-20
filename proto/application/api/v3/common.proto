@@ -8,6 +8,9 @@ message Page {
   int32 limit = 2;
 }
 
+// FileChunk describes the file chunk data.
+message FileChunk { bytes content = 1; }
+
 // Business describes the business informations.
 message Business {
   optional string tenant_id = 1;

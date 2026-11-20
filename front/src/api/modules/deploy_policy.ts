@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { DeployPolicyListReq, DeployPolicyListResp, DeployPolicyExecuteReq, DeployPolicyExecuteResp, DeployPolicyWorkflowListReq, DeployPolicyWorkflowListResp } from '@/@types/deploy_policy';
+import type { DeployPolicyExecuteReq, DeployPolicyExecuteResp, DeployPolicyListReq, DeployPolicyListResp, DeployPolicyWorkflowListReq, DeployPolicyWorkflowListResp } from '@/@types/deploy_policy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

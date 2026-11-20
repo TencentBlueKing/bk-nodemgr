@@ -5,6 +5,11 @@ interface Page {
   limit: number;
 }
 
+// FileChunk describes the file chunk data.
+interface FileChunk {
+  content: bytes;
+}
+
 // Business describes the business informations.
 interface Business {
   tenant_id: string;
