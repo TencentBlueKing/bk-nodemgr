@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-architecture-judgment
+metadata:
+  internal: true
 description: Use when making or reviewing bk-nodemgr architecture decisions, especially cross-layer router/service/storage/proto/pkg/types changes, new pkg helpers/interfaces/converters/adapters, proto/front contract changes, architecture drift self-review, boundary leak checks, or explicit deepening opportunity scans.
 ---
 

@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-retrier
+metadata:
+  internal: true
 description: Use when editing or reviewing bk-nodemgr code that uses pkg/runtime/retrier, polling loops, exponential backoff, fallback candidates, transient third-party retries, context-aware retry behavior, or retry observability.
 ---
 
