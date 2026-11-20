@@ -28,8 +28,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/cloudsg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/tencentcloud"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"gopkg.in/yaml.v2"
 )
@@ -166,40 +168,107 @@ func (t EncryptCryptoType) CredentialKeyType() types.CipherKeyType {
 
 // BackendService the config of backend service.
 type BackendService struct {
-	RunMode            RunMode           `yaml:"runMode" usage:"run mode of service"`
-	TenantMode         tenant.Mode       `yaml:"tenantMode" usage:"tenant mode of service"`
-	KMS                KMS               `yaml:"kms" usage:"kms secret of backend service"`
-	CMDB               CMDB              `yaml:"cmdb" usage:"cmdb config of backend service"`
-	File               File              `yaml:"file" usage:"file config of backend service"`
-	GSE                GSE               `yaml:"gse" usage:"gse config of backend service"`
-	UserManager        UserManager       `yaml:"userManager" usage:"user manager config of backend service"`
-	IAMV3              IAMV3             `yaml:"iamV3" usage:"IAM v3 gateway config"`
-	IAMV4              IAMV4             `yaml:"iamV4" usage:"IAM v4 gateway config"`
-	Monitor            Monitor           `yaml:"monitor" usage:"monitor gateway config"`
-	NodeEventDataID    NodeEventDataID   `yaml:"nodeEventDataID" usage:"node event data-id config"`
-	Jinja2x            Jinja2x           `yaml:"jinja2x" usage:"embedded jinja2 renderer config"`
-	Workflow           Workflow          `yaml:"workflow" usage:"workflow config of backend service"`
-	InfoServer         HTTPServer        `yaml:"infoServer" usage:"info server config of backend service"`
-	AdminServer        HTTPServer        `yaml:"adminServer" usage:"admin server config of backend service"`
-	BasicServer        HTTPServer        `yaml:"basicServer" usage:"basic server config of backend service"`
-	CallbackServer     CallbackServer    `yaml:"callbackServer" usage:"callback server config of backend service"`
-	ProxyServer        ProxyServer       `yaml:"proxyServer" usage:"proxy server config of backend service"`
-	Etcd               Etcd              `yaml:"etcd" usage:"etcd config of backend service"`
-	Redis              Redis             `yaml:"redis" usage:"redis config of backend service"`
-	MongoDB            MongoDB           `yaml:"mongodb" usage:"mongodb config of backend service"`
-	Log                Log               `yaml:"log" usage:"log config of backend service"`
-	System             System            `yaml:"system" usage:"system config of backend service"`
-	CryptoType         EncryptCryptoType `yaml:"cryptoType" usage:"crypto suite of credential encryption, CLASSIC or SHANGMI"`
-	EncryptKey         string            `yaml:"encryptKey" usage:"encrypt key of backend service"`
-	GSEDeployConfs     []GSEDeployConf   `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
-	InstallerFileGroup FileGroup         `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
-	FileCache          BackendFileCache  `yaml:"fileCache" usage:"local file cache config of backend service"`
-	CreditVault        CreditVault       `yaml:"creditVault" usage:"credit vault config of backend service"`
-	Access             Access            `yaml:"access" usage:"access config of backend service"`
-	NetworkUnit        NetworkUnit       `yaml:"networkUnit" usage:"network unit config of backend service"`
-	Tracing            Tracing           `yaml:"tracing" usage:"tracing config of backend service"`
-	Profiling          Profiling         `yaml:"profiling" usage:"profiling config of backend service"`
-	Wiki               Wiki              `yaml:"wiki" usage:"product user wiki link config"`
+	RunMode            RunMode            `yaml:"runMode" usage:"run mode of service"`
+	TenantMode         tenant.Mode        `yaml:"tenantMode" usage:"tenant mode of service"`
+	KMS                KMS                `yaml:"kms" usage:"kms secret of backend service"`
+	CMDB               CMDB               `yaml:"cmdb" usage:"cmdb config of backend service"`
+	File               File               `yaml:"file" usage:"file config of backend service"`
+	GSE                GSE                `yaml:"gse" usage:"gse config of backend service"`
+	UserManager        UserManager        `yaml:"userManager" usage:"user manager config of backend service"`
+	IAMV3              IAMV3              `yaml:"iamV3" usage:"IAM v3 gateway config"`
+	IAMV4              IAMV4              `yaml:"iamV4" usage:"IAM v4 gateway config"`
+	Monitor            Monitor            `yaml:"monitor" usage:"monitor gateway config"`
+	NodeEventDataID    NodeEventDataID    `yaml:"nodeEventDataID" usage:"node event data-id config"`
+	Jinja2x            Jinja2x            `yaml:"jinja2x" usage:"embedded jinja2 renderer config"`
+	Workflow           Workflow           `yaml:"workflow" usage:"workflow config of backend service"`
+	InfoServer         HTTPServer         `yaml:"infoServer" usage:"info server config of backend service"`
+	AdminServer        HTTPServer         `yaml:"adminServer" usage:"admin server config of backend service"`
+	BasicServer        HTTPServer         `yaml:"basicServer" usage:"basic server config of backend service"`
+	CallbackServer     CallbackServer     `yaml:"callbackServer" usage:"callback server config of backend service"`
+	ProxyServer        ProxyServer        `yaml:"proxyServer" usage:"proxy server config of backend service"`
+	Etcd               Etcd               `yaml:"etcd" usage:"etcd config of backend service"`
+	Redis              Redis              `yaml:"redis" usage:"redis config of backend service"`
+	MongoDB            MongoDB            `yaml:"mongodb" usage:"mongodb config of backend service"`
+	Log                Log                `yaml:"log" usage:"log config of backend service"`
+	System             System             `yaml:"system" usage:"system config of backend service"`
+	CryptoType         EncryptCryptoType  `yaml:"cryptoType" usage:"crypto suite of credential encryption, CLASSIC or SHANGMI"`
+	EncryptKey         string             `yaml:"encryptKey" usage:"encrypt key of backend service"`
+	GSEDeployConfs     []GSEDeployConf    `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
+	InstallerFileGroup FileGroup          `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
+	FileCache          BackendFileCache   `yaml:"fileCache" usage:"local file cache config of backend service"`
+	CreditVault        CreditVault        `yaml:"creditVault" usage:"credit vault config of backend service"`
+	Access             Access             `yaml:"access" usage:"access config of backend service"`
+	NetworkUnit        NetworkUnit        `yaml:"networkUnit" usage:"network unit config of backend service"`
+	CloudSecurityGroup CloudSecurityGroup `yaml:"cloudSecurityGroup" usage:"global cloud security group pools"`
+	Tracing            Tracing            `yaml:"tracing" usage:"tracing config of backend service"`
+	Profiling          Profiling          `yaml:"profiling" usage:"profiling config of backend service"`
+	Wiki               Wiki               `yaml:"wiki" usage:"product user wiki link config"`
+}
+
+// CloudSecurityGroup defines globally shared cloud security group pools.
+type CloudSecurityGroup struct {
+	Pools []CloudSecurityGroupPool `yaml:"pools" usage:"global cloud security group pools"`
+}
+
+// CloudSecurityGroupPool defines one globally configured cloud security group pool.
+type CloudSecurityGroupPool struct {
+	PoolID           string                           `yaml:"poolID" usage:"stable pool identifier"`
+	PoolName         string                           `yaml:"poolName" usage:"pool display name"`
+	Vendor           cloudsg.CloudSecurityGroupVendor `yaml:"vendor" usage:"cloud vendor, used to select the provider implementation"`
+	Region           string                           `yaml:"region" usage:"cloud region"`
+	Endpoint         string                           `yaml:"endpoint" usage:"cloud api endpoint, empty uses the vendor public default"`
+	PortAll          bool                             `yaml:"portAll" usage:"authorize ALL ports for every rule instead of endpoint ports"`
+	SecretID         string                           `yaml:"secretID" usage:"cloud api secret id"`
+	SecretKey        string                           `yaml:"secretKey" usage:"cloud api secret key, overridden by kms when enabled"`
+	SecurityGroupIDs []string                         `yaml:"securityGroupIDs" usage:"cloud security group ids"`
+}
+
+// Validate validates the global cloud security group pools.
+func (conf *CloudSecurityGroup) Validate() error {
+	seen := make(map[string]struct{}, len(conf.Pools))
+	for _, pool := range conf.Pools {
+		if pool.PoolID == "" {
+			return fmt.Errorf("cloud security group pool id is empty")
+		}
+		if _, ok := seen[pool.PoolID]; ok {
+			return fmt.Errorf("cloud security group pool(%s) id is duplicated", pool.PoolID)
+		}
+		seen[pool.PoolID] = struct{}{}
+
+		if err := pool.validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (pool *CloudSecurityGroupPool) validate() error {
+	if pool.PoolName == "" {
+		return fmt.Errorf("cloud security group pool(%s) name is empty", pool.PoolID)
+	}
+	if pool.Vendor != tencentcloud.Vendor {
+		return fmt.Errorf("cloud security group pool(%s) vendor(%s) is unsupported", pool.PoolID, pool.Vendor)
+	}
+	if pool.Region == "" {
+		return fmt.Errorf("cloud security group pool(%s) region is empty", pool.PoolID)
+	}
+	if pool.SecretID == "" {
+		return fmt.Errorf("cloud security group pool(%s) secret id is empty", pool.PoolID)
+	}
+	if pool.SecretKey == "" {
+		return fmt.Errorf("cloud security group pool(%s) secret key is empty", pool.PoolID)
+	}
+	if len(pool.SecurityGroupIDs) == 0 {
+		return fmt.Errorf("cloud security group pool(%s) security group ids is empty", pool.PoolID)
+	}
+	for _, securityGroupID := range pool.SecurityGroupIDs {
+		if securityGroupID == "" {
+			return fmt.Errorf("cloud security group pool(%s) security group id is empty", pool.PoolID)
+		}
+	}
+
+	return nil
 }
 
 // Jinja2x configures the embedded Jinja2 renderer.
@@ -642,6 +711,10 @@ func (svc *BackendService) Validate() error {
 
 	if err := svc.NetworkUnit.Validate(); err != nil {
 		return fmt.Errorf("failed to validate network unit config: %w", err)
+	}
+
+	if err := svc.CloudSecurityGroup.Validate(); err != nil {
+		return fmt.Errorf("failed to validate cloud security group config: %w", err)
 	}
 
 	return nil

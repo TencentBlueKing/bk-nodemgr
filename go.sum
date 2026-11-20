@@ -399,6 +399,10 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/stvp/tempredis v0.0.0-20181119212430-b82af8480203 h1:QVqDTf3h2WHt08YuiTGPZLls0Wq99X9bWd0Q5ZSBesM=
 github.com/stvp/tempredis v0.0.0-20181119212430-b82af8480203/go.mod h1:oqN97ltKNihBbwlX8dLpwxCl3+HnXKV/R0e+sRLd9C8=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.212 h1:FiYAf/jBpn8aVWiwZXPX3jFFM/woYuzv97AuCu+EN5A=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.212/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc v1.3.212 h1:ccSGrmCKkXgYsgNWcWyK3c1yqcBmymi6ct5l7X2IyF4=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc v1.3.212/go.mod h1:+ULiKEMaGQqgR+o1056YiIQAbr6NGQZDyCCMmvTk3pA=
 github.com/testcontainers/testcontainers-go v0.42.0 h1:He3IhTzTZOygSXLJPMX7n44XtK+qhjat1nI9cneBbUY=
 github.com/testcontainers/testcontainers-go v0.42.0/go.mod h1:vZjdY1YmUA1qEForxOIOazfsrdyORJAbhi0bp8plN30=
 github.com/testcontainers/testcontainers-go/modules/mongodb v0.42.0 h1:jX10Aprgf1L+Ov+KxcheZ/1JXdiJ/3wdevfWFSkxm6s=

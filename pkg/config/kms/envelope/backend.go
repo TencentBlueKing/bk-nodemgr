@@ -20,9 +20,20 @@ package envelope
 
 // BackendEnvelope defines kms backend envelope.
 type BackendEnvelope struct {
-	Encryption  BackendEncryption  `json:"encryption"`
-	GSE         BackendGSE         `json:"gse"`
-	CreditVault BackendCreditVault `json:"credit_vault"`
+	Encryption         BackendEncryption         `json:"encryption"`
+	GSE                BackendGSE                `json:"gse"`
+	CreditVault        BackendCreditVault        `json:"credit_vault"`
+	CloudSecurityGroup BackendCloudSecurityGroup `json:"cloud_security_group"`
+}
+
+// BackendCloudSecurityGroup defines cloud security group pool secrets.
+type BackendCloudSecurityGroup struct {
+	Pools map[string]BackendCloudSecurityGroupPoolSecret `json:"pools"`
+}
+
+// BackendCloudSecurityGroupPoolSecret defines one pool credential.
+type BackendCloudSecurityGroupPoolSecret struct {
+	SecretKey string `json:"secret_key"`
 }
 
 // BackendEncryption defines kms backend encryption.

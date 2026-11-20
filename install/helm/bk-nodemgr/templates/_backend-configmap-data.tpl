@@ -156,6 +156,31 @@ Params: dict "root" . "workflow" <workflow config values>
 
     networkUnit: {{ .root.Values.backend.config.networkUnit | toYaml | nindent 6 }}
 
+    cloudSecurityGroup:
+      pools:
+        {{- $cloudSGPools := dig "cloudSecurityGroup" "pools" (list) .root.Values.backend.config }}
+        {{- if len $cloudSGPools }}
+        {{- range $cloudSGPools }}
+        - poolID: {{ .poolID | quote }}
+          poolName: {{ .poolName | quote }}
+          vendor: {{ .vendor | quote }}
+          region: {{ .region | quote }}
+          {{- if .endpoint }}
+          endpoint: {{ .endpoint | quote }}
+          {{- end }}
+          {{- if .portAll }}
+          portAll: true
+          {{- end }}
+          secretID: {{ .secretID | quote }}
+          {{- if .secretKey }}
+          secretKey: {{ .secretKey | quote }}
+          {{- end }}
+          securityGroupIDs: {{ .securityGroupIDs | toYaml | nindent 10 }}
+        {{- end }}
+        {{- else }}
+        []
+        {{- end }}
+
     fileCache: {{ .root.Values.backend.config.fileCache | toYaml | nindent 6 }}
 
     gseDeployConfs: {{ .root.Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}

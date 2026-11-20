@@ -24,6 +24,7 @@ import (
 	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config/kms"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config/kms/envelope"
 )
 
 const (
@@ -366,6 +367,36 @@ func (k *KMS) ParseBackendServiceConfig(service *BackendService) error {
 	// credit vault.
 	service.CreditVault.HostCreditVault.IEGTJJ.Key = dataModule.CreditVault.IEGTJJ.Key
 	service.CreditVault.HostCreditVault.IEGTJJ.SecretKey = dataModule.CreditVault.IEGTJJ.SecretKey
+
+	// cloud security group pools.
+	if err = applyCloudSecurityGroupSecretKeys(
+		service.CloudSecurityGroup.Pools, dataModule.CloudSecurityGroup.Pools,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// applyCloudSecurityGroupSecretKeys overrides the yaml secret keys of cloud security group
+// pools with the kms envelope values. A pool the envelope has no usable secret key for keeps
+// its yaml value, and fails when the yaml carries none either, so a pool missing from the
+// envelope is reported by pool id here instead of as an empty secret key later.
+func applyCloudSecurityGroupSecretKeys(
+	pools []CloudSecurityGroupPool, envelopePools map[string]envelope.BackendCloudSecurityGroupPoolSecret,
+) error {
+
+	for idx := range pools {
+		secret, ok := envelopePools[pools[idx].PoolID]
+		if ok && secret.SecretKey != "" {
+			pools[idx].SecretKey = secret.SecretKey
+			continue
+		}
+
+		if pools[idx].SecretKey == "" {
+			return fmt.Errorf("kms envelope has no secret key for cloud security group pool(%s)", pools[idx].PoolID)
+		}
+	}
 
 	return nil
 }
