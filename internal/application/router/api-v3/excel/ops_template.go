@@ -256,9 +256,9 @@ func opsSampleRows(bizNames, areaNames []string) []opsTemplateRow {
 	}
 }
 
-// ExcelUploadOpsTemplate parses the uploaded ops template and resolves each row against existing hosts.
-func (h *handler) ExcelUploadOpsTemplate(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.ExcelUploadOpsTemplateReq)
+// ExcelParseOpsTemplate parses the uploaded ops template and resolves each row against existing hosts.
+func (h *handler) ExcelParseOpsTemplate(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.ExcelParseOpsTemplateReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to parse ops template upload form")
@@ -323,8 +323,8 @@ func (h *handler) ExcelUploadOpsTemplate(rCtx restserver.IContext) (interface{},
 		infos[idx] = info
 	}
 
-	resp := new(protoApplication.ExcelUploadOpsTemplateResp)
-	resp.Data = &protoApplication.ExcelUploadOpsTemplateResp_Data{Items: infos}
+	resp := new(protoApplication.ExcelParseOpsTemplateResp)
+	resp.Data = &protoApplication.ExcelParseOpsTemplateResp_Data{Items: infos}
 
 	return resp.GetData(), nil
 }

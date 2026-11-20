@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-thirdparty
+metadata:
+  internal: true
 description: Use when adding, extending, refactoring, or reviewing bk-nodemgr third-party adapters, including pkg/thirdparty and CLI-local adapters with handler/client separation, named API request-response contracts, domain interfaces, pagination, or shared APIGW/REST client usage. Not for operating bk-cli or designing migration policy alone.
 ---
 

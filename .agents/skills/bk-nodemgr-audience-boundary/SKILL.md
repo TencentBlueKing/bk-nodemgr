@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-audience-boundary
+metadata:
+  internal: true
 description: Use when writing or reviewing bk-nodemgr reader-facing artifacts, including docs, Issues, PRs, changelogs, API references, release notes, and human-facing READMEs, especially when process notes, draft status, missing evidence, or implementation assumptions might leak into the artifact.
 ---
 

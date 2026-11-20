@@ -49,16 +49,16 @@
         ]
       }
     },
-    "/api/v3/excel/agent_install_template/upload": {
+    "/api/v3/excel/agent_install_template/parse": {
       "post": {
         "summary": "解析 Agent 安装 Excel 模板，逐行返回安装参数。",
         "description": "模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的\n错误原因，不影响其他行。",
-        "operationId": "Excel_ExcelUploadAgentInstallTemplate",
+        "operationId": "Excel_ExcelParseAgentInstallTemplate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3ExcelUploadAgentInstallTemplateResp"
+              "$ref": "#/definitions/v3ExcelParseAgentInstallTemplateResp"
             }
           },
           "default": {
@@ -74,7 +74,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3ExcelUploadAgentInstallTemplateReq"
+              "$ref": "#/definitions/v3ExcelParseAgentInstallTemplateReq"
             }
           }
         ],
@@ -116,16 +116,16 @@
         ]
       }
     },
-    "/api/v3/excel/ops_template/upload": {
+    "/api/v3/excel/ops_template/parse": {
       "post": {
         "summary": "解析带外设置 Excel 模板，按业务、管控区域与内网 IP\n匹配已有主机，并解析主控机与带外字段。",
         "description": "逐行返回解析结果：成功的行携带主机与主控机 ID，失败的行携带行号与错误\n原因，单行失败不影响其他行。",
-        "operationId": "Excel_ExcelUploadOpsTemplate",
+        "operationId": "Excel_ExcelParseOpsTemplate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3ExcelUploadOpsTemplateResp"
+              "$ref": "#/definitions/v3ExcelParseOpsTemplateResp"
             }
           },
           "default": {
@@ -141,7 +141,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3ExcelUploadOpsTemplateReq"
+              "$ref": "#/definitions/v3ExcelParseOpsTemplateReq"
             }
           }
         ],
@@ -183,16 +183,16 @@
         ]
       }
     },
-    "/api/v3/excel/proxy_install_template/upload": {
+    "/api/v3/excel/proxy_install_template/parse": {
       "post": {
         "summary": "解析 Proxy 安装 Excel 模板，逐行返回安装参数。",
         "description": "模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的\n错误原因，不影响其他行。",
-        "operationId": "Excel_ExcelUploadProxyInstallTemplate",
+        "operationId": "Excel_ExcelParseProxyInstallTemplate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3ExcelUploadProxyInstallTemplateResp"
+              "$ref": "#/definitions/v3ExcelParseProxyInstallTemplateResp"
             }
           },
           "default": {
@@ -208,7 +208,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3ExcelUploadProxyInstallTemplateReq"
+              "$ref": "#/definitions/v3ExcelParseProxyInstallTemplateReq"
             }
           }
         ],
@@ -429,6 +429,129 @@
       },
       "title": "ExcelOpsTemplateParsedInfo 描述带外设置模板中一行数据的解析结果。\n解析成功的行返回匹配到的主机与主控机 ID，可直接用于回填带外设置表格；\n解析失败的行仅返回行号与错误原因，其余字段为空。"
     },
+    "v3ExcelParseAgentInstallTemplateReq": {
+      "type": "object",
+      "title": "ExcelParseAgentInstallTemplateReq 通过 multipart 表单提交待解析的 Agent 安装\nExcel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。"
+    },
+    "v3ExcelParseAgentInstallTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ExcelParseAgentInstallTemplateRespData"
+        }
+      },
+      "title": "ExcelParseAgentInstallTemplateResp 逐行返回 Agent 安装 Excel 模板的解析结果。"
+    },
+    "v3ExcelParseAgentInstallTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ExcelAgentInstallTemplateParsedInfo"
+          }
+        }
+      }
+    },
+    "v3ExcelParseOpsTemplateReq": {
+      "type": "object",
+      "title": "ExcelParseOpsTemplateReq 通过 multipart 表单提交待解析的带外设置 Excel 文件。\nfile 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。"
+    },
+    "v3ExcelParseOpsTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ExcelParseOpsTemplateRespData"
+        }
+      },
+      "title": "ExcelParseOpsTemplateResp 逐行返回带外设置 Excel 模板的解析结果。"
+    },
+    "v3ExcelParseOpsTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ExcelOpsTemplateParsedInfo"
+          }
+        }
+      }
+    },
+    "v3ExcelParseProxyInstallTemplateReq": {
+      "type": "object",
+      "title": "ExcelParseProxyInstallTemplateReq 通过 multipart 表单提交待解析的 Proxy 安装\nExcel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。"
+    },
+    "v3ExcelParseProxyInstallTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ExcelParseProxyInstallTemplateRespData"
+        }
+      },
+      "title": "ExcelParseProxyInstallTemplateResp 逐行返回 Proxy 安装 Excel 模板的解析结果。"
+    },
+    "v3ExcelParseProxyInstallTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ExcelProxyInstallTemplateParsedInfo"
+          }
+        }
+      }
+    },
     "v3ExcelProxyInstallTemplateParsedInfo": {
       "type": "object",
       "properties": {
@@ -510,129 +633,6 @@
         }
       },
       "title": "ExcelProxyInstallTemplateParsedInfo 描述 Proxy 安装模板中一行数据的解析结果。\n解析失败的行仅返回行号与错误原因，其余字段为空。"
-    },
-    "v3ExcelUploadAgentInstallTemplateReq": {
-      "type": "object",
-      "title": "ExcelUploadAgentInstallTemplateReq 上传 Agent 安装 Excel 模板的请求。\n文件通过 multipart 表单上传，无需额外 JSON 字段。"
-    },
-    "v3ExcelUploadAgentInstallTemplateResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3ExcelUploadAgentInstallTemplateRespData"
-        }
-      },
-      "title": "ExcelUploadAgentInstallTemplateResp 返回 Agent 安装模板的逐行解析结果。"
-    },
-    "v3ExcelUploadAgentInstallTemplateRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3ExcelAgentInstallTemplateParsedInfo"
-          }
-        }
-      }
-    },
-    "v3ExcelUploadOpsTemplateReq": {
-      "type": "object",
-      "title": "ExcelUploadOpsTemplateReq 上传带外设置 Excel 模板的请求。\n文件通过 multipart 表单上传，无需额外 JSON 字段。"
-    },
-    "v3ExcelUploadOpsTemplateResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3ExcelUploadOpsTemplateRespData"
-        }
-      },
-      "title": "ExcelUploadOpsTemplateResp 返回带外设置模板的逐行解析结果。"
-    },
-    "v3ExcelUploadOpsTemplateRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3ExcelOpsTemplateParsedInfo"
-          }
-        }
-      }
-    },
-    "v3ExcelUploadProxyInstallTemplateReq": {
-      "type": "object",
-      "title": "ExcelUploadProxyInstallTemplateReq 上传 Proxy 安装 Excel 模板的请求。\n文件通过 multipart 表单上传，无需额外 JSON 字段。"
-    },
-    "v3ExcelUploadProxyInstallTemplateResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3ExcelUploadProxyInstallTemplateRespData"
-        }
-      },
-      "title": "ExcelUploadProxyInstallTemplateResp 返回 Proxy 安装模板的逐行解析结果。"
-    },
-    "v3ExcelUploadProxyInstallTemplateRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3ExcelProxyInstallTemplateParsedInfo"
-          }
-        }
-      }
     },
     "v3FileChunk": {
       "type": "object",

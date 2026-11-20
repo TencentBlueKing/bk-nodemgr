@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-create-github-pr
+metadata:
+  internal: true
 description: Use when preparing, creating, updating, replacing, or splitting a GitHub Pull Request in the bk-nodemgr repository, including routine CI, release, proto, frontend, and cross-layer changes. Trigger for “准备 PR”, “create PR”, “submit pull request”, “替代 PR”, or “提交 PR”.
 ---
 

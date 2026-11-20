@@ -907,12 +907,3 @@ func (x *NodeProxyAssignUnitResp) ConvertResult(result *types.NodeProxyAssignUni
 		WorkflowId:    result.WorkflowID,
 	}
 }
-
-// AutoConvert auto convert.
-func (x *UploadProxyInstallTemplateReq) AutoConvert() {
-}
-
-// Validate check body.
-func (x *UploadProxyInstallTemplateReq) Validate() error {
-	return nil
-}

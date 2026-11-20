@@ -7,9 +7,9 @@ import "common.proto";
 import "google/api/annotations.proto";
 import "pkg.proto";
 
-// ExcelUploadAgentInstallTemplateReq 上传 Agent 安装 Excel 模板的请求。
-// 文件通过 multipart 表单上传，无需额外 JSON 字段。
-message ExcelUploadAgentInstallTemplateReq {}
+// ExcelParseAgentInstallTemplateReq 通过 multipart 表单提交待解析的 Agent 安装
+// Excel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+message ExcelParseAgentInstallTemplateReq {}
 
 // ExcelDownloadAgentInstallTemplateReq 下载 Agent 安装 Excel 模板的请求。
 message ExcelDownloadAgentInstallTemplateReq {}
@@ -43,8 +43,8 @@ message ExcelAgentInstallTemplateParsedInfo {
   string install_method = 15;
 }
 
-// ExcelUploadAgentInstallTemplateResp 返回 Agent 安装模板的逐行解析结果。
-message ExcelUploadAgentInstallTemplateResp {
+// ExcelParseAgentInstallTemplateResp 逐行返回 Agent 安装 Excel 模板的解析结果。
+message ExcelParseAgentInstallTemplateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -55,9 +55,9 @@ message ExcelUploadAgentInstallTemplateResp {
   Data data = 5;
 }
 
-// ExcelUploadProxyInstallTemplateReq 上传 Proxy 安装 Excel 模板的请求。
-// 文件通过 multipart 表单上传，无需额外 JSON 字段。
-message ExcelUploadProxyInstallTemplateReq {}
+// ExcelParseProxyInstallTemplateReq 通过 multipart 表单提交待解析的 Proxy 安装
+// Excel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+message ExcelParseProxyInstallTemplateReq {}
 
 // ExcelDownloadProxyInstallTemplateReq 下载 Proxy 安装 Excel 模板的请求。
 message ExcelDownloadProxyInstallTemplateReq {}
@@ -98,8 +98,8 @@ message ExcelProxyInstallTemplateParsedInfo {
   bool is_sudo = 22;
 }
 
-// ExcelUploadProxyInstallTemplateResp 返回 Proxy 安装模板的逐行解析结果。
-message ExcelUploadProxyInstallTemplateResp {
+// ExcelParseProxyInstallTemplateResp 逐行返回 Proxy 安装 Excel 模板的解析结果。
+message ExcelParseProxyInstallTemplateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -110,9 +110,9 @@ message ExcelUploadProxyInstallTemplateResp {
   Data data = 5;
 }
 
-// ExcelUploadOpsTemplateReq 上传带外设置 Excel 模板的请求。
-// 文件通过 multipart 表单上传，无需额外 JSON 字段。
-message ExcelUploadOpsTemplateReq {}
+// ExcelParseOpsTemplateReq 通过 multipart 表单提交待解析的带外设置 Excel 文件。
+// file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+message ExcelParseOpsTemplateReq {}
 
 // ExcelDownloadOpsTemplateReq 下载带外设置 Excel 模板的请求。
 message ExcelDownloadOpsTemplateReq {}
@@ -143,8 +143,8 @@ message ExcelOpsTemplateParsedInfo {
   int64 ops_out_band_port = 15;
 }
 
-// ExcelUploadOpsTemplateResp 返回带外设置模板的逐行解析结果。
-message ExcelUploadOpsTemplateResp {
+// ExcelParseOpsTemplateResp 逐行返回带外设置 Excel 模板的解析结果。
+message ExcelParseOpsTemplateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -161,10 +161,10 @@ service Excel {
   //
   // 模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的
   // 错误原因，不影响其他行。
-  rpc ExcelUploadAgentInstallTemplate(ExcelUploadAgentInstallTemplateReq)
-      returns (ExcelUploadAgentInstallTemplateResp) {
+  rpc ExcelParseAgentInstallTemplate(ExcelParseAgentInstallTemplateReq)
+      returns (ExcelParseAgentInstallTemplateResp) {
     option (google.api.http) = {
-      post : "/api/v3/excel/agent_install_template/upload"
+      post : "/api/v3/excel/agent_install_template/parse"
       body : "*"
     };
   }
@@ -182,10 +182,10 @@ service Excel {
   //
   // 模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的
   // 错误原因，不影响其他行。
-  rpc ExcelUploadProxyInstallTemplate(ExcelUploadProxyInstallTemplateReq)
-      returns (ExcelUploadProxyInstallTemplateResp) {
+  rpc ExcelParseProxyInstallTemplate(ExcelParseProxyInstallTemplateReq)
+      returns (ExcelParseProxyInstallTemplateResp) {
     option (google.api.http) = {
-      post : "/api/v3/excel/proxy_install_template/upload"
+      post : "/api/v3/excel/proxy_install_template/parse"
       body : "*"
     };
   }
@@ -204,10 +204,10 @@ service Excel {
   //
   // 逐行返回解析结果：成功的行携带主机与主控机 ID，失败的行携带行号与错误
   // 原因，单行失败不影响其他行。
-  rpc ExcelUploadOpsTemplate(ExcelUploadOpsTemplateReq)
-      returns (ExcelUploadOpsTemplateResp) {
+  rpc ExcelParseOpsTemplate(ExcelParseOpsTemplateReq)
+      returns (ExcelParseOpsTemplateResp) {
     option (google.api.http) = {
-      post : "/api/v3/excel/ops_template/upload"
+      post : "/api/v3/excel/ops_template/parse"
       body : "*"
     };
   }

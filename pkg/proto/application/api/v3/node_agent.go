@@ -507,15 +507,6 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(results []*types.Node
 }
 
 // AutoConvert auto convert.
-func (x *UploadAgentInstallTemplateReq) AutoConvert() {
-}
-
-// Validate check body.
-func (x *UploadAgentInstallTemplateReq) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
 func (x *NodeAgentUninstallReq) AutoConvert() {
 }
 
