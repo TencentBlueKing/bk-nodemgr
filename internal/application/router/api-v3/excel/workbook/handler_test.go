@@ -67,7 +67,7 @@ func testTypedColumns() []TypedColumn[templateTestRow] {
 	}
 }
 
-func newTestTemplate(t *testing.T, columns []TypedColumn[templateTestRow]) *Template[templateTestRow] {
+func newTestTemplate(t *testing.T, columns []TypedColumn[templateTestRow]) IHandler[templateTestRow] {
 	t.Helper()
 	tmpl, err := NewTemplate("typed_sheet", columns)
 	if err != nil {
