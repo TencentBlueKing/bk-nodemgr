@@ -38,6 +38,15 @@ import (
 type IPluginRequirement interface {
 	// CreatePluginRequirement stores a new dependency file and its record.
 	CreatePluginRequirement(nCtx contextx.IContext, name, contentBase64 string) (*types.PluginRequirementFileRecord, error)
+	// CreatePluginRequirementForScope stores a file with explicit applicability metadata.
+	CreatePluginRequirementForScope(nCtx contextx.IContext, name, contentBase64 string,
+		scope types.PluginRequirementFileScope) (*types.PluginRequirementFileRecord, error)
+	// UpdatePluginRequirementScope changes applicability without accessing file content.
+	UpdatePluginRequirementScope(nCtx contextx.IContext, id string,
+		scope types.PluginRequirementFileScope) (*types.PluginRequirementFileRecord, error)
+	// ListPluginRequirements lists exact matching file metadata with pagination.
+	ListPluginRequirements(nCtx contextx.IContext, page types.Page,
+		condition *types.PluginRequirementFileCondition) ([]*types.PluginRequirementFileRecord, int64, error)
 	// UpdatePluginRequirement replaces content while preserving the file record identity.
 	UpdatePluginRequirement(nCtx contextx.IContext, id, name, contentBase64 string) (*types.PluginRequirementFileRecord, error)
 	// GetPluginRequirement returns the current tenant's file record.
@@ -51,11 +60,23 @@ type IPluginRequirement interface {
 
 // CreatePluginRequirement stores content before making its file record visible.
 func (m *Manager) CreatePluginRequirement(nCtx contextx.IContext, name, contentBase64 string) (*types.PluginRequirementFileRecord, error) {
+	return m.CreatePluginRequirementForScope(nCtx, name, contentBase64, types.PluginRequirementFileScope{
+		OS: types.PluginRequirementScopeAll, Arch: types.PluginRequirementScopeAll, Version: types.PluginRequirementScopeAll,
+	})
+}
+
+// CreatePluginRequirementForScope stores validated applicability without encoding it in the object name.
+func (m *Manager) CreatePluginRequirementForScope(nCtx contextx.IContext, name, contentBase64 string,
+	scope types.PluginRequirementFileScope) (*types.PluginRequirementFileRecord, error) {
+
 	if nCtx == nil {
 		return nil, fmt.Errorf("context is nil")
 	}
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, fmt.Errorf("invalid tenant: %w", err)
+	}
+	if err := scope.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid plugin requirement scope: %w", err)
 	}
 
 	record, err := m.storePluginRequirement(nCtx, name, contentBase64)
@@ -63,6 +84,7 @@ func (m *Manager) CreatePluginRequirement(nCtx contextx.IContext, name, contentB
 		return nil, err
 	}
 	record.ID = uuid.NewString()
+	record.OS, record.Arch, record.Version = scope.OS, scope.Arch, scope.Version
 	if err := m.storagePluginRequirement.CreatePluginRequirement(nCtx, record); err != nil {
 		return nil, fmt.Errorf("failed to create plugin requirement record: %w", err)
 	}
@@ -85,7 +107,55 @@ func (m *Manager) UpdatePluginRequirement(nCtx contextx.IContext, id, name, cont
 		return nil, fmt.Errorf("failed to update plugin requirement record: %w", err)
 	}
 
-	return record, nil
+	return m.GetPluginRequirement(nCtx, id)
+}
+
+// UpdatePluginRequirementScope changes only applicability and preserves the physical file reference.
+func (m *Manager) UpdatePluginRequirementScope(nCtx contextx.IContext, id string,
+	scope types.PluginRequirementFileScope) (*types.PluginRequirementFileRecord, error) {
+
+	if nCtx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("invalid tenant: %w", err)
+	}
+	if err := uuid.Validate(id); err != nil {
+		return nil, fmt.Errorf("invalid plugin requirement id: %w", err)
+	}
+	if err := scope.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid plugin requirement scope: %w", err)
+	}
+	record := &types.PluginRequirementFileRecord{
+		ID: id, OS: scope.OS, Arch: scope.Arch, Version: scope.Version,
+		UpdatedAt: time.Now(), Operator: nCtx.BKUsername(),
+	}
+	if err := m.storagePluginRequirement.UpdatePluginRequirementScope(nCtx, record); err != nil {
+		return nil, fmt.Errorf("failed to update plugin requirement scope: %w", err)
+	}
+
+	return m.GetPluginRequirement(nCtx, id)
+}
+
+// ListPluginRequirements returns exact administrative matches, without applicability expansion.
+func (m *Manager) ListPluginRequirements(nCtx contextx.IContext, page types.Page,
+	condition *types.PluginRequirementFileCondition) ([]*types.PluginRequirementFileRecord, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, fmt.Errorf("context is nil")
+	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, fmt.Errorf("invalid tenant: %w", err)
+	}
+	if err := page.Validate(); err != nil {
+		return nil, 0, fmt.Errorf("invalid plugin requirement page: %w", err)
+	}
+	records, total, err := m.storagePluginRequirement.ListPluginRequirements(nCtx, page, condition)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list plugin requirements: %w", err)
+	}
+
+	return records, total, nil
 }
 
 func (m *Manager) storePluginRequirement(nCtx contextx.IContext, name, contentBase64 string) (*types.PluginRequirementFileRecord, error) {

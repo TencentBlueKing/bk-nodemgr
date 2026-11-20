@@ -20,9 +20,12 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // PluginRequirementFileRecord stores the latest metadata of an independent requirement file.
@@ -30,10 +33,59 @@ type PluginRequirementFileRecord struct {
 	ID        string
 	Name      string
 	SavedName string
+	OS        criteria.OSType
+	Arch      criteria.CPUArch
+	Version   string
 	MD5       string
 	Size      int64
 	UpdatedAt time.Time
 	Operator  string
+}
+
+// PluginRequirementScopeAll applies a requirement file to every value of a dimension.
+const PluginRequirementScopeAll = "all"
+
+// PluginRequirementFileScope describes the applicable plugin package dimensions.
+type PluginRequirementFileScope struct {
+	OS      criteria.OSType
+	Arch    criteria.CPUArch
+	Version string
+}
+
+// Validate checks concrete OS and architecture values and an explicit package version or all.
+func (scope PluginRequirementFileScope) Validate() error {
+	if scope.OS == criteria.OSUnknown || scope.Arch == criteria.CPUArchUnknown {
+		return errors.New("plugin requirement scope must use concrete values or all")
+	}
+	if scope.OS != PluginRequirementScopeAll {
+		if err := scope.OS.Validate(); err != nil {
+			return fmt.Errorf("invalid plugin requirement os: %w", err)
+		}
+	}
+	if scope.Arch != PluginRequirementScopeAll {
+		if err := scope.Arch.Validate(); err != nil {
+			return fmt.Errorf("invalid plugin requirement arch: %w", err)
+		}
+	}
+	if scope.Version == "" {
+		return errors.New("plugin requirement version is required")
+	}
+
+	return nil
+}
+
+// PluginRequirementFileExactFields selects administrative file metadata by exact values.
+type PluginRequirementFileExactFields struct {
+	ID      []string
+	Name    []string
+	OS      []criteria.OSType
+	Arch    []criteria.CPUArch
+	Version []string
+}
+
+// PluginRequirementFileCondition contains administrative filters, not applicability matching rules.
+type PluginRequirementFileCondition struct {
+	ExactInclude *PluginRequirementFileExactFields
 }
 
 // ValidatePluginRequirementFileName validates a single portable requirement filename.

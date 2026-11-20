@@ -32,14 +32,28 @@ func (h *handler) CreatePluginRequirement(
 	nCtx contextx.IContext, name, contentBase64 string,
 ) (*types.PluginRequirementFileRecord, error) {
 
+	return h.CreatePluginRequirementForScope(nCtx, name, contentBase64, types.PluginRequirementFileScope{
+		OS:      types.PluginRequirementScopeAll,
+		Arch:    types.PluginRequirementScopeAll,
+		Version: types.PluginRequirementScopeAll,
+	})
+}
+
+// CreatePluginRequirementForScope stores a file with explicit applicability.
+func (h *handler) CreatePluginRequirementForScope(
+	nCtx contextx.IContext, name, contentBase64 string, scope types.PluginRequirementFileScope,
+) (*types.PluginRequirementFileRecord, error) {
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.createPluginRequirement(nCtx, &protoFile.PluginRequirementCreateReq{
+	req := &protoFile.PluginRequirementCreateReq{
 		Name:          name,
 		ContentBase64: contentBase64,
-	})
+	}
+	req.ConvertScopeFromTypes(scope)
+	resp, err := h.cli.createPluginRequirement(nCtx, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create plugin requirement: %w", err)
 	}
@@ -66,6 +80,47 @@ func (h *handler) UpdatePluginRequirement(
 	}
 
 	return resp.GetData().ConvertFileToTypes(), nil
+}
+
+// UpdatePluginRequirementScope replaces a stored file's applicability without replacing its content.
+func (h *handler) UpdatePluginRequirementScope(
+	nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope,
+) (*types.PluginRequirementFileRecord, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	req := &protoFile.PluginRequirementUpdateScopeReq{Id: id}
+	req.ConvertScopeFromTypes(scope)
+	resp, err := h.cli.updatePluginRequirementScope(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update plugin requirement scope: %w", err)
+	}
+
+	return resp.GetData().ConvertFileToTypes(), nil
+}
+
+// ListPluginRequirements retrieves one page of file records using exact filters.
+func (h *handler) ListPluginRequirements(
+	nCtx contextx.IContext, page types.Page, condition *types.PluginRequirementFileCondition,
+) ([]*types.PluginRequirementFileRecord, int64, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	req := &protoFile.PluginRequirementListReq{
+		Page:       new(protoFile.Page),
+		Conditions: protoFile.ConvertPluginRequirementFileConditionsFromTypes(condition),
+	}
+	req.GetPage().ConvertFromTypes(page)
+	resp, err := h.cli.listPluginRequirements(nCtx, req)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list plugin requirements: %w", err)
+	}
+
+	return resp.GetData().ConvertFilesToTypes(), resp.GetData().GetTotal(), nil
 }
 
 // GetPluginRequirement retrieves a stored file record by ID.
@@ -176,6 +231,66 @@ func (c *cli) updatePluginRequirement(
 	}
 	if resp.GetData().GetFile() == nil {
 		return nil, fmt.Errorf("plugin requirement update returned empty file, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updatePluginRequirementScope(
+	nCtx contextx.IContext, req *protoFile.PluginRequirementUpdateScopeReq,
+) (*protoFile.PluginRequirementUpdateScopeResp, error) {
+
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementUpdateScopeResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/update_scope").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement update scope: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement update scope failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData().GetFile() == nil {
+		return nil, fmt.Errorf("plugin requirement update scope returned empty file, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listPluginRequirements(
+	nCtx contextx.IContext, req *protoFile.PluginRequirementListReq,
+) (*protoFile.PluginRequirementListResp, error) {
+
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementListResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement list: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement list failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("plugin requirement list returned empty data, request-id(%s)", resp.GetRequestId())
 	}
 
 	return resp, nil

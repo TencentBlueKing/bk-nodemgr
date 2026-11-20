@@ -62,11 +62,30 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 func (d *dao) update(nCtx contextx.IContext, data *Data) error {
-	filter := append(base.AliveFilter(), bson.E{Key: FieldKeyID, Value: data.ID})
-	update := bson.D{{Key: "$set", Value: bson.D{
-		{Key: "data", Value: data},
-		{Key: base.FieldKeyUpdatedAt, Value: time.Now()},
-	}}}
+	return d.updateFields(nCtx, data.ID, bson.D{
+		{Key: FieldKeyName, Value: data.Name},
+		{Key: "data.saved_name", Value: data.SavedName},
+		{Key: "data.md5", Value: data.MD5},
+		{Key: "data.size", Value: data.Size},
+		{Key: "data.updated_at", Value: data.UpdatedAt},
+		{Key: "data.operator", Value: data.Operator},
+	})
+}
+
+func (d *dao) updateScope(nCtx contextx.IContext, data *Data) error {
+	return d.updateFields(nCtx, data.ID, bson.D{
+		{Key: FieldKeyOS, Value: data.OS},
+		{Key: FieldKeyArch, Value: data.Arch},
+		{Key: FieldKeyVersion, Value: data.Version},
+		{Key: "data.updated_at", Value: data.UpdatedAt},
+		{Key: "data.operator", Value: data.Operator},
+	})
+}
+
+func (d *dao) updateFields(nCtx contextx.IContext, id string, fields bson.D) error {
+	filter := append(base.AliveFilter(), bson.E{Key: FieldKeyID, Value: id})
+	fields = append(fields, bson.E{Key: base.FieldKeyUpdatedAt, Value: time.Now()})
+	update := bson.D{{Key: "$set", Value: fields}}
 	// ORM field updates do not expose matched counts; a missing ID must fail atomically.
 	result, err := d.client.UpdateOne(nCtx, filter, update, options.Update().SetUpsert(false))
 	if err != nil {

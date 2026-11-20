@@ -47,6 +47,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/create", restserver.Handler(h.Create))
 	h.rg.POST("/update", restserver.Handler(h.Update))
+	h.rg.POST("/update_scope", restserver.Handler(h.UpdateScope))
+	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/get", restserver.Handler(h.Get))
 	h.rg.GET("/download", restserver.FileHandler(h.Download))
 	h.rg.POST("/transfer", restserver.Handler(h.Transfer))

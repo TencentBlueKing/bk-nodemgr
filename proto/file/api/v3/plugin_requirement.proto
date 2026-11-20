@@ -2,6 +2,7 @@ syntax = "proto3";
 package v3;
 option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
 
+import "common.proto";
 import "google/api/annotations.proto";
 
 // 当前租户的插件依赖文件记录，不代表已绑定到插件或应用到进程。
@@ -20,6 +21,12 @@ message PluginRequirementFileRecord {
   int64 updated_at = 6;
   // 最近操作人。
   string operator = 7;
+  // 适用操作系统，all 表示不限制，否则为具体 OS 枚举值。
+  string os = 8;
+  // 适用 CPU 架构，all 表示不限制，否则为具体架构枚举值。
+  string arch = 9;
+  // 适用插件包版本，all 表示不限制；不是依赖文件自身的版本。
+  string version = 10;
 }
 
 // 创建插件依赖文件的参数。
@@ -28,6 +35,12 @@ message PluginRequirementCreateReq {
   string name = 1;
   // 文件正文的 Base64 编码。
   string content_base64 = 2;
+  // 适用操作系统，省略时为 all。
+  string os = 3;
+  // 适用 CPU 架构，省略时为 all。
+  string arch = 4;
+  // 适用插件包版本，省略时为 all。
+  string version = 5;
 }
 
 // 创建插件依赖文件后返回的记录。
@@ -70,6 +83,62 @@ message PluginRequirementGetResp {
   string message = 2;
   string request_id = 3;
   message Data { PluginRequirementFileRecord file = 1; }
+  Data data = 4;
+}
+
+// 更新适用范围，不替换正文或修改文件在文件源中的位置。
+message PluginRequirementUpdateScopeReq {
+  // 文件记录的 UUID。
+  string id = 1;
+  // 适用操作系统，必填；all 表示不限制。
+  string os = 2;
+  // 适用 CPU 架构，必填；all 表示不限制。
+  string arch = 3;
+  // 适用插件包版本，必填；all 表示不限制。
+  string version = 4;
+}
+
+// 更新适用范围后的文件记录。
+message PluginRequirementUpdateScopeResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  message Data { PluginRequirementFileRecord file = 1; }
+  Data data = 4;
+}
+
+// 文件记录的精确筛选条件，同字段内为或，不同字段之间为且。
+message PluginRequirementFileExactConditions {
+  repeated string id = 1;
+  repeated string name = 2;
+  // 筛选保存的适用条件；all 仅匹配不限制 OS 的记录，不是查询通配符。
+  repeated string os = 3;
+  // 筛选保存的适用条件；all 仅匹配不限制架构的记录。
+  repeated string arch = 4;
+  // 筛选保存的插件包版本条件；all 仅匹配不限制版本的记录。
+  repeated string version = 5;
+}
+
+// 当前租户的插件依赖文件查询条件。
+message PluginRequirementFileConditions {
+  PluginRequirementFileExactConditions exact_include = 1;
+}
+
+// 分页列举当前租户的插件依赖文件，不执行依赖匹配或覆盖选择。
+message PluginRequirementListReq {
+  Page page = 1;
+  PluginRequirementFileConditions conditions = 2;
+}
+
+// 插件依赖文件的分页查询结果，不包含文件正文。
+message PluginRequirementListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  message Data {
+    int64 total = 1;
+    repeated PluginRequirementFileRecord items = 2;
+  }
   Data data = 4;
 }
 
@@ -137,6 +206,24 @@ service PluginRequirement {
       returns (PluginRequirementGetResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/requirement/get"
+      body : "*"
+    };
+  }
+
+  // 更新当前租户依赖文件的适用范围，保留文件记录 ID 和正文位置。
+  rpc PluginRequirementUpdateScope(PluginRequirementUpdateScopeReq)
+      returns (PluginRequirementUpdateScopeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/update_scope"
+      body : "*"
+    };
+  }
+
+  // 按适用条件等元信息分页查询当前租户的依赖文件，不执行匹配优先级选择。
+  rpc PluginRequirementList(PluginRequirementListReq)
+      returns (PluginRequirementListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/list"
       body : "*"
     };
   }

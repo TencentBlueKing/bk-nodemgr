@@ -24,6 +24,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-requirement"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -47,6 +48,38 @@ func (s *Storage) updatePluginRequirement(nCtx contextx.IContext, record *types.
 	}
 
 	return nil
+}
+
+func (s *Storage) updatePluginRequirementScope(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error {
+	if record == nil {
+		return errors.New("plugin requirement file record is nil")
+	}
+	if err := s.daoPluginRequirement.UpdateScope(nCtx, record); err != nil {
+		return fmt.Errorf("failed to update plugin requirement scope: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Storage) listPluginRequirements(nCtx contextx.IContext, page types.Page,
+	condition *types.PluginRequirementFileCondition) ([]*types.PluginRequirementFileRecord, int64, error) {
+
+	var opts []pluginrequirement.OptFn
+	if condition != nil && condition.ExactInclude != nil {
+		exact := condition.ExactInclude
+		opts = append(opts,
+			pluginrequirement.WithID(exact.ID...),
+			pluginrequirement.WithName(exact.Name...),
+			pluginrequirement.WithOS(exact.OS...),
+			pluginrequirement.WithArch(exact.Arch...),
+			pluginrequirement.WithVersion(exact.Version...))
+	}
+	records, total, err := s.daoPluginRequirement.List(nCtx, page, opts...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list plugin requirements: %w", err)
+	}
+
+	return records, total, nil
 }
 
 func (s *Storage) getPluginRequirement(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error) {

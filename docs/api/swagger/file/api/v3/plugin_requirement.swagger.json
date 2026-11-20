@@ -123,6 +123,39 @@
         ]
       }
     },
+    "/api/v3/plugin/requirement/list": {
+      "post": {
+        "summary": "按适用条件等元信息分页查询当前租户的依赖文件，不执行匹配优先级选择。",
+        "operationId": "PluginRequirement_PluginRequirementList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementListReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
     "/api/v3/plugin/requirement/transfer": {
       "post": {
         "summary": "启动插件依赖文件到目标主机的异步传输，返回任务 ID 及文件信息。",
@@ -188,6 +221,39 @@
           "PluginRequirement"
         ]
       }
+    },
+    "/api/v3/plugin/requirement/update_scope": {
+      "post": {
+        "summary": "更新当前租户依赖文件的适用范围，保留文件记录 ID 和正文位置。",
+        "operationId": "PluginRequirement_PluginRequirementUpdateScope",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateScopeResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateScopeReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
     }
   },
   "definitions": {
@@ -219,6 +285,23 @@
         }
       }
     },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sort": {
+          "type": "string"
+        }
+      },
+      "description": "Page describes paging query settings."
+    },
     "v3PluginRequirementCreateReq": {
       "type": "object",
       "properties": {
@@ -229,6 +312,18 @@
         "content_base64": {
           "type": "string",
           "title": "文件正文的 Base64 编码。"
+        },
+        "os": {
+          "type": "string",
+          "title": "适用操作系统，省略时为 all。"
+        },
+        "arch": {
+          "type": "string",
+          "title": "适用 CPU 架构，省略时为 all。"
+        },
+        "version": {
+          "type": "string",
+          "title": "适用插件包版本，省略时为 all。"
         }
       },
       "title": "创建插件依赖文件的参数。"
@@ -270,6 +365,54 @@
       },
       "title": "插件依赖文件的二进制内容；HTTP 下载直接返回文件正文。"
     },
+    "v3PluginRequirementFileConditions": {
+      "type": "object",
+      "properties": {
+        "exact_include": {
+          "$ref": "#/definitions/v3PluginRequirementFileExactConditions"
+        }
+      },
+      "title": "当前租户的插件依赖文件查询条件。"
+    },
+    "v3PluginRequirementFileExactConditions": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "os": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "筛选保存的适用条件；all 仅匹配不限制 OS 的记录，不是查询通配符。"
+        },
+        "arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "筛选保存的适用条件；all 仅匹配不限制架构的记录。"
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "筛选保存的插件包版本条件；all 仅匹配不限制版本的记录。"
+        }
+      },
+      "title": "文件记录的精确筛选条件，同字段内为或，不同字段之间为且。"
+    },
     "v3PluginRequirementFileRecord": {
       "type": "object",
       "properties": {
@@ -302,6 +445,18 @@
         "operator": {
           "type": "string",
           "title": "最近操作人。"
+        },
+        "os": {
+          "type": "string",
+          "title": "适用操作系统，all 表示不限制，否则为具体 OS 枚举值。"
+        },
+        "arch": {
+          "type": "string",
+          "title": "适用 CPU 架构，all 表示不限制，否则为具体架构枚举值。"
+        },
+        "version": {
+          "type": "string",
+          "title": "适用插件包版本，all 表示不限制；不是依赖文件自身的版本。"
         }
       },
       "title": "当前租户的插件依赖文件记录，不代表已绑定到插件或应用到进程。"
@@ -340,6 +495,53 @@
       "properties": {
         "file": {
           "$ref": "#/definitions/v3PluginRequirementFileRecord"
+        }
+      }
+    },
+    "v3PluginRequirementListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "conditions": {
+          "$ref": "#/definitions/v3PluginRequirementFileConditions"
+        }
+      },
+      "title": "分页列举当前租户的插件依赖文件，不执行依赖匹配或覆盖选择。"
+    },
+    "v3PluginRequirementListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementListRespData"
+        }
+      },
+      "title": "插件依赖文件的分页查询结果，不包含文件正文。"
+    },
+    "v3PluginRequirementListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginRequirementFileRecord"
+          }
         }
       }
     },
@@ -445,6 +647,55 @@
       "title": "更新插件依赖文件后返回的记录。"
     },
     "v3PluginRequirementUpdateRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFileRecord"
+        }
+      }
+    },
+    "v3PluginRequirementUpdateScopeReq": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "文件记录的 UUID。"
+        },
+        "os": {
+          "type": "string",
+          "title": "适用操作系统，必填；all 表示不限制。"
+        },
+        "arch": {
+          "type": "string",
+          "title": "适用 CPU 架构，必填；all 表示不限制。"
+        },
+        "version": {
+          "type": "string",
+          "title": "适用插件包版本，必填；all 表示不限制。"
+        }
+      },
+      "title": "更新适用范围，不替换正文或修改文件在文件源中的位置。"
+    },
+    "v3PluginRequirementUpdateScopeResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementUpdateScopeRespData"
+        }
+      },
+      "title": "更新适用范围后的文件记录。"
+    },
+    "v3PluginRequirementUpdateScopeRespData": {
       "type": "object",
       "properties": {
         "file": {

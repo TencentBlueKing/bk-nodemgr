@@ -35,10 +35,14 @@ import (
 type IHandler interface {
 	// Create inserts a new requirement file record.
 	Create(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error
-	// Update replaces an existing record's latest metadata without inserting.
+	// Update replaces content metadata without inserting or changing applicability.
 	Update(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error
+	// UpdateScope updates only applicability and audit metadata.
+	UpdateScope(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error
 	// Get retrieves a requirement file record by ID within the current tenant.
 	Get(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error)
+	// List retrieves a page of requirement records and the total matching count.
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginRequirementFileRecord, int64, error)
 }
 
 var _ IHandler = &Handler{}
@@ -86,6 +90,10 @@ func (h *Handler) Create(nCtx contextx.IContext, record *types.PluginRequirement
 		return errors.New("plugin requirement file ID is empty")
 	}
 
+	scope := types.PluginRequirementFileScope{OS: record.OS, Arch: record.Arch, Version: record.Version}
+	if err := scope.Validate(); err != nil {
+		return fmt.Errorf("invalid plugin requirement scope: %w", err)
+	}
 	d, err := h.tenantDao(nCtx)
 	if err != nil {
 		return fmt.Errorf("failed to get requirement dao: %w", err)
@@ -97,7 +105,7 @@ func (h *Handler) Create(nCtx contextx.IContext, record *types.PluginRequirement
 	return nil
 }
 
-// Update replaces an existing record's latest metadata without inserting.
+// Update replaces content metadata without inserting or changing applicability.
 func (h *Handler) Update(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error {
 	if record == nil {
 		return errors.New("plugin requirement file record is nil")
@@ -115,6 +123,58 @@ func (h *Handler) Update(nCtx contextx.IContext, record *types.PluginRequirement
 	}
 
 	return nil
+}
+
+// UpdateScope updates applicability without modifying the stored content reference.
+func (h *Handler) UpdateScope(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error {
+	if record == nil {
+		return errors.New("plugin requirement file record is nil")
+	}
+	if record.ID == "" {
+		return errors.New("plugin requirement file ID is empty")
+	}
+	scope := types.PluginRequirementFileScope{OS: record.OS, Arch: record.Arch, Version: record.Version}
+	if err := scope.Validate(); err != nil {
+		return fmt.Errorf("invalid plugin requirement scope: %w", err)
+	}
+	d, err := h.tenantDao(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to get requirement dao: %w", err)
+	}
+	if err := d.updateScope(nCtx, convertFromTypes(record)); err != nil {
+		return fmt.Errorf("failed to update requirement scope: %w", err)
+	}
+
+	return nil
+}
+
+// List retrieves a page of requirement records and the total matching count.
+func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginRequirementFileRecord, int64, error) {
+	if err := page.Validate(); err != nil {
+		return nil, 0, fmt.Errorf("invalid requirement page: %w", err)
+	}
+	d, err := h.tenantDao(nCtx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to get requirement dao: %w", err)
+	}
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	total, err := d.Count(nCtx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count requirement records: %w", err)
+	}
+	data, err := d.List(nCtx, filter, base.ParsePage(page))
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list requirement records: %w", err)
+	}
+	records := make([]*types.PluginRequirementFileRecord, len(data))
+	for idx, item := range data {
+		records[idx] = convertToTypes(item)
+	}
+
+	return records, total, nil
 }
 
 // Get retrieves a requirement file record by ID within the current tenant.
@@ -145,6 +205,9 @@ func convertFromTypes(record *types.PluginRequirementFileRecord) *Data {
 		ID:        record.ID,
 		Name:      record.Name,
 		SavedName: record.SavedName,
+		OS:        record.OS,
+		Arch:      record.Arch,
+		Version:   record.Version,
 		MD5:       record.MD5,
 		Size:      record.Size,
 		UpdatedAt: record.UpdatedAt,
@@ -152,12 +215,33 @@ func convertFromTypes(record *types.PluginRequirementFileRecord) *Data {
 	}
 }
 
+// convertStoredScope preserves the historical unrestricted meaning of absent dimensions.
+func convertStoredScope(data *Data) types.PluginRequirementFileScope {
+	scope := types.PluginRequirementFileScope{OS: data.OS, Arch: data.Arch, Version: data.Version}
+	if scope.OS == "" {
+		scope.OS = types.PluginRequirementScopeAll
+	}
+	if scope.Arch == "" {
+		scope.Arch = types.PluginRequirementScopeAll
+	}
+	if scope.Version == "" {
+		scope.Version = types.PluginRequirementScopeAll
+	}
+
+	return scope
+}
+
 func convertToTypes(data *Data) *types.PluginRequirementFileRecord {
 	if data == nil {
 		return nil
 	}
 
+	scope := convertStoredScope(data)
+
 	return &types.PluginRequirementFileRecord{
+		OS:        scope.OS,
+		Arch:      scope.Arch,
+		Version:   scope.Version,
 		ID:        data.ID,
 		Name:      data.Name,
 		SavedName: data.SavedName,

@@ -23,17 +23,39 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 )
 
-// Validate checks the file name without decoding the Base64 content.
+// Validate checks the file name and applicability without decoding content.
 func (x *PluginRequirementCreateReq) Validate() error {
-	return types.ValidatePluginRequirementFileName(x.GetName())
+	if err := types.ValidatePluginRequirementFileName(x.GetName()); err != nil {
+		return err
+	}
+
+	return x.ConvertScopeToTypes().Validate()
 }
 
-// AutoConvert preserves the supplied name and Base64 content.
-func (x *PluginRequirementCreateReq) AutoConvert() {}
+// AutoConvert defaults omitted applicability dimensions to unrestricted.
+func (x *PluginRequirementCreateReq) AutoConvert() {
+	x.Os = conv.NonEmptyOr(x.GetOs(), types.PluginRequirementScopeAll)
+	x.Arch = conv.NonEmptyOr(x.GetArch(), types.PluginRequirementScopeAll)
+	x.Version = conv.NonEmptyOr(x.GetVersion(), types.PluginRequirementScopeAll)
+}
+
+// ConvertScopeToTypes converts applicability without interpreting all as a platform.
+func (x *PluginRequirementCreateReq) ConvertScopeToTypes() types.PluginRequirementFileScope {
+	return types.PluginRequirementFileScope{
+		OS: criteria.OSType(x.GetOs()), Arch: criteria.CPUArch(x.GetArch()), Version: x.GetVersion(),
+	}
+}
+
+// ConvertScopeFromTypes sets the applicability dimensions for an upload request.
+func (x *PluginRequirementCreateReq) ConvertScopeFromTypes(scope types.PluginRequirementFileScope) {
+	x.Os, x.Arch, x.Version = string(scope.OS), string(scope.Arch), scope.Version
+}
 
 // Validate checks the record ID and replacement file name.
 func (x *PluginRequirementUpdateReq) Validate() error {
@@ -46,6 +68,126 @@ func (x *PluginRequirementUpdateReq) Validate() error {
 
 // AutoConvert preserves the supplied record ID, name and Base64 content.
 func (x *PluginRequirementUpdateReq) AutoConvert() {}
+
+// Validate requires an explicit complete applicability replacement.
+func (x *PluginRequirementUpdateScopeReq) Validate() error {
+	if err := validatePluginRequirementID(x.GetId()); err != nil {
+		return err
+	}
+
+	return x.ConvertScopeToTypes().Validate()
+}
+
+// AutoConvert preserves scope fields so an omission cannot accidentally broaden a scope.
+func (x *PluginRequirementUpdateScopeReq) AutoConvert() {}
+
+// ConvertScopeToTypes converts a complete applicability replacement.
+func (x *PluginRequirementUpdateScopeReq) ConvertScopeToTypes() types.PluginRequirementFileScope {
+	return types.PluginRequirementFileScope{
+		OS: criteria.OSType(x.GetOs()), Arch: criteria.CPUArch(x.GetArch()), Version: x.GetVersion(),
+	}
+}
+
+// ConvertScopeFromTypes sets the applicability replacement for a request.
+func (x *PluginRequirementUpdateScopeReq) ConvertScopeFromTypes(scope types.PluginRequirementFileScope) {
+	x.Os, x.Arch, x.Version = string(scope.OS), string(scope.Arch), scope.Version
+}
+
+// ConvertResultFromTypes converts a metadata-only update result.
+func (x *PluginRequirementUpdateScopeResp) ConvertResultFromTypes(record *types.PluginRequirementFileRecord) {
+	x.Data = &PluginRequirementUpdateScopeResp_Data{File: ConvertPluginRequirementFileRecordFromTypes(record)}
+}
+
+// ConvertFileToTypes converts a metadata-only update response.
+func (x *PluginRequirementUpdateScopeResp_Data) ConvertFileToTypes() *types.PluginRequirementFileRecord {
+	return x.GetFile().ConvertToTypes()
+}
+
+// Validate checks pagination and exact filter values without applying wildcard matching.
+func (x *PluginRequirementListReq) Validate() error {
+	if err := x.GetPage().Validate(); err != nil {
+		return err
+	}
+	exact := x.GetConditions().GetExactInclude()
+	for _, id := range exact.GetId() {
+		if err := validatePluginRequirementID(id); err != nil {
+			return err
+		}
+	}
+	for _, os := range exact.GetOs() {
+		scope := types.PluginRequirementFileScope{OS: criteria.OSType(os), Arch: types.PluginRequirementScopeAll, Version: types.PluginRequirementScopeAll}
+		if err := scope.Validate(); err != nil {
+			return err
+		}
+	}
+	for _, arch := range exact.GetArch() {
+		scope := types.PluginRequirementFileScope{OS: types.PluginRequirementScopeAll, Arch: criteria.CPUArch(arch), Version: types.PluginRequirementScopeAll}
+		if err := scope.Validate(); err != nil {
+			return err
+		}
+	}
+	for _, version := range exact.GetVersion() {
+		scope := types.PluginRequirementFileScope{OS: types.PluginRequirementScopeAll, Arch: types.PluginRequirementScopeAll, Version: version}
+		if err := scope.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert preserves exact filters; an empty filter does not select all-only records.
+func (x *PluginRequirementListReq) AutoConvert() {}
+
+// ConvertPageToTypes converts the shared pagination contract.
+func (x *PluginRequirementListReq) ConvertPageToTypes() (types.Page, error) {
+	return x.GetPage().ConvertToTypes()
+}
+
+// ConvertConditionsToTypes converts exact administrative filters.
+func (x *PluginRequirementListReq) ConvertConditionsToTypes() *types.PluginRequirementFileCondition {
+	exact := x.GetConditions().GetExactInclude()
+	if exact == nil {
+		return nil
+	}
+
+	return &types.PluginRequirementFileCondition{ExactInclude: &types.PluginRequirementFileExactFields{
+		ID: exact.GetId(), Name: exact.GetName(),
+		OS:      conv.SliceToSlice(exact.GetOs(), func(value string) criteria.OSType { return criteria.OSType(value) }),
+		Arch:    conv.SliceToSlice(exact.GetArch(), func(value string) criteria.CPUArch { return criteria.CPUArch(value) }),
+		Version: exact.GetVersion(),
+	}}
+}
+
+// ConvertPluginRequirementFileConditionsFromTypes converts exact filters for File clients.
+func ConvertPluginRequirementFileConditionsFromTypes(condition *types.PluginRequirementFileCondition) *PluginRequirementFileConditions {
+	if condition == nil || condition.ExactInclude == nil {
+		return nil
+	}
+	exact := condition.ExactInclude
+
+	return &PluginRequirementFileConditions{ExactInclude: &PluginRequirementFileExactConditions{
+		Id: exact.ID, Name: exact.Name,
+		Os:      conv.SliceToSlice(exact.OS, func(value criteria.OSType) string { return string(value) }),
+		Arch:    conv.SliceToSlice(exact.Arch, func(value criteria.CPUArch) string { return string(value) }),
+		Version: exact.Version,
+	}}
+}
+
+// ConvertResultFromTypes converts paged file records without file contents.
+func (x *PluginRequirementListResp) ConvertResultFromTypes(records []*types.PluginRequirementFileRecord, total int64) {
+	x.Data = &PluginRequirementListResp_Data{
+		Total: total,
+		Items: conv.SliceToSlice(records, ConvertPluginRequirementFileRecordFromTypes),
+	}
+}
+
+// ConvertFilesToTypes converts a file list response for File clients.
+func (x *PluginRequirementListResp_Data) ConvertFilesToTypes() []*types.PluginRequirementFileRecord {
+	return conv.SliceToSlice(x.GetItems(), func(item *PluginRequirementFileRecord) *types.PluginRequirementFileRecord {
+		return item.ConvertToTypes()
+	})
+}
 
 // Validate checks the requested file record ID.
 func (x *PluginRequirementGetReq) Validate() error {
@@ -106,6 +248,9 @@ func ConvertPluginRequirementFileRecordFromTypes(record *types.PluginRequirement
 		Size:      record.Size,
 		UpdatedAt: record.UpdatedAt.Unix(),
 		Operator:  record.Operator,
+		Os:        string(record.OS),
+		Arch:      string(record.Arch),
+		Version:   record.Version,
 	}
 }
 
@@ -123,6 +268,9 @@ func (x *PluginRequirementFileRecord) ConvertToTypes() *types.PluginRequirementF
 		Size:      x.GetSize(),
 		UpdatedAt: time.Unix(x.GetUpdatedAt(), 0),
 		Operator:  x.GetOperator(),
+		OS:        criteria.OSType(conv.NonEmptyOr(x.GetOs(), types.PluginRequirementScopeAll)),
+		Arch:      criteria.CPUArch(conv.NonEmptyOr(x.GetArch(), types.PluginRequirementScopeAll)),
+		Version:   conv.NonEmptyOr(x.GetVersion(), types.PluginRequirementScopeAll),
 	}
 }
 

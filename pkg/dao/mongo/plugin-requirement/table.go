@@ -23,10 +23,21 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
-// FieldKeyID defines the record ID field key.
-const FieldKeyID = "data.id"
+const (
+	// FieldKeyID defines the record ID field key.
+	FieldKeyID = "data.id"
+	// FieldKeyName defines the display filename field key.
+	FieldKeyName = "data.name"
+	// FieldKeyOS defines the applicable OS field key.
+	FieldKeyOS = "data.os"
+	// FieldKeyArch defines the applicable CPU architecture field key.
+	FieldKeyArch = "data.arch"
+	// FieldKeyVersion defines the applicable plugin package version field key.
+	FieldKeyVersion = "data.version"
+)
 
 // TableName returns the requirement collection for a tenant.
 func TableName(tenantID string) string {
@@ -37,13 +48,16 @@ var _ base.IData = &Data{}
 
 // Data stores requirement file metadata without file contents or deployment targets.
 type Data struct {
-	ID        string    `json:"id" bson:"id"`
-	Name      string    `json:"name" bson:"name"`
-	SavedName string    `json:"saved_name" bson:"saved_name"`
-	MD5       string    `json:"md5" bson:"md5"`
-	Size      int64     `json:"size" bson:"size"`
-	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
-	Operator  string    `json:"operator" bson:"operator"`
+	ID        string           `json:"id" bson:"id"`
+	Name      string           `json:"name" bson:"name"`
+	SavedName string           `json:"saved_name" bson:"saved_name"`
+	OS        criteria.OSType  `json:"os" bson:"os"`
+	Arch      criteria.CPUArch `json:"arch" bson:"arch"`
+	Version   string           `json:"version" bson:"version"`
+	MD5       string           `json:"md5" bson:"md5"`
+	Size      int64            `json:"size" bson:"size"`
+	UpdatedAt time.Time        `json:"updated_at" bson:"updated_at"`
+	Operator  string           `json:"operator" bson:"operator"`
 }
 
 // UniqueFields returns the fields identifying a requirement record.

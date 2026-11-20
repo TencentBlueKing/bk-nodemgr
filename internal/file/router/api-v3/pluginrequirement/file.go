@@ -33,7 +33,8 @@ func (h *handler) Create(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	record, err := h.manager.CreatePluginRequirement(rCtx, req.GetName(), req.GetContentBase64())
+	record, err := h.manager.CreatePluginRequirementForScope(
+		rCtx, req.GetName(), req.GetContentBase64(), req.ConvertScopeToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create plugin requirement")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -61,6 +62,57 @@ func (h *handler) Update(rCtx restserver.IContext) (interface{}, error) {
 
 	resp := new(protoFile.PluginRequirementUpdateResp)
 	resp.ConvertResultFromTypes(record)
+
+	return resp.GetData(), nil
+}
+
+// UpdateScope replaces requirement file applicability without changing its content.
+func (h *handler) UpdateScope(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoFile.PluginRequirementUpdateScopeReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update plugin requirement scope, failed to decode request body")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	record, err := h.manager.UpdatePluginRequirementScope(rCtx, req.GetId(), req.ConvertScopeToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update plugin requirement scope")
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := new(protoFile.PluginRequirementUpdateScopeResp)
+	resp.ConvertResultFromTypes(record)
+
+	return resp.GetData(), nil
+}
+
+// List returns one page of requirement file metadata using exact filters.
+func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoFile.PluginRequirementListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin requirements, failed to decode request body")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin requirements, invalid page")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	records, total, err := h.manager.ListPluginRequirements(rCtx, page, req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin requirements")
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := new(protoFile.PluginRequirementListResp)
+	resp.ConvertResultFromTypes(records, total)
 
 	return resp.GetData(), nil
 }

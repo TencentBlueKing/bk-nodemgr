@@ -47,8 +47,23 @@ type IPluginRequirementHandler interface {
 	// CreatePluginRequirement stores a file without binding it to a plugin.
 	CreatePluginRequirement(nCtx contextx.IContext, name, contentBase64 string) (*types.PluginRequirementFileRecord, error)
 
+	// CreatePluginRequirementForScope stores a file with explicit applicability.
+	CreatePluginRequirementForScope(
+		nCtx contextx.IContext, name, contentBase64 string, scope types.PluginRequirementFileScope,
+	) (*types.PluginRequirementFileRecord, error)
+
 	// UpdatePluginRequirement replaces a stored file by ID.
 	UpdatePluginRequirement(nCtx contextx.IContext, id, name, contentBase64 string) (*types.PluginRequirementFileRecord, error)
+
+	// UpdatePluginRequirementScope replaces a stored file's applicability without replacing its content.
+	UpdatePluginRequirementScope(
+		nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope,
+	) (*types.PluginRequirementFileRecord, error)
+
+	// ListPluginRequirements retrieves one page of file records using exact filters.
+	ListPluginRequirements(
+		nCtx contextx.IContext, page types.Page, condition *types.PluginRequirementFileCondition,
+	) ([]*types.PluginRequirementFileRecord, int64, error)
 
 	// GetPluginRequirement retrieves a stored file record by ID.
 	GetPluginRequirement(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error)

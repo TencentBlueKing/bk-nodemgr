@@ -34,9 +34,11 @@ const (
 	// StorageName defines the storage name.
 	StorageName = "pluginrequirement"
 
-	metricOperationCreatePluginRequirement = "create_plugin_requirement"
-	metricOperationUpdatePluginRequirement = "update_plugin_requirement"
-	metricOperationGetPluginRequirement    = "get_plugin_requirement"
+	metricOperationCreatePluginRequirement      = "create_plugin_requirement"
+	metricOperationUpdatePluginRequirement      = "update_plugin_requirement"
+	metricOperationGetPluginRequirement         = "get_plugin_requirement"
+	metricOperationUpdatePluginRequirementScope = "update_plugin_requirement_scope"
+	metricOperationListPluginRequirements       = "list_plugin_requirements"
 )
 
 // NewStorage creates requirement file metadata storage.
@@ -103,6 +105,36 @@ func (s *Storage) UpdatePluginRequirement(nCtx contextx.IContext, record *types.
 	return s.WrapFn(nCtx, metricOperationUpdatePluginRequirement, func(ctx contextx.IContext) error {
 		return s.updatePluginRequirement(ctx, record)
 	})
+}
+
+// UpdatePluginRequirementScope updates only applicability and audit metadata.
+func (s *Storage) UpdatePluginRequirementScope(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	return s.WrapFn(nCtx, metricOperationUpdatePluginRequirementScope, func(ctx contextx.IContext) error {
+		return s.updatePluginRequirementScope(ctx, record)
+	})
+}
+
+// ListPluginRequirements lists exact matching file metadata with pagination.
+func (s *Storage) ListPluginRequirements(nCtx contextx.IContext, page types.Page,
+	condition *types.PluginRequirementFileCondition) ([]*types.PluginRequirementFileRecord, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+	var records []*types.PluginRequirementFileRecord
+	var total int64
+	err := s.WrapFn(nCtx, metricOperationListPluginRequirements, func(ctx contextx.IContext) error {
+		var err error
+		records, total, err = s.listPluginRequirements(ctx, page, condition)
+
+		return err
+	})
+
+	return records, total, err
 }
 
 // GetPluginRequirement retrieves a record by ID within the current tenant.

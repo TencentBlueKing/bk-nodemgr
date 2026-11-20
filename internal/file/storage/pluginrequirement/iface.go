@@ -32,6 +32,11 @@ type IStorage interface {
 	CreatePluginRequirement(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error
 	// UpdatePluginRequirement updates an existing record and never inserts one.
 	UpdatePluginRequirement(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error
+	// UpdatePluginRequirementScope updates only applicability and audit metadata.
+	UpdatePluginRequirementScope(nCtx contextx.IContext, record *types.PluginRequirementFileRecord) error
+	// ListPluginRequirements lists exact matching file metadata with pagination.
+	ListPluginRequirements(nCtx contextx.IContext, page types.Page,
+		condition *types.PluginRequirementFileCondition) ([]*types.PluginRequirementFileRecord, int64, error)
 	// GetPluginRequirement retrieves a record by ID within the current tenant.
 	GetPluginRequirement(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error)
 }
