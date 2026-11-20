@@ -132,6 +132,24 @@ func opsTemplateColumns() []workbook.TypedColumn[opsTemplateRow] {
 	return []workbook.TypedColumn[opsTemplateRow]{
 		{
 			Column: workbook.Column{
+				Name:        opsColBiz,
+				Required:    true,
+				Description: opsColDescBiz,
+			},
+			Parse:   func(row *opsTemplateRow, v string) error { row.Biz = v; return nil },
+			ValueOf: func(row *opsTemplateRow) any { return row.Biz },
+		},
+		{
+			Column: workbook.Column{
+				Name:        opsColNetworkArea,
+				Required:    true,
+				Description: opsColDescNetworkArea,
+			},
+			Parse:   func(row *opsTemplateRow, v string) error { row.NetworkArea = v; return nil },
+			ValueOf: func(row *opsTemplateRow) any { return row.NetworkArea },
+		},
+		{
+			Column: workbook.Column{
 				Name:        colInnerIP,
 				Required:    false,
 				Description: opsColDescInnerIP,
@@ -147,24 +165,6 @@ func opsTemplateColumns() []workbook.TypedColumn[opsTemplateRow] {
 			},
 			Parse:   func(row *opsTemplateRow, v string) error { row.InnerIPV6 = v; return nil },
 			ValueOf: func(row *opsTemplateRow) any { return row.InnerIPV6 },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColNetworkArea,
-				Required:    true,
-				Description: opsColDescNetworkArea,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.NetworkArea = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.NetworkArea },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColBiz,
-				Required:    true,
-				Description: opsColDescBiz,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.Biz = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.Biz },
 		},
 		{
 			Column: workbook.Column{

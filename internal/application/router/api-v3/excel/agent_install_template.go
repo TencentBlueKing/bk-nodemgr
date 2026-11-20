@@ -272,6 +272,28 @@ func agentInstallColumns() []workbook.TypedColumn[agentInstallRow] {
 		},
 		{
 			Column: workbook.Column{
+				Name:        colInstallMethod,
+				Required:    false,
+				Description: colDescInstallMethod,
+				Options: []string{
+					string(types.NodeInstallMethodSSH),
+					string(types.NodeInstallMethodWMI),
+				},
+			},
+			Parse: func(row *agentInstallRow, v string) error {
+				row.InstallMethod = types.NodeInstallMethod(v)
+				if err := row.InstallMethod.Validate(); err != nil {
+					return fmt.Errorf("invalid install_method. value(%s): %w", v, err)
+				}
+
+				return nil
+			},
+			ValueOf: func(row *agentInstallRow) any {
+				return string(row.InstallMethod)
+			},
+		},
+		{
+			Column: workbook.Column{
 				Name:        colInstallPreOrderedPlugins,
 				Required:    false,
 				Description: agentColDescInstallPreOrderedPlugins,
@@ -324,32 +346,11 @@ func agentInstallColumns() []workbook.TypedColumn[agentInstallRow] {
 				return *row.ReRegister
 			},
 		},
-		{
-			Column: workbook.Column{
-				Name:        colInstallMethod,
-				Required:    false,
-				Description: colDescInstallMethod,
-				Options: []string{
-					string(types.NodeInstallMethodSSH),
-					string(types.NodeInstallMethodWMI),
-				},
-			},
-			Parse: func(row *agentInstallRow, v string) error {
-				row.InstallMethod = types.NodeInstallMethod(v)
-				if err := row.InstallMethod.Validate(); err != nil {
-					return fmt.Errorf("invalid install_method. value(%s): %w", v, err)
-				}
-
-				return nil
-			},
-			ValueOf: func(row *agentInstallRow) any {
-				return string(row.InstallMethod)
-			},
-		},
 	}
 }
 
 // agentInstallSampleRows builds the example data rows shown under the template header.
+//
 //nolint:mnd
 func agentInstallSampleRows() []agentInstallRow {
 	exampleTrue, exampleFalse := true, false
