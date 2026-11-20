@@ -85,6 +85,7 @@ const tenantId = window.PROJECT_CONFIG.BK_TENANT || 'single';
 const templatePath = computed(() => (props.type === 'ops' ? 'ops_template' : `${props.type}_install_template`));
 const url = computed(() => `${window.location.origin}/api/v3/excel/${templatePath.value}/upload`);
 const downloadUrl = computed(() => `${window.location.origin}/api/v3/excel/${templatePath.value}/download`);
+const downloadFileName = computed(() => `bk_nodemgr_${templatePath.value}.xlsx`);
 const downloadLoading = ref(false);
 const curFile = reactive({
   file: null as File | null,
@@ -238,7 +239,7 @@ const handleDownload = async () => {
     const objectUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = objectUrl;
-    link.download = 'bk_nodemgr_info.xlsx';
+    link.download = downloadFileName.value;
     document.body.appendChild(link);
     link.click();
     link.remove();
