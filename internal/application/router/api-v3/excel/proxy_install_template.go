@@ -590,9 +590,9 @@ func proxyInstallSampleRows() []proxyInstallRow {
 	}
 }
 
-// ExcelUploadProxyInstallTemplate uploads the proxy install template.
-func (h *handler) ExcelUploadProxyInstallTemplate(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.ExcelUploadProxyInstallTemplateReq)
+// ExcelParseProxyInstallTemplate parses the proxy install template.
+func (h *handler) ExcelParseProxyInstallTemplate(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.ExcelParseProxyInstallTemplateReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to parse proxy install template upload form")
@@ -644,8 +644,8 @@ func (h *handler) ExcelUploadProxyInstallTemplate(rCtx restserver.IContext) (int
 		infos[idx] = info
 	}
 
-	resp := new(protoApplication.ExcelUploadProxyInstallTemplateResp)
-	resp.Data = &protoApplication.ExcelUploadProxyInstallTemplateResp_Data{Items: infos}
+	resp := new(protoApplication.ExcelParseProxyInstallTemplateResp)
+	resp.Data = &protoApplication.ExcelParseProxyInstallTemplateResp_Data{Items: infos}
 
 	return resp.GetData(), nil
 }

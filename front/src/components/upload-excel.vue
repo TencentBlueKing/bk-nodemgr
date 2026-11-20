@@ -83,7 +83,7 @@ const props = withDefaults(defineProps<{
 const uploader = ref(null);
 const tenantId = window.PROJECT_CONFIG.BK_TENANT || 'single';
 const templatePath = computed(() => (props.type === 'ops' ? 'ops_template' : `${props.type}_install_template`));
-const url = computed(() => `${window.location.origin}/api/v3/excel/${templatePath.value}/upload`);
+const url = computed(() => `${window.location.origin}/api/v3/excel/${templatePath.value}/parse`);
 const downloadUrl = computed(() => `${window.location.origin}/api/v3/excel/${templatePath.value}/download`);
 const downloadFileName = computed(() => `bk_nodemgr_${templatePath.value}.xlsx`);
 const downloadLoading = ref(false);
