@@ -1,5 +1,7 @@
 # BlueKing Node Manager Skills
 
+[![skills.sh](https://skills.sh/b/TencentBlueKing/bk-nodemgr)](https://skills.sh/TencentBlueKing/bk-nodemgr)
+
 English | [简体中文](README.md)
 
 Reusable skills for AI agents that help users deploy, configure, and operate BlueKing Node Manager. Choose a skill for your task, install it into your agent, and describe what you want to accomplish.

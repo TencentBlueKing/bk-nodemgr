@@ -1,5 +1,7 @@
 # 蓝鲸节点管理 Skills
 
+[![skills.sh](https://skills.sh/b/TencentBlueKing/bk-nodemgr)](https://skills.sh/TencentBlueKing/bk-nodemgr)
+
 简体中文 | [English](README_en.md)
 
 面向蓝鲸节点管理用户的 AI 助手技能，帮助你完成部署、配置和运维任务。选择适合当前任务的 Skill，安装到 AI 助手后，用自然语言描述你的目标即可开始。
