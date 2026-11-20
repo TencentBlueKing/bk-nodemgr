@@ -792,6 +792,7 @@ func (params *NodeInstallParams) ToWindowsShellScript() (string, string, error) 
 	shellParams := *params
 	shellParams.BaseWorkDir = winpath.ToSlash(winpath.Clean(params.BaseWorkDir))
 	shellParams.BaseDeployDir = winpath.ToSlash(winpath.Clean(params.BaseDeployDir))
+	shellParams.InstallerWorkDir = winpath.ToSlash(winpath.Clean(params.InstallerWorkDir))
 
 	args := shellParams.buildServerFirstArgs()
 	if params.DownloadBeforeCallback {
