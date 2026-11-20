@@ -124,6 +124,9 @@ spec:
                 -d "${OUTPUT_DIR}" \
                 -a "${APP_CODE}" \
                 -s "${APP_SECRET}" \
+                {{- if .Values.iamV3.option.allowActionReplace }}
+                --allow-action-replace \
+                {{- end }}
                 --bk_tenant_id {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
               
               echo "=========================================="
