@@ -30,7 +30,7 @@ Read these before drafting:
 - `.github/PULL_REQUEST_TEMPLATE.md` (authoritative PR body structure)
 - `.github/workflows/pr-title-lint.yml` (authoritative title regex)
 - `.github/labeler.yml` (path-based label prediction)
-- relevant `.github/ISSUE_TEMPLATE/*.yml` when an Issue is needed
+- `.agents/skills/bk-nodemgr-issue/SKILL.md` for the Issue handoff in step 2
 - nearest `AGENTS.md` files for every changed subtree
 
 For code changes, apply the normal bk-nodemgr routing from `bk-nodemgr-how-to`. This workflow does not replace domain skills such as `bk-nodemgr-config-sync`, `bk-nodemgr-contextx`, `router-permission-supplement`, or `code-review`.
@@ -48,21 +48,15 @@ Use freshly fetched canonical `master` when remote refresh is authorized. In `pr
 
 Capture branch, target base, fork/direct-push topology, pushed status, merge base, commits, changed paths, behavior changes, and existing Issue/PR references. Do not turn unrelated dirty-worktree changes into scope. If the user gives an explicit commit range, analyze that range rather than the whole branch.
 
-## 2. Apply the Submission Guide and Classify the Issue
+## 2. Resolve the Issue and Decide the PR Relationship
 
 Apply the current rules in `docs/developer/git-contribution.md`. If this skill and the document disagree, use the repository source file named by that document for the exact constraint and report the conflict; keep the agent-only safety gate below.
 
-Use this order:
+**Required skill: `bk-nodemgr-issue`.** Pass the user's Issue reference, actual behavior and changed scope, and the current mode/remote-write limits. Delegate Issue lookup and reuse, form selection, drafting, creation, updates, and readback to that workflow; do not run a parallel generic Issue flow. Preparation alone does not authorize creating or editing an Issue.
 
-1. Reuse the user's Issue or an existing Issue clearly covering the same behavior.
-2. Search for an open matching Issue before creating a duplicate.
-3. For `.github/**` routine CI maintenance, look for the current open `[DAILY]` or umbrella Issue and reuse it. Do not create a feature Issue only to satisfy title lint.
-4. Create an Issue only when no suitable Issue exists and the user authorizes that remote write.
-5. Use `discussion.yml` for unresolved design decisions, `bug_report.yml` for reproducible bugs, and `feature_request.yml` for new user-facing features.
+Receive the Issue handoff: repository, number/URL (or no confirmed match), state, covered scope and acceptance, long-lived tracking status, unresolved gaps, and writes performed or still requiring approval. Confirm that it covers this PR's behavior rather than binding a keyword match.
 
-Read the selected Issue form's `title:` prefix, labels, and fields. Preserve it exactly. Do not invent reproduction, environment, logs, acceptance, or impact facts. If no applicable form exists, inspect recent same-type Issues before using a fallback.
-
-Use the Issue relation rules in `docs/developer/git-contribution.md`. The agent must still determine the relation from the actual Issue scope and must not invent acceptance, reproduction, environment, logs, or impact facts.
+This PR workflow owns the relationship decision: compare the actual delivered scope with the Issue handoff and apply `docs/developer/git-contribution.md` to choose non-closing `refs` or a closing relationship. Keep routine, umbrella, replacement-only, and partial delivery non-closing; replacement context does not itself prove Issue completion. If no matching Issue is confirmed, follow the guide's `N/A`/title-CI handling and ask rather than fabricate a number or force a new Issue.
 
 ## 3. Build the Verification Matrix
 
@@ -87,13 +81,13 @@ In `preflight`, finish with `No GitHub writes performed` and list later actions 
 Treat each as a separate gate:
 
 1. push branch to the intended fork or same-repository remote
-2. create or edit an Issue
+2. create or edit an Issue through `bk-nodemgr-issue`, using its confirmation and readback gates
 3. create or edit the PR
 4. change labels, assignees, reviewers, or milestones
 
 Confirmation to review text does not authorize all four. For fork PRs, use `head=<fork-owner>:<branch>` and target the canonical repository. For same-repository branches, use `gh pr create` with explicit `--repo`, `--base`, and `--head`.
 
-Use `gh pr create --body-file` or `gh pr edit --body-file` for multiline bodies. Do not use `gh api -f body=@file`; it can submit the literal path. Do not treat `--dry-run` as a no-write guarantee because command behavior may still push. After each successful write, read back with `gh issue view` or `gh pr view`; correct only after another explicit edit confirmation.
+Use `gh pr create --body-file` or `gh pr edit --body-file` for multiline bodies. Do not use `gh api -f body=@file`; it can submit the literal path. Do not treat `--dry-run` as a no-write guarantee because command behavior may still push. After each successful PR write, read back with `gh pr view`; correct only after another explicit edit confirmation. Issue readback belongs to `bk-nodemgr-issue`.
 
 If a command fails after possibly creating a resource, query its state before retrying. Never blindly repeat a create request.
 

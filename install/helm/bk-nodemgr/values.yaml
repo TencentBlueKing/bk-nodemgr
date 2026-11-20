@@ -1215,6 +1215,10 @@ application:
     advertiseIPV4: ""
     advertiseIPV6: ""
 
+    ## Serve the embedded product Wiki at /wiki/ only when explicitly enabled.
+    wiki:
+      enabled: false
+
     ## defines the front settings.
     front:
       # password vault related settings.
