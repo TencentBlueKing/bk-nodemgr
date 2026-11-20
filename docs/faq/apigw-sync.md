@@ -181,7 +181,7 @@ Helm 和 docker-compose 通过 `BK_APP_TENANT_ID` 传入应用租户 ID，属于
 
 ### 现象与原因
 
-用户开启 `ENABLE_SYNC_MCP_SERVERS=true`，并在环境 values 中显式覆盖 `apigwSync.config.stages`，但没有为覆盖后的 stage
+旧版 Chart 使用 `ENABLE_SYNC_MCP_SERVERS=true`，并在环境 values 中显式覆盖 `apigwSync.config.stages`，但没有为覆盖后的 stage
 配置 `mcp_servers` 时，同步 Job 在 MCP 同步步骤报错：
 
 ```text
@@ -208,8 +208,11 @@ apigwSync:
                   weight: 100
 ```
 
-上面的覆盖结果只有后端配置，没有 `mcp_servers`。当前 Chart 模板会省略空或缺失的 `mcp_servers`，而 MCP 同步命令会遍历
+上面的覆盖结果只有后端配置，没有 `mcp_servers`。旧版 Chart 模板会省略空或缺失的 `mcp_servers`，而 MCP 同步命令会遍历
 `stages` 发起请求，不会自动跳过缺少该字段的环境，因此接口返回必填项错误。
+
+支持 `apigwSync.mcp.enabled` 的新版 Chart 将内置定义与环境列表分离，由同步镜像在运行时生成只包含非空 MCP 定义的同步文件。
+开启新特性后，上述 stage 会自动获得产品内置 MCP；显式列表完整优先，显式 `[]` 则跳过该 stage 的 MCP 同步，不会删除或停用已有 MCP。
 
 ### 排查与修复
 
@@ -227,11 +230,26 @@ apigwSync:
    kubectl exec -n <namespace> <apigw-sync-pod> -- cat /data/definition.yaml
    ```
 
-2. 从**实际部署版本**的 Chart `values.yaml` 中复制完整的 `apigwSync.config.stages[].mcp_servers`，补到环境 values
-   对应的 stage 下，与 `backends` 同级。保留已有环境名、后端地址及其他所需配置；多个 stage 都需要分别检查。
-   不要仅补 `mcp_servers: []`，当前模板同样会省略空列表。
+2. 按实际部署版本选择修复方式，保留已有环境名、后端地址及其他所需配置：
+   - 旧版 Chart：从该版本 `values.yaml` 复制完整的 `apigwSync.config.stages[].mcp_servers`，补到对应 stage 下，与 `backends` 同级。
+     多个 stage 都需要分别检查；不要仅补 `mcp_servers: []`，旧模板同样会省略空列表。
+   - 支持新特性的 Chart：设置 `apigwSync.mcp.enabled=true`，让未显式配置 `mcp_servers` 的 stage 自动使用并启用产品内置 MCP。
+     显式非空列表仍完整优先，不合并字段；显式 `[]` 不参与同步。需要停用已有 MCP 时，提供完整定义并设置 `status: 0`。
+     此开关优先于旧同步环境变量，但不改变发布策略、公开性或 OAuth 设置。
+   - 升级时，若此前仅通过 `ENABLE_SYNC_MCP_SERVERS=true` 继承默认清单，需要迁移到新开关，或显式保留原完整定义及状态。
+     新版默认 `stages` 不再包含 MCP 清单；Chart 与同步镜像需配套升级，旧镜像不支持运行时装配。
+     当前产品内置清单使用 `OpenTopo_*` 资源和 `Official` 分类；显式覆写不会自动迁移到该清单。
 3. 确认 `apigwSync.config.spec_version` 为 `2`，且 `mcp_servers[].resource_names` 引用的资源已发布到对应网关环境。
-   Helm Job 会用 ConfigMap 覆盖镜像内的 `/data/definition.yaml`，因此只修改仓库的 `apigw/definition.yaml` 无法修复此类 values 覆盖问题。
-4. 使用实际部署的 Chart 和完整覆盖参数重新渲染，确认生成的 `definition.yaml` 保留了各 stage 的 MCP 配置，再按原部署流程更新并重新执行同步 Job。
+   Helm Job 用 ConfigMap 覆盖 `/data/definition.yaml`，其中保留部署者的显式配置。新版镜像另有不受挂载影响的
+   `/data/mcp_servers.yaml`，来源为构建时的 `apigw/mcp_servers.yaml`，仅用于新特性开启且未显式覆写的 stage。
+   修改产品清单后必须重新构建并升级镜像，不会改变已有显式覆写。
+   新版需在同步 Pod 中检查运行时生成的 `/data/mcp-definition.yaml`，它才是本次 MCP 同步的实际输入，不在 ConfigMap 中：
+
+   ```bash
+   kubectl exec -n <namespace> <apigw-sync-pod> -- cat /data/mcp-definition.yaml
+   ```
+
+4. 使用实际部署的 Chart 和完整覆盖参数重新渲染，确认 `definition.yaml` 中的显式配置和 Job 的特性开关符合预期，再按原部署流程更新并重新执行同步 Job。
+   新版在 Pod 运行时生成 MCP 清单，不能仅凭 `helm template` 判断最终同步范围。
    重试前检查 `RELEASE_STAGES`、`NO_PUB` 和资源变更范围：同步脚本不只处理 MCP，还会同步资源（带 `--delete`）并可能发布版本，
    不能把重跑整个 Job 当作只读验证。完成后检查 Job 日志和网关对应环境的 MCP Server 配置，确认同步成功。

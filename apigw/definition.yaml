@@ -27,55 +27,7 @@ stages:
             # 网关调用后端服务的默认域名或IP，不包含Path，比如：http://api.example.com
             - host: "https://httpbin.org"
               weight: 100
-    mcp_servers:
-      - name: "topo"
-        title: "节点管理-拓扑查询"
-        category_names:
-          - "Official"
-        description: >-
-          提供节点管理拓扑的只读查询能力，用于查询业务拓扑、网络区域、网络单元、
-          接入点、图节点及主机信息，不提供创建、修改或删除操作。
-        resource_names:
-          - "OpenTopo_OpenTopoBusinessList"
-          - "OpenTopo_OpenTopoBusinessHostCountGet"
-          - "OpenTopo_OpenTopoBusinessInstTopoGet"
-          - "OpenTopo_OpenTopoNetworkAreaList"
-          - "OpenTopo_OpenTopoNetworkAreaGet"
-          - "OpenTopo_OpenTopoNetworkUnitList"
-          - "OpenTopo_OpenTopoNetworkUnitGet"
-          - "OpenTopo_OpenTopoAccessPointList"
-          - "OpenTopo_OpenTopoAccessPointListBrief"
-          - "OpenTopo_OpenTopoGraphNodeGet"
-          - "OpenTopo_OpenTopoHostList"
-        protocol_type: "streamable_http"
-        is_public: false
-        status: 0
-        oauth2_public_client_enabled: false
-        oauth2_personal_client_enabled: false
-        raw_response_enabled: false
-      - name: "execution"
-        title: "节点管理-执行诊断"
-        category_names:
-          - "Official"
-        description: >-
-          提供节点与插件执行情况的用户态只读查询。调用方需明确指定 node 或 plugin，
-          并提供 workflow_id 或 operation_id；通过工作流、操作、执行实例与步骤日志查询定位执行情况。
-          operation_id 可直接用于实例查询，无需先查询工作流。不提供重试、终止或修改操作。
-        resource_names:
-          - "OpenNodeWorkflow_OpenNodeWorkflowList"
-          - "OpenNodeWorkflow_OpenNodeWorkflowOperationList"
-          - "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList"
-          - "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet"
-          - "OpenPluginWorkflow_OpenPluginWorkflowList"
-          - "OpenPluginWorkflow_OpenPluginWorkflowOperationList"
-          - "OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList"
-          - "OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceLogGet"
-        protocol_type: "streamable_http"
-        is_public: false
-        status: 0
-        oauth2_public_client_enabled: false
-        oauth2_personal_client_enabled: false
-        raw_response_enabled: false
+    # Built-in MCPs are maintained in mcp_servers.yaml and assembled at sync time.
 
 # 资源文档
 # 资源文档的目录格式样例如下，en 为英文文档，zh 为中文文档：

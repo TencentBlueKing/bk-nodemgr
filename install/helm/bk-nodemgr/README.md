@@ -70,6 +70,35 @@ backend:
 
 backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`。application 返回原始 Markdown，不提供 HTML 渲染；文档可免登录访问，请勿在产品 Wiki 中放置敏感信息。
 
+#### MCP 内置特性与完整覆写
+
+在已有网关凭证、地址和 `config.stages` 配置上合并以下片段，可同步并启用产品内置的 MCP，无需复制资源清单：
+
+```yaml
+apigwSync:
+  enabled: true
+  mcp:
+    enabled: true
+```
+
+`apigwSync.mcp.enabled` 默认关闭；开启时优先于 `extraEnvVars` 中的 `ENABLE_SYNC_MCP_SERVERS`，自动启用 MCP 同步。它不自动发布网关资源：`config.spec_version` 必须为 `2`，对应 stage 需已发布包含 MCP 所引用资源的版本。内置清单由同步镜像中的产品定义提供；开启特性时将其 `status` 设为 `1`，其他字段沿用产品定义，不额外更改公开性、OAuth 或调用权限。当前内置拓扑查询 MCP 使用 `OpenTopo_*` 资源、`Official` 分类，保持非公开且关闭 OAuth。
+
+各 stage 的配置优先级如下，不按 MCP 名称或字段合并：
+
+| `config.stages[].mcp_servers` | 行为                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| 未设置                        | 新开关开启时使用产品内置清单；关闭时不注入                               |
+| 显式非空列表                  | 完整使用该列表，包括资源、状态、公开性及 OAuth 配置，不追加内置 MCP      |
+| 显式 `[]`                     | 不注入内置定义，跳过该 stage 的 MCP 同步；不会删除或停用网关中已有的 MCP |
+
+关闭新开关后，仍可通过原 `ENABLE_SYNC_MCP_SERVERS=true` 同步显式提供的完整定义。同步镜像在运行时读取部署配置和内置清单，生成只包含非空 MCP 定义的 `/data/mcp-definition.yaml`；新开关关闭且缺少定义，或显式提供空列表的 stage 不参与 MCP 同步。需要停用已有 MCP 时，应显式提供完整定义并设置 `status: 0`，不能用空列表代替。
+
+产品内置 MCP 只维护在仓库 `apigw/mcp_servers.yaml` 的 `mcp_servers` 列表中，不包含 stage 或后端配置。新增或调整 MCP 后，正常构建并升级 apigw-sync 镜像即可，无需修改 Helm 模板或复制清单到 values。镜像中的 `/data/mcp_servers.yaml` 不受部署 ConfigMap 覆盖；所有未显式覆写的 stage 共用该清单。
+
+直接运行同步镜像的脚本时，设置 `ENABLE_SYNC_MCP_SERVERS=true` 开启同步，另设 `ENABLE_BUILTIN_MCP_SERVERS=true` 使用内置清单；与 Chart 使用相同的装配和覆写规则。`mcp_servers.yaml` 不是可直接传给网关同步命令的完整 definition，应使用脚本生成的 `/data/mcp-definition.yaml`。
+
+**升级注意：** 默认 `stages` 不再携带 MCP 清单。此前仅设置 `ENABLE_SYNC_MCP_SERVERS=true`、依赖 Chart 默认清单的部署，应迁移为 `apigwSync.mcp.enabled=true`；新开关会启用内置 MCP。若需保持停用状态或其他自定义策略，请在对应 stage 显式保留完整定义。已有显式 MCP 定义保持原样，不会被新开关改写。Chart 与同步镜像需配套升级，旧镜像不支持专用 MCP 同步文件。
+
 #### IAM V4 模型同步
 
 `iamV4.option.allowActionReplace` 默认为 `false`。设为 `true` 后，同步 Job 在 Action 资源绑定冲突时自动复用 `replace_action`，以 `cascade: ["role"]` 清理角色中的旧 Action 成员，再删除重建 Action，后续角色同步恢复模板中声明的成员。自定义角色中未在模板声明的成员不会自动恢复；不级联清理 RBAC/ABAC 授权。日志输出旧/新绑定及替换风险；IAM 拒绝删除时立即停止，不自动扩大级联范围或回滚。已有授权不会自动迁移，启用前需确认目标租户和受影响权限。此行为需要使用包含角色级联清理逻辑的工具镜像。

@@ -81,13 +81,21 @@ spec:
           env:
           {{- $extraEnvVars := list }}
           {{- range .Values.apigwSync.extraEnvVars }}
-          {{- if ne .name "BK_APP_TENANT_ID" }}
+          {{- if and (ne .name "BK_APP_TENANT_ID") (ne .name "MCP_DEFINITION_FILE") (ne .name "ENABLE_BUILTIN_MCP_SERVERS") (not (and $.Values.apigwSync.mcp.enabled (eq .name "ENABLE_SYNC_MCP_SERVERS"))) }}
           {{- $extraEnvVars = append $extraEnvVars . }}
           {{- end }}
           {{- end }}
           {{- with $extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
+            - name: MCP_DEFINITION_FILE
+              value: "/data/mcp-definition.yaml"
+            - name: ENABLE_BUILTIN_MCP_SERVERS
+              value: {{ .Values.apigwSync.mcp.enabled | quote }}
+            {{- if .Values.apigwSync.mcp.enabled }}
+            - name: ENABLE_SYNC_MCP_SERVERS
+              value: "true"
+            {{- end }}
             - name: BK_APP_TENANT_ID
               value: {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
             {{- include "bk-nodemgr.bkappKMSEnv" . | nindent 12 }}
