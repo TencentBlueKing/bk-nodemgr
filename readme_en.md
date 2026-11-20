@@ -26,7 +26,7 @@ English | [简体中文](readme.md)
 ## Getting started
 
 * [Installation and Deployment](docs/operation/installation.md)
-* [AI Agent Skills: selection, installation, and usage](skills/README.md)
+* [AI Agent Skills: selection, installation, and usage](skills/README_en.md)
 
 ## Roadmap
 
