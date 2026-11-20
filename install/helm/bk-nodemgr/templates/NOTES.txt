@@ -12,8 +12,43 @@
 
 **********************************************************************************
 
-*** PLEASE BE PATIENT: bk-nodemgr may take a few minutes to run. ***
+Release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Chart version: {{ .Chart.Version }}
 
-Thank you for installing, your release is named {{ .Release.Name }}.
+Check startup and storage before using the service:
 
-For more instructions, please refer to the O&M manual or consult your service provider!
+  helm status {{ .Release.Name }} --namespace {{ .Release.Namespace }}
+  kubectl get pods,deploy,statefulset,svc,pvc,jobs --namespace {{ .Release.Namespace }}
+  kubectl get events --namespace {{ .Release.Namespace }} --sort-by=.lastTimestamp
+
+{{- if .Values.application.enabled }}
+
+Application access:
+{{- if .Values.application.ingress.enabled }}
+  Confirm the configured Ingress controller, DNS, TLS and login redirect settings.
+  Inspect the Application entrypoint:
+{{- if .Values.application.ingress.className }}
+    kubectl get ingress --namespace {{ .Release.Namespace }}
+{{- else }}
+    kubectl get ingresses.networkextension.bkbcs.tencent.com --namespace {{ .Release.Namespace }}
+{{- end }}
+{{- else }}
+  Application Ingress is disabled. Configure an approved entrypoint before use.
+{{- end }}
+  For a local connectivity check only:
+    kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "bk-nodemgr.fullname" . }}-application 8080:basic-http
+  Open http://127.0.0.1:8080. Platform login may require the configured domain.
+  Do not expose admin ports as public entrypoints.
+{{- end }}
+
+Initialization and functional checks:
+  Successful business Hook Jobs are deleted automatically; absence is not proof
+  of failure or of successful initialization. Check enabled sync operations in
+  APIGateway/IAM and confirm imported packages and default versions.
+  Pod readiness does not prove login, authorization or Agent installation works.
+
+Read README.md in this Chart package for required configuration, initialization,
+verification, upgrade and data-retention instructions.
+Online reference (select the tag matching this deployment):
+  https://github.com/TencentBlueKing/bk-nodemgr/blob/master/install/helm/bk-nodemgr/README.md
