@@ -19,32 +19,32 @@
 package v3
 
 // AutoConvert auto convert.
-func (x *ExcelUploadAgentInstallTemplateReq) AutoConvert() {
+func (x *ExcelParseAgentInstallTemplateReq) AutoConvert() {
 	// Intentionally empty: the file is carried by the multipart form.
 }
 
 // Validate check body.
-func (x *ExcelUploadAgentInstallTemplateReq) Validate() error {
+func (x *ExcelParseAgentInstallTemplateReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *ExcelUploadProxyInstallTemplateReq) AutoConvert() {
+func (x *ExcelParseProxyInstallTemplateReq) AutoConvert() {
 	// Intentionally empty: the file is carried by the multipart form.
 }
 
 // Validate check body.
-func (x *ExcelUploadProxyInstallTemplateReq) Validate() error {
+func (x *ExcelParseProxyInstallTemplateReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *ExcelUploadOpsTemplateReq) AutoConvert() {
+func (x *ExcelParseOpsTemplateReq) AutoConvert() {
 	// Intentionally empty: the file is carried by the multipart form.
 }
 
 // Validate check body.
-func (x *ExcelUploadOpsTemplateReq) Validate() error {
+func (x *ExcelParseOpsTemplateReq) Validate() error {
 	return nil
 }
 

@@ -406,9 +406,9 @@ func agentInstallSampleRows() []agentInstallRow {
 	}
 }
 
-// ExcelUploadAgentInstallTemplate uploads the agent install template.
-func (h *handler) ExcelUploadAgentInstallTemplate(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.ExcelUploadAgentInstallTemplateReq)
+// ExcelParseAgentInstallTemplate parses the agent install template.
+func (h *handler) ExcelParseAgentInstallTemplate(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.ExcelParseAgentInstallTemplateReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to parse agent install template upload form")
@@ -460,8 +460,8 @@ func (h *handler) ExcelUploadAgentInstallTemplate(rCtx restserver.IContext) (int
 		infos[idx] = info
 	}
 
-	resp := new(protoApplication.ExcelUploadAgentInstallTemplateResp)
-	resp.Data = &protoApplication.ExcelUploadAgentInstallTemplateResp_Data{Items: infos}
+	resp := new(protoApplication.ExcelParseAgentInstallTemplateResp)
+	resp.Data = &protoApplication.ExcelParseAgentInstallTemplateResp_Data{Items: infos}
 
 	return resp.GetData(), nil
 }

@@ -48,9 +48,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/agent_install_template/upload", restserver.Handler(h.ExcelUploadAgentInstallTemplate))
-	h.rg.POST("/proxy_install_template/upload", restserver.Handler(h.ExcelUploadProxyInstallTemplate))
-	h.rg.POST("/ops_template/upload", restserver.Handler(h.ExcelUploadOpsTemplate))
+	h.rg.POST("/agent_install_template/parse", restserver.Handler(h.ExcelParseAgentInstallTemplate))
+	h.rg.POST("/proxy_install_template/parse", restserver.Handler(h.ExcelParseProxyInstallTemplate))
+	h.rg.POST("/ops_template/parse", restserver.Handler(h.ExcelParseOpsTemplate))
 
 	h.rg.POST("/agent_install_template/download", restserver.FileHandler(h.ExcelDownloadAgentInstallTemplate))
 	h.rg.POST("/proxy_install_template/download", restserver.FileHandler(h.ExcelDownloadProxyInstallTemplate))

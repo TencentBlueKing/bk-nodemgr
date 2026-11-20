@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
-// ExcelUploadAgentInstallTemplateReq 上传 Agent 安装 Excel 模板的请求。
-// 文件通过 multipart 表单上传，无需额外 JSON 字段。
-export interface ExcelUploadAgentInstallTemplateReq {
+// ExcelParseAgentInstallTemplateReq 通过 multipart 表单提交待解析的 Agent 安装
+// Excel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+export interface ExcelParseAgentInstallTemplateReq {
 }
 
 // ExcelDownloadAgentInstallTemplateReq 下载 Agent 安装 Excel 模板的请求。
@@ -37,23 +37,23 @@ export interface ExcelAgentInstallTemplateParsedInfo {
   install_method: string;
 }
 
-// ExcelUploadAgentInstallTemplateResp 返回 Agent 安装模板的逐行解析结果。
-export interface ExcelUploadAgentInstallTemplateResp {
+// ExcelParseAgentInstallTemplateResp 逐行返回 Agent 安装 Excel 模板的解析结果。
+export interface ExcelParseAgentInstallTemplateResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
   permission: Permission;
-  data: ExcelUploadAgentInstallTemplateRespData;
+  data: ExcelParseAgentInstallTemplateRespData;
 }
 
-export interface ExcelUploadAgentInstallTemplateRespData {
+export interface ExcelParseAgentInstallTemplateRespData {
   items: ExcelAgentInstallTemplateParsedInfo[];
 }
 
-// ExcelUploadProxyInstallTemplateReq 上传 Proxy 安装 Excel 模板的请求。
-// 文件通过 multipart 表单上传，无需额外 JSON 字段。
-export interface ExcelUploadProxyInstallTemplateReq {
+// ExcelParseProxyInstallTemplateReq 通过 multipart 表单提交待解析的 Proxy 安装
+// Excel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+export interface ExcelParseProxyInstallTemplateReq {
 }
 
 // ExcelDownloadProxyInstallTemplateReq 下载 Proxy 安装 Excel 模板的请求。
@@ -96,23 +96,23 @@ export interface ExcelProxyInstallTemplateParsedInfo {
   is_sudo: boolean;
 }
 
-// ExcelUploadProxyInstallTemplateResp 返回 Proxy 安装模板的逐行解析结果。
-export interface ExcelUploadProxyInstallTemplateResp {
+// ExcelParseProxyInstallTemplateResp 逐行返回 Proxy 安装 Excel 模板的解析结果。
+export interface ExcelParseProxyInstallTemplateResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
   permission: Permission;
-  data: ExcelUploadProxyInstallTemplateRespData;
+  data: ExcelParseProxyInstallTemplateRespData;
 }
 
-export interface ExcelUploadProxyInstallTemplateRespData {
+export interface ExcelParseProxyInstallTemplateRespData {
   items: ExcelProxyInstallTemplateParsedInfo[];
 }
 
-// ExcelUploadOpsTemplateReq 上传带外设置 Excel 模板的请求。
-// 文件通过 multipart 表单上传，无需额外 JSON 字段。
-export interface ExcelUploadOpsTemplateReq {
+// ExcelParseOpsTemplateReq 通过 multipart 表单提交待解析的带外设置 Excel 文件。
+// file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+export interface ExcelParseOpsTemplateReq {
 }
 
 // ExcelDownloadOpsTemplateReq 下载带外设置 Excel 模板的请求。
@@ -145,17 +145,17 @@ export interface ExcelOpsTemplateParsedInfo {
   ops_out_band_port: number;
 }
 
-// ExcelUploadOpsTemplateResp 返回带外设置模板的逐行解析结果。
-export interface ExcelUploadOpsTemplateResp {
+// ExcelParseOpsTemplateResp 逐行返回带外设置 Excel 模板的解析结果。
+export interface ExcelParseOpsTemplateResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
   permission: Permission;
-  data: ExcelUploadOpsTemplateRespData;
+  data: ExcelParseOpsTemplateRespData;
 }
 
-export interface ExcelUploadOpsTemplateRespData {
+export interface ExcelParseOpsTemplateRespData {
   items: ExcelOpsTemplateParsedInfo[];
 }
 
