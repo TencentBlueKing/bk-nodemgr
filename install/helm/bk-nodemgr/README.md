@@ -76,6 +76,20 @@ application 的 Wiki 默认关闭，需设置 `application.config.wiki.enabled: 
 
 backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`。application 返回原始 Markdown，不提供 HTML 渲染；文档可免登录访问，请勿在产品 Wiki 中放置敏感信息。
 
+#### IAM V3 模型同步
+
+启用 `backend.config.iamV3.enable` 后，安装和升级会自动执行 IAM V3 模型同步 Job。`iamV3.option.allowActionReplace` 默认为 `false`；设为 `true` 时，Job 向 `do_migrate.py` 传入 `--allow-action-replace`，允许清理策略、删除旧 Action 并按目标资源绑定重建。此开关作用于本次全目录同步中所有发生资源绑定变化的 `upsert_action`，不只限于 `package_history_view`。
+
+```yaml
+iamV3:
+  option:
+    allowActionReplace: true
+```
+
+启用前需确认目标系统、租户及全部绑定变更。**策略删除不可逆，已有授权不会自动迁移**；同步后需重新配置并验证受影响的权限。完成改绑后将此开关恢复为 `false`，后续同步对相同绑定只执行普通更新。关闭开关或回退 Chart 无法恢复已删除的策略。
+
+Helmfile 部署时，将上述片段合并到对应 environment 的 `overrides/backend.yaml`。服务运行时 IAM 配置保持不变。使用的 server 镜像需包含支持 `--allow-action-replace` 的迁移脚本；IAM 版本要求、异步删除及失败恢复边界见 [IAM V3 迁移工具](../../../support-files/bkiamv3/README.md#显式替换-action-资源绑定)。
+
 #### IAM V4 模型同步
 
 `iamV4.option.allowActionReplace` 默认为 `false`。设为 `true` 后，同步 Job 在 Action 资源绑定冲突时自动复用 `replace_action`，以 `cascade: ["role"]` 清理角色中的旧 Action 成员，再删除重建 Action，后续角色同步恢复模板中声明的成员。自定义角色中未在模板声明的成员不会自动恢复；不级联清理 RBAC/ABAC 授权。日志输出旧/新绑定及替换风险；IAM 拒绝删除时立即停止，不自动扩大级联范围或回滚。已有授权不会自动迁移，启用前需确认目标租户和受影响权限。此行为需要使用包含角色级联清理逻辑的工具镜像。

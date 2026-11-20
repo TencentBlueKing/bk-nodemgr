@@ -2566,6 +2566,9 @@ initPackages:
 
 iamV3:
   enabled: false
+  option:
+    # Allow deleting policies and recreating actions with changed resource bindings.
+    allowActionReplace: false
   syncJob:
     ttlSecondsAfterFinished: 600
     backoffLimit: 3
