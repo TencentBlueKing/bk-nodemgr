@@ -56,6 +56,11 @@ platform:
       opsSettingPageDesc: 为选中的主机设置带外管理信息，包括主控机、设备类型、设备协议、管理IP和管理端口
       opsSettingBatchSet: 批量设置
       opsSettingSuccess: 带外管理设置成功
+      opsSettingExcelImport: Excel 导入
+      opsSettingImportErrors: 以下 {count} 行解析失败，未填入表格：
+      opsSettingImportErrorRow: 第 {row} 行：{message}
+      opsSettingImportNone: 没有可填入的有效行
+      opsSettingImportDone: 导入完成：成功 {success} 行，失败 {failed} 行
       opsConsoleHostId: 主控机
       opsOutBandType: 设备类型
       opsOutBandProtocol: 设备协议

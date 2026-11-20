@@ -373,6 +373,21 @@
       :title="t('installProxy.excelImport')"
       @closed="handleExcelImportCancel">
       <UploadExcel type="proxy" ref="uploadExcelRef" @upload="handleUpload"></UploadExcel>
+      <div v-if="excelImportErrors.length" class="mt-[12px]">
+        <p class="text-[12px] text-[#FF5656] mb-[6px]">
+          {{ $t('platform.nodeMan.agentNodeStatus.opsSettingImportErrors', { count: excelImportErrors.length }) }}
+        </p>
+        <div class="max-h-[160px] overflow-auto border border-[#DCDEE5] rounded-[2px] p-[8px]">
+          <p
+            v-for="item in excelImportErrors"
+            :key="item.row_index"
+            class="text-[12px] text-[#63656E] leading-[20px]"
+          >
+            {{ $t('platform.nodeMan.agentNodeStatus.opsSettingImportErrorRow',
+                  { row: item.row_index, message: item.error_message }) }}
+          </p>
+        </div>
+      </div>
       <template #footer>
         <Button
           :disabled="!uploadExcelRef?.curFile?.data"
@@ -904,8 +919,10 @@ const handleConfirm = async () => {
 // excel 导入弹窗
 const isShowExcelImport = ref(false);
 const excelImportData = ref([]);
+const excelImportErrors = ref<any[]>([]);
 const uploadExcelRef = ref();
 const handleExcelImport = () => {
+  excelImportErrors.value = [];
   isShowExcelImport.value = true;
 };
 const handleExcelImportConfirm = () => {
@@ -923,15 +940,25 @@ const handleExcelImportConfirm = () => {
   // 直接使用导入数据覆盖当前表格
   form.info = newRows.length > 0 ? newRows : [cloneDeep(initData)];
   isShowExcelImport.value = false;
+  excelImportErrors.value = [];
   uploadExcelRef.value?.handleDelete();
 };
 const handleExcelImportCancel = () => {
   isShowExcelImport.value = false;
+  excelImportErrors.value = [];
   uploadExcelRef.value?.handleDelete();
 };
 
 const handleUpload = (data: any) => {
-  excelImportData.value = data?.info || [];
+  const rows = data?.items || [];
+  excelImportData.value = rows.filter((row: any) => !row.error_message);
+  excelImportErrors.value = rows.filter((row: any) => row.error_message);
+  if (excelImportErrors.value.length) {
+    Message({
+      theme: 'warning',
+      message: t('platform.nodeMan.agentNodeStatus.opsSettingImportErrors', { count: excelImportErrors.value.length }),
+    });
+  }
 };
 onMounted(async () => {
   await initPublicKey();
