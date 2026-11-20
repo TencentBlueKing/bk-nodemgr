@@ -1,5 +1,7 @@
 ---
 name: release-version-alignment
+metadata:
+  internal: true
 description: Use when the user wants to start or prepare a bk-nodemgr version release, or verify/fix release version alignment for an existing version. Trigger on new-version language such as "prepare release", "next release", "准备新版本", "准备 alpha.N", and on alignment language such as "补 helm", "version not aligned", "missing chart update", "check if ready to tag". Do not use for unrelated Helm config changes, CI/CD failures, tag rewrite/movement, rollback, or broad release-process explanation.
 ---
 

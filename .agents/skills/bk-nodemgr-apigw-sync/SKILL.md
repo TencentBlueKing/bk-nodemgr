@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-apigw-sync
+metadata:
+  internal: true
 description: Use when a bk-nodemgr development task needs to adjust apigw-sync inputs or integration surfaces, including apigw/definition.yaml, apigw/resources.yaml, apigw/apidocs/, the apigw-sync image, Dockerfile, scripts, Helm values/templates, or build references; also when the agent needs the upstream bkpaas-python-sdk sync documentation. Not for executing gateway synchronization or release publication.
 ---
 

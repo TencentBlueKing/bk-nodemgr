@@ -1,5 +1,7 @@
 ---
 name: code-review
+metadata:
+  internal: true
 description: Use when user asks to review code, check for errors, audit commits, or review a PR. Also use when reviewing Go changes for lint failures, inconsistent patterns, or logic bugs.
 ---
 

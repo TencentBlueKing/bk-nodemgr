@@ -19,24 +19,24 @@ Each skill's `SKILL.md` defines its scope, workflow, prerequisites, and access o
 Use an agent supported by the [skills CLI](https://github.com/vercel-labs/skills#supported-agents) and Node.js 22.20 or later. Run the command from the project where you want to use the skill:
 
 ```bash
-npx skills add TencentBlueKing/bk-nodemgr --skill <skill-name>
+npx skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills --skill <skill-name>
 ```
 
 Replace `<skill-name>` with a name from the table above. For example:
 
 ```bash
-npx skills add TencentBlueKing/bk-nodemgr --skill bk-nodemgr-deploy
+npx skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills --skill bk-nodemgr-deploy
 ```
 
 Follow the prompts to choose the target agent. Installation is project-local by default; add `-g` to make the skill available across projects.
 
-To list the repository's discoverable skills without installing them:
+To list user-facing skills without installing them:
 
 ```bash
-npx skills add TencentBlueKing/bk-nodemgr --list
+npx skills add https://github.com/TencentBlueKing/bk-nodemgr/tree/master/skills --list
 ```
 
-The repository also contains contributor skills under `.agents/skills/`, which the CLI can discover. Use the table above and `--skill` to select a user-facing skill.
+These commands scope discovery to `skills/` on the official repository's `master` branch, excluding contributor skills under `.agents/skills/`.
 
 ## Use
 

@@ -1,5 +1,7 @@
 ---
 name: api-doc
+metadata:
+  internal: true
 description: Writes standardized Markdown reference documentation for bk-nodemgr Proto APIs.
 allowed-tools:
   # MCP 工具（优先使用）

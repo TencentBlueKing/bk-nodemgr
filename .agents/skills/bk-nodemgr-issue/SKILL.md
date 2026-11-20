@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-issue
+metadata:
+  internal: true
 description: Use when drafting, creating, supplementing, or updating a GitHub Issue for bk-nodemgr, including bug reports, feature requests, unresolved proposals, and Issue lookup or reuse during PR preparation. Trigger for “写 Issue”, “整理需求”, “补充 Issue”, “提交 Issue”, or “找关联 Issue”. Not for implementing the change or deciding a PR's closing relationship.
 ---
 

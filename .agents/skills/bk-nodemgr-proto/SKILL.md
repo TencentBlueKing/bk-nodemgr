@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-proto
+metadata:
+  internal: true
 description: Use when adding, changing, or reviewing bk-nodemgr proto/** API contracts, RPC/message/field comments, Service/RPC naming or tags, or investigating unexpected Chinese descriptions, summary/description, operationId, or labels in generated Swagger and APIGW resources.
 ---
 

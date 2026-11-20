@@ -1,5 +1,7 @@
 ---
 name: api-scaffold
+metadata:
+  internal: true
 description: Scaffold API protocol layer infrastructure for bk-nodemgr. Use when users want to add a new API endpoint, create interface scaffolding, set up proto definitions, or build API infrastructure. Triggers on phrases like "新增 API", "创建接口", "搭建协议层", "帮我搭建 xxx 接口的基础设施", "先把 proto 和转换层搞好", or any request to create a new REST API endpoint in the backend/file/relay/application services.
 ---
 
