@@ -383,6 +383,30 @@ export interface TopoAccessPointListBriefRespData {
   items: AccessPointBrief[];
 }
 
+// 可供接入点绑定的全局安全组池的公开信息，不包含凭据和安全组 ID。
+export interface CloudSecurityGroupPool {
+  pool_id: string;
+  pool_name: string;
+}
+
+// 查询可绑定的全局安全组池列表，无需参数。
+export interface TopoCloudSecurityGroupPoolListReq {
+}
+
+// 全局安全组池列表的查询结果，不包含凭据和安全组 ID。
+export interface TopoCloudSecurityGroupPoolListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoCloudSecurityGroupPoolListRespData;
+}
+
+export interface TopoCloudSecurityGroupPoolListRespData {
+  items: CloudSecurityGroupPool[];
+}
+
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update
 // network unit in topo service.
 export interface TopoNetworkUnitUpdateResp {

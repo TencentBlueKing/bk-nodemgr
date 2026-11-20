@@ -194,6 +194,10 @@ type AccessPoint struct {
 
 	// access configs.
 	Endpoints Endpoints
+
+	// CloudSecurityGroupPoolID references a globally configured cloud security group pool.
+	// Empty means cloud security group management is not configured.
+	CloudSecurityGroupPoolID string
 }
 
 // AccessPointList represents a list of access points.
