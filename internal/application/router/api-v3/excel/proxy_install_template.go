@@ -191,6 +191,36 @@ func proxyInstallColumns() []workbook.TypedColumn[proxyInstallRow] {
 		},
 		{
 			Column: workbook.Column{
+				Name:        proxyColCPUArch,
+				Required:    false,
+				Description: proxyColDescCPUArch,
+			},
+			Parse: func(row *proxyInstallRow, v string) error {
+				row.CPUArch = v
+
+				return nil
+			},
+			ValueOf: func(row *proxyInstallRow) any {
+				return row.CPUArch
+			},
+		},
+		{
+			Column: workbook.Column{
+				Name:        proxyColAdvertiseIP,
+				Required:    false,
+				Description: proxyColDescAdvertiseIP,
+			},
+			Parse: func(row *proxyInstallRow, v string) error {
+				row.AdvertiseIP = v
+
+				return nil
+			},
+			ValueOf: func(row *proxyInstallRow) any {
+				return row.AdvertiseIP
+			},
+		},
+		{
+			Column: workbook.Column{
 				Name:        colLoginIP,
 				Required:    true,
 				Description: colDescLoginIP,
@@ -297,32 +327,24 @@ func proxyInstallColumns() []workbook.TypedColumn[proxyInstallRow] {
 		},
 		{
 			Column: workbook.Column{
-				Name:        proxyColCPUArch,
+				Name:        colInstallMethod,
 				Required:    false,
-				Description: proxyColDescCPUArch,
+				Description: colDescInstallMethod,
+				Options: []string{
+					string(types.NodeInstallMethodSSH),
+					string(types.NodeInstallMethodWMI),
+				},
 			},
 			Parse: func(row *proxyInstallRow, v string) error {
-				row.CPUArch = v
+				row.InstallMethod = types.NodeInstallMethod(v)
+				if err := row.InstallMethod.Validate(); err != nil {
+					return fmt.Errorf("invalid install_method. value(%s): %w", v, err)
+				}
 
 				return nil
 			},
 			ValueOf: func(row *proxyInstallRow) any {
-				return row.CPUArch
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColAdvertiseIP,
-				Required:    false,
-				Description: proxyColDescAdvertiseIP,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.AdvertiseIP = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.AdvertiseIP
+				return string(row.InstallMethod)
 			},
 		},
 		{
@@ -377,28 +399,6 @@ func proxyInstallColumns() []workbook.TypedColumn[proxyInstallRow] {
 				}
 
 				return *row.ReRegister
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colInstallMethod,
-				Required:    false,
-				Description: colDescInstallMethod,
-				Options: []string{
-					string(types.NodeInstallMethodSSH),
-					string(types.NodeInstallMethodWMI),
-				},
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.InstallMethod = types.NodeInstallMethod(v)
-				if err := row.InstallMethod.Validate(); err != nil {
-					return fmt.Errorf("invalid install_method. value(%s): %w", v, err)
-				}
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return string(row.InstallMethod)
 			},
 		},
 		{

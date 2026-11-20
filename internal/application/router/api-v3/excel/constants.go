@@ -58,7 +58,7 @@ const (
 const (
 	// Agent install template.
 	agentInstallSheetName = "agent_install_template"
-	agentInstallFileName  = "agent_install_template.xlsx"
+	agentInstallFileName  = "bk_nodemgr_agent_install_template.xlsx"
 
 	agentColDescOSType                   = "目标主机操作系统类型，可选项来自包管理中已启用的 Agent 包。"
 	agentColDescInstallPreOrderedPlugins = "安装 Agent 后是否自动安装预设插件，true / false，不填使用页面默认值。"
@@ -67,7 +67,7 @@ const (
 const (
 	// Proxy install template.
 	proxyInstallSheetName = "proxy_install_template"
-	proxyInstallFileName  = "proxy_install_template.xlsx"
+	proxyInstallFileName  = "bk_nodemgr_proxy_install_template.xlsx"
 
 	proxyColExportIP           = "出口 IP"
 	proxyColCPUArch            = "CPU架构"
@@ -91,7 +91,7 @@ const (
 const (
 	// Ops template.
 	opsTemplateSheetName = "ops_template"
-	opsTemplateFileName  = "ops_template.xlsx"
+	opsTemplateFileName  = "bk_nodemgr_ops_template.xlsx"
 
 	opsColBiz              = "业务"
 	opsColNetworkArea      = "管控区域"
