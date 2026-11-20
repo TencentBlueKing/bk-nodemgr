@@ -1,0 +1,456 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "plugin_requirement.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "PluginRequirement"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/plugin/requirement/create": {
+      "post": {
+        "summary": "创建插件依赖文件及独立文件记录，不修改插件依赖绑定。",
+        "operationId": "PluginRequirement_PluginRequirementCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementCreateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementCreateReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/download": {
+      "get": {
+        "summary": "按 UUID 下载当前租户的插件依赖文件正文。",
+        "operationId": "PluginRequirement_PluginRequirementDownload",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3PluginRequirementDownloadResp"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3PluginRequirementDownloadResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "文件记录的 UUID，通过查询参数传递。",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/get": {
+      "post": {
+        "summary": "按 UUID 查询当前租户的插件依赖文件记录。",
+        "operationId": "PluginRequirement_PluginRequirementGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/transfer": {
+      "post": {
+        "summary": "启动插件依赖文件到目标主机的异步传输，返回任务 ID 及文件信息。",
+        "operationId": "PluginRequirement_PluginRequirementTransfer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementTransferResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementTransferReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/update": {
+      "post": {
+        "summary": "替换当前租户指定依赖文件的名称及正文，保留文件记录 ID。",
+        "operationId": "PluginRequirement_PluginRequirementUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3PluginRequirementCreateReq": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "原始文件名，必须是安全的单个文件名。"
+        },
+        "content_base64": {
+          "type": "string",
+          "title": "文件正文的 Base64 编码。"
+        }
+      },
+      "title": "创建插件依赖文件的参数。"
+    },
+    "v3PluginRequirementCreateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementCreateRespData"
+        }
+      },
+      "title": "创建插件依赖文件后返回的记录。"
+    },
+    "v3PluginRequirementCreateRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFileRecord"
+        }
+      }
+    },
+    "v3PluginRequirementDownloadResp": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "插件依赖文件的二进制内容；HTTP 下载直接返回文件正文。"
+    },
+    "v3PluginRequirementFileRecord": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "文件记录的 UUID。"
+        },
+        "name": {
+          "type": "string",
+          "title": "原始文件名，不含目录。"
+        },
+        "saved_name": {
+          "type": "string",
+          "title": "文件在存储中的名称。"
+        },
+        "md5": {
+          "type": "string",
+          "title": "文件内容的 MD5。"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "title": "文件大小，单位为字节。"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int64",
+          "title": "最近更新时间，Unix 时间戳，单位为秒。"
+        },
+        "operator": {
+          "type": "string",
+          "title": "最近操作人。"
+        }
+      },
+      "title": "当前租户的插件依赖文件记录，不代表已绑定到插件或应用到进程。"
+    },
+    "v3PluginRequirementGetReq": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "文件记录的 UUID。"
+        }
+      },
+      "title": "按 UUID 查询插件依赖文件记录的参数。"
+    },
+    "v3PluginRequirementGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementGetRespData"
+        }
+      },
+      "title": "插件依赖文件记录的查询结果，不包含文件正文。"
+    },
+    "v3PluginRequirementGetRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFileRecord"
+        }
+      }
+    },
+    "v3PluginRequirementTransferReq": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "文件记录的 UUID。"
+        },
+        "target_name": {
+          "type": "string",
+          "title": "目标文件名，必须是安全的单个文件名。"
+        },
+        "target_dir": {
+          "type": "string",
+          "title": "目标主机上的文件目录，不得为空。"
+        },
+        "target_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "目标主机 ID。"
+        }
+      },
+      "title": "将插件依赖文件传输到目标主机的参数。"
+    },
+    "v3PluginRequirementTransferResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementTransferRespData"
+        }
+      },
+      "title": "已启动的插件依赖文件传输任务，不代表传输完成。"
+    },
+    "v3PluginRequirementTransferRespData": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "title": "可用于查询传输状态的任务 ID。"
+        },
+        "file_name": {
+          "type": "string",
+          "title": "传输的文件名。"
+        },
+        "file_md5": {
+          "type": "string",
+          "title": "文件内容的 MD5。"
+        },
+        "file_size": {
+          "type": "integer",
+          "format": "int64",
+          "title": "文件大小，单位为字节。"
+        }
+      }
+    },
+    "v3PluginRequirementUpdateReq": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "文件记录的 UUID。"
+        },
+        "name": {
+          "type": "string",
+          "title": "原始文件名，必须是安全的单个文件名。"
+        },
+        "content_base64": {
+          "type": "string",
+          "title": "替换后的文件正文的 Base64 编码。"
+        }
+      },
+      "title": "替换插件依赖文件名称及正文的参数。"
+    },
+    "v3PluginRequirementUpdateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementUpdateRespData"
+        }
+      },
+      "title": "更新插件依赖文件后返回的记录。"
+    },
+    "v3PluginRequirementUpdateRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFileRecord"
+        }
+      }
+    }
+  }
+}
