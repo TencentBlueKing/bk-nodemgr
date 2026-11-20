@@ -8,9 +8,10 @@
 
 ## Skills 目录
 
-| Skill | 适用场景 |
-| --- | --- |
-| [bk-nodemgr-deploy](bk-nodemgr-deploy/SKILL.md) | 通过 Helm、Helmfile、Docker Compose 或二进制方式首次部署、调整运行配置、升级，以及排查部署和启动问题。 |
+| Skill                                                             | 适用场景                                                                                                                                                                    |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [bk-nodemgr-deploy](bk-nodemgr-deploy/SKILL.md)                   | 通过 Helm、Helmfile、Docker Compose 或二进制方式首次部署、调整运行配置、升级，以及排查部署和启动问题。                                                                      |
+| [bk-nodemgr-execution-debug](bk-nodemgr-execution-debug/SKILL.md) | 根据 workflow_id 或 operation_id，优先通过执行诊断 MCP、未提供时通过 bk-cli 查询节点或插件执行，分析执行状态、历史和步骤日志；需提供完整仓库及相关 Skills，仅进行只读排障。 |
 
 每个 Skill 的 `SKILL.md` 分别定义适用范围、工作流程、前置条件和访问或执行权限边界。使用前请查看所选 Skill 的说明，不要假定所有 Skills 都具有相同权限。
 
