@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-how-to
+metadata:
+  internal: true
 description: Use when planning, implementing, reviewing, or debugging Go changes in bk-nodemgr and deciding which project skills and generic Go companion skills to load.
 ---
 

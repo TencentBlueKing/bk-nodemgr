@@ -1,5 +1,7 @@
 ---
 name: router-permission-supplement
+metadata:
+  internal: true
 description: Use when users want help choosing permission actions and resources for each handler in one router group, especially when they mention 补权限, 鉴权, action/resource mapping, permission helper rules, or want a final handler-level permission matrix.
 ---
 

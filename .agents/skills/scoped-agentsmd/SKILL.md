@@ -1,5 +1,7 @@
 ---
 name: scoped-agentsmd
+metadata:
+  internal: true
 description: Use when the user wants to create, regenerate, or compress a scoped (subtree-specific) AGENTS.md inside bk-nodemgr, especially when the scope is given as a directory path or described in natural language (e.g. “backend api-v3 router”, “pkg/rest layer”, “proto conversion helpers”).
 ---
 

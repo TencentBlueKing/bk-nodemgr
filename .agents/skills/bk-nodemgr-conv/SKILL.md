@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-conv
+metadata:
+  internal: true
 description: Use when editing or reviewing bk-nodemgr code that uses pkg/runtime/conv, manual map/slice/struct/string/number/bool coercion, proto or workflow payload shaping, or duplicate conversion helpers.
 ---
 

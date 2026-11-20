@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-changelog-doc
+metadata:
+  internal: true
 description: Use when writing or reviewing bk-nodemgr changelog, release notes, 发布说明, 版本变更记录, Full Changelog links, or localized version files under support-files/changelog/{zh,en}, based on tag diffs or release facts. Not for other projects, pure version alignment, Helm publishing, GitHub Release/tag operations, PR descriptions, or API references.
 ---
 

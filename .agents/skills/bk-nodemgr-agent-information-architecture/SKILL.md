@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-agent-information-architecture
+metadata:
+  internal: true
 description: Use when deciding where bk-nodemgr project knowledge should live across AGENTS.md, scoped AGENTS.md, README.md, docs, apigw/apidocs, support-files/changelog, .agents/skills, and task/issue/plan artifacts. Trigger when organizing agent rules, project skills, docs taxonomy, README boundaries, API reference docs, changelog content, reusable agent workflows, or conflicts between these artifacts.
 ---
 
