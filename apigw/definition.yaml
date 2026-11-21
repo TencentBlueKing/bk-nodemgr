@@ -51,7 +51,7 @@ stages:
         is_public: false
         status: 0
         oauth2_public_client_enabled: false
-        oauth2_personal_client_enabled: false
+        oauth2_personal_client_enabled: true
         raw_response_enabled: false
       - name: "execution"
         title: "节点管理-执行诊断"
@@ -74,7 +74,7 @@ stages:
         is_public: false
         status: 0
         oauth2_public_client_enabled: false
-        oauth2_personal_client_enabled: false
+        oauth2_personal_client_enabled: true
         raw_response_enabled: false
 
 # 资源文档

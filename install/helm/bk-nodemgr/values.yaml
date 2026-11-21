@@ -2516,7 +2516,7 @@ apigwSync:
             is_public: false
             status: 0
             oauth2_public_client_enabled: false
-            oauth2_personal_client_enabled: false
+            oauth2_personal_client_enabled: true
             raw_response_enabled: false
     grant_permissions:
       - bk_app_code: "bk-nodemgr"
