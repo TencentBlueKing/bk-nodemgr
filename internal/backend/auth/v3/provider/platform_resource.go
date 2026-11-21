@@ -78,7 +78,7 @@ func (p *PlatformResourceProvider) ListInstanceByPolicy(_ contextx.IContext, req
 	for _, resource := range resources {
 		instances = append(instances, InstanceForEval{
 			Instance:   ResourceInstance{ID: string(resource), DisplayName: names[resource]},
-			Attributes: map[string]interface{}{},
+			Attributes: map[string]interface{}{AttrID: string(resource)},
 		})
 	}
 
