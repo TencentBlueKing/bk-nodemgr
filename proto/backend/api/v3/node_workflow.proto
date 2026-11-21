@@ -386,8 +386,83 @@ message NodeWorkflowOperationOfflineInstallResultSubmitResp {
   Permission permission = 6;
 }
 
+// 可复制到新安装表单的历史主机参数，不包含凭据内容。
+message NodeWorkflowInstallHost {
+  int64 bk_host_id = 1;                    // 主机 ID。
+  int64 bk_biz_id = 2;                     // 业务 ID。
+  int64 bk_networkarea_id = 3;             // 管控区域 ID。
+  int64 bk_networkunit_id = 4;             // 管控单元 ID。
+  string bk_addressing = 5;                // 寻址方式。
+  repeated string bk_host_innerip = 6;     // 内网 IPv4 地址。
+  repeated string bk_host_innerip_v6 = 7;  // 内网 IPv6 地址。
+  string os_type = 8;                      // 操作系统类型。
+  string login_ip = 9;                     // 登录地址。
+  string login_user = 10;                  // 登录用户。
+  string login_mode = 11;                  // 登录认证方式，不包含认证凭据内容。
+  string install_method = 12;              // 安装连接方式。
+  int64 login_port = 13;                   // 登录端口。
+  bool is_sudo = 14;                       // 是否使用 sudo。
+  bool re_register = 15;                   // 是否重新注册主机。
+  bool install_pre_ordered_plugins = 16;   // 是否安装预订阅插件。
+  bool renew_gse_task = 17;                // 是否更新 GSE task 组件。
+  bool renew_gse_proc = 18;                // 是否更新 GSE proc 组件。
+  string export_ip = 19;                   // 对外服务 IPv4 地址。
+  string export_ip_v6 = 20;                // 对外服务 IPv6 地址。
+  string advertise_ip = 21;                // 广播 IPv4 地址。
+  string advertise_ip_v6 = 22;             // 广播 IPv6 地址。
+  repeated string proxy_tags = 23;         // Proxy 标签。
+  int64 proxy_install_origin_unit_id = 24; // Proxy 安装来源管控单元 ID。
+  int64 relay_download_port = 25;          // Relay 下载端口。
+  int64 relay_callback_port = 26;          // Relay 回调端口。
+  string cpu_arch = 27;                    // CPU 架构。
+}
+
+// 单个历史安装操作可复制的参数。
+message NodeWorkflowOperationInstallParams {
+  string operation_id = 1;                   // 历史操作 ID。
+  NodeWorkflowInstallHost host = 2;          // 安全的主机安装参数。
+  repeated TargetVersion target_version = 3; // 历史目标版本。
+  bool is_manual = 4;                        // 是否手动安装。
+  bool is_offline = 5;                       // 是否离线安装。
+  repeated string missing_fields = 6;        // 需要在新安装表单中补充的字段。
+}
+
+// 按工作流及选中的操作读取历史安装参数。
+message NodeWorkflowOperationInstallParamsGetReq {
+  string workflow_id = 1;            // 必填，历史工作流 ID。
+  repeated string operation_ids = 2; // 必填，非空且无空白或重复 ID 的操作列表。
+}
+
+// 返回可复制的安装参数和无法恢复参数的操作 ID。
+message NodeWorkflowOperationInstallParamsGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    string type = 1; // 历史安装工作流类型。
+    repeated NodeWorkflowOperationInstallParams items = 2; // 可恢复的安装参数。
+    repeated string unavailable_operation_ids =
+        3; // 无法恢复安装参数的操作 ID。
+  }
+  Data data = 5;
+}
+
 // NodeWorkflow provdies node workflow service.
 service NodeWorkflow {
+  // 读取选中历史 Agent 或 Proxy
+  // 安装操作的安全参数，供新安装表单使用，不执行安装或修改历史任务。
+  rpc NodeWorkflowOperationInstallParamsGet(
+      NodeWorkflowOperationInstallParamsGetReq)
+      returns (NodeWorkflowOperationInstallParamsGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/install_params/get"
+      body : "*"
+    };
+  }
+
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
     option (google.api.http) = {

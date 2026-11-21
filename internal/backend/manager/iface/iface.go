@@ -47,11 +47,20 @@ type INodeManager interface {
 	// AssignAgentNetworkUnit assigns a network unit to agent hosts.
 	AssignAgentNetworkUnit(nCtx contextx.IContext, param types.NodeAgentAssignUnitParam) (*types.NodeAgentAssignUnitResult, error)
 
+	iNodeManagerWorkflow
+}
+
+// iNodeManagerWorkflow defines node workflow inspection and control capabilities.
+type iNodeManagerWorkflow interface {
 	// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
 	LaunchRetryNodeOperationFromLastInstance(ctx contextx.IContext, param types.RetryNodeWorkflowOperationParam) error
 
 	// TerminateOperationLastInstance terminate operation from last instance.
 	TerminateNodeOperationLastInstance(ctx contextx.IContext, param types.TerminateNodeWorkflowOperationParam) error
+
+	// GetNodeWorkflowInstallParams retrieves safe inputs for a fresh installation from selected historical operations.
+	GetNodeWorkflowInstallParams(nCtx contextx.IContext, workflowID string, operationIDs []string) (
+		*types.NodeWorkflowInstallParamsResult, error)
 
 	// GetOperationManualInfoFromLastInstance get operation manual info from last instance.
 	GetOperationManualInfoFromLastInstance(nCtx contextx.IContext, param types.GetNodeWorklfowOperationManualInfoParam) (
