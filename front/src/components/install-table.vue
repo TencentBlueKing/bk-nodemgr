@@ -946,8 +946,10 @@
               @confirm="(value) => handleBatchEdit('install_method', value)"
             />
           </template>
-          <template #default="{ row }">
-            <span>{{ installMethodMap[row.install_method] }}</span>
+          <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'install_method')">
+              <span>{{ installMethodMap[row.install_method] || $t('components.installTable.selectPlaceholder') }}</span>
+            </ValidateCell>
           </template>
           <template #edit="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'install_method')">
@@ -1162,6 +1164,7 @@ type ValidationRules = Record<string, IValidate[]>;
 
 const tableData = defineModel<Array<ReturnType<typeof getInitData>>>('data');
 const props = defineProps({
+  requireInstallMethod: { type: Boolean, default: false },
   data: { type: Array, default: () => [] as any[] },
   maxHeight: { type: Number, default: 300 },
   releaseType: { type: String, default: 'agent' },
@@ -1409,6 +1412,11 @@ const handleDelRow = (index: number) => {
 };
 
 const settings = reactive(cloneDeep(props.currentSettings));
+watch(() => props.requireInstallMethod, (required) => {
+  if (!required) return;
+  settings.checked = [...new Set([...settings.checked, 'install_method'])];
+  settings.disabled = [...new Set([...settings.disabled, 'install_method'])];
+}, { immediate: true });
 const settingChange = (data: any) => {
   settings.checked = data.checked;
   settings.size = data.size;
@@ -1745,6 +1753,10 @@ const tableValidate = async () => {
     }
 
     if (type.value !== 'manual' && type.value !== 'offline') {
+      if (props.requireInstallMethod && !row.install_method) {
+        setError(i, 'install_method', t('validate.required'));
+        rowValid = false;
+      }
       if (settings.checked.includes('login_ip')) {
         if (!row.login_ip) { setError(i, 'login_ip', t('validate.required')); rowValid = false; }
         else if (!validateItemData(row.login_ip, rules.login_ip)) { setError(i, 'login_ip', rules.login_ip[0].message); rowValid = false; }

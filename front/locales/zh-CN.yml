@@ -810,6 +810,11 @@ authenticationType:
 dialog:
   confirmClose: 确认关闭?
   confirmSwitchType: 切换类型将清空已上传数据, 是否继续?
+historyInstall:
+  copy: 重新创建
+  notice: 历史记录不是完整安装快照；仅回填可恢复参数和认证方式，不回填密码或密钥。历史 IPv6、安装连接方式及目标版本可能缺失，请检查并补充，确认参数后再安装。
+  review: 公共参数不一致、缺失或已失效的字段已清空，请重新选择安装方式、业务、区域、单元、安装源、端口或版本；不会自动替换为默认值。
+  unavailable: '{count} 台主机的历史部署参数不可恢复，未加入安装表单。'
 taskDetail:
   searchPlaceholder: 请选择 IP、管控区域、业务、目标版本、执行状态
   batchRetry: 批量重试

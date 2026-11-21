@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 
 import type { NodeWorkflowInfo } from '@/@types/node_workflow';
+import type { HistoricalInstallPrefill } from '@/pages/node/history/install-prefill';
 
 interface SearchSelectItem {
   id: string;
@@ -22,6 +23,7 @@ export const useNodeManageStore = defineStore('nodeManageStore', {
   state: () => ({
     taskHistoryTableRowData: {} as NodeWorkflowInfo,
     taskHistoryFilters: null as HistoryFiltersState | null,
+    installPrefill: null as HistoricalInstallPrefill | null,
     agentEditParams: {
       tableData: [] as Host[],
       type: '',
@@ -53,6 +55,14 @@ export const useNodeManageStore = defineStore('nodeManageStore', {
     },
   }),
   actions: {
+    saveInstallPrefill(prefill: HistoricalInstallPrefill) {
+      this.installPrefill = prefill;
+    },
+    consumeInstallPrefill(): HistoricalInstallPrefill | null {
+      const prefill = this.installPrefill;
+      this.installPrefill = null;
+      return prefill;
+    },
     // 更新任务历史表格行信息
     updateCurrentRowData(data: NodeWorkflowInfo) {
       this.taskHistoryTableRowData = data;

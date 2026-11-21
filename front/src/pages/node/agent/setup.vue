@@ -2,6 +2,10 @@
   <div class="setup pt-[24px] pb-[48px]">
     <setup-tip @show-setting="handleShowSetting"></setup-tip>
     <div class="m-[24px]">
+      <div v-if="hasHistoricalPrefill" class="mb-[16px] p-[12px] bg-[#F0F8FF] text-[12px]">
+        {{ $t('historyInstall.notice') }}
+        <p v-if="prefillNeedsReview">{{ $t('historyInstall.review') }}</p>
+      </div>
       <Form ref="formRef" :model="formData" :rules="rules">
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.type')"
@@ -68,7 +72,12 @@
               </template>
             </Popover>
           </template>
-          <AreaSelector class="w-[568px]" :multiple="false" @change="handleSingleChange" />
+          <AreaSelector
+            class="w-[568px]"
+            :multiple="false"
+            :bk_networkarea_id="formData.bk_networkarea_id"
+            @change="handleSingleChange"
+          />
         </Form.FormItem>
         <Form.FormItem
           property="bk_networkunit_id"
@@ -120,6 +129,7 @@
             :max-height="520"
             v-model:data="formData.info"
             :current-settings="settings"
+            :require-install-method="hasHistoricalPrefill"
           >
             <UploadExcel @upload="handleUpload" v-if="activeInstallType === 'import'"></UploadExcel>
           </install-table>
@@ -299,7 +309,7 @@
 import { Button, Dialog, Form, Input, Message, Popover, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce, isEqual  } from 'lodash';
-import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -309,13 +319,16 @@ import Preview from './preview.vue';
 
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
-import { encrypt, initPublicKey } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
+import { encrypt, initPublicKey } from '@/common/crypto';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
-import Validate from '@/components/validate.vue';
 import BizSelect from '@/components/biz-select.vue';
 import UnitSelector from '@/components/unitSelector.vue';
+import Validate from '@/components/validate.vue';
+import { commonInstallValue, historicalInstallMode, historicalInstallRows, historicalInstallVersions } from '@/pages/node/history/install-prefill';
 import { useMainStore } from '@/stores/main';
+import { useNodeManageStore } from '@/stores/node-manage';
+import { useTopoStore } from '@/stores/topo';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -339,6 +352,12 @@ const initData = {
   credit: '',
 };
 const mainStore = useMainStore();
+const installPrefill = useNodeManageStore().consumeInstallPrefill();
+const hasHistoricalPrefill = installPrefill?.type === 'install_agent';
+const applyingPrefill = ref(false);
+const prefillReady = ref(!hasHistoricalPrefill);
+const prefillNeedsReview = ref(false);
+const availableVersions = ref<TargetVersion[]>([]);
 
 const formData = reactive({
   type: '',
@@ -545,6 +564,13 @@ const handleShowSetting = () => {
 };
 
 const handlePreview = async () => {
+  if (!prefillReady.value) return;
+  if (hasHistoricalPrefill && (!activeInstallType.value || !formData.bk_biz_id
+    || !formData.bk_networkarea_id || !formData.bk_networkunit_id
+    || !systemData.value.length || systemData.value.some(item => !item.version))) {
+    Message({ theme: 'warning', message: t('historyInstall.review') });
+    return;
+  }
   const result = await Promise.all([
     formRef.value?.validate().catch(() => false),
     installTableRef.value?.tableValidate(),
@@ -584,12 +610,12 @@ const handlePreview = async () => {
       delete item.credit;
       delete item.bk_host_id;
     }
-    if (isShow.value) {
+    if (isShow.value || hasHistoricalPrefill) {
       clonedData.target_version = systemData.value
         .filter((item: any) => !!item.version)
         .map((item) => {
-          const [type, cpu_arch] = item.os.split('_');
-          const os_type = type;
+          const [os_type, ...arch] = item.os.split('_');
+          const cpu_arch = arch.join('_');
           return {
             os_type,
             cpu_arch,
@@ -641,7 +667,42 @@ const getVersions = async () => {
       });
     }
   });
+  availableVersions.value = res.items.filter(item => item.enabled);
   systemData.value = systemData.value.filter(item => !!osMap[item.os]?.enableVersions.length);
+};
+
+const applyHistoricalPrefill = async () => {
+  if (!hasHistoricalPrefill || !installPrefill) return;
+  applyingPrefill.value = true;
+  try {
+    const { items } = installPrefill;
+    mainStore.updateAgentSetupType(historicalInstallMode(items));
+    await nextTick();
+    const bizId = commonInstallValue(items.map(item => item.host.bk_biz_id));
+    formData.bk_biz_id = mainStore.businessList.some(biz => biz.bk_biz_id === bizId) ? String(bizId) : '';
+    const areaId = commonInstallValue(items.map(item => item.host.bk_networkarea_id));
+    const topoStore = useTopoStore();
+    await topoStore.handleFetchTopoWorkareaList();
+    const area = topoStore.allWorkareaList.find(item => item.bk_networkarea_id === areaId
+      && item.bk_networkarea_id !== Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID));
+    formData.bk_networkarea_id = area ? String(areaId) : '';
+    formData.bk_networkarea_name = area?.bk_networkarea_name ?? '';
+    await nextTick();
+    if (area) await getNetworkUnitList();
+    const unitId = commonInstallValue(items.map(item => item.host.bk_networkunit_id));
+    const unit = area && networkUnitList.value.find(item => item.bk_networkunit_id === unitId);
+    formData.bk_networkunit_id = unit ? String(unitId) : '';
+    formData.bk_networkunit_name = unit ? unit.bk_networkunit_name : '';
+    formData.info = historicalInstallRows(items).map(row => ({ ...cloneDeep(initData), ...row }));
+    settings.checked = [...new Set([...settings.checked, 'install_method'])];
+    systemData.value = historicalInstallVersions(items, availableVersions.value);
+    isShow.value = true;
+    prefillNeedsReview.value = !formData.bk_biz_id || !area || !unit || !activeInstallType.value
+      || systemData.value.some(item => !item.version) || items.some(item => item.missing_fields.length > 0);
+    prefillReady.value = true;
+  } finally {
+    applyingPrefill.value = false;
+  }
 };
 
 const footerRef = ref<Element | null>(null);
@@ -659,6 +720,7 @@ const checkIfAtBottom = () => {
 
 const debouncedCheck = debounce(checkIfAtBottom, 100);
 watch(() => activeInstallType.value, () => {
+  if (hasHistoricalPrefill) return;
   excelImportData.value = [];
   if (activeInstallType.value === 'import') {
     formData.info = [];
@@ -670,7 +732,7 @@ watch(() => activeInstallType.value, () => {
 watch(
   () => formData.bk_networkarea_id,
   async () => {
-    if (formData.bk_networkarea_id) {
+    if (formData.bk_networkarea_id && !applyingPrefill.value) {
       await getNetworkUnitList();
     }
   },
@@ -684,6 +746,8 @@ watch(
 onMounted(async () => {
   await initPublicKey();
   await getVersions();
+  await nextTick();
+  await applyHistoricalPrefill();
   if (footerRef.value) {
     window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();

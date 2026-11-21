@@ -325,3 +325,104 @@ export interface NodeWorkflowOperationOfflineInstallResultSubmitResp {
   permission: Permission;
 }
 
+// 可复制到新安装表单的历史主机参数，不包含凭据内容。
+export interface NodeWorkflowInstallHost {
+  // 主机 ID。
+  bk_host_id: number;
+  // 业务 ID。
+  bk_biz_id: number;
+  // 管控区域 ID。
+  bk_networkarea_id: number;
+  // 管控单元 ID。
+  bk_networkunit_id: number;
+  // 寻址方式。
+  bk_addressing: string;
+  // 内网 IPv4 地址。
+  bk_host_innerip: string[];
+  // 内网 IPv6 地址。
+  bk_host_innerip_v6: string[];
+  // 操作系统类型。
+  os_type: string;
+  // 登录地址。
+  login_ip: string;
+  // 登录用户。
+  login_user: string;
+  // 登录认证方式，不包含认证凭据内容。
+  login_mode: string;
+  // 安装连接方式。
+  install_method: string;
+  // 登录端口。
+  login_port: number;
+  // 是否使用 sudo。
+  is_sudo: boolean;
+  // 是否重新注册主机。
+  re_register: boolean;
+  // 是否安装预订阅插件。
+  install_pre_ordered_plugins: boolean;
+  // 是否更新 GSE task 组件。
+  renew_gse_task: boolean;
+  // 是否更新 GSE proc 组件。
+  renew_gse_proc: boolean;
+  // 对外服务 IPv4 地址。
+  export_ip: string;
+  // 对外服务 IPv6 地址。
+  export_ip_v6: string;
+  // 广播 IPv4 地址。
+  advertise_ip: string;
+  // 广播 IPv6 地址。
+  advertise_ip_v6: string;
+  // Proxy 标签。
+  proxy_tags: string[];
+  // Proxy 安装来源管控单元 ID。
+  proxy_install_origin_unit_id: number;
+  // Relay 下载端口。
+  relay_download_port: number;
+  // Relay 回调端口。
+  relay_callback_port: number;
+  // CPU 架构。
+  cpu_arch: string;
+}
+
+// 单个历史安装操作可复制的参数。
+export interface NodeWorkflowOperationInstallParams {
+  // 历史操作 ID。
+  operation_id: string;
+  // 安全的主机安装参数。
+  host: NodeWorkflowInstallHost;
+  // 历史目标版本。
+  target_version: TargetVersion[];
+  // 是否手动安装。
+  is_manual: boolean;
+  // 是否离线安装。
+  is_offline: boolean;
+  // 需要在新安装表单中补充的字段。
+  missing_fields: string[];
+}
+
+// 按工作流及选中的操作读取历史安装参数。
+export interface NodeWorkflowOperationInstallParamsGetReq {
+  // 必填，历史工作流 ID。
+  workflow_id: string;
+  // 必填，非空且无空白或重复 ID 的操作列表。
+  operation_ids: string[];
+}
+
+// 返回可复制的安装参数和无法恢复参数的操作 ID。
+export interface NodeWorkflowOperationInstallParamsGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeWorkflowOperationInstallParamsGetRespData;
+}
+
+export interface NodeWorkflowOperationInstallParamsGetRespData {
+  // 历史安装工作流类型。
+  type: string;
+  // 可恢复的安装参数。
+  items: NodeWorkflowOperationInstallParams[];
+  // 无法恢复安装参数的操作 ID。
+  unavailable_operation_ids: string[];
+}
+
