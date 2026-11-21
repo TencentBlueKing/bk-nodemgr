@@ -37,12 +37,13 @@ const (
 
 // Preserve the canonical related_resource_types ordering used by the IAM authorizers.
 const (
-	iamv4OrderBiz         = 0
-	iamv4OrderNetworkArea = 1
-	iamv4OrderNetworkUnit = 2
-	iamv4OrderPackageType = 3
-	iamv4OrderPackage     = 4
-	iamv4OrderUnknown     = 5
+	iamv4OrderBiz              = 0
+	iamv4OrderNetworkArea      = 1
+	iamv4OrderNetworkUnit      = 2
+	iamv4OrderPackageType      = 3
+	iamv4OrderPackage          = 4
+	iamv4OrderPlatformResource = 5
+	iamv4OrderUnknown          = 6
 )
 
 // iamv4ResourceTypeOrderKey returns the canonical ordering index for a (systemID, resourceType) pair.
@@ -59,6 +60,8 @@ func iamv4ResourceTypeOrderKey(systemID, typ string) int {
 		return iamv4OrderPackageType
 	case types.SystemIDNodeMgr + iamv4TypeKeySep + string(types.AuthResourceTypePackage):
 		return iamv4OrderPackage
+	case types.SystemIDNodeMgr + iamv4TypeKeySep + string(types.AuthResourceTypePlatformResource):
+		return iamv4OrderPlatformResource
 	default:
 		return iamv4OrderUnknown
 	}
