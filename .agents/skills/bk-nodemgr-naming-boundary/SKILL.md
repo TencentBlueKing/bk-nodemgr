@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-naming-boundary
+metadata:
+  internal: true
 description: Use when adding, changing, or reviewing bk-nodemgr API/RPC/proto fields, pkg/types fields, DAO options/BSON terms, router/service/storage helpers, module names, cross-layer terms, naming drift, or local variable/helper names that reveal boundary smells like data, info, helper, manager, or process.
 ---
 

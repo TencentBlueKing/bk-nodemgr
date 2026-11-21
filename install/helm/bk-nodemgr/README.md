@@ -64,11 +64,31 @@ backend:
       mode: application
       application:
         prefixURL: https://nodemgr.example.com/wiki/
+application:
+  config:
+    wiki:
+      enabled: true
 ```
 
-`application.prefixURL` 必须配置为用户可访问的绝对文档 URL 前缀，而不是集群内服务地址；默认空值仅适用于 `github` 模式。application 服务在固定的 `/wiki/` 路径托管文档，不需要额外的 application 启动配置。请确保用户访问入口将 `/wiki/` 路径转发至 application 服务，并将前缀设置为对应的外部地址。
+application 的 Wiki 默认关闭，需设置 `application.config.wiki.enabled: true` 才会注册 `/wiki/` 路由；设为 `false` 后不提供文档访问。该开关不改变 backend 的链接模式，关闭前需确认 backend 不再生成指向该入口的链接。
+
+`application.prefixURL` 必须配置为用户可访问的绝对文档 URL 前缀，而不是集群内服务地址；默认空值仅适用于 `github` 模式。请确保用户访问入口将 `/wiki/` 路径转发至 application 服务，并将前缀设置为对应的外部地址。
 
 backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`。application 返回原始 Markdown，不提供 HTML 渲染；文档可免登录访问，请勿在产品 Wiki 中放置敏感信息。
+
+#### IAM V3 模型同步
+
+启用 `backend.config.iamV3.enable` 后，安装和升级会自动执行 IAM V3 模型同步 Job。`iamV3.option.allowActionReplace` 默认为 `false`；设为 `true` 时，Job 向 `do_migrate.py` 传入 `--allow-action-replace`，允许清理策略、删除旧 Action 并按目标资源绑定重建。此开关作用于本次全目录同步中所有发生资源绑定变化的 `upsert_action`，不只限于 `package_history_view`。
+
+```yaml
+iamV3:
+  option:
+    allowActionReplace: true
+```
+
+启用前需确认目标系统、租户及全部绑定变更。**策略删除不可逆，已有授权不会自动迁移**；同步后需重新配置并验证受影响的权限。完成改绑后将此开关恢复为 `false`，后续同步对相同绑定只执行普通更新。关闭开关或回退 Chart 无法恢复已删除的策略。
+
+Helmfile 部署时，将上述片段合并到对应 environment 的 `overrides/backend.yaml`。服务运行时 IAM 配置保持不变。使用的 server 镜像需包含支持 `--allow-action-replace` 的迁移脚本；IAM 版本要求、异步删除及失败恢复边界见 [IAM V3 迁移工具](../../../support-files/bkiamv3/README.md#显式替换-action-资源绑定)。
 
 #### IAM V4 模型同步
 

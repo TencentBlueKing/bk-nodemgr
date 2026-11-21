@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-code-readme
+metadata:
+  internal: true
 description: Use when writing or restructuring README files inside bk-nodemgr code directories such as pkg/**, internal/**, and tools/**, especially for requests to 写代码目录 README or 精简包 README. Not for docs/** READMEs or logic docs, API references, changelogs, PR descriptions, code reviews, or minor copyedits.
 ---
 

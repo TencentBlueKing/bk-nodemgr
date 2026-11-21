@@ -1,0 +1,223 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+import "pkg.proto";
+
+// ExcelParseAgentInstallTemplateReq 通过 multipart 表单提交待解析的 Agent 安装
+// Excel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+message ExcelParseAgentInstallTemplateReq {}
+
+// ExcelDownloadAgentInstallTemplateReq 下载 Agent 安装 Excel 模板的请求。
+message ExcelDownloadAgentInstallTemplateReq {}
+
+// ExcelAgentInstallTemplateParsedInfo 描述 Agent 安装模板中一行数据的解析结果。
+// 解析失败的行仅返回行号与错误原因，其余字段为空。
+message ExcelAgentInstallTemplateParsedInfo {
+  // Excel 中的行号，从 4 开始（前三行为表头、必填标注与填写说明）。
+  int64 row_index = 1;
+  // 解析失败原因；为空表示该行解析成功。
+  string error_message = 2;
+  string bk_host_innerip = 3;
+  string bk_host_innerip_v6 = 4;
+  string os_type = 5;
+  string login_ip = 6;
+  int64 login_port = 7;
+  string login_user = 8;
+  string login_mode = 9;
+  // 登录凭证，按登录方式填写密码、私钥内容或留空。
+  string credit = 10;
+  // 记录到 CMDB 的寻址方式，static 或 dynamic。
+  string bk_addressing = 11;
+  // 为空时使用页面上的安装预设插件选项。
+  optional bool install_pre_ordered_plugins = 12;
+  // 为空时使用页面上的重新注册 AgentID 选项。
+  optional bool re_register = 13;
+  // 登录用户为非 root 且已配置免密 sudo 时置为 true，安装命令将通过 sudo -n
+  // 提权执行；默认为 false。
+  bool is_sudo = 14;
+  // 安装方式，支持 ssh、wmi；不填使用系统默认（自动）。
+  string install_method = 15;
+}
+
+// ExcelParseAgentInstallTemplateResp 逐行返回 Agent 安装 Excel 模板的解析结果。
+message ExcelParseAgentInstallTemplateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated ExcelAgentInstallTemplateParsedInfo items = 1; }
+  Data data = 5;
+}
+
+// ExcelParseProxyInstallTemplateReq 通过 multipart 表单提交待解析的 Proxy 安装
+// Excel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+message ExcelParseProxyInstallTemplateReq {}
+
+// ExcelDownloadProxyInstallTemplateReq 下载 Proxy 安装 Excel 模板的请求。
+message ExcelDownloadProxyInstallTemplateReq {}
+
+// ExcelProxyInstallTemplateParsedInfo 描述 Proxy 安装模板中一行数据的解析结果。
+// 解析失败的行仅返回行号与错误原因，其余字段为空。
+message ExcelProxyInstallTemplateParsedInfo {
+  // Excel 中的行号，从 4 开始（前三行为表头、必填标注与填写说明）。
+  int64 row_index = 1;
+  // 解析失败原因；为空表示该行解析成功。
+  string error_message = 2;
+  string bk_host_innerip = 3;
+  string bk_host_innerip_v6 = 4;
+  string export_ip = 5;
+  string bk_addressing = 6;
+  string os_type = 7;
+  string login_ip = 8;
+  int64 login_port = 9;
+  string login_user = 10;
+  string login_mode = 11;
+  // 登录凭证，按登录方式填写密码、私钥内容或留空。
+  string credit = 12;
+  string cpu_arch = 13;
+  string advertise_ip = 14;
+  // 为空时使用页面上的安装预设插件选项。
+  optional bool install_pre_ordered_plugins = 15;
+  // 为空时使用页面上的重新注册 AgentID 选项。
+  optional bool re_register = 16;
+  // 为空时按页面默认值处理。
+  optional bool dedicated_installer = 17;
+  optional bool cluster_tunnel = 18;
+  optional bool file_tunnel = 19;
+  optional bool data_tunnel = 20;
+  // 安装方式，支持 ssh、wmi；不填使用系统默认（自动）。
+  string install_method = 21;
+  // 登录用户为非 root 且已配置免密 sudo 时置为 true，安装命令将通过 sudo -n
+  // 提权执行；默认为 false。
+  bool is_sudo = 22;
+}
+
+// ExcelParseProxyInstallTemplateResp 逐行返回 Proxy 安装 Excel 模板的解析结果。
+message ExcelParseProxyInstallTemplateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated ExcelProxyInstallTemplateParsedInfo items = 1; }
+  Data data = 5;
+}
+
+// ExcelParseOpsTemplateReq 通过 multipart 表单提交待解析的带外设置 Excel 文件。
+// file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。
+message ExcelParseOpsTemplateReq {}
+
+// ExcelDownloadOpsTemplateReq 下载带外设置 Excel 模板的请求。
+message ExcelDownloadOpsTemplateReq {}
+
+// ExcelOpsTemplateParsedInfo 描述带外设置模板中一行数据的解析结果。
+// 解析成功的行返回匹配到的主机与主控机 ID，可直接用于回填带外设置表格；
+// 解析失败的行仅返回行号与错误原因，其余字段为空。
+message ExcelOpsTemplateParsedInfo {
+  // Excel 中的行号，从 4 开始（前三行为表头、必填标注与填写说明）。
+  int64 row_index = 1;
+  // 解析失败原因；为空表示该行解析成功。
+  string error_message = 2;
+  // 按业务、管控区域与内网 IP 匹配到的目标主机 ID。
+  int64 bk_host_id = 3;
+  int64 bk_biz_id = 4;
+  string bk_biz_name = 5;
+  int64 bk_networkarea_id = 6;
+  string bk_networkarea_name = 7;
+  string bk_host_innerip = 8;
+  string bk_host_innerip_v6 = 9;
+  // 按主控机管控区域与主控机 IP 匹配到的主控机 ID；未填写主控机时为 0。
+  int64 ops_console_host_id = 10;
+  // 主控机回显 IP，取匹配到的主控机内网 IPv4，无 IPv4 时取 IPv6。
+  string ops_console_host_ip = 11;
+  string ops_out_band_type = 12;
+  string ops_out_band_protocol = 13;
+  string ops_out_band_ip = 14;
+  int64 ops_out_band_port = 15;
+}
+
+// ExcelParseOpsTemplateResp 逐行返回带外设置 Excel 模板的解析结果。
+message ExcelParseOpsTemplateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated ExcelOpsTemplateParsedInfo items = 1; }
+  Data data = 5;
+}
+
+// Excel 提供节点安装与带外设置的 Excel 模板解析接口。
+service Excel {
+  // 解析 Agent 安装 Excel 模板，逐行返回安装参数。
+  //
+  // 模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的
+  // 错误原因，不影响其他行。
+  rpc ExcelParseAgentInstallTemplate(ExcelParseAgentInstallTemplateReq)
+      returns (ExcelParseAgentInstallTemplateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/excel/agent_install_template/parse"
+      body : "*"
+    };
+  }
+
+  // 下载 Agent 安装 Excel 模板。
+  rpc ExcelDownloadAgentInstallTemplate(ExcelDownloadAgentInstallTemplateReq)
+      returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/excel/agent_install_template/download"
+      body : "*"
+    };
+  }
+
+  // 解析 Proxy 安装 Excel 模板，逐行返回安装参数。
+  //
+  // 模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的
+  // 错误原因，不影响其他行。
+  rpc ExcelParseProxyInstallTemplate(ExcelParseProxyInstallTemplateReq)
+      returns (ExcelParseProxyInstallTemplateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/excel/proxy_install_template/parse"
+      body : "*"
+    };
+  }
+
+  // 下载 Proxy 安装 Excel 模板。
+  rpc ExcelDownloadProxyInstallTemplate(ExcelDownloadProxyInstallTemplateReq)
+      returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/excel/proxy_install_template/download"
+      body : "*"
+    };
+  }
+
+  // 解析带外设置 Excel 模板，按业务、管控区域与内网 IP
+  // 匹配已有主机，并解析主控机与带外字段。
+  //
+  // 逐行返回解析结果：成功的行携带主机与主控机 ID，失败的行携带行号与错误
+  // 原因，单行失败不影响其他行。
+  rpc ExcelParseOpsTemplate(ExcelParseOpsTemplateReq)
+      returns (ExcelParseOpsTemplateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/excel/ops_template/parse"
+      body : "*"
+    };
+  }
+
+  // 下载带外设置 Excel 模板。
+  rpc ExcelDownloadOpsTemplate(ExcelDownloadOpsTemplateReq)
+      returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/excel/ops_template/download"
+      body : "*"
+    };
+  }
+}

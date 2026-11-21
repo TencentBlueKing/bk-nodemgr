@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-error-handling
+metadata:
+  internal: true
 description: Use when writing, reviewing, refactoring, or debugging Go error handling in bk-nodemgr, especially code with err, fmt.Errorf, %w, resterrf.ErrWrap, errors.Is/As, logger.WithErr, router/service/storage error propagation, or any err == nil check. This skill owns bk-nodemgr error semantics; use bk-nodemgr-logger for logger API, Biz/Sys, fields, and levels.
 ---
 

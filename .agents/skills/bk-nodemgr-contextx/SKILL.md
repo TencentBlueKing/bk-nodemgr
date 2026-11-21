@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-contextx
+metadata:
+  internal: true
 description: Use when editing or reviewing bk-nodemgr code that uses pkg/contextx, contextx.IContext, tenant/user/message propagation, FromContext, value-preserving cancel/timeout/deadline helpers, or background work with WithoutCancel.
 ---
 

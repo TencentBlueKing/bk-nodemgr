@@ -20,6 +20,7 @@ package backend
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -98,21 +99,34 @@ type IHandlerHost interface {
 // ListHost list host within specified tenant in contextx.
 // nolint: funlen
 func (h *Handler) ListHost(nCtx contextx.IContext, page types.Page, condition *types.HostCondition) ([]*types.Host, int64, error) {
-	req := &protoBackend.TopoHostListReq{
-		Page: convertPage(page),
-	}
+	req := new(protoBackend.TopoHostListReq)
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listHost(nCtx, req)
+	var (
+		total int64
+		hosts []*types.Host
+	)
+	executor := pageexecutor.NewPageExecutor[*types.Host](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.Host, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listHost(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, hosts = resp.ConvertHostsToTypes()
+
+		return hosts, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, hosts := resp.ConvertHostsToTypes()
-
-	return hosts, total, nil
+	return result.Items, total, nil
 }
 
 // SelectHostID select host id within specified tenant in contextx.

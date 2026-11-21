@@ -5,6 +5,23 @@ const protobuf = require('protobufjs');
 const protoDir = '../proto/application/api/v3'; // Directory containing proto files
 const apiType = '(google.api.http)'
 
+const commonTypeNames = (() => {
+  const fileContent = fs.readFileSync(path.resolve(__dirname, protoDir, 'common.proto'), 'utf-8');
+  const parsed = protobuf.parse(
+    fileContent.split('\n').filter(line => !line.trim().startsWith('import')).join('\n'),
+    { alternateCommentMode: true, keepCase: true },
+  );
+  const names = new Set();
+  parsed.root.nestedArray.forEach((namespace) => {
+    namespace.nestedArray.forEach((type) => {
+      if (type instanceof protobuf.Type) {
+        names.add(type.name);
+      }
+    });
+  });
+  return names;
+})();
+
 // Function to parse proto files and generate output
 async function generateFiles() {
   const protoFiles = fs.readdirSync(path.resolve(__dirname, protoDir)).filter(file => file.endsWith('.proto'));
@@ -70,6 +87,7 @@ function generateTypeDefinitions(root, fileName) {
 }
 
 const allHttpMethods = ['get', 'post', 'put', 'delete', 'patch'];
+
 // Function to generate API interface definitions
 function generateApiDefinitions(root, fileName) {
   let output = `// gen-api.js 自动生成，请勿手动修改
@@ -92,22 +110,22 @@ import { type Config } from '../interceptors';
             path = trpcOpts[apiType]?.[httpMethod];
           }
           const requestType = method.requestType.split('.').pop();
-          if (!types.includes(requestType)) {
-            types.push(requestType);
-          }
-          if (!types.includes(method.responseType)) {
-            types.push(method.responseType);
-          }
+          addApiType(requestType, fileName, types);
+          addApiType(method.responseType, fileName, types);
+          const responseData = commonTypeNames.has(method.responseType)
+            ? method.responseType
+            : `${method.responseType}['data']`;
           const commentList = method.comment?.split('\n');
-          tmpOutput += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
-          tmpOutput += `  ${method.name}: async <Request = ${requestType}, ResponseData = ${method.responseType}['data']>(params?: Request, config?: Config) => await fetch.${httpMethod}<Request, ResponseData>('${path}')(params, config),\n`;
+          tmpOutput += commentList?.length ? `${commentList.map(comment => `  // ${comment}`.trimEnd() + '\n').join('')}` : '';
+          tmpOutput += `  ${method.name}: async <Request = ${requestType}, ResponseData = ${responseData}>(params?: Request, config?: Config) => await fetch.${httpMethod}<Request, ResponseData>('${path}')(params, config),\n`;
         });
         tmpOutput += '};\n\n';
       }
     });
   });
 
-  output += `import type { ${types.join(', ')} } from '@/@types/${fileName}';\n`;
+  const sortedTypes = [...types].sort((left, right) => (left.toLowerCase() < right.toLowerCase() ? -1 : 1));
+  output += `import type { ${sortedTypes.join(', ')} } from '@/@types/${fileName}';\n`;
 
   output += `import Fetch from '@/api/fetch';
 
@@ -118,6 +136,15 @@ const fetch = new Fetch({
   output += tmpOutput;
 
   return output;
+}
+
+function addApiType(typeName, fileName, types) {
+  if (fileName !== 'common' && commonTypeNames.has(typeName)) {
+    return;
+  }
+  if (!types.includes(typeName)) {
+    types.push(typeName);
+  }
 }
 
 // Helper function to map proto types to TypeScript types

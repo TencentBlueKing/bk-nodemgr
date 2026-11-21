@@ -26,6 +26,9 @@ const (
 	// ActionSystemAccess represents the action to access the system without resource restrictions.
 	ActionSystemAccess Action = "system_access"
 
+	// ActionPlatformManage represents the action to manage platform capabilities.
+	ActionPlatformManage Action = "platform_manage"
+
 	// ActionBizAccess represents the action to access business-scoped capabilities.
 	ActionBizAccess Action = "biz_access"
 
@@ -106,6 +109,8 @@ func ActionDisplayName(a Action) string {
 	switch a {
 	case ActionSystemAccess:
 		return "系统访问"
+	case ActionPlatformManage:
+		return "平台管理"
 	case ActionBizAccess:
 		return "业务访问"
 	case ActionAgentView:

@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { GetRSAPublicKeyReq, GetRSAPublicKeyResp, GetCurrentPublicKeyReq, GetCurrentPublicKeyResp } from '@/@types/cipher';
+import type { GetCurrentPublicKeyReq, GetCurrentPublicKeyResp, GetRSAPublicKeyReq, GetRSAPublicKeyResp } from '@/@types/cipher';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

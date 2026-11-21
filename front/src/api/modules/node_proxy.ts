@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp, NodeProxyAssignUnitReq, NodeProxyAssignUnitResp, NodeProxyAssignUnitMultiReq, UploadProxyInstallTemplateReq, UploadProxyInstallTemplateResp } from '@/@types/node_proxy';
+import type { NodeProxyAssignUnitMultiReq, NodeProxyAssignUnitReq, NodeProxyAssignUnitResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp } from '@/@types/node_proxy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -30,7 +30,5 @@ export const NodeProxyService = {
   // NodeProxyAssignUnitMulti batch-assigns multiple network units to proxy
   // hosts.
   NodeProxyAssignUnitMulti: async <Request = NodeProxyAssignUnitMultiReq, ResponseData = NodeProxyAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/assign_unit_multi')(params, config),
-  // UploadProxyInstallTemplate uploads proxy install template.
-  UploadProxyInstallTemplate: async <Request = UploadProxyInstallTemplateReq, ResponseData = UploadProxyInstallTemplateResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/install_template/upload')(params, config),
 };
 

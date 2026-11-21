@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { ProcessListReq, ProcessListResp, GetProcessDistributionByHostIDReq, GetProcessDistributionByHostIDResp, GetProcessDistributionByPluginNameReq, GetProcessDistributionByPluginNameResp, DistinctProcessReq, DistinctProcessResp } from '@/@types/process';
+import type { DistinctProcessReq, DistinctProcessResp, GetProcessDistributionByHostIDReq, GetProcessDistributionByHostIDResp, GetProcessDistributionByPluginNameReq, GetProcessDistributionByPluginNameResp, ProcessListReq, ProcessListResp } from '@/@types/process';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-gopool
+metadata:
+  internal: true
 description: Use when editing or reviewing bk-nodemgr code that uses pkg/runtime/gopool, goroutine fan-out/fan-in, bounded parallel execution, panic-to-error behavior, Wait handling, or shared result collection.
 ---
 

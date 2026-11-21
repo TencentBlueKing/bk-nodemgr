@@ -60,6 +60,7 @@ func NewProviderHandler(topoStorage topo.IStorage, releaseStorage file.IPkgRelea
 	handler.RegisterProvider(provider.ResourceTypeNetworkArea, provider.NewNetworkAreaProvider(topoStorage))
 	handler.RegisterProvider(provider.ResourceTypeNetworkUnit, provider.NewNetworkUnitProvider(topoStorage))
 	handler.RegisterProvider(provider.ResourceTypePackageType, provider.NewPackageTypeProvider())
+	handler.RegisterProvider(provider.ResourceTypePlatformResource, provider.NewPlatformResourceProvider())
 	handler.RegisterProvider(provider.ResourceTypePackage, provider.NewPackageProvider(releaseStorage))
 
 	return handler

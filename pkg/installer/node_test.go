@@ -94,3 +94,16 @@ func TestNodeOfflineInstallParamsToUnixScriptOfflineSudoInstall(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, script, "\nsudo -n "+installerCall)
 }
+
+func TestNodeInstallParamsToWindowsShellScriptNormalizesInstallerWorkDir(t *testing.T) {
+	params := newTestNodeInstallParams(false)
+	params.BaseWorkDir = `c:\tmp\bknm\`
+	params.BaseDeployDir = `c:\`
+	params.InstallerWorkDir = `c:\tmp\bknm\gse2_bkte\administrator`
+	params.InstallerPath = `c:\tmp\bknm\gse2_bkte\administrator\installer_windows_amd64.exe`
+
+	_, script, err := params.ToWindowsShellScript()
+	require.NoError(t, err)
+	require.Contains(t, script, `--work_dir c:/tmp/bknm/gse2_bkte/administrator`)
+	require.NotContains(t, script, `--work_dir c:\tmp\bknm\gse2_bkte\administrator`)
+}

@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp, NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationDistinctReq, NodeWorkflowOperationDistinctResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationRetryReq, NodeWorkflowOperationRetryResp, NodeWorkflowOperationTerminateReq, NodeWorkflowOperationTerminateResp, NodeWorkflowOperationManualSolutionGetReq, NodeWorkflowOperationManualSolutionGetResp, NodeWorkflowOperationOfflinePackageDownloadReq, FileChunk, NodeWorkflowOperationOfflineInstallResultSubmitReq, NodeWorkflowOperationOfflineInstallResultSubmitResp } from '@/@types/node_workflow';
+import type { NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowOperationDistinctReq, NodeWorkflowOperationDistinctResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationManualSolutionGetReq, NodeWorkflowOperationManualSolutionGetResp, NodeWorkflowOperationOfflineInstallResultSubmitReq, NodeWorkflowOperationOfflineInstallResultSubmitResp, NodeWorkflowOperationOfflinePackageDownloadReq, NodeWorkflowOperationRetryReq, NodeWorkflowOperationRetryResp, NodeWorkflowOperationTerminateReq, NodeWorkflowOperationTerminateResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp } from '@/@types/node_workflow';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -35,7 +35,7 @@ export const NodeWorkflowService = {
   // NodeWorkflowOperationOfflinePackageDownload streams the tar.gz offline
   // install bundle for an operation (POST
   // /api/v3/node/workflow/operation/offline/download, body: operation_id).
-  NodeWorkflowOperationOfflinePackageDownload: async <Request = NodeWorkflowOperationOfflinePackageDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/offline/download')(params, config),
+  NodeWorkflowOperationOfflinePackageDownload: async <Request = NodeWorkflowOperationOfflinePackageDownloadReq, ResponseData = FileChunk>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/offline/download')(params, config),
   // NodeWorkflowOperationOfflineInstallResultSubmit forwards offline install
   // result JSON to the backend (POST
   // /api/v3/node/workflow/operation/offline/result).

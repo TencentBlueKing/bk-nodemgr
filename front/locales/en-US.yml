@@ -56,6 +56,11 @@ platform:
       opsSettingPageDesc: Configure out-of-band management info for selected hosts, including console host, device type, device protocol, management IP and management port
       opsSettingBatchSet: Batch Set
       opsSettingSuccess: Out-of-band management settings saved successfully
+      opsSettingExcelImport: Excel Import
+      opsSettingImportErrors: "The following {count} row(s) failed to parse and were not filled in:"
+      opsSettingImportErrorRow: "Row {row}: {message}"
+      opsSettingImportNone: No valid rows to fill in
+      opsSettingImportDone: "Import finished: {success} succeeded, {failed} failed"
       opsConsoleHostId: Console Host ID
       opsOutBandType: Device Type
       opsOutBandProtocol: Device Protocol

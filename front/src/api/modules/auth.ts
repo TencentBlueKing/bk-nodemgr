@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { AuthVerifyReq, AuthVerifyResp, AuthorizedReq, AuthorizedResp } from '@/@types/auth';
+import type { AuthorizedReq, AuthorizedResp, AuthVerifyReq, AuthVerifyResp } from '@/@types/auth';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

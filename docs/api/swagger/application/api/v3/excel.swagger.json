@@ -1,0 +1,710 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "excel.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Excel"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/excel/agent_install_template/download": {
+      "post": {
+        "summary": "下载 Agent 安装 Excel 模板。",
+        "operationId": "Excel_ExcelDownloadAgentInstallTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExcelDownloadAgentInstallTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Excel"
+        ]
+      }
+    },
+    "/api/v3/excel/agent_install_template/parse": {
+      "post": {
+        "summary": "解析 Agent 安装 Excel 模板，逐行返回安装参数。",
+        "description": "模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的\n错误原因，不影响其他行。",
+        "operationId": "Excel_ExcelParseAgentInstallTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ExcelParseAgentInstallTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExcelParseAgentInstallTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Excel"
+        ]
+      }
+    },
+    "/api/v3/excel/ops_template/download": {
+      "post": {
+        "summary": "下载带外设置 Excel 模板。",
+        "operationId": "Excel_ExcelDownloadOpsTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExcelDownloadOpsTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Excel"
+        ]
+      }
+    },
+    "/api/v3/excel/ops_template/parse": {
+      "post": {
+        "summary": "解析带外设置 Excel 模板，按业务、管控区域与内网 IP\n匹配已有主机，并解析主控机与带外字段。",
+        "description": "逐行返回解析结果：成功的行携带主机与主控机 ID，失败的行携带行号与错误\n原因，单行失败不影响其他行。",
+        "operationId": "Excel_ExcelParseOpsTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ExcelParseOpsTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExcelParseOpsTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Excel"
+        ]
+      }
+    },
+    "/api/v3/excel/proxy_install_template/download": {
+      "post": {
+        "summary": "下载 Proxy 安装 Excel 模板。",
+        "operationId": "Excel_ExcelDownloadProxyInstallTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExcelDownloadProxyInstallTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Excel"
+        ]
+      }
+    },
+    "/api/v3/excel/proxy_install_template/parse": {
+      "post": {
+        "summary": "解析 Proxy 安装 Excel 模板，逐行返回安装参数。",
+        "description": "模板由下载接口生成，需保持表头与必填标注一致；单行解析失败会返回该行的\n错误原因，不影响其他行。",
+        "operationId": "Excel_ExcelParseProxyInstallTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ExcelParseProxyInstallTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExcelParseProxyInstallTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Excel"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3ExcelAgentInstallTemplateParsedInfo": {
+      "type": "object",
+      "properties": {
+        "row_index": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Excel 中的行号，从 4 开始（前三行为表头、必填标注与填写说明）。"
+        },
+        "error_message": {
+          "type": "string",
+          "title": "解析失败原因；为空表示该行解析成功。"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "login_mode": {
+          "type": "string"
+        },
+        "credit": {
+          "type": "string",
+          "title": "登录凭证，按登录方式填写密码、私钥内容或留空。"
+        },
+        "bk_addressing": {
+          "type": "string",
+          "title": "记录到 CMDB 的寻址方式，static 或 dynamic。"
+        },
+        "install_pre_ordered_plugins": {
+          "type": "boolean",
+          "title": "为空时使用页面上的安装预设插件选项。"
+        },
+        "re_register": {
+          "type": "boolean",
+          "title": "为空时使用页面上的重新注册 AgentID 选项。"
+        },
+        "is_sudo": {
+          "type": "boolean",
+          "title": "登录用户为非 root 且已配置免密 sudo 时置为 true，安装命令将通过 sudo -n\n提权执行；默认为 false。"
+        },
+        "install_method": {
+          "type": "string",
+          "title": "安装方式，支持 ssh、wmi；不填使用系统默认（自动）。"
+        }
+      },
+      "title": "ExcelAgentInstallTemplateParsedInfo 描述 Agent 安装模板中一行数据的解析结果。\n解析失败的行仅返回行号与错误原因，其余字段为空。"
+    },
+    "v3ExcelDownloadAgentInstallTemplateReq": {
+      "type": "object",
+      "title": "ExcelDownloadAgentInstallTemplateReq 下载 Agent 安装 Excel 模板的请求。"
+    },
+    "v3ExcelDownloadOpsTemplateReq": {
+      "type": "object",
+      "title": "ExcelDownloadOpsTemplateReq 下载带外设置 Excel 模板的请求。"
+    },
+    "v3ExcelDownloadProxyInstallTemplateReq": {
+      "type": "object",
+      "title": "ExcelDownloadProxyInstallTemplateReq 下载 Proxy 安装 Excel 模板的请求。"
+    },
+    "v3ExcelOpsTemplateParsedInfo": {
+      "type": "object",
+      "properties": {
+        "row_index": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Excel 中的行号，从 4 开始（前三行为表头、必填标注与填写说明）。"
+        },
+        "error_message": {
+          "type": "string",
+          "title": "解析失败原因；为空表示该行解析成功。"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "按业务、管控区域与内网 IP 匹配到的目标主机 ID。"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_name": {
+          "type": "string"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "ops_console_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "按主控机管控区域与主控机 IP 匹配到的主控机 ID；未填写主控机时为 0。"
+        },
+        "ops_console_host_ip": {
+          "type": "string",
+          "title": "主控机回显 IP，取匹配到的主控机内网 IPv4，无 IPv4 时取 IPv6。"
+        },
+        "ops_out_band_type": {
+          "type": "string"
+        },
+        "ops_out_band_protocol": {
+          "type": "string"
+        },
+        "ops_out_band_ip": {
+          "type": "string"
+        },
+        "ops_out_band_port": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "ExcelOpsTemplateParsedInfo 描述带外设置模板中一行数据的解析结果。\n解析成功的行返回匹配到的主机与主控机 ID，可直接用于回填带外设置表格；\n解析失败的行仅返回行号与错误原因，其余字段为空。"
+    },
+    "v3ExcelParseAgentInstallTemplateReq": {
+      "type": "object",
+      "title": "ExcelParseAgentInstallTemplateReq 通过 multipart 表单提交待解析的 Agent 安装\nExcel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。"
+    },
+    "v3ExcelParseAgentInstallTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ExcelParseAgentInstallTemplateRespData"
+        }
+      },
+      "title": "ExcelParseAgentInstallTemplateResp 逐行返回 Agent 安装 Excel 模板的解析结果。"
+    },
+    "v3ExcelParseAgentInstallTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ExcelAgentInstallTemplateParsedInfo"
+          }
+        }
+      }
+    },
+    "v3ExcelParseOpsTemplateReq": {
+      "type": "object",
+      "title": "ExcelParseOpsTemplateReq 通过 multipart 表单提交待解析的带外设置 Excel 文件。\nfile 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。"
+    },
+    "v3ExcelParseOpsTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ExcelParseOpsTemplateRespData"
+        }
+      },
+      "title": "ExcelParseOpsTemplateResp 逐行返回带外设置 Excel 模板的解析结果。"
+    },
+    "v3ExcelParseOpsTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ExcelOpsTemplateParsedInfo"
+          }
+        }
+      }
+    },
+    "v3ExcelParseProxyInstallTemplateReq": {
+      "type": "object",
+      "title": "ExcelParseProxyInstallTemplateReq 通过 multipart 表单提交待解析的 Proxy 安装\nExcel 文件。 file 为 Excel 文件，filename 须与文件名一致，metadata 可传 {}。"
+    },
+    "v3ExcelParseProxyInstallTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ExcelParseProxyInstallTemplateRespData"
+        }
+      },
+      "title": "ExcelParseProxyInstallTemplateResp 逐行返回 Proxy 安装 Excel 模板的解析结果。"
+    },
+    "v3ExcelParseProxyInstallTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ExcelProxyInstallTemplateParsedInfo"
+          }
+        }
+      }
+    },
+    "v3ExcelProxyInstallTemplateParsedInfo": {
+      "type": "object",
+      "properties": {
+        "row_index": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Excel 中的行号，从 4 开始（前三行为表头、必填标注与填写说明）。"
+        },
+        "error_message": {
+          "type": "string",
+          "title": "解析失败原因；为空表示该行解析成功。"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "export_ip": {
+          "type": "string"
+        },
+        "bk_addressing": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "login_mode": {
+          "type": "string"
+        },
+        "credit": {
+          "type": "string",
+          "title": "登录凭证，按登录方式填写密码、私钥内容或留空。"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "advertise_ip": {
+          "type": "string"
+        },
+        "install_pre_ordered_plugins": {
+          "type": "boolean",
+          "title": "为空时使用页面上的安装预设插件选项。"
+        },
+        "re_register": {
+          "type": "boolean",
+          "title": "为空时使用页面上的重新注册 AgentID 选项。"
+        },
+        "dedicated_installer": {
+          "type": "boolean",
+          "title": "为空时按页面默认值处理。"
+        },
+        "cluster_tunnel": {
+          "type": "boolean"
+        },
+        "file_tunnel": {
+          "type": "boolean"
+        },
+        "data_tunnel": {
+          "type": "boolean"
+        },
+        "install_method": {
+          "type": "string",
+          "title": "安装方式，支持 ssh、wmi；不填使用系统默认（自动）。"
+        },
+        "is_sudo": {
+          "type": "boolean",
+          "title": "登录用户为非 root 且已配置免密 sudo 时置为 true，安装命令将通过 sudo -n\n提权执行；默认为 false。"
+        }
+      },
+      "title": "ExcelProxyInstallTemplateParsedInfo 描述 Proxy 安装模板中一行数据的解析结果。\n解析失败的行仅返回行号与错误原因，其余字段为空。"
+    },
+    "v3FileChunk": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "description": "FileChunk describes the file chunk data."
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

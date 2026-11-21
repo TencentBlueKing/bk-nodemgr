@@ -20,6 +20,8 @@ export interface AgentInstallInfo {
   renew_gse_task: boolean;
   renew_gse_proc: boolean;
   install_method: string;
+  // 登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n
+  // 提权执行；默认为 false
   is_sudo: boolean;
 }
 
@@ -246,37 +248,6 @@ export interface NodeAgentUpgradeCheckResult {
   message_en: string;
   message_zh: string;
   category: string;
-}
-
-// UploadAgentInstallTemplateReq is the request for upload agent install
-// template file.
-export interface UploadAgentInstallTemplateReq {
-}
-
-// AgentInstallParsedInfo describes the result for agent install template file
-// parsed info.
-export interface AgentInstallParsedInfo {
-  bk_host_innerip: string;
-  bk_host_innerip_v6: string;
-  os_type: string;
-  login_ip: string;
-  login_port: number;
-  login_user: string;
-  login_mode: string;
-  credit: string;
-  bk_addressing: string;
-  install_pre_ordered_plugins: boolean;
-  re_register: boolean;
-  is_sudo: boolean;
-}
-
-// UploadAgentInstallTemplateResp ...
-export interface UploadAgentInstallTemplateResp {
-  data: UploadAgentInstallTemplateRespData;
-}
-
-export interface UploadAgentInstallTemplateRespData {
-  info: AgentInstallParsedInfo[];
 }
 
 // NodeAgentAssignUnitReq describes the request body for batch-assigning

@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeOpsHistoryListReq, NodeOpsHistoryListResp, NodeOpsHistoryDetailReq, NodeOpsHistoryDetailResp, NodeOpsUpdateFieldsAgentReq, NodeOpsUpdateFieldsAgentResp, NodeOpsUpdateFieldsProxyReq, NodeOpsUpdateFieldsProxyResp, NodeOpsFieldsListAgentReq, NodeOpsFieldsListAgentResp, NodeOpsFieldsListProxyReq, NodeOpsFieldsListProxyResp } from '@/@types/ops';
+import type { NodeOpsFieldsListAgentReq, NodeOpsFieldsListAgentResp, NodeOpsFieldsListProxyReq, NodeOpsFieldsListProxyResp, NodeOpsHistoryDetailReq, NodeOpsHistoryDetailResp, NodeOpsHistoryListReq, NodeOpsHistoryListResp, NodeOpsUpdateFieldsAgentReq, NodeOpsUpdateFieldsAgentResp, NodeOpsUpdateFieldsProxyReq, NodeOpsUpdateFieldsProxyResp } from '@/@types/ops';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

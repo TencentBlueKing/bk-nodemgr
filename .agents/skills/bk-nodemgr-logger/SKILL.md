@@ -1,5 +1,7 @@
 ---
 name: bk-nodemgr-logger
+metadata:
+  internal: true
 description: Use when writing, reviewing, or refactoring Go logging in bk-nodemgr, especially code that imports pkg/logger, chooses Biz vs Sys logs, adds WithErr/With/WithDuration fields, adapts third-party logger interfaces, or replaces fmt/log/slog/zap/logrus output with the project logger.
 ---
 

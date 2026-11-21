@@ -41,7 +41,7 @@ extraDeploy: []
 image:
   registry: "hub.bktencent.com"
   repository: blueking/bk-nodemgr-server
-  tag: v3.0.1-alpha.115
+  tag: v3.0.1-alpha.116
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -59,7 +59,7 @@ image:
 apiManagerImage:
   registry: "hub.bktencent.com"
   repository: "blueking/bk-nodemgr-apigw-sync"
-  tag: v3.0.1-alpha.115
+  tag: v3.0.1-alpha.116
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -1214,6 +1214,10 @@ application:
     ## defines the application server advertise-ip, if not set then will use the pod-ip.
     advertiseIPV4: ""
     advertiseIPV6: ""
+
+    ## Serve the embedded product Wiki at /wiki/ only when explicitly enabled.
+    wiki:
+      enabled: false
 
     ## defines the front settings.
     front:
@@ -2463,9 +2467,9 @@ apigwSync:
   config:
     spec_version: 2
     release:
-      version: "3.0.1-alpha.115"
+      version: "3.0.1-alpha.116"
       title: "bk-nodemgr"
-      comment: "3.0.1-alpha.115"
+      comment: "3.0.1-alpha.116"
     apigateway:
       description: "蓝鲸节点管理"
       description_en: "bk-nodemgr"
@@ -2562,6 +2566,9 @@ initPackages:
 
 iamV3:
   enabled: false
+  option:
+    # Allow deleting policies and recreating actions with changed resource bindings.
+    allowActionReplace: false
   syncJob:
     ttlSecondsAfterFinished: 600
     backoffLimit: 3

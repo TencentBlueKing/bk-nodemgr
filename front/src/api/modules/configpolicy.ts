@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { ConfigPolicyListReq, ConfigPolicyListResp, ConfigPolicyGetReq, ConfigPolicyGetResp, ConfigPolicyListPlatformReq, ConfigPolicyListPlatformResp, ConfigPolicyGetTemplateReq, ConfigPolicyGetTemplateResp, ConfigPolicyCreateReq, ConfigPolicyCreateResp, ConfigPolicyUpdateReq, ConfigPolicyUpdateResp, ConfigPolicyEnableReq, ConfigPolicyEnableResp, ConfigPolicyDisableReq, ConfigPolicyDisableResp, ConfigPolicyDeleteReq, ConfigPolicyDeleteResp, ConfigPolicyPriorityReorderReq, ConfigPolicyPriorityReorderResp, ConfigPolicyPreviewReq, ConfigPolicyPreviewResp, ConfigPolicyEventListReq, ConfigPolicyEventListResp, ConfigPolicyEventDistinctReq, ConfigPolicyEventDistinctResp } from '@/@types/configpolicy';
+import type { ConfigPolicyCreateReq, ConfigPolicyCreateResp, ConfigPolicyDeleteReq, ConfigPolicyDeleteResp, ConfigPolicyDisableReq, ConfigPolicyDisableResp, ConfigPolicyEnableReq, ConfigPolicyEnableResp, ConfigPolicyEventDistinctReq, ConfigPolicyEventDistinctResp, ConfigPolicyEventListReq, ConfigPolicyEventListResp, ConfigPolicyGetReq, ConfigPolicyGetResp, ConfigPolicyGetTemplateReq, ConfigPolicyGetTemplateResp, ConfigPolicyListPlatformReq, ConfigPolicyListPlatformResp, ConfigPolicyListReq, ConfigPolicyListResp, ConfigPolicyPreviewReq, ConfigPolicyPreviewResp, ConfigPolicyPriorityReorderReq, ConfigPolicyPriorityReorderResp, ConfigPolicyUpdateReq, ConfigPolicyUpdateResp } from '@/@types/configpolicy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

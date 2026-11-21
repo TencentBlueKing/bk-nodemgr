@@ -45,6 +45,17 @@ const (
 
 	// AuthResourceTypePackage represents a package resource registered in bk-nodemgr.
 	AuthResourceTypePackage AuthResourceType = "package"
+
+	// AuthResourceTypePlatformResource represents a fixed platform capability.
+	AuthResourceTypePlatformResource AuthResourceType = "platform_resource"
+)
+
+// PlatformResource identifies a platform capability available for authorization.
+type PlatformResource string
+
+const (
+	// PlatformResourceSchedulerWorkflow represents scheduled workflow management.
+	PlatformResourceSchedulerWorkflow PlatformResource = "scheduler_workflow"
 )
 
 // AuthResource describes a single resource instance used for authorization checks.
@@ -73,6 +84,8 @@ func AuthResourceTypeDisplayName(art AuthResourceType) string {
 		return "资源包类型"
 	case AuthResourceTypePackage:
 		return "资源包"
+	case AuthResourceTypePlatformResource:
+		return "平台资源"
 	default:
 		return ""
 	}

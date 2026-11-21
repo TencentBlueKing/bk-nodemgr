@@ -31,6 +31,8 @@ export interface NodeProxyInstallHost {
   renew_gse_task: boolean;
   renew_gse_proc: boolean;
   install_method: string;
+  // 登录用户为非 root 且已配置免密 sudo 时置为 true，安装器调用将通过 sudo -n
+  // 提权执行；默认为 false
   is_sudo: boolean;
 }
 
@@ -327,43 +329,5 @@ export interface NodeProxyAssignUnitMultiReq {
 export interface NodeProxyAssignUnitMultiReqItem {
   bk_host_id: number[];
   bk_networkunit_id: number;
-}
-
-// UploadProxyInstallTemplateReq is the request for upload proxy install
-// template file.
-export interface UploadProxyInstallTemplateReq {
-}
-
-// ProxyInstallParsedInfo describes the result for proxy install template file
-// parsed info.
-export interface ProxyInstallParsedInfo {
-  bk_host_innerip: string;
-  bk_host_innerip_v6: string;
-  export_ip: string;
-  bk_addressing: string;
-  os_type: string;
-  login_ip: string;
-  login_port: number;
-  login_user: string;
-  login_mode: string;
-  credit: string;
-  cpu_arch: string;
-  advertise_ip: string;
-  install_pre_ordered_plugins: boolean;
-  re_register: boolean;
-  is_sudo: boolean;
-  dedicated_installer: boolean;
-  cluster_tunnel: boolean;
-  file_tunnel: boolean;
-  data_tunnel: boolean;
-}
-
-// UploadProxyInstallTemplateResp ...
-export interface UploadProxyInstallTemplateResp {
-  data: UploadProxyInstallTemplateRespData;
-}
-
-export interface UploadProxyInstallTemplateRespData {
-  info: ProxyInstallParsedInfo[];
 }
 
