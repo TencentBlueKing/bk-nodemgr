@@ -33,6 +33,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/concurrency"
 	"go.uber.org/zap"
@@ -59,6 +60,8 @@ const (
 
 var _ discover.IProvider = &ProviderEtcd{}
 
+var errProviderShuttingDown = errors.New("etcd discover provider is shutting down")
+
 // ProviderEtcd implements discover.IProvider.
 type ProviderEtcd struct {
 	config *config.Etcd
@@ -68,6 +71,10 @@ type ProviderEtcd struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	shutdownMutex sync.Mutex
+	shuttingDown  bool
+	registryOpWg  sync.WaitGroup
 
 	serviceWatchList []discover.ServiceName
 
@@ -259,6 +266,19 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 
 // GracefulShutdown gracefully shuts down the provider, stop all activities.
 func (provider *ProviderEtcd) GracefulShutdown() error {
+	if provider.etcdClient == nil {
+		return discover.ErrDiscoverNotStarted()
+	}
+
+	provider.shutdownMutex.Lock()
+	if provider.shuttingDown {
+		provider.shutdownMutex.Unlock()
+
+		return errProviderShuttingDown
+	}
+	provider.shuttingDown = true
+	provider.shutdownMutex.Unlock()
+
 	// cancel before stopping the registrations: cancelling aborts the etcd
 	// requests a registration may have in flight, and that is what bounds the
 	// wait for its lock below. Stopping first lets an unreachable etcd hold
@@ -266,18 +286,34 @@ func (provider *ProviderEtcd) GracefulShutdown() error {
 	if provider.cancel != nil {
 		provider.cancel()
 	}
+	provider.registryOpWg.Wait()
 
 	// revoke the leases of the locally registered instances, dropping them
 	// from discovery at once instead of after a lease TTL.
+	var shutdownErr error
 	for _, reg := range provider.takeAllRegistrations() {
 		if err := reg.stop(); err != nil {
-			logger.G.Sys().WithErr(err).
-				With("service", reg.serviceName, "id", reg.instanceID).
-				Warn("failed to deregister instance on shutdown")
+			shutdownErr = errors.Join(shutdownErr,
+				fmt.Errorf("failed to deregister instance %q in service %q: %w", reg.instanceID, reg.serviceName, err))
 		}
 	}
 
-	logger.G.Sys().Info("stopped etcd discover provider")
+	if err := provider.etcdClient.Close(); err != nil {
+		shutdownErr = errors.Join(shutdownErr, fmt.Errorf("failed to close etcd client: %w", err))
+	}
+
+	return shutdownErr
+}
+
+func (provider *ProviderEtcd) beginRegistryOperation() error {
+	provider.shutdownMutex.Lock()
+	defer provider.shutdownMutex.Unlock()
+
+	if provider.shuttingDown {
+		return errProviderShuttingDown
+	}
+
+	provider.registryOpWg.Add(1)
 
 	return nil
 }
@@ -339,6 +375,11 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
+
+	if err := provider.beginRegistryOperation(); err != nil {
+		return err
+	}
+	defer provider.registryOpWg.Done()
 
 	for _, instance := range instances {
 		if err := provider.register(serviceName, instance); err != nil {
@@ -420,6 +461,11 @@ func (provider *ProviderEtcd) stopReplacedRegistration(reg *registration) {
 
 // Update updates a service instance.
 func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance discover.Instance) error {
+	if err := provider.beginRegistryOperation(); err != nil {
+		return err
+	}
+	defer provider.registryOpWg.Done()
+
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
@@ -442,6 +488,11 @@ func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance 
 
 // Deregister deregisters a service instance.
 func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, instanceID string) error {
+	if err := provider.beginRegistryOperation(); err != nil {
+		return err
+	}
+	defer provider.registryOpWg.Done()
+
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
@@ -491,6 +542,9 @@ func (provider *ProviderEtcd) revokeSession(session *concurrency.Session) error 
 	defer cancel()
 
 	_, err := provider.etcdClient.Revoke(ctx, session.Lease())
+	if errors.Is(err, rpctypes.ErrLeaseNotFound) {
+		return nil
+	}
 
 	return err
 }
@@ -830,6 +884,8 @@ func (provider *ProviderEtcd) keepListing() {
 	}
 
 	ticker := time.NewTicker(defaultListTickTime)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-provider.ctx.Done():
