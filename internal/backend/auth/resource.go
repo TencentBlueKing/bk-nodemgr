@@ -20,6 +20,20 @@ package auth
 
 import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
+// BuildPlatformResources constructs canonical platform resources for permission checks.
+func BuildPlatformResources(platformResources ...types.PlatformResource) []types.AuthResource {
+	resources := make([]types.AuthResource, 0, len(platformResources))
+	for _, resource := range platformResources {
+		resources = append(resources, types.AuthResource{
+			SystemID: types.SystemIDNodeMgr,
+			Type:     types.AuthResourceTypePlatformResource,
+			ID:       string(resource),
+		})
+	}
+
+	return resources
+}
+
 // BuildPackageResources constructs canonical package resources for permission checks.
 // For agent/proxy/cert/bintool types, the resource ID is the release type itself.
 // For plugin types, the resource ID is the plugin name.
