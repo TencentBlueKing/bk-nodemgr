@@ -240,6 +240,14 @@
         "name": "查看资源包历史",
         "resource_type_id": "package_type"
       }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "platform_manage",
+        "name": "平台管理",
+        "resource_type_id": "platform_resource"
+      }
     }
   ]
 }

@@ -40,6 +40,14 @@
         "name": "资源包",
         "ancestors": ["package_type"]
       }
+    },
+    {
+      "operation": "upsert_resource_type",
+      "data": {
+        "id": "platform_resource",
+        "name": "平台资源",
+        "ancestors": []
+      }
     }
   ]
 }
