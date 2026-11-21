@@ -8,9 +8,10 @@ Reusable skills for AI agents that help users deploy, configure, and operate Blu
 
 ## Available Skills
 
-| Skill | When to use it |
-| --- | --- |
-| [bk-nodemgr-deploy](bk-nodemgr-deploy/SKILL.md) | First deployment, runtime configuration changes, upgrades, or deployment and startup troubleshooting with Helm, Helmfile, Docker Compose, or binaries. |
+| Skill                                                             | When to use it                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [bk-nodemgr-deploy](bk-nodemgr-deploy/SKILL.md)                   | First deployment, runtime configuration changes, upgrades, or deployment and startup troubleshooting with Helm, Helmfile, Docker Compose, or binaries.                                                                                                           |
+| [bk-nodemgr-execution-debug](bk-nodemgr-execution-debug/SKILL.md) | Read-only node or plugin execution troubleshooting from a workflow_id or operation_id, using the execution diagnostics MCP when provided or bk-cli otherwise. Analyze execution state, history, and step logs; requires a complete checkout and relevant Skills. |
 
 Each skill's `SKILL.md` defines its scope, workflow, prerequisites, and access or execution boundaries. Check the selected skill rather than assuming all skills have the same permissions.
 
