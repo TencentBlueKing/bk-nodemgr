@@ -31,6 +31,12 @@
     </div>
     <div class="mt-[24px] mb-[14px] flex justify-between">
       <div class="flex gap-[12px]">
+        <Button
+          v-if="['install_agent', 'install_proxy'].includes(currentData.type) && route.query.active !== 'plugin'"
+          :disabled="!hasSelection"
+          :loading="copyInstallLoading"
+          @click="handleCopyInstall"
+        >{{ $t('historyInstall.copy') }}</Button>
         <Dropdown
           theme="light"
           trigger="click"
@@ -347,6 +353,12 @@
     </div>
   </div>
   <guide v-model:is-show="isGuideShow" :data="guideData" />
+  <InstallProxy
+    v-if="showCopyProxyInstall && proxyInstallPrefill"
+    :key="proxyInstallPrefill.items.map(item => item.operation_id).join(',')"
+    v-model:is-show="showCopyProxyInstall"
+    :install-prefill="proxyInstallPrefill"
+  />
 </template>
 <script setup lang="ts">
 import {
@@ -383,6 +395,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import guide from './guide.vue';
+import type { HistoricalInstallPrefill } from './install-prefill';
 import { isOfflineGuideStep } from './offline-package';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
@@ -391,6 +404,7 @@ import { TopoService } from '@/api/modules/topo';
 import { formatTimeByTimezone } from '@/common/util';
 import useInterval from '@/composables/use-interval';
 import useTableSetting from '@/composables/use-table-setting';
+import InstallProxy from '@/pages/topo/install-proxy/install-proxy.vue';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
@@ -1378,6 +1392,39 @@ const loadCrossPageAllOperations = async (): Promise<any[]> => {
 // 数据集合变化（取消选择/切换状态tab/搜索条件变化）时清缓存，下次按需重拉
 const clearCrossPageAllOperations = () => {
   crossPageAllOperations.value = [];
+};
+
+const copyInstallLoading = ref(false);
+const showCopyProxyInstall = ref(false);
+const proxyInstallPrefill = ref<HistoricalInstallPrefill | null>(null);
+const handleCopyInstall = async () => {
+  if (copyInstallLoading.value || !hasSelection.value) return;
+  copyInstallLoading.value = true;
+  try {
+    const operationIds: string[] = isCrossPageSelection.value
+      ? (await loadCrossPageAllOperations())
+        .filter(item => !excludedIds.value.has(item.bk_host_id))
+        .map(item => item.operation_id)
+      : selection.value.map(item => item.operation_id);
+    if (!operationIds.length) return;
+    const prefill = await NodeWorkflowService.NodeWorkflowOperationInstallParamsGet({
+      workflow_id: String(route.params.taskId),
+      operation_ids: operationIds,
+    });
+    if (prefill.unavailable_operation_ids.length) {
+      Message({ theme: 'warning', message: t('historyInstall.unavailable', { count: prefill.unavailable_operation_ids.length }) });
+    }
+    if (!prefill.items.length) return;
+    if (prefill.type === 'install_agent') {
+      nodeManageStore.saveInstallPrefill(prefill);
+      await router.push({ name: 'agentSetup' });
+    } else if (prefill.type === 'install_proxy') {
+      proxyInstallPrefill.value = prefill;
+      showCopyProxyInstall.value = true;
+    }
+  } finally {
+    copyInstallLoading.value = false;
+  }
 };
 
 // 复制下拉用：全量数据 + 勾选标记（跨页全选模式下排除手动取消勾选的行）

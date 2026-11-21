@@ -7,6 +7,10 @@
     :before-close="handleBeforeClose"
   >
     <div class="py-[20px] px-[40px]">
+      <div v-if="installPrefill" class="mb-[16px] p-[12px] bg-[#F0F8FF] text-[12px]">
+        {{ $t('historyInstall.notice') }}
+        <p v-if="prefillNeedsReview">{{ $t('historyInstall.review') }}</p>
+      </div>
       <!-- 安装策略提示条 -->
       <div
         class="flex items-center min-h-[32px] bg-[#F0F8FF] border border-[#C5DAFF] rounded-[2px] py-[6px] px-[9px] gap-[9px]"
@@ -50,6 +54,7 @@
             v-model:data="form.info"
             release-type="proxy"
             :current-settings="settings"
+            :require-install-method="!!installPrefill"
             :max-height="520"
           >
             <UploadExcel type="proxy" @upload="handleUpload" v-if="form.method === '1'"></UploadExcel>
@@ -116,7 +121,12 @@
               </template>
             </Popover>
           </template>
-          <AreaSelector class="w-[488px]" :multiple="false" @change="handleSingleChange" />
+          <AreaSelector
+            class="w-[488px]"
+            :multiple="false"
+            :bk_networkarea_id="form.bk_networkarea_id"
+            @change="handleSingleChange"
+          />
         </Form.FormItem>
         <Form.FormItem
           v-if="bk_networkunit_id === null"
@@ -413,30 +423,36 @@ import { Button, Cascader, Dialog, Form, InfoBox, Input, Message, Popover, Selec
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
 import type { PropType } from 'vue';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
 import InstallStrategySideslider from './components/install-strategy-sideslider.vue';
-import ProxyPreview from './preview.vue';
 import SelectItemGroup from './components/select-item-group.vue';
+import ProxyPreview from './preview.vue';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
-import { encrypt, initPublicKey } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
+import { encrypt, initPublicKey } from '@/common/crypto';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
-import Validate from '@/components/validate.vue';
 import BizSelect from '@/components/biz-select.vue';
+import Validate from '@/components/validate.vue';
+import type { HistoricalInstallPrefill } from '@/pages/node/history/install-prefill';
+import { commonInstallValue, historicalInstallMode, historicalInstallRows, historicalInstallVersions } from '@/pages/node/history/install-prefill';
 import { useMainStore } from '@/stores/main';
 import { useTopoStore } from '@/stores/topo';
 import { useWorkareaStore } from '@/stores/workarea';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
 const props = defineProps({
+  installPrefill: {
+    type: Object as PropType<HistoricalInstallPrefill>,
+    default: undefined,
+  },
   bk_networkunit_id: {
     type: Number,
     default: null,
@@ -450,6 +466,10 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const mainStore = useMainStore();
+const applyingPrefill = ref(false);
+const prefillReady = ref(!props.installPrefill);
+const prefillNeedsReview = ref(false);
+const availableVersions = ref<TargetVersion[]>([]);
 const topoStore = useTopoStore();
 const workareaStore = useWorkareaStore();
 const initData = {
@@ -484,7 +504,7 @@ const form = reactive({
   bk_networkarea_name: '',
   bk_networkunit_id: '', // 管控单元
   target_version: [] as TargetVersion[],
-  proxy_install_origin: [],
+  proxy_install_origin: [] as string[],
   relay_download_port: '28303',
   relay_callback_port: '28302',
 });
@@ -791,6 +811,13 @@ const isShowPreview = ref(false);
 const previewData = ref<any>({});
 const proxy_tags = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'data_tunnel'];
 const handleConfirm = async () => {
+  if (!prefillReady.value) return;
+  if (props.installPrefill && (!form.method || !form.bk_biz_id || !form.bk_networkarea_id
+    || !form.bk_networkunit_id || (form.method !== 'offline' && !form.proxy_install_origin.length)
+    || !systemData.value.length || systemData.value.some(item => !item.version))) {
+    Message({ theme: 'warning', message: t('historyInstall.review') });
+    return;
+  }
   const result = await Promise.all([
     formRef.value?.validate().catch(() => false),
     installTableRef.value?.tableValidate(),
@@ -824,6 +851,9 @@ const handleConfirm = async () => {
         // 如果没有输入值，直接赋值
         item[targetKey] = item.credit;
       }
+      if (props.installPrefill) {
+        item.proxy_tags = item.proxy_tags.filter(tag => !proxy_tags.includes(tag));
+      }
       Object.keys(item).forEach((key: string) => {
         if (proxy_tags.includes(key) && item[key] && !item.proxy_tags?.includes(key)) {
           item.proxy_tags?.push(key);
@@ -831,7 +861,7 @@ const handleConfirm = async () => {
       });
       delete item.credit;
     }
-    if (isTargetShow.value) {
+    if (isTargetShow.value || props.installPrefill) {
       form.target_version = systemData.value
         .filter((item: any) => !!item.version)
         .map((item: any) => ({
@@ -996,7 +1026,53 @@ const getVersions = async () => {
       });
     }
   });
+  availableVersions.value = res.items.filter(item => item.enabled);
   systemData.value = systemData.value.filter(item => !!osMap[item.os]?.enableVersions.length);
+};
+
+const applyHistoricalPrefill = async () => {
+  if (!props.installPrefill) return;
+  applyingPrefill.value = true;
+  try {
+    const { items } = props.installPrefill;
+    form.method = historicalInstallMode(items);
+    mainStore.updateProxySetupType(form.method);
+    const bizId = commonInstallValue(items.map(item => item.host.bk_biz_id));
+    form.bk_biz_id = mainStore.businessList.some(biz => biz.bk_biz_id === bizId) ? String(bizId) : '';
+    const areaId = commonInstallValue(items.map(item => item.host.bk_networkarea_id));
+    await topoStore.handleFetchTopoWorkareaList();
+    const area = topoStore.allWorkareaList.find(item => item.bk_networkarea_id === areaId
+      && item.bk_networkarea_id !== Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID));
+    form.bk_networkarea_id = area ? String(areaId) : '';
+    form.bk_networkarea_name = area?.bk_networkarea_name ?? '';
+    await nextTick();
+    await getNetworkUnitList();
+    const unitId = commonInstallValue(items.map(item => item.host.bk_networkunit_id));
+    const unit = area && areaUnitlist.value.find(item => item.bk_networkunit_id === unitId && !item.is_direct);
+    form.bk_networkunit_id = unit ? String(unitId) : '';
+    await nextTick();
+    if (unit) currentUnitDetail.value = await topoStore.handleFetchNetworkUnitDetail(unit.bk_networkunit_id);
+    const originId = commonInstallValue(items.map(item => item.host.proxy_install_origin_unit_id));
+    const origin = areaUnitlist.value.find(item => item.bk_networkunit_id === originId);
+    form.proxy_install_origin = origin ? ['custom', String(originId)] : [];
+    const downloadPort = commonInstallValue(items.map(item => item.host.relay_download_port));
+    const callbackPort = commonInstallValue(items.map(item => item.host.relay_callback_port));
+    form.relay_download_port = downloadPort ? String(downloadPort) : '';
+    form.relay_callback_port = callbackPort ? String(callbackPort) : '';
+    form.info = historicalInstallRows(items, true).map(row => ({ ...cloneDeep(initData), ...row }));
+    settings.checked = [...new Set([...settings.checked, 'install_method'])];
+    systemData.value = historicalInstallVersions(items, availableVersions.value).map((item) => {
+      const [osType, ...arch] = item.os.split('_');
+      return { ...item, displayName: item.os.replace('_', '/'), os_type: osType, cpu_arch: arch.join('_') };
+    });
+    isTargetShow.value = true;
+    prefillNeedsReview.value = !form.bk_biz_id || !area || !unit || !origin || !form.method
+      || !downloadPort || !callbackPort || systemData.value.some(item => !item.version)
+      || items.some(item => item.missing_fields.length > 0);
+    prefillReady.value = true;
+  } finally {
+    applyingPrefill.value = false;
+  }
 };
 
 watch(() => isShow.value, async () => {
@@ -1020,6 +1096,8 @@ watch(() => isShow.value, async () => {
     if (props.bk_networkunit_id) {
       await setDefaultInstallOrigin();
     }
+    await nextTick();
+    await applyHistoricalPrefill();
   } else {
     formRef.value?.clearValidate();
     // 重置数据
@@ -1035,10 +1113,11 @@ watch(() => isShow.value, async () => {
       proxy_install_origin: [],
     });
   }
-});
+}, { immediate: !!props.installPrefill });
 watch(
   () => form.bk_networkarea_id,
   async () => {
+    if (applyingPrefill.value) return;
     form.bk_networkunit_id = '';
     await getNetworkUnitList();
   },
@@ -1058,7 +1137,7 @@ watch(
 watch(
   () => form.bk_networkunit_id,
   async (newVal) => {
-    if (newVal) {
+    if (newVal && !applyingPrefill.value) {
       // 先拉取单元详情获取 links（上游单元信息），再设置安装源默认值
       const detail = await topoStore.handleFetchNetworkUnitDetail(Number(newVal));
       currentUnitDetail.value = detail ?? null;

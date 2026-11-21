@@ -810,6 +810,11 @@ authenticationType:
 dialog:
   confirmClose: Confirm close?
   confirmSwitchType: Switching type will clear uploaded data. Continue?
+historyInstall:
+  copy: Recreate
+  notice: History is not a complete installation snapshot. Only recoverable parameters and authentication modes are copied, never passwords or keys. Historical IPv6 addresses, connection methods and target versions may be missing. Review and complete them before installing.
+  review: Conflicting, missing or unavailable shared parameters have been cleared. Select the installation mode, business, area, unit, installation source, ports or versions again. They will not be replaced with defaults.
+  unavailable: 'Historical deployment parameters for {count} hosts could not be recovered. These hosts were not added to the installation form.'
 taskDetail:
   searchPlaceholder: Select IP, Network Area, Business, Target Version, Status
   batchRetry: Batch Retry
