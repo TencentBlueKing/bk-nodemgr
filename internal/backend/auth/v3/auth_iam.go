@@ -46,6 +46,7 @@ func NewProviderHandler(topoStorage topo.IStorage, releaseStorage file.IPkgRelea
 	handler.RegisterProvider(providerV3.ResourceTypeNetworkArea, providerV3.NewNetworkAreaProvider(topoStorage))
 	handler.RegisterProvider(providerV3.ResourceTypeNetworkUnit, providerV3.NewNetworkUnitProvider(topoStorage))
 	handler.RegisterProvider(providerV3.ResourceTypePackageType, providerV3.NewPackageTypeProvider())
+	handler.RegisterProvider(providerV3.ResourceTypePlatformResource, providerV3.NewPlatformResourceProvider())
 	handler.RegisterProvider(providerV3.ResourceTypePackage, providerV3.NewPackageProvider(releaseStorage))
 
 	return handler
@@ -60,12 +61,13 @@ const (
 // Canonical ordering constants for related_resource_types in IAM apply requests.
 // Order must match action registration in support-files/bkiamv3/templates/0003_bk_nodemgr_actions.json.tpl.
 const (
-	iamOrderBiz         = 0
-	iamOrderNetworkArea = 1
-	iamOrderNetworkUnit = 2
-	iamOrderPackageType = 3
-	iamOrderPackage     = 4
-	iamOrderUnknown     = 5
+	iamOrderBiz              = 0
+	iamOrderNetworkArea      = 1
+	iamOrderNetworkUnit      = 2
+	iamOrderPackageType      = 3
+	iamOrderPackage          = 4
+	iamOrderPlatformResource = 5
+	iamOrderUnknown          = 6
 )
 
 // iamResourceTypeOrderKey returns the canonical ordering index for a (systemID, resourceType) pair.
@@ -82,6 +84,8 @@ func iamResourceTypeOrderKey(systemID, typ string) int {
 		return iamOrderPackageType
 	case types.SystemIDNodeMgr + iamTypeKeySep + string(types.AuthResourceTypePackage):
 		return iamOrderPackage
+	case types.SystemIDNodeMgr + iamTypeKeySep + string(types.AuthResourceTypePlatformResource):
+		return iamOrderPlatformResource
 	default:
 		return iamOrderUnknown
 	}

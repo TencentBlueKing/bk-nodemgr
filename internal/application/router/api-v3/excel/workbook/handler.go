@@ -16,14 +16,29 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
+// Package workbook renders and parses column-oriented Excel templates with a
+// three-row header and drop-down validations; rendered copy is zh-CN.
 package workbook
 
 import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 )
+
+// Column describes one template column.
+type Column struct {
+	// Name is the header title (row 1).
+	Name string
+	// Required marks the column as required.
+	Required bool
+	// Description is the filling guidance.
+	Description string
+	// Options lists drop-down choices; empty means free text.
+	Options []string
+	// AllowCustom allows values outside Options.
+	AllowCustom bool
+}
 
 // TypedColumn binds one template column to row type T.
 type TypedColumn[T any] struct {
@@ -44,15 +59,22 @@ type IndexedRow[T any] struct {
 	Err error
 }
 
-// Template renders and parses a sheet with typed columns.
-type Template[T any] struct {
+// IHandler renders and parses a template with typed rows.
+type IHandler[T any] interface {
+	// Write renders the template with the given data rows.
+	Write(out io.Writer, rows []T) error
+	// ParseIndexed reads typed data rows with their Excel row numbers and row-level errors.
+	ParseIndexed(r io.Reader) ([]IndexedRow[T], error)
+}
+
+type template[T any] struct {
 	sheet   string
 	columns []TypedColumn[T]
 	meta    []Column
 }
 
-// NewTemplate creates a typed template.
-func NewTemplate[T any](sheet string, columns []TypedColumn[T]) (*Template[T], error) {
+// NewTemplate creates a handler for the given sheet and typed columns.
+func NewTemplate[T any](sheet string, columns []TypedColumn[T]) (IHandler[T], error) {
 	if len(columns) == 0 {
 		return nil, errors.New("excel columns can not be empty")
 	}
@@ -72,67 +94,5 @@ func NewTemplate[T any](sheet string, columns []TypedColumn[T]) (*Template[T], e
 		meta[idx] = col.Column
 	}
 
-	return &Template[T]{sheet: sheet, columns: copied, meta: meta}, nil
-}
-
-// Write renders the template with the given data rows.
-func (tmpl *Template[T]) Write(out io.Writer, rows []T) error {
-	cells := make([][]any, len(rows))
-	for rowIdx := range rows {
-		row := make([]any, len(tmpl.columns))
-		for colIdx, col := range tmpl.columns {
-			row[colIdx] = col.ValueOf(&rows[rowIdx])
-		}
-		cells[rowIdx] = row
-	}
-
-	return WriteTemplate(out, tmpl.sheet, tmpl.meta, cells)
-}
-
-// ParseIndexed reads typed data rows with their Excel row numbers. Row-level
-// parse errors are stored on IndexedRow.Err instead of failing the whole read.
-func (tmpl *Template[T]) ParseIndexed(r io.Reader) ([]IndexedRow[T], error) {
-	dataRows, err := ParseRows(r, tmpl.sheet, tmpl.meta)
-	if err != nil {
-		return nil, err
-	}
-
-	rows := make([]IndexedRow[T], 0, len(dataRows))
-	for rowIdx, cells := range dataRows {
-		empty := true
-		for _, cell := range cells {
-			if strings.TrimSpace(cell) != "" {
-				empty = false
-				break
-			}
-		}
-		if empty {
-			continue
-		}
-
-		var row T
-		rowErr := tmpl.parseRow(&row, cells)
-		rows = append(rows, IndexedRow[T]{RowIndex: rowIdx + dataStartRow, Value: row, Err: rowErr})
-	}
-
-	return rows, nil
-}
-
-// parseRow fills one data row, stopping at the first missing required column
-// or column parse failure.
-func (tmpl *Template[T]) parseRow(row *T, cells []string) error {
-	for colIdx, col := range tmpl.columns {
-		value := ""
-		if colIdx < len(cells) {
-			value = cells[colIdx]
-		}
-		if col.Required && strings.TrimSpace(value) == "" {
-			return fmt.Errorf("column %q is required", col.Name)
-		}
-		if err := col.Parse(row, value); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return &template[T]{sheet: sheet, columns: copied, meta: meta}, nil
 }
