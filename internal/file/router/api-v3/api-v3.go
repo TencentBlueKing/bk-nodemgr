@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/event"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/export"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/info"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/pluginrequirement"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/transfer"
@@ -67,6 +68,7 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	event.Load(h.rg, capability)
 	export.Load(h.rg, capability)
 	info.Load(h.rg, capability)
+	pluginrequirement.Load(h.rg, capability)
 	publish.Load(h.rg, capability)
 	release.Load(h.rg, capability)
 	transfer.Load(h.rg, capability)
