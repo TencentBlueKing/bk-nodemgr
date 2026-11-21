@@ -14,7 +14,7 @@
 |Where to look:backend proxy client:pkg/thirdparty/backend/:backend.IHandler proxies to backend service
 |Where to look:file proxy client:pkg/thirdparty/file/:file.IHandler proxies to file service
 |Where to look:frontend settings:internal/application/frontsetting/:IFrontSetting for index.html template vars
-|Where to look:Excel workbook render/parse:api-v3/excel/workbook/:workbook.go,typed_template.go,layout.go,dropdown.go|layout contract:README.md
+|Where to look:Excel workbook render/parse:api-v3/excel/workbook/:handler.go,write.go,parse.go,layout.go,dropdown.go,constants.go|layout contract:README.md
 |Conventions:BFF proxy pattern=application router does NOT access storage/DAO directly|always proxy to backend/file via pkg/thirdparty HTTP clients
 |Conventions:handler structure=type handler{rg *gin.RouterGroup, backendHandler backend.IHandler, fileHandler file.IHandler}
 |Conventions:handler flow=proto request→BindJSON→ConvertToTypes→backendHandler.SomeMethod(rCtx,...)→ConvertFromTypes→proto response

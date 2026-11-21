@@ -46,6 +46,18 @@ func allPackageTypes() []types.ReleaseType {
 	}
 }
 
+// platformResourceDisplayNames maps platform capabilities to their display names.
+func platformResourceDisplayNames() map[types.PlatformResource]string {
+	return map[types.PlatformResource]string{
+		types.PlatformResourceSchedulerWorkflow: "定时任务调度",
+	}
+}
+
+// allPlatformResources returns the ordered platform capabilities.
+func allPlatformResources() []types.PlatformResource {
+	return []types.PlatformResource{types.PlatformResourceSchedulerWorkflow}
+}
+
 // IAM special attribute keys for resource instance info.
 const (
 	// AttrID represents the resource id.

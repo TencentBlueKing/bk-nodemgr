@@ -6,7 +6,7 @@
 
 - 渲染模板：三行表头、列宽与行高、表头样式、下拉校验
 - 解析回读：校验表头与必填标注行后，按列顺序返回数据行
-- 类型化模板：`Template[T]` 把列定义绑定到行类型，渲染与解析分别调用 `ValueOf`、`Parse`
+- 类型化模板：`TypedColumn[T]` 把列定义绑定到行类型，渲染与解析分别调用 `ValueOf`、`Parse`
 
 ## 非职责
 
@@ -50,18 +50,8 @@
 
 ## 用法
 
-```go
-columns := []workbook.Column{
-	{Name: "名称", Required: true, Description: "示例说明。"},
-	{Name: "类型", Required: false, Description: "可选列示例。", Options: []string{"a", "b"}},
-}
-
-// 渲染
-err := workbook.WriteTemplate(out, "sheet", columns, rows)
-
-// 解析
-rows, err := workbook.ParseRows(file, "sheet", columns)
-```
+Pass the sheet name and `[]workbook.TypedColumn[T]` to `workbook.NewTemplate`. Use the returned
+`workbook.IHandler[T]` to write `[]T` with `Write` or read `[]workbook.IndexedRow[T]` with `ParseIndexed`.
 
 ## 放置约束
 

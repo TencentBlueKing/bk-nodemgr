@@ -20,6 +20,7 @@
 package schedule
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -29,6 +30,7 @@ import (
 type handler struct {
 	rg              *gin.RouterGroup
 	storageWorkflow workflow.IStorage
+	authorizer      auth.IAuthorizer
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -36,6 +38,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:              rg.Group("/schedule"),
 		storageWorkflow: capability.StorageWorkflow,
+		authorizer:      capability.Authorizer,
 	}
 }
 
