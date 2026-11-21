@@ -34,6 +34,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageexport"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/pluginrequirement"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -73,6 +74,7 @@ type IManager interface {
 	IPluginV2
 	IExternalPluginV2
 	IPluginV3
+	IPluginRequirement
 	IExport
 	IPackageEvent
 	ICleanup
@@ -185,6 +187,13 @@ func WithUpstreamOriginPluginV3FileGroup(fileGroup fileiface.FileGroup) OptionFn
 	}
 }
 
+// WithUpstreamPluginRequirementFileGroup sets the plugin requirement file group.
+func WithUpstreamPluginRequirementFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamPluginRequirement = fileGroup
+	}
+}
+
 // WithUpstreamOriginCertFileGroup sets the upstream file group.
 func WithUpstreamOriginCertFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
@@ -282,6 +291,13 @@ func WithInstallerFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 func WithFileCache(fc filecache.IFileCache) OptionFn {
 	return func(manager *Manager) {
 		manager.fileCache = fc
+	}
+}
+
+// WithStoragePluginRequirement sets the storage for dependency file records.
+func WithStoragePluginRequirement(storage pluginrequirement.IStorage) OptionFn {
+	return func(manager *Manager) {
+		manager.storagePluginRequirement = storage
 	}
 }
 
@@ -391,6 +407,7 @@ type Manager struct {
 	upstreamOriginPluginV2         fileiface.FileGroup
 	upstreamOriginExternalPluginV2 fileiface.FileGroup
 	upstreamOriginPluginV3         fileiface.FileGroup
+	upstreamPluginRequirement      fileiface.FileGroup
 	upstreamReleaseAgent           fileiface.FileGroup
 	upstreamReleaseProxy           fileiface.FileGroup
 	upstreamReleaseCert            fileiface.FileGroup
@@ -436,12 +453,13 @@ type Manager struct {
 	downloader downloader.IHandler
 
 	// storages.
-	storageUpload        upload.IStorage
-	storageRelease       release.IStorage
-	storageTopo          topo.IStorage
-	storageEvent         packageevent.IStorage
-	storagePackageExport packageexport.IStorage
-	goAsyncPool          goasync.IHandler
+	storagePluginRequirement pluginrequirement.IStorage
+	storageUpload            upload.IStorage
+	storageRelease           release.IStorage
+	storageTopo              topo.IStorage
+	storageEvent             packageevent.IStorage
+	storagePackageExport     packageexport.IStorage
+	goAsyncPool              goasync.IHandler
 }
 
 // Start starts the manager.
@@ -483,6 +501,10 @@ func (m *Manager) Start(ctx context.Context) error {
 		return errors.New("invalid upstream origin plugin v3")
 	}
 
+	if m.upstreamPluginRequirement == nil {
+		return errors.New("invalid upstream plugin requirement")
+	}
+
 	if m.upstreamReleaseAgent == nil {
 		return errors.New("invalid upstream release agent")
 	}
@@ -509,6 +531,10 @@ func (m *Manager) Start(ctx context.Context) error {
 
 	if m.upstreamExport == nil {
 		return errors.New("invalid upstream export")
+	}
+
+	if m.storagePluginRequirement == nil {
+		return errors.New("invalid plugin requirement storage")
 	}
 
 	if m.storageUpload == nil {

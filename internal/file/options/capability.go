@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageexport"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/pluginrequirement"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -49,6 +50,9 @@ type Capability struct {
 
 	// BKRepo provides bkrepo handler.
 	BKRepo bkrepo.IHandler
+
+	// StoragePluginRequirement provides dependency file record storage.
+	StoragePluginRequirement pluginrequirement.IStorage
 
 	// StorageUpload provides storage upload handler.
 	StorageUpload upload.IStorage
@@ -79,6 +83,10 @@ type Capability struct {
 // nolint: varnamelen
 func (c *Capability) Start(nCtx contextx.IContext) error {
 	if err := c.DiscoverProvider.Start(nCtx); err != nil {
+		return err
+	}
+
+	if err := c.StoragePluginRequirement.Start(nCtx); err != nil {
 		return err
 	}
 
