@@ -149,3 +149,11 @@ func textDisplayWidth(value string) int {
 
 	return width
 }
+
+func requiredLabel(required bool) string {
+	if required {
+		return labelRequired
+	}
+
+	return labelOptional
+}

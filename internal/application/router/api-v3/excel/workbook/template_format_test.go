@@ -38,7 +38,7 @@ func testColumns() []Column {
 func renderTemplate(t *testing.T, columns []Column, samples [][]any) []byte {
 	t.Helper()
 	buf := new(bytes.Buffer)
-	if err := WriteTemplate(buf, "test_sheet", columns, samples); err != nil {
+	if err := writeTemplate(buf, "test_sheet", columns, samples); err != nil {
 		t.Fatalf("writeTemplate failed: %v", err)
 	}
 	return buf.Bytes()
@@ -52,7 +52,7 @@ func TestWriteTemplateAndParseRowsRoundTrip(t *testing.T) {
 	}
 	data := renderTemplate(t, columns, samples)
 
-	rows, err := ParseRows(bytes.NewReader(data), "test_sheet", columns)
+	rows, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
 	if err != nil {
 		t.Fatalf("parseRows failed: %v", err)
 	}
@@ -142,7 +142,7 @@ func TestWriteTemplateLongOptionsUseHiddenSheet(t *testing.T) {
 		t.Fatal("options sheet should be hidden")
 	}
 
-	rows, err := ParseRows(bytes.NewReader(data), "test_sheet", columns)
+	rows, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
 	if err != nil {
 		t.Fatalf("parseRows failed: %v", err)
 	}
@@ -231,7 +231,7 @@ func TestParseRowsRejectsLegacyLayout(t *testing.T) {
 	}
 	_ = f.Close()
 
-	_, err := ParseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
+	_, err := parseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
 	requireErrorContaining(t, err, "outdated excel template layout", "legacy layout should be rejected")
 }
 
@@ -252,7 +252,7 @@ func TestParseRowsRejectsModifiedHeader(t *testing.T) {
 	}
 	_ = f.Close()
 
-	_, err = ParseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
+	_, err = parseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
 	requireErrorContaining(t, err, "invalid excel template header", "modified header should be rejected")
 }
 
@@ -260,7 +260,7 @@ func TestParseRowsNoData(t *testing.T) {
 	columns := testColumns()
 	data := renderTemplate(t, columns, nil)
 
-	_, err := ParseRows(bytes.NewReader(data), "test_sheet", columns)
+	_, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
 	requireErrorContaining(t, err, "no data found", "empty template should report no data")
 }
 
