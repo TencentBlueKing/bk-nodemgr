@@ -292,10 +292,11 @@ func (h *handler) DeleteMany(nCtx contextx.IContext, accessPointIDs ...int64) er
 
 func convertAccessPointFromTypes(accessPoint *types.AccessPoint) *AccessPoint {
 	return &AccessPoint{
-		TenantID:        accessPoint.TenantID,
-		AccessPointID:   accessPoint.ID,
-		AccessPointName: accessPoint.Name,
-		NetworkAreaID:   accessPoint.NetworkAreaID,
+		TenantID:                 accessPoint.TenantID,
+		AccessPointID:            accessPoint.ID,
+		AccessPointName:          accessPoint.Name,
+		NetworkAreaID:            accessPoint.NetworkAreaID,
+		CloudSecurityGroupPoolID: accessPoint.CloudSecurityGroupPoolID,
 		Endpoints: &Endpoints{
 			Cluster: accessPoint.Endpoints.Cluster,
 			File:    accessPoint.Endpoints.File,
@@ -314,10 +315,11 @@ func convertAccessPointToTypes(accessPoint *AccessPoint) *types.AccessPoint {
 	}
 
 	return &types.AccessPoint{
-		ID:            accessPoint.AccessPointID,
-		Name:          accessPoint.AccessPointName,
-		TenantID:      accessPoint.TenantID,
-		NetworkAreaID: accessPoint.NetworkAreaID,
-		Endpoints:     endpoints,
+		ID:                       accessPoint.AccessPointID,
+		Name:                     accessPoint.AccessPointName,
+		TenantID:                 accessPoint.TenantID,
+		NetworkAreaID:            accessPoint.NetworkAreaID,
+		Endpoints:                endpoints,
+		CloudSecurityGroupPoolID: accessPoint.CloudSecurityGroupPoolID,
 	}
 }

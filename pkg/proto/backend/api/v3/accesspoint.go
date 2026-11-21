@@ -129,16 +129,19 @@ func convertAccessPointFromTypes(accessPoint *types.AccessPoint) *AccessPoint {
 		File:    accessPoint.Endpoints.File,
 		Data:    accessPoint.Endpoints.Data,
 	}
+	data.CloudSecurityGroupPoolId = new(string)
+	*data.CloudSecurityGroupPoolId = accessPoint.CloudSecurityGroupPoolID
 
 	return data
 }
 
 func convertAccessPointToTypes(accessPoint *AccessPoint) *types.AccessPoint {
 	data := &types.AccessPoint{
-		TenantID:      accessPoint.GetTenantId(),
-		NetworkAreaID: accessPoint.GetBkNetworkareaId(),
-		ID:            accessPoint.GetAccesspointId(),
-		Name:          accessPoint.GetAccesspointName(),
+		TenantID:                 accessPoint.GetTenantId(),
+		NetworkAreaID:            accessPoint.GetBkNetworkareaId(),
+		ID:                       accessPoint.GetAccesspointId(),
+		Name:                     accessPoint.GetAccesspointName(),
+		CloudSecurityGroupPoolID: accessPoint.GetCloudSecurityGroupPoolId(),
 	}
 
 	if endpoints := accessPoint.GetEndpoints(); endpoints != nil {

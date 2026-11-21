@@ -38,6 +38,7 @@ const { t } = useI18n();
 const initData: Omit<AccessPoint, 'accesspoint_id' | 'tenant_id'> = {
   accesspoint_name: '',
   bk_networkarea_id: 0,
+  cloud_security_group_pool_id: '',
   endpoints: {
     cluster: [''],
     file: [''],
