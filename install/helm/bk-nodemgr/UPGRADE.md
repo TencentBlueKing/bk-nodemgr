@@ -1,6 +1,6 @@
 # Helm Chart 升级指南
 
-本文面向升级已有 bk-nodemgr Helm 部署的运维人员，集中说明需要人工处理的 values 和部署行为变化。首次安装及当前参数说明见 [Chart README](README.md)。
+本文面向升级已有 bk-nodemgr Helm 部署的运维人员，说明升级流程、回滚边界及需要人工处理的 values 和部署行为变化。首次安装见 [安装指南](INSTALL.md)，当前参数说明见 [配置参考](CONFIGURATION.md)，文档入口见 [Chart README](README.md)。
 
 ## 如何使用本指南
 
@@ -17,12 +17,12 @@
 
 - map 递归合并，列表整体替换。覆盖 `apigwSync.extraEnvVars`、`apigwSync.config.stages` 或 `backend.config.gseDeployConfs` 等列表时，需要保留全部所需条目；列表项不会按 `name` 自动合并，也不会自动获得目标版本新增的默认条目。
 - 默认值变化也可能改变未显式配置的环境。需要保留旧行为时，按对应版本说明显式配置，不要直接把全部旧默认值复制进环境文件。
-- `--reuse-values` 不是配置迁移工具，可能继续保留旧默认值和废弃字段。README 的升级命令使用 `--reset-values -f values-env.yaml`，以目标 Chart 默认值加完整环境覆盖为准；遗漏的环境覆盖不会从旧 release 自动恢复。
+- `--reuse-values` 不是配置迁移工具，可能继续保留旧默认值和废弃字段。本指南的升级命令使用 `--reset-values -f values-env.yaml`，以目标 Chart 默认值加完整环境覆盖为准；遗漏的环境覆盖不会从旧 release 自动恢复。
 - Helmfile 的 `env.yaml` 不是原生 Chart values。使用 Helmfile 部署时，按 [Helmfile 配置入口与 overrides 边界](https://github.com/TencentBlueKing/bk-nodemgr/blob/master/install/helmfile/bk-nodemgr/README.md) 更新配置，并检查各 release 的渲染结果；不要将原生 Helm 的覆盖文件直接当作 Helmfile environment 使用。
 
 ### 检查最终资源与外部副作用
 
-以下命令中的 `<namespace>`、`<target-chart-version>` 和 `<source-chart-version>` 均需替换为实际值；release 名称不是 `bk-nodemgr` 时也需相应替换。`bk` 为 README 中已添加的 Chart 仓库。
+以下命令中的 `<namespace>`、`<target-chart-version>` 和 `<source-chart-version>` 均需替换为实际值；release 名称不是 `bk-nodemgr` 时也需相应替换。`bk` 为按 [安装指南](INSTALL.md#安装-chart) 添加的 Chart 仓库别名。
 
 ```shell
 # 保存当前 release 的用户覆盖、资源清单和历史，供核对与回退使用。
@@ -46,13 +46,31 @@ helm template bk-nodemgr ./chart-target/bk-nodemgr -n <namespace> -f values-env.
 
 执行升级前，备份 MongoDB 等持久化数据及当前部署配置，确认恢复方式，并检查目标版本的数据库迁移、IAM 和 APIGateway 同步等 Hook 副作用。升级后检查 Pod、Service、Hook Job 的状态及日志，并通过实际访问入口验证登录和业务操作、核对外部平台同步结果；不能仅以 Pod 就绪或 Helm 命令成功判断升级完成。
 
-需要回退时，先评估目标版本写入的数据和外部变更是否兼容旧版本，再按 `helm history` 选定 revision：
+### 执行升级与验证
+
+完成上述检查、版本迁移及备份后，再升级已有的 `bk-nodemgr` release。以下命令以 namespace 为 `bk-nodemgr` 为例，需替换为实际值：
 
 ```shell
-helm rollback bk-nodemgr <revision> -n <namespace>
+helm history bk-nodemgr --namespace bk-nodemgr
+helm upgrade bk-nodemgr bk/bk-nodemgr \
+  --version <TARGET_CHART_VERSION> \
+  --namespace bk-nodemgr --reset-values \
+  -f values-env.yaml --wait --timeout 15m
 ```
 
-Helm rollback 不会恢复数据库、宿主机文件或撤销 APIGateway/IAM 等外部平台变更；这些内容需按各自备份和恢复流程处理。
+请替换目标 Chart 版本及环境文件路径；使用其他 release 名称时也需相应替换。`values-env.yaml` 必须包含当前环境的全部必要覆盖，遗漏的配置不会从旧 release 自动恢复。
+
+升级会再次执行已启用的 APIGateway/IAM 同步 Job；`initPackages.installOnly=false` 时还会重新导入并设置包默认版本。执行前确认这些副作用符合预期，升级后重复 [初始化与安装后验证](INSTALL.md#初始化与安装后验证) 的检查。不要通过 `--no-hooks` 跳过业务所需同步来掩盖失败。
+
+### 回滚边界
+
+需要回退时，先确认旧版本能够读取当前数据、密钥及外部平台配置，再按 `helm history` 选定 revision。以下命令中的 namespace 和 revision 均需替换：
+
+```shell
+helm rollback bk-nodemgr <REVISION> --namespace bk-nodemgr --wait --timeout 15m
+```
+
+**Helm rollback 不是数据恢复**：不会撤销 MongoDB/BKRepo 的数据变化、包默认版本、网关或 IAM 已完成的变更，也不会恢复宿主机目录。即使使用自动回滚选项，也需单独处置外部副作用；不满足数据兼容条件时按相应版本的恢复方案操作。
 
 ## v3.0.1-alpha.114
 
@@ -60,11 +78,11 @@ Helm rollback 不会恢复数据库、宿主机文件或撤销 APIGateway/IAM �
 
 **影响范围：** 从 `v3.0.1-alpha.113` 升级、使用 `authType: bk_token` 的单租户环境。新增 `application.config.bkSaaS.bkLogin.useLegacyAPI`，默认值为 `false`；旧版按租户模式选择登录接口，新版改为显式选择。
 
-| 环境 | 升级前 | 升级后默认行为 | 需要的操作 |
-| --- | --- | --- | --- |
-| 单租户，`authType: bk_token` | `/accounts/get_user/` | `/open/bk-tokens/userinfo/` | 平台仍依赖旧接口时显式设置 `useLegacyAPI: true`；使用新接口时补齐网关配置与权限 |
-| 多租户，`authType: bk_token` | `/open/bk-tokens/userinfo/` | 不变 | 保持 `useLegacyAPI: false`，不支持旧接口兼容模式 |
-| `authType: bk_ticket` | 原有票据认证接口 | 不变 | 无需因本项调整 |
+| 环境                         | 升级前                      | 升级后默认行为              | 需要的操作                                                                      |
+| ---------------------------- | --------------------------- | --------------------------- | ------------------------------------------------------------------------------- |
+| 单租户，`authType: bk_token` | `/accounts/get_user/`       | `/open/bk-tokens/userinfo/` | 平台仍依赖旧接口时显式设置 `useLegacyAPI: true`；使用新接口时补齐网关配置与权限 |
+| 多租户，`authType: bk_token` | `/open/bk-tokens/userinfo/` | 不变                        | 保持 `useLegacyAPI: false`，不支持旧接口兼容模式                                |
+| `authType: bk_ticket`        | 原有票据认证接口            | 不变                        | 无需因本项调整                                                                  |
 
 仍使用旧登录接口的单租户环境，将以下片段合入完整环境覆盖：
 
