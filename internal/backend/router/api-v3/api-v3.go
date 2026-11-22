@@ -71,6 +71,7 @@ func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, mi
 	topo.Load(h.rg, capability)
 	pkg.Load(h.rg, capability)
 	schedule.Load(h.rg, capability)
+	globalsettings.Load(h.rg, capability)
 	policy.Load(h.rg, capability)
 	process.Load(h.rg, capability)
 	deploypolicy.Load(h.rg, capability)
@@ -89,7 +90,7 @@ func LoadBasicOpenAPIs(rg *gin.RouterGroup, capability *options.Capability, midd
 	h.rg.Use(h.middlewareSystemAccess)
 
 	schedule.LoadOpen(h.rg, capability)
-	globalsettings.LoadOpen(h.rg, capability)
+	globalsettings.Load(h.rg, capability)
 	node.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)
 	topo.Load(h.rg, capability)

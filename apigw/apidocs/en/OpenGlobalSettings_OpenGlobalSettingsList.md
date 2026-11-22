@@ -3,6 +3,7 @@
 - API Version: v3.0.1-alpha.116+.
 - Required Permissions: Both system_access (System Access) and platform_manage (Platform Management). The platform resource type is `platform_resource`, and the resource ID is `global_settings` (Global Settings), independently authorized from `scheduler_workflow` (Scheduled Workflow Management).
 - Function: Query global settings stored in the database as an authenticated user, including custom settings, with pagination, name filters, and count-only queries.
+- This is the user-state entrypoint for the [application-state settings list](GlobalSettings_ListGlobalSettings.md), sharing its query handler, condition conversion, and permission checks.
 - Calls require API Gateway application authorization and user authentication. User identity comes from the trusted request context established by gateway authentication, not the request body.
 - Settings are globally shared across tenants, not isolated to the current tenant. Values are returned as raw strings without redaction and may contain sensitive custom data. Callers should restrict access, logging, and forwarding of the results.
 

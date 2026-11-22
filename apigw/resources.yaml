@@ -41702,3 +41702,197 @@ paths:
         descriptionEn: Query all stored globally shared settings, including custom settings and potentially sensitive raw values. Requires
           system_access and platform_manage on platform_resource/global_settings. Does not return service startup configuration, supply
           defaults, verify effective runtime values, or modify settings.
+  /api/v3/globalsettings/list:
+    post:
+      operationId: GlobalSettings_ListGlobalSettings
+      tags:
+      - GlobalSettings
+      description: 查询全局共享的已存储配置及原始值，包含自定义项；支持分页和仅计数。
+      responses:
+        '200':
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            setting_name:
+                              type: string
+                            value:
+                              type: string
+                          description: GlobalSetting describes a global setting.
+                description: 'ListGlobalSettingsResp describes the HTTP response body
+                  when list global
+
+                  settings.'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
+                exact_exclude_conditions:
+                  type: object
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
+                fuzzy_exclude_conditions:
+                  type: object
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
+              description: 'ListGlobalSettingsReq describes the HTTP request body when
+                list global
+
+                settings.'
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/globalsettings/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query stored globally shared settings through application-state
+          authentication, including custom settings and potentially sensitive raw values.
+          Requires system_access and platform_manage on platform_resource/global_settings.
+          Read only; no defaults or effective runtime values.

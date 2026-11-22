@@ -95,6 +95,18 @@ message DeleteGlobalSettingsResp {
   Data data = 5;
 }
 
+// 应用态的全局配置只读查询接口。
+service GlobalSettings {
+  // 查询全局共享的已存储配置及原始值，包含自定义项；支持分页和仅计数。
+  rpc ListGlobalSettings(ListGlobalSettingsReq)
+      returns (ListGlobalSettingsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/globalsettings/list"
+      body : "*"
+    };
+  }
+}
+
 // 筛选全局共享的已存储配置，包含自定义配置项。
 message OpenGlobalSettingsListReq {
   // 分页条件；非计数查询时 limit 必须为 1 到 500。

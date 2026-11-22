@@ -6,6 +6,9 @@
   },
   "tags": [
     {
+      "name": "GlobalSettings"
+    },
+    {
       "name": "OpenGlobalSettings"
     }
   ],
@@ -16,6 +19,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/globalsettings/list": {
+      "post": {
+        "summary": "查询全局共享的已存储配置及原始值，包含自定义项；支持分页和仅计数。",
+        "operationId": "GlobalSettings_ListGlobalSettings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ListGlobalSettingsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ListGlobalSettingsReq describes the HTTP request body when list global\nsettings.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ListGlobalSettingsReq"
+            }
+          }
+        ],
+        "tags": [
+          "GlobalSettings"
+        ]
+      }
+    },
     "/api/v3/open/globalsettings/list": {
       "post": {
         "summary": "查询全局共享的已存储配置及原始值，包含自定义项；支持分页和仅计数。",
@@ -159,6 +196,55 @@
         }
       },
       "description": "GlobalSetting describes a global setting."
+    },
+    "v3ListGlobalSettingsReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/ListGlobalSettingsReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/ListGlobalSettingsReqFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/ListGlobalSettingsReqExactConditions"
+        },
+        "fuzzy_exclude_conditions": {
+          "$ref": "#/definitions/ListGlobalSettingsReqFuzzyConditions"
+        }
+      },
+      "description": "ListGlobalSettingsReq describes the HTTP request body when list global\nsettings."
+    },
+    "v3ListGlobalSettingsResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ListGlobalSettingsRespData"
+        }
+      },
+      "description": "ListGlobalSettingsResp describes the HTTP response body when list global\nsettings."
     },
     "v3ListGlobalSettingsRespData": {
       "type": "object",

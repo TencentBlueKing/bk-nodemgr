@@ -275,7 +275,9 @@ apigwSync:
 `enabled`、`interval` 是长期调度配置，不表示执行完成；派发实例成功也不代表子任务成功。
 查询仅覆盖当前触发器关联且尚未清理的任务链，不是完整历史归档。
 
-全局配置接口见[配置列表](../../apigw/apidocs/zh/OpenGlobalSettings_OpenGlobalSettingsList.md)。
+全局配置以[应用态配置列表](../../apigw/apidocs/zh/GlobalSettings_ListGlobalSettings.md)为主接口，
+MCP 绑定对应的[用户态配置列表](../../apigw/apidocs/zh/OpenGlobalSettings_OpenGlobalSettingsList.md)。
+两态入口共用查询 handler、`ListGlobalSettingsReq/Resp` 及权限检查；认证沿用各自既有入口，MCP 仍要求用户认证。
 复用现有 condition 模式，支持名称精确/模糊的包含与排除条件；查单项时使用 `exact_include_conditions.setting_name`。
 配置为全局共享数据，
 不按租户隔离；授权用户可以读取全部已存储配置，包括自定义项及其中可能存在的敏感内容，返回值不脱敏。

@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package globalsettings provides user-state read-only global settings queries.
+// Package globalsettings provides read-only global settings queries.
 package globalsettings
 
 import (
@@ -45,15 +45,15 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	}
 }
 
-// LoadOpen registers only user-state global settings reads.
-func LoadOpen(rg *gin.RouterGroup, capability *options.Capability) {
+// Load registers global settings reads.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 	h.rg.POST("/list", restserver.Handler(h.ListGlobalSettings))
 }
 
 // ListGlobalSettings lists stored global values, including custom settings.
 func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.OpenGlobalSettingsListReq)
+	req := new(protoBackend.ListGlobalSettingsReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list global settings, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -87,7 +87,7 @@ func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	resp := new(protoBackend.OpenGlobalSettingsListResp)
+	resp := new(protoBackend.ListGlobalSettingsResp)
 	resp.ConvertGlobalSettingsFromTypes(total, settings)
 
 	return resp.GetData(), nil
