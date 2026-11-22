@@ -253,3 +253,54 @@ apigwSync:
    新版在 Pod 运行时生成 MCP 清单，不能仅凭 `helm template` 判断最终同步范围。
    重试前检查 `RELEASE_STAGES`、`NO_PUB` 和资源变更范围：同步脚本不只处理 MCP，还会同步资源（带 `--delete`）并可能发布版本，
    不能把重跑整个 Job 当作只读验证。完成后检查 Job 日志和网关对应环境的 MCP Server 配置，确认同步成功。
+
+## 8. 如何使用内部定时任务调度诊断 MCP？
+
+产品清单 `apigw/mcp_servers.yaml` 中的 `scheduler` 与 `topo`、`execution` 独立，仅提供以下四个只读工具：
+
+| 网关资源名                                                         | 用途                                                                                             |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowList`                    | 查询调度任务及 `enabled`、`interval` 等配置                                                      |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowOperationList`           | 使用 `workflow_id` 查询当前触发器关联的操作，配合 `parent_oper_inst_id` 查询某轮派发的直接子操作 |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList`   | 使用 `operation_id` 或 `oper_inst_id` 查询执行实例，两者均提供时取交集                           |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet` | 使用 `oper_inst_id` 查询步骤状态、双语日志和额外执行日志                                         |
+
+接口参数、返回值及记录保留规则见[任务列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowList.md)、
+[操作列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowOperationList.md)、
+[实例列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList.md)和
+[实例日志](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet.md)。
+`enabled`、`interval` 是长期调度配置，不表示执行完成；派发实例成功也不代表子任务成功。
+查询仅覆盖当前触发器关联且尚未清理的任务链，不是完整历史归档。
+
+### 授权与启用
+
+- `is_public: false` 仅控制可见性，不等于调用授权。四个资源均禁止公开申请权限，同时要求应用认证、用户认证和资源调用权限。
+  网关管理员只向获准的内部应用授予所需资源及 MCP 的调用权限；不向普通外部应用、`public` 或 `personal` 客户端主动授权。
+  已有网关级授权也会覆盖新增资源，上线前须核对已有授权范围，不能仅凭禁止申请认定没有外部应用可访问。
+- 调用应用须携带网关支持的有效用户凭证。后端身份认证应使用 `api-gateway`，由网关签名及现有认证链建立用户名和租户上下文；
+  不通过请求体指定用户或租户，也不要通过关闭认证或信任任意用户名请求头解决调用失败。
+- 用户必须同时拥有 `system_access`（系统访问）和 `platform_manage`（平台管理），后者资源类型为 `platform_resource`、
+  资源 ID 为 `scheduler_workflow`（定时任务调度）。只有网关应用权限不能替代用户业务权限，计数和直接 ID 查询同样受限。
+  后端须启用并正确同步 IAM V3 或 V4；两者都关闭时现有 authorizer 会跳过业务权限检查，不能用于提供上述隔离保证。
+- `scheduler` 的 public/personal OAuth 客户端均默认关闭，不沿用 `topo`、`execution` 的 personal token 开关。
+  不能为接入个人客户端而直接复用普通执行诊断 MCP 的授权配置。
+- 按现有流程导入并核对资源配置，使用新的 `release.version` 创建资源版本并发布四个只读资源到目标 stage 后，再同步 MCP。
+  同步定义中必须保留 `isPublic: false`、
+  `allowApplyPermission: false` 以及三项认证和调用权限检查；资源回源路径为 `/api/v3/open/schedule/workflow/...`，
+  使用后端用户态认证入口，并复用系统态接口的查询、平台管理权限及租户归属校验。
+  不绑定启用、停用、重试、终止或立即执行接口。
+- 使用内置模式时，`apigwSync.mcp.enabled=true` 会为未显式配置清单的 stage 装配并启用产品 MCP，包括 `scheduler`；
+  产品清单中的 `status: 0` 不构成内置模式下的独立禁用开关。若只需 `topo`、`execution`，应显式完整覆写所需列表。
+  显式非空列表不会自动加入 `scheduler`；`[]` 只跳过同步，不会停用已有服务。其他启用及镜像升级要求见第 7 节。
+
+### 环境验收
+
+在目标 stage 核对已发布资源、MCP 实际工具列表及既有应用授权；使用隔离的验证应用和账号检查：
+
+1. 缺少有效应用或用户凭证时，请求在认证阶段被拒绝。
+2. 使用有效身份但未授予资源或 MCP 调用权限时，不能取得执行信息。
+3. 应用已获授权、用户只有系统访问而没有定时任务调度资源权限时，列表、计数、实例和日志查询均被拒绝。
+4. 内部应用和用户均获授权后，可以完成四层查询和按轮次子任务下钻；跨租户或不属于 scheduler 任务链的 ID 不返回执行信息。
+5. 实际工具列表只有上述四个查询工具，已有 `topo`、`execution` 的资源及授权设置保持不变。
+
+本地 YAML 或 Schema 检查不能证明上述认证授权已在目标环境生效。部署及同步仍按原流程执行，不要将整个同步 Job 当作只读探测。

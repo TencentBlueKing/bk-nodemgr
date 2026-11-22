@@ -87,6 +87,7 @@ func LoadBasicOpenAPIs(rg *gin.RouterGroup, capability *options.Capability, midd
 	h.rg.Use(middlewares...)
 	h.rg.Use(h.middlewareSystemAccess)
 
+	schedule.LoadOpen(h.rg, capability)
 	node.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)
 	topo.Load(h.rg, capability)
