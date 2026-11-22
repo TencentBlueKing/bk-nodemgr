@@ -170,6 +170,42 @@ func (x *UpsertGlobalSettingsReq) ConvertGlobalSettingsToTypes() []*types.Global
 	return settings
 }
 
+// storedQuery reuses the existing global settings query conversion contract.
+func (x *OpenGlobalSettingsListReq) storedQuery() *ListGlobalSettingsReq {
+	return &ListGlobalSettingsReq{
+		Page: x.GetPage(), OnlyCount: x.GetOnlyCount(),
+		ExactIncludeConditions: x.GetExactIncludeConditions(),
+		FuzzyIncludeConditions: x.GetFuzzyIncludeConditions(),
+		ExactExcludeConditions: x.GetExactExcludeConditions(),
+		FuzzyExcludeConditions: x.GetFuzzyExcludeConditions(),
+	}
+}
+
+// Validate checks the existing global settings pagination constraints.
+func (x *OpenGlobalSettingsListReq) Validate() error {
+	return x.storedQuery().Validate()
+}
+
+// AutoConvert preserves the supplied global settings query.
+func (x *OpenGlobalSettingsListReq) AutoConvert() {}
+
+// ConvertPageToTypes applies the existing global settings page limit.
+func (x *OpenGlobalSettingsListReq) ConvertPageToTypes() (types.Page, error) {
+	return x.storedQuery().ConvertPageToTypes()
+}
+
+// ConvertConditionsToTypes converts all existing setting-name filters.
+func (x *OpenGlobalSettingsListReq) ConvertConditionsToTypes() *types.GlobalSettingsCondition {
+	return x.storedQuery().ConvertConditionsToTypes()
+}
+
+// ConvertGlobalSettingsFromTypes reuses the stored-value response conversion.
+func (x *OpenGlobalSettingsListResp) ConvertGlobalSettingsFromTypes(total int64, settings []*types.GlobalSettings) {
+	resp := new(ListGlobalSettingsResp)
+	resp.ConvertGlobalSettingsFromTypes(total, settings)
+	x.Data = resp.GetData()
+}
+
 // Validate check body.
 func (x *DeleteGlobalSettingsReq) Validate() error {
 	if len(x.GetSettingName()) == 0 {

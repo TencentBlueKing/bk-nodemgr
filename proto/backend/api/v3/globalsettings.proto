@@ -94,3 +94,42 @@ message DeleteGlobalSettingsResp {
   message Data {}
   Data data = 5;
 }
+
+// 筛选全局共享的已存储配置，包含自定义配置项。
+message OpenGlobalSettingsListReq {
+  // 分页条件；非计数查询时 limit 必须为 1 到 500。
+  Page page = 1;
+  // 是否仅返回符合条件的配置项总数。
+  bool only_count = 2;
+  // 配置名称的精确包含条件。
+  ListGlobalSettingsReq.ExactConditions exact_include_conditions = 3;
+  // 配置名称的模糊包含条件。
+  ListGlobalSettingsReq.FuzzyConditions fuzzy_include_conditions = 4;
+  // 配置名称的精确排除条件。
+  ListGlobalSettingsReq.ExactConditions exact_exclude_conditions = 5;
+  // 配置名称的模糊排除条件。
+  ListGlobalSettingsReq.FuzzyConditions fuzzy_exclude_conditions = 6;
+}
+
+// 全局配置的数据库保存值，不补齐默认值，也不表示进程实际生效值。
+message OpenGlobalSettingsListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  ListGlobalSettingsResp.Data data = 5;
+}
+
+// 用户态全局配置只读查询；须具备系统访问和全局配置平台资源权限。
+// 配置跨租户共享，包含可能敏感的自定义值，不提供服务启动配置或写操作。
+service OpenGlobalSettings {
+  // 查询全局共享的已存储配置及原始值，包含自定义项；支持分页和仅计数。
+  rpc OpenGlobalSettingsList(OpenGlobalSettingsListReq)
+      returns (OpenGlobalSettingsListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/globalsettings/list"
+      body : "*"
+    };
+  }
+}
