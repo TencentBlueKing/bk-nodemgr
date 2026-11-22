@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowOperationDistinctReq, NodeWorkflowOperationDistinctResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationManualSolutionGetReq, NodeWorkflowOperationManualSolutionGetResp, NodeWorkflowOperationOfflineInstallResultSubmitReq, NodeWorkflowOperationOfflineInstallResultSubmitResp, NodeWorkflowOperationOfflinePackageDownloadReq, NodeWorkflowOperationRetryReq, NodeWorkflowOperationRetryResp, NodeWorkflowOperationTerminateReq, NodeWorkflowOperationTerminateResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp } from '@/@types/node_workflow';
+import type { NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowOperationDistinctReq, NodeWorkflowOperationDistinctResp, NodeWorkflowOperationInstallParamsGetReq, NodeWorkflowOperationInstallParamsGetResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationManualSolutionGetReq, NodeWorkflowOperationManualSolutionGetResp, NodeWorkflowOperationOfflineInstallResultSubmitReq, NodeWorkflowOperationOfflineInstallResultSubmitResp, NodeWorkflowOperationOfflinePackageDownloadReq, NodeWorkflowOperationRetryReq, NodeWorkflowOperationRetryResp, NodeWorkflowOperationTerminateReq, NodeWorkflowOperationTerminateResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp } from '@/@types/node_workflow';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -9,6 +9,9 @@ const fetch = new Fetch({
 });
 
 export const NodeWorkflowService = {
+  // 读取选中历史 Agent 或 Proxy
+  // 安装操作的安全参数，供新安装表单使用，不执行安装或修改历史任务。
+  NodeWorkflowOperationInstallParamsGet: async <Request = NodeWorkflowOperationInstallParamsGetReq, ResponseData = NodeWorkflowOperationInstallParamsGetResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/install_params/get')(params, config),
   // NodeWorkflowList provides node workflow list.
   NodeWorkflowList: async <Request = NodeWorkflowListReq, ResponseData = NodeWorkflowListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/list')(params, config),
   // NodeWorkflowStatistics provides node workflow statistics.
