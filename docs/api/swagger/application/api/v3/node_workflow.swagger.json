@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/node/workflow/distinct": {
       "post": {
-        "summary": "NodeWorkflowDistinct provides node workflow distinct.",
+        "summary": "查询节点工作流筛选字段的去重值。",
         "operationId": "NodeWorkflow_NodeWorkflowDistinct",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/node/workflow/list": {
       "post": {
-        "summary": "NodeWorkflowList provides node workflow list.",
+        "summary": "查询节点工作流列表。",
         "operationId": "NodeWorkflow_NodeWorkflowList",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/node/workflow/operation/distinct": {
       "post": {
-        "summary": "NodeWorkflowOperationDistinct provides node workflow operation distinct.",
+        "summary": "查询节点工作流操作筛选字段的去重值。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationDistinct",
         "responses": {
           "200": {
@@ -153,7 +153,7 @@
     },
     "/api/v3/node/workflow/operation/instance/list": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.",
+        "summary": "查询节点工作流操作实例列表。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceList",
         "responses": {
           "200": {
@@ -187,7 +187,7 @@
     },
     "/api/v3/node/workflow/operation/instance/log/get": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceLogGet provides node operation instance log\nget.",
+        "summary": "获取节点工作流操作实例日志。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceLogGet",
         "responses": {
           "200": {
@@ -220,7 +220,7 @@
     },
     "/api/v3/node/workflow/operation/list": {
       "post": {
-        "summary": "NodeWorkflowOperationList provides node workflow operation list.",
+        "summary": "查询节点工作流操作列表。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationList",
         "responses": {
           "200": {
@@ -254,7 +254,7 @@
     },
     "/api/v3/node/workflow/operation/manual/solution/get": {
       "post": {
-        "summary": "NodeWorkflowOperationManualSolutionGet provides node operation manual\nsolution get.",
+        "summary": "获取节点工作流操作的手动执行方案。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationManualSolutionGet",
         "responses": {
           "200": {
@@ -288,7 +288,7 @@
     },
     "/api/v3/node/workflow/operation/offline/download": {
       "post": {
-        "summary": "NodeWorkflowOperationOfflinePackageDownload streams the tar.gz offline\ninstall bundle for an operation (POST\n/api/v3/node/workflow/operation/offline/download, body: operation_id).",
+        "summary": "根据操作 ID 下载节点离线安装包（tar.gz 文件流）。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationOfflinePackageDownload",
         "responses": {
           "200": {
@@ -322,7 +322,7 @@
     },
     "/api/v3/node/workflow/operation/offline/result": {
       "post": {
-        "summary": "NodeWorkflowOperationOfflineInstallResultSubmit forwards offline install\nresult JSON to the backend (POST\n/api/v3/node/workflow/operation/offline/result).",
+        "summary": "提交节点工作流操作的离线安装结果 JSON。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit",
         "responses": {
           "200": {
@@ -356,7 +356,7 @@
     },
     "/api/v3/node/workflow/operation/retry": {
       "post": {
-        "summary": "NodeWorkflowOperationRetry retry node operation.",
+        "summary": "重试节点工作流操作。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationRetry",
         "responses": {
           "200": {
@@ -389,7 +389,7 @@
     },
     "/api/v3/node/workflow/operation/terminate": {
       "post": {
-        "summary": "NodeWorkflowOperationTerminate provides node operation terminate.",
+        "summary": "终止节点工作流操作。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationTerminate",
         "responses": {
           "200": {
@@ -422,7 +422,7 @@
     },
     "/api/v3/node/workflow/statistics": {
       "post": {
-        "summary": "NodeWorkflowStatistics provides node workflow statistics.",
+        "summary": "统计节点工作流的操作实例状态分布。",
         "operationId": "NodeWorkflow_NodeWorkflowStatistics",
         "responses": {
           "200": {

@@ -263,7 +263,7 @@ message DeployPolicyWorkflowListResp {
 
 // DeployPolicyAPI describes the deploy policy API.
 service DeployPolicyAPI {
-  // ListDeployPolicy lists deploy policy.
+  // 查询部署策略列表。
   rpc ListDeployPolicy(DeployPolicyListReq) returns (DeployPolicyListResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/list"
@@ -271,7 +271,7 @@ service DeployPolicyAPI {
     };
   }
 
-  // ExecuteDeployPolicy executes deploy policy.
+  // 触发部署策略执行。
   rpc ExecuteDeployPolicy(DeployPolicyExecuteReq)
       returns (DeployPolicyExecuteResp) {
     option (google.api.http) = {
@@ -280,7 +280,7 @@ service DeployPolicyAPI {
     };
   }
 
-  // WorkflowList lists deploy policy executions.
+  // 查询部署策略执行记录列表。
   rpc WorkflowList(DeployPolicyWorkflowListReq)
       returns (DeployPolicyWorkflowListResp) {
     option (google.api.http) = {

@@ -55,7 +55,7 @@
     },
     "/api/v3/open/plugin/workflow/operation/instance/list": {
       "post": {
-        "summary": "按插件操作 ID 查询执行实例及历史执行状态。",
+        "summary": "按插件操作 ID 查询操作实例及历史执行状态。",
         "operationId": "OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList",
         "responses": {
           "200": {
@@ -89,7 +89,7 @@
     },
     "/api/v3/open/plugin/workflow/operation/instance/log/get": {
       "post": {
-        "summary": "按插件执行实例 ID 查询步骤状态、日志及子工作流引用。",
+        "summary": "按插件操作实例 ID 查询步骤状态、日志及子工作流引用。",
         "operationId": "OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceLogGet",
         "responses": {
           "200": {
@@ -123,7 +123,7 @@
     },
     "/api/v3/open/plugin/workflow/operation/list": {
       "post": {
-        "summary": "查询插件工作流的执行对象、操作状态及执行实例信息。",
+        "summary": "查询插件工作流的执行对象、操作状态及操作实例信息。",
         "operationId": "OpenPluginWorkflow_OpenPluginWorkflowOperationList",
         "responses": {
           "200": {
@@ -157,7 +157,7 @@
     },
     "/api/v3/plugin/workflow/distinct": {
       "post": {
-        "summary": "PluginWorkflowDistinct provides plugin workflow distinct.",
+        "summary": "查询插件工作流指定字段的去重值。",
         "operationId": "PluginWorkflow_PluginWorkflowDistinct",
         "responses": {
           "200": {
@@ -191,7 +191,7 @@
     },
     "/api/v3/plugin/workflow/list": {
       "post": {
-        "summary": "PluginWorkflowList provides plugin workflow list.",
+        "summary": "查询插件工作流列表及执行状态。",
         "operationId": "PluginWorkflow_PluginWorkflowList",
         "responses": {
           "200": {
@@ -225,7 +225,7 @@
     },
     "/api/v3/plugin/workflow/operation/distinct": {
       "post": {
-        "summary": "PluginWorkflowOperationDistinct provides plugin workflow operation\ndistinct.",
+        "summary": "查询插件工作流操作指定字段的去重值。",
         "operationId": "PluginWorkflow_PluginWorkflowOperationDistinct",
         "responses": {
           "200": {
@@ -259,7 +259,7 @@
     },
     "/api/v3/plugin/workflow/operation/instance/list": {
       "post": {
-        "summary": "PluginWorkflowOperationInstanceList provides plugin workflow operation\ninstance list.",
+        "summary": "按插件操作 ID 查询操作实例及历史执行状态。",
         "operationId": "PluginWorkflow_PluginWorkflowOperationInstanceList",
         "responses": {
           "200": {
@@ -293,7 +293,7 @@
     },
     "/api/v3/plugin/workflow/operation/instance/log/get": {
       "post": {
-        "summary": "PluginWorkflowOperationInstanceLogGet provides plugin operation instance\nlog get.",
+        "summary": "按插件操作实例 ID 查询步骤状态、日志及子工作流引用。",
         "operationId": "PluginWorkflow_PluginWorkflowOperationInstanceLogGet",
         "responses": {
           "200": {
@@ -327,7 +327,7 @@
     },
     "/api/v3/plugin/workflow/operation/instance/status_distribution/list": {
       "post": {
-        "summary": "PluginWorkflowOperationInstanceStatusDistribution provides latest operation\ninstance status distribution.",
+        "summary": "统计插件工作流各操作最新操作实例的状态分布。",
         "operationId": "PluginWorkflow_PluginWorkflowOperationInstanceStatusDistributionList",
         "responses": {
           "200": {
@@ -361,7 +361,7 @@
     },
     "/api/v3/plugin/workflow/operation/list": {
       "post": {
-        "summary": "PluginWorkflowOperationList provides plugin workflow operation list.",
+        "summary": "查询插件工作流的执行对象、操作状态及操作实例信息。",
         "operationId": "PluginWorkflow_PluginWorkflowOperationList",
         "responses": {
           "200": {
@@ -395,7 +395,7 @@
     },
     "/api/v3/plugin/workflow/operation/retry": {
       "post": {
-        "summary": "PluginWorkflowOperationRetry provides plugin operation retry.",
+        "summary": "重试插件工作流中的指定操作。",
         "operationId": "PluginWorkflow_PluginWorkflowOperationRetry",
         "responses": {
           "200": {
@@ -429,7 +429,7 @@
     },
     "/api/v3/plugin/workflow/operation/terminate": {
       "post": {
-        "summary": "PluginWorkflowOperationTerminate provides plugin operation terminate.",
+        "summary": "终止插件工作流中的指定操作。",
         "operationId": "PluginWorkflow_PluginWorkflowOperationTerminate",
         "responses": {
           "200": {

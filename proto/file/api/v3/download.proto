@@ -58,7 +58,7 @@ message FileChunk { bytes content = 1; }
 
 // Download service.
 service Download {
-  // DownloadAgent provides downloading agent pkg.
+  // 下载 Agent 安装包。
   rpc DownloadAgent(DownloadAgentReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/agent"
@@ -66,7 +66,7 @@ service Download {
     };
   }
 
-  // DownloadProxy provides downloading proxy pkg.
+  // 下载 Proxy 安装包。
   rpc DownloadProxy(DownloadProxyReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/proxy"
@@ -74,7 +74,7 @@ service Download {
     };
   }
 
-  // DownloadAgent provides downloading plugin.
+  // 下载插件安装包。
   rpc DownloadPlugin(DownloadAgentReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/plugin"
@@ -82,7 +82,7 @@ service Download {
     };
   }
 
-  // DownloadInstaller provides downloading installer.
+  // 下载节点安装工具。
   rpc DownloadInstaller(DownloadInstallerReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/installer"
@@ -90,7 +90,7 @@ service Download {
     };
   }
 
-  // DownloadCert provides downloading cert.
+  // 下载证书包。
   rpc DownloadCert(DownloadCertReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/cert"
@@ -98,7 +98,7 @@ service Download {
     };
   }
 
-  // DownloadBinTool provides downloading bintool.
+  // 下载二进制工具包。
   rpc DownloadBinTool(DownloadBinToolReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/bintool"
@@ -106,7 +106,7 @@ service Download {
     };
   }
 
-  // DownloadPluginBinTool provides downloading plugin bintool.
+  // 下载插件二进制工具包。
   rpc DownloadPluginBinTool(DownloadPluginBinToolReq)
       returns (stream FileChunk) {
     option (google.api.http) = {
@@ -115,7 +115,7 @@ service Download {
     };
   }
 
-  // DownloadRemoteFile provides downloading a verified remote file.
+  // 下载经 MD5 校验的远程文件。
   rpc DownloadRemoteFile(DownloadRemoteFileReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/remote_file"

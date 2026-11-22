@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/package/event/distinct": {
       "post": {
-        "summary": "PackageEventDistinct provides package event distincting.",
+        "summary": "查询安装包操作事件筛选字段的去重值。",
         "operationId": "Package_PackageEventDistinct",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/package/event/list": {
       "post": {
-        "summary": "PackageEventList provides package event listing.",
+        "summary": "查询安装包操作事件列表。",
         "operationId": "Package_PackageEventList",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/package/publish/release/agent": {
       "post": {
-        "summary": "PublishReleaseAgent provides release agent publish.",
+        "summary": "发布 Agent 安装包版本。",
         "operationId": "Package_PublishReleaseAgent",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/package/publish/release/bintool": {
       "post": {
-        "summary": "PublishReleaseBinTool provides release bintool publish.",
+        "summary": "发布二进制工具包版本。",
         "operationId": "Package_PublishReleaseBinTool",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/package/publish/release/cert": {
       "post": {
-        "summary": "PublishReleaseCert provides release cert publish.",
+        "summary": "发布证书包版本。",
         "operationId": "Package_PublishReleaseCert",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/package/publish/release/plugin_bintool": {
       "post": {
-        "summary": "PublishReleaseBinTool provides release bintool publish.",
+        "summary": "发布插件二进制工具包版本。",
         "operationId": "Package_PublishReleasePluginBinTool",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/package/publish/release/proxy": {
       "post": {
-        "summary": "PublishReleaseServer provides release server publish.",
+        "summary": "发布 Proxy 安装包版本。",
         "operationId": "Package_PublishReleaseProxy",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/package/publish/release/v2/external_plugin": {
       "post": {
-        "summary": "PublishReleaseExternalPluginV2 provides release external plugin v2 publish.",
+        "summary": "发布 V2 格式的外部插件包版本。",
         "operationId": "Package_PublishReleaseExternalPluginV2",
         "responses": {
           "200": {
@@ -290,7 +290,7 @@
     },
     "/api/v3/package/publish/release/v2/plugin": {
       "post": {
-        "summary": "PublishReleasePluginV2 provides release plugin v2 publish.",
+        "summary": "发布 V2 格式的插件包版本。",
         "operationId": "Package_PublishReleasePluginV2",
         "responses": {
           "200": {
@@ -324,7 +324,7 @@
     },
     "/api/v3/package/publish/release/v3/plugin": {
       "post": {
-        "summary": "PublishReleasePluginV3 provides release plugin v3 publish.",
+        "summary": "发布 V3 格式的插件包版本。",
         "operationId": "Package_PublishReleasePluginV3",
         "responses": {
           "200": {
@@ -358,7 +358,7 @@
     },
     "/api/v3/package/release/agent/cancel_as_default": {
       "post": {
-        "summary": "CancelAsDefaultReleaseAgent cancels agent release as default.",
+        "summary": "取消 Agent 安装包版本的默认设置。",
         "operationId": "Package_CancelAsDefaultReleaseAgent",
         "responses": {
           "200": {
@@ -392,7 +392,7 @@
     },
     "/api/v3/package/release/agent/count_deployed": {
       "post": {
-        "summary": "CountDeployedReleasedAgent count deployed for release agent.",
+        "summary": "统计指定 Agent 安装包版本的部署数量。",
         "operationId": "Package_CountDeployedReleasedAgent",
         "responses": {
           "200": {
@@ -426,7 +426,7 @@
     },
     "/api/v3/package/release/agent/delete": {
       "post": {
-        "summary": "DeleteReleaseAgent deletes agent release.",
+        "summary": "删除 Agent 安装包版本。",
         "operationId": "Package_DeleteReleaseAgent",
         "responses": {
           "200": {
@@ -460,7 +460,7 @@
     },
     "/api/v3/package/release/agent/disable": {
       "post": {
-        "summary": "DisableReleaseAgent disables agent release.",
+        "summary": "停用 Agent 安装包版本。",
         "operationId": "Package_DisableReleaseAgent",
         "responses": {
           "200": {
@@ -494,7 +494,7 @@
     },
     "/api/v3/package/release/agent/distinct": {
       "post": {
-        "summary": "DistinctReleaseAgent distincts agent releases.",
+        "summary": "查询 Agent 安装包版本筛选字段的去重值。",
         "operationId": "Package_DistinctReleaseAgent",
         "responses": {
           "200": {
@@ -528,7 +528,7 @@
     },
     "/api/v3/package/release/agent/download": {
       "post": {
-        "summary": "DownloadReleaseAgent download release agent package.",
+        "summary": "下载指定版本的 Agent 安装包。",
         "operationId": "Package_DownloadReleaseAgent",
         "responses": {
           "200": {
@@ -562,7 +562,7 @@
     },
     "/api/v3/package/release/agent/enable": {
       "post": {
-        "summary": "EnableReleaseAgent enables agent release.",
+        "summary": "启用 Agent 安装包版本。",
         "operationId": "Package_EnableReleaseAgent",
         "responses": {
           "200": {
@@ -596,7 +596,7 @@
     },
     "/api/v3/package/release/agent/list": {
       "post": {
-        "summary": "ListReleaseAgent lists agent releases.",
+        "summary": "查询 Agent 安装包版本列表。",
         "operationId": "Package_ListReleaseAgent",
         "responses": {
           "200": {
@@ -630,7 +630,7 @@
     },
     "/api/v3/package/release/agent/list/brief": {
       "post": {
-        "summary": "ListReleaseAgentBrief lists agent release briefs.",
+        "summary": "查询 Agent 安装包版本简要列表。",
         "operationId": "Package_ListReleaseAgentBrief",
         "responses": {
           "200": {
@@ -664,7 +664,7 @@
     },
     "/api/v3/package/release/agent/set_as_default": {
       "post": {
-        "summary": "SetAsDefaultReleaseAgent sets agent release as default.",
+        "summary": "将 Agent 安装包版本设为默认版本。",
         "operationId": "Package_SetAsDefaultReleaseAgent",
         "responses": {
           "200": {
@@ -698,7 +698,7 @@
     },
     "/api/v3/package/release/agent/set_labels_many": {
       "post": {
-        "summary": "SetReleaseAgentLabelsMany sets many agent releases labels.",
+        "summary": "批量设置 Agent 安装包版本标签。",
         "operationId": "Package_SetReleaseAgentLabelsMany",
         "responses": {
           "200": {
@@ -732,7 +732,7 @@
     },
     "/api/v3/package/release/bintool/delete": {
       "post": {
-        "summary": "DeleteReleaseBinTool deletes bintool release.",
+        "summary": "删除二进制工具包版本。",
         "operationId": "Package_DeleteReleaseBinTool",
         "responses": {
           "200": {
@@ -766,7 +766,7 @@
     },
     "/api/v3/package/release/bintool/download": {
       "post": {
-        "summary": "DownloadReleaseBinTool download release bintool package.",
+        "summary": "下载指定版本的二进制工具包。",
         "operationId": "Package_DownloadReleaseBinTool",
         "responses": {
           "200": {
@@ -800,7 +800,7 @@
     },
     "/api/v3/package/release/bintool/list": {
       "post": {
-        "summary": "ListReleaseBinTool lists bintool releases.",
+        "summary": "查询二进制工具包版本列表。",
         "operationId": "Package_ListReleaseBinTool",
         "responses": {
           "200": {
@@ -834,7 +834,7 @@
     },
     "/api/v3/package/release/cert/delete": {
       "post": {
-        "summary": "DeleteReleaseCert deletes cert release.",
+        "summary": "删除证书包版本。",
         "operationId": "Package_DeleteReleaseCert",
         "responses": {
           "200": {
@@ -868,7 +868,7 @@
     },
     "/api/v3/package/release/cert/download": {
       "post": {
-        "summary": "DownloadReleaseCert download release cert package.",
+        "summary": "下载指定版本的证书包。",
         "operationId": "Package_DownloadReleaseCert",
         "responses": {
           "200": {
@@ -902,7 +902,7 @@
     },
     "/api/v3/package/release/cert/list": {
       "post": {
-        "summary": "ListReleaseCert lists cert releases.",
+        "summary": "查询证书包版本列表。",
         "operationId": "Package_ListReleaseCert",
         "responses": {
           "200": {
@@ -936,7 +936,7 @@
     },
     "/api/v3/package/release/plugin/cancel_as_default": {
       "post": {
-        "summary": "CancelAsDefaultReleasePlugin cancels plugin release as default.",
+        "summary": "取消插件包版本的默认设置。",
         "operationId": "Package_CancelAsDefaultReleasePlugin",
         "responses": {
           "200": {
@@ -970,7 +970,7 @@
     },
     "/api/v3/package/release/plugin/delete": {
       "post": {
-        "summary": "DeleteReleasePlugin deletes plugin release.",
+        "summary": "删除插件包版本。",
         "operationId": "Package_DeleteReleasePlugin",
         "responses": {
           "200": {
@@ -1004,7 +1004,7 @@
     },
     "/api/v3/package/release/plugin/disable": {
       "post": {
-        "summary": "DisableReleasePlugin disables plugin release.",
+        "summary": "停用插件包版本。",
         "operationId": "Package_DisableReleasePlugin",
         "responses": {
           "200": {
@@ -1038,7 +1038,7 @@
     },
     "/api/v3/package/release/plugin/distinct": {
       "post": {
-        "summary": "DistinctReleasePlugin distincts plugin releases.",
+        "summary": "查询插件包版本筛选字段的去重值。",
         "operationId": "Package_DistinctReleasePlugin",
         "responses": {
           "200": {
@@ -1072,7 +1072,7 @@
     },
     "/api/v3/package/release/plugin/download": {
       "post": {
-        "summary": "DownloadReleasePlugin download release plugin package.",
+        "summary": "下载指定版本的插件包。",
         "operationId": "Package_DownloadReleasePlugin",
         "responses": {
           "200": {
@@ -1106,7 +1106,7 @@
     },
     "/api/v3/package/release/plugin/enable": {
       "post": {
-        "summary": "EnableReleasePlugin enables plugin release.",
+        "summary": "启用插件包版本。",
         "operationId": "Package_EnableReleasePlugin",
         "responses": {
           "200": {
@@ -1140,7 +1140,7 @@
     },
     "/api/v3/package/release/plugin/get_config_variables": {
       "post": {
-        "summary": "GetConfigVariablesReleasePlugin gets config variables of plugin release.",
+        "summary": "获取指定插件包版本的配置变量。",
         "operationId": "Package_GetConfigVariablesReleasePlugin",
         "responses": {
           "200": {
@@ -1174,7 +1174,7 @@
     },
     "/api/v3/package/release/plugin/list": {
       "post": {
-        "summary": "ListReleasePlugin lists plugin releases.",
+        "summary": "查询插件包版本列表。",
         "operationId": "Package_ListReleasePlugin",
         "responses": {
           "200": {
@@ -1208,7 +1208,7 @@
     },
     "/api/v3/package/release/plugin/list/brief": {
       "post": {
-        "summary": "ListReleasePluginBrief lists plugin release briefs.",
+        "summary": "查询插件包版本简要列表。",
         "operationId": "Package_ListReleasePluginBrief",
         "responses": {
           "200": {
@@ -1242,7 +1242,7 @@
     },
     "/api/v3/package/release/plugin/set_as_default": {
       "post": {
-        "summary": "SetAsDefaultReleasePlugin sets plugin release as default.",
+        "summary": "将插件包版本设为默认版本。",
         "operationId": "Package_SetAsDefaultReleasePlugin",
         "responses": {
           "200": {
@@ -1276,7 +1276,7 @@
     },
     "/api/v3/package/release/plugin_bintool/delete": {
       "post": {
-        "summary": "DeleteReleasePluginBinTool deletes plugin-bintool release.",
+        "summary": "删除插件二进制工具包版本。",
         "operationId": "Package_DeleteReleasePluginBinTool",
         "responses": {
           "200": {
@@ -1310,7 +1310,7 @@
     },
     "/api/v3/package/release/plugin_bintool/download": {
       "post": {
-        "summary": "DownloadReleasePluginBinTool download release plugin bintool package.",
+        "summary": "下载指定版本的插件二进制工具包。",
         "operationId": "Package_DownloadReleasePluginBinTool",
         "responses": {
           "200": {
@@ -1344,7 +1344,7 @@
     },
     "/api/v3/package/release/plugin_bintool/list": {
       "post": {
-        "summary": "ListReleasePluginBinTool lists plugin-bintool releases.",
+        "summary": "查询插件二进制工具包版本列表。",
         "operationId": "Package_ListReleasePluginBinTool",
         "responses": {
           "200": {
@@ -1378,7 +1378,7 @@
     },
     "/api/v3/package/release/proxy/cancel_as_default": {
       "post": {
-        "summary": "CancelAsDefaultReleaseProxy cancels proxy release as default.",
+        "summary": "取消 Proxy 安装包版本的默认设置。",
         "operationId": "Package_CancelAsDefaultReleaseProxy",
         "responses": {
           "200": {
@@ -1412,7 +1412,7 @@
     },
     "/api/v3/package/release/proxy/count_deployed": {
       "post": {
-        "summary": "CountDeployedReleasedProxy count deployed for release proxy.",
+        "summary": "统计指定 Proxy 安装包版本的部署数量。",
         "operationId": "Package_CountDeployedReleasedProxy",
         "responses": {
           "200": {
@@ -1446,7 +1446,7 @@
     },
     "/api/v3/package/release/proxy/delete": {
       "post": {
-        "summary": "DeleteReleaseProxy deletes proxy release.",
+        "summary": "删除 Proxy 安装包版本。",
         "operationId": "Package_DeleteReleaseProxy",
         "responses": {
           "200": {
@@ -1480,7 +1480,7 @@
     },
     "/api/v3/package/release/proxy/disable": {
       "post": {
-        "summary": "DisableReleaseProxy disables proxy release.",
+        "summary": "停用 Proxy 安装包版本。",
         "operationId": "Package_DisableReleaseProxy",
         "responses": {
           "200": {
@@ -1514,7 +1514,7 @@
     },
     "/api/v3/package/release/proxy/distinct": {
       "post": {
-        "summary": "DistinctReleaseProxy distincts proxy releases.",
+        "summary": "查询 Proxy 安装包版本筛选字段的去重值。",
         "operationId": "Package_DistinctReleaseProxy",
         "responses": {
           "200": {
@@ -1548,7 +1548,7 @@
     },
     "/api/v3/package/release/proxy/download": {
       "post": {
-        "summary": "DownloadReleaseProxy download release proxy package.",
+        "summary": "下载指定版本的 Proxy 安装包。",
         "operationId": "Package_DownloadReleaseProxy",
         "responses": {
           "200": {
@@ -1582,7 +1582,7 @@
     },
     "/api/v3/package/release/proxy/enable": {
       "post": {
-        "summary": "EnableReleaseProxy enables proxy release.",
+        "summary": "启用 Proxy 安装包版本。",
         "operationId": "Package_EnableReleaseProxy",
         "responses": {
           "200": {
@@ -1616,7 +1616,7 @@
     },
     "/api/v3/package/release/proxy/list": {
       "post": {
-        "summary": "ListReleaseProxy lists proxy releases.",
+        "summary": "查询 Proxy 安装包版本列表。",
         "operationId": "Package_ListReleaseProxy",
         "responses": {
           "200": {
@@ -1650,7 +1650,7 @@
     },
     "/api/v3/package/release/proxy/list/brief": {
       "post": {
-        "summary": "ListReleaseProxyBrief lists proxy release briefs.",
+        "summary": "查询 Proxy 安装包版本简要列表。",
         "operationId": "Package_ListReleaseProxyBrief",
         "responses": {
           "200": {
@@ -1684,7 +1684,7 @@
     },
     "/api/v3/package/release/proxy/set_as_default": {
       "post": {
-        "summary": "SetAsDefaultReleaseProxy sets proxy release as default.",
+        "summary": "将 Proxy 安装包版本设为默认版本。",
         "operationId": "Package_SetAsDefaultReleaseProxy",
         "responses": {
           "200": {
@@ -1718,7 +1718,7 @@
     },
     "/api/v3/package/release/proxy/set_labels_many": {
       "post": {
-        "summary": "SetReleaseProxyLabelsMany sets many proxy releases labels.",
+        "summary": "批量设置 Proxy 安装包版本标签。",
         "operationId": "Package_SetReleaseProxyLabelsMany",
         "responses": {
           "200": {
@@ -1752,7 +1752,7 @@
     },
     "/api/v3/package/upload/origin/agent": {
       "post": {
-        "summary": "UploadOriginAgent provides origin agent upload.",
+        "summary": "上传 Agent 原始安装包。",
         "operationId": "Package_UploadOriginAgent",
         "responses": {
           "200": {
@@ -1786,7 +1786,7 @@
     },
     "/api/v3/package/upload/origin/bintool": {
       "post": {
-        "summary": "UploadOriginBinTool provides origin bintool upload.",
+        "summary": "上传原始二进制工具包。",
         "operationId": "Package_UploadOriginBinTool",
         "responses": {
           "200": {
@@ -1820,7 +1820,7 @@
     },
     "/api/v3/package/upload/origin/cert": {
       "post": {
-        "summary": "UploadOriginCert provides origin cert upload.",
+        "summary": "上传原始证书包。",
         "operationId": "Package_UploadOriginCert",
         "responses": {
           "200": {
@@ -1854,7 +1854,7 @@
     },
     "/api/v3/package/upload/origin/plugin_bintool": {
       "post": {
-        "summary": "UploadOriginPluginBinTool provides origin plugin bintool upload.",
+        "summary": "上传原始插件二进制工具包。",
         "operationId": "Package_UploadOriginPluginBinTool",
         "responses": {
           "200": {
@@ -1888,7 +1888,7 @@
     },
     "/api/v3/package/upload/origin/proxy": {
       "post": {
-        "summary": "UploadOriginProxy provides origin proxy upload.",
+        "summary": "上传 Proxy 原始安装包。",
         "operationId": "Package_UploadOriginProxy",
         "responses": {
           "200": {
@@ -1922,7 +1922,7 @@
     },
     "/api/v3/package/upload/origin/server": {
       "post": {
-        "summary": "UploadOriginServer provides origin server upload.",
+        "summary": "上传 Server 原始安装包。",
         "operationId": "Package_UploadOriginServer",
         "responses": {
           "200": {
@@ -1956,7 +1956,7 @@
     },
     "/api/v3/package/upload/origin/v2/external_plugin": {
       "post": {
-        "summary": "UploadOriginExternalPluginV2 provides origin external plugin v2 upload.",
+        "summary": "上传 V2 格式的原始外部插件包。",
         "operationId": "Package_UploadOriginExternalPluginV2",
         "responses": {
           "200": {
@@ -1990,7 +1990,7 @@
     },
     "/api/v3/package/upload/origin/v2/plugin": {
       "post": {
-        "summary": "UploadOriginPluginV2 provides origin plugin v2 upload.",
+        "summary": "上传 V2 格式的原始插件包。",
         "operationId": "Package_UploadOriginPluginV2",
         "responses": {
           "200": {
@@ -2024,7 +2024,7 @@
     },
     "/api/v3/package/upload/origin/v3/plugin": {
       "post": {
-        "summary": "UploadOriginPluginV3 provides origin plugin v3 upload.",
+        "summary": "上传 V3 格式的原始插件包。",
         "operationId": "Package_UploadOriginPluginV3",
         "responses": {
           "200": {

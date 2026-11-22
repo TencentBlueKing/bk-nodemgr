@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/download/agent": {
       "post": {
-        "summary": "DownloadAgent provides downloading agent pkg.",
+        "summary": "下载 Agent 安装包。",
         "operationId": "Download_DownloadAgent",
         "responses": {
           "200": {
@@ -61,7 +61,7 @@
     },
     "/api/v3/download/bintool": {
       "post": {
-        "summary": "DownloadBinTool provides downloading bintool.",
+        "summary": "下载二进制工具包。",
         "operationId": "Download_DownloadBinTool",
         "responses": {
           "200": {
@@ -104,7 +104,7 @@
     },
     "/api/v3/download/cert": {
       "post": {
-        "summary": "DownloadCert provides downloading cert.",
+        "summary": "下载证书包。",
         "operationId": "Download_DownloadCert",
         "responses": {
           "200": {
@@ -147,7 +147,7 @@
     },
     "/api/v3/download/installer": {
       "post": {
-        "summary": "DownloadInstaller provides downloading installer.",
+        "summary": "下载节点安装工具。",
         "operationId": "Download_DownloadInstaller",
         "responses": {
           "200": {
@@ -190,7 +190,7 @@
     },
     "/api/v3/download/plugin": {
       "post": {
-        "summary": "DownloadAgent provides downloading plugin.",
+        "summary": "下载插件安装包。",
         "operationId": "Download_DownloadPlugin",
         "responses": {
           "200": {
@@ -233,7 +233,7 @@
     },
     "/api/v3/download/plugin_bintool": {
       "post": {
-        "summary": "DownloadPluginBinTool provides downloading plugin bintool.",
+        "summary": "下载插件二进制工具包。",
         "operationId": "Download_DownloadPluginBinTool",
         "responses": {
           "200": {
@@ -276,7 +276,7 @@
     },
     "/api/v3/download/proxy": {
       "post": {
-        "summary": "DownloadProxy provides downloading proxy pkg.",
+        "summary": "下载 Proxy 安装包。",
         "operationId": "Download_DownloadProxy",
         "responses": {
           "200": {
@@ -319,7 +319,7 @@
     },
     "/api/v3/download/remote_file": {
       "post": {
-        "summary": "DownloadRemoteFile provides downloading a verified remote file.",
+        "summary": "下载经 MD5 校验的远程文件。",
         "operationId": "Download_DownloadRemoteFile",
         "responses": {
           "200": {

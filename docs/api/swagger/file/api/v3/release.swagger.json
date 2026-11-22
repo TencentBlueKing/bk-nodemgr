@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/release/agent/cancel_as_default": {
       "post": {
-        "summary": "CancelAsDefaultReleaseAgent cancels an agent release default.",
+        "summary": "取消指定 Agent 安装包版本的默认版本设置。",
         "operationId": "Release_CancelAsDefaultReleaseAgent",
         "responses": {
           "200": {
@@ -52,6 +52,7 @@
     },
     "/api/v3/release/agent/count": {
       "post": {
+        "summary": "统计符合条件的 Agent 安装包版本数量。",
         "operationId": "Release_CountReleaseAgent",
         "responses": {
           "200": {
@@ -85,7 +86,7 @@
     },
     "/api/v3/release/agent/delete": {
       "post": {
-        "summary": "DeleteReleaseAgent updates release metadata.",
+        "summary": "删除指定 Agent 安装包版本记录。",
         "operationId": "Release_DeleteReleaseAgent",
         "responses": {
           "200": {
@@ -119,7 +120,7 @@
     },
     "/api/v3/release/agent/disable": {
       "post": {
-        "summary": "DisableReleaseAgent disables an agent release.",
+        "summary": "禁用指定 Agent 安装包版本。",
         "operationId": "Release_DisableReleaseAgent",
         "responses": {
           "200": {
@@ -153,6 +154,7 @@
     },
     "/api/v3/release/agent/distinct": {
       "post": {
+        "summary": "按条件查询 Agent 安装包版本指定字段的去重值。",
         "operationId": "Release_DistinctReleaseAgent",
         "responses": {
           "200": {
@@ -186,7 +188,7 @@
     },
     "/api/v3/release/agent/enable": {
       "post": {
-        "summary": "EnableReleaseAgent enables an agent release.",
+        "summary": "启用指定 Agent 安装包版本。",
         "operationId": "Release_EnableReleaseAgent",
         "responses": {
           "200": {
@@ -220,6 +222,7 @@
     },
     "/api/v3/release/agent/get": {
       "post": {
+        "summary": "查询指定 Agent 安装包版本详情。",
         "operationId": "Release_GetReleaseAgent",
         "responses": {
           "200": {
@@ -253,6 +256,7 @@
     },
     "/api/v3/release/agent/list": {
       "post": {
+        "summary": "按条件分页查询 Agent 安装包版本列表。",
         "operationId": "Release_ListReleaseAgent",
         "responses": {
           "200": {
@@ -286,7 +290,7 @@
     },
     "/api/v3/release/agent/set_as_default": {
       "post": {
-        "summary": "SetAsDefaultReleaseAgent sets an agent release as default.",
+        "summary": "将指定 Agent 安装包版本设为默认版本。",
         "operationId": "Release_SetAsDefaultReleaseAgent",
         "responses": {
           "200": {
@@ -320,7 +324,7 @@
     },
     "/api/v3/release/agent/set_labels_many": {
       "post": {
-        "summary": "SetReleaseAgentLabelsMany updates release metadata.",
+        "summary": "批量更新符合条件的 Agent 安装包版本标签。",
         "operationId": "Release_SetReleaseAgentLabelsMany",
         "responses": {
           "200": {
@@ -354,7 +358,7 @@
     },
     "/api/v3/release/bintool/delete": {
       "post": {
-        "summary": "DeleteReleaseBinTool updates release metadata.",
+        "summary": "删除指定二进制工具包版本记录。",
         "operationId": "Release_DeleteReleaseBinTool",
         "responses": {
           "200": {
@@ -388,6 +392,7 @@
     },
     "/api/v3/release/bintool/list": {
       "post": {
+        "summary": "按条件分页查询二进制工具包版本列表。",
         "operationId": "Release_ListReleaseBinTool",
         "responses": {
           "200": {
@@ -421,7 +426,7 @@
     },
     "/api/v3/release/cert/delete": {
       "post": {
-        "summary": "DeleteReleaseCert updates release metadata.",
+        "summary": "删除指定证书包版本记录。",
         "operationId": "Release_DeleteReleaseCert",
         "responses": {
           "200": {
@@ -455,6 +460,7 @@
     },
     "/api/v3/release/cert/list": {
       "post": {
+        "summary": "按条件分页查询证书包版本列表。",
         "operationId": "Release_ListReleaseCert",
         "responses": {
           "200": {
@@ -488,7 +494,7 @@
     },
     "/api/v3/release/plugin/cancel_as_default": {
       "post": {
-        "summary": "CancelAsDefaultReleasePlugin cancels a plugin release default.",
+        "summary": "取消指定插件安装包版本的默认版本设置。",
         "operationId": "Release_CancelAsDefaultReleasePlugin",
         "responses": {
           "200": {
@@ -522,7 +528,7 @@
     },
     "/api/v3/release/plugin/cancel_hidden": {
       "post": {
-        "summary": "CancelHiddenReleasePlugin cancels a plugin release hidden state.",
+        "summary": "取消隐藏指定插件安装包版本。",
         "operationId": "Release_CancelHiddenReleasePlugin",
         "responses": {
           "200": {
@@ -556,6 +562,7 @@
     },
     "/api/v3/release/plugin/count": {
       "post": {
+        "summary": "统计符合条件的插件安装包版本数量。",
         "operationId": "Release_CountReleasePlugin",
         "responses": {
           "200": {
@@ -589,6 +596,7 @@
     },
     "/api/v3/release/plugin/default_version": {
       "post": {
+        "summary": "查询指定插件名称、代次和平台的默认安装包版本。",
         "operationId": "Release_GetReleasePluginDefaultVersion",
         "responses": {
           "200": {
@@ -622,7 +630,7 @@
     },
     "/api/v3/release/plugin/delete": {
       "post": {
-        "summary": "DeleteReleasePlugin updates release metadata.",
+        "summary": "删除指定插件安装包版本记录。",
         "operationId": "Release_DeleteReleasePlugin",
         "responses": {
           "200": {
@@ -656,7 +664,7 @@
     },
     "/api/v3/release/plugin/disable": {
       "post": {
-        "summary": "DisableReleasePlugin disables a plugin release.",
+        "summary": "禁用指定插件安装包版本。",
         "operationId": "Release_DisableReleasePlugin",
         "responses": {
           "200": {
@@ -690,6 +698,7 @@
     },
     "/api/v3/release/plugin/distinct": {
       "post": {
+        "summary": "按条件查询插件安装包版本指定字段的去重值。",
         "operationId": "Release_DistinctReleasePlugin",
         "responses": {
           "200": {
@@ -723,6 +732,7 @@
     },
     "/api/v3/release/plugin/distinct_name": {
       "post": {
+        "summary": "查询符合条件的插件安装包名称去重列表。",
         "operationId": "Release_DistinctNameReleasePlugin",
         "responses": {
           "200": {
@@ -756,7 +766,7 @@
     },
     "/api/v3/release/plugin/enable": {
       "post": {
-        "summary": "EnableReleasePlugin enables a plugin release.",
+        "summary": "启用指定插件安装包版本。",
         "operationId": "Release_EnableReleasePlugin",
         "responses": {
           "200": {
@@ -790,6 +800,7 @@
     },
     "/api/v3/release/plugin/exist": {
       "post": {
+        "summary": "检查是否存在符合条件的插件安装包版本。",
         "operationId": "Release_ExistReleasePlugin",
         "responses": {
           "200": {
@@ -823,6 +834,7 @@
     },
     "/api/v3/release/plugin/get": {
       "post": {
+        "summary": "查询指定插件安装包版本详情。",
         "operationId": "Release_GetReleasePlugin",
         "responses": {
           "200": {
@@ -856,6 +868,7 @@
     },
     "/api/v3/release/plugin/list": {
       "post": {
+        "summary": "按条件分页查询插件安装包版本列表。",
         "operationId": "Release_ListReleasePlugin",
         "responses": {
           "200": {
@@ -889,7 +902,7 @@
     },
     "/api/v3/release/plugin/set_as_default": {
       "post": {
-        "summary": "SetAsDefaultReleasePlugin sets a plugin release as default.",
+        "summary": "将指定插件安装包版本设为默认版本。",
         "operationId": "Release_SetAsDefaultReleasePlugin",
         "responses": {
           "200": {
@@ -923,7 +936,7 @@
     },
     "/api/v3/release/plugin/set_hidden": {
       "post": {
-        "summary": "SetHiddenReleasePlugin updates release metadata.",
+        "summary": "隐藏指定插件安装包版本。",
         "operationId": "Release_SetHiddenReleasePlugin",
         "responses": {
           "200": {
@@ -957,7 +970,7 @@
     },
     "/api/v3/release/plugin_bintool/delete": {
       "post": {
-        "summary": "DeleteReleasePluginBinTool updates release metadata.",
+        "summary": "删除指定插件二进制工具包版本记录。",
         "operationId": "Release_DeleteReleasePluginBinTool",
         "responses": {
           "200": {
@@ -991,6 +1004,7 @@
     },
     "/api/v3/release/plugin_bintool/distinct_name": {
       "post": {
+        "summary": "查询符合条件的插件二进制工具包名称去重列表。",
         "operationId": "Release_DistinctNameReleasePluginBinTool",
         "responses": {
           "200": {
@@ -1024,6 +1038,7 @@
     },
     "/api/v3/release/plugin_bintool/list": {
       "post": {
+        "summary": "按条件分页查询插件二进制工具包版本列表。",
         "operationId": "Release_ListReleasePluginBinTool",
         "responses": {
           "200": {
@@ -1057,7 +1072,7 @@
     },
     "/api/v3/release/proxy/cancel_as_default": {
       "post": {
-        "summary": "CancelAsDefaultReleaseProxy cancels a proxy release default.",
+        "summary": "取消指定 Proxy 安装包版本的默认版本设置。",
         "operationId": "Release_CancelAsDefaultReleaseProxy",
         "responses": {
           "200": {
@@ -1091,6 +1106,7 @@
     },
     "/api/v3/release/proxy/count": {
       "post": {
+        "summary": "统计符合条件的 Proxy 安装包版本数量。",
         "operationId": "Release_CountReleaseProxy",
         "responses": {
           "200": {
@@ -1124,7 +1140,7 @@
     },
     "/api/v3/release/proxy/delete": {
       "post": {
-        "summary": "DeleteReleaseProxy updates release metadata.",
+        "summary": "删除指定 Proxy 安装包版本记录。",
         "operationId": "Release_DeleteReleaseProxy",
         "responses": {
           "200": {
@@ -1158,7 +1174,7 @@
     },
     "/api/v3/release/proxy/disable": {
       "post": {
-        "summary": "DisableReleaseProxy disables a proxy release.",
+        "summary": "禁用指定 Proxy 安装包版本。",
         "operationId": "Release_DisableReleaseProxy",
         "responses": {
           "200": {
@@ -1192,6 +1208,7 @@
     },
     "/api/v3/release/proxy/distinct": {
       "post": {
+        "summary": "按条件查询 Proxy 安装包版本指定字段的去重值。",
         "operationId": "Release_DistinctReleaseProxy",
         "responses": {
           "200": {
@@ -1225,7 +1242,7 @@
     },
     "/api/v3/release/proxy/enable": {
       "post": {
-        "summary": "EnableReleaseProxy enables a proxy release.",
+        "summary": "启用指定 Proxy 安装包版本。",
         "operationId": "Release_EnableReleaseProxy",
         "responses": {
           "200": {
@@ -1259,6 +1276,7 @@
     },
     "/api/v3/release/proxy/get": {
       "post": {
+        "summary": "查询指定 Proxy 安装包版本详情。",
         "operationId": "Release_GetReleaseProxy",
         "responses": {
           "200": {
@@ -1292,6 +1310,7 @@
     },
     "/api/v3/release/proxy/list": {
       "post": {
+        "summary": "按条件分页查询 Proxy 安装包版本列表。",
         "operationId": "Release_ListReleaseProxy",
         "responses": {
           "200": {
@@ -1325,7 +1344,7 @@
     },
     "/api/v3/release/proxy/set_as_default": {
       "post": {
-        "summary": "SetAsDefaultReleaseProxy sets a proxy release as default.",
+        "summary": "将指定 Proxy 安装包版本设为默认版本。",
         "operationId": "Release_SetAsDefaultReleaseProxy",
         "responses": {
           "200": {
@@ -1359,7 +1378,7 @@
     },
     "/api/v3/release/proxy/set_labels_many": {
       "post": {
-        "summary": "SetReleaseProxyLabelsMany updates release metadata.",
+        "summary": "批量更新符合条件的 Proxy 安装包版本标签。",
         "operationId": "Release_SetReleaseProxyLabelsMany",
         "responses": {
           "200": {
@@ -1393,7 +1412,7 @@
     },
     "/api/v3/release/sync_shared": {
       "post": {
-        "summary": "SyncSharedReleases copies system shared releases to the authenticated\ntenant.",
+        "summary": "将系统租户共享的安装包版本同步到当前认证租户。",
         "operationId": "Release_SyncSharedReleases",
         "responses": {
           "200": {

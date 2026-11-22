@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/policy/config/create": {
       "post": {
-        "summary": "CreateConfigPolicy creates config policy.",
+        "summary": "创建配置策略。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyCreate",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/policy/config/delete": {
       "post": {
-        "summary": "DeleteConfigPolicy deletes config policy.",
+        "summary": "删除配置策略。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyDelete",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/policy/config/disable": {
       "post": {
-        "summary": "DisableConfigPolicy disables config policy.",
+        "summary": "停用配置策略。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyDisable",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/policy/config/enable": {
       "post": {
-        "summary": "EnableConfigPolicy enables config policy.",
+        "summary": "启用配置策略。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyEnable",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/policy/config/event/distinct": {
       "post": {
-        "summary": "ConfigPolicyEventDistinct provides policy event distincting.",
+        "summary": "查询配置策略事件指定字段的去重值。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyEventDistinct",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/policy/config/event/list": {
       "post": {
-        "summary": "ConfigPolicyEventList provides policy event listing.",
+        "summary": "查询配置策略事件列表。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyEventList",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/policy/config/get": {
       "post": {
-        "summary": "GetConfigPolicy gets config policy.",
+        "summary": "查询配置策略详情。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyGet",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/policy/config/list": {
       "post": {
-        "summary": "ListConfigPolicy lists config policy.",
+        "summary": "查询配置策略列表。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyList",
         "responses": {
           "200": {
@@ -290,7 +290,7 @@
     },
     "/api/v3/policy/config/preview": {
       "post": {
-        "summary": "ConfigPolicyPreview previews merged config for selected hosts.",
+        "summary": "预览指定主机应用配置策略后的合并配置。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyPreview",
         "responses": {
           "200": {
@@ -324,7 +324,7 @@
     },
     "/api/v3/policy/config/reorder_priorities": {
       "post": {
-        "summary": "ConfigPolicyPriorityReorder reorders config policy priorities within a\n(biz, type) scope.",
+        "summary": "在同一业务和策略类型范围内调整配置策略优先级。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyPriorityReorder",
         "responses": {
           "200": {
@@ -358,7 +358,7 @@
     },
     "/api/v3/policy/config/update": {
       "post": {
-        "summary": "UpdateConfigPolicy updates config policy.",
+        "summary": "更新配置策略。",
         "operationId": "ConfigPolicyAPI_ConfigPolicyUpdate",
         "responses": {
           "200": {

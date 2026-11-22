@@ -103,8 +103,7 @@ message AuthorizedResp {
 
 // Auth service provides proactive permission verification and query endpoints.
 service Auth {
-  // Verify checks whether the current user has permissions for the requested
-  // resources.
+  // 校验当前用户对指定资源的操作权限。
   rpc Verify(AuthVerifyReq) returns (AuthVerifyResp) {
     option (google.api.http) = {
       post : "/api/v3/auth/verify"
@@ -112,8 +111,7 @@ service Auth {
     };
   }
 
-  // Authorized queries the authorized resource scope for the requested
-  // action-resource type pairs.
+  // 查询当前用户在指定操作与资源类型下的授权资源范围。
   rpc Authorized(AuthorizedReq) returns (AuthorizedResp) {
     option (google.api.http) = {
       post : "/api/v3/auth/authorized"

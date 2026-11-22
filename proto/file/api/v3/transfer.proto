@@ -113,7 +113,7 @@ message TransferQueryResp {
 
 // Transfer service.
 service Transfer {
-  // TransferLaunchNode provides transferring node package.
+  // 启动节点安装包到目标主机的异步传输。
   rpc TransferLaunchNode(TransferLaunchNodeReq)
       returns (stream TransferLaunchNodeResp) {
     option (google.api.http) = {
@@ -122,7 +122,7 @@ service Transfer {
     };
   };
 
-  // TransferLaunchPlugin provides transferring plugin package.
+  // 启动插件安装包到目标主机的异步传输。
   rpc TransferLaunchPlugin(TransferLaunchPluginReq)
       returns (stream TransferLaunchPluginResp) {
     option (google.api.http) = {
@@ -131,7 +131,7 @@ service Transfer {
     };
   };
 
-  // TransferInstaller provides transferring installer package.
+  // 启动节点安装工具到目标主机的异步传输。
   rpc TransferInstaller(TransferLaunchInstallerReq)
       returns (stream TransferLaunchInstallerResp) {
     option (google.api.http) = {
@@ -140,7 +140,7 @@ service Transfer {
     };
   };
 
-  // TransferQuery provides querying transfer release.
+  // 按任务 ID 查询文件传输结果。
   rpc TransferQuery(TransferQueryReq) returns (TransferQueryResp) {
     option (google.api.http) = {
       get : "/api/v3/transfer/query"

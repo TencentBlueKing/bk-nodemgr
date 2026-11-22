@@ -233,7 +233,7 @@ message NodeAgentUpgradeCheckResult {
 
 // NodeAgent is the service for node agent.
 service NodeAgent {
-  // NodeAgentInstall installs node agent.
+  // 批量安装节点 Agent。
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/install"
@@ -241,7 +241,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentUpgrade upgrades node agent.
+  // 批量升级节点 Agent。
   rpc NodeAgentUpgrade(NodeAgentUpgradeReq) returns (NodeAgentUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/upgrade"
@@ -249,7 +249,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentRestart restarts node agent.
+  // 批量重启节点 Agent。
   rpc NodeAgentRestart(NodeAgentRestartReq) returns (NodeAgentRestartResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/restart"
@@ -257,7 +257,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentReconfig reconfigs node agent.
+  // 批量重新下发节点 Agent 配置并重启 Agent。
   rpc NodeAgentReconfig(NodeAgentReconfigReq) returns (NodeAgentReconfigResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/reconfig"
@@ -265,7 +265,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentUninstall uninstalls node agent.
+  // 批量卸载节点 Agent。
   rpc NodeAgentUninstall(NodeAgentUninstallReq)
       returns (NodeAgentUninstallResp) {
     option (google.api.http) = {
@@ -274,7 +274,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentInstallCheck  check installs node agent.
+  // 检查节点 Agent 安装条件。
   rpc NodeAgentInstallCheck(NodeAgentInstallCheckReq)
       returns (NodeAgentInstallCheckResp) {
     option (google.api.http) = {
@@ -283,7 +283,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentUpgradeCheck checks node agent upgrade.
+  // 检查节点 Agent 升级条件。
   rpc NodeAgentUpgradeCheck(NodeAgentUpgradeCheckReq)
       returns (NodeAgentUpgradeCheckResp) {
     option (google.api.http) = {
@@ -292,7 +292,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.
+  // 为尚未分配管控单元的 Agent 主机批量分配一个管控单元，仅更新节点元数据。
   rpc NodeAgentAssignUnit(NodeAgentAssignUnitReq)
       returns (NodeAgentAssignUnitResp) {
     option (google.api.http) = {
@@ -301,8 +301,7 @@ service NodeAgent {
     };
   }
 
-  // NodeAgentAssignUnitMulti batch-assigns multiple network units to agent
-  // hosts.
+  // 按主机分组批量分配对应的管控单元，仅更新节点元数据。
   rpc NodeAgentAssignUnitMulti(NodeAgentAssignUnitMultiReq)
       returns (NodeAgentAssignUnitResp) {
     option (google.api.http) = {

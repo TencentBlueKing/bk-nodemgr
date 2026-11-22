@@ -234,7 +234,7 @@ message ProcessV2CompatibleListResp {
 }
 
 service Process {
-  // ListProcesses lists the processes.
+  // 查询插件进程列表。
   rpc ListProcesses(ProcessListReq) returns (ProcessListResp) {
     option (google.api.http) = {
       post : "/api/v3/process/list"
@@ -242,7 +242,7 @@ service Process {
     };
   }
 
-  // GetProcessDistributionByHostID describes the process statistics request.
+  // 按主机统计插件进程数量。
   rpc GetProcessDistributionByHostID(GetProcessDistributionByHostIDReq)
       returns (GetProcessDistributionByHostIDResp) {
     option (google.api.http) = {
@@ -251,8 +251,7 @@ service Process {
     };
   }
 
-  // GetProcessDistributionByPluginName describes the process statistics
-  // request.
+  // 按插件名称统计进程数量。
   rpc GetProcessDistributionByPluginName(GetProcessDistributionByPluginNameReq)
       returns (GetProcessDistributionByPluginNameResp) {
     option (google.api.http) = {
@@ -261,7 +260,7 @@ service Process {
     };
   }
 
-  // ProcessDistinct describes the process distinct request.
+  // 查询插件进程指定字段的去重值。
   rpc ProcessDistinct(ProcessDistinctReq) returns (ProcessDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/process/distinct"
@@ -271,8 +270,7 @@ service Process {
 
   // 分页查询节点管理 V2 兼容模式的进程列表。
   //
-  // 请求和响应字段与 V3 进程列表一致，但使用独立的 Req/Resp 消息；数据来源为 V2
-  // 兼容进程记录。
+  // 分页查询节点管理 V2 兼容进程记录，返回对应主机、插件和进程状态。
   rpc ListV2Processes(ProcessV2ListReq) returns (ProcessV2ListResp) {
     option (google.api.http) = {
       post : "/api/v3/process/list_v2"
@@ -282,7 +280,7 @@ service Process {
 
   // 查询主机上的插件进程状态，兼容节点管理 V2 的插件检索返回内容。
   //
-  // 仅监控平台使用，不对外开放申请。
+  // 本接口为监控平台查询主机插件进程状态提供 V2 兼容返回内容，不对外开放申请。
   rpc ListV2ProcessesCompatible(ProcessV2CompatibleListReq)
       returns (ProcessV2CompatibleListResp) {
     option (google.api.http) = {

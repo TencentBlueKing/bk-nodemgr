@@ -308,7 +308,7 @@ message ConfigPolicyEventDistinctResp {
 }
 
 service ConfigPolicyAPI {
-  // ListConfigPolicy lists config policy.
+  // 查询配置策略列表。
   rpc ConfigPolicyList(ConfigPolicyListReq) returns (ConfigPolicyListResp) {
     option (google.api.http) = {
       post : "/api/v3/policy/config/list"
@@ -316,7 +316,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // GetConfigPolicy gets config policy.
+  // 查询配置策略详情。
   rpc ConfigPolicyGet(ConfigPolicyGetReq) returns (ConfigPolicyGetResp) {
     option (google.api.http) = {
       post : "/api/v3/policy/config/get"
@@ -324,7 +324,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // CreateConfigPolicy creates config policy.
+  // 创建配置策略。
   rpc ConfigPolicyCreate(ConfigPolicyCreateReq)
       returns (ConfigPolicyCreateResp) {
     option (google.api.http) = {
@@ -333,7 +333,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // UpdateConfigPolicy updates config policy.
+  // 更新配置策略。
   rpc ConfigPolicyUpdate(ConfigPolicyUpdateReq)
       returns (ConfigPolicyUpdateResp) {
     option (google.api.http) = {
@@ -342,7 +342,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // EnableConfigPolicy enables config policy.
+  // 启用配置策略。
   rpc ConfigPolicyEnable(ConfigPolicyEnableReq)
       returns (ConfigPolicyEnableResp) {
     option (google.api.http) = {
@@ -351,7 +351,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // DisableConfigPolicy disables config policy.
+  // 停用配置策略。
   rpc ConfigPolicyDisable(ConfigPolicyDisableReq)
       returns (ConfigPolicyDisableResp) {
     option (google.api.http) = {
@@ -360,7 +360,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // DeleteConfigPolicy deletes config policy.
+  // 删除配置策略。
   rpc ConfigPolicyDelete(ConfigPolicyDeleteReq)
       returns (ConfigPolicyDeleteResp) {
     option (google.api.http) = {
@@ -369,8 +369,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // ConfigPolicyPriorityReorder reorders config policy priorities within a
-  // (biz, type) scope.
+  // 在同一业务和策略类型范围内调整配置策略优先级。
   rpc ConfigPolicyPriorityReorder(ConfigPolicyPriorityReorderReq)
       returns (ConfigPolicyPriorityReorderResp) {
     option (google.api.http) = {
@@ -379,7 +378,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // ConfigPolicyPreview previews merged config for selected hosts.
+  // 预览指定主机应用配置策略后的合并配置。
   rpc ConfigPolicyPreview(ConfigPolicyPreviewReq)
       returns (ConfigPolicyPreviewResp) {
     option (google.api.http) = {
@@ -388,7 +387,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // ConfigPolicyEventList provides policy event listing.
+  // 查询配置策略事件列表。
   rpc ConfigPolicyEventList(ConfigPolicyEventListReq)
       returns (ConfigPolicyEventListResp) {
     option (google.api.http) = {
@@ -397,7 +396,7 @@ service ConfigPolicyAPI {
     };
   }
 
-  // ConfigPolicyEventDistinct provides policy event distincting.
+  // 查询配置策略事件指定字段的去重值。
   rpc ConfigPolicyEventDistinct(ConfigPolicyEventDistinctReq)
       returns (ConfigPolicyEventDistinctResp) {
     option (google.api.http) = {

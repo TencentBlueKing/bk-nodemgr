@@ -872,7 +872,7 @@ message PackageEventDistinctResp {
 
 // Package defines the package service.
 service Package {
-  // ListReleaseAgent lists agent releases.
+  // 查询 Agent 安装包版本列表。
   rpc ListReleaseAgent(PackageReleaseAgentListReq)
       returns (PackageReleaseAgentListResp) {
     option (google.api.http) = {
@@ -881,7 +881,7 @@ service Package {
     };
   }
 
-  // ListReleaseAgentBrief lists agent release briefs.
+  // 查询 Agent 安装包版本简表。
   rpc ListReleaseAgentBrief(PackageReleaseAgentListBriefReq)
       returns (PackageReleaseAgentListBriefResp) {
     option (google.api.http) = {
@@ -890,7 +890,7 @@ service Package {
     };
   }
 
-  // DistinctReleaseAgent distincts agent releases.
+  // 查询 Agent 安装包版本指定字段的去重值。
   rpc DistinctReleaseAgent(PackageReleaseAgentDistinctReq)
       returns (PackageReleaseAgentDistinctResp) {
     option (google.api.http) = {
@@ -899,7 +899,7 @@ service Package {
     };
   }
 
-  // DistinctReleasePlugin distincts plugin releases.
+  // 查询插件安装包版本指定字段的去重值。
   rpc DistinctReleasePlugin(PackageReleasePluginDistinctReq)
       returns (PackageReleasePluginDistinctResp) {
     option (google.api.http) = {
@@ -908,7 +908,7 @@ service Package {
     };
   }
 
-  // SetReleaseAgentLabelsMany sets many agent releases labels.
+  // 批量设置 Agent 安装包版本的标签。
   rpc SetReleaseAgentLabelsMany(PackageReleaseAgentSetLabelsManyReq)
       returns (PackageReleaseAgentSetLabelsManyResp) {
     option (google.api.http) = {
@@ -917,7 +917,7 @@ service Package {
     };
   }
 
-  // EnableReleaseAgent enables agent release.
+  // 启用 Agent 安装包版本。
   rpc EnableReleaseAgent(PackageReleaseAgentEnableReq)
       returns (PackageReleaseAgentEnableResp) {
     option (google.api.http) = {
@@ -926,7 +926,7 @@ service Package {
     };
   }
 
-  // DisableReleaseAgent disables agent release.
+  // 停用 Agent 安装包版本。
   rpc DisableReleaseAgent(PackageReleaseAgentDisableReq)
       returns (PackageReleaseAgentDisableResp) {
     option (google.api.http) = {
@@ -935,7 +935,7 @@ service Package {
     };
   }
 
-  // SetAsDefaultReleaseAgent sets agent release as default.
+  // 将 Agent 安装包版本设为默认版本。
   rpc SetAsDefaultReleaseAgent(PackageReleaseAgentSetAsDefaultReq)
       returns (PackageReleaseAgentSetAsDefaultResp) {
     option (google.api.http) = {
@@ -944,7 +944,7 @@ service Package {
     };
   }
 
-  // CancelAsDefaultReleaseAgent cancels agent release as default.
+  // 取消 Agent 安装包版本的默认版本设置。
   rpc CancelAsDefaultReleaseAgent(PackageReleaseAgentCancelAsDefaultReq)
       returns (PackageReleaseAgentCancelAsDefaultResp) {
     option (google.api.http) = {
@@ -953,7 +953,7 @@ service Package {
     };
   }
 
-  // DeleteReleaseAgent deletes agent release.
+  // 删除 Agent 安装包版本。
   rpc DeleteReleaseAgent(PackageReleaseAgentDeleteReq)
       returns (PackageReleaseAgentDeleteResp) {
     option (google.api.http) = {
@@ -962,7 +962,7 @@ service Package {
     };
   }
 
-  // ListReleaseProxy lists proxy releases.
+  // 查询 Proxy 安装包版本列表。
   rpc ListReleaseProxy(PackageReleaseProxyListReq)
       returns (PackageReleaseProxyListResp) {
     option (google.api.http) = {
@@ -971,7 +971,7 @@ service Package {
     };
   }
 
-  // ListReleaseProxyBrief lists proxy release briefs.
+  // 查询 Proxy 安装包版本简表。
   rpc ListReleaseProxyBrief(PackageReleaseProxyListBriefReq)
       returns (PackageReleaseProxyListBriefResp) {
     option (google.api.http) = {
@@ -980,7 +980,7 @@ service Package {
     };
   }
 
-  // DistinctReleaseProxy distincts proxy releases.
+  // 查询 Proxy 安装包版本指定字段的去重值。
   rpc DistinctReleaseProxy(PackageReleaseProxyDistinctReq)
       returns (PackageReleaseProxyDistinctResp) {
     option (google.api.http) = {
@@ -989,7 +989,7 @@ service Package {
     };
   }
 
-  // SetReleaseProxyLabelsMany sets many proxy releases labels.
+  // 批量设置 Proxy 安装包版本的标签。
   rpc SetReleaseProxyLabelsMany(PackageReleaseProxySetLabelsManyReq)
       returns (PackageReleaseProxySetLabelsManyResp) {
     option (google.api.http) = {
@@ -998,7 +998,7 @@ service Package {
     };
   }
 
-  // EnableReleaseProxy enables proxy release.
+  // 启用 Proxy 安装包版本。
   rpc EnableReleaseProxy(PackageReleaseProxyEnableReq)
       returns (PackageReleaseProxyEnableResp) {
     option (google.api.http) = {
@@ -1007,7 +1007,7 @@ service Package {
     };
   }
 
-  // DisableReleaseProxy disables proxy release.
+  // 停用 Proxy 安装包版本。
   rpc DisableReleaseProxy(PackageReleaseProxyDisableReq)
       returns (PackageReleaseProxyDisableResp) {
     option (google.api.http) = {
@@ -1016,7 +1016,7 @@ service Package {
     };
   }
 
-  // SetAsDefaultReleaseProxy sets proxy release as default.
+  // 将 Proxy 安装包版本设为默认版本。
   rpc SetAsDefaultReleaseProxy(PackageReleaseProxySetAsDefaultReq)
       returns (PackageReleaseProxySetAsDefaultResp) {
     option (google.api.http) = {
@@ -1025,7 +1025,7 @@ service Package {
     };
   }
 
-  // CancelAsDefaultReleaseProxy cancels proxy release as default.
+  // 取消 Proxy 安装包版本的默认版本设置。
   rpc CancelAsDefaultReleaseProxy(PackageReleaseProxyCancelAsDefaultReq)
       returns (PackageReleaseProxyCancelAsDefaultResp) {
     option (google.api.http) = {
@@ -1034,7 +1034,7 @@ service Package {
     };
   }
 
-  // DeleteReleaseProxy deletes proxy release.
+  // 删除 Proxy 安装包版本。
   rpc DeleteReleaseProxy(PackageReleaseProxyDeleteReq)
       returns (PackageReleaseProxyDeleteResp) {
     option (google.api.http) = {
@@ -1043,7 +1043,7 @@ service Package {
     };
   }
 
-  // ListReleasePlugin lists plugin releases.
+  // 查询插件安装包版本列表。
   rpc ListReleasePlugin(PackageReleasePluginListReq)
       returns (PackageReleasePluginListResp) {
     option (google.api.http) = {
@@ -1052,7 +1052,7 @@ service Package {
     };
   }
 
-  // ListReleasePluginBrief lists plugin release briefs.
+  // 查询插件安装包版本简表。
   rpc ListReleasePluginBrief(PackageReleasePluginListBriefReq)
       returns (PackageReleasePluginListBriefResp) {
     option (google.api.http) = {
@@ -1061,7 +1061,7 @@ service Package {
     };
   }
 
-  // EnableReleasePlugin enables plugin release.
+  // 启用插件安装包版本。
   rpc EnableReleasePlugin(PackageReleasePluginEnableReq)
       returns (PackageReleasePluginEnableResp) {
     option (google.api.http) = {
@@ -1070,7 +1070,7 @@ service Package {
     };
   }
 
-  // DisableReleasePlugin disables plugin release.
+  // 停用插件安装包版本。
   rpc DisableReleasePlugin(PackageReleasePluginDisableReq)
       returns (PackageReleasePluginDisableResp) {
     option (google.api.http) = {
@@ -1079,7 +1079,7 @@ service Package {
     };
   }
 
-  // SetHiddenReleasePlugin sets plugin release hidden state.
+  // 设置插件安装包版本的隐藏状态。
   rpc SetHiddenReleasePlugin(PackageReleasePluginSetHiddenReq)
       returns (PackageReleasePluginSetHiddenResp) {
     option (google.api.http) = {
@@ -1088,7 +1088,7 @@ service Package {
     };
   }
 
-  // SetAsDefaultReleasePlugin sets plugin release as default.
+  // 将插件安装包版本设为默认版本。
   rpc SetAsDefaultReleasePlugin(PackageReleasePluginSetAsDefaultReq)
       returns (PackageReleasePluginSetAsDefaultResp) {
     option (google.api.http) = {
@@ -1097,7 +1097,7 @@ service Package {
     };
   }
 
-  // CancelAsDefaultReleasePlugin cancels plugin release as default.
+  // 取消插件安装包版本的默认版本设置。
   rpc CancelAsDefaultReleasePlugin(PackageReleasePluginCancelAsDefaultReq)
       returns (PackageReleasePluginCancelAsDefaultResp) {
     option (google.api.http) = {
@@ -1106,7 +1106,7 @@ service Package {
     };
   }
 
-  // DeleteReleasePlugin deletes plugin release.
+  // 删除插件安装包版本。
   rpc DeleteReleasePlugin(PackageReleasePluginDeleteReq)
       returns (PackageReleasePluginDeleteResp) {
     option (google.api.http) = {
@@ -1115,7 +1115,7 @@ service Package {
     };
   }
 
-  // GetConfigVariablesReleasePlugin gets config variables of plugin release.
+  // 查询插件安装包版本的配置模板变量。
   rpc GetConfigVariablesReleasePlugin(PackageReleasePluginGetConfigVariablesReq)
       returns (PackageReleasePluginGetConfigVariablesResp) {
     option (google.api.http) = {
@@ -1124,7 +1124,7 @@ service Package {
     };
   }
 
-  // ListReleaseCert lists cert releases.
+  // 查询证书安装包版本列表。
   rpc ListReleaseCert(PackageReleaseCertListReq)
       returns (PackageReleaseCertListResp) {
     option (google.api.http) = {
@@ -1133,7 +1133,7 @@ service Package {
     };
   }
 
-  // DeleteReleaseCert deletes cert release.
+  // 删除证书安装包版本。
   rpc DeleteReleaseCert(PackageReleaseCertDeleteReq)
       returns (PackageReleaseCertDeleteResp) {
     option (google.api.http) = {
@@ -1142,7 +1142,7 @@ service Package {
     };
   }
 
-  // ListReleaseBinTool lists bintool releases.
+  // 查询二进制工具安装包版本列表。
   rpc ListReleaseBinTool(PackageReleaseBinToolListReq)
       returns (PackageReleaseBinToolListResp) {
     option (google.api.http) = {
@@ -1151,7 +1151,7 @@ service Package {
     };
   }
 
-  // DeleteReleaseBinTool deletes bintool release.
+  // 删除二进制工具安装包版本。
   rpc DeleteReleaseBinTool(PackageReleaseBinToolDeleteReq)
       returns (PackageReleaseBinToolDeleteResp) {
     option (google.api.http) = {
@@ -1160,7 +1160,7 @@ service Package {
     };
   }
 
-  // ListReleasePluginBinTool lists plugin-bintool releases.
+  // 查询插件二进制工具安装包版本列表。
   rpc ListReleasePluginBinTool(PackageReleasePluginBinToolListReq)
       returns (PackageReleasePluginBinToolListResp) {
     option (google.api.http) = {
@@ -1169,7 +1169,7 @@ service Package {
     };
   }
 
-  // DeleteReleasePluginBinTool deletes plugin-bintool release.
+  // 删除插件二进制工具安装包版本。
   rpc DeleteReleasePluginBinTool(PackageReleasePluginBinToolDeleteReq)
       returns (PackageReleasePluginBinToolDeleteResp) {
     option (google.api.http) = {
@@ -1178,7 +1178,7 @@ service Package {
     };
   }
 
-  // PackageEventList provides package event listing.
+  // 查询安装包操作事件列表。
   rpc PackageEventList(PackageEventListReq) returns (PackageEventListResp) {
     option (google.api.http) = {
       post : "/api/v3/package/event/list"
@@ -1186,7 +1186,7 @@ service Package {
     };
   }
 
-  // PackageEventDistinct provides package event distincting.
+  // 查询安装包操作事件指定字段的去重值。
   rpc PackageEventDistinct(PackageEventDistinctReq)
       returns (PackageEventDistinctResp) {
     option (google.api.http) = {

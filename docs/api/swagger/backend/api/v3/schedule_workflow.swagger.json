@@ -153,7 +153,7 @@
     },
     "/api/v3/schedule/workflow/disable": {
       "post": {
-        "summary": "DisableScheduleWorkflow provides disable schedule workflow.",
+        "summary": "停用定时工作流。",
         "operationId": "ScheduleWorkflow_DisableScheduleWorkflow",
         "responses": {
           "200": {
@@ -187,7 +187,7 @@
     },
     "/api/v3/schedule/workflow/enable": {
       "post": {
-        "summary": "EnableScheduleWorkflow provides enable schedule workflow.",
+        "summary": "启用定时工作流。",
         "operationId": "ScheduleWorkflow_EnableScheduleWorkflow",
         "responses": {
           "200": {
@@ -221,7 +221,7 @@
     },
     "/api/v3/schedule/workflow/list": {
       "post": {
-        "summary": "ListScheduleWorkflow provides list schedule workflow.",
+        "summary": "查询定时工作流列表。",
         "operationId": "ScheduleWorkflow_ListScheduleWorkflow",
         "responses": {
           "200": {

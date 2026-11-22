@@ -401,7 +401,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowList provides node workflow list.
+  // 查询节点工作流列表。
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/list"
@@ -409,7 +409,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowStatistics provides node workflow statistics.
+  // 统计节点工作流的操作实例状态分布。
   rpc NodeWorkflowStatistics(NodeWorkflowStatisticsReq)
       returns (NodeWorkflowStatisticsResp) {
     option (google.api.http) = {
@@ -418,7 +418,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowDistinct provides node workflow distinct.
+  // 查询节点工作流筛选字段的去重值。
   rpc NodeWorkflowDistinct(NodeWorkflowDistinctReq)
       returns (NodeWorkflowDistinctResp) {
     option (google.api.http) = {
@@ -427,7 +427,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationList provides node workflow operation list.
+  // 查询节点工作流操作列表。
   rpc NodeWorkflowOperationList(NodeWorkflowOperationListReq)
       returns (NodeWorkflowOperationListResp) {
     option (google.api.http) = {
@@ -436,7 +436,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationDistinct provides node workflow operation distinct.
+  // 查询节点工作流操作筛选字段的去重值。
   rpc NodeWorkflowOperationDistinct(NodeWorkflowOperationDistinctReq)
       returns (NodeWorkflowOperationDistinctResp) {
     option (google.api.http) = {
@@ -445,8 +445,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationInstanceList provides node workflow operation instance
-  // list.
+  // 查询节点工作流操作实例列表。
   rpc NodeWorkflowOperationInstanceList(NodeWorkflowOperationInstanceListReq)
       returns (NodeWorkflowOperationInstanceListResp) {
     option (google.api.http) = {
@@ -455,8 +454,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationInstanceLogGet provides node operation instance log
-  // get.
+  // 获取节点工作流操作实例日志。
   rpc NodeWorkflowOperationInstanceLogGet(
       NodeWorkflowOperationInstanceLogGetReq)
       returns (NodeWorkflowOperationInstanceLogGetResp) {
@@ -466,7 +464,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationRetry retry node operation.
+  // 重试节点工作流操作。
   rpc NodeWorkflowOperationRetry(NodeWorkflowOperationRetryReq)
       returns (NodeWorkflowOperationRetryResp) {
     option (google.api.http) = {
@@ -475,7 +473,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationTerminate provides node operation terminate.
+  // 终止节点工作流操作。
   rpc NodeWorkflowOperationTerminate(NodeWorkflowOperationTerminateReq)
       returns (NodeWorkflowOperationTerminateResp) {
     option (google.api.http) = {
@@ -484,8 +482,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationManualSolutionGet provides node operation manual
-  // solution get.
+  // 获取节点工作流操作的手动执行方案。
   rpc NodeWorkflowOperationManualSolutionGet(
       NodeWorkflowOperationManualSolutionGetReq)
       returns (NodeWorkflowOperationManualSolutionGetResp) {
@@ -495,9 +492,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationOfflinePackageDownload streams the tar.gz offline
-  // install bundle for an operation (POST
-  // /api/v3/node/workflow/operation/offline/download, body: operation_id).
+  // 根据操作 ID 下载节点离线安装包（tar.gz 文件流）。
   rpc NodeWorkflowOperationOfflinePackageDownload(
       NodeWorkflowOperationOfflinePackageDownloadReq) returns (FileChunk) {
     option (google.api.http) = {
@@ -506,9 +501,7 @@ service NodeWorkflow {
     };
   }
 
-  // NodeWorkflowOperationOfflineInstallResultSubmit forwards offline install
-  // result JSON to the backend (POST
-  // /api/v3/node/workflow/operation/offline/result).
+  // 提交节点工作流操作的离线安装结果 JSON。
   rpc NodeWorkflowOperationOfflineInstallResultSubmit(
       NodeWorkflowOperationOfflineInstallResultSubmitReq)
       returns (NodeWorkflowOperationOfflineInstallResultSubmitResp) {

@@ -161,8 +161,7 @@ message NodeOpsFieldsListProxyResp {
 
 // Ops provides out-of-band settings and operation history.
 service Ops {
-  // NodeOpsHistoryList lists operations across agent and proxy roles within
-  // the caller's permission scope.
+  // 查询调用者权限范围内 Agent 和 Proxy 的带外配置操作记录。
   rpc NodeOpsHistoryList(NodeOpsHistoryListReq)
       returns (NodeOpsHistoryListResp) {
     option (google.api.http) = {
@@ -171,8 +170,7 @@ service Ops {
     };
   }
 
-  // NodeOpsHistoryDetail retrieves all archived snapshots for an operation
-  // within the caller's permission scope.
+  // 查询指定带外配置操作在调用者权限范围内的全部归档主机快照。
   rpc NodeOpsHistoryDetail(NodeOpsHistoryDetailReq)
       returns (NodeOpsHistoryDetailResp) {
     option (google.api.http) = {
@@ -181,7 +179,7 @@ service Ops {
     };
   }
 
-  // NodeOpsUpdateFieldsAgent batch-updates out-of-band fields for agent hosts.
+  // 批量更新 Agent 主机的带外配置。
   rpc NodeOpsUpdateFieldsAgent(NodeOpsUpdateFieldsAgentReq)
       returns (NodeOpsUpdateFieldsAgentResp) {
     option (google.api.http) = {
@@ -190,7 +188,7 @@ service Ops {
     };
   }
 
-  // NodeOpsUpdateFieldsProxy batch-updates out-of-band fields for proxy hosts.
+  // 批量更新 Proxy 主机的带外配置。
   rpc NodeOpsUpdateFieldsProxy(NodeOpsUpdateFieldsProxyReq)
       returns (NodeOpsUpdateFieldsProxyResp) {
     option (google.api.http) = {
@@ -199,7 +197,7 @@ service Ops {
     };
   }
 
-  // NodeOpsFieldsListAgent reads agent out-of-band fields.
+  // 查询指定 Agent 主机的当前带外配置。
   rpc NodeOpsFieldsListAgent(NodeOpsFieldsListAgentReq)
       returns (NodeOpsFieldsListAgentResp) {
     option (google.api.http) = {
@@ -208,7 +206,7 @@ service Ops {
     };
   }
 
-  // NodeOpsFieldsListProxy reads proxy out-of-band fields.
+  // 查询指定 Proxy 主机的当前带外配置。
   rpc NodeOpsFieldsListProxy(NodeOpsFieldsListProxyReq)
       returns (NodeOpsFieldsListProxyResp) {
     option (google.api.http) = {

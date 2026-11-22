@@ -903,7 +903,7 @@ message TopoGraphNodeGetResp {
 
 // topo service.
 service Topo {
-  // BusinessList provides business listing.
+  // 查询业务列表。
   rpc BusinessList(TopoBusinessListReq) returns (TopoBusinessListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/business/list"
@@ -911,7 +911,7 @@ service Topo {
     };
   }
 
-  // BusinessHostCountGet provides host count getting by business id.
+  // 按业务统计主机数量。
   rpc BusinessHostCountGet(TopoBusinessHostCountGetReq)
       returns (TopoBusinessHostCountGetResp) {
     option (google.api.http) = {
@@ -920,7 +920,7 @@ service Topo {
     };
   }
 
-  // BusinessInstTopoGet provides business instance topology getting.
+  // 查询业务实例拓扑。
   rpc BusinessInstTopoGet(TopoBusinessInstTopoGetReq)
       returns (TopoBusinessInstTopoGetResp) {
     option (google.api.http) = {
@@ -929,7 +929,7 @@ service Topo {
     };
   }
 
-  // NetworkAreaList provides network-area listing.
+  // 查询管控区域列表。
   rpc NetworkAreaList(TopoNetworkAreaListReq)
       returns (TopoNetworkAreaListResp) {
     option (google.api.http) = {
@@ -938,7 +938,7 @@ service Topo {
     };
   }
 
-  // NetworkAreaCreate provides creating a new network-area.
+  // 创建管控区域。
   rpc NetworkAreaCreate(TopoNetworkAreaCreateReq)
       returns (TopoNetworkAreaCreateResp) {
     option (google.api.http) = {
@@ -947,7 +947,7 @@ service Topo {
     };
   }
 
-  // NetworkAreaGet provides getting an existing network-area by id.
+  // 按 ID 查询管控区域详情。
   rpc NetworkAreaGet(TopoNetworkAreaGetReq) returns (TopoNetworkAreaGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/networkarea/get"
@@ -955,7 +955,7 @@ service Topo {
     };
   }
 
-  // NetworkAreaUpdate provides updating an existing network-area by id.
+  // 按 ID 更新管控区域。
   rpc NetworkAreaUpdate(TopoNetworkAreaUpdateReq)
       returns (TopoNetworkAreaUpdateResp) {
     option (google.api.http) = {
@@ -964,7 +964,7 @@ service Topo {
     };
   }
 
-  // NetworkAreaDelete provides deleting an existing network-area by id.
+  // 按 ID 删除管控区域。
   rpc NetworkAreaDelete(TopoNetworkAreaDeleteReq)
       returns (TopoNetworkAreaDeleteResp) {
     option (google.api.http) = {
@@ -973,7 +973,7 @@ service Topo {
     };
   }
 
-  // NetworkUnitList provides network-unit listing.
+  // 查询管控单元列表。
   rpc NetworkUnitList(TopoNetworkUnitListReq)
       returns (TopoNetworkUnitListResp) {
     option (google.api.http) = {
@@ -982,7 +982,7 @@ service Topo {
     };
   }
 
-  // NetworkUnitCreate provides creating a new network-unit.
+  // 创建管控单元。
   rpc NetworkUnitCreate(TopoNetworkUnitCreateReq)
       returns (TopoNetworkUnitCreateResp) {
     option (google.api.http) = {
@@ -991,8 +991,7 @@ service Topo {
     };
   }
 
-  // NetworkUnitCreateDefaultMulti creates empty non-direct network units in
-  // multiple empty network areas.
+  // 在多个尚无管控单元的管控区域中批量创建空的非直连管控单元。
   rpc NetworkUnitCreateDefaultMulti(TopoNetworkUnitCreateDefaultMultiReq)
       returns (TopoNetworkUnitCreateDefaultMultiResp) {
     option (google.api.http) = {
@@ -1001,7 +1000,7 @@ service Topo {
     };
   }
 
-  // NetworkUnitGet provides getting an existing network-unit by id.
+  // 按 ID 查询管控单元详情。
   rpc NetworkUnitGet(TopoNetworkUnitGetReq) returns (TopoNetworkUnitGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/networkunit/get"
@@ -1009,7 +1008,7 @@ service Topo {
     };
   }
 
-  // NetworkUnitUpdate provides updating an existing network-unit by id.
+  // 按 ID 更新管控单元。
   rpc NetworkUnitUpdate(TopoNetworkUnitUpdateReq)
       returns (TopoNetworkUnitUpdateResp) {
     option (google.api.http) = {
@@ -1018,7 +1017,7 @@ service Topo {
     };
   }
 
-  // NetworkUnitDelete provides deleting an existing network-unit by id.
+  // 按 ID 删除管控单元。
   rpc NetworkUnitDelete(TopoNetworkUnitDeleteReq)
       returns (TopoNetworkUnitDeleteResp) {
     option (google.api.http) = {
@@ -1027,8 +1026,7 @@ service Topo {
     };
   }
 
-  // NetworkUnitListBrief provides brief network-unit listing (no sensitive
-  // fields).
+  // 查询管控单元简表，不返回敏感字段。
   rpc NetworkUnitListBrief(TopoNetworkUnitListBriefReq)
       returns (TopoNetworkUnitListBriefResp) {
     option (google.api.http) = {
@@ -1037,8 +1035,7 @@ service Topo {
     };
   }
 
-  // GetNetworkUnitDistributionByNetworkAreaID provides getting networkunit
-  // distribution by networkarea id.
+  // 按管控区域统计管控单元数量。
   rpc GetNetworkUnitDistributionByNetworkAreaID(
       TopoGetNetworkUnitDistributionByNetworkAreaIDReq)
       returns (TopoGetNetworkUnitDistributionByNetworkAreaIDResp) {
@@ -1049,8 +1046,7 @@ service Topo {
     };
   }
 
-  // RecommendNetworkUnitByNetworkSegment provides recommend networkunit by
-  // network segment.
+  // 根据主机 IP 所属网段推荐对应管控区域内的管控单元。
   rpc RecommendNetworkUnitByNetworkSegment(
       TopoRecommendNetworkUnitByNetworkSegmentReq)
       returns (TopoRecommendNetworkUnitByNetworkSegmentResp) {
@@ -1060,7 +1056,7 @@ service Topo {
     };
   }
 
-  // HostList provides host listing.
+  // 查询主机列表。
   rpc HostList(TopoHostListReq) returns (TopoHostListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/host/list"
@@ -1068,7 +1064,7 @@ service Topo {
     };
   }
 
-  // HostSelectHostID provides host id selecting.
+  // 按条件筛选主机并返回主机 ID 列表。
   rpc HostSelectHostID(TopoHostSelectHostIDReq)
       returns (TopoHostSelectHostIDResp) {
     option (google.api.http) = {
@@ -1077,7 +1073,7 @@ service Topo {
     };
   }
 
-  // HostSelectInnerIP provides host inner ip selecting.
+  // 按条件筛选主机并返回内网 IPv4 列表。
   rpc HostSelectInnerIP(TopoHostSelectInnerIPReq)
       returns (TopoHostSelectInnerIPResp) {
     option (google.api.http) = {
@@ -1086,7 +1082,7 @@ service Topo {
     };
   }
 
-  // HostSelectInnerIPV6 provides host inner ipv6 selecting.
+  // 按条件筛选主机并返回内网 IPv6 列表。
   rpc HostSelectInnerIPV6(TopoHostSelectInnerIPV6Req)
       returns (TopoHostSelectInnerIPV6Resp) {
     option (google.api.http) = {
@@ -1095,8 +1091,7 @@ service Topo {
     };
   }
 
-  // HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip
-  // selecting.
+  // 按条件筛选主机并返回管控区域 ID 与内网 IPv4 的组合列表。
   rpc HostSelectNetWorkareaIDAndInnerIP(
       TopoHostSelectNetWorkareaIDAndInnerIPReq)
       returns (TopoHostSelectNetWorkareaIDAndInnerIPResp) {
@@ -1106,8 +1101,7 @@ service Topo {
     };
   }
 
-  // HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner
-  // ipv6 selecting.
+  // 按条件筛选主机并返回管控区域 ID 与内网 IPv6 的组合列表。
   rpc HostSelectNetWorkareaIDAndInnerIPV6(
       TopoHostSelectNetWorkareaIDAndInnerIPV6Req)
       returns (TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) {
@@ -1117,7 +1111,7 @@ service Topo {
     };
   }
 
-  // HostDistinct provides host distincting.
+  // 查询主机指定字段的去重值。
   rpc HostDistinct(TopoHostDistinctReq) returns (TopoHostDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/host/distinct"
@@ -1125,8 +1119,7 @@ service Topo {
     };
   }
 
-  // GetHostDistributionByNodeRoleReq uest provides getting host
-  // distribution by node role.
+  // 按节点角色统计主机数量。
   rpc GetHostDistributionByNodeRole(TopoGetHostDistributionByNodeRoleReq)
       returns (TopoGetHostDistributionByNodeRoleResp) {
     option (google.api.http) = {
@@ -1135,8 +1128,7 @@ service Topo {
     };
   }
 
-  // GetHostDistributionByNetworkAreaIDReq uest provides getting host
-  // distribution by node role.
+  // 按管控区域统计主机数量。
   rpc GetHostDistributionByNetworkAreaID(
       TopoGetHostDistributionByNetworkAreaIDReq)
       returns (TopoGetHostDistributionByNetworkAreaIDResp) {
@@ -1146,8 +1138,7 @@ service Topo {
     };
   }
 
-  // GetHostDistributionByNodeVersionReq uest provides getting host
-  // distribution by node version.
+  // 按节点版本统计主机数量。
   rpc GetHostDistributionByNodeVersion(TopoGetHostDistributionByNodeVersionReq)
       returns (TopoGetHostDistributionByNodeVersionResp) {
     option (google.api.http) = {
@@ -1156,7 +1147,7 @@ service Topo {
     };
   }
 
-  // EventList provides event listing.
+  // 查询拓扑事件列表。
   rpc EventList(TopoEventListReq) returns (TopoEventListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/event/list"
@@ -1164,7 +1155,7 @@ service Topo {
     };
   }
 
-  // EventDistinct provides event distincting.
+  // 查询拓扑事件指定字段的去重值。
   rpc EventDistinct(TopoEventDistinctReq) returns (TopoEventDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/event/distinct"
@@ -1172,7 +1163,7 @@ service Topo {
     };
   }
 
-  // ConstantGet provides getting a constant.
+  // 查询拓扑相关常量。
   rpc ConstantGet(TopoConstantGetReq) returns (TopoConstantGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/constant/get"
@@ -1180,7 +1171,7 @@ service Topo {
     };
   }
 
-  // AccessPointList provides access-point listing.
+  // 查询接入点列表及其 endpoints。
   rpc AccessPointList(TopoAccessPointListReq)
       returns (TopoAccessPointListResp) {
     option (google.api.http) = {
@@ -1189,7 +1180,7 @@ service Topo {
     };
   }
 
-  // AccessPointListBrief provides brief access-point listing (no endpoints).
+  // 查询接入点简表，不返回 endpoints。
   rpc AccessPointListBrief(TopoAccessPointListBriefReq)
       returns (TopoAccessPointListBriefResp) {
     option (google.api.http) = {
@@ -1207,7 +1198,7 @@ service Topo {
     };
   }
 
-  // TopoGraphNodeGetReq provides graph node getting.
+  // 查询管控单元图节点及健康信息。
   rpc TopoGraphNodeGetReq(.v3.TopoGraphNodeGetReq)
       returns (TopoGraphNodeGetResp) {
     option (google.api.http) = {

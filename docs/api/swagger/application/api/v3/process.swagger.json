@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/process/distinct": {
       "post": {
-        "summary": "DistinctProcess describes the process distinct request.",
+        "summary": "查询插件进程筛选字段的去重值。",
         "operationId": "ProcessAPI_DistinctProcess",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/process/get_distribution_by_host_id": {
       "post": {
-        "summary": "GetProcessDistributionByHostID describes the process statistics request.",
+        "summary": "按主机 ID 统计插件进程数量。",
         "operationId": "ProcessAPI_GetProcessDistributionByHostID",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/process/get_distribution_by_plugin_name": {
       "post": {
-        "summary": "GetProcessDistributionByPluginName describes the process statistics\nrequest.",
+        "summary": "按插件名称统计进程数量。",
         "operationId": "ProcessAPI_GetProcessDistributionByPluginName",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/process/list": {
       "post": {
-        "summary": "ListProcesses lists the processes.",
+        "summary": "查询插件进程列表。",
         "operationId": "ProcessAPI_ListProcesses",
         "responses": {
           "200": {

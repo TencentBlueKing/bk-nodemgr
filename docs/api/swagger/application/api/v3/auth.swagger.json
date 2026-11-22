@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/auth/authorized": {
       "post": {
-        "summary": "Authorized queries the authorized resource scope for the requested\naction-resource type pairs.",
+        "summary": "查询当前用户在指定操作与资源类型下的授权资源范围。",
         "operationId": "Auth_Authorized",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/auth/verify": {
       "post": {
-        "summary": "Verify checks whether the current user has permissions for the requested\nresources.",
+        "summary": "校验当前用户对指定资源的操作权限。",
         "operationId": "Auth_Verify",
         "responses": {
           "200": {

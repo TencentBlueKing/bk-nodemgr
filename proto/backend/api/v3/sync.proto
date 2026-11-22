@@ -355,7 +355,7 @@ message CleanOrphanProcessResp {
 
 // sync service.
 service Sync {
-  // SyncCmdbHost provides syncing cmdb host.
+  // 发起从 CMDB 同步业务与主机信息的任务。
   rpc SyncCmdbHost(SyncCmdbHostReq) returns (SyncCmdbHostResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/cmdb/host"
@@ -363,7 +363,7 @@ service Sync {
     };
   }
 
-  // SyncCmdbNetworkArea provides syncing cmdb networkarea.
+  // 发起从 CMDB 同步管控区域的任务。
   rpc SyncCmdbNetworkArea(SyncCmdbNetworkAreaReq)
       returns (SyncCmdbNetworkAreaResp) {
     option (google.api.http) = {
@@ -372,7 +372,7 @@ service Sync {
     };
   }
 
-  // SyncCmdbConstants provides syncing cmdb constants.
+  // 同步 CMDB 常量。
   rpc SyncCmdbConstants(SyncCmdbConstantsReq) returns (SyncCmdbConstantsResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/cmdb/constants"
@@ -380,6 +380,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步指定主机 Agent 状态的任务。
   rpc SyncAgentState(SyncAgentStateReq) returns (SyncAgentStateResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/agent/state"
@@ -387,6 +388,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步全部主机 Agent 状态的任务。
   rpc SyncAllAgentState(SyncAllAgentStateReq) returns (SyncAllAgentStateResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/agent/state/all"
@@ -394,6 +396,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步指定主机 Agent 信息的任务。
   rpc SyncAgentInfo(SyncAgentInfoReq) returns (SyncAgentInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/agent/info"
@@ -401,6 +404,7 @@ service Sync {
     };
   }
 
+  // 发起校正指定主机 Agent ID 的任务。
   rpc SyncCorrectAgentID(SyncCorrectAgentIDReq)
       returns (SyncCorrectAgentIDResp) {
     option (google.api.http) = {
@@ -409,6 +413,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步存活主机 Agent 信息的任务。
   rpc SyncAliveHostAgentInfo(SyncAliveHostAgentInfoReq)
       returns (SyncAliveHostAgentInfoResp) {
     option (google.api.http) = {
@@ -417,6 +422,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步指定主机上插件存活进程信息的任务。
   rpc SyncAlivePluginProcessInfo(SyncAlivePluginProcessInfoReq)
       returns (SyncAlivePluginProcessInfoResp) {
     option (google.api.http) = {
@@ -425,6 +431,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步全部主机上插件存活进程信息的任务。
   rpc SyncAllAlivePluginProcessInfo(SyncAllAlivePluginProcessInfoReq)
       returns (SyncAllAlivePluginProcessInfoResp) {
     option (google.api.http) = {
@@ -433,6 +440,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步指定主机上插件已停止进程信息的任务。
   rpc SyncStoppedPluginProcessInfo(SyncStoppedPluginProcessInfoReq)
       returns (SyncStoppedPluginProcessInfoResp) {
     option (google.api.http) = {
@@ -441,6 +449,7 @@ service Sync {
     };
   }
 
+  // 发起从 GSE 同步全部主机上插件已停止进程信息的任务。
   rpc SyncAllStoppedPluginProcessInfo(SyncAllStoppedPluginProcessInfoReq)
       returns (SyncAllStoppedPluginProcessInfoResp) {
     option (google.api.http) = {
@@ -485,6 +494,7 @@ service Sync {
     };
   }
 
+  // 发起检查指定主机插件进程信息过期情况的任务，将过期状态标记为 unknown。
   rpc CorrectUnknownProcessStatus(CorrectUnknownProcessStatusReq)
       returns (CorrectUnknownProcessStatusResp) {
     option (google.api.http) = {
@@ -493,6 +503,7 @@ service Sync {
     };
   }
 
+  // 发起检查全部主机插件进程信息过期情况的任务，将过期状态标记为 unknown。
   rpc CorrectAllUnknownProcessStatus(CorrectAllUnknownProcessStatusReq)
       returns (CorrectAllUnknownProcessStatusResp) {
     option (google.api.http) = {
@@ -501,7 +512,7 @@ service Sync {
     };
   }
 
-  // EnsureDefaultPlugin ensures default plugins.
+  // 发起补齐默认插件记录的任务。
   rpc EnsureDefaultPlugin(EnsureDefaultPluginReq)
       returns (EnsureDefaultPluginResp) {
     option (google.api.http) = {
@@ -510,7 +521,7 @@ service Sync {
     };
   }
 
-  // SyncSharedReleases syncs shared releases.
+  // 发起同步共享资源包发布版本的任务。
   rpc SyncSharedReleases(SyncSharedReleasesReq)
       returns (SyncSharedReleasesResp) {
     option (google.api.http) = {
@@ -519,8 +530,7 @@ service Sync {
     };
   }
 
-  // CleanOrphanProcess provides cleaning the processes whose host no longer
-  // exists.
+  // 发起清理已不存在主机的插件进程记录的任务。
   rpc CleanOrphanProcess(CleanOrphanProcessReq)
       returns (CleanOrphanProcessResp) {
     option (google.api.http) = {

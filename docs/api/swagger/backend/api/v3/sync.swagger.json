@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/sync/cmdb/constants": {
       "post": {
-        "summary": "SyncCmdbConstants provides syncing cmdb constants.",
+        "summary": "同步 CMDB 常量。",
         "operationId": "Sync_SyncCmdbConstants",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/sync/cmdb/host": {
       "post": {
-        "summary": "SyncCmdbHost provides syncing cmdb host.",
+        "summary": "发起从 CMDB 同步业务与主机信息的任务。",
         "operationId": "Sync_SyncCmdbHost",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/sync/cmdb/networkarea": {
       "post": {
-        "summary": "SyncCmdbNetworkArea provides syncing cmdb networkarea.",
+        "summary": "发起从 CMDB 同步管控区域的任务。",
         "operationId": "Sync_SyncCmdbNetworkArea",
         "responses": {
           "200": {
@@ -120,6 +120,7 @@
     },
     "/api/v3/sync/gse/agent/correct_agent_id": {
       "post": {
+        "summary": "发起校正指定主机 Agent ID 的任务。",
         "operationId": "Sync_SyncCorrectAgentID",
         "responses": {
           "200": {
@@ -153,6 +154,7 @@
     },
     "/api/v3/sync/gse/agent/info": {
       "post": {
+        "summary": "发起从 GSE 同步指定主机 Agent 信息的任务。",
         "operationId": "Sync_SyncAgentInfo",
         "responses": {
           "200": {
@@ -186,6 +188,7 @@
     },
     "/api/v3/sync/gse/agent/info/alive": {
       "post": {
+        "summary": "发起从 GSE 同步存活主机 Agent 信息的任务。",
         "operationId": "Sync_SyncAliveHostAgentInfo",
         "responses": {
           "200": {
@@ -219,6 +222,7 @@
     },
     "/api/v3/sync/gse/agent/state": {
       "post": {
+        "summary": "发起从 GSE 同步指定主机 Agent 状态的任务。",
         "operationId": "Sync_SyncAgentState",
         "responses": {
           "200": {
@@ -252,6 +256,7 @@
     },
     "/api/v3/sync/gse/agent/state/all": {
       "post": {
+        "summary": "发起从 GSE 同步全部主机 Agent 状态的任务。",
         "operationId": "Sync_SyncAllAgentState",
         "responses": {
           "200": {
@@ -285,6 +290,7 @@
     },
     "/api/v3/sync/gse/plugin/process/correct_unknown_status": {
       "post": {
+        "summary": "发起检查指定主机插件进程信息过期情况的任务，将过期状态标记为 unknown。",
         "operationId": "Sync_CorrectUnknownProcessStatus",
         "responses": {
           "200": {
@@ -318,6 +324,7 @@
     },
     "/api/v3/sync/gse/plugin/process/correct_unknown_status/all": {
       "post": {
+        "summary": "发起检查全部主机插件进程信息过期情况的任务，将过期状态标记为 unknown。",
         "operationId": "Sync_CorrectAllUnknownProcessStatus",
         "responses": {
           "200": {
@@ -351,6 +358,7 @@
     },
     "/api/v3/sync/gse/plugin/process/info/alive": {
       "post": {
+        "summary": "发起从 GSE 同步指定主机上插件存活进程信息的任务。",
         "operationId": "Sync_SyncAlivePluginProcessInfo",
         "responses": {
           "200": {
@@ -383,6 +391,7 @@
     },
     "/api/v3/sync/gse/plugin/process/info/alive/all": {
       "post": {
+        "summary": "发起从 GSE 同步全部主机上插件存活进程信息的任务。",
         "operationId": "Sync_SyncAllAlivePluginProcessInfo",
         "responses": {
           "200": {
@@ -415,6 +424,7 @@
     },
     "/api/v3/sync/gse/plugin/process/info/stopped": {
       "post": {
+        "summary": "发起从 GSE 同步指定主机上插件已停止进程信息的任务。",
         "operationId": "Sync_SyncStoppedPluginProcessInfo",
         "responses": {
           "200": {
@@ -448,6 +458,7 @@
     },
     "/api/v3/sync/gse/plugin/process/info/stopped/all": {
       "post": {
+        "summary": "发起从 GSE 同步全部主机上插件已停止进程信息的任务。",
         "operationId": "Sync_SyncAllStoppedPluginProcessInfo",
         "responses": {
           "200": {
@@ -613,7 +624,7 @@
     },
     "/api/v3/sync/plugin/ensure_default": {
       "post": {
-        "summary": "EnsureDefaultPlugin ensures default plugins.",
+        "summary": "发起补齐默认插件记录的任务。",
         "operationId": "Sync_EnsureDefaultPlugin",
         "responses": {
           "200": {
@@ -647,7 +658,7 @@
     },
     "/api/v3/sync/process/clean_orphan": {
       "post": {
-        "summary": "CleanOrphanProcess provides cleaning the processes whose host no longer\nexists.",
+        "summary": "发起清理已不存在主机的插件进程记录的任务。",
         "operationId": "Sync_CleanOrphanProcess",
         "responses": {
           "200": {
@@ -681,7 +692,7 @@
     },
     "/api/v3/sync/release/shared": {
       "post": {
-        "summary": "SyncSharedReleases syncs shared releases.",
+        "summary": "发起同步共享资源包发布版本的任务。",
         "operationId": "Sync_SyncSharedReleases",
         "responses": {
           "200": {
