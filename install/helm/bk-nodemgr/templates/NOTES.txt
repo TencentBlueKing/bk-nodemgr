@@ -48,7 +48,9 @@ Initialization and functional checks:
   APIGateway/IAM and confirm imported packages and default versions.
   Pod readiness does not prove login, authorization or Agent installation works.
 
-Read README.md in this Chart package for required configuration, initialization,
-verification, upgrade and data-retention instructions.
+Start with README.md in this Chart package for task-based documentation links.
+Use INSTALL.md for initialization, verification and data-retention instructions;
+CONFIGURATION.md for settings, MONITORING.md for self-monitoring, and UPGRADE.md
+before upgrading an existing deployment.
 Online reference (select the tag matching this deployment):
   https://github.com/TencentBlueKing/bk-nodemgr/blob/master/install/helm/bk-nodemgr/README.md
