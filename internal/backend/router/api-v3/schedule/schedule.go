@@ -53,3 +53,13 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/workflow/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/workflow/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
 }
+
+// LoadOpen registers user-state read-only scheduled workflow queries.
+func LoadOpen(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
+
+	h.rg.POST("/workflow/list", restserver.Handler(h.ListScheduleWorkflow))
+	h.rg.POST("/workflow/operation/list", restserver.Handler(h.ListOperation))
+	h.rg.POST("/workflow/operation/instance/list", restserver.Handler(h.ListOperationInstance))
+	h.rg.POST("/workflow/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
+}

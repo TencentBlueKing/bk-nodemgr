@@ -40666,3 +40666,846 @@ paths:
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
         descriptionEn: Query execution targets, operation states, and instance IDs in a node workflow.
+  /api/v3/open/schedule/workflow/list:
+    post:
+      operationId: OpenScheduleWorkflow_OpenScheduleWorkflowList
+      description: 查询当前租户的定时任务调度工作流配置摘要，包括启用状态和调度间隔；不表示任务已执行完毕或成功。使用返回的 workflow_id 查询操作列表，再查询执行实例和日志。执行历史关联当前 trigger_id，受保留策略限制，不是完整历史归档。
+      tags:
+        - OpenScheduleWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            workflow_id:
+                              type: string
+                            workflow_name:
+                              type: string
+                            trigger_id:
+                              type: string
+                            operator:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            enabled:
+                              type: boolean
+                              title: 是否启用周期调度。
+                            interval:
+                              type: string
+                              title: 周期调度间隔。
+                title: 周期工作流的长期调度配置；启用状态不代表某轮执行已经完成。
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                  title: 分页及排序条件。
+                only_count:
+                  type: boolean
+                  title: 是否仅返回总数。
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                    workflow_name:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                  description: |-
+                    ScheduleWorkflowExactConditions describes the exact conditions of schedule
+                    workflow list request.
+                  title: 工作流 ID、名称及操作人的精确筛选条件。
+                fuzzy_include_conditions:
+                  type: object
+                  description: |-
+                    ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule
+                    workflow list request.
+                  title: 预留的模糊筛选条件，当前不支持模糊筛选。
+                operate_time_range:
+                  type: object
+                  properties:
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                  title: 工作流配置的操作时间范围，不代表执行实例的起止时间。
+              title: 在当前租户内筛选周期工作流配置。
+        required: true
+        description: 在当前租户内筛选周期工作流配置。
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/schedule/workflow/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query scheduled workflow configuration summaries in the current tenant, including enabled state and interval; these do not indicate task completion or success. Use workflow_id to query operations, then instances and logs. Execution history is associated with the current trigger_id and limited by retention; it is not a complete historical archive.
+  /api/v3/open/schedule/workflow/operation/list:
+    post:
+      operationId: OpenScheduleWorkflow_OpenScheduleWorkflowOperationList
+      description: 按 workflow_id 查询定时任务调度操作及最近一次执行摘要；传入 parent_oper_inst_id 可下钻某轮执行直接派发的子操作，不递归返回后代。根操作关联当前 trigger_id，根实例保留上限为 100，清理时连带清理子任务，不是完整历史归档。派发成功不代表子工作流成功，需继续查询子操作实例和日志。
+      tags:
+        - OpenScheduleWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      operations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                              title: 操作 ID。
+                            instance_ids:
+                              type: array
+                              items:
+                                type: string
+                              title: 该操作的执行实例 ID 列表。
+                            operator:
+                              type: string
+                              title: 操作初始化时记录的操作人；未记录时为空。
+                            create_time:
+                              type: integer
+                              format: int64
+                              title: 操作创建时间，Unix 毫秒时间戳。
+                            latest_oper_inst_brief_data:
+                              type: object
+                              properties:
+                                life_cycle:
+                                  type: object
+                                  properties:
+                                    state:
+                                      type: string
+                                    create_time:
+                                      type: integer
+                                      format: int64
+                                    start_time:
+                                      type: integer
+                                      format: int64
+                                    end_time:
+                                      type: integer
+                                      format: int64
+                                    stop_time:
+                                      type: integer
+                                      format: int64
+                                  description: WorkflowLifeCycle describes the workflow life cycle.
+                                latest_action_inst_brief_data:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                    tags:
+                                      type: array
+                                      items:
+                                        type: string
+                                  description: |-
+                                    WorkflowActionInstBriefData describes the workflow action instance brief
+                                    data.
+                              title: 最近一次操作实例的状态及当前步骤。
+                            parent_operation_id:
+                              type: string
+                              title: 父操作 ID；无父操作时为空。
+                            parent_oper_inst_id:
+                              type: string
+                              title: 父操作实例 ID；无父实例时为空。
+                          title: 一条周期工作流操作记录。
+                      total:
+                        type: integer
+                        format: int64
+                    title: 符合条件的操作记录及总数。
+                title: 周期工作流操作记录及最近实例状态；执行历史仅在清理策略的保留范围内可查。
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                  title: 是否仅返回总数。
+                page:
+                  type: object
+                  properties:
+                    offset:
+                      type: integer
+                      format: int32
+                    limit:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                  title: 分页及排序条件。
+                workflow_id:
+                  type: string
+                  title: 周期工作流 ID，必填。
+                parent_oper_inst_id:
+                  type: string
+                  title: 父操作实例 ID；提供时只查询该轮实例的直接子操作，为空时查询工作流根操作。
+              title: 查询周期工作流的操作记录，或下钻某轮父操作实例的直接子操作。
+        required: true
+        description: 查询周期工作流的操作记录，或下钻某轮父操作实例的直接子操作。
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/schedule/workflow/operation/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query scheduled workflow operations and latest execution summaries by workflow_id. Supply parent_oper_inst_id to drill into direct child operations dispatched by one execution, not all descendants. Root operations use the current trigger_id; root instances have a retention limit of 100 and cleanup removes child tasks, so this is not a complete historical archive. Successful dispatch does not imply successful child workflows; inspect child instances and logs.
+  /api/v3/open/schedule/workflow/operation/instance/list:
+    post:
+      operationId: OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList
+      description: 按已知 operation_id 或 oper_inst_id 直接查询当前租户定时任务执行链中的实例和生命周期；两类 ID 至少提供一类，同时提供时按 AND 组合。执行历史关联当前 trigger_id，受保留策略限制，不是完整历史归档。可将实例 ID 作为操作列表的 parent_oper_inst_id 下钻该轮直接子操作；派发成功不代表子工作流成功。
+      tags:
+        - OpenScheduleWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                            oper_inst_id:
+                              type: string
+                            oper_inst_status:
+                              type: string
+                            operation_def_name:
+                              type: string
+                            parent_operation_id:
+                              type: string
+                            action_names:
+                              type: array
+                              items:
+                                type: string
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                create_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            latest_action_inst_brief_data:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                tags:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: |-
+                                WorkflowActionInstBriefData describes the workflow action instance brief
+                                data.
+                          description: WorflowOperationInstanceData describes the workflow operation instance data.
+                    title: 符合条件的操作实例及总数。
+                title: 保留范围内的执行实例及生命周期；每个实例对应一轮执行，不代表长期调度结束。
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                  title: 是否仅返回总数。
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+                  title: 操作 ID 列表，每项均不能为空；与 oper_inst_id 至少提供一类。
+                oper_inst_id:
+                  type: array
+                  items:
+                    type: string
+                  title: 操作实例 ID 列表，每项均不能为空；与 operation_id 至少提供一类。
+              title: 按操作 ID 或实例 ID 查询当前租户内周期工作流执行链的实例。
+        required: true
+        description: 按操作 ID 或实例 ID 查询当前租户内周期工作流执行链的实例。
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/schedule/workflow/operation/instance/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Directly query instances and lifecycles in the current tenant scheduled workflow execution chains using known operation_id or oper_inst_id values. Provide at least one ID list; both lists are combined with AND. History uses the current trigger_id and is limited by retention, not a complete historical archive. Use an instance ID as parent_oper_inst_id in the operation list to drill into direct children of that execution; successful dispatch does not imply successful child workflows.
+  /api/v3/open/schedule/workflow/operation/instance/log/get:
+    post:
+      operationId: OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet
+      description: 按已知 oper_inst_id 直接查询当前租户定时任务执行链中的步骤状态、双语日志和子工作流引用，不返回原始执行内容或私有数据。可将实例 ID 作为操作列表的 parent_oper_inst_id 下钻该轮直接子操作；派发成功和子工作流引用均不代表子工作流成功。记录关联当前 trigger_id，受保留和连带清理限制，不是完整历史归档。
+      tags:
+        - OpenScheduleWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      oper_inst_logs:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                create_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            message:
+                              type: object
+                              properties:
+                                logs:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      time:
+                                        type: integer
+                                        format: int64
+                                      level:
+                                        type: string
+                                      text_zh:
+                                        type: string
+                                        title: Chinese log content
+                                      text_en:
+                                        type: string
+                                        title: English log content
+                              description: WorkflowActionMessage describes the workflow action message logs.
+                            display_name_zh:
+                              type: string
+                              title: Chinese display name
+                            display_name_en:
+                              type: string
+                              title: English display name
+                            sub_workflow_refs:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  workflow_id:
+                                    type: string
+                                  workflow_domain:
+                                    type: string
+                                description: SubWorkflowRef describes a child workflow reference surfaced in action logs.
+                          description: WorkflowActionData describes the workflow action data.
+                      extra_execution_logs:
+                        type: object
+                        properties:
+                          logs:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                time:
+                                  type: integer
+                                  format: int64
+                                level:
+                                  type: string
+                                text_zh:
+                                  type: string
+                                  title: Chinese log content
+                                text_en:
+                                  type: string
+                                  title: English log content
+                        description: WorkflowActionMessage describes the workflow action message logs.
+                    title: 按步骤 ID 索引的日志及实例级额外日志。
+                title: 执行实例的步骤日志及额外执行日志；不提供超出清理策略保留范围的完整历史。
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oper_inst_id:
+                  type: string
+                  title: 操作实例 ID，必填。
+              title: 查询当前租户内周期工作流执行链中一个实例的步骤日志。
+        required: true
+        description: 查询当前租户内周期工作流执行链中一个实例的步骤日志。
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/schedule/workflow/operation/instance/log/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Directly query action states, bilingual logs, and sub-workflow references by a known oper_inst_id in the current tenant scheduled workflow execution chains, without raw execution content or private data. Use the instance ID as parent_oper_inst_id in the operation list to drill into direct children of that execution. Neither successful dispatch nor a sub-workflow reference proves child workflow success. Records use the current trigger_id and are limited by retention and cascading cleanup, not a complete historical archive.
