@@ -33,8 +33,8 @@ import (
 )
 
 const (
-	workflowGoAsyncPoolNum  = 50
-	workflowGoAsyncPerPool  = 1000
+	workflowGoAsyncPoolNum = 50
+	workflowGoAsyncPerPool = 1000
 )
 
 type handler struct {
@@ -68,6 +68,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/statistics", restserver.Handler(h.Statistics))
 	h.rg.POST("/distinct", restserver.Handler(h.Distinct))
 	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
+	h.rg.POST("/operation/install_params/get", restserver.Handler(h.GetInstallParams))
 	h.rg.POST("/operation/distinct", restserver.Handler(h.DistinctOperation))
 	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
 	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
