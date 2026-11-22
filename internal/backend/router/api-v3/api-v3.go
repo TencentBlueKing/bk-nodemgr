@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/iam"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/pkg"
@@ -70,6 +71,7 @@ func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, mi
 	topo.Load(h.rg, capability)
 	pkg.Load(h.rg, capability)
 	schedule.Load(h.rg, capability)
+	globalsettings.Load(h.rg, capability)
 	policy.Load(h.rg, capability)
 	process.Load(h.rg, capability)
 	deploypolicy.Load(h.rg, capability)
@@ -88,6 +90,7 @@ func LoadBasicOpenAPIs(rg *gin.RouterGroup, capability *options.Capability, midd
 	h.rg.Use(h.middlewareSystemAccess)
 
 	schedule.LoadOpen(h.rg, capability)
+	globalsettings.Load(h.rg, capability)
 	node.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)
 	topo.Load(h.rg, capability)

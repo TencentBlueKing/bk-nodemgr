@@ -50,12 +50,16 @@ func allPackageTypes() []types.ReleaseType {
 func platformResourceDisplayNames() map[types.PlatformResource]string {
 	return map[types.PlatformResource]string{
 		types.PlatformResourceSchedulerWorkflow: "定时任务调度",
+		types.PlatformResourceGlobalSettings:    "全局配置",
 	}
 }
 
 // allPlatformResources returns the ordered platform capabilities.
 func allPlatformResources() []types.PlatformResource {
-	return []types.PlatformResource{types.PlatformResourceSchedulerWorkflow}
+	return []types.PlatformResource{
+		types.PlatformResourceSchedulerWorkflow,
+		types.PlatformResourceGlobalSettings,
+	}
 }
 
 // IAM special attribute keys for resource instance info.

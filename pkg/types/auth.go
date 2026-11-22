@@ -56,6 +56,9 @@ type PlatformResource string
 const (
 	// PlatformResourceSchedulerWorkflow represents scheduled workflow management.
 	PlatformResourceSchedulerWorkflow PlatformResource = "scheduler_workflow"
+
+	// PlatformResourceGlobalSettings represents global settings management.
+	PlatformResourceGlobalSettings PlatformResource = "global_settings"
 )
 
 // AuthResource describes a single resource instance used for authorization checks.

@@ -54,7 +54,9 @@ mcp_servers:
       - "Official"
     description: >-
       面向内部维护人员的系统诊断只读入口，统一承载系统诊断工具，采用用户态认证，需网关管理员授权应用。
-      当前提供定时任务调度诊断，用户须具备系统访问和平台管理的定时任务调度资源权限。
+      当前提供定时任务调度诊断和全局配置查询，用户须具备系统访问及对应功能域的平台管理资源权限。
+      全局配置查询需 global_settings 资源权限，返回全局共享数据库中的全部保存值，包括可能敏感的自定义项；
+      不读取服务启动配置，不补默认值，不保证为运行时实际生效值，不提供修改或删除。
       workflow_id 查询当前触发器的 Operation，
       operation_id 或 oper_inst_id 可直接查询实例，oper_inst_id 查询步骤及额外执行日志；
       workflow_id 配合 parent_oper_inst_id 查询某轮派发的直接子 Operation，再沿同一实例及日志链路下钻。
@@ -65,6 +67,7 @@ mcp_servers:
       - "OpenScheduleWorkflow_OpenScheduleWorkflowOperationList"
       - "OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList"
       - "OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet"
+      - "OpenGlobalSettings_OpenGlobalSettingsList"
     protocol_type: "streamable_http"
     is_public: false
     status: 0
