@@ -2,6 +2,8 @@
 
 此Chart用于在Kubernetes集群中通过helm部署蓝鲸智云节点管理服务(bk-nodemgr)
 
+升级已有部署前，请先阅读 [Helm Chart 升级指南](UPGRADE.md)，按目标 Chart 版本检查需要人工迁移的 values 和部署行为变化。
+
 ### K8S集群准备
 
 开始部署前，请准备好一套Kubernetes集群（版本1.12或更高），并安装Helm命令行工具（3.0或更高版本）
@@ -373,16 +375,7 @@ opentelemetryGateway:
 
 `application.config.bkSaaS.bkLogin.useLegacyAPI` 默认为 `false`。保持默认值且 `authType=bk_token` 时，所有租户模式均使用 `/open/bk-tokens/userinfo/`，需要配置可访问该接口的 `endpoints` 和网关应用凭证 `appCode`、`appSecret`，以及所选 `authMode` 所需的认证参数。`loginURL` 仍用于浏览器登录跳转，不能代替 API 网关地址。
 
-仍依赖 `/accounts/get_user/` 的旧版单租户环境升级时，必须显式设置 `useLegacyAPI: true`；该兼容模式仅支持 `application.config.tenantMode=single`，不支持多租户。`authType=bk_ticket` 的接口与认证行为不变。
-
-```yaml
-application:
-  config:
-    tenantMode: single
-    bkSaaS:
-      bkLogin:
-        useLegacyAPI: true
-```
+`useLegacyAPI: true` 仅支持 `application.config.tenantMode=single`，不支持多租户。`authType=bk_ticket` 的接口与认证行为不变。旧版单租户环境的影响范围、迁移示例和验证要求见 [v3.0.1-alpha.114 升级说明](UPGRADE.md#v301-alpha114)。
 
 #### 用户标识兼容与平台升级
 
@@ -513,11 +506,13 @@ grafana:
 
 ### 滚动升级
 
-通过以下命令滚动升级`bk-nodemgr`:
+先按 [升级指南](UPGRADE.md) 完成版本迁移、环境覆盖核对、资源检查及备份，再升级已有的 `bk-nodemgr` release：
 
 ```shell
-$ helm upgrade --install bk-nodemgr bk/bk-nodemgr
+$ helm upgrade bk-nodemgr bk/bk-nodemgr -n <namespace> --version <target-chart-version> --reset-values -f values-env.yaml
 ```
+
+请替换 namespace、目标 Chart 版本及环境文件路径；使用其他 release 名称时也需相应替换。`values-env.yaml` 必须包含当前环境的全部必要覆盖，遗漏的配置不会从旧 release 自动恢复。升级后的验证和回滚边界见 [检查最终资源与外部副作用](UPGRADE.md#检查最终资源与外部副作用)。
 
 ### 卸载Chart
 
