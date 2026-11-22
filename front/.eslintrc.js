@@ -17,6 +17,15 @@ module.exports = {
     '@typescript-eslint/consistent-type-exports': 'error',
     'vue/multi-word-component-names': 'off'
   },
+  overrides: [
+    {
+      // gen-api.js emits an empty interface for every empty proto message.
+      files: ['src/@types/*.d.ts'],
+      rules: {
+        '@typescript-eslint/no-empty-interface': 'off',
+      },
+    },
+  ],
   parserOptions: {
     parser: '@typescript-eslint/parser',
     project: [

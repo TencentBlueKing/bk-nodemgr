@@ -1321,6 +1321,33 @@ func (c *cli) terminateNodeWorkflowOperation(ctx contextx.IContext, req *protoBa
 	return resp, nil
 }
 
+func (c *cli) getNodeWorkflowInstallParams(
+	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationInstallParamsGetReq,
+) (*protoBackend.NodeWorkflowOperationInstallParamsGetResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationInstallParamsGetResp)
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/install_params/get").
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workflow install params: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get workflow install params", resp, resp.GetError())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get workflow install params failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) getNodeWorkflowManualInfo(
 	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationManualInfoGetReq,
 ) (*protoBackend.NodeWorkflowOperationManualInfoGetResp, error) {

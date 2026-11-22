@@ -84,6 +84,9 @@ message AccessPoint {
   optional string accesspoint_name = 3;
   optional int64 bk_networkarea_id = 4;
   Endpoints endpoints = 5;
+  // 绑定的全局安全组池 ID，空表示未启用云安全组管理。省略该字段按空处理，
+  // 全量更新时省略会解除已有绑定。
+  optional string cloud_security_group_pool_id = 6;
 }
 
 // AccessPointBrief describes the brief access point (no endpoints for

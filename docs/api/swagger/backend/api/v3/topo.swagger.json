@@ -562,6 +562,39 @@
         ]
       }
     },
+    "/api/v3/topo/cloud_security_group_pool/list": {
+      "post": {
+        "summary": "查询当前用户可管理的全局安全组池列表。",
+        "operationId": "Topo_CloudSecurityGroupPoolList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoCloudSecurityGroupPoolListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoCloudSecurityGroupPoolListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/constant/get": {
       "post": {
         "summary": "ConstantGet provides getting a constant.",
@@ -1580,6 +1613,10 @@
         },
         "endpoints": {
           "$ref": "#/definitions/v3Endpoints"
+        },
+        "cloud_security_group_pool_id": {
+          "type": "string",
+          "title": "绑定的全局安全组池 ID，空表示未启用云安全组管理。省略该字段按空处理，\n全量更新时省略会解除已有绑定。"
         }
       },
       "description": "AccessPoint describes the access point informations."
@@ -1648,6 +1685,18 @@
         }
       },
       "description": "BusinessHostCount describes the host count of business in topo service."
+    },
+    "v3CloudSecurityGroupPool": {
+      "type": "object",
+      "properties": {
+        "pool_id": {
+          "type": "string"
+        },
+        "pool_name": {
+          "type": "string"
+        }
+      },
+      "title": "可供接入点绑定的全局安全组池的公开信息，不包含凭据和安全组 ID。"
     },
     "v3CustomDeployConfig": {
       "type": "object",
@@ -2658,6 +2707,47 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "v3TopoCloudSecurityGroupPoolListReq": {
+      "type": "object",
+      "title": "查询可绑定的全局安全组池列表，无需参数。"
+    },
+    "v3TopoCloudSecurityGroupPoolListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoCloudSecurityGroupPoolListRespData"
+        }
+      },
+      "title": "全局安全组池列表的查询结果，不包含凭据和安全组 ID。"
+    },
+    "v3TopoCloudSecurityGroupPoolListRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3CloudSecurityGroupPool"
+          }
         }
       }
     },
