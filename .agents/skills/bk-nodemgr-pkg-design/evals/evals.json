@@ -1,0 +1,70 @@
+{
+  "skill_name": "bk-nodemgr-pkg-design",
+  "evals": [
+    {
+      "id": 1,
+      "name": "capability-not-host",
+      "prompt": "Design a small new Go pkg for built-in help documents. The first consumer is an application HTTP server, and a worker will also read these same documents without HTTP. Documents are already embedded; no remote source is requested. Current callers have no API yet. Other packages conventionally expose IHandler and use Handler for concrete instances. A teammate proposes ApplicationConfig, ApplicationHandler, and ServeHTTP in the shared pkg because this is faster. Give the smallest coherent public API, responsibility split, construction/use sketch, and the impact of adding an HTML view later. Do not implement a renderer, remote source, registry, or configuration switch. All facts are provided; no repository or external documentation lookup is needed. This is a design exercise, not authorization to modify code.",
+      "expected_output": "A host-independent content capability through IHandler, with HTTP presentation outside the package and no speculative sources.",
+      "files": [],
+      "expectations": [
+        "Uses IHandler as the public package capability entry, with consumer dependencies expressed through that contract.",
+        "Keeps HTTP response/rendering and application-specific configuration out of the shared content package.",
+        "Shows an explicit implementation-to-interface relationship and construction/use relationship.",
+        "Does not add a remote source, registry, unused mode, or renderer framework."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "same-contract-composition",
+      "prompt": "Design a tenant-aware layer for an existing Go object package. Existing contract: type IHandler interface { Read(ctx context.Context, key string) ([]byte, error); Write(ctx context.Context, key string, data []byte) error }. Existing MemoryHandler and DiskHandler implement it; NewMemory() *MemoryHandler and NewDisk(root string) (*DiskHandler,error) already exist. Tenancy is a service policy: tenant ID is available through the service's injected resolver; empty tenant IDs must fail. The new layer must scope both reads and writes under the tenant and work with either existing implementation. A teammate suggests adding tenant handling separately in every caller, or making all constructors return interfaces, or a global registry. Propose the minimal package placement, names, signatures, and wiring instead. Address behavior constraints and a future per-tenant audit layer; no new transport or storage backend. All facts are supplied; no repository or external documentation lookup is needed. This is a design exercise, not authorization to modify code.",
+      "expected_output": "A service-owned tenant composition implementing the same IHandler, depending on abstract inner capability, assembled once without changing existing constructors or callers' operation logic.",
+      "files": [],
+      "expectations": [
+        "Adds a service-owned tenant wrapper that both accepts and implements the existing IHandler contract.",
+        "Centralizes wrapper construction/injection rather than adding tenant branching to each caller or a global registry.",
+        "Preserves existing concrete-returning constructors rather than prescribing a blanket signature migration.",
+        "States tenant/path constraints and explains how another wrapper can compose without changing operation consumers."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "contract-change-traceability",
+      "prompt": "Plan an approved contract change, not an implementation workaround. In a Go object package, IHandler.Read currently returns []byte. The new accepted requirement is streaming, with a caller-owned io.ReadCloser and context valid during reading. Related modules are MemoryHandler, RemoteHandler, a TenantHandler wrapping IHandler, a CachedHandler wrapping IHandler, service assembly, and HTTP and worker consumers. Existing names/signatures outside Read must remain stable. A deadline-driven teammate wants to keep IHandler unchanged and use concrete type assertions in callers to discover optional Stream methods, claiming good abstraction must avoid all cross-layer edits. Explain the correct change route and checks, with specific responsibilities for each listed module, resource/error/context semantics, and how interface/implementation/assembly/caller links make the change traceable. No code edits, backend rewrite, or invented tests; all facts supplied, no repo/external lookup needed.",
+      "expected_output": "Accepts necessary end-to-end contract migration, explicitly enumerates every implementation/wrapper/wiring/consumer and preserves resource lifetime semantics without optional type assertions.",
+      "files": [],
+      "expectations": [
+        "Rejects concrete optional-method assertions for this required approved capability and accepts necessary contract-wide change.",
+        "Enumerates both implementations, both wrappers, assembly, and both consumers with responsibilities rather than only saying find references.",
+        "States caller closes the stream and context must remain valid during consumption, including deferred read failures.",
+        "Identifies cache/tenant wrapper semantic adaptations and distinguishes compile-time signature checks from behavior verification."
+      ]
+    },
+    {
+      "id": 4,
+      "name": "naming-convention-transfer",
+      "prompt": "A team is adding two small reusable Go packages, manifest for reading a manifest with Read(ctx,key) and template for rendering text with Render(ctx,source,values). A manifest has embedded and remote implementations. Rendering currently has just one implementation, and an HTTP adapter and a batch worker consume it. You are asked to establish a predictable, consistent entry/implementation/construction naming convention across these packages, not a backend registry or service framework. Give minimal interface and struct names, method signatures, constructor signatures, conformance checks and consumer dependency fields, with concise reasoning. Do not add backend features, globals, code changes, or generic factories. Facts are complete; no source lookup. Answer in English in about 300 words.",
+      "expected_output": "Transfers the agreed package.IHandler convention to both packages, names concrete Handler variants clearly, connects implementation checks and abstract consumers, and does not add factories just to enforce constructor return types.",
+      "files": [],
+      "expectations": [
+        "Uses manifest.IHandler and template.IHandler as predictable primary entry contracts, letting package names express the domain.",
+        "Names concrete implementations Handler or mechanism-qualified Handler variants and explicitly checks interface conformance.",
+        "Shows consumer fields depending on the abstract package contracts and explicit constructor-to-consumer wiring.",
+        "Does not introduce a registry, unused backend, or interface-return-only migration rule."
+      ]
+    },
+    {
+      "id": 5,
+      "name": "no-unjustified-abstraction",
+      "prompt": "Review a proposed Go package refactor. labels currently exports Normalize(s string) string, a pure whitespace/case transformation with five callers; its current behavior and signature must stay stable. The only requested change is accepting one additional whitespace character under the same normalization rule. A teammate proposes replacing callers with labels.IHandler, a configurable Handler, an injected IClient, and a registry now, because consistency and future remote implementations are important. There is no I/O, mutable state, alternative algorithm, or approved API migration. Decide what to implement and what not to introduce, explain how the change stays local and discoverable, and how you would verify it. Facts are complete; no repository or external lookup. This is a design review, not authorization to edit code. Answer in English within about 250 words.",
+      "expected_output": "Keeps the existing pure function and its callers, changes the owning normalization implementation only, and rejects speculative interface/client/registry machinery without confusing the new-capability IHandler default with a migration mandate.",
+      "files": [],
+      "expectations": [
+        "Preserves Normalize(s string) string and existing callers rather than replacing the API with IHandler.",
+        "Rejects configurable Handler, IClient, registry and remote implementation scaffolding because they serve no present capability or isolation need.",
+        "Explains locality in the owning normalization logic and a concrete reference path to affected callers without a new assembly layer.",
+        "Proposes verification of the actual added whitespace behavior and preserved existing behavior without claiming checks were executed or inventing an infrastructure project."
+      ]
+    }
+  ]
+}

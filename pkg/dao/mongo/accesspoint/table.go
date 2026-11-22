@@ -44,6 +44,8 @@ type AccessPoint struct {
 
 	NetworkAreaID int64      `json:"networkarea_id" bson:"networkarea_id"`
 	Endpoints     *Endpoints `json:"endpoints" bson:"endpoints"`
+
+	CloudSecurityGroupPoolID string `json:"cloud_security_group_pool_id" bson:"cloud_security_group_pool_id"`
 }
 
 // Endpoints represents endpoints of access point.

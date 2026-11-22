@@ -822,6 +822,27 @@ message TopoAccessPointListBriefResp {
   Data data = 5;
 }
 
+// 可供接入点绑定的全局安全组池的公开信息，不包含凭据和安全组 ID。
+message CloudSecurityGroupPool {
+  optional string pool_id = 1;
+  optional string pool_name = 2;
+}
+
+// 查询可绑定的全局安全组池列表，无需参数。
+message TopoCloudSecurityGroupPoolListReq {}
+
+// 全局安全组池列表的查询结果，不包含凭据和安全组 ID。
+message TopoCloudSecurityGroupPoolListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated CloudSecurityGroupPool items = 1; }
+  Data data = 5;
+}
+
 // TopoConstantGetReq describes the HTTP request body when get constant in topo
 // service.
 message TopoConstantGetReq {
@@ -1173,6 +1194,15 @@ service Topo {
       returns (TopoAccessPointListBriefResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/accesspoint/list/brief"
+      body : "*"
+    };
+  }
+
+  // 查询当前用户可管理的全局安全组池列表。
+  rpc CloudSecurityGroupPoolList(TopoCloudSecurityGroupPoolListReq)
+      returns (TopoCloudSecurityGroupPoolListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/cloud_security_group_pool/list"
       body : "*"
     };
   }

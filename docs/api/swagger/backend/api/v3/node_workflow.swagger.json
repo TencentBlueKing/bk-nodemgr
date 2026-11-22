@@ -121,6 +121,39 @@
         ]
       }
     },
+    "/api/v3/node/workflow/operation/install_params/get": {
+      "post": {
+        "summary": "读取选中历史 Agent 或 Proxy\n安装操作的安全参数，供新安装表单使用，不执行安装或修改历史任务。",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationInstallParamsGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstallParamsGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstallParamsGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/operation/instance/list": {
       "post": {
         "summary": "NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.",
@@ -1133,6 +1166,137 @@
       },
       "description": "NodeWorkflowInfo describes the node workflow information."
     },
+    "v3NodeWorkflowInstallHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "主机 ID。"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "业务 ID。"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "管控区域 ID。"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "管控单元 ID。"
+        },
+        "bk_addressing": {
+          "type": "string",
+          "title": "寻址方式。"
+        },
+        "bk_host_innerip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "内网 IPv4 地址。"
+        },
+        "bk_host_innerip_v6": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "内网 IPv6 地址。"
+        },
+        "os_type": {
+          "type": "string",
+          "title": "操作系统类型。"
+        },
+        "login_ip": {
+          "type": "string",
+          "title": "登录地址。"
+        },
+        "login_user": {
+          "type": "string",
+          "title": "登录用户。"
+        },
+        "login_mode": {
+          "type": "string",
+          "title": "登录认证方式，不包含认证凭据内容。"
+        },
+        "install_method": {
+          "type": "string",
+          "title": "安装连接方式。"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64",
+          "title": "登录端口。"
+        },
+        "is_sudo": {
+          "type": "boolean",
+          "title": "是否使用 sudo。"
+        },
+        "re_register": {
+          "type": "boolean",
+          "title": "是否重新注册主机。"
+        },
+        "install_pre_ordered_plugins": {
+          "type": "boolean",
+          "title": "是否安装预订阅插件。"
+        },
+        "renew_gse_task": {
+          "type": "boolean",
+          "title": "是否更新 GSE task 组件。"
+        },
+        "renew_gse_proc": {
+          "type": "boolean",
+          "title": "是否更新 GSE proc 组件。"
+        },
+        "export_ip": {
+          "type": "string",
+          "title": "对外服务 IPv4 地址。"
+        },
+        "export_ip_v6": {
+          "type": "string",
+          "title": "对外服务 IPv6 地址。"
+        },
+        "advertise_ip": {
+          "type": "string",
+          "title": "广播 IPv4 地址。"
+        },
+        "advertise_ip_v6": {
+          "type": "string",
+          "title": "广播 IPv6 地址。"
+        },
+        "proxy_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Proxy 标签。"
+        },
+        "proxy_install_origin_unit_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Proxy 安装来源管控单元 ID。"
+        },
+        "relay_download_port": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Relay 下载端口。"
+        },
+        "relay_callback_port": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Relay 回调端口。"
+        },
+        "cpu_arch": {
+          "type": "string",
+          "title": "CPU 架构。"
+        }
+      },
+      "title": "可复制到新安装表单的历史主机参数，不包含凭据内容。"
+    },
     "v3NodeWorkflowListReq": {
       "type": "object",
       "properties": {
@@ -1251,6 +1415,109 @@
         }
       },
       "description": "NodeWorkflowOperationDistinctSelector describes the node workflow operation\ndistinct selector."
+    },
+    "v3NodeWorkflowOperationInstallParams": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "title": "历史操作 ID。"
+        },
+        "host": {
+          "$ref": "#/definitions/v3NodeWorkflowInstallHost",
+          "title": "安全的主机安装参数。"
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TargetVersion"
+          },
+          "title": "历史目标版本。"
+        },
+        "is_manual": {
+          "type": "boolean",
+          "title": "是否手动安装。"
+        },
+        "is_offline": {
+          "type": "boolean",
+          "title": "是否离线安装。"
+        },
+        "missing_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "需要在新安装表单中补充的字段。"
+        }
+      },
+      "title": "单个历史安装操作可复制的参数。"
+    },
+    "v3NodeWorkflowOperationInstallParamsGetReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "title": "必填，历史工作流 ID。"
+        },
+        "operation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "必填，非空且无空白或重复 ID 的操作列表。"
+        }
+      },
+      "title": "按工作流及选中的操作读取历史安装参数。"
+    },
+    "v3NodeWorkflowOperationInstallParamsGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationInstallParamsGetRespData"
+        }
+      },
+      "title": "返回可复制的安装参数和无法恢复参数的操作 ID。"
+    },
+    "v3NodeWorkflowOperationInstallParamsGetRespData": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "title": "历史安装工作流类型。"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowOperationInstallParams"
+          },
+          "title": "可恢复的安装参数。"
+        },
+        "unavailable_operation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "无法恢复安装参数的操作 ID。"
+        }
+      }
     },
     "v3NodeWorkflowOperationInstanceListReq": {
       "type": "object",
@@ -1782,6 +2049,20 @@
         }
       },
       "description": "SubWorkflowRef describes a child workflow reference surfaced in action logs."
+    },
+    "v3TargetVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        }
+      }
     },
     "v3TimeRange": {
       "type": "object",
