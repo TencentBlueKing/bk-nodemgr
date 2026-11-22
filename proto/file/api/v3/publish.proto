@@ -147,7 +147,7 @@ message PublishReleasePluginV3Resp {
 
 // Publish service.
 service Publish {
-  // PublishReleaseAgent provides release agent publish.
+  // 从已上传的原始包发布 Agent 安装包版本。
   rpc PublishReleaseAgent(PublishReleaseAgentReq)
       returns (PublishReleaseAgentResp) {
     option (google.api.http) = {
@@ -156,8 +156,7 @@ service Publish {
     };
   }
 
-  // PublishReleaseProxy publishes a proxy release from a proxy or server
-  // package.
+  // 从已上传的 Proxy 或 Server 原始包发布 Proxy 安装包版本。
   rpc PublishReleaseProxy(PublishReleaseProxyReq)
       returns (PublishReleaseProxyResp) {
     option (google.api.http) = {
@@ -166,7 +165,7 @@ service Publish {
     };
   }
 
-  // PublishReleaseCert provides release cert publish.
+  // 从已上传的原始包发布证书包版本。
   rpc PublishReleaseCert(PublishReleaseCertReq)
       returns (PublishReleaseCertResp) {
     option (google.api.http) = {
@@ -175,7 +174,7 @@ service Publish {
     };
   }
 
-  // PublishReleaseBinTool provides release bintool publish.
+  // 从已上传的原始包发布二进制工具包版本。
   rpc PublishReleaseBinTool(PublishReleaseBinToolReq)
       returns (PublishReleaseBinToolResp) {
     option (google.api.http) = {
@@ -184,7 +183,7 @@ service Publish {
     };
   }
 
-  // PublishReleasePluginBinTool provides release plugin bintool publish.
+  // 从已上传的原始包发布插件二进制工具包版本。
   rpc PublishReleasePluginBinTool(PublishReleasePluginBinToolReq)
       returns (PublishReleasePluginBinToolResp) {
     option (google.api.http) = {
@@ -193,7 +192,7 @@ service Publish {
     };
   }
 
-  // PublishReleasePluginV2 provides release plugin v2 publish.
+  // 从已上传的原始包发布旧版 V2 插件安装包版本。
   rpc PublishReleasePluginV2(PublishReleasePluginV2Req)
       returns (PublishReleasePluginV2Resp) {
     option (google.api.http) = {
@@ -202,7 +201,7 @@ service Publish {
     };
   }
 
-  // PublishReleaseExternalPluginV2 provides release external plugin v2 publish.
+  // 从已上传的原始包发布旧版 V2 外部插件安装包版本。
   rpc PublishReleaseExternalPluginV2(PublishReleaseExternalPluginV2Req)
       returns (PublishReleaseExternalPluginV2Resp) {
     option (google.api.http) = {
@@ -211,7 +210,7 @@ service Publish {
     };
   }
 
-  // PublishReleasePluginV3 provides release plugin v3 publish.
+  // 从已上传的原始包发布 V3 插件安装包版本。
   rpc PublishReleasePluginV3(PublishReleasePluginV3Req)
       returns (PublishReleasePluginV3Resp) {
     option (google.api.http) = {

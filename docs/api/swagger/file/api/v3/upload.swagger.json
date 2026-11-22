@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/upload/origin/agent": {
       "post": {
-        "summary": "UploadOriginAgent provides origin agent upload.",
+        "summary": "上传 Agent 原始安装包。",
         "operationId": "Upload_UploadOriginAgent",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/upload/origin/bintool": {
       "post": {
-        "summary": "UploadOriginBinTool provides origin bintool upload.",
+        "summary": "上传原始二进制工具包。",
         "operationId": "Upload_UploadOriginBinTool",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/upload/origin/cert": {
       "post": {
-        "summary": "UploadOriginCert provides origin cert upload.",
+        "summary": "上传原始证书包。",
         "operationId": "Upload_UploadOriginCert",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/upload/origin/plugin_bintool": {
       "post": {
-        "summary": "UploadOriginPluginBinToolV2 provides origin bintool upload.",
+        "summary": "上传原始插件二进制工具包。",
         "operationId": "Upload_UploadOriginPluginBinToolV2",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/upload/origin/proxy": {
       "post": {
-        "summary": "UploadOriginProxy provides origin proxy upload.",
+        "summary": "上传 Proxy 原始安装包。",
         "operationId": "Upload_UploadOriginProxy",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/upload/origin/server": {
       "post": {
-        "summary": "UploadOriginServer provides origin server upload.",
+        "summary": "上传 Server 原始安装包。",
         "operationId": "Upload_UploadOriginServer",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/upload/origin/v2/external_plugin": {
       "post": {
-        "summary": "UploadOriginExternalPlugin provides origin external plugin upload.",
+        "summary": "上传旧版 V2 外部插件原始安装包。",
         "operationId": "Upload_UploadOriginExternalPlugin",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/upload/origin/v2/plugin": {
       "post": {
-        "summary": "UploadOriginPluginV2 provides origin plugin upload.",
+        "summary": "上传旧版 V2 插件原始安装包。",
         "operationId": "Upload_UploadOriginPluginV2",
         "responses": {
           "200": {
@@ -290,7 +290,7 @@
     },
     "/api/v3/upload/origin/v3/plugin": {
       "post": {
-        "summary": "UploadOriginPluginV3 provides origin plugin upload.",
+        "summary": "上传 V3 插件原始安装包。",
         "operationId": "Upload_UploadOriginPluginV3",
         "responses": {
           "200": {

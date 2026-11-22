@@ -103,12 +103,14 @@ message PackageEventDistinctResp {
 
 // PackageEventQuery provides package event queries.
 service PackageEventQuery {
+  // 按条件查询安装包操作事件列表或仅统计数量。
   rpc List(PackageEventListReq) returns (PackageEventListResp) {
     option (google.api.http) = {
       post : "/api/v3/event/list"
       body : "*"
     };
   }
+  // 按条件查询安装包操作事件指定字段的去重值。
   rpc Distinct(PackageEventDistinctReq) returns (PackageEventDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/event/distinct"

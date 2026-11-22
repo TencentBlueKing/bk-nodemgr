@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/node/ops/history/detail": {
       "post": {
-        "summary": "NodeOpsHistoryDetail retrieves all archived snapshots for an operation\nwithin the caller's permission scope.",
+        "summary": "查询调用者权限范围内指定带外信息操作的全部归档快照。",
         "operationId": "Ops_NodeOpsHistoryDetail",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/node/ops/history/list": {
       "post": {
-        "summary": "NodeOpsHistoryList lists operations across agent and proxy roles within\nthe caller's permission scope.",
+        "summary": "查询调用者权限范围内 Agent 与 Proxy 的带外信息操作记录列表。",
         "operationId": "Ops_NodeOpsHistoryList",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/node/ops/list_fields/agent": {
       "post": {
-        "summary": "NodeOpsFieldsListAgent reads agent out-of-band fields.",
+        "summary": "查询 Agent 主机的带外信息字段。",
         "operationId": "Ops_NodeOpsFieldsListAgent",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/node/ops/list_fields/proxy": {
       "post": {
-        "summary": "NodeOpsFieldsListProxy reads proxy out-of-band fields.",
+        "summary": "查询 Proxy 主机的带外信息字段。",
         "operationId": "Ops_NodeOpsFieldsListProxy",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/node/ops/update_fields/agent": {
       "post": {
-        "summary": "NodeOpsUpdateFieldsAgent batch-updates out-of-band fields for agent hosts.",
+        "summary": "批量更新 Agent 主机的带外信息字段。",
         "operationId": "Ops_NodeOpsUpdateFieldsAgent",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/node/ops/update_fields/proxy": {
       "post": {
-        "summary": "NodeOpsUpdateFieldsProxy batch-updates out-of-band fields for proxy hosts.",
+        "summary": "批量更新 Proxy 主机的带外信息字段。",
         "operationId": "Ops_NodeOpsUpdateFieldsProxy",
         "responses": {
           "200": {

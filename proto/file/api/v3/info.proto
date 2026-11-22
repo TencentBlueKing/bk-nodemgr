@@ -24,7 +24,7 @@ message FileInfoResp {
 // Info service provides file metadata queries without transferring file
 // content.
 service Info {
-  // InfoAgent returns file info for the agent package.
+  // 查询 Agent 安装包的文件信息。
   rpc InfoAgent(DownloadAgentReq) returns (FileInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/info/agent"
@@ -32,7 +32,7 @@ service Info {
     };
   }
 
-  // InfoProxy returns file info for the proxy package.
+  // 查询 Proxy 安装包的文件信息。
   rpc InfoProxy(DownloadProxyReq) returns (FileInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/info/proxy"
@@ -40,7 +40,7 @@ service Info {
     };
   }
 
-  // InfoPlugin returns file info for the plugin package.
+  // 查询插件安装包的文件信息。
   rpc InfoPlugin(DownloadPluginReq) returns (FileInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/info/plugin"
@@ -48,7 +48,7 @@ service Info {
     };
   }
 
-  // InfoInstaller returns file info for the installer.
+  // 查询节点安装工具的文件信息。
   rpc InfoInstaller(DownloadInstallerReq) returns (FileInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/info/installer"
@@ -56,7 +56,7 @@ service Info {
     };
   }
 
-  // InfoCert returns file info for the cert package.
+  // 查询证书包的文件信息。
   rpc InfoCert(DownloadCertReq) returns (FileInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/info/cert"
@@ -64,7 +64,7 @@ service Info {
     };
   }
 
-  // InfoBinTool returns file info for the bintool package.
+  // 查询二进制工具包的文件信息。
   rpc InfoBinTool(DownloadBinToolReq) returns (FileInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/info/bintool"
@@ -72,7 +72,7 @@ service Info {
     };
   }
 
-  // InfoPluginBinTool returns file info for the plugin bintool package.
+  // 查询插件二进制工具包的文件信息。
   rpc InfoPluginBinTool(DownloadPluginBinToolReq) returns (FileInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/info/plugin_bintool"

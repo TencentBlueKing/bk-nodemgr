@@ -264,7 +264,7 @@ message PluginWorkflowOperationTerminateResp {
 }
 
 service PluginWorkflow {
-  // PluginWorkflowList provides plugin workflow list.
+  // 查询插件工作流列表。
   rpc PluginWorkflowList(PluginWorkflowListReq)
       returns (PluginWorkflowListResp) {
     option (google.api.http) = {
@@ -273,7 +273,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowStatistics provides plugin workflow statistics.
+  // 统计插件工作流的操作实例状态分布。
   rpc PluginWorkflowStatistics(PluginWorkflowStatisticsReq)
       returns (PluginWorkflowStatisticsResp) {
     option (google.api.http) = {
@@ -282,7 +282,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowDistinct provides plugin workflow distinct.
+  // 查询插件工作流筛选字段的去重值。
   rpc PluginWorkflowDistinct(PluginWorkflowDistinctReq)
       returns (PluginWorkflowDistinctResp) {
     option (google.api.http) = {
@@ -291,7 +291,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationList provides plugin workflow operation list.
+  // 查询插件工作流操作列表。
   rpc PluginWorkflowOperationList(PluginWorkflowOperationListReq)
       returns (PluginWorkflowOperationListResp) {
     option (google.api.http) = {
@@ -300,8 +300,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationDistinct provides plugin workflow operation
-  // distinct.
+  // 查询插件工作流操作筛选字段的去重值。
   rpc PluginWorkflowOperationDistinct(PluginWorkflowOperationDistinctReq)
       returns (PluginWorkflowOperationDistinctResp) {
     option (google.api.http) = {
@@ -310,8 +309,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationInstanceList provides plugin workflow operation
-  // instance list.
+  // 查询插件工作流操作实例列表。
   rpc PluginWorkflowOperationInstanceList(
       PluginWorkflowOperationInstanceListReq)
       returns (PluginWorkflowOperationInstanceListResp) {
@@ -321,8 +319,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationInstanceLogGet provides plugin operation instance
-  // log get.
+  // 获取插件工作流操作实例日志。
   rpc PluginWorkflowOperationInstanceLogGet(
       PluginWorkflowOperationInstanceLogGetReq)
       returns (PluginWorkflowOperationInstanceLogGetResp) {
@@ -332,7 +329,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationRetry provides plugin operation retry.
+  // 重试插件工作流操作。
   rpc PluginWorkflowOperationRetry(PluginWorkflowOperationRetryReq)
       returns (PluginWorkflowOperationRetryResp) {
     option (google.api.http) = {
@@ -341,7 +338,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationTerminate provides plugin operation terminate.
+  // 终止插件工作流操作。
   rpc PluginWorkflowOperationTerminate(PluginWorkflowOperationTerminateReq)
       returns (PluginWorkflowOperationTerminateResp) {
     option (google.api.http) = {

@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/export/download/origin_plugin_package": {
       "get": {
-        "summary": "ExportOriginPluginPackage exported origin plugin package using a temporary\nexport token.",
+        "summary": "使用临时导出令牌下载插件原始包。",
         "operationId": "Export_ExportOriginPluginPackage",
         "responses": {
           "200": {
@@ -58,7 +58,7 @@
     },
     "/api/v3/export/get_address/origin_plugin_package": {
       "post": {
-        "summary": "ExportGetOriginPluginPackageDownloadAddress gets the download address of\nthe origin plugin package.",
+        "summary": "获取插件原始包的临时下载地址及过期时间。",
         "operationId": "Export_ExportGetOriginPluginPackageDownloadAddress",
         "responses": {
           "200": {
@@ -92,7 +92,7 @@
     },
     "/api/v3/export/prepare/origin_plugin_package": {
       "post": {
-        "summary": "ExportPrepareOriginPluginPackage prepares an origin plugin package for\nexporting.",
+        "summary": "准备插件原始包导出，返回导出 ID。",
         "operationId": "Export_ExportPrepareOriginPluginPackage",
         "responses": {
           "200": {

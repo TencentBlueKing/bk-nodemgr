@@ -18,6 +18,7 @@
   "paths": {
     "/api/v3/event/distinct": {
       "post": {
+        "summary": "按条件查询安装包操作事件指定字段的去重值。",
         "operationId": "PackageEventQuery_Distinct",
         "responses": {
           "200": {
@@ -51,6 +52,7 @@
     },
     "/api/v3/event/list": {
       "post": {
+        "summary": "按条件查询安装包操作事件列表或仅统计数量。",
         "operationId": "PackageEventQuery_List",
         "responses": {
           "200": {

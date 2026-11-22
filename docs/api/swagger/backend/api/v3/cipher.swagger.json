@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/cipher/get_public_key": {
       "post": {
-        "summary": "GetCurrentPublicKey get the public key of the globally enabled\ncredential encryption suite.",
+        "summary": "获取当前全局启用的凭据加密套件的公钥。",
         "operationId": "Cipher_GetCurrentPublicKey",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/cipher/rsa/get_public_key": {
       "post": {
-        "summary": "GetRSAPublicKey get rsa public key.",
+        "summary": "获取用于凭据加密的 RSA 公钥。",
         "operationId": "Cipher_GetRSAPublicKey",
         "responses": {
           "200": {

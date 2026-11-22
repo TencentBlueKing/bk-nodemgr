@@ -281,7 +281,7 @@ message PluginWorkflowOperationInstanceStatusDistributionListResp {
 }
 
 service PluginWorkflow {
-  // PluginWorkflowList provides plugin workflow list.
+  // 查询插件工作流列表及执行状态。
   rpc PluginWorkflowList(PluginWorkflowListReq)
       returns (PluginWorkflowListResp) {
     option (google.api.http) = {
@@ -290,7 +290,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowDistinct provides plugin workflow distinct.
+  // 查询插件工作流指定字段的去重值。
   rpc PluginWorkflowDistinct(PluginWorkflowDistinctReq)
       returns (PluginWorkflowDistinctResp) {
     option (google.api.http) = {
@@ -299,7 +299,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationList provides plugin workflow operation list.
+  // 查询插件工作流的执行对象、操作状态及操作实例信息。
   rpc PluginWorkflowOperationList(PluginWorkflowOperationListReq)
       returns (PluginWorkflowOperationListResp) {
     option (google.api.http) = {
@@ -308,8 +308,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationDistinct provides plugin workflow operation
-  // distinct.
+  // 查询插件工作流操作指定字段的去重值。
   rpc PluginWorkflowOperationDistinct(PluginWorkflowOperationDistinctReq)
       returns (PluginWorkflowOperationDistinctResp) {
     option (google.api.http) = {
@@ -318,8 +317,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationInstanceList provides plugin workflow operation
-  // instance list.
+  // 按插件操作 ID 查询操作实例及历史执行状态。
   rpc PluginWorkflowOperationInstanceList(
       PluginWorkflowOperationInstanceListReq)
       returns (PluginWorkflowOperationInstanceListResp) {
@@ -329,8 +327,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationInstanceLogGet provides plugin operation instance
-  // log get.
+  // 按插件操作实例 ID 查询步骤状态、日志及子工作流引用。
   rpc PluginWorkflowOperationInstanceLogGet(
       PluginWorkflowOperationInstanceLogGetReq)
       returns (PluginWorkflowOperationInstanceLogGetResp) {
@@ -340,7 +337,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationRetry provides plugin operation retry.
+  // 重试插件工作流中的指定操作。
   rpc PluginWorkflowOperationRetry(PluginWorkflowOperationRetryReq)
       returns (PluginWorkflowOperationRetryResp) {
     option (google.api.http) = {
@@ -349,7 +346,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationTerminate provides plugin operation terminate.
+  // 终止插件工作流中的指定操作。
   rpc PluginWorkflowOperationTerminate(PluginWorkflowOperationTerminateReq)
       returns (PluginWorkflowOperationTerminateResp) {
     option (google.api.http) = {
@@ -358,8 +355,7 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationInstanceStatusDistribution provides latest operation
-  // instance status distribution.
+  // 统计插件工作流各操作最新操作实例的状态分布。
   rpc PluginWorkflowOperationInstanceStatusDistributionList(
       PluginWorkflowOperationInstanceStatusDistributionListReq)
       returns (PluginWorkflowOperationInstanceStatusDistributionListResp) {
@@ -382,7 +378,7 @@ service OpenPluginWorkflow {
     };
   }
 
-  // 查询插件工作流的执行对象、操作状态及执行实例信息。
+  // 查询插件工作流的执行对象、操作状态及操作实例信息。
   rpc OpenPluginWorkflowOperationList(PluginWorkflowOperationListReq)
       returns (PluginWorkflowOperationListResp) {
     option (google.api.http) = {
@@ -391,7 +387,7 @@ service OpenPluginWorkflow {
     };
   }
 
-  // 按插件操作 ID 查询执行实例及历史执行状态。
+  // 按插件操作 ID 查询操作实例及历史执行状态。
   rpc OpenPluginWorkflowOperationInstanceList(
       PluginWorkflowOperationInstanceListReq)
       returns (PluginWorkflowOperationInstanceListResp) {
@@ -401,7 +397,7 @@ service OpenPluginWorkflow {
     };
   }
 
-  // 按插件执行实例 ID 查询步骤状态、日志及子工作流引用。
+  // 按插件操作实例 ID 查询步骤状态、日志及子工作流引用。
   rpc OpenPluginWorkflowOperationInstanceLogGet(
       PluginWorkflowOperationInstanceLogGetReq)
       returns (PluginWorkflowOperationInstanceLogGetResp) {

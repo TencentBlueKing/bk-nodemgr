@@ -64,14 +64,14 @@ message VersionLogDetailResp {
 
 // VersionLog service provides version and changelog information.
 service VersionLog {
-  // List returns all available version changelogs.
+  // 查询所有可用版本的更新日志列表。
   rpc List(VersionLogsListReq) returns (VersionLogsListResp) {
     option (google.api.http) = {
       get : "/api/v3/version_log/version_logs_list"
     };
   }
 
-  // Detail returns the changelog for a specific version.
+  // 获取指定版本的更新日志。
   rpc Detail(VersionLogDetailReq) returns (VersionLogDetailResp) {
     option (google.api.http) = {
       get : "/api/v3/version_log/changelog/{version}"

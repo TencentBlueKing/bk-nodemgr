@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/process/distinct": {
       "post": {
-        "summary": "ProcessDistinct describes the process distinct request.",
+        "summary": "查询插件进程指定字段的去重值。",
         "operationId": "Process_ProcessDistinct",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/process/get_distribution_by_host_id": {
       "post": {
-        "summary": "GetProcessDistributionByHostID describes the process statistics request.",
+        "summary": "按主机统计插件进程数量。",
         "operationId": "Process_GetProcessDistributionByHostID",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/process/get_distribution_by_plugin_name": {
       "post": {
-        "summary": "GetProcessDistributionByPluginName describes the process statistics\nrequest.",
+        "summary": "按插件名称统计进程数量。",
         "operationId": "Process_GetProcessDistributionByPluginName",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/process/list": {
       "post": {
-        "summary": "ListProcesses lists the processes.",
+        "summary": "查询插件进程列表。",
         "operationId": "Process_ListProcesses",
         "responses": {
           "200": {
@@ -155,7 +155,7 @@
     "/api/v3/process/list_v2": {
       "post": {
         "summary": "分页查询节点管理 V2 兼容模式的进程列表。",
-        "description": "请求和响应字段与 V3 进程列表一致，但使用独立的 Req/Resp 消息；数据来源为 V2\n兼容进程记录。",
+        "description": "分页查询节点管理 V2 兼容进程记录，返回对应主机、插件和进程状态。",
         "operationId": "Process_ListV2Processes",
         "responses": {
           "200": {
@@ -189,7 +189,7 @@
     "/api/v3/process/list_v2_compatible": {
       "post": {
         "summary": "查询主机上的插件进程状态，兼容节点管理 V2 的插件检索返回内容。",
-        "description": "仅监控平台使用，不对外开放申请。",
+        "description": "本接口为监控平台查询主机插件进程状态提供 V2 兼容返回内容，不对外开放申请。",
         "operationId": "Process_ListV2ProcessesCompatible",
         "responses": {
           "200": {

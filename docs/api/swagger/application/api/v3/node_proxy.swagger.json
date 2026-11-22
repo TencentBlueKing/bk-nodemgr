@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/node/proxy/assign_unit": {
       "post": {
-        "summary": "NodeProxyAssignUnit batch-assigns a network unit to unassigned proxy hosts.",
+        "summary": "为尚未分配管控单元的 Proxy 主机批量分配一个管控单元并发起部署工作流。",
         "operationId": "NodeProxy_NodeProxyAssignUnit",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/node/proxy/assign_unit_multi": {
       "post": {
-        "summary": "NodeProxyAssignUnitMulti batch-assigns multiple network units to proxy\nhosts.",
+        "summary": "按 Proxy 主机分组批量分配对应的管控单元并发起部署工作流。",
         "operationId": "NodeProxy_NodeProxyAssignUnitMulti",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/node/proxy/install": {
       "post": {
-        "summary": "NodeProxyInstall installs node proxy.",
+        "summary": "批量安装节点 Proxy。",
         "operationId": "NodeProxy_NodeProxyInstall",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/node/proxy/install_check": {
       "post": {
-        "summary": "NodeProxyInstallCheck checks node proxy install.",
+        "summary": "检查节点 Proxy 安装条件。",
         "operationId": "NodeProxy_NodeProxyInstallCheck",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/node/proxy/reconfig": {
       "post": {
-        "summary": "NodeProxyReconfig reconfigs node proxy.",
+        "summary": "批量重新下发节点 Proxy 配置并重启 Proxy。",
         "operationId": "NodeProxy_NodeProxyReconfig",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/node/proxy/restart": {
       "post": {
-        "summary": "NodeProxyRestart restarts node proxy.",
+        "summary": "批量重启节点 Proxy。",
         "operationId": "NodeProxy_NodeProxyRestart",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/node/proxy/uninstall": {
       "post": {
-        "summary": "NodeProxyUninstall uninstall node proxy.",
+        "summary": "批量卸载节点 Proxy。",
         "operationId": "NodeProxy_NodeProxyUninstall",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/node/proxy/update": {
       "post": {
-        "summary": "NodeProxyUpdate updates node proxy.",
+        "summary": "批量更新 Proxy 主机连接信息与属性。",
         "operationId": "NodeProxy_NodeProxyUpdate",
         "responses": {
           "200": {
@@ -290,7 +290,7 @@
     },
     "/api/v3/node/proxy/upgrade": {
       "post": {
-        "summary": "NodeProxyUpgrade upgrades node proxy.",
+        "summary": "批量升级节点 Proxy。",
         "operationId": "NodeProxy_NodeProxyUpgrade",
         "responses": {
           "200": {
@@ -324,7 +324,7 @@
     },
     "/api/v3/node/proxy/upgrade_check": {
       "post": {
-        "summary": "NodeProxyUpgradeCheck checks node proxy upgrade.",
+        "summary": "检查节点 Proxy 升级条件。",
         "operationId": "NodeProxy_NodeProxyUpgradeCheck",
         "responses": {
           "200": {

@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/node/constant/deploy/get": {
       "post": {
-        "summary": "NodeConstantDeployGet provides getting deploy constant.",
+        "summary": "获取节点部署相关常量。",
         "operationId": "NodeConstant_NodeConstantDeployGet",
         "responses": {
           "200": {

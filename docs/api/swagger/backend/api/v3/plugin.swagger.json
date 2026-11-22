@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/plugin/apply_subconfig": {
       "post": {
-        "summary": "ApplyPluginSubConfig applies sub-configuration for a plugin on specified\nhosts.",
+        "summary": "在指定主机上批量下发插件子配置。",
         "operationId": "Plugin_ApplyPluginSubConfig",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/plugin/install": {
       "post": {
-        "summary": "InstallPlugin installs a plugin on specified hosts.",
+        "summary": "在指定主机上批量安装插件。",
         "operationId": "Plugin_InstallPlugin",
         "responses": {
           "200": {
@@ -87,7 +87,7 @@
     "/api/v3/plugin/install_no_start": {
       "post": {
         "summary": "仅批量下发并安装 V3 插件包，完成配置渲染，但不启动插件进程。",
-        "description": "若目标主机上的插件进程正在运行，会先停止该进程。\n任务成功结束后进程保持 stopped 状态。",
+        "description": "本接口批量下发并安装 V3 插件包、完成配置渲染但不启动进程；\n若目标主机上的插件进程正在运行，会先停止该进程，任务成功结束后进程保持\nstopped 状态。",
         "operationId": "Plugin_InstallPluginNoStart",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/plugin/list": {
       "post": {
-        "summary": "ListPlugins lists plugins based on the given conditions.",
+        "summary": "按条件查询插件列表。",
         "operationId": "Plugin_ListPlugins",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/plugin/list_config_files": {
       "post": {
-        "summary": "ListPluginConfigFiles lists plugin config files by host ID and plugin name.",
+        "summary": "按主机 ID 和插件名称查询插件配置文件列表。",
         "operationId": "Plugin_ListPluginConfigFiles",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/plugin/migrate_from_v2": {
       "post": {
-        "summary": "MigratePluginFromV2 migrates plugin process from v2 on specified hosts.",
+        "summary": "将指定主机上的 V2 插件进程批量迁移至 V3。",
         "operationId": "Plugin_MigratePluginFromV2",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/plugin/remove_subconfig": {
       "post": {
-        "summary": "RemovePluginSubConfig removes a non-main sub-configuration file (or set of\nsuch files selected by template name) from a single host + plugin and\nreloads the plugin once after the remote files have been deleted.",
+        "summary": "批量删除指定主机上插件的非主配置文件，支持按文件名或模板名选择；远程文件删除后重载对应插件一次。",
         "operationId": "Plugin_RemovePluginSubConfig",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/plugin/restart": {
       "post": {
-        "summary": "RestartPlugin restarts the plugin process on specified hosts.",
+        "summary": "批量重启指定主机上的插件进程。",
         "operationId": "Plugin_RestartPlugin",
         "responses": {
           "200": {
@@ -290,7 +290,7 @@
     },
     "/api/v3/plugin/set_memo": {
       "post": {
-        "summary": "SetPluginMemo sets the memo for a plugin.",
+        "summary": "设置插件备注。",
         "operationId": "Plugin_SetPluginMemo",
         "responses": {
           "200": {
@@ -324,7 +324,7 @@
     },
     "/api/v3/plugin/start": {
       "post": {
-        "summary": "StartPlugin starts the plugin process on specified hosts.",
+        "summary": "批量启动指定主机上的插件进程。",
         "operationId": "Plugin_StartPlugin",
         "responses": {
           "200": {
@@ -358,7 +358,7 @@
     },
     "/api/v3/plugin/start_debug": {
       "post": {
-        "summary": "StartDebugPlugin starts a one-shot plugin debug workflow.",
+        "summary": "发起单次插件调试工作流。",
         "operationId": "Plugin_StartDebugPlugin",
         "responses": {
           "200": {
@@ -392,7 +392,7 @@
     },
     "/api/v3/plugin/stop": {
       "post": {
-        "summary": "StopPlugin stops the plugin process on specified hosts.",
+        "summary": "批量停止指定主机上的插件进程。",
         "operationId": "Plugin_StopPlugin",
         "responses": {
           "200": {
@@ -426,7 +426,7 @@
     },
     "/api/v3/plugin/stop_debug": {
       "post": {
-        "summary": "StopDebugPlugin requests a running plugin debug workflow to stop.",
+        "summary": "请求停止正在执行的插件调试工作流。",
         "operationId": "Plugin_StopDebugPlugin",
         "responses": {
           "200": {
@@ -461,7 +461,7 @@
     "/api/v3/plugin/stop_v2": {
       "post": {
         "summary": "批量停止指定主机上的 V2 插件进程。",
-        "description": "该接口异步执行停止任务并返回工作流 ID，可通过插件工作流接口查询执行结果。",
+        "description": "本接口异步批量停止指定主机上的 V2 插件进程并返回工作流\nID，可通过插件工作流接口查询执行结果。",
         "operationId": "Plugin_StopPluginV2",
         "responses": {
           "200": {
@@ -494,7 +494,7 @@
     },
     "/api/v3/plugin/uninstall": {
       "post": {
-        "summary": "UninstallPlugin uninstalls a plugin on specified hosts.",
+        "summary": "在指定主机上批量卸载插件。",
         "operationId": "Plugin_UninstallPlugin",
         "responses": {
           "200": {
@@ -528,7 +528,7 @@
     },
     "/api/v3/plugin/upgrade": {
       "post": {
-        "summary": "UpgradePlugin upgrades a plugin on specified hosts.",
+        "summary": "在指定主机上批量升级插件。",
         "operationId": "Plugin_UpgradePlugin",
         "responses": {
           "200": {

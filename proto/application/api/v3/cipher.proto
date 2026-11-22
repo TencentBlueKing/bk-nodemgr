@@ -44,7 +44,7 @@ message GetCurrentPublicKeyResp {
 
 // Cipher service definition.
 service Cipher {
-  // GetRSAPublicKey get rsa public key.
+  // 获取凭据加密使用的 RSA 公钥。
   rpc GetRSAPublicKey(GetRSAPublicKeyReq) returns (GetRSAPublicKeyResp) {
     option (google.api.http) = {
       post : "/api/v3/cipher/rsa/get_public_key"
@@ -52,8 +52,7 @@ service Cipher {
     };
   }
 
-  // GetCurrentPublicKey get the public key of the globally enabled
-  // credential encryption suite.
+  // 获取当前全局启用的凭据加密套件公钥。
   rpc GetCurrentPublicKey(GetCurrentPublicKeyReq)
       returns (GetCurrentPublicKeyResp) {
     option (google.api.http) = {

@@ -337,7 +337,7 @@ message DeployPolicyWorkflowListResp {
 
 // DeployPolicySvc describes the service of deploy policy.
 service DeployPolicySvc {
-  // List lists deploy policy.
+  // 查询部署策略列表。
   rpc List(DeployPolicyListReq) returns (DeployPolicyListResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/list"
@@ -345,7 +345,7 @@ service DeployPolicySvc {
     };
   }
 
-  // Create creates deploy policy.
+  // 创建部署策略。
   rpc Create(DeployPolicyCreateReq) returns (DeployPolicyCreateResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/create"
@@ -353,7 +353,7 @@ service DeployPolicySvc {
     };
   }
 
-  // Update updates deploy policy.
+  // 更新部署策略。
   rpc Update(DeployPolicyUpdateReq) returns (DeployPolicyUpdateResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/update"
@@ -361,7 +361,7 @@ service DeployPolicySvc {
     };
   }
 
-  // Execute executes deploy policy.
+  // 执行部署策略。
   rpc Execute(DeployPolicyExecuteReq) returns (DeployPolicyExecuteResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/execute"
@@ -369,7 +369,7 @@ service DeployPolicySvc {
     };
   }
 
-  // Preview computes current policy states without executing changes.
+  // 预览部署策略各目标的当前满足状态，不执行变更。
   rpc Preview(DeployPolicyPreviewReq) returns (DeployPolicyPreviewResp) {
     option (google.api.http) = {
       post : "/api/v3/deploy_policy/preview"
@@ -377,7 +377,7 @@ service DeployPolicySvc {
     };
   }
 
-  // WorkflowList lists deploy policy executions.
+  // 查询部署策略的执行工作流列表。
   rpc WorkflowList(DeployPolicyWorkflowListReq)
       returns (DeployPolicyWorkflowListResp) {
     option (google.api.http) = {

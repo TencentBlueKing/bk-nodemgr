@@ -195,7 +195,7 @@ message ScheduleWorkflowOperationInstanceLogGetResp {
 
 // ScheduleWorkflow service.
 service ScheduleWorkflow {
-  // EnableScheduleWorkflow provides enable schedule workflow.
+  // 启用定时工作流。
   rpc EnableScheduleWorkflow(EnableScheduleWorkflowReq)
       returns (EnableScheduleWorkflowResp) {
     option (google.api.http) = {
@@ -204,7 +204,7 @@ service ScheduleWorkflow {
     };
   }
 
-  // DisableScheduleWorkflow provides disable schedule workflow.
+  // 停用定时工作流。
   rpc DisableScheduleWorkflow(DisableScheduleWorkflowReq)
       returns (DisableScheduleWorkflowResp) {
     option (google.api.http) = {
@@ -213,7 +213,7 @@ service ScheduleWorkflow {
     };
   }
 
-  // ListScheduleWorkflow provides list schedule workflow.
+  // 查询定时工作流列表。
   rpc ListScheduleWorkflow(ListScheduleWorkflowReq)
       returns (ListScheduleWorkflowResp) {
     option (google.api.http) = {

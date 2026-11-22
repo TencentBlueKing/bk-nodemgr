@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/publish/release/agent": {
       "post": {
-        "summary": "PublishReleaseAgent provides release agent publish.",
+        "summary": "从已上传的原始包发布 Agent 安装包版本。",
         "operationId": "Publish_PublishReleaseAgent",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/publish/release/bintool": {
       "post": {
-        "summary": "PublishReleaseBinTool provides release bintool publish.",
+        "summary": "从已上传的原始包发布二进制工具包版本。",
         "operationId": "Publish_PublishReleaseBinTool",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/publish/release/cert": {
       "post": {
-        "summary": "PublishReleaseCert provides release cert publish.",
+        "summary": "从已上传的原始包发布证书包版本。",
         "operationId": "Publish_PublishReleaseCert",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/publish/release/plugin_bintool": {
       "post": {
-        "summary": "PublishReleasePluginBinTool provides release plugin bintool publish.",
+        "summary": "从已上传的原始包发布插件二进制工具包版本。",
         "operationId": "Publish_PublishReleasePluginBinTool",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/publish/release/proxy": {
       "post": {
-        "summary": "PublishReleaseProxy publishes a proxy release from a proxy or server\npackage.",
+        "summary": "从已上传的 Proxy 或 Server 原始包发布 Proxy 安装包版本。",
         "operationId": "Publish_PublishReleaseProxy",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/publish/release/v2/external_plugin": {
       "post": {
-        "summary": "PublishReleaseExternalPluginV2 provides release external plugin v2 publish.",
+        "summary": "从已上传的原始包发布旧版 V2 外部插件安装包版本。",
         "operationId": "Publish_PublishReleaseExternalPluginV2",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/publish/release/v2/plugin": {
       "post": {
-        "summary": "PublishReleasePluginV2 provides release plugin v2 publish.",
+        "summary": "从已上传的原始包发布旧版 V2 插件安装包版本。",
         "operationId": "Publish_PublishReleasePluginV2",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/publish/release/v3/plugin": {
       "post": {
-        "summary": "PublishReleasePluginV3 provides release plugin v3 publish.",
+        "summary": "从已上传的原始包发布 V3 插件安装包版本。",
         "operationId": "Publish_PublishReleasePluginV3",
         "responses": {
           "200": {

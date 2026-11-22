@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/notice/announcements/current": {
       "get": {
-        "summary": "GetCurrentAnnouncements retrieves current active announcements.\nPlatform and username are automatically obtained from config and context.",
+        "summary": "查询当前有效的平台公告，平台与用户名自动从配置和请求上下文获取。",
         "operationId": "NoticeAPI_GetCurrentAnnouncements",
         "responses": {
           "200": {

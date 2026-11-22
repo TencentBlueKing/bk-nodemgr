@@ -248,7 +248,7 @@ message PluginStopResp {
 }
 
 service PluginAPI {
-  // InstallPlugin installs a plugin on specified hosts.
+  // 在指定主机上安装插件。
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/install"
@@ -256,7 +256,7 @@ service PluginAPI {
     };
   }
 
-  // UpgradePlugin upgrades a plugin on specified hosts.
+  // 在指定主机上升级插件。
   rpc UpgradePlugin(PluginUpgradeReq) returns (PluginUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/upgrade"
@@ -264,7 +264,7 @@ service PluginAPI {
     };
   }
 
-  // UninstallPlugin uninstalls a plugin on specified hosts.
+  // 在指定主机上卸载插件。
   rpc UninstallPlugin(PluginUninstallReq) returns (PluginUninstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/uninstall"
@@ -272,8 +272,7 @@ service PluginAPI {
     };
   }
 
-  // ApplyPluginSubConfig applies sub-configuration for a plugin on specified
-  // hosts.
+  // 在指定主机上应用插件子配置。
   rpc ApplyPluginSubConfig(PluginApplySubConfigReq)
       returns (PluginApplySubConfigResp) {
     option (google.api.http) = {
@@ -282,7 +281,7 @@ service PluginAPI {
     };
   }
 
-  // ListPlugins lists plugins based on the given conditions.
+  // 按条件查询插件列表。
   rpc ListPlugins(PluginListReq) returns (PluginListResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/list"
@@ -290,7 +289,7 @@ service PluginAPI {
     };
   }
 
-  // SetPluginMemo sets the memo for a plugin.
+  // 设置插件备注。
   rpc SetPluginMemo(PluginSetMemoReq) returns (PluginSetMemoResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/set_memo"
@@ -298,8 +297,7 @@ service PluginAPI {
     };
   }
 
-  // ListPluginPermittedOperation lists the plugin operations that the user has
-  // permission to perform.
+  // 查询当前用户有权执行的插件操作。
   rpc ListPluginPermittedOperation(PluginListPermittedOperationReq)
       returns (PluginListPermittedOperationResp) {
     option (google.api.http) = {
@@ -308,7 +306,7 @@ service PluginAPI {
     };
   }
 
-  // StartPlugin starts the plugin process on specified hosts.
+  // 在指定主机上启动插件进程。
   rpc StartPlugin(PluginStartReq) returns (PluginStartResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/start"
@@ -316,7 +314,7 @@ service PluginAPI {
     };
   }
 
-  // RestartPlugin restarts the plugin process on specified hosts.
+  // 在指定主机上重启插件进程。
   rpc RestartPlugin(PluginRestartReq) returns (PluginRestartResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/restart"
@@ -324,7 +322,7 @@ service PluginAPI {
     };
   }
 
-  // StopPlugin stops the plugin process on specified hosts.
+  // 在指定主机上停止插件进程。
   rpc StopPlugin(PluginStopReq) returns (PluginStopResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/stop"

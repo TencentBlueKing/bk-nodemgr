@@ -21,7 +21,7 @@
   "paths": {
     "/api/v3/node/workflow/distinct": {
       "post": {
-        "summary": "NodeWorkflowDistinct provides node workflow distinct.",
+        "summary": "查询节点工作流指定字段的去重值。",
         "operationId": "NodeWorkflow_NodeWorkflowDistinct",
         "responses": {
           "200": {
@@ -55,7 +55,7 @@
     },
     "/api/v3/node/workflow/list": {
       "post": {
-        "summary": "NodeWorkflowList provides node workflow list.",
+        "summary": "查询节点工作流列表及执行状态。",
         "operationId": "NodeWorkflow_NodeWorkflowList",
         "responses": {
           "200": {
@@ -89,7 +89,7 @@
     },
     "/api/v3/node/workflow/operation/distinct": {
       "post": {
-        "summary": "NodeWorkflowOperationDistinct provides node workflow operation distinct.",
+        "summary": "查询节点工作流操作指定字段的去重值。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationDistinct",
         "responses": {
           "200": {
@@ -156,7 +156,7 @@
     },
     "/api/v3/node/workflow/operation/instance/list": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.",
+        "summary": "按节点操作 ID 查询操作实例及历史执行状态。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceList",
         "responses": {
           "200": {
@@ -190,7 +190,7 @@
     },
     "/api/v3/node/workflow/operation/instance/log/get": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceLogGet provides node operation instance log\nget.",
+        "summary": "按节点操作实例 ID 查询步骤状态、日志及子工作流引用。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceLogGet",
         "responses": {
           "200": {
@@ -224,7 +224,7 @@
     },
     "/api/v3/node/workflow/operation/instance/status_distribution/list": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceStatusDistribution provides latest operation\ninstance status distribution.",
+        "summary": "统计节点工作流各操作最新操作实例的状态分布。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceStatusDistributionList",
         "responses": {
           "200": {
@@ -258,7 +258,7 @@
     },
     "/api/v3/node/workflow/operation/list": {
       "post": {
-        "summary": "NodeWorkflowOperationList provides node workflow operation list.",
+        "summary": "查询节点工作流的执行对象、操作状态及操作实例信息。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationList",
         "responses": {
           "200": {
@@ -292,7 +292,7 @@
     },
     "/api/v3/node/workflow/operation/manual/info/get": {
       "post": {
-        "summary": "NodeWorkflowOperationManualInfoGet provides node operation manual info get.",
+        "summary": "查询节点操作所需的手动执行命令和网络策略。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationManualInfoGet",
         "responses": {
           "200": {
@@ -325,7 +325,7 @@
     },
     "/api/v3/node/workflow/operation/offline/info": {
       "post": {
-        "summary": "NodeWorkflowOperationOfflineInstallInfoGet returns scripts, metadata,\nrelease and installer constraints for proxy offline manual install (POST\n/api/v3/node/workflow/operation/offline/info).",
+        "summary": "查询等待离线手动安装的 Proxy\n操作所需的脚本、配置、元数据及资源包与安装器要求。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationOfflineInstallInfoGet",
         "responses": {
           "200": {
@@ -359,7 +359,7 @@
     },
     "/api/v3/node/workflow/operation/offline/result": {
       "post": {
-        "summary": "NodeWorkflowOperationOfflineInstallResultSubmit accepts installer output\nJSON and resumes the workflow (POST\n/api/v3/node/workflow/operation/offline/result).",
+        "summary": "提交 Proxy 离线安装器的 JSON 执行结果，使等待手动安装的工作流继续执行。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit",
         "responses": {
           "200": {
@@ -393,7 +393,7 @@
     },
     "/api/v3/node/workflow/operation/retry": {
       "post": {
-        "summary": "NodeWorkflowOperationRetry provides node operation retry.",
+        "summary": "重试节点工作流中的指定操作。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationRetry",
         "responses": {
           "200": {
@@ -426,7 +426,7 @@
     },
     "/api/v3/node/workflow/operation/terminate": {
       "post": {
-        "summary": "NodeWorkflowOperationTerminate provides node operation terminate.",
+        "summary": "终止节点工作流中的指定操作。",
         "operationId": "NodeWorkflow_NodeWorkflowOperationTerminate",
         "responses": {
           "200": {
@@ -493,7 +493,7 @@
     },
     "/api/v3/open/node/workflow/operation/instance/list": {
       "post": {
-        "summary": "按节点操作 ID 查询执行实例及历史执行状态。",
+        "summary": "按节点操作 ID 查询操作实例及历史执行状态。",
         "operationId": "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList",
         "responses": {
           "200": {
@@ -527,7 +527,7 @@
     },
     "/api/v3/open/node/workflow/operation/instance/log/get": {
       "post": {
-        "summary": "按节点执行实例 ID 查询步骤状态、日志及子工作流引用。",
+        "summary": "按节点操作实例 ID 查询步骤状态、日志及子工作流引用。",
         "operationId": "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet",
         "responses": {
           "200": {
@@ -561,7 +561,7 @@
     },
     "/api/v3/open/node/workflow/operation/list": {
       "post": {
-        "summary": "查询节点工作流的执行对象、操作状态及执行实例信息。",
+        "summary": "查询节点工作流的执行对象、操作状态及操作实例信息。",
         "operationId": "OpenNodeWorkflow_OpenNodeWorkflowOperationList",
         "responses": {
           "200": {

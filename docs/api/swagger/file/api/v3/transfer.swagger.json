@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/transfer/launch/installler": {
       "post": {
-        "summary": "TransferInstaller provides transferring installer package.",
+        "summary": "启动节点安装工具到目标主机的异步传输。",
         "operationId": "Transfer_TransferInstaller",
         "responses": {
           "200": {
@@ -61,7 +61,7 @@
     },
     "/api/v3/transfer/launch/node": {
       "post": {
-        "summary": "TransferLaunchNode provides transferring node package.",
+        "summary": "启动节点安装包到目标主机的异步传输。",
         "operationId": "Transfer_TransferLaunchNode",
         "responses": {
           "200": {
@@ -104,7 +104,7 @@
     },
     "/api/v3/transfer/launch/plugin": {
       "post": {
-        "summary": "TransferLaunchPlugin provides transferring plugin package.",
+        "summary": "启动插件安装包到目标主机的异步传输。",
         "operationId": "Transfer_TransferLaunchPlugin",
         "responses": {
           "200": {
@@ -147,7 +147,7 @@
     },
     "/api/v3/transfer/query": {
       "get": {
-        "summary": "TransferQuery provides querying transfer release.",
+        "summary": "按任务 ID 查询文件传输结果。",
         "operationId": "Transfer_TransferQuery",
         "responses": {
           "200": {

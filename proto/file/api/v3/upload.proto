@@ -259,7 +259,7 @@ message UploadOriginPluginV3Resp {
 
 // Upload service.
 service Upload {
-  // UploadOriginAgent provides origin agent upload.
+  // 上传 Agent 原始安装包。
   rpc UploadOriginAgent(UploadOriginAgentReq) returns (UploadOriginAgentResp) {
     option (google.api.http) = {
       post : "/api/v3/upload/origin/agent"
@@ -267,7 +267,7 @@ service Upload {
     };
   }
 
-  // UploadOriginServer provides origin server upload.
+  // 上传 Server 原始安装包。
   rpc UploadOriginServer(UploadOriginServerReq)
       returns (UploadOriginServerResp) {
     option (google.api.http) = {
@@ -276,7 +276,7 @@ service Upload {
     };
   }
 
-  // UploadOriginProxy provides origin proxy upload.
+  // 上传 Proxy 原始安装包。
   rpc UploadOriginProxy(UploadOriginProxyReq) returns (UploadOriginProxyResp) {
     option (google.api.http) = {
       post : "/api/v3/upload/origin/proxy"
@@ -284,7 +284,7 @@ service Upload {
     };
   }
 
-  // UploadOriginCert provides origin cert upload.
+  // 上传原始证书包。
   rpc UploadOriginCert(UploadOriginCertReq) returns (UploadOriginCertResp) {
     option (google.api.http) = {
       post : "/api/v3/upload/origin/cert"
@@ -292,7 +292,7 @@ service Upload {
     };
   }
 
-  // UploadOriginBinTool provides origin bintool upload.
+  // 上传原始二进制工具包。
   rpc UploadOriginBinTool(UploadOriginBinToolReq)
       returns (UploadOriginBinToolResp) {
     option (google.api.http) = {
@@ -301,7 +301,7 @@ service Upload {
     };
   }
 
-  // UploadOriginPluginBinToolV2 provides origin bintool upload.
+  // 上传原始插件二进制工具包。
   rpc UploadOriginPluginBinToolV2(UploadOriginPluginBinToolReq)
       returns (UploadOriginPluginBinToolResp) {
     option (google.api.http) = {
@@ -310,7 +310,7 @@ service Upload {
     };
   }
 
-  // UploadOriginPluginV2 provides origin plugin upload.
+  // 上传旧版 V2 插件原始安装包。
   rpc UploadOriginPluginV2(UploadOriginPluginV2Req)
       returns (UploadOriginPluginV2Resp) {
     option (google.api.http) = {
@@ -319,7 +319,7 @@ service Upload {
     };
   }
 
-  // UploadOriginExternalPlugin provides origin external plugin upload.
+  // 上传旧版 V2 外部插件原始安装包。
   rpc UploadOriginExternalPlugin(UploadOriginExternalPluginV2Req)
       returns (UploadOriginExternalPluginV2Resp) {
     option (google.api.http) = {
@@ -328,7 +328,7 @@ service Upload {
     };
   }
 
-  // UploadOriginPluginV3 provides origin plugin upload.
+  // 上传 V3 插件原始安装包。
   rpc UploadOriginPluginV3(UploadOriginPluginV3Req)
       returns (UploadOriginPluginV3Resp) {
     option (google.api.http) = {

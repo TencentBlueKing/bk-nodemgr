@@ -182,8 +182,8 @@ service PackageWorkflow {
     };
   }
 
-  // 查询插件V3资源包导入工作流的执行结果。通过 PackageImport 接口返回的
-  // workflow_id 查询导入进度、状态以及各操作（operation）的执行日志。
+  // 按导入接口返回的 workflow_id
+  // 查询插件资源包导入进度、状态及各操作的执行日志，支持 V3 和 V2 插件导入。
   rpc PackageImportResult(PackageImportResultReq)
       returns (PackageImportResultResp) {
     option (google.api.http) = {

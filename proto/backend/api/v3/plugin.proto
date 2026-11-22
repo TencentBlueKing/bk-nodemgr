@@ -427,7 +427,7 @@ message PluginStopV2Resp {
 }
 
 service Plugin {
-  // InstallPlugin installs a plugin on specified hosts.
+  // 在指定主机上批量安装插件。
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/install"
@@ -437,8 +437,9 @@ service Plugin {
 
   // 仅批量下发并安装 V3 插件包，完成配置渲染，但不启动插件进程。
   //
-  // 若目标主机上的插件进程正在运行，会先停止该进程。
-  // 任务成功结束后进程保持 stopped 状态。
+  // 本接口批量下发并安装 V3 插件包、完成配置渲染但不启动进程；
+  // 若目标主机上的插件进程正在运行，会先停止该进程，任务成功结束后进程保持
+  // stopped 状态。
   rpc InstallPluginNoStart(PluginInstallNoStartReq)
       returns (PluginInstallNoStartResp) {
     option (google.api.http) = {
@@ -447,7 +448,7 @@ service Plugin {
     };
   }
 
-  // UpgradePlugin upgrades a plugin on specified hosts.
+  // 在指定主机上批量升级插件。
   rpc UpgradePlugin(PluginUpgradeReq) returns (PluginUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/upgrade"
@@ -455,7 +456,7 @@ service Plugin {
     };
   }
 
-  // UninstallPlugin uninstalls a plugin on specified hosts.
+  // 在指定主机上批量卸载插件。
   rpc UninstallPlugin(PluginUninstallReq) returns (PluginUninstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/uninstall"
@@ -463,7 +464,7 @@ service Plugin {
     };
   }
 
-  // ListPluginConfigFiles lists plugin config files by host ID and plugin name.
+  // 按主机 ID 和插件名称查询插件配置文件列表。
   rpc ListPluginConfigFiles(PluginListConfigFilesReq)
       returns (PluginListConfigFilesResp) {
     option (google.api.http) = {
@@ -472,8 +473,7 @@ service Plugin {
     };
   }
 
-  // ApplyPluginSubConfig applies sub-configuration for a plugin on specified
-  // hosts.
+  // 在指定主机上批量下发插件子配置。
   rpc ApplyPluginSubConfig(PluginApplySubConfigReq)
       returns (PluginApplySubConfigResp) {
     option (google.api.http) = {
@@ -482,9 +482,7 @@ service Plugin {
     };
   }
 
-  // RemovePluginSubConfig removes a non-main sub-configuration file (or set of
-  // such files selected by template name) from a single host + plugin and
-  // reloads the plugin once after the remote files have been deleted.
+  // 批量删除指定主机上插件的非主配置文件，支持按文件名或模板名选择；远程文件删除后重载对应插件一次。
   rpc RemovePluginSubConfig(PluginRemoveSubConfigReq)
       returns (PluginRemoveSubConfigResp) {
     option (google.api.http) = {
@@ -493,7 +491,7 @@ service Plugin {
     };
   }
 
-  // ListPlugins lists plugins based on the given conditions.
+  // 按条件查询插件列表。
   rpc ListPlugins(PluginListReq) returns (PluginListResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/list"
@@ -501,7 +499,7 @@ service Plugin {
     };
   }
 
-  // SetPluginMemo sets the memo for a plugin.
+  // 设置插件备注。
   rpc SetPluginMemo(PluginSetMemoReq) returns (PluginSetMemoResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/set_memo"
@@ -509,7 +507,7 @@ service Plugin {
     };
   }
 
-  // StartPlugin starts the plugin process on specified hosts.
+  // 批量启动指定主机上的插件进程。
   rpc StartPlugin(PluginStartReq) returns (PluginStartResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/start"
@@ -517,7 +515,7 @@ service Plugin {
     };
   }
 
-  // RestartPlugin restarts the plugin process on specified hosts.
+  // 批量重启指定主机上的插件进程。
   rpc RestartPlugin(PluginRestartReq) returns (PluginRestartResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/restart"
@@ -525,7 +523,7 @@ service Plugin {
     };
   }
 
-  // StopPlugin stops the plugin process on specified hosts.
+  // 批量停止指定主机上的插件进程。
   rpc StopPlugin(PluginStopReq) returns (PluginStopResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/stop"
@@ -535,7 +533,8 @@ service Plugin {
 
   // 批量停止指定主机上的 V2 插件进程。
   //
-  // 该接口异步执行停止任务并返回工作流 ID，可通过插件工作流接口查询执行结果。
+  // 本接口异步批量停止指定主机上的 V2 插件进程并返回工作流
+  // ID，可通过插件工作流接口查询执行结果。
   rpc StopPluginV2(PluginStopV2Req) returns (PluginStopV2Resp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/stop_v2"
@@ -543,7 +542,7 @@ service Plugin {
     };
   }
 
-  // StartDebugPlugin starts a one-shot plugin debug workflow.
+  // 发起单次插件调试工作流。
   rpc StartDebugPlugin(PluginStartDebugReq) returns (PluginStartDebugResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/start_debug"
@@ -551,7 +550,7 @@ service Plugin {
     };
   }
 
-  // StopDebugPlugin requests a running plugin debug workflow to stop.
+  // 请求停止正在执行的插件调试工作流。
   rpc StopDebugPlugin(PluginStopDebugReq) returns (PluginStopDebugResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/stop_debug"
@@ -559,7 +558,7 @@ service Plugin {
     };
   }
 
-  // MigratePluginFromV2 migrates plugin process from v2 on specified hosts.
+  // 将指定主机上的 V2 插件进程批量迁移至 V3。
   rpc MigratePluginFromV2(PluginMigrateFromV2Req)
       returns (PluginMigrateFromV2Resp) {
     option (google.api.http) = {

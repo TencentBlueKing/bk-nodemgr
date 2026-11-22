@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/deploy_policy/create": {
       "post": {
-        "summary": "Create creates deploy policy.",
+        "summary": "创建部署策略。",
         "operationId": "DeployPolicySvc_Create",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/deploy_policy/execute": {
       "post": {
-        "summary": "Execute executes deploy policy.",
+        "summary": "执行部署策略。",
         "operationId": "DeployPolicySvc_Execute",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/deploy_policy/list": {
       "post": {
-        "summary": "List lists deploy policy.",
+        "summary": "查询部署策略列表。",
         "operationId": "DeployPolicySvc_List",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/deploy_policy/preview": {
       "post": {
-        "summary": "Preview computes current policy states without executing changes.",
+        "summary": "预览部署策略各目标的当前满足状态，不执行变更。",
         "operationId": "DeployPolicySvc_Preview",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/deploy_policy/update": {
       "post": {
-        "summary": "Update updates deploy policy.",
+        "summary": "更新部署策略。",
         "operationId": "DeployPolicySvc_Update",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/deploy_policy/workflow/list": {
       "post": {
-        "summary": "WorkflowList lists deploy policy executions.",
+        "summary": "查询部署策略的执行工作流列表。",
         "operationId": "DeployPolicySvc_WorkflowList",
         "responses": {
           "200": {

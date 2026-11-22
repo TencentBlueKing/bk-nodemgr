@@ -49,8 +49,7 @@ message ExportOriginPluginPackageReq { string token = 1; }
 
 // Export service provides package export operations.
 service Export {
-  // ExportPrepareOriginPluginPackage prepares an origin plugin package for
-  // exporting.
+  // 准备插件原始包导出，返回导出 ID。
   rpc ExportPrepareOriginPluginPackage(ExportPrepareOriginPluginPackageReq)
       returns (ExportPrepareOriginPluginPackageResp) {
     option (google.api.http) = {
@@ -59,8 +58,7 @@ service Export {
     };
   }
 
-  // ExportGetOriginPluginPackageDownloadAddress gets the download address of
-  // the origin plugin package.
+  // 获取插件原始包的临时下载地址及过期时间。
   rpc ExportGetOriginPluginPackageDownloadAddress(
       ExportGetOriginPluginPackageDownloadAddressReq)
       returns (ExportGetOriginPluginPackageDownloadAddressResp) {
@@ -70,8 +68,7 @@ service Export {
     };
   }
 
-  // ExportOriginPluginPackage exported origin plugin package using a temporary
-  // export token.
+  // 使用临时导出令牌下载插件原始包。
   rpc ExportOriginPluginPackage(ExportOriginPluginPackageReq)
       returns (stream FileChunk) {
     option (google.api.http) = {

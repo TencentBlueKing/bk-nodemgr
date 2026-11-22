@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/info/agent": {
       "post": {
-        "summary": "InfoAgent returns file info for the agent package.",
+        "summary": "查询 Agent 安装包的文件信息。",
         "operationId": "Info_InfoAgent",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/info/bintool": {
       "post": {
-        "summary": "InfoBinTool returns file info for the bintool package.",
+        "summary": "查询二进制工具包的文件信息。",
         "operationId": "Info_InfoBinTool",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/info/cert": {
       "post": {
-        "summary": "InfoCert returns file info for the cert package.",
+        "summary": "查询证书包的文件信息。",
         "operationId": "Info_InfoCert",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/info/installer": {
       "post": {
-        "summary": "InfoInstaller returns file info for the installer.",
+        "summary": "查询节点安装工具的文件信息。",
         "operationId": "Info_InfoInstaller",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/info/plugin": {
       "post": {
-        "summary": "InfoPlugin returns file info for the plugin package.",
+        "summary": "查询插件安装包的文件信息。",
         "operationId": "Info_InfoPlugin",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/info/plugin_bintool": {
       "post": {
-        "summary": "InfoPluginBinTool returns file info for the plugin bintool package.",
+        "summary": "查询插件二进制工具包的文件信息。",
         "operationId": "Info_InfoPluginBinTool",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/info/proxy": {
       "post": {
-        "summary": "InfoProxy returns file info for the proxy package.",
+        "summary": "查询 Proxy 安装包的文件信息。",
         "operationId": "Info_InfoProxy",
         "responses": {
           "200": {

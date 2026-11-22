@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/deploy_policy/execute": {
       "post": {
-        "summary": "ExecuteDeployPolicy executes deploy policy.",
+        "summary": "触发部署策略执行。",
         "operationId": "DeployPolicyAPI_ExecuteDeployPolicy",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/deploy_policy/list": {
       "post": {
-        "summary": "ListDeployPolicy lists deploy policy.",
+        "summary": "查询部署策略列表。",
         "operationId": "DeployPolicyAPI_ListDeployPolicy",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/deploy_policy/workflow/list": {
       "post": {
-        "summary": "WorkflowList lists deploy policy executions.",
+        "summary": "查询部署策略执行记录列表。",
         "operationId": "DeployPolicyAPI_WorkflowList",
         "responses": {
           "200": {

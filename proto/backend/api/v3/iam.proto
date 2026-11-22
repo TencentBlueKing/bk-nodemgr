@@ -126,9 +126,7 @@ message IAMV4ResourceCallbackResp {
 // Authentication: Basic Auth with system_id as username and system token as
 // password.
 service IAM {
-  // IAMResourceCallback handles IAM resource callback requests.
-  // This is a unified endpoint that dispatches requests to different handlers
-  // based on the resource type and method specified in the request body.
+  // 处理 IAM 资源查询回调，按请求中的资源类型和方法返回对应资源信息。
   rpc IAMResourceCallback(IAMResourceCallbackReq)
       returns (IAMResourceCallbackResp) {
     option (google.api.http) = {
@@ -137,8 +135,8 @@ service IAM {
     };
   }
 
-  // IAMV4ResourceCallback queries resources for IAM V4 using Basic Auth.
-  // The username is bk_iam and the password is the IAM V4 system token.
+  // 处理 IAM V4 资源查询回调，使用 Basic Auth 认证。
+  // 认证用户名为 bk_iam，密码为 IAM V4 系统 Token。
   rpc IAMV4ResourceCallback(IAMV4ResourceCallbackReq)
       returns (IAMV4ResourceCallbackResp) {
     option (google.api.http) = {

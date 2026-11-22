@@ -311,7 +311,7 @@ message NodeProxyAssignUnitMultiReq {
 
 // NodeProxy describes the node proxy service.
 service NodeProxy {
-  // NodeProxyInstall installs node proxy.
+  // 批量安装节点 Proxy。
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/install"
@@ -319,7 +319,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyUpgrade upgrades node proxy.
+  // 批量升级节点 Proxy。
   rpc NodeProxyUpgrade(NodeProxyUpgradeReq) returns (NodeProxyUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/upgrade"
@@ -327,7 +327,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyRestart restarts node proxy.
+  // 批量重启节点 Proxy。
   rpc NodeProxyRestart(NodeProxyRestartReq) returns (NodeProxyRestartResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/restart"
@@ -335,7 +335,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyReconfig reconfigs node proxy.
+  // 批量重新下发节点 Proxy 配置并重启 Proxy。
   rpc NodeProxyReconfig(NodeProxyReconfigReq) returns (NodeProxyReconfigResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/reconfig"
@@ -343,7 +343,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyUpdate updates node proxy.
+  // 批量更新 Proxy 主机连接信息与属性。
   rpc NodeProxyUpdate(NodeProxyUpdateReq) returns (NodeProxyUpdateResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/update"
@@ -351,7 +351,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyUninstall uninstall node proxy.
+  // 批量卸载节点 Proxy。
   rpc NodeProxyUninstall(NodeProxyUninstallReq)
       returns (NodeProxyUninstallResp) {
     option (google.api.http) = {
@@ -360,7 +360,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyInstallCheck checks node proxy install.
+  // 检查节点 Proxy 安装条件。
   rpc NodeProxyInstallCheck(NodeProxyInstallCheckReq)
       returns (NodeProxyInstallCheckResp) {
     option (google.api.http) = {
@@ -369,7 +369,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyUpgradeCheck checks node proxy upgrade.
+  // 检查节点 Proxy 升级条件。
   rpc NodeProxyUpgradeCheck(NodeProxyUpgradeCheckReq)
       returns (NodeProxyUpgradeCheckResp) {
     option (google.api.http) = {
@@ -378,7 +378,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyAssignUnit batch-assigns a network unit to unassigned proxy hosts.
+  // 为尚未分配管控单元的 Proxy 主机批量分配一个管控单元并发起部署工作流。
   rpc NodeProxyAssignUnit(NodeProxyAssignUnitReq)
       returns (NodeProxyAssignUnitResp) {
     option (google.api.http) = {
@@ -387,8 +387,7 @@ service NodeProxy {
     };
   }
 
-  // NodeProxyAssignUnitMulti batch-assigns multiple network units to proxy
-  // hosts.
+  // 按 Proxy 主机分组批量分配对应的管控单元并发起部署工作流。
   rpc NodeProxyAssignUnitMulti(NodeProxyAssignUnitMultiReq)
       returns (NodeProxyAssignUnitResp) {
     option (google.api.http) = {

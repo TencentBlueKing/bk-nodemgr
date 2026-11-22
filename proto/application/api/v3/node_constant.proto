@@ -28,7 +28,7 @@ message NodeConstantDeployGetResp {
 
 // node constant service.
 service NodeConstant {
-  // NodeConstantDeployGet provides getting deploy constant.
+  // 获取节点部署相关常量。
   rpc NodeConstantDeployGet(NodeConstantDeployGetReq)
       returns (NodeConstantDeployGetResp) {
     option (google.api.http) = {

@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/plugin/apply_subconfig": {
       "post": {
-        "summary": "ApplyPluginSubConfig applies sub-configuration for a plugin on specified\nhosts.",
+        "summary": "在指定主机上应用插件子配置。",
         "operationId": "PluginAPI_ApplyPluginSubConfig",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/plugin/install": {
       "post": {
-        "summary": "InstallPlugin installs a plugin on specified hosts.",
+        "summary": "在指定主机上安装插件。",
         "operationId": "PluginAPI_InstallPlugin",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/plugin/list": {
       "post": {
-        "summary": "ListPlugins lists plugins based on the given conditions.",
+        "summary": "按条件查询插件列表。",
         "operationId": "PluginAPI_ListPlugins",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/plugin/list_permitted_operations": {
       "post": {
-        "summary": "ListPluginPermittedOperation lists the plugin operations that the user has\npermission to perform.",
+        "summary": "查询当前用户有权执行的插件操作。",
         "operationId": "PluginAPI_ListPluginPermittedOperation",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/plugin/restart": {
       "post": {
-        "summary": "RestartPlugin restarts the plugin process on specified hosts.",
+        "summary": "在指定主机上重启插件进程。",
         "operationId": "PluginAPI_RestartPlugin",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/plugin/set_memo": {
       "post": {
-        "summary": "SetPluginMemo sets the memo for a plugin.",
+        "summary": "设置插件备注。",
         "operationId": "PluginAPI_SetPluginMemo",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/plugin/start": {
       "post": {
-        "summary": "StartPlugin starts the plugin process on specified hosts.",
+        "summary": "在指定主机上启动插件进程。",
         "operationId": "PluginAPI_StartPlugin",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/plugin/stop": {
       "post": {
-        "summary": "StopPlugin stops the plugin process on specified hosts.",
+        "summary": "在指定主机上停止插件进程。",
         "operationId": "PluginAPI_StopPlugin",
         "responses": {
           "200": {
@@ -290,7 +290,7 @@
     },
     "/api/v3/plugin/uninstall": {
       "post": {
-        "summary": "UninstallPlugin uninstalls a plugin on specified hosts.",
+        "summary": "在指定主机上卸载插件。",
         "operationId": "PluginAPI_UninstallPlugin",
         "responses": {
           "200": {
@@ -324,7 +324,7 @@
     },
     "/api/v3/plugin/upgrade": {
       "post": {
-        "summary": "UpgradePlugin upgrades a plugin on specified hosts.",
+        "summary": "在指定主机上升级插件。",
         "operationId": "PluginAPI_UpgradePlugin",
         "responses": {
           "200": {

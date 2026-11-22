@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/version_log/changelog/{version}": {
       "get": {
-        "summary": "Detail returns the changelog for a specific version.",
+        "summary": "获取指定版本的更新日志。",
         "operationId": "VersionLog_Detail",
         "responses": {
           "200": {
@@ -50,7 +50,7 @@
     },
     "/api/v3/version_log/version_logs_list": {
       "get": {
-        "summary": "List returns all available version changelogs.",
+        "summary": "查询所有可用版本的更新日志列表。",
         "operationId": "VersionLog_List",
         "responses": {
           "200": {

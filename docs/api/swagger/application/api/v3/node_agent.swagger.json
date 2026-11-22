@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/node/agent/assign_unit": {
       "post": {
-        "summary": "NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.",
+        "summary": "为尚未分配管控单元的 Agent 主机批量分配一个管控单元，仅更新节点元数据。",
         "operationId": "NodeAgent_NodeAgentAssignUnit",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/node/agent/assign_unit_multi": {
       "post": {
-        "summary": "NodeAgentAssignUnitMulti batch-assigns multiple network units to agent\nhosts.",
+        "summary": "按主机分组批量分配对应的管控单元，仅更新节点元数据。",
         "operationId": "NodeAgent_NodeAgentAssignUnitMulti",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/node/agent/install": {
       "post": {
-        "summary": "NodeAgentInstall installs node agent.",
+        "summary": "批量安装节点 Agent。",
         "operationId": "NodeAgent_NodeAgentInstall",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/node/agent/install_check": {
       "post": {
-        "summary": "NodeAgentInstallCheck  check installs node agent.",
+        "summary": "检查节点 Agent 安装条件。",
         "operationId": "NodeAgent_NodeAgentInstallCheck",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/node/agent/reconfig": {
       "post": {
-        "summary": "NodeAgentReconfig reconfigs node agent.",
+        "summary": "批量重新下发节点 Agent 配置并重启 Agent。",
         "operationId": "NodeAgent_NodeAgentReconfig",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/node/agent/restart": {
       "post": {
-        "summary": "NodeAgentRestart restarts node agent.",
+        "summary": "批量重启节点 Agent。",
         "operationId": "NodeAgent_NodeAgentRestart",
         "responses": {
           "200": {
@@ -222,7 +222,7 @@
     },
     "/api/v3/node/agent/uninstall": {
       "post": {
-        "summary": "NodeAgentUninstall uninstalls node agent.",
+        "summary": "批量卸载节点 Agent。",
         "operationId": "NodeAgent_NodeAgentUninstall",
         "responses": {
           "200": {
@@ -256,7 +256,7 @@
     },
     "/api/v3/node/agent/upgrade": {
       "post": {
-        "summary": "NodeAgentUpgrade upgrades node agent.",
+        "summary": "批量升级节点 Agent。",
         "operationId": "NodeAgent_NodeAgentUpgrade",
         "responses": {
           "200": {
@@ -290,7 +290,7 @@
     },
     "/api/v3/node/agent/upgrade_check": {
       "post": {
-        "summary": "NodeAgentUpgradeCheck checks node agent upgrade.",
+        "summary": "检查节点 Agent 升级条件。",
         "operationId": "NodeAgent_NodeAgentUpgradeCheck",
         "responses": {
           "200": {

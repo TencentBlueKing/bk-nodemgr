@@ -394,7 +394,7 @@
     },
     "/api/v3/topo/accesspoint/list": {
       "post": {
-        "summary": "AccessPointList provides access-point listing.",
+        "summary": "查询接入点列表及其 endpoints。",
         "operationId": "Topo_AccessPointList",
         "responses": {
           "200": {
@@ -428,7 +428,7 @@
     },
     "/api/v3/topo/accesspoint/list/brief": {
       "post": {
-        "summary": "AccessPointListBrief provides brief access-point listing (no endpoints).",
+        "summary": "查询接入点简表，不返回 endpoints。",
         "operationId": "Topo_AccessPointListBrief",
         "responses": {
           "200": {
@@ -462,7 +462,7 @@
     },
     "/api/v3/topo/business/host_count/get": {
       "post": {
-        "summary": "BusinessHostCountGet provides host count getting by business id.",
+        "summary": "按业务统计主机数量。",
         "operationId": "Topo_BusinessHostCountGet",
         "responses": {
           "200": {
@@ -496,7 +496,7 @@
     },
     "/api/v3/topo/business/inst_topo/get": {
       "post": {
-        "summary": "BusinessInstTopoGet provides business instance topology getting.",
+        "summary": "查询业务实例拓扑。",
         "operationId": "Topo_BusinessInstTopoGet",
         "responses": {
           "200": {
@@ -530,7 +530,7 @@
     },
     "/api/v3/topo/business/list": {
       "post": {
-        "summary": "BusinessList provides business listing.",
+        "summary": "查询业务列表。",
         "operationId": "Topo_BusinessList",
         "responses": {
           "200": {
@@ -597,7 +597,7 @@
     },
     "/api/v3/topo/constant/get": {
       "post": {
-        "summary": "ConstantGet provides getting a constant.",
+        "summary": "查询拓扑相关常量。",
         "operationId": "Topo_ConstantGet",
         "responses": {
           "200": {
@@ -631,7 +631,7 @@
     },
     "/api/v3/topo/event/distinct": {
       "post": {
-        "summary": "EventDistinct provides event distincting.",
+        "summary": "查询拓扑事件指定字段的去重值。",
         "operationId": "Topo_EventDistinct",
         "responses": {
           "200": {
@@ -665,7 +665,7 @@
     },
     "/api/v3/topo/event/list": {
       "post": {
-        "summary": "EventList provides event listing.",
+        "summary": "查询拓扑事件列表。",
         "operationId": "Topo_EventList",
         "responses": {
           "200": {
@@ -699,7 +699,7 @@
     },
     "/api/v3/topo/graph_node/get": {
       "post": {
-        "summary": "TopoGraphNodeGetReq provides graph node getting.",
+        "summary": "查询管控单元图节点及健康信息。",
         "operationId": "Topo_TopoGraphNodeGetReq",
         "responses": {
           "200": {
@@ -732,7 +732,7 @@
     },
     "/api/v3/topo/host/distinct": {
       "post": {
-        "summary": "HostDistinct provides host distincting.",
+        "summary": "查询主机指定字段的去重值。",
         "operationId": "Topo_HostDistinct",
         "responses": {
           "200": {
@@ -766,7 +766,7 @@
     },
     "/api/v3/topo/host/get_host_distribution_by_networkarea_id": {
       "post": {
-        "summary": "GetHostDistributionByNetworkAreaIDReq uest provides getting host\ndistribution by node role.",
+        "summary": "按管控区域统计主机数量。",
         "operationId": "Topo_GetHostDistributionByNetworkAreaID",
         "responses": {
           "200": {
@@ -800,7 +800,7 @@
     },
     "/api/v3/topo/host/get_host_distribution_by_node_role": {
       "post": {
-        "summary": "GetHostDistributionByNodeRoleReq uest provides getting host\ndistribution by node role.",
+        "summary": "按节点角色统计主机数量。",
         "operationId": "Topo_GetHostDistributionByNodeRole",
         "responses": {
           "200": {
@@ -834,7 +834,7 @@
     },
     "/api/v3/topo/host/get_host_distribution_by_node_version": {
       "post": {
-        "summary": "GetHostDistributionByNodeVersionReq uest provides getting host\ndistribution by node version.",
+        "summary": "按节点版本统计主机数量。",
         "operationId": "Topo_GetHostDistributionByNodeVersion",
         "responses": {
           "200": {
@@ -868,7 +868,7 @@
     },
     "/api/v3/topo/host/list": {
       "post": {
-        "summary": "HostList provides host listing.",
+        "summary": "查询主机列表。",
         "operationId": "Topo_HostList",
         "responses": {
           "200": {
@@ -902,7 +902,7 @@
     },
     "/api/v3/topo/host/scenario/select_host_id": {
       "post": {
-        "summary": "HostSelectHostID provides host id selecting.",
+        "summary": "按条件筛选主机并返回主机 ID 列表。",
         "operationId": "Topo_HostSelectHostID",
         "responses": {
           "200": {
@@ -936,7 +936,7 @@
     },
     "/api/v3/topo/host/scenario/select_inner_ip": {
       "post": {
-        "summary": "HostSelectInnerIP provides host inner ip selecting.",
+        "summary": "按条件筛选主机并返回内网 IPv4 列表。",
         "operationId": "Topo_HostSelectInnerIP",
         "responses": {
           "200": {
@@ -970,7 +970,7 @@
     },
     "/api/v3/topo/host/scenario/select_inner_ipv6": {
       "post": {
-        "summary": "HostSelectInnerIPV6 provides host inner ipv6 selecting.",
+        "summary": "按条件筛选主机并返回内网 IPv6 列表。",
         "operationId": "Topo_HostSelectInnerIPV6",
         "responses": {
           "200": {
@@ -1004,7 +1004,7 @@
     },
     "/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ip": {
       "post": {
-        "summary": "HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip\nselecting.",
+        "summary": "按条件筛选主机并返回管控区域 ID 与内网 IPv4 的组合列表。",
         "operationId": "Topo_HostSelectNetWorkareaIDAndInnerIP",
         "responses": {
           "200": {
@@ -1038,7 +1038,7 @@
     },
     "/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ipv6": {
       "post": {
-        "summary": "HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner\nipv6 selecting.",
+        "summary": "按条件筛选主机并返回管控区域 ID 与内网 IPv6 的组合列表。",
         "operationId": "Topo_HostSelectNetWorkareaIDAndInnerIPV6",
         "responses": {
           "200": {
@@ -1072,7 +1072,7 @@
     },
     "/api/v3/topo/networkarea/create": {
       "post": {
-        "summary": "NetworkAreaCreate provides creating a new network-area.",
+        "summary": "创建管控区域。",
         "operationId": "Topo_NetworkAreaCreate",
         "responses": {
           "200": {
@@ -1106,7 +1106,7 @@
     },
     "/api/v3/topo/networkarea/delete": {
       "post": {
-        "summary": "NetworkAreaDelete provides deleting an existing network-area by id.",
+        "summary": "按 ID 删除管控区域。",
         "operationId": "Topo_NetworkAreaDelete",
         "responses": {
           "200": {
@@ -1140,7 +1140,7 @@
     },
     "/api/v3/topo/networkarea/get": {
       "post": {
-        "summary": "NetworkAreaGet provides getting an existing network-area by id.",
+        "summary": "按 ID 查询管控区域详情。",
         "operationId": "Topo_NetworkAreaGet",
         "responses": {
           "200": {
@@ -1174,7 +1174,7 @@
     },
     "/api/v3/topo/networkarea/list": {
       "post": {
-        "summary": "NetworkAreaList provides network-area listing.",
+        "summary": "查询管控区域列表。",
         "operationId": "Topo_NetworkAreaList",
         "responses": {
           "200": {
@@ -1208,7 +1208,7 @@
     },
     "/api/v3/topo/networkarea/update": {
       "post": {
-        "summary": "NetworkAreaUpdate provides updating an existing network-area by id.",
+        "summary": "按 ID 更新管控区域。",
         "operationId": "Topo_NetworkAreaUpdate",
         "responses": {
           "200": {
@@ -1242,7 +1242,7 @@
     },
     "/api/v3/topo/networkunit/create": {
       "post": {
-        "summary": "NetworkUnitCreate provides creating a new network-unit.",
+        "summary": "创建管控单元。",
         "operationId": "Topo_NetworkUnitCreate",
         "responses": {
           "200": {
@@ -1276,7 +1276,7 @@
     },
     "/api/v3/topo/networkunit/create_default_multi": {
       "post": {
-        "summary": "NetworkUnitCreateDefaultMulti creates empty non-direct network units in\nmultiple empty network areas.",
+        "summary": "在多个尚无管控单元的管控区域中批量创建空的非直连管控单元。",
         "operationId": "Topo_NetworkUnitCreateDefaultMulti",
         "responses": {
           "200": {
@@ -1310,7 +1310,7 @@
     },
     "/api/v3/topo/networkunit/delete": {
       "post": {
-        "summary": "NetworkUnitDelete provides deleting an existing network-unit by id.",
+        "summary": "按 ID 删除管控单元。",
         "operationId": "Topo_NetworkUnitDelete",
         "responses": {
           "200": {
@@ -1344,7 +1344,7 @@
     },
     "/api/v3/topo/networkunit/get": {
       "post": {
-        "summary": "NetworkUnitGet provides getting an existing network-unit by id.",
+        "summary": "按 ID 查询管控单元详情。",
         "operationId": "Topo_NetworkUnitGet",
         "responses": {
           "200": {
@@ -1378,7 +1378,7 @@
     },
     "/api/v3/topo/networkunit/get_networkunit_distribution_by_networkarea_id": {
       "post": {
-        "summary": "GetNetworkUnitDistributionByNetworkAreaID provides getting networkunit\ndistribution by networkarea id.",
+        "summary": "按管控区域统计管控单元数量。",
         "operationId": "Topo_GetNetworkUnitDistributionByNetworkAreaID",
         "responses": {
           "200": {
@@ -1412,7 +1412,7 @@
     },
     "/api/v3/topo/networkunit/list": {
       "post": {
-        "summary": "NetworkUnitList provides network-unit listing.",
+        "summary": "查询管控单元列表。",
         "operationId": "Topo_NetworkUnitList",
         "responses": {
           "200": {
@@ -1446,7 +1446,7 @@
     },
     "/api/v3/topo/networkunit/list/brief": {
       "post": {
-        "summary": "NetworkUnitListBrief provides brief network-unit listing (no sensitive\nfields).",
+        "summary": "查询管控单元简表，不返回敏感字段。",
         "operationId": "Topo_NetworkUnitListBrief",
         "responses": {
           "200": {
@@ -1480,7 +1480,7 @@
     },
     "/api/v3/topo/networkunit/recommend_by_network_segment": {
       "post": {
-        "summary": "RecommendNetworkUnitByNetworkSegment provides recommend networkunit by\nnetwork segment.",
+        "summary": "根据主机 IP 所属网段推荐对应管控区域内的管控单元。",
         "operationId": "Topo_RecommendNetworkUnitByNetworkSegment",
         "responses": {
           "200": {
@@ -1513,7 +1513,7 @@
     },
     "/api/v3/topo/networkunit/update": {
       "post": {
-        "summary": "NetworkUnitUpdate provides updating an existing network-unit by id.",
+        "summary": "按 ID 更新管控单元。",
         "operationId": "Topo_NetworkUnitUpdate",
         "responses": {
           "200": {

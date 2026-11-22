@@ -119,7 +119,7 @@ message DistinctProcessResp {
 
 // ProcessAPI describes the process API.
 service ProcessAPI {
-  // ListProcesses lists the processes.
+  // 查询插件进程列表。
   rpc ListProcesses(ProcessListReq) returns (ProcessListResp) {
     option (google.api.http) = {
       post : "/api/v3/process/list"
@@ -127,7 +127,7 @@ service ProcessAPI {
     };
   }
 
-  // GetProcessDistributionByHostID describes the process statistics request.
+  // 按主机 ID 统计插件进程数量。
   rpc GetProcessDistributionByHostID(GetProcessDistributionByHostIDReq)
       returns (GetProcessDistributionByHostIDResp) {
     option (google.api.http) = {
@@ -136,8 +136,7 @@ service ProcessAPI {
     };
   }
 
-  // GetProcessDistributionByPluginName describes the process statistics
-  // request.
+  // 按插件名称统计进程数量。
   rpc GetProcessDistributionByPluginName(GetProcessDistributionByPluginNameReq)
       returns (GetProcessDistributionByPluginNameResp) {
     option (google.api.http) = {
@@ -146,7 +145,7 @@ service ProcessAPI {
     };
   }
 
-  // DistinctProcess describes the process distinct request.
+  // 查询插件进程筛选字段的去重值。
   rpc DistinctProcess(DistinctProcessReq) returns (DistinctProcessResp) {
     option (google.api.http) = {
       post : "/api/v3/process/distinct"
