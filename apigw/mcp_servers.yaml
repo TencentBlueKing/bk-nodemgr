@@ -48,13 +48,14 @@ mcp_servers:
     oauth2_public_client_enabled: false
     oauth2_personal_client_enabled: true
     raw_response_enabled: false
-  - name: "scheduler"
-    title: "节点管理-定时任务调度诊断"
+  - name: "system-diagnosis"
+    title: "节点管理-系统诊断"
     category_names:
       - "Official"
     description: >-
-      面向内部维护人员的定时任务用户态只读诊断，需网关管理员授权应用，且用户具备系统访问和
-      平台管理的定时任务调度资源权限。workflow_id 查询当前触发器的 Operation，
+      面向内部维护人员的系统诊断只读入口，统一承载系统诊断工具，采用用户态认证，需网关管理员授权应用。
+      当前提供定时任务调度诊断，用户须具备系统访问和平台管理的定时任务调度资源权限。
+      workflow_id 查询当前触发器的 Operation，
       operation_id 或 oper_inst_id 可直接查询实例，oper_inst_id 查询步骤及额外执行日志；
       workflow_id 配合 parent_oper_inst_id 查询某轮派发的直接子 Operation，再沿同一实例及日志链路下钻。
       enabled、interval 表示长期调度配置，不表示执行完成；父实例 success 不代表子任务成功。

@@ -254,9 +254,11 @@ apigwSync:
    重试前检查 `RELEASE_STAGES`、`NO_PUB` 和资源变更范围：同步脚本不只处理 MCP，还会同步资源（带 `--delete`）并可能发布版本，
    不能把重跑整个 Job 当作只读验证。完成后检查 Job 日志和网关对应环境的 MCP Server 配置，确认同步成功。
 
-## 8. 如何使用内部定时任务调度诊断 MCP？
+## 8. 如何使用系统诊断 MCP？
 
-产品清单 `apigw/mcp_servers.yaml` 中的 `scheduler` 与 `topo`、`execution` 独立，仅提供以下四个只读工具：
+产品清单 `apigw/mcp_servers.yaml` 中的 `system-diagnosis` 展示名称为“节点管理-系统诊断”，与 `topo`、`execution` 独立。
+新增系统诊断能力统一扩展此 MCP，不按诊断能力另建 MCP；各工具仍须遵循对应功能域的权限和数据访问边界。
+当前提供定时任务调度诊断的以下四个只读工具：
 
 | 网关资源名                                                         | 用途                                                                                             |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
@@ -282,16 +284,16 @@ apigwSync:
 - 用户必须同时拥有 `system_access`（系统访问）和 `platform_manage`（平台管理），后者资源类型为 `platform_resource`、
   资源 ID 为 `scheduler_workflow`（定时任务调度）。只有网关应用权限不能替代用户业务权限，计数和直接 ID 查询同样受限。
   后端须启用并正确同步 IAM V3 或 V4；两者都关闭时现有 authorizer 会跳过业务权限检查，不能用于提供上述隔离保证。
-- `scheduler` 的 public/personal OAuth 客户端均默认关闭，不沿用 `topo`、`execution` 的 personal token 开关。
+- `system-diagnosis` 的 public/personal OAuth 客户端均默认关闭，不沿用 `topo`、`execution` 的 personal token 开关。
   不能为接入个人客户端而直接复用普通执行诊断 MCP 的授权配置。
 - 按现有流程导入并核对资源配置，使用新的 `release.version` 创建资源版本并发布四个只读资源到目标 stage 后，再同步 MCP。
   同步定义中必须保留 `isPublic: false`、
   `allowApplyPermission: false` 以及三项认证和调用权限检查；资源回源路径为 `/api/v3/open/schedule/workflow/...`，
   使用后端用户态认证入口，并复用系统态接口的查询、平台管理权限及租户归属校验。
   不绑定启用、停用、重试、终止或立即执行接口。
-- 使用内置模式时，`apigwSync.mcp.enabled=true` 会为未显式配置清单的 stage 装配并启用产品 MCP，包括 `scheduler`；
+- 使用内置模式时，`apigwSync.mcp.enabled=true` 会为未显式配置清单的 stage 装配并启用产品 MCP，包括 `system-diagnosis`；
   产品清单中的 `status: 0` 不构成内置模式下的独立禁用开关。若只需 `topo`、`execution`，应显式完整覆写所需列表。
-  显式非空列表不会自动加入 `scheduler`；`[]` 只跳过同步，不会停用已有服务。其他启用及镜像升级要求见第 7 节。
+  显式非空列表不会自动加入 `system-diagnosis`；`[]` 只跳过同步，不会停用已有服务。其他启用及镜像升级要求见第 7 节。
 
 ### 环境验收
 
