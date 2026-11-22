@@ -258,7 +258,7 @@ apigwSync:
 
 产品清单 `apigw/mcp_servers.yaml` 中的 `system-diagnosis` 展示名称为“节点管理-系统诊断”，与 `topo`、`execution` 独立。
 新增系统诊断能力统一扩展此 MCP，不按诊断能力另建 MCP；各工具仍须遵循对应功能域的权限和数据访问边界。
-当前提供定时任务调度诊断的以下四个只读工具：
+当前提供定时任务调度和全局配置查询共五个只读工具：
 
 | 网关资源名                                                         | 用途                                                                                             |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
@@ -266,6 +266,7 @@ apigwSync:
 | `OpenScheduleWorkflow_OpenScheduleWorkflowOperationList`           | 使用 `workflow_id` 查询当前触发器关联的操作，配合 `parent_oper_inst_id` 查询某轮派发的直接子操作 |
 | `OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList`   | 使用 `operation_id` 或 `oper_inst_id` 查询执行实例，两者均提供时取交集                           |
 | `OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet` | 使用 `oper_inst_id` 查询步骤状态、双语日志和额外执行日志                                         |
+| `OpenGlobalSettings_OpenGlobalSettingsList`                        | 分页或按名称筛选全部已存储全局配置，支持仅计数                                                   |
 
 接口参数、返回值及记录保留规则见[任务列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowList.md)、
 [操作列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowOperationList.md)、
@@ -274,23 +275,36 @@ apigwSync:
 `enabled`、`interval` 是长期调度配置，不表示执行完成；派发实例成功也不代表子任务成功。
 查询仅覆盖当前触发器关联且尚未清理的任务链，不是完整历史归档。
 
+全局配置以[应用态配置列表](../../apigw/apidocs/zh/GlobalSettings_ListGlobalSettings.md)为主接口，
+MCP 绑定对应的[用户态配置列表](../../apigw/apidocs/zh/OpenGlobalSettings_OpenGlobalSettingsList.md)。
+两态入口共用查询 handler、`ListGlobalSettingsReq/Resp` 及权限检查；认证沿用各自既有入口，MCP 仍要求用户认证。
+复用现有 condition 模式，支持名称精确/模糊的包含与排除条件；查单项时使用 `exact_include_conditions.setting_name`。
+配置为全局共享数据，
+不按租户隔离；授权用户可以读取全部已存储配置，包括自定义项及其中可能存在的敏感内容，返回值不脱敏。
+不要仅向业务租户管理员授予此能力而期望其只能看到本租户配置。
+返回的 `value` 是数据库保存的原始字符串，不补默认值，也不代表进程当前实际生效值；
+不读取服务启动配置，不提供修改、删除或兼容策略写入工具。名称未匹配时列表为空；读取失败时返回错误，不用默认值掩盖故障。
+
 ### 授权与启用
 
-- `is_public: false` 仅控制可见性，不等于调用授权。四个资源均禁止公开申请权限，同时要求应用认证、用户认证和资源调用权限。
+- `is_public: false` 仅控制可见性，不等于调用授权。五个资源均禁止公开申请权限，同时要求应用认证、用户认证和资源调用权限。
   网关管理员只向获准的内部应用授予所需资源及 MCP 的调用权限；不向普通外部应用、`public` 或 `personal` 客户端主动授权。
   已有网关级授权也会覆盖新增资源，上线前须核对已有授权范围，不能仅凭禁止申请认定没有外部应用可访问。
 - 调用应用须携带网关支持的有效用户凭证。后端身份认证应使用 `api-gateway`，由网关签名及现有认证链建立用户名和租户上下文；
   不通过请求体指定用户或租户，也不要通过关闭认证或信任任意用户名请求头解决调用失败。
 - 用户必须同时拥有 `system_access`（系统访问）和 `platform_manage`（平台管理），后者资源类型为 `platform_resource`、
-  资源 ID 为 `scheduler_workflow`（定时任务调度）。只有网关应用权限不能替代用户业务权限，计数和直接 ID 查询同样受限。
+  调度工具的资源 ID 为 `scheduler_workflow`（定时任务调度），全局配置工具的资源 ID 为 `global_settings`（全局配置）。
+  两者独立授权；只授予定时任务调度权限不能读取全局配置。已有平台资源通配授权可能覆盖新增枚举，上线前须核对其授权范围。
+  只有网关应用权限不能替代用户业务权限，计数和精确名称筛选同样受限。
   后端须启用并正确同步 IAM V3 或 V4；两者都关闭时现有 authorizer 会跳过业务权限检查，不能用于提供上述隔离保证。
 - `system-diagnosis` 的 public/personal OAuth 客户端均默认关闭，不沿用 `topo`、`execution` 的 personal token 开关。
   不能为接入个人客户端而直接复用普通执行诊断 MCP 的授权配置。
-- 按现有流程导入并核对资源配置，使用新的 `release.version` 创建资源版本并发布四个只读资源到目标 stage 后，再同步 MCP。
+- 按现有流程导入并核对资源配置，使用新的 `release.version` 创建资源版本并发布五个只读资源到目标 stage 后，再同步 MCP。
   同步定义中必须保留 `isPublic: false`、
-  `allowApplyPermission: false` 以及三项认证和调用权限检查；资源回源路径为 `/api/v3/open/schedule/workflow/...`，
-  使用后端用户态认证入口，并复用系统态接口的查询、平台管理权限及租户归属校验。
-  不绑定启用、停用、重试、终止或立即执行接口。
+  `allowApplyPermission: false` 以及三项认证和调用权限检查；资源回源路径为 `/api/v3/open/schedule/workflow/...` 和
+  `/api/v3/open/globalsettings/...`，均使用后端用户态认证入口及对应的平台管理权限。
+  调度接口保留租户及任务链归属校验；全局配置沿用全局共享范围，不增加租户配置副本。
+  不绑定启用、停用、重试、终止、立即执行、配置修改或删除接口。
 - 使用内置模式时，`apigwSync.mcp.enabled=true` 会为未显式配置清单的 stage 装配并启用产品 MCP，包括 `system-diagnosis`；
   产品清单中的 `status: 0` 不构成内置模式下的独立禁用开关。若只需 `topo`、`execution`，应显式完整覆写所需列表。
   显式非空列表不会自动加入 `system-diagnosis`；`[]` 只跳过同步，不会停用已有服务。其他启用及镜像升级要求见第 7 节。
@@ -303,6 +317,9 @@ apigwSync:
 2. 使用有效身份但未授予资源或 MCP 调用权限时，不能取得执行信息。
 3. 应用已获授权、用户只有系统访问而没有定时任务调度资源权限时，列表、计数、实例和日志查询均被拒绝。
 4. 内部应用和用户均获授权后，可以完成四层查询和按轮次子任务下钻；跨租户或不属于 scheduler 任务链的 ID 不返回执行信息。
-5. 实际工具列表只有上述四个查询工具，已有 `topo`、`execution` 的资源及授权设置保持不变。
+5. 只有系统访问或定时任务调度权限、没有全局配置权限时，配置列表、仅计数及精确名称筛选均被拒绝。
+6. 授予全局配置权限后，可读取已存储的预置和自定义项；确认值为保存的原始字符串，且缺失项或读取失败不会伪装成默认值。
+   该权限允许读取全局共享值，不承诺按用户租户隔离；验收仅使用不含真实凭据的测试配置。
+7. 实际工具列表只有上述五个查询工具，已有 `topo`、`execution` 的资源及授权设置保持不变。
 
 本地 YAML 或 Schema 检查不能证明上述认证授权已在目标环境生效。部署及同步仍按原流程执行，不要将整个同步 Job 当作只读探测。

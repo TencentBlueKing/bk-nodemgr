@@ -643,6 +643,182 @@ func (x *DeleteGlobalSettingsResp) GetData() *DeleteGlobalSettingsResp_Data {
 	return nil
 }
 
+// 筛选全局共享的已存储配置，包含自定义配置项。
+type OpenGlobalSettingsListReq struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 分页条件；非计数查询时 limit 必须为 1 到 500。
+	Page *Page `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	// 是否仅返回符合条件的配置项总数。
+	OnlyCount bool `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count"`
+	// 配置名称的精确包含条件。
+	ExactIncludeConditions *ListGlobalSettingsReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions"`
+	// 配置名称的模糊包含条件。
+	FuzzyIncludeConditions *ListGlobalSettingsReq_FuzzyConditions `protobuf:"bytes,4,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions"`
+	// 配置名称的精确排除条件。
+	ExactExcludeConditions *ListGlobalSettingsReq_ExactConditions `protobuf:"bytes,5,opt,name=exact_exclude_conditions,json=exactExcludeConditions,proto3" json:"exact_exclude_conditions"`
+	// 配置名称的模糊排除条件。
+	FuzzyExcludeConditions *ListGlobalSettingsReq_FuzzyConditions `protobuf:"bytes,6,opt,name=fuzzy_exclude_conditions,json=fuzzyExcludeConditions,proto3" json:"fuzzy_exclude_conditions"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *OpenGlobalSettingsListReq) Reset() {
+	*x = OpenGlobalSettingsListReq{}
+	mi := &file_globalsettings_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpenGlobalSettingsListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpenGlobalSettingsListReq) ProtoMessage() {}
+
+func (x *OpenGlobalSettingsListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_globalsettings_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpenGlobalSettingsListReq.ProtoReflect.Descriptor instead.
+func (*OpenGlobalSettingsListReq) Descriptor() ([]byte, []int) {
+	return file_globalsettings_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *OpenGlobalSettingsListReq) GetPage() *Page {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *OpenGlobalSettingsListReq) GetOnlyCount() bool {
+	if x != nil {
+		return x.OnlyCount
+	}
+	return false
+}
+
+func (x *OpenGlobalSettingsListReq) GetExactIncludeConditions() *ListGlobalSettingsReq_ExactConditions {
+	if x != nil {
+		return x.ExactIncludeConditions
+	}
+	return nil
+}
+
+func (x *OpenGlobalSettingsListReq) GetFuzzyIncludeConditions() *ListGlobalSettingsReq_FuzzyConditions {
+	if x != nil {
+		return x.FuzzyIncludeConditions
+	}
+	return nil
+}
+
+func (x *OpenGlobalSettingsListReq) GetExactExcludeConditions() *ListGlobalSettingsReq_ExactConditions {
+	if x != nil {
+		return x.ExactExcludeConditions
+	}
+	return nil
+}
+
+func (x *OpenGlobalSettingsListReq) GetFuzzyExcludeConditions() *ListGlobalSettingsReq_FuzzyConditions {
+	if x != nil {
+		return x.FuzzyExcludeConditions
+	}
+	return nil
+}
+
+// 全局配置的数据库保存值，不补齐默认值，也不表示进程实际生效值。
+type OpenGlobalSettingsListResp struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	Code          int32                        `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                       `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                       `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                       `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Permission    *Permission                  `protobuf:"bytes,6,opt,name=permission,proto3" json:"permission"`
+	Data          *ListGlobalSettingsResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OpenGlobalSettingsListResp) Reset() {
+	*x = OpenGlobalSettingsListResp{}
+	mi := &file_globalsettings_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpenGlobalSettingsListResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpenGlobalSettingsListResp) ProtoMessage() {}
+
+func (x *OpenGlobalSettingsListResp) ProtoReflect() protoreflect.Message {
+	mi := &file_globalsettings_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpenGlobalSettingsListResp.ProtoReflect.Descriptor instead.
+func (*OpenGlobalSettingsListResp) Descriptor() ([]byte, []int) {
+	return file_globalsettings_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *OpenGlobalSettingsListResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *OpenGlobalSettingsListResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *OpenGlobalSettingsListResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *OpenGlobalSettingsListResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *OpenGlobalSettingsListResp) GetPermission() *Permission {
+	if x != nil {
+		return x.Permission
+	}
+	return nil
+}
+
+func (x *OpenGlobalSettingsListResp) GetData() *ListGlobalSettingsResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type ListGlobalSettingsReq_ExactConditions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SettingName   []string               `protobuf:"bytes,1,rep,name=setting_name,json=settingName,proto3" json:"setting_name"`
@@ -652,7 +828,7 @@ type ListGlobalSettingsReq_ExactConditions struct {
 
 func (x *ListGlobalSettingsReq_ExactConditions) Reset() {
 	*x = ListGlobalSettingsReq_ExactConditions{}
-	mi := &file_globalsettings_proto_msgTypes[9]
+	mi := &file_globalsettings_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -664,7 +840,7 @@ func (x *ListGlobalSettingsReq_ExactConditions) String() string {
 func (*ListGlobalSettingsReq_ExactConditions) ProtoMessage() {}
 
 func (x *ListGlobalSettingsReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_globalsettings_proto_msgTypes[9]
+	mi := &file_globalsettings_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -696,7 +872,7 @@ type ListGlobalSettingsReq_FuzzyConditions struct {
 
 func (x *ListGlobalSettingsReq_FuzzyConditions) Reset() {
 	*x = ListGlobalSettingsReq_FuzzyConditions{}
-	mi := &file_globalsettings_proto_msgTypes[10]
+	mi := &file_globalsettings_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -708,7 +884,7 @@ func (x *ListGlobalSettingsReq_FuzzyConditions) String() string {
 func (*ListGlobalSettingsReq_FuzzyConditions) ProtoMessage() {}
 
 func (x *ListGlobalSettingsReq_FuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_globalsettings_proto_msgTypes[10]
+	mi := &file_globalsettings_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -741,7 +917,7 @@ type ListGlobalSettingsResp_Data struct {
 
 func (x *ListGlobalSettingsResp_Data) Reset() {
 	*x = ListGlobalSettingsResp_Data{}
-	mi := &file_globalsettings_proto_msgTypes[11]
+	mi := &file_globalsettings_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +929,7 @@ func (x *ListGlobalSettingsResp_Data) String() string {
 func (*ListGlobalSettingsResp_Data) ProtoMessage() {}
 
 func (x *ListGlobalSettingsResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_globalsettings_proto_msgTypes[11]
+	mi := &file_globalsettings_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +968,7 @@ type GetGlobalSettingResp_Data struct {
 
 func (x *GetGlobalSettingResp_Data) Reset() {
 	*x = GetGlobalSettingResp_Data{}
-	mi := &file_globalsettings_proto_msgTypes[12]
+	mi := &file_globalsettings_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -804,7 +980,7 @@ func (x *GetGlobalSettingResp_Data) String() string {
 func (*GetGlobalSettingResp_Data) ProtoMessage() {}
 
 func (x *GetGlobalSettingResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_globalsettings_proto_msgTypes[12]
+	mi := &file_globalsettings_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +1011,7 @@ type UpsertGlobalSettingsResp_Data struct {
 
 func (x *UpsertGlobalSettingsResp_Data) Reset() {
 	*x = UpsertGlobalSettingsResp_Data{}
-	mi := &file_globalsettings_proto_msgTypes[13]
+	mi := &file_globalsettings_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +1023,7 @@ func (x *UpsertGlobalSettingsResp_Data) String() string {
 func (*UpsertGlobalSettingsResp_Data) ProtoMessage() {}
 
 func (x *UpsertGlobalSettingsResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_globalsettings_proto_msgTypes[13]
+	mi := &file_globalsettings_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -871,7 +1047,7 @@ type DeleteGlobalSettingsResp_Data struct {
 
 func (x *DeleteGlobalSettingsResp_Data) Reset() {
 	*x = DeleteGlobalSettingsResp_Data{}
-	mi := &file_globalsettings_proto_msgTypes[14]
+	mi := &file_globalsettings_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -883,7 +1059,7 @@ func (x *DeleteGlobalSettingsResp_Data) String() string {
 func (*DeleteGlobalSettingsResp_Data) ProtoMessage() {}
 
 func (x *DeleteGlobalSettingsResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_globalsettings_proto_msgTypes[14]
+	mi := &file_globalsettings_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1027,12 +1203,76 @@ var file_globalsettings_proto_rawDesc = string([]byte{
 	0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x76, 0x33, 0x2e, 0x44,
 	0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69,
 	0x6e, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61,
-	0x74, 0x61, 0x1a, 0x06, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74,
-	0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65,
-	0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c,
-	0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x61, 0x1a, 0x06, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0xec, 0x03, 0x0a, 0x19, 0x4f,
+	0x70, 0x65, 0x6e, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67,
+	0x73, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1c, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x08, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x67, 0x65,
+	0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x6f, 0x6e, 0x6c, 0x79, 0x5f, 0x63,
+	0x6f, 0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x6f, 0x6e, 0x6c, 0x79,
+	0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x63, 0x0a, 0x18, 0x65, 0x78, 0x61, 0x63, 0x74, 0x5f, 0x69,
+	0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x76, 0x33, 0x2e, 0x4c, 0x69, 0x73,
+	0x74, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52,
+	0x65, 0x71, 0x2e, 0x45, 0x78, 0x61, 0x63, 0x74, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x52, 0x16, 0x65, 0x78, 0x61, 0x63, 0x74, 0x49, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65,
+	0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x63, 0x0a, 0x18, 0x66, 0x75,
+	0x7a, 0x7a, 0x79, 0x5f, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x64,
+	0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x76,
+	0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74,
+	0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x71, 0x2e, 0x46, 0x75, 0x7a, 0x7a, 0x79, 0x43, 0x6f, 0x6e,
+	0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x16, 0x66, 0x75, 0x7a, 0x7a, 0x79, 0x49, 0x6e,
+	0x63, 0x6c, 0x75, 0x64, 0x65, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12,
+	0x63, 0x0a, 0x18, 0x65, 0x78, 0x61, 0x63, 0x74, 0x5f, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65,
+	0x5f, 0x63, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x29, 0x2e, 0x76, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c, 0x6f, 0x62, 0x61,
+	0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x71, 0x2e, 0x45, 0x78, 0x61,
+	0x63, 0x74, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x16, 0x65, 0x78,
+	0x61, 0x63, 0x74, 0x45, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74,
+	0x69, 0x6f, 0x6e, 0x73, 0x12, 0x63, 0x0a, 0x18, 0x66, 0x75, 0x7a, 0x7a, 0x79, 0x5f, 0x65, 0x78,
+	0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x76, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74,
+	0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65,
+	0x71, 0x2e, 0x46, 0x75, 0x7a, 0x7a, 0x79, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x52, 0x16, 0x66, 0x75, 0x7a, 0x7a, 0x79, 0x45, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x43,
+	0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xef, 0x01, 0x0a, 0x1a, 0x4f, 0x70,
+	0x65, 0x6e, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07,
+	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52,
+	0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x2e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73,
+	0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e,
+	0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d,
+	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x33, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x76, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c,
+	0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x32, 0x85, 0x01, 0x0a, 0x0e,
+	0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x73,
+	0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74,
+	0x69, 0x6e, 0x67, 0x73, 0x12, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c,
+	0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x71, 0x1a,
+	0x1a, 0x2e, 0x76, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53,
+	0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x22, 0x26, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x20, 0x3a, 0x01, 0x2a, 0x22, 0x1b, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
+	0x67, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x2f, 0x6c,
+	0x69, 0x73, 0x74, 0x32, 0x9b, 0x01, 0x0a, 0x12, 0x4f, 0x70, 0x65, 0x6e, 0x47, 0x6c, 0x6f, 0x62,
+	0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x84, 0x01, 0x0a, 0x16, 0x4f,
+	0x70, 0x65, 0x6e, 0x47, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67,
+	0x73, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x1d, 0x2e, 0x76, 0x33, 0x2e, 0x4f, 0x70, 0x65, 0x6e, 0x47,
+	0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x4c, 0x69, 0x73,
+	0x74, 0x52, 0x65, 0x71, 0x1a, 0x1e, 0x2e, 0x76, 0x33, 0x2e, 0x4f, 0x70, 0x65, 0x6e, 0x47, 0x6c,
+	0x6f, 0x62, 0x61, 0x6c, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x4c, 0x69, 0x73, 0x74,
+	0x52, 0x65, 0x73, 0x70, 0x22, 0x2b, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x25, 0x3a, 0x01, 0x2a, 0x22,
+	0x20, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6f, 0x70, 0x65, 0x6e, 0x2f, 0x67, 0x6c,
+	0x6f, 0x62, 0x61, 0x6c, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x2f, 0x6c, 0x69, 0x73,
+	0x74, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f,
+	0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -1047,7 +1287,7 @@ func file_globalsettings_proto_rawDescGZIP() []byte {
 	return file_globalsettings_proto_rawDescData
 }
 
-var file_globalsettings_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_globalsettings_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_globalsettings_proto_goTypes = []any{
 	(*GlobalSetting)(nil),                         // 0: v3.GlobalSetting
 	(*ListGlobalSettingsReq)(nil),                 // 1: v3.ListGlobalSettingsReq
@@ -1058,41 +1298,55 @@ var file_globalsettings_proto_goTypes = []any{
 	(*UpsertGlobalSettingsResp)(nil),              // 6: v3.UpsertGlobalSettingsResp
 	(*DeleteGlobalSettingsReq)(nil),               // 7: v3.DeleteGlobalSettingsReq
 	(*DeleteGlobalSettingsResp)(nil),              // 8: v3.DeleteGlobalSettingsResp
-	(*ListGlobalSettingsReq_ExactConditions)(nil), // 9: v3.ListGlobalSettingsReq.ExactConditions
-	(*ListGlobalSettingsReq_FuzzyConditions)(nil), // 10: v3.ListGlobalSettingsReq.FuzzyConditions
-	(*ListGlobalSettingsResp_Data)(nil),           // 11: v3.ListGlobalSettingsResp.Data
-	(*GetGlobalSettingResp_Data)(nil),             // 12: v3.GetGlobalSettingResp.Data
-	(*UpsertGlobalSettingsResp_Data)(nil),         // 13: v3.UpsertGlobalSettingsResp.Data
-	(*DeleteGlobalSettingsResp_Data)(nil),         // 14: v3.DeleteGlobalSettingsResp.Data
-	(*Page)(nil),                                  // 15: v3.Page
-	(*Error)(nil),                                 // 16: v3.Error
-	(*Permission)(nil),                            // 17: v3.Permission
+	(*OpenGlobalSettingsListReq)(nil),             // 9: v3.OpenGlobalSettingsListReq
+	(*OpenGlobalSettingsListResp)(nil),            // 10: v3.OpenGlobalSettingsListResp
+	(*ListGlobalSettingsReq_ExactConditions)(nil), // 11: v3.ListGlobalSettingsReq.ExactConditions
+	(*ListGlobalSettingsReq_FuzzyConditions)(nil), // 12: v3.ListGlobalSettingsReq.FuzzyConditions
+	(*ListGlobalSettingsResp_Data)(nil),           // 13: v3.ListGlobalSettingsResp.Data
+	(*GetGlobalSettingResp_Data)(nil),             // 14: v3.GetGlobalSettingResp.Data
+	(*UpsertGlobalSettingsResp_Data)(nil),         // 15: v3.UpsertGlobalSettingsResp.Data
+	(*DeleteGlobalSettingsResp_Data)(nil),         // 16: v3.DeleteGlobalSettingsResp.Data
+	(*Page)(nil),                                  // 17: v3.Page
+	(*Error)(nil),                                 // 18: v3.Error
+	(*Permission)(nil),                            // 19: v3.Permission
 }
 var file_globalsettings_proto_depIdxs = []int32{
-	15, // 0: v3.ListGlobalSettingsReq.page:type_name -> v3.Page
-	9,  // 1: v3.ListGlobalSettingsReq.exact_include_conditions:type_name -> v3.ListGlobalSettingsReq.ExactConditions
-	10, // 2: v3.ListGlobalSettingsReq.fuzzy_include_conditions:type_name -> v3.ListGlobalSettingsReq.FuzzyConditions
-	9,  // 3: v3.ListGlobalSettingsReq.exact_exclude_conditions:type_name -> v3.ListGlobalSettingsReq.ExactConditions
-	10, // 4: v3.ListGlobalSettingsReq.fuzzy_exclude_conditions:type_name -> v3.ListGlobalSettingsReq.FuzzyConditions
-	16, // 5: v3.ListGlobalSettingsResp.error:type_name -> v3.Error
-	17, // 6: v3.ListGlobalSettingsResp.permission:type_name -> v3.Permission
-	11, // 7: v3.ListGlobalSettingsResp.data:type_name -> v3.ListGlobalSettingsResp.Data
-	16, // 8: v3.GetGlobalSettingResp.error:type_name -> v3.Error
-	17, // 9: v3.GetGlobalSettingResp.permission:type_name -> v3.Permission
-	12, // 10: v3.GetGlobalSettingResp.data:type_name -> v3.GetGlobalSettingResp.Data
+	17, // 0: v3.ListGlobalSettingsReq.page:type_name -> v3.Page
+	11, // 1: v3.ListGlobalSettingsReq.exact_include_conditions:type_name -> v3.ListGlobalSettingsReq.ExactConditions
+	12, // 2: v3.ListGlobalSettingsReq.fuzzy_include_conditions:type_name -> v3.ListGlobalSettingsReq.FuzzyConditions
+	11, // 3: v3.ListGlobalSettingsReq.exact_exclude_conditions:type_name -> v3.ListGlobalSettingsReq.ExactConditions
+	12, // 4: v3.ListGlobalSettingsReq.fuzzy_exclude_conditions:type_name -> v3.ListGlobalSettingsReq.FuzzyConditions
+	18, // 5: v3.ListGlobalSettingsResp.error:type_name -> v3.Error
+	19, // 6: v3.ListGlobalSettingsResp.permission:type_name -> v3.Permission
+	13, // 7: v3.ListGlobalSettingsResp.data:type_name -> v3.ListGlobalSettingsResp.Data
+	18, // 8: v3.GetGlobalSettingResp.error:type_name -> v3.Error
+	19, // 9: v3.GetGlobalSettingResp.permission:type_name -> v3.Permission
+	14, // 10: v3.GetGlobalSettingResp.data:type_name -> v3.GetGlobalSettingResp.Data
 	0,  // 11: v3.UpsertGlobalSettingsReq.settings:type_name -> v3.GlobalSetting
-	16, // 12: v3.UpsertGlobalSettingsResp.error:type_name -> v3.Error
-	17, // 13: v3.UpsertGlobalSettingsResp.permission:type_name -> v3.Permission
-	13, // 14: v3.UpsertGlobalSettingsResp.data:type_name -> v3.UpsertGlobalSettingsResp.Data
-	16, // 15: v3.DeleteGlobalSettingsResp.error:type_name -> v3.Error
-	17, // 16: v3.DeleteGlobalSettingsResp.permission:type_name -> v3.Permission
-	14, // 17: v3.DeleteGlobalSettingsResp.data:type_name -> v3.DeleteGlobalSettingsResp.Data
-	0,  // 18: v3.ListGlobalSettingsResp.Data.items:type_name -> v3.GlobalSetting
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	18, // 12: v3.UpsertGlobalSettingsResp.error:type_name -> v3.Error
+	19, // 13: v3.UpsertGlobalSettingsResp.permission:type_name -> v3.Permission
+	15, // 14: v3.UpsertGlobalSettingsResp.data:type_name -> v3.UpsertGlobalSettingsResp.Data
+	18, // 15: v3.DeleteGlobalSettingsResp.error:type_name -> v3.Error
+	19, // 16: v3.DeleteGlobalSettingsResp.permission:type_name -> v3.Permission
+	16, // 17: v3.DeleteGlobalSettingsResp.data:type_name -> v3.DeleteGlobalSettingsResp.Data
+	17, // 18: v3.OpenGlobalSettingsListReq.page:type_name -> v3.Page
+	11, // 19: v3.OpenGlobalSettingsListReq.exact_include_conditions:type_name -> v3.ListGlobalSettingsReq.ExactConditions
+	12, // 20: v3.OpenGlobalSettingsListReq.fuzzy_include_conditions:type_name -> v3.ListGlobalSettingsReq.FuzzyConditions
+	11, // 21: v3.OpenGlobalSettingsListReq.exact_exclude_conditions:type_name -> v3.ListGlobalSettingsReq.ExactConditions
+	12, // 22: v3.OpenGlobalSettingsListReq.fuzzy_exclude_conditions:type_name -> v3.ListGlobalSettingsReq.FuzzyConditions
+	18, // 23: v3.OpenGlobalSettingsListResp.error:type_name -> v3.Error
+	19, // 24: v3.OpenGlobalSettingsListResp.permission:type_name -> v3.Permission
+	13, // 25: v3.OpenGlobalSettingsListResp.data:type_name -> v3.ListGlobalSettingsResp.Data
+	0,  // 26: v3.ListGlobalSettingsResp.Data.items:type_name -> v3.GlobalSetting
+	1,  // 27: v3.GlobalSettings.ListGlobalSettings:input_type -> v3.ListGlobalSettingsReq
+	9,  // 28: v3.OpenGlobalSettings.OpenGlobalSettingsList:input_type -> v3.OpenGlobalSettingsListReq
+	2,  // 29: v3.GlobalSettings.ListGlobalSettings:output_type -> v3.ListGlobalSettingsResp
+	10, // 30: v3.OpenGlobalSettings.OpenGlobalSettingsList:output_type -> v3.OpenGlobalSettingsListResp
+	29, // [29:31] is the sub-list for method output_type
+	27, // [27:29] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_globalsettings_proto_init() }
@@ -1107,9 +1361,9 @@ func file_globalsettings_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_globalsettings_proto_rawDesc), len(file_globalsettings_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   17,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   2,
 		},
 		GoTypes:           file_globalsettings_proto_goTypes,
 		DependencyIndexes: file_globalsettings_proto_depIdxs,
