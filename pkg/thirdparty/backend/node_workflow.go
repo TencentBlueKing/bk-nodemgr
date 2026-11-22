@@ -19,6 +19,8 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -103,6 +105,10 @@ type IHandlerNodeWorkflow interface {
 	// @param retryParam the retry param.
 	// @return the error.
 	RetryNodeWorkflowOperation(nCtx contextx.IContext, retryParam *types.NodeWorkflowOperationRetryParam) error
+
+	// GetNodeWorkflowInstallParams reads safe form inputs from selected historical install operations.
+	GetNodeWorkflowInstallParams(nCtx contextx.IContext, workflowID string, operationIDs []string) (
+		*types.NodeWorkflowInstallParamsResult, error)
 
 	// GetNodeWorkflowOperationManualInfo get workflow operation manual info.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -342,6 +348,22 @@ func (h *Handler) TerminateNodeWorkflowOperation(nCtx contextx.IContext, termina
 	}
 
 	return nil
+}
+
+// GetNodeWorkflowInstallParams reads safe form inputs from selected historical install operations.
+func (h *Handler) GetNodeWorkflowInstallParams(nCtx contextx.IContext, workflowID string, operationIDs []string) (
+	*types.NodeWorkflowInstallParamsResult, error) {
+
+	req := &protoBackend.NodeWorkflowOperationInstallParamsGetReq{
+		WorkflowId:   workflowID,
+		OperationIds: operationIDs,
+	}
+	resp, err := h.cli.getNodeWorkflowInstallParams(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workflow install params: %w", err)
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }
 
 // GetNodeWorkflowOperationManualInfo get workflow operation manual info.
