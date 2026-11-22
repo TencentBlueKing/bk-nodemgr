@@ -84,6 +84,9 @@ interface AccessPoint {
   accesspoint_name: string;
   bk_networkarea_id: number;
   endpoints: Endpoints;
+  // 绑定的全局安全组池 ID，空表示未启用云安全组管理。省略该字段按空处理，
+  // 全量更新时省略会解除已有绑定。
+  cloud_security_group_pool_id: string;
 }
 
 // AccessPointBrief describes the brief access point (no endpoints for
