@@ -12,6 +12,16 @@ gateway_name="bk-nodemgr"
 definition_file="/data/definition.yaml"
 resources_file="/data/resources.yaml"
 
+# Prepare MCP input before any gateway writes; explicit stage definitions take precedence.
+if [ "${ENABLE_SYNC_MCP_SERVERS:-false}" = "true" ]; then
+	MCP_DEFINITION_FILE="${MCP_DEFINITION_FILE:-/data/mcp-definition.yaml}"
+	mcp_args=(--definition "${definition_file}" --mcp-servers /data/mcp_servers.yaml --output "${MCP_DEFINITION_FILE}")
+	if [ "${ENABLE_BUILTIN_MCP_SERVERS:-false}" = "true" ]; then
+		mcp_args+=(--enable-builtin)
+	fi
+	python3 /data/bin/prepare-mcp-definition.py "${mcp_args[@]}" || exit 1
+fi
+
 title "begin to db migrate"
 call_command_or_warning migrate apigw
 
@@ -42,7 +52,7 @@ fi
 
 if [ "${ENABLE_SYNC_MCP_SERVERS:-false}" = "true" ]; then
 	title "syncing stage MCP Servers"
-	call_definition_command_or_exit sync_apigw_stage_mcp_servers "${definition_file}" --gateway-name=${gateway_name}
+	call_definition_command_or_exit sync_apigw_stage_mcp_servers "${MCP_DEFINITION_FILE:-${definition_file}}" --gateway-name=${gateway_name}
 fi
 
 title "done"

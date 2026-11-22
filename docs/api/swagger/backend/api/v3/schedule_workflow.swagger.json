@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "ScheduleWorkflow"
+    },
+    {
+      "name": "OpenScheduleWorkflow"
     }
   ],
   "consumes": [
@@ -16,6 +19,138 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/open/schedule/workflow/list": {
+      "post": {
+        "summary": "查询当前租户的周期工作流长期调度配置，配置启用不代表某轮执行完成。",
+        "operationId": "OpenScheduleWorkflow_OpenScheduleWorkflowList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/schedule/workflow/operation/instance/list": {
+      "post": {
+        "summary": "按操作 ID 或实例 ID\n查询周期工作流各轮执行状态；历史仅在清理策略保留范围内可查。",
+        "operationId": "OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowOperationInstanceListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowOperationInstanceListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/schedule/workflow/operation/instance/log/get": {
+      "post": {
+        "summary": "按实例 ID\n查询周期工作流的步骤状态、双语日志及子工作流引用；日志受清理策略保留范围限制。",
+        "operationId": "OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowOperationInstanceLogGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowOperationInstanceLogGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/open/schedule/workflow/operation/list": {
+      "post": {
+        "summary": "查询周期工作流根操作，或按 parent_oper_inst_id 下钻某轮实例的直接子操作。",
+        "operationId": "OpenScheduleWorkflow_OpenScheduleWorkflowOperationList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowOperationListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3OpenScheduleWorkflowOperationListReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenScheduleWorkflow"
+        ]
+      }
+    },
     "/api/v3/schedule/workflow/disable": {
       "post": {
         "summary": "DisableScheduleWorkflow provides disable schedule workflow.",
@@ -117,6 +252,105 @@
           "ScheduleWorkflow"
         ]
       }
+    },
+    "/api/v3/schedule/workflow/operation/instance/list": {
+      "post": {
+        "summary": "按操作 ID 或实例 ID 查询周期工作流执行实例及历史状态。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowOperationInstanceList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceListReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/schedule/workflow/operation/instance/log/get": {
+      "post": {
+        "summary": "按执行实例 ID 查询周期工作流的步骤状态、双语日志及子工作流引用。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowOperationInstanceLogGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceLogGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceLogGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/schedule/workflow/operation/list": {
+      "post": {
+        "summary": "查询周期工作流的操作记录及最近一次执行状态。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowOperationList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationListReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
     }
   },
   "definitions": {
@@ -149,6 +383,83 @@
         "operate_time": {
           "type": "integer",
           "format": "int64"
+        },
+        "enabled": {
+          "type": "boolean",
+          "title": "是否启用周期调度。"
+        },
+        "interval": {
+          "type": "string",
+          "title": "周期调度间隔。"
+        }
+      }
+    },
+    "ScheduleWorkflowOperationListRespLatestOperInstBriefData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
+        }
+      },
+      "title": "最近一次操作实例的状态及当前步骤。"
+    },
+    "ScheduleWorkflowOperationListRespScheduleWorkflowOperation": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "title": "操作 ID。"
+        },
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "该操作的执行实例 ID 列表。"
+        },
+        "operator": {
+          "type": "string",
+          "title": "操作初始化时记录的操作人；未记录时为空。"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64",
+          "title": "操作创建时间，Unix 毫秒时间戳。"
+        },
+        "latest_oper_inst_brief_data": {
+          "$ref": "#/definitions/ScheduleWorkflowOperationListRespLatestOperInstBriefData"
+        },
+        "parent_operation_id": {
+          "type": "string",
+          "title": "父操作 ID；无父操作时为空。"
+        },
+        "parent_oper_inst_id": {
+          "type": "string",
+          "title": "父操作实例 ID；无父实例时为空。"
+        }
+      },
+      "title": "一条周期工作流操作记录。"
+    },
+    "WorkflowActionMessageMessage": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "level": {
+          "type": "string"
+        },
+        "text_zh": {
+          "type": "string",
+          "title": "Chinese log content"
+        },
+        "text_en": {
+          "type": "string",
+          "title": "English log content"
         }
       }
     },
@@ -352,6 +663,188 @@
         }
       }
     },
+    "v3OpenScheduleWorkflowListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page",
+          "title": "分页及排序条件。"
+        },
+        "only_count": {
+          "type": "boolean",
+          "title": "是否仅返回总数。"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ScheduleWorkflowExactConditions",
+          "title": "工作流 ID、名称及操作人的精确筛选条件。"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ScheduleWorkflowFuzzyConditions",
+          "title": "预留的模糊筛选条件，当前不支持模糊筛选。"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange",
+          "title": "工作流配置的操作时间范围，不代表执行实例的起止时间。"
+        }
+      },
+      "title": "在当前租户内筛选周期工作流配置。"
+    },
+    "v3OpenScheduleWorkflowListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ListScheduleWorkflowRespData"
+        }
+      },
+      "title": "周期工作流的长期调度配置；启用状态不代表某轮执行已经完成。"
+    },
+    "v3OpenScheduleWorkflowOperationInstanceListReq": {
+      "type": "object",
+      "properties": {
+        "only_count": {
+          "type": "boolean",
+          "title": "是否仅返回总数。"
+        },
+        "operation_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "操作 ID 列表，每项均不能为空；与 oper_inst_id 至少提供一类。"
+        },
+        "oper_inst_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "操作实例 ID 列表，每项均不能为空；与 operation_id 至少提供一类。"
+        }
+      },
+      "title": "按操作 ID 或实例 ID 查询当前租户内周期工作流执行链的实例。"
+    },
+    "v3OpenScheduleWorkflowOperationInstanceListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceListRespData"
+        }
+      },
+      "title": "保留范围内的执行实例及生命周期；每个实例对应一轮执行，不代表长期调度结束。"
+    },
+    "v3OpenScheduleWorkflowOperationInstanceLogGetReq": {
+      "type": "object",
+      "properties": {
+        "oper_inst_id": {
+          "type": "string",
+          "title": "操作实例 ID，必填。"
+        }
+      },
+      "title": "查询当前租户内周期工作流执行链中一个实例的步骤日志。"
+    },
+    "v3OpenScheduleWorkflowOperationInstanceLogGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceLogGetRespData"
+        }
+      },
+      "title": "执行实例的步骤日志及额外执行日志；不提供超出清理策略保留范围的完整历史。"
+    },
+    "v3OpenScheduleWorkflowOperationListReq": {
+      "type": "object",
+      "properties": {
+        "only_count": {
+          "type": "boolean",
+          "title": "是否仅返回总数。"
+        },
+        "page": {
+          "$ref": "#/definitions/v3Page",
+          "title": "分页及排序条件。"
+        },
+        "workflow_id": {
+          "type": "string",
+          "title": "周期工作流 ID，必填。"
+        },
+        "parent_oper_inst_id": {
+          "type": "string",
+          "title": "父操作实例 ID；提供时只查询该轮实例的直接子操作，为空时查询工作流根操作。"
+        }
+      },
+      "title": "查询周期工作流的操作记录，或下钻某轮父操作实例的直接子操作。"
+    },
+    "v3OpenScheduleWorkflowOperationListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationListRespData"
+        }
+      },
+      "title": "周期工作流操作记录及最近实例状态；执行历史仅在清理策略的保留范围内可查。"
+    },
     "v3Page": {
       "type": "object",
       "properties": {
@@ -456,6 +949,198 @@
       "type": "object",
       "description": "ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule\nworkflow list request."
     },
+    "v3ScheduleWorkflowOperationInstanceListReq": {
+      "type": "object",
+      "properties": {
+        "only_count": {
+          "type": "boolean",
+          "title": "是否仅返回总数。"
+        },
+        "operation_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "操作 ID 列表，每项均不能为空。"
+        },
+        "oper_inst_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "操作实例 ID 列表，每项均不能为空。"
+        }
+      },
+      "title": "按操作 ID 或执行实例 ID 查询周期工作流实例；两类 ID 至少提供一类。"
+    },
+    "v3ScheduleWorkflowOperationInstanceListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceListRespData"
+        }
+      },
+      "title": "周期工作流操作实例的生命周期及步骤摘要。"
+    },
+    "v3ScheduleWorkflowOperationInstanceListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "oper_inst_data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3WorflowOperationInstanceData"
+          }
+        }
+      },
+      "title": "符合条件的操作实例及总数。"
+    },
+    "v3ScheduleWorkflowOperationInstanceLogGetReq": {
+      "type": "object",
+      "properties": {
+        "oper_inst_id": {
+          "type": "string",
+          "title": "操作实例 ID，必填。"
+        }
+      },
+      "title": "查询一个周期工作流操作实例的步骤日志。"
+    },
+    "v3ScheduleWorkflowOperationInstanceLogGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceLogGetRespData"
+        }
+      },
+      "title": "周期工作流操作实例的步骤日志及额外执行日志。"
+    },
+    "v3ScheduleWorkflowOperationInstanceLogGetRespData": {
+      "type": "object",
+      "properties": {
+        "oper_inst_logs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3WorkflowActionData"
+          }
+        },
+        "extra_execution_logs": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        }
+      },
+      "title": "按步骤 ID 索引的日志及实例级额外日志。"
+    },
+    "v3ScheduleWorkflowOperationListReq": {
+      "type": "object",
+      "properties": {
+        "only_count": {
+          "type": "boolean",
+          "title": "是否仅返回总数。"
+        },
+        "page": {
+          "$ref": "#/definitions/v3Page",
+          "title": "分页及排序条件。"
+        },
+        "workflow_id": {
+          "type": "string",
+          "title": "周期工作流 ID，必填。"
+        },
+        "parent_oper_inst_id": {
+          "type": "string",
+          "title": "父操作实例 ID；为空时不按父实例筛选。"
+        }
+      },
+      "title": "按周期工作流查询操作记录的条件。"
+    },
+    "v3ScheduleWorkflowOperationListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationListRespData"
+        }
+      },
+      "title": "周期工作流的操作记录及最近一次执行状态。"
+    },
+    "v3ScheduleWorkflowOperationListRespData": {
+      "type": "object",
+      "properties": {
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ScheduleWorkflowOperationListRespScheduleWorkflowOperation"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "符合条件的操作记录及总数。"
+    },
+    "v3SubWorkflowRef": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_domain": {
+          "type": "string"
+        }
+      },
+      "description": "SubWorkflowRef describes a child workflow reference surfaced in action logs."
+    },
     "v3TimeRange": {
       "type": "object",
       "properties": {
@@ -469,6 +1154,119 @@
         }
       },
       "description": "TimeRange describes the time range."
+    },
+    "v3WorflowOperationInstanceData": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "oper_inst_id": {
+          "type": "string"
+        },
+        "oper_inst_status": {
+          "type": "string"
+        },
+        "operation_def_name": {
+          "type": "string"
+        },
+        "parent_operation_id": {
+          "type": "string"
+        },
+        "action_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
+        }
+      },
+      "description": "WorflowOperationInstanceData describes the workflow operation instance data."
+    },
+    "v3WorkflowActionData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "message": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        },
+        "display_name_zh": {
+          "type": "string",
+          "title": "Chinese display name"
+        },
+        "display_name_en": {
+          "type": "string",
+          "title": "English display name"
+        },
+        "sub_workflow_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SubWorkflowRef"
+          }
+        }
+      },
+      "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionInstBriefData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "WorkflowActionInstBriefData describes the workflow action instance brief\ndata."
+    },
+    "v3WorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/WorkflowActionMessageMessage"
+          }
+        }
+      },
+      "description": "WorkflowActionMessage describes the workflow action message logs."
+    },
+    "v3WorkflowLifeCycle": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stop_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "WorkflowLifeCycle describes the workflow life cycle."
     }
   }
 }

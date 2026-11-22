@@ -2443,6 +2443,12 @@ file:
 ## Nodemgr apigw-sync
 apigwSync:
   enabled: false
+  mcp:
+    # Sync and enable the MCP catalog bundled from apigw/mcp_servers.yaml for stages without mcp_servers.
+    # Explicit mcp_servers replaces the built-in definition; [] skips that stage.
+    # Requires spec_version: 2 and published resources; does not enable the sync Job or publish stages.
+    # When enabled, takes precedence over extraEnvVars.ENABLE_SYNC_MCP_SERVERS.
+    enabled: false
   ttlSecondsAfterFinished: 600
   backoffLimit: 10
   parallelism: 1
@@ -2496,28 +2502,8 @@ apigwSync:
                     __default:
                     - period: 1
                       tokens: 100
-        mcp_servers:
-          - name: "topo"
-            title: "节点管理-拓扑查询"
-            description: "提供节点管理拓扑的只读查询能力，用于查询业务拓扑、网络区域、网络单元、接入点、图节点及主机信息，不提供创建、修改或删除操作。"
-            resource_names:
-              - "Topo_BusinessList"
-              - "Topo_BusinessHostCountGet"
-              - "Topo_BusinessInstTopoGet"
-              - "Topo_NetworkAreaList"
-              - "Topo_NetworkAreaGet"
-              - "Topo_NetworkUnitList"
-              - "Topo_NetworkUnitGet"
-              - "Topo_AccessPointList"
-              - "Topo_AccessPointListBrief"
-              - "Topo_TopoGraphNodeGetReq"
-              - "Topo_HostList"
-            protocol_type: "streamable_http"
-            is_public: false
-            status: 0
-            oauth2_public_client_enabled: false
-            oauth2_personal_client_enabled: true
-            raw_response_enabled: false
+        # Omit mcp_servers to use the built-in definition when apigwSync.mcp.enabled=true.
+        # Set a full mcp_servers list to override it, or [] to skip MCP sync for this stage.
     grant_permissions:
       - bk_app_code: "bk-nodemgr"
         grant_dimension: "gateway"

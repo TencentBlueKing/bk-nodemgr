@@ -3,6 +3,7 @@ package v3;
 option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
 
 import "common.proto";
+import "workflow.proto";
 
 import "google/api/annotations.proto";
 
@@ -80,11 +81,114 @@ message ListScheduleWorkflowResp {
     optional string trigger_id = 3;
     optional string operator = 4;
     optional int64 operate_time = 5;
+    // 是否启用周期调度。
+    bool enabled = 6;
+    // 周期调度间隔。
+    string interval = 7;
   }
 
   message Data {
     int64 total = 1;
     repeated ScheduleWorkflow items = 2;
+  }
+  Data data = 5;
+}
+
+// 按周期工作流查询操作记录的条件。
+message ScheduleWorkflowOperationListReq {
+  // 是否仅返回总数。
+  bool only_count = 1;
+  // 分页及排序条件。
+  Page page = 2;
+  // 周期工作流 ID，必填。
+  string workflow_id = 3;
+  // 父操作实例 ID；为空时不按父实例筛选。
+  string parent_oper_inst_id = 4;
+}
+
+// 周期工作流的操作记录及最近一次执行状态。
+message ScheduleWorkflowOperationListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  // 最近一次操作实例的状态及当前步骤。
+  message LatestOperInstBriefData {
+    WorkflowLifeCycle life_cycle = 1;
+    WorkflowActionInstBriefData latest_action_inst_brief_data = 5;
+  }
+
+  // 一条周期工作流操作记录。
+  message ScheduleWorkflowOperation {
+    // 操作 ID。
+    string operation_id = 1;
+    // 该操作的执行实例 ID 列表。
+    repeated string instance_ids = 2;
+    // 操作初始化时记录的操作人；未记录时为空。
+    string operator = 3;
+    // 操作创建时间，Unix 毫秒时间戳。
+    int64 create_time = 4;
+    LatestOperInstBriefData latest_oper_inst_brief_data = 5;
+    // 父操作 ID；无父操作时为空。
+    string parent_operation_id = 6;
+    // 父操作实例 ID；无父实例时为空。
+    string parent_oper_inst_id = 7;
+  }
+
+  // 符合条件的操作记录及总数。
+  message Data {
+    repeated ScheduleWorkflowOperation operations = 1;
+    int64 total = 2;
+  }
+  Data data = 5;
+}
+
+// 按操作 ID 或执行实例 ID 查询周期工作流实例；两类 ID 至少提供一类。
+message ScheduleWorkflowOperationInstanceListReq {
+  // 是否仅返回总数。
+  bool only_count = 1;
+  // 操作 ID 列表，每项均不能为空。
+  repeated string operation_id = 2;
+  // 操作实例 ID 列表，每项均不能为空。
+  repeated string oper_inst_id = 3;
+}
+
+// 周期工作流操作实例的生命周期及步骤摘要。
+message ScheduleWorkflowOperationInstanceListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  // 符合条件的操作实例及总数。
+  message Data {
+    int64 total = 1;
+    repeated WorflowOperationInstanceData oper_inst_data = 2;
+  }
+  Data data = 5;
+}
+
+// 查询一个周期工作流操作实例的步骤日志。
+message ScheduleWorkflowOperationInstanceLogGetReq {
+  // 操作实例 ID，必填。
+  string oper_inst_id = 1;
+}
+
+// 周期工作流操作实例的步骤日志及额外执行日志。
+message ScheduleWorkflowOperationInstanceLogGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  // 按步骤 ID 索引的日志及实例级额外日志。
+  message Data {
+    map<string, WorkflowActionData> oper_inst_logs = 1;
+    WorkflowActionMessage extra_execution_logs = 2;
   }
   Data data = 5;
 }
@@ -114,6 +218,167 @@ service ScheduleWorkflow {
       returns (ListScheduleWorkflowResp) {
     option (google.api.http) = {
       post : "/api/v3/schedule/workflow/list"
+      body : "*"
+    };
+  }
+
+  // 查询周期工作流的操作记录及最近一次执行状态。
+  rpc ScheduleWorkflowOperationList(ScheduleWorkflowOperationListReq)
+      returns (ScheduleWorkflowOperationListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/schedule/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+  // 按操作 ID 或实例 ID 查询周期工作流执行实例及历史状态。
+  rpc ScheduleWorkflowOperationInstanceList(
+      ScheduleWorkflowOperationInstanceListReq)
+      returns (ScheduleWorkflowOperationInstanceListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/schedule/workflow/operation/instance/list"
+      body : "*"
+    };
+  }
+
+  // 按执行实例 ID 查询周期工作流的步骤状态、双语日志及子工作流引用。
+  rpc ScheduleWorkflowOperationInstanceLogGet(
+      ScheduleWorkflowOperationInstanceLogGetReq)
+      returns (ScheduleWorkflowOperationInstanceLogGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/schedule/workflow/operation/instance/log/get"
+      body : "*"
+    };
+  }
+}
+
+// 在当前租户内筛选周期工作流配置。
+message OpenScheduleWorkflowListReq {
+  // 分页及排序条件。
+  Page page = 1;
+  // 是否仅返回总数。
+  bool only_count = 2;
+  // 工作流 ID、名称及操作人的精确筛选条件。
+  ScheduleWorkflowExactConditions exact_include_conditions = 3;
+  // 预留的模糊筛选条件，当前不支持模糊筛选。
+  ScheduleWorkflowFuzzyConditions fuzzy_include_conditions = 4;
+  // 工作流配置的操作时间范围，不代表执行实例的起止时间。
+  TimeRange operate_time_range = 5;
+}
+
+// 周期工作流的长期调度配置；启用状态不代表某轮执行已经完成。
+message OpenScheduleWorkflowListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  ListScheduleWorkflowResp.Data data = 5;
+}
+
+// 查询周期工作流的操作记录，或下钻某轮父操作实例的直接子操作。
+message OpenScheduleWorkflowOperationListReq {
+  // 是否仅返回总数。
+  bool only_count = 1;
+  // 分页及排序条件。
+  Page page = 2;
+  // 周期工作流 ID，必填。
+  string workflow_id = 3;
+  // 父操作实例 ID；提供时只查询该轮实例的直接子操作，为空时查询工作流根操作。
+  string parent_oper_inst_id = 4;
+}
+
+// 周期工作流操作记录及最近实例状态；执行历史仅在清理策略的保留范围内可查。
+message OpenScheduleWorkflowOperationListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  ScheduleWorkflowOperationListResp.Data data = 5;
+}
+
+// 按操作 ID 或实例 ID 查询当前租户内周期工作流执行链的实例。
+message OpenScheduleWorkflowOperationInstanceListReq {
+  // 是否仅返回总数。
+  bool only_count = 1;
+  // 操作 ID 列表，每项均不能为空；与 oper_inst_id 至少提供一类。
+  repeated string operation_id = 2;
+  // 操作实例 ID 列表，每项均不能为空；与 operation_id 至少提供一类。
+  repeated string oper_inst_id = 3;
+}
+
+// 保留范围内的执行实例及生命周期；每个实例对应一轮执行，不代表长期调度结束。
+message OpenScheduleWorkflowOperationInstanceListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  ScheduleWorkflowOperationInstanceListResp.Data data = 5;
+}
+
+// 查询当前租户内周期工作流执行链中一个实例的步骤日志。
+message OpenScheduleWorkflowOperationInstanceLogGetReq {
+  // 操作实例 ID，必填。
+  string oper_inst_id = 1;
+}
+
+// 执行实例的步骤日志及额外执行日志；不提供超出清理策略保留范围的完整历史。
+message OpenScheduleWorkflowOperationInstanceLogGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  ScheduleWorkflowOperationInstanceLogGetResp.Data data = 5;
+}
+
+// 用户态的周期工作流配置、执行历史及步骤日志只读查询接口。
+// 调用须携带可信用户身份及租户上下文，并具有 system_access 和定时任务调度
+// 平台资源 scheduler_workflow 的 platform_manage
+// 权限；不能通过请求体切换用户或租户。
+service OpenScheduleWorkflow {
+  // 查询当前租户的周期工作流长期调度配置，配置启用不代表某轮执行完成。
+  rpc OpenScheduleWorkflowList(OpenScheduleWorkflowListReq)
+      returns (OpenScheduleWorkflowListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/schedule/workflow/list"
+      body : "*"
+    };
+  }
+
+  // 查询周期工作流根操作，或按 parent_oper_inst_id 下钻某轮实例的直接子操作。
+  rpc OpenScheduleWorkflowOperationList(OpenScheduleWorkflowOperationListReq)
+      returns (OpenScheduleWorkflowOperationListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/schedule/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+  // 按操作 ID 或实例 ID
+  // 查询周期工作流各轮执行状态；历史仅在清理策略保留范围内可查。
+  rpc OpenScheduleWorkflowOperationInstanceList(
+      OpenScheduleWorkflowOperationInstanceListReq)
+      returns (OpenScheduleWorkflowOperationInstanceListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/schedule/workflow/operation/instance/list"
+      body : "*"
+    };
+  }
+
+  // 按实例 ID
+  // 查询周期工作流的步骤状态、双语日志及子工作流引用；日志受清理策略保留范围限制。
+  rpc OpenScheduleWorkflowOperationInstanceLogGet(
+      OpenScheduleWorkflowOperationInstanceLogGetReq)
+      returns (OpenScheduleWorkflowOperationInstanceLogGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/schedule/workflow/operation/instance/log/get"
       body : "*"
     };
   }

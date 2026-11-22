@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // IStorage defines the interface of schedule workflow storage.
@@ -34,6 +35,21 @@ type IStorage interface {
 	workflow.IStorageOperationInstance
 
 	IStorageScheduledWorkflow
+	IDomainScheduledWorkflowQuery
+}
+
+// IDomainScheduledWorkflowQuery restricts execution queries to the current tenant's scheduled task chains.
+type IDomainScheduledWorkflowQuery interface {
+	// ListScheduledWorkflowOperation lists root operations or one instance's direct child operations.
+	ListScheduledWorkflowOperation(nCtx contextx.IContext, page types.Page, workflowID, parentOperInstID string,
+		onlyCount bool) ([]*operation.Operation, int64, error)
+
+	// ListScheduledWorkflowOperationInstance lists instances after validating all supplied identifiers.
+	ListScheduledWorkflowOperationInstance(nCtx contextx.IContext, operationIDs, operInstIDs []string,
+		onlyCount bool) ([]*operation.InstanceBriefData, int64, error)
+
+	// GetScheduledWorkflowOperationInstanceLog gets an instance in a scheduled task chain.
+	GetScheduledWorkflowOperationInstanceLog(nCtx contextx.IContext, operInstID string) (*operation.InstanceData, error)
 }
 
 // IStorageScheduledWorkflow defines the interface of scheduled workflow storage.

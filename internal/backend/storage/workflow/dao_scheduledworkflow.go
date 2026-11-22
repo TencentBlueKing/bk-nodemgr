@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	scheduledworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -125,7 +124,7 @@ func convertScheduledWorkflowConditionsToOptions(
 		}
 
 		if condition.OperateTimeRange != nil {
-			opts = append(opts, topoevent.WithOperateTimeRange(*condition.OperateTimeRange))
+			opts = append(opts, scheduledworkflow.WithOperateTimeRange(*condition.OperateTimeRange))
 		}
 
 		if condition.ExactInclude != nil {

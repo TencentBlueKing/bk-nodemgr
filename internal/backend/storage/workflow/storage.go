@@ -320,6 +320,53 @@ func (s *Storage) ExistTrigger(nCtx contextx.IContext, triggerID string) (bool, 
 	return exist, err
 }
 
+// ListScheduledWorkflowOperation lists operations in a scheduled task chain.
+func (s *Storage) ListScheduledWorkflowOperation(nCtx contextx.IContext, page types.Page,
+	workflowID, parentOperInstID string, onlyCount bool) ([]*workoper.Operation, int64, error) {
+
+	var results []*workoper.Operation
+	var total int64
+	err := s.WrapFn(nCtx, "list_scheduled_workflow_operation", func(nCtx contextx.IContext) error {
+		var err error
+		results, total, err = s.listScheduledWorkflowOperation(nCtx, page, workflowID, parentOperInstID, onlyCount)
+
+		return err
+	})
+
+	return results, total, err
+}
+
+// ListScheduledWorkflowOperationInstance lists instances in scheduled task chains.
+func (s *Storage) ListScheduledWorkflowOperationInstance(nCtx contextx.IContext,
+	operationIDs, operInstIDs []string, onlyCount bool) ([]*workoper.InstanceBriefData, int64, error) {
+
+	var results []*workoper.InstanceBriefData
+	var total int64
+	err := s.WrapFn(nCtx, "list_scheduled_workflow_operation_instance", func(nCtx contextx.IContext) error {
+		var err error
+		results, total, err = s.listScheduledWorkflowOperationInstance(nCtx, operationIDs, operInstIDs, onlyCount)
+
+		return err
+	})
+
+	return results, total, err
+}
+
+// GetScheduledWorkflowOperationInstanceLog gets an instance in a scheduled task chain.
+func (s *Storage) GetScheduledWorkflowOperationInstanceLog(nCtx contextx.IContext,
+	operInstID string) (*workoper.InstanceData, error) {
+
+	var result *workoper.InstanceData
+	err := s.WrapFn(nCtx, "get_scheduled_workflow_operation_instance_log", func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.getScheduledWorkflowOperationInstanceLog(nCtx, operInstID)
+
+		return err
+	})
+
+	return result, err
+}
+
 // ListScheduledWorkflow lists scheduled workflow by page and conditions.
 func (s *Storage) ListScheduledWorkflow(
 	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduledWorkflowCondition) (

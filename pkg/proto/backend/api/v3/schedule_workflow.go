@@ -20,8 +20,12 @@ package v3
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // Validate check body.
@@ -44,6 +48,14 @@ func (req *DisableScheduleWorkflowReq) AutoConvert() {
 
 // Validate check body.
 func (req *ListScheduleWorkflowReq) Validate() error {
+	if err := validatePage(req.GetPage()); err != nil {
+		return err
+	}
+
+	if _, err := convertTimeRangeToTypes(req.GetOperateTimeRange()); err != nil {
+		return fmt.Errorf("invalid operate time range: %w", err)
+	}
+
 	return nil
 }
 
@@ -75,15 +87,30 @@ func (x *ListScheduleWorkflowReq) ConvertConditionsFromTypes(condition *types.Sc
 
 	x.ExactIncludeConditions = exactCond
 	x.FuzzyIncludeConditions = fuzzyCond
+	x.OperateTimeRange = nil
+	if condition != nil && condition.OperateTimeRange != nil {
+		x.OperateTimeRange = &TimeRange{
+			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
+			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
+		}
+	}
 
 	return nil
 }
 
-// ConvertConditionsToTypes convert conditions to types.
+// ConvertConditionsToTypes converts conditions after Validate has checked the time range.
 func (x *ListScheduleWorkflowReq) ConvertConditionsToTypes() *types.ScheduledWorkflowCondition {
-	return convertScheduleWorkflowConditionsToTypes(
+	condition := convertScheduleWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions())
+	if timeRange := x.GetOperateTimeRange(); timeRange != nil {
+		condition.OperateTimeRange = &types.TimeRange{
+			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
+			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		}
+	}
+
+	return condition
 }
 
 // convertScheduleWorkflowConditionsToTypes converts ScheduleWorkflowExactConditions and
@@ -151,11 +178,151 @@ func (x *ListScheduleWorkflowResp) ConvertScheduleWorkflowsFromTypes(num int64, 
 		*item.TriggerId = workflow.TriggerID
 		*item.Operator = workflow.Operator
 		*item.OperateTime = workflow.OperateTime.UnixMilli()
+		item.Enabled = workflow.Enabled
+		item.Interval = workflow.Interval
 		items = append(items, item)
 	}
 
 	x.Data = &ListScheduleWorkflowResp_Data{
 		Total: num,
 		Items: items,
+	}
+}
+
+// Validate checks the workflow ID and pagination.
+func (x *ScheduleWorkflowOperationListReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	return validatePage(x.GetPage())
+}
+
+// AutoConvert auto converts the request.
+func (x *ScheduleWorkflowOperationListReq) AutoConvert() {
+}
+
+// PageLimit returns the operation list page limit.
+func (x *ScheduleWorkflowOperationListReq) PageLimit() int {
+	return maxScheduleWorkflowLimit
+}
+
+// ConvertPageToTypes converts pagination to types.
+func (x *ScheduleWorkflowOperationListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
+}
+
+// ConvertResultFromTypes converts operations and their persisted operator metadata.
+func (x *ScheduleWorkflowOperationListResp) ConvertResultFromTypes(
+	total int64, result []*operation.Operation) {
+
+	items := make([]*ScheduleWorkflowOperationListResp_ScheduleWorkflowOperation, len(result))
+	for idx, op := range result {
+		// Missing operator metadata intentionally produces an empty operator.
+		operator := conv.ToStringDefault(op.Param.InitContent["operator"], "")
+		item := &ScheduleWorkflowOperationListResp_ScheduleWorkflowOperation{
+			OperationId:       op.OperationID,
+			InstanceIds:       op.InstanceIDs,
+			Operator:          operator,
+			CreateTime:        timeToUnixMilli(op.CreateTime),
+			ParentOperationId: op.Param.ParentOperationID,
+			ParentOperInstId:  op.Param.ParentOperInstID,
+		}
+		if op.LatestInstBriefData != nil {
+			item.LatestOperInstBriefData = &ScheduleWorkflowOperationListResp_LatestOperInstBriefData{
+				LifeCycle:                 convertNodeWorkflowOperInstLifeCycleFromTypes(op.LatestInstBriefData.Lifecycle),
+				LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(op.LatestInstBriefData.LatestActionInstBriefData),
+			}
+		}
+		items[idx] = item
+	}
+
+	x.Data = &ScheduleWorkflowOperationListResp_Data{
+		Operations: items,
+		Total:      total,
+	}
+}
+
+// Validate requires operation or instance IDs and rejects empty identifiers.
+func (x *ScheduleWorkflowOperationInstanceListReq) Validate() error {
+	if len(x.GetOperationId()) == 0 && len(x.GetOperInstId()) == 0 {
+		return errors.New("operation_id or oper_inst_id is required")
+	}
+
+	for _, id := range x.GetOperationId() {
+		if id == "" {
+			return errors.New("operation_id cannot be empty")
+		}
+	}
+	for _, id := range x.GetOperInstId() {
+		if id == "" {
+			return errors.New("oper_inst_id cannot be empty")
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the request.
+func (x *ScheduleWorkflowOperationInstanceListReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes converts operation and instance ID filters to types.
+func (x *ScheduleWorkflowOperationInstanceListReq) ConvertConditionsToTypes() *types.OperInstDataCondition {
+	return &types.OperInstDataCondition{
+		ExactInclude: &types.OperInstDataExactFields{
+			OperationID: x.GetOperationId(),
+			OperInstID:  x.GetOperInstId(),
+		},
+	}
+}
+
+// ConvertResultFromTypes converts operation instance summaries to the response.
+func (x *ScheduleWorkflowOperationInstanceListResp) ConvertResultFromTypes(
+	total int64, result []*operation.InstanceBriefData) {
+
+	items := make([]*WorflowOperationInstanceData, len(result))
+	for idx, instance := range result {
+		lifecycle := convertNodeWorkflowOperInstLifeCycleFromTypes(instance.Lifecycle)
+		items[idx] = &WorflowOperationInstanceData{
+			OperationId:               instance.Metadata.OperationID,
+			OperInstId:                instance.Metadata.OperationInstanceID,
+			OperInstStatus:            lifecycle.GetState(),
+			OperationDefName:          instance.Metadata.OperationDefName,
+			ParentOperationId:         instance.Metadata.ParentOperationID,
+			ActionNames:               instance.Metadata.ActionNames,
+			LifeCycle:                 lifecycle,
+			LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(instance.LatestActionInstBriefData),
+		}
+	}
+
+	x.Data = &ScheduleWorkflowOperationInstanceListResp_Data{
+		Total:        total,
+		OperInstData: items,
+	}
+}
+
+// Validate checks the operation instance ID.
+func (x *ScheduleWorkflowOperationInstanceLogGetReq) Validate() error {
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the request.
+func (x *ScheduleWorkflowOperationInstanceLogGetReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes converts action and extra execution logs to the response.
+func (x *ScheduleWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result *operation.InstanceData) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &ScheduleWorkflowOperationInstanceLogGetResp_Data{
+		OperInstLogs:       convertActionInstanceLogs(result),
+		ExtraExecutionLogs: convertExtraExecutionLogs(result),
 	}
 }

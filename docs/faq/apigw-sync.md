@@ -181,7 +181,7 @@ Helm 和 docker-compose 通过 `BK_APP_TENANT_ID` 传入应用租户 ID，属于
 
 ### 现象与原因
 
-用户开启 `ENABLE_SYNC_MCP_SERVERS=true`，并在环境 values 中显式覆盖 `apigwSync.config.stages`，但没有为覆盖后的 stage
+旧版 Chart 使用 `ENABLE_SYNC_MCP_SERVERS=true`，并在环境 values 中显式覆盖 `apigwSync.config.stages`，但没有为覆盖后的 stage
 配置 `mcp_servers` 时，同步 Job 在 MCP 同步步骤报错：
 
 ```text
@@ -208,8 +208,11 @@ apigwSync:
                   weight: 100
 ```
 
-上面的覆盖结果只有后端配置，没有 `mcp_servers`。当前 Chart 模板会省略空或缺失的 `mcp_servers`，而 MCP 同步命令会遍历
+上面的覆盖结果只有后端配置，没有 `mcp_servers`。旧版 Chart 模板会省略空或缺失的 `mcp_servers`，而 MCP 同步命令会遍历
 `stages` 发起请求，不会自动跳过缺少该字段的环境，因此接口返回必填项错误。
+
+支持 `apigwSync.mcp.enabled` 的新版 Chart 将内置定义与环境列表分离，由同步镜像在运行时生成只包含非空 MCP 定义的同步文件。
+开启新特性后，上述 stage 会自动获得产品内置 MCP；显式列表完整优先，显式 `[]` 则跳过该 stage 的 MCP 同步，不会删除或停用已有 MCP。
 
 ### 排查与修复
 
@@ -227,11 +230,79 @@ apigwSync:
    kubectl exec -n <namespace> <apigw-sync-pod> -- cat /data/definition.yaml
    ```
 
-2. 从**实际部署版本**的 Chart `values.yaml` 中复制完整的 `apigwSync.config.stages[].mcp_servers`，补到环境 values
-   对应的 stage 下，与 `backends` 同级。保留已有环境名、后端地址及其他所需配置；多个 stage 都需要分别检查。
-   不要仅补 `mcp_servers: []`，当前模板同样会省略空列表。
+2. 按实际部署版本选择修复方式，保留已有环境名、后端地址及其他所需配置：
+   - 旧版 Chart：从该版本 `values.yaml` 复制完整的 `apigwSync.config.stages[].mcp_servers`，补到对应 stage 下，与 `backends` 同级。
+     多个 stage 都需要分别检查；不要仅补 `mcp_servers: []`，旧模板同样会省略空列表。
+   - 支持新特性的 Chart：设置 `apigwSync.mcp.enabled=true`，让未显式配置 `mcp_servers` 的 stage 自动使用并启用产品内置 MCP。
+     显式非空列表仍完整优先，不合并字段；显式 `[]` 不参与同步。需要停用已有 MCP 时，提供完整定义并设置 `status: 0`。
+     此开关优先于旧同步环境变量，但不改变发布策略、公开性或 OAuth 设置。
+   - 升级时，若此前仅通过 `ENABLE_SYNC_MCP_SERVERS=true` 继承默认清单，需要迁移到新开关，或显式保留原完整定义及状态。
+     新版默认 `stages` 不再包含 MCP 清单；Chart 与同步镜像需配套升级，旧镜像不支持运行时装配。
+     当前产品内置清单使用 `OpenTopo_*` 资源和 `Official` 分类；显式覆写不会自动迁移到该清单。
 3. 确认 `apigwSync.config.spec_version` 为 `2`，且 `mcp_servers[].resource_names` 引用的资源已发布到对应网关环境。
-   Helm Job 会用 ConfigMap 覆盖镜像内的 `/data/definition.yaml`，因此只修改仓库的 `apigw/definition.yaml` 无法修复此类 values 覆盖问题。
-4. 使用实际部署的 Chart 和完整覆盖参数重新渲染，确认生成的 `definition.yaml` 保留了各 stage 的 MCP 配置，再按原部署流程更新并重新执行同步 Job。
+   Helm Job 用 ConfigMap 覆盖 `/data/definition.yaml`，其中保留部署者的显式配置。新版镜像另有不受挂载影响的
+   `/data/mcp_servers.yaml`，来源为构建时的 `apigw/mcp_servers.yaml`，仅用于新特性开启且未显式覆写的 stage。
+   修改产品清单后必须重新构建并升级镜像，不会改变已有显式覆写。
+   新版需在同步 Pod 中检查运行时生成的 `/data/mcp-definition.yaml`，它才是本次 MCP 同步的实际输入，不在 ConfigMap 中：
+
+   ```bash
+   kubectl exec -n <namespace> <apigw-sync-pod> -- cat /data/mcp-definition.yaml
+   ```
+
+4. 使用实际部署的 Chart 和完整覆盖参数重新渲染，确认 `definition.yaml` 中的显式配置和 Job 的特性开关符合预期，再按原部署流程更新并重新执行同步 Job。
+   新版在 Pod 运行时生成 MCP 清单，不能仅凭 `helm template` 判断最终同步范围。
    重试前检查 `RELEASE_STAGES`、`NO_PUB` 和资源变更范围：同步脚本不只处理 MCP，还会同步资源（带 `--delete`）并可能发布版本，
    不能把重跑整个 Job 当作只读验证。完成后检查 Job 日志和网关对应环境的 MCP Server 配置，确认同步成功。
+
+## 8. 如何使用系统诊断 MCP？
+
+产品清单 `apigw/mcp_servers.yaml` 中的 `system-diagnosis` 展示名称为“节点管理-系统诊断”，与 `topo`、`execution` 独立。
+新增系统诊断能力统一扩展此 MCP，不按诊断能力另建 MCP；各工具仍须遵循对应功能域的权限和数据访问边界。
+当前提供定时任务调度诊断的以下四个只读工具：
+
+| 网关资源名                                                         | 用途                                                                                             |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowList`                    | 查询调度任务及 `enabled`、`interval` 等配置                                                      |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowOperationList`           | 使用 `workflow_id` 查询当前触发器关联的操作，配合 `parent_oper_inst_id` 查询某轮派发的直接子操作 |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList`   | 使用 `operation_id` 或 `oper_inst_id` 查询执行实例，两者均提供时取交集                           |
+| `OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet` | 使用 `oper_inst_id` 查询步骤状态、双语日志和额外执行日志                                         |
+
+接口参数、返回值及记录保留规则见[任务列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowList.md)、
+[操作列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowOperationList.md)、
+[实例列表](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList.md)和
+[实例日志](../../apigw/apidocs/zh/OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet.md)。
+`enabled`、`interval` 是长期调度配置，不表示执行完成；派发实例成功也不代表子任务成功。
+查询仅覆盖当前触发器关联且尚未清理的任务链，不是完整历史归档。
+
+### 授权与启用
+
+- `is_public: false` 仅控制可见性，不等于调用授权。四个资源均禁止公开申请权限，同时要求应用认证、用户认证和资源调用权限。
+  网关管理员只向获准的内部应用授予所需资源及 MCP 的调用权限；不向普通外部应用、`public` 或 `personal` 客户端主动授权。
+  已有网关级授权也会覆盖新增资源，上线前须核对已有授权范围，不能仅凭禁止申请认定没有外部应用可访问。
+- 调用应用须携带网关支持的有效用户凭证。后端身份认证应使用 `api-gateway`，由网关签名及现有认证链建立用户名和租户上下文；
+  不通过请求体指定用户或租户，也不要通过关闭认证或信任任意用户名请求头解决调用失败。
+- 用户必须同时拥有 `system_access`（系统访问）和 `platform_manage`（平台管理），后者资源类型为 `platform_resource`、
+  资源 ID 为 `scheduler_workflow`（定时任务调度）。只有网关应用权限不能替代用户业务权限，计数和直接 ID 查询同样受限。
+  后端须启用并正确同步 IAM V3 或 V4；两者都关闭时现有 authorizer 会跳过业务权限检查，不能用于提供上述隔离保证。
+- `system-diagnosis` 的 public/personal OAuth 客户端均默认关闭，不沿用 `topo`、`execution` 的 personal token 开关。
+  不能为接入个人客户端而直接复用普通执行诊断 MCP 的授权配置。
+- 按现有流程导入并核对资源配置，使用新的 `release.version` 创建资源版本并发布四个只读资源到目标 stage 后，再同步 MCP。
+  同步定义中必须保留 `isPublic: false`、
+  `allowApplyPermission: false` 以及三项认证和调用权限检查；资源回源路径为 `/api/v3/open/schedule/workflow/...`，
+  使用后端用户态认证入口，并复用系统态接口的查询、平台管理权限及租户归属校验。
+  不绑定启用、停用、重试、终止或立即执行接口。
+- 使用内置模式时，`apigwSync.mcp.enabled=true` 会为未显式配置清单的 stage 装配并启用产品 MCP，包括 `system-diagnosis`；
+  产品清单中的 `status: 0` 不构成内置模式下的独立禁用开关。若只需 `topo`、`execution`，应显式完整覆写所需列表。
+  显式非空列表不会自动加入 `system-diagnosis`；`[]` 只跳过同步，不会停用已有服务。其他启用及镜像升级要求见第 7 节。
+
+### 环境验收
+
+在目标 stage 核对已发布资源、MCP 实际工具列表及既有应用授权；使用隔离的验证应用和账号检查：
+
+1. 缺少有效应用或用户凭证时，请求在认证阶段被拒绝。
+2. 使用有效身份但未授予资源或 MCP 调用权限时，不能取得执行信息。
+3. 应用已获授权、用户只有系统访问而没有定时任务调度资源权限时，列表、计数、实例和日志查询均被拒绝。
+4. 内部应用和用户均获授权后，可以完成四层查询和按轮次子任务下钻；跨租户或不属于 scheduler 任务链的 ID 不返回执行信息。
+5. 实际工具列表只有上述四个查询工具，已有 `topo`、`execution` 的资源及授权设置保持不变。
+
+本地 YAML 或 Schema 检查不能证明上述认证授权已在目标环境生效。部署及同步仍按原流程执行，不要将整个同步 Job 当作只读探测。
