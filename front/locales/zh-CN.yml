@@ -1194,6 +1194,15 @@ agentProxyPkg:
   noDefaultWarning: 以下平台尚未设置默认版本，安装时将无法自动选择最佳版本：
   osArch: 操作系统/架构
 components:
+  versionLog:
+    overview: 版本概览
+    changelog: 更新明细
+    current: 当前版本
+    emptyOverview: 暂无该版本的概览文档
+    emptyChangelog: 暂无该版本的更新明细
+    listFailed: 版本列表加载失败，请重试
+    detailFailed: 版本日志加载失败，请重试
+    retry: 重试
   permission:
     noPermission: 没有权限访问或操作此资源
     applyUrlEmptyTip: 权限申请地址获取失败，请联系系统管理员

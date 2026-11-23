@@ -1191,6 +1191,15 @@ agentProxyPkg:
   osArch: OS / Arch
   noDefaultWarning: 'The following platforms have no default version set, which will prevent automatic best-version selection during installation:'
 components:
+  versionLog:
+    overview: Version Overview
+    changelog: Change Details
+    current: Current
+    emptyOverview: No overview document for this version
+    emptyChangelog: No change details for this version
+    listFailed: Failed to load versions. Please retry
+    detailFailed: Failed to load release notes. Please retry
+    retry: Retry
   permission:
     noPermission: No permission to access or operate this resource
     applyUrlEmptyTip: Failed to get the permission apply URL, please contact the system administrator

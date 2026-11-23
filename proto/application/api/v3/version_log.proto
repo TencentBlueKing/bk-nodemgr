@@ -62,12 +62,81 @@ message VersionLogDetailResp {
   Data data = 5;
 }
 
+// 独立维护的大版本概览，不按发布日期区分。
+message VersionOverviewEntry {
+  // 三段基础版本号，例如 v3.0.1。
+  string version = 1;
+  // 是否为当前运行版本所属的大版本。
+  bool is_current = 2;
+}
+
+// 按当前语言查询独立维护的大版本概览。
+message VersionOverviewListReq {}
+
+// 大版本概览列表及当前运行版本所属的大版本。
+message VersionOverviewListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // 当前语言下已有概览文档的大版本，按版本号降序排列。
+    repeated VersionOverviewEntry version_logs = 1;
+    // 当前运行版本所属的大版本，例如 v3.0.1；可能尚无对应概览文档。
+    // 运行版本不符合项目版本格式时为空。
+    string current_version = 2;
+  }
+  Data data = 5;
+}
+
+// 查询指定大版本的独立概览文档。
+message VersionOverviewDetailReq {
+  // 三段基础版本号，例如 v3.0.1，不包含 alpha、beta 或 release 后缀。
+  string version = 1;
+}
+
+// 当前语言下的大版本概览内容。
+message VersionOverviewDetailResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // 请求的大版本号，例如 v3.0.1。
+    string version = 1;
+    reserved 2;
+    reserved "date";
+    // 独立维护、可持续更新的 Markdown 展示文档，不由迭代日志自动拼接。
+    string content = 3;
+  }
+  Data data = 5;
+}
+
 // VersionLog service provides version and changelog information.
 service VersionLog {
   // 查询所有可用版本的更新日志列表。
   rpc List(VersionLogsListReq) returns (VersionLogsListResp) {
     option (google.api.http) = {
       get : "/api/v3/version_log/version_logs_list"
+    };
+  }
+
+  // 查询当前语言下已有的大版本概览列表及当前所属大版本。
+  rpc OverviewList(VersionOverviewListReq) returns (VersionOverviewListResp) {
+    option (google.api.http) = {
+      get : "/api/v3/version_log/overview_list"
+    };
+  }
+
+  // 查询指定大版本的概览文档；当前语言没有对应文档时返回记录不存在。
+  rpc OverviewDetail(VersionOverviewDetailReq)
+      returns (VersionOverviewDetailResp) {
+    option (google.api.http) = {
+      get : "/api/v3/version_log/overview/{version}"
     };
   }
 
