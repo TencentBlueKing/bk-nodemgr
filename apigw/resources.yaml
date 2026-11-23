@@ -40952,7 +40952,7 @@ paths:
   /api/v3/open/schedule/workflow/list:
     post:
       operationId: OpenScheduleWorkflow_OpenScheduleWorkflowList
-      description: 查询当前租户的定时任务调度工作流配置摘要，包括启用状态和调度间隔；不表示任务已执行完毕或成功。使用返回的 workflow_id 查询操作列表，再查询执行实例和日志。执行历史关联当前 trigger_id，受保留策略限制，不是完整历史归档。
+      description: 查询当前租户的周期工作流长期调度配置，配置启用不代表某轮执行完成。
       tags:
         - OpenScheduleWorkflow
       responses:
@@ -41160,7 +41160,7 @@ paths:
   /api/v3/open/schedule/workflow/operation/list:
     post:
       operationId: OpenScheduleWorkflow_OpenScheduleWorkflowOperationList
-      description: 按 workflow_id 查询定时任务调度操作及最近一次执行摘要；传入 parent_oper_inst_id 可下钻某轮执行直接派发的子操作，不递归返回后代。根操作关联当前 trigger_id，根实例保留上限为 100，清理时连带清理子任务，不是完整历史归档。派发成功不代表子工作流成功，需继续查询子操作实例和日志。
+      description: 查询周期工作流根操作，或按 parent_oper_inst_id 下钻某轮实例的直接子操作。
       tags:
         - OpenScheduleWorkflow
       responses:
@@ -41378,7 +41378,9 @@ paths:
   /api/v3/open/schedule/workflow/operation/instance/list:
     post:
       operationId: OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceList
-      description: 按已知 operation_id 或 oper_inst_id 直接查询当前租户定时任务执行链中的实例和生命周期；两类 ID 至少提供一类，同时提供时按 AND 组合。执行历史关联当前 trigger_id，受保留策略限制，不是完整历史归档。可将实例 ID 作为操作列表的 parent_oper_inst_id 下钻该轮直接子操作；派发成功不代表子工作流成功。
+      description: |-
+        按操作 ID 或实例 ID
+        查询周期工作流各轮执行状态；历史仅在清理策略保留范围内可查。
       tags:
         - OpenScheduleWorkflow
       responses:
@@ -41578,7 +41580,9 @@ paths:
   /api/v3/open/schedule/workflow/operation/instance/log/get:
     post:
       operationId: OpenScheduleWorkflow_OpenScheduleWorkflowOperationInstanceLogGet
-      description: 按已知 oper_inst_id 直接查询当前租户定时任务执行链中的步骤状态、双语日志和子工作流引用，不返回原始执行内容或私有数据。可将实例 ID 作为操作列表的 parent_oper_inst_id 下钻该轮直接子操作；派发成功和子工作流引用均不代表子工作流成功。记录关联当前 trigger_id，受保留和连带清理限制，不是完整历史归档。
+      description: |-
+        按实例 ID
+        查询周期工作流的步骤状态、双语日志及子工作流引用；日志受清理策略保留范围限制。
       tags:
         - OpenScheduleWorkflow
       responses:
