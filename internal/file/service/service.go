@@ -36,6 +36,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
 	packageEventStg "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageexport"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/pluginrequirement"
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -353,6 +354,11 @@ func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
 func (svc *Service) initialStorages() error {
 	var err error
 
+	svc.Cap.StoragePluginRequirement, err = pluginrequirement.NewStorage(svc.Cap.MongoClient, svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create plugin requirement storage: %w", err)
+	}
+
 	svc.Cap.StorageUpload, err = storageUpload.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database)
@@ -406,6 +412,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	upstreamOriginPluginV2 := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/v2/plugin")
 	upstreamOriginExternalPluginV2 := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/v2/external_plugin")
 	upstreamOriginPluginV3 := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "origin/v3/plugin")
+	upstreamPluginRequirement := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "plugin/requirements")
 	upstreamReleaseAgentFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/agent")
 	upstreamReleaseProxyFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/proxy")
 	upstreamReleaseCertFG := manager.NewUpstreamFileGroup(svc.Cap.BKRepo, "release/cert")
@@ -464,6 +471,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithTempFileGCInterval(time.Duration(svc.conf.TempFile.GCIntervalHours)*time.Hour),
 		manager.WithInstallerFileGroup(installerFG),
 		manager.WithFileCache(fc),
+		manager.WithStoragePluginRequirement(svc.Cap.StoragePluginRequirement),
 		manager.WithStorageUpload(svc.Cap.StorageUpload),
 		manager.WithStorageRelease(svc.Cap.StorageRelease),
 		manager.WithStorageTopo(svc.Cap.StorageTopo),
@@ -477,6 +485,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithUpstreamOriginPluginV2FileGroup(upstreamOriginPluginV2),
 		manager.WithUpstreamOriginExternalPluginV2FileGroup(upstreamOriginExternalPluginV2),
 		manager.WithUpstreamOriginPluginV3FileGroup(upstreamOriginPluginV3),
+		manager.WithUpstreamPluginRequirementFileGroup(upstreamPluginRequirement),
 		manager.WithUpstreamReleasePluginFileGroup(upstreamReleasePlugin),
 		manager.WithUpstreamExportFileGroup(upstreamExport),
 		manager.WithTokenGenerator(svc.Cap.TokenGenerator),
