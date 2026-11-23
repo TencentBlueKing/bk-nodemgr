@@ -39,6 +39,7 @@ description: Use when writing or reviewing bk-nodemgr changelog, release notes, 
 - 纯版本字段对齐或发布准备，交给 `release-version-alignment`；只有需要编写 changelog 时才组合使用
 - Helm 打包/推送、GitHub Release 创建或 tag 操作；编写发布说明不授权执行发布、push 或移动 tag
 - changelog API / Frontend 功能实现；本 skill 只维护 Markdown 内容，不修改消费链路
+- 从完整版本日志提炼用户在实际使用中能感知的版本亮点，使用 `bk-nodemgr-version-log-highlights`
 
 ## Source Anchors
 

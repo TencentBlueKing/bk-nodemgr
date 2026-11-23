@@ -1,0 +1,82 @@
+{
+  "skill_name": "bk-nodemgr-version-log-highlights",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "mixed-release-with-visible-policy-fixes",
+      "prompt": "用 v3.0.1-alpha.114 的完整日志生成用户可感知的版本亮点，中文和英文都落到 support-files。",
+      "expected_output": "Two localized summary Markdown files for v3.0.1-alpha.114 that describe verified changes users encounter in actual use.",
+      "files": [
+        "support-files/changelog/zh/v3.0.1-alpha.114_2026-11-18.md",
+        "support-files/changelog/en/v3.0.1-alpha.114_2026-11-18.md"
+      ],
+      "expectations": [
+        "Describes the Network Unit default when switching Network Areas and search by name or partial ID in the relevant dropdowns, using consistent facts in both languages.",
+        "Includes changes readers can use or observe in the UI or installer. Does not claim faster queries from batching alone.",
+        "Writes matching version/date filenames under support-files/changelog/highlights/{zh,en} and preserves both complete changelogs."
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "upgrade-configuration-and-cli-only-migration",
+      "prompt": "给 v3.0.1-alpha.115 生成用户可感知的版本亮点，升级和离线迁移的实际操作变化也要总结。",
+      "expected_output": "Includes the verified upgrade configuration action and leaves command-line-only offline migration in the full changelog.",
+      "files": ["support-files/changelog/zh/v3.0.1-alpha.115_2026-11-18.md"],
+      "expectations": [
+        "Preserves the BlueKing platform 7.2 and 7.3 conditions and the Backend and Application settings operators must change.",
+        "Omits selective offline migration of V2 main plugin processes and main configs because the export and import are command-line operations with no verified UI or installer entry."
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "bilingual-template-without-a-target-version",
+      "prompt": "按完整日志 Skill 的格式给我一个版本亮点的中英文模板，只要结构。",
+      "expected_output": "Two empty Markdown templates with localized headings and a placeholder bullet for the usage scenario and changed action, steps, order, or outcome.",
+      "files": [],
+      "expectations": [
+        "Uses the headings 版本亮点 and Highlights, each followed by a single-level Markdown list.",
+        "Returns placeholders rather than inventing a release, asking for a version, or writing a versioned summary file."
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "windows-installation-step-and-order",
+      "prompt": "用 v3.0.1-alpha.102 的完整日志提炼版本亮点，注意 Windows 安装器的步骤变化。",
+      "expected_output": "Includes the optional firewall configuration before Windows full installation, with the required inputs and the correct order.",
+      "files": ["support-files/changelog/zh/v3.0.1-alpha.102_2026-10-27.md"],
+      "expectations": [
+        "Says the installer configures firewall rules before installation when firewall features and allowed CIDRs are supplied on Windows.",
+        "Does not describe the feature as mandatory, extend it to other platforms, or imply that users configure the firewall rules themselves."
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "internal-order-without-user-impact",
+      "prompt": "假设 v3.99.0_2026-11-23.md 的中英文完整日志均只记录一项已核实的内部变更：配置渲染由并发改为顺序执行，用户的操作步骤、可见状态和结果均未改变。以这段信息作为完整日志内容，生成该版本的中英文摘要文件。",
+      "expected_output": "Writes both localized Markdown files with the standard heading and empty-state paragraph.",
+      "files": [],
+      "expectations": [
+        "Writes support-files/changelog/highlights/{zh,en}/v3.99.0_2026-11-23.md.",
+        "Uses the localized heading and the exact empty-state sentence as a plain paragraph.",
+        "Does not treat internal execution order as a user workflow change or claim better performance without evidence."
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "reachable-workflows-and-visible-ssh-guidance",
+      "prompt": "用 v3.0.1-alpha.112 的完整日志生成供版本日志弹窗展示的中英文亮点。",
+      "expected_output": "Two localized summaries of changes readers encounter in supported workflows, including the localized SSH troubleshooting link.",
+      "files": [
+        "support-files/changelog/zh/v3.0.1-alpha.112_2026-11-16.md",
+        "support-files/changelog/en/v3.0.1-alpha.112_2026-11-16.md"
+      ],
+      "expectations": [
+        "Omits the File service cleanup APIs because they are internal to the File service.",
+        "Omits the install-without-starting and V2 stop APIs because the release has no supported reader-facing entry points for those operations.",
+        "Says that SSH connection failure probe logs include a localized troubleshooting link. Omits the backend.wiki setting, the default repository, and upgrade configuration details in both languages.",
+        "Keeps the permission dialog fallback to the IAM home page when the permission request link is empty.",
+        "Keeps the plugin sub-configuration redelivery when the Deploy Policy rendering context changes, observable through the policy's task history."
+      ]
+    }
+  ]
+}
