@@ -1,12 +1,13 @@
 export interface IVersionLog {
   version: string;
-  date: string;
+  date?: string;
   is_current?: boolean;
   content?: string;
 }
 
 export interface IVersionLogsListResponse {
   data?: {
+    current_version?: string;
     version_logs?: IVersionLog[];
   };
 }
@@ -23,7 +24,7 @@ export const mapVersionLogs = (response: IVersionLogsListResponse): ILog[] => {
 
   return versionLogs.map(item => ({
     title: item.version,
-    date: item.date,
+    date: item.date || '',
     detail: item.content || '',
     isCurrent: item.is_current === true,
   }));
