@@ -14650,7 +14650,7 @@ paths:
   /api/v3/node/workflow/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowDistinct
-      description: 按过滤条件获取节点任务流的去重字段候选值，返回任务流类型、业务 ID、操作人和任务流状态。
+      description: 查询节点工作流指定字段的去重值。
       tags:
         - NodeWorkflow
       responses:
@@ -14849,7 +14849,7 @@ paths:
   /api/v3/node/workflow/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowList
-      description: 查询节点任务流列表，支持分页、按精确条件过滤和按操作时间范围过滤。
+      description: 查询节点工作流列表及执行状态。
       tags:
         - NodeWorkflow
       responses:
@@ -15104,7 +15104,7 @@ paths:
   /api/v3/node/workflow/operation/instance/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
-      description: 按操作 ID 或操作实例 ID 查询节点任务流操作实例列表，支持仅返回总数。
+      description: 按节点操作 ID 查询操作实例及历史执行状态。
       tags:
         - NodeWorkflow
       responses:
@@ -15306,7 +15306,7 @@ paths:
   /api/v3/node/workflow/operation/instance/log/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
-      description: 根据操作实例 ID 获取节点任务操作实例日志，返回每个 action 的生命周期与日志内容，以及实例级额外执行日志。
+      description: 按节点操作实例 ID 查询步骤状态、日志及子工作流引用。
       tags:
         - NodeWorkflow
       responses:
@@ -15527,7 +15527,7 @@ paths:
   /api/v3/node/workflow/operation/instance/status_distribution/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusDistributionList
-      description: 按触发 ID 查询操作实例状态分布。
+      description: 统计节点工作流各操作最新操作实例的状态分布。
       tags:
         - NodeWorkflow
       responses:
@@ -15685,7 +15685,7 @@ paths:
   /api/v3/node/workflow/operation/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationList
-      description: 查询指定节点任务流下的操作列表，支持分页、按节点部署维度精确过滤、按操作状态过滤。
+      description: 查询节点工作流的执行对象、操作状态及操作实例信息。
       tags:
         - NodeWorkflow
       responses:
@@ -15951,7 +15951,7 @@ paths:
   /api/v3/node/workflow/operation/manual/info/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationManualInfoGet
-      description: 获取指定操作的手动处理信息，包括网络策略和手动执行命令。
+      description: 查询节点操作所需的手动执行命令和网络策略。
       tags:
         - NodeWorkflow
       responses:
@@ -16157,7 +16157,7 @@ paths:
   /api/v3/node/workflow/operation/retry:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
-      description: 对指定节点任务流中的操作执行重试，支持全量重试或按操作 ID 部分重试。
+      description: 重试节点工作流中的指定操作。
       tags:
         - NodeWorkflow
       responses:
@@ -16297,7 +16297,7 @@ paths:
   /api/v3/node/workflow/operation/terminate:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationTerminate
-      description: 终止指定节点任务流中一个或多个操作的最后一次执行实例。
+      description: 终止节点工作流中的指定操作。
       tags:
         - NodeWorkflow
       responses:
@@ -20835,7 +20835,7 @@ paths:
   /api/v3/node/workflow/operation/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationDistinct
-      description: 按任务流 ID 查询节点任务流下 operation 最新实例状态（state）的去重结果。
+      description: 查询节点工作流操作指定字段的去重值。
       tags:
         - NodeWorkflow
       responses:
@@ -22501,7 +22501,9 @@ paths:
   /api/v3/node/workflow/operation/offline/info:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallInfoGet
-      description: 获取离线安装 Proxy 操作所需的安装脚本、配置、预检查和安装包信息。
+      description: |-
+        查询等待离线手动安装的 Proxy
+        操作所需的脚本、配置、元数据及资源包与安装器要求。
       tags:
         - NodeWorkflow
       responses:
@@ -22676,7 +22678,7 @@ paths:
   /api/v3/node/workflow/operation/offline/result:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit
-      description: 提交离线安装结果数据，唤醒并继续执行对应的离线安装任务步骤。
+      description: 提交 Proxy 离线安装器的 JSON 执行结果，使等待手动安装的工作流继续执行。
       tags:
         - NodeWorkflow
       responses:
@@ -39980,7 +39982,7 @@ paths:
   /api/v3/open/node/workflow/operation/instance/list:
     post:
       operationId: OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList
-      description: 按节点操作 ID 查询执行实例及历史执行状态。
+      description: 按节点操作 ID 查询操作实例及历史执行状态。
       tags:
         - OpenNodeWorkflow
       responses:
@@ -40182,7 +40184,7 @@ paths:
   /api/v3/open/node/workflow/operation/instance/log/get:
     post:
       operationId: OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet
-      description: 按节点执行实例 ID 查询步骤状态、日志及子工作流引用。
+      description: 按节点操作实例 ID 查询步骤状态、日志及子工作流引用。
       tags:
         - OpenNodeWorkflow
       responses:
@@ -40403,7 +40405,7 @@ paths:
   /api/v3/open/node/workflow/operation/list:
     post:
       operationId: OpenNodeWorkflow_OpenNodeWorkflowOperationList
-      description: 查询节点工作流的执行对象、操作状态及执行实例信息。
+      description: 查询节点工作流的执行对象、操作状态及操作实例信息。
       tags:
         - OpenNodeWorkflow
       responses:
