@@ -48,6 +48,61 @@
         ]
       }
     },
+    "/api/v3/version_log/overview/{version}": {
+      "get": {
+        "summary": "查询指定大版本的概览文档；当前语言没有对应文档时返回记录不存在。",
+        "operationId": "VersionLog_OverviewDetail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3VersionOverviewDetailResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version",
+            "description": "三段基础版本号，例如 v3.0.1，不包含 alpha、beta 或 release 后缀。",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "VersionLog"
+        ]
+      }
+    },
+    "/api/v3/version_log/overview_list": {
+      "get": {
+        "summary": "查询当前语言下已有的大版本概览列表及当前所属大版本。",
+        "operationId": "VersionLog_OverviewList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3VersionOverviewListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "VersionLog"
+        ]
+      }
+    },
     "/api/v3/version_log/version_logs_list": {
       "get": {
         "summary": "查询所有可用版本的更新日志列表。",
@@ -305,6 +360,100 @@
             "$ref": "#/definitions/v3VersionLogEntry"
           },
           "description": "version_logs lists all available versions sorted by recency (newest\nfirst)."
+        }
+      }
+    },
+    "v3VersionOverviewDetailResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3VersionOverviewDetailRespData"
+        }
+      },
+      "title": "当前语言下的大版本概览内容。"
+    },
+    "v3VersionOverviewDetailRespData": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "title": "请求的大版本号，例如 v3.0.1。"
+        },
+        "content": {
+          "type": "string",
+          "title": "独立维护、可持续更新的 Markdown 展示文档，不由迭代日志自动拼接。"
+        }
+      }
+    },
+    "v3VersionOverviewEntry": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "title": "三段基础版本号，例如 v3.0.1。"
+        },
+        "is_current": {
+          "type": "boolean",
+          "title": "是否为当前运行版本所属的大版本。"
+        }
+      },
+      "title": "独立维护的大版本概览，不按发布日期区分。"
+    },
+    "v3VersionOverviewListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3VersionOverviewListRespData"
+        }
+      },
+      "title": "大版本概览列表及当前运行版本所属的大版本。"
+    },
+    "v3VersionOverviewListRespData": {
+      "type": "object",
+      "properties": {
+        "version_logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3VersionOverviewEntry"
+          },
+          "title": "当前语言下已有概览文档的大版本，按版本号降序排列。"
+        },
+        "current_version": {
+          "type": "string",
+          "title": "当前运行版本所属的大版本，例如 v3.0.1；可能尚无对应概览文档。\n运行版本不符合项目版本格式时为空。"
         }
       }
     }

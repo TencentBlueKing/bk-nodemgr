@@ -39,6 +39,35 @@ type IHandler interface {
 	IPkgManager
 	ITransfer
 	ISharedReleaseSyncHandler
+	IPluginRequirementHandler
+}
+
+// IPluginRequirementHandler manages and transfers plugin requirement files.
+type IPluginRequirementHandler interface {
+	// CreatePluginRequirement stores a named plugin dependency with its filename and applicability.
+	CreatePluginRequirement(nCtx contextx.IContext, key types.PluginRequirementFileKey,
+		targetFileName, contentBase64 string, scope types.PluginRequirementFileScope) (*types.PluginRequirementFileRecord, error)
+
+	// UpdatePluginRequirement replaces content and names without changing plugin ownership or applicability.
+	UpdatePluginRequirement(nCtx contextx.IContext, requirementFileID, name, targetFileName,
+		contentBase64 string) (*types.PluginRequirementFileRecord, error)
+
+	// UpdatePluginRequirementScope replaces a stored file's applicability without replacing its content.
+	UpdatePluginRequirementScope(
+		nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope,
+	) (*types.PluginRequirementFileRecord, error)
+
+	// ListPluginRequirements retrieves one page of file records using exact filters.
+	ListPluginRequirements(
+		nCtx contextx.IContext, page types.Page, condition *types.PluginRequirementFileCondition,
+	) ([]*types.PluginRequirementFileRecord, int64, error)
+
+	// GetPluginRequirement retrieves a stored file record by ID.
+	GetPluginRequirement(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error)
+
+	// LaunchTransferPluginRequirement transfers a stored file to a host.
+	LaunchTransferPluginRequirement(nCtx contextx.IContext, requirementFileID, targetDir string, targetHost *types.Host) (
+		types.ISimpleTransferHandler, error)
 }
 
 // ITransfer is interface for file transfer handler.

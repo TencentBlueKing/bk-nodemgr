@@ -41,4 +41,6 @@ func Load(rg *gin.RouterGroup, _ *options.Capability) {
 
 	h.rg.GET("/version_logs_list/", restserver.Handler(h.VersionLogsList))
 	h.rg.GET("/changelog/:version", restserver.Handler(h.VersionLogDetail))
+	h.rg.GET("/overview_list/", restserver.Handler(h.VersionOverviewList))
+	h.rg.GET("/overview/:version", restserver.Handler(h.VersionOverviewDetail))
 }
