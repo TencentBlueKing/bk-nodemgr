@@ -1579,3 +1579,12 @@ pluginOperation:
     nextStep: Next
     prevStep: Previous
     cancel: Cancel
+
+wiki:
+  title: "User Wiki"
+  language: "Document language"
+  retry: "Reload"
+  catalog: "On this page"
+  notFound: "The document does not exist or Wiki is disabled"
+  invalidResponse: "The document endpoint did not return Markdown text"
+  loadFailed: "Failed to load document"

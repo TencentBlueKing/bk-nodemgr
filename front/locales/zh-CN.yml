@@ -1583,3 +1583,12 @@ pluginOperation:
     nextStep: 下一步
     prevStep: 上一步
     cancel: 取消
+
+wiki:
+  title: "用户 Wiki"
+  language: "文档语言"
+  retry: "重新加载"
+  catalog: "本页目录"
+  notFound: "文档不存在或 Wiki 未启用"
+  invalidResponse: "文档接口未返回 Markdown 文本"
+  loadFailed: "文档加载失败"

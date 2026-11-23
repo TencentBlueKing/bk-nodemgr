@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-// PrefixConfig configures a user-accessible Wiki root URL.
+// PrefixConfig configures a user-accessible Wiki root URL, including hash-route prefixes.
 type PrefixConfig struct {
 	PrefixURL string
 }
@@ -36,9 +36,9 @@ func (conf PrefixConfig) Validate() error {
 		return fmt.Errorf("invalid wiki prefix url: %w", err)
 	}
 	if (prefix.Scheme != "https" && prefix.Scheme != "http") || prefix.Host == "" ||
-		prefix.User != nil || prefix.RawQuery != "" || prefix.Fragment != "" || prefix.ForceQuery {
+		prefix.User != nil || prefix.RawQuery != "" || prefix.ForceQuery {
 
-		return fmt.Errorf("wiki prefix url must be an absolute http(s) address without credentials, query or fragment")
+		return fmt.Errorf("wiki prefix url must be an absolute http(s) address without credentials or query")
 	}
 
 	return nil

@@ -56,7 +56,7 @@ backend:
     wiki:
       mode: application
       application:
-        prefixURL: https://nodemgr.example.com/wiki/
+        prefixURL: "https://nodemgr.example.com/#/wiki/"
 application:
   config:
     wiki:
@@ -65,9 +65,11 @@ application:
 
 application 的 Wiki 默认关闭，需设置 `application.config.wiki.enabled: true` 才会注册 `/wiki/` 路由；设为 `false` 后不提供文档访问。该开关不改变 backend 的链接模式，关闭前需确认 backend 不再生成指向该入口的链接。
 
-`application.prefixURL` 必须配置为用户可访问的绝对文档 URL 前缀，而不是集群内服务地址；默认空值仅适用于 `github` 模式。请确保用户访问入口将 `/wiki/` 路径转发至 application 服务，并将前缀设置为对应的外部地址。
+`application.prefixURL` 必须配置为用户可访问的绝对 HTTP(S) 文档 URL 前缀，而不是集群内服务地址；不得包含凭据或 query，默认空值仅适用于 `github` 模式。标准 Web 阅读页使用 `/#/wiki/` 前缀，复用现有 Web 登录流程，不增加独立登录配置。通过子路径部署时，应保留 `#` 前的部署路径，例如 `https://nodemgr.example.com/deploy/#/wiki/`。请确保用户访问入口可访问 Web 页面，并将 `/wiki/` 原文请求转发至 application 服务；通过 `/deploy/` 子路径部署时，浏览器请求 `/deploy/wiki/`，入口代理需将其映射到 application 的 `/wiki/`。
 
-backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`。application 返回原始 Markdown，不提供 HTML 渲染；文档可免登录访问，请勿在产品 Wiki 中放置敏感信息。
+backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/#/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`，由 Web 阅读页渲染 Markdown，原文仍通过现有 `/wiki/` 接口读取；无需新增开关或接口。
+
+原有 `https://nodemgr.example.com/wiki/` 前缀仍可使用，直接链接到原始 Markdown。`/wiki/` 保持匿名、只读访问，由上述 `application.config.wiki.enabled` 开关控制；阅读页的登录流程不改变原文可免登录访问的边界，请勿在产品 Wiki 中放置敏感信息。
 
 ## IAM V3 模型同步
 
