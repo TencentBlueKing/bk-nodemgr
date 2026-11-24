@@ -28,7 +28,7 @@ import (
 )
 
 func (tmpl *template[T]) ParseIndexed(r io.Reader) ([]IndexedRow[T], error) {
-	dataRows, err := parseRows(r, tmpl.sheet, tmpl.meta)
+	dataRows, titles, err := parseRows(r, tmpl.sheet, tmpl.meta)
 	if err != nil {
 		return nil, err
 	}
@@ -47,64 +47,76 @@ func (tmpl *template[T]) ParseIndexed(r io.Reader) ([]IndexedRow[T], error) {
 		}
 
 		var row T
-		rowErr := tmpl.parseRow(&row, cells)
+		rowErr := tmpl.parseRow(&row, cells, titles)
 		rows = append(rows, IndexedRow[T]{RowIndex: rowIdx + dataStartRow, Value: row, Err: rowErr})
 	}
 
 	return rows, nil
 }
 
-// parseRows reads the data rows of a template file.
-func parseRows(r io.Reader, sheet string, columns []Column) ([][]string, error) {
+// parseRows reads the data rows and validated column titles of a template file.
+func parseRows(r io.Reader, sheet string, columns []Column) ([][]string, []string, error) {
 	if len(columns) == 0 {
-		return nil, errors.New("excel columns can not be empty")
+		return nil, nil, errors.New("excel columns can not be empty")
 	}
 
 	f, err := excelize.OpenReader(r, excelize.Options{RawCellValue: true})
 	if err != nil {
-		return nil, fmt.Errorf("failed to open excel workbook: %w", err)
+		return nil, nil, fmt.Errorf("failed to open excel workbook: %w", err)
 	}
 	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows(sheet)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get excel rows: %w", err)
+		return nil, nil, fmt.Errorf("failed to get excel rows: %w", err)
 	}
 	if len(rows) < dataStartRow {
-		return nil, errors.New("no data found in excel file")
+		return nil, nil, errors.New("no data found in excel file")
 	}
 
-	if len(rows[0]) != len(columns) {
-		return nil, fmt.Errorf("invalid excel template header. want(%d) got(%d)", len(columns), len(rows[0]))
+	titles := rows[headerRow-1]
+	if err := validateHeader(titles, rows[requiredRow-1], columns); err != nil {
+		return nil, nil, err
 	}
+
+	return rows[dataStartRow-1:], titles, nil
+}
+
+// validateHeader checks each title and required label against its column in either language.
+func validateHeader(titles, labels []string, columns []Column) error {
+	if len(titles) != len(columns) {
+		return errors.New("invalid excel template header, please download the latest template")
+	}
+
 	for idx, col := range columns {
-		if rows[0][idx] != col.Name {
-			return nil, fmt.Errorf("invalid excel template header. col(%d) want(%q) got(%q)", idx+1, col.Name, rows[0][idx])
+		if titles[idx] != col.Name.in(LanguageZh) && titles[idx] != col.Name.in(LanguageEn) {
+			return errors.New("invalid excel template header, please download the latest template")
 		}
 	}
 
-	if len(rows[1]) != len(columns) {
-		return nil, errors.New("outdated excel template layout, please download the latest template")
+	if len(labels) != len(columns) {
+		return errors.New("outdated excel template layout, please download the latest template")
 	}
 	for idx, col := range columns {
-		if rows[1][idx] != requiredLabel(col.Required) {
-			return nil, errors.New("outdated excel template layout, please download the latest template")
+		label := requiredLabel(col.Required)
+		if labels[idx] != label.in(LanguageZh) && labels[idx] != label.in(LanguageEn) {
+			return errors.New("outdated excel template layout, please download the latest template")
 		}
 	}
 
-	return rows[dataStartRow-1:], nil
+	return nil
 }
 
 // parseRow fills one data row, stopping at the first missing required column
 // or column parse failure.
-func (tmpl *template[T]) parseRow(row *T, cells []string) error {
+func (tmpl *template[T]) parseRow(row *T, cells, titles []string) error {
 	for colIdx, col := range tmpl.columns {
 		value := ""
 		if colIdx < len(cells) {
 			value = cells[colIdx]
 		}
 		if col.Required && strings.TrimSpace(value) == "" {
-			return fmt.Errorf("column %q is required", col.Name)
+			return fmt.Errorf("column %q is required", titles[colIdx])
 		}
 		if err := col.Parse(row, value); err != nil {
 			return err

@@ -28,17 +28,34 @@ import (
 )
 
 func testColumns() []Column {
+	var osDescription Text
+	osDescription.Edit().Zh("目标主机操作系统类型。").En("Operating system of the %s.", "target host").Set()
+
 	return []Column{
-		{Name: "内网 IPv4", Required: false, Description: "目标主机内网 IPv4 地址，与「内网 IPv6」至少填写一个。"},
-		{Name: "操作系统", Required: true, Description: "目标主机操作系统类型。", Options: []string{"linux", "windows"}},
-		{Name: "备注", Required: false, Description: "自由填写。"},
+		{
+			Name:        testText("内网 IPv4", "Internal IPv4"),
+			Description: testText("目标主机内网 IPv4 地址，与「内网 IPv6」至少填写一个。", "Enter at least one of Internal IPv4 and Internal IPv6."),
+		},
+		{
+			Name: testText("操作系统", "Operating System"), Required: true,
+			Description: osDescription,
+			Options:     []string{"linux", "windows"},
+		},
+		{Name: testText("备注", "Note"), Description: testText("自由填写。", "Enter any text.")},
 	}
 }
 
-func renderTemplate(t *testing.T, columns []Column, samples [][]any) []byte {
+func testText(zh, en string) Text {
+	var text Text
+	text.Edit().Zh(zh).En(en).Set()
+
+	return text
+}
+
+func renderTemplate(t *testing.T, columns []Column, samples [][]any, language Language) []byte {
 	t.Helper()
 	buf := new(bytes.Buffer)
-	if err := writeTemplate(buf, "test_sheet", columns, samples); err != nil {
+	if err := writeTemplate(buf, "test_sheet", columns, samples, language); err != nil {
 		t.Fatalf("writeTemplate failed: %v", err)
 	}
 	return buf.Bytes()
@@ -50,9 +67,9 @@ func TestWriteTemplateAndParseRowsRoundTrip(t *testing.T) {
 		{"1.1.1.1", "linux", "first"},
 		{"1.1.1.2", "windows", "second"},
 	}
-	data := renderTemplate(t, columns, samples)
+	data := renderTemplate(t, columns, samples, LanguageZh)
 
-	rows, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
+	rows, _, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
 	if err != nil {
 		t.Fatalf("parseRows failed: %v", err)
 	}
@@ -66,7 +83,7 @@ func TestWriteTemplateAndParseRowsRoundTrip(t *testing.T) {
 
 func TestWriteTemplateLayoutAndDropdowns(t *testing.T) {
 	columns := testColumns()
-	data := renderTemplate(t, columns, [][]any{{"1.1.1.1", "linux", ""}})
+	data := renderTemplate(t, columns, [][]any{{"1.1.1.1", "linux", ""}}, LanguageEn)
 
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
@@ -78,7 +95,8 @@ func TestWriteTemplateLayoutAndDropdowns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if rows[0][1] != "操作系统" || rows[1][1] != "必填" || rows[2][1] != "目标主机操作系统类型。" {
+	if rows[0][1] != "Operating System" || rows[1][1] != "Required" || rows[1][0] != "Optional" ||
+		rows[2][1] != "Operating system of the target host." {
 		t.Fatalf("unexpected header rows: %v", rows[:3])
 	}
 
@@ -94,6 +112,10 @@ func TestWriteTemplateLayoutAndDropdowns(t *testing.T) {
 	}
 	if dvs[0].Formula1 != `"linux,windows"` {
 		t.Fatalf("unexpected inline formula: %s", dvs[0].Formula1)
+	}
+	if dvs[0].ErrorTitle == nil || *dvs[0].ErrorTitle != "Invalid Input" ||
+		dvs[0].Error == nil || *dvs[0].Error != "Select a value from the drop-down list." {
+		t.Fatalf("unexpected drop-down notice: %+v", dvs[0])
 	}
 
 	for row := 1; row <= 3; row++ {
@@ -113,9 +135,13 @@ func TestWriteTemplateLongOptionsUseHiddenSheet(t *testing.T) {
 		options = append(options, fmt.Sprintf("业务名称-%02d", idx))
 	}
 	columns := []Column{
-		{Name: "业务", Required: true, Description: "目标主机归属业务。", Options: options},
+		{
+			Name: testText("业务", "Business"), Required: true,
+			Description: testText("目标主机归属业务。", "Business that owns the target host."),
+			Options:     options,
+		},
 	}
-	data := renderTemplate(t, columns, [][]any{{options[0]}})
+	data := renderTemplate(t, columns, [][]any{{options[0]}}, LanguageEn)
 
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
@@ -142,7 +168,7 @@ func TestWriteTemplateLongOptionsUseHiddenSheet(t *testing.T) {
 		t.Fatal("options sheet should be hidden")
 	}
 
-	rows, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
+	rows, _, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
 	if err != nil {
 		t.Fatalf("parseRows failed: %v", err)
 	}
@@ -153,9 +179,13 @@ func TestWriteTemplateLongOptionsUseHiddenSheet(t *testing.T) {
 
 func TestWriteTemplateAllowCustomUsesWarning(t *testing.T) {
 	columns := []Column{
-		{Name: "设备协议", Required: false, Description: "带外协议。", Options: []string{"ipmi"}, AllowCustom: true},
+		{
+			Name:        testText("设备协议", "Device Protocol"),
+			Description: testText("带外协议。", "Out-of-band protocol."),
+			Options:     []string{"ipmi"}, AllowCustom: true,
+		},
 	}
-	data := renderTemplate(t, columns, nil)
+	data := renderTemplate(t, columns, nil, LanguageEn)
 
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
@@ -170,14 +200,18 @@ func TestWriteTemplateAllowCustomUsesWarning(t *testing.T) {
 	if len(dvs) != 1 || dvs[0].ErrorStyle == nil || *dvs[0].ErrorStyle != "warning" {
 		t.Fatalf("allow-custom dropdown should use warning style: %+v", dvs)
 	}
+	if dvs[0].ErrorTitle == nil || *dvs[0].ErrorTitle != "Input Guidance" ||
+		dvs[0].Error == nil || *dvs[0].Error != "Select a value from the drop-down list or enter a custom value." {
+		t.Fatalf("unexpected drop-down notice: %+v", dvs[0])
+	}
 }
 
 func TestWriteTemplateRequiredFlagControlsStyle(t *testing.T) {
 	columns := []Column{
-		{Name: "必填列", Required: true, Description: "必填列说明。"},
-		{Name: "选填列", Required: false, Description: "选填列说明。"},
+		{Name: testText("必填列", "Required Column"), Required: true, Description: testText("必填列说明。", "Required field.")},
+		{Name: testText("选填列", "Optional Column"), Description: testText("选填列说明。", "Optional field.")},
 	}
-	data := renderTemplate(t, columns, nil)
+	data := renderTemplate(t, columns, nil, LanguageZh)
 
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
@@ -215,7 +249,7 @@ func TestParseRowsRejectsLegacyLayout(t *testing.T) {
 	}
 	for colIndex, col := range columns {
 		cell, _ := excelize.CoordinatesToCellName(colIndex+1, 1)
-		if err := f.SetCellValue("test_sheet", cell, col.Name); err != nil {
+		if err := f.SetCellValue("test_sheet", cell, col.Name.in(LanguageZh)); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -231,36 +265,64 @@ func TestParseRowsRejectsLegacyLayout(t *testing.T) {
 	}
 	_ = f.Close()
 
-	_, err := parseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
+	_, _, err := parseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
 	requireErrorContaining(t, err, "outdated excel template layout", "legacy layout should be rejected")
 }
 
-func TestParseRowsRejectsModifiedHeader(t *testing.T) {
+func TestParseRowsValidatesHeader(t *testing.T) {
+	const (
+		invalidHeader  = "invalid excel template header, please download the latest template"
+		outdatedLayout = "outdated excel template layout, please download the latest template"
+	)
 	columns := testColumns()
-	data := renderTemplate(t, columns, [][]any{{"1.1.1.1", "linux", ""}})
+	data := renderTemplate(t, columns, [][]any{{"1.1.1.1", "linux", ""}}, LanguageZh)
 
-	f, err := excelize.OpenReader(bytes.NewReader(data))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := f.SetCellValue("test_sheet", "B1", "被改掉的表头"); err != nil {
-		t.Fatal(err)
-	}
-	buf := new(bytes.Buffer)
-	if err := f.Write(buf); err != nil {
-		t.Fatal(err)
-	}
-	_ = f.Close()
+	for _, testCase := range []struct {
+		name  string
+		cells map[string]string
+		want  string
+	}{
+		{name: "changed title", cells: map[string]string{"B1": "被改掉的表头"}, want: invalidHeader},
+		{name: "mixed titles and labels", cells: map[string]string{"B1": "Operating System", "A2": "Optional"}},
+		{name: "reordered columns", cells: map[string]string{"A1": "操作系统", "B1": "内网 IPv4"}, want: invalidHeader},
+		{name: "extra column", cells: map[string]string{"D1": "额外列"}, want: invalidHeader},
+		{name: "mismatched label", cells: map[string]string{"B2": "Optional"}, want: outdatedLayout},
+		{
+			name: "English labels under Chinese titles", cells: map[string]string{"A2": "Optional", "B2": "Required", "C2": "Optional"},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			f, err := excelize.OpenReader(bytes.NewReader(data))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() { _ = f.Close() }()
+			for cell, value := range testCase.cells {
+				if err := f.SetCellValue("test_sheet", cell, value); err != nil {
+					t.Fatal(err)
+				}
+			}
+			buf := new(bytes.Buffer)
+			if err := f.Write(buf); err != nil {
+				t.Fatal(err)
+			}
 
-	_, err = parseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
-	requireErrorContaining(t, err, "invalid excel template header", "modified header should be rejected")
+			_, _, err = parseRows(bytes.NewReader(buf.Bytes()), "test_sheet", columns)
+			if testCase.want == "" && err == nil {
+				return
+			}
+			if got := fmt.Sprint(err); got != testCase.want {
+				t.Fatalf("parseRows error = %q, want %q", got, testCase.want)
+			}
+		})
+	}
 }
 
 func TestParseRowsNoData(t *testing.T) {
 	columns := testColumns()
-	data := renderTemplate(t, columns, nil)
+	data := renderTemplate(t, columns, nil, LanguageZh)
 
-	_, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
+	_, _, err := parseRows(bytes.NewReader(data), "test_sheet", columns)
 	requireErrorContaining(t, err, "no data found", "empty template should report no data")
 }
 

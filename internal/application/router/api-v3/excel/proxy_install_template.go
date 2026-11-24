@@ -50,18 +50,10 @@ func (h *handler) ExcelDownloadProxyInstallTemplate(rCtx restserver.IContext) (*
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	columns := proxyInstallColumns()
-	for idx := range columns {
-		switch columns[idx].Name {
-		case colOSType:
-			columns[idx].Options = releases.OSType
-		case proxyColCPUArch:
-			columns[idx].Options = releases.CPUArch
-		}
-	}
+	columns := proxyInstallColumns(releases.OSType, releases.CPUArch)
 
 	buffer := new(bytes.Buffer)
-	tmpl, err := workbook.NewTemplate(proxyInstallSheetName, columns)
+	tmpl, err := workbook.NewTemplate(proxyInstallSheetName, columns, templateLanguage(rCtx))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create proxy install template")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -79,454 +71,475 @@ func (h *handler) ExcelDownloadProxyInstallTemplate(rCtx restserver.IContext) (*
 	}, nil
 }
 
-// proxyInstallRow carries the raw cell values of one uploaded data row.
-type proxyInstallRow struct {
-	InnerIP                  string
-	InnerIPV6                string
-	ExportIP                 string
-	Addressing               types.Addressing
-	OsType                   criteria.OSType
-	LoginIP                  string
-	LoginPort                int64
-	LoginUser                string
-	IsSudo                   bool
-	LoginMode                types.LoginMode
-	Credit                   string
-	CPUArch                  string
-	AdvertiseIP              string
-	InstallMethod            types.NodeInstallMethod
-	InstallPreOrderedPlugins *bool
-	ReRegister               *bool
-	DedicatedInstaller       *bool
-	ClusterTunnel            *bool
-	FileTunnel               *bool
-	DataTunnel               *bool
+func proxyInstallColumns(osTypes, cpuArchs []string) []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow] {
+	boolOptions := []string{"true", "false"}
+	columns := proxyInstallAddressColumns()
+	columns = append(columns, proxyInstallHostColumns(osTypes, cpuArchs)...)
+	columns = append(columns, proxyInstallLoginColumns(boolOptions)...)
+	columns = append(columns, proxyInstallOptionColumns(boolOptions)...)
+
+	return append(columns, proxyInstallTunnelColumns(boolOptions)...)
 }
 
-// nolint: funlen, gocognit, gocyclo, cyclop, maintidx
-func proxyInstallColumns() []workbook.TypedColumn[proxyInstallRow] {
-	boolOptions := []string{"true", "false"}
-	return []workbook.TypedColumn[proxyInstallRow]{
-		{
-			Column: workbook.Column{
-				Name:        colInnerIP,
-				Required:    false,
-				Description: colDescInnerIP,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.InnerIP = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.InnerIP
-			},
+func proxyInstallAddressColumns() []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow] {
+	innerIPv4 := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
 		},
-		{
-			Column: workbook.Column{
-				Name:        colInnerIPV6,
-				Required:    false,
-				Description: colDescInnerIPV6,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.InnerIPV6 = v
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.InnerIP = v
 
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.InnerIPV6
-			},
+			return nil
 		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColExportIP,
-				Required:    true,
-				Description: proxyColDescExportIP,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.ExportIP = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.ExportIP
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colAddressing,
-				Required:    true,
-				Description: colDescAddressing,
-				Options:     []string{string(types.AddressingStatic), string(types.AddressingDynamic)},
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.Addressing = types.Addressing(v)
-				if err := row.Addressing.Validate(); err != nil {
-					return fmt.Errorf("invalid addressing. addressing(%s): %w", v, err)
-				}
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.Addressing
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colOSType,
-				Required:    true,
-				Description: proxyColDescOSType,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.OsType = criteria.OSType(v)
-				if err := row.OsType.Validate(); err != nil {
-					return fmt.Errorf("invalid os_type. os-type(%s): %w", v, err)
-				}
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.OsType
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColCPUArch,
-				Required:    false,
-				Description: proxyColDescCPUArch,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.CPUArch = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.CPUArch
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColAdvertiseIP,
-				Required:    false,
-				Description: proxyColDescAdvertiseIP,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.AdvertiseIP = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.AdvertiseIP
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colLoginIP,
-				Required:    true,
-				Description: colDescLoginIP,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.LoginIP = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.LoginIP
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colLoginPort,
-				Required:    true,
-				Description: colDescLoginPort,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				port, err := strconv.ParseInt(v, 10, 64)
-				if err != nil {
-					return fmt.Errorf("failed to parse login port. login-port(%s): %w", v, err)
-				}
-				row.LoginPort = port
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.LoginPort
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colLoginUser,
-				Required:    true,
-				Description: colDescLoginUser,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.LoginUser = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.LoginUser
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colIsSudo,
-				Required:    false,
-				Description: colDescIsSudo,
-				Options:     boolOptions,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				if v == "" {
-					return nil
-				}
-				value, err := strconv.ParseBool(v)
-				if err != nil {
-					return fmt.Errorf("invalid is_sudo. value(%s): %w", v, err)
-				}
-				row.IsSudo = value
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.IsSudo
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colLoginMode,
-				Required:    true,
-				Description: colDescLoginMode,
-				Options:     []string{string(types.LoginModePassword), string(types.LoginModeKeyFile), string(types.LoginModePasswordVault)},
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.LoginMode = types.LoginMode(v)
-				if err := row.LoginMode.Validate(); err != nil {
-					return fmt.Errorf("invalid login_mode. login-mode(%s): %w", v, err)
-				}
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.LoginMode
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colCredit,
-				Required:    true,
-				Description: colDescCredit,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.Credit = v
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return row.Credit
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colInstallMethod,
-				Required:    false,
-				Description: colDescInstallMethod,
-				Options: []string{
-					string(types.NodeInstallMethodSSH),
-					string(types.NodeInstallMethodWMI),
-				},
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				row.InstallMethod = types.NodeInstallMethod(v)
-				if err := row.InstallMethod.Validate(); err != nil {
-					return fmt.Errorf("invalid install_method. value(%s): %w", v, err)
-				}
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				return string(row.InstallMethod)
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colInstallPreOrderedPlugins,
-				Required:    false,
-				Description: proxyColDescInstallPreOrderedPlugins,
-				Options:     boolOptions,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				if v == "" {
-					return nil
-				}
-				value, err := strconv.ParseBool(v)
-				if err != nil {
-					return fmt.Errorf("invalid install_pre_ordered_plugins. value(%s): %w", v, err)
-				}
-				row.InstallPreOrderedPlugins = &value
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				if row.InstallPreOrderedPlugins == nil {
-					return ""
-				}
-
-				return *row.InstallPreOrderedPlugins
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        colReRegister,
-				Required:    false,
-				Description: colDescReRegister,
-				Options:     boolOptions,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				if v == "" {
-					return nil
-				}
-				value, err := strconv.ParseBool(v)
-				if err != nil {
-					return fmt.Errorf("invalid re_register. value(%s): %w", v, err)
-				}
-				row.ReRegister = &value
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				if row.ReRegister == nil {
-					return ""
-				}
-
-				return *row.ReRegister
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColDedicatedInstaller,
-				Required:    false,
-				Description: proxyColDescDedicatedInstaller,
-				Options:     boolOptions,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				if v == "" {
-					return nil
-				}
-				value, err := strconv.ParseBool(v)
-				if err != nil {
-					return fmt.Errorf("invalid dedicated_installer. value(%s): %w", v, err)
-				}
-				row.DedicatedInstaller = &value
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				if row.DedicatedInstaller == nil {
-					return ""
-				}
-
-				return *row.DedicatedInstaller
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColClusterTunnel,
-				Required:    false,
-				Description: proxyColDescClusterTunnel,
-				Options:     boolOptions,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				if v == "" {
-					return nil
-				}
-				value, err := strconv.ParseBool(v)
-				if err != nil {
-					return fmt.Errorf("invalid cluster_tunnel. value(%s): %w", v, err)
-				}
-				row.ClusterTunnel = &value
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				if row.ClusterTunnel == nil {
-					return ""
-				}
-
-				return *row.ClusterTunnel
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColFileTunnel,
-				Required:    false,
-				Description: proxyColDescFileTunnel,
-				Options:     boolOptions,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				if v == "" {
-					return nil
-				}
-				value, err := strconv.ParseBool(v)
-				if err != nil {
-					return fmt.Errorf("invalid file_tunnel. value(%s): %w", v, err)
-				}
-				row.FileTunnel = &value
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				if row.FileTunnel == nil {
-					return ""
-				}
-
-				return *row.FileTunnel
-			},
-		},
-		{
-			Column: workbook.Column{
-				Name:        proxyColDataTunnel,
-				Required:    false,
-				Description: proxyColDescDataTunnel,
-				Options:     boolOptions,
-			},
-			Parse: func(row *proxyInstallRow, v string) error {
-				if v == "" {
-					return nil
-				}
-				value, err := strconv.ParseBool(v)
-				if err != nil {
-					return fmt.Errorf("invalid data_tunnel. value(%s): %w", v, err)
-				}
-				row.DataTunnel = &value
-
-				return nil
-			},
-			ValueOf: func(row *proxyInstallRow) any {
-				if row.DataTunnel == nil {
-					return ""
-				}
-
-				return *row.DataTunnel
-			},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.InnerIP
 		},
 	}
+	innerIPv4.Name.Edit().Zh(colInnerIPZh).En(colInnerIPEn).Set()
+	innerIPv4.Description.Edit().Zh(colDescInnerIPZh).En(colDescInnerIPEn).Set()
+
+	innerIPv6 := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.InnerIPV6 = v
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.InnerIPV6
+		},
+	}
+	innerIPv6.Name.Edit().Zh(colInnerIPV6Zh).En(colInnerIPV6En).Set()
+	innerIPv6.Description.Edit().Zh(colDescInnerIPV6Zh).En(colDescInnerIPV6En).Set()
+
+	exportIP := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.ExportIP = v
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.ExportIP
+		},
+	}
+	exportIP.Name.Edit().Zh(proxyColExportIPZh).En(proxyColExportIPEn).Set()
+	exportIP.Description.Edit().Zh(proxyColDescExportIPZh).En(proxyColDescExportIPEn).Set()
+
+	addressing := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+			Options:  []string{string(types.AddressingStatic), string(types.AddressingDynamic)},
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.Addressing = types.Addressing(v)
+			if err := row.Addressing.Validate(); err != nil {
+				return fmt.Errorf("invalid addressing. addressing(%s): %w", v, err)
+			}
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.Addressing
+		},
+	}
+	addressing.Name.Edit().Zh(colAddressingZh).En(colAddressingEn).Set()
+	addressing.Description.Edit().Zh(colDescAddressingZh).En(colDescAddressingEn).Set()
+
+	return []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{innerIPv4, innerIPv6, exportIP, addressing}
+}
+
+func proxyInstallHostColumns(osTypes, cpuArchs []string) []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow] {
+	osType := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+			Options:  osTypes,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.OSType = criteria.OSType(v)
+			if err := row.OSType.Validate(); err != nil {
+				return fmt.Errorf("invalid os_type. os-type(%s): %w", v, err)
+			}
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.OSType
+		},
+	}
+	osType.Name.Edit().Zh(colOSTypeZh).En(colOSTypeEn).Set()
+	osType.Description.Edit().Zh(proxyColDescOSTypeZh).En(proxyColDescOSTypeEn).Set()
+
+	cpuArch := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  cpuArchs,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.CPUArch = v
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.CPUArch
+		},
+	}
+	cpuArch.Name.Edit().Zh(proxyColCPUArchZh).En(proxyColCPUArchEn).Set()
+	cpuArch.Description.Edit().Zh(proxyColDescCPUArchZh).En(proxyColDescCPUArchEn).Set()
+
+	advertiseIP := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.AdvertiseIP = v
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.AdvertiseIP
+		},
+	}
+	advertiseIP.Name.Edit().Zh(proxyColAdvertiseIPZh).En(proxyColAdvertiseIPEn).Set()
+	advertiseIP.Description.Edit().Zh(proxyColDescAdvertiseIPZh).En(proxyColDescAdvertiseIPEn).Set()
+
+	return []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{osType, cpuArch, advertiseIP}
+}
+
+func proxyInstallLoginColumns(boolOptions []string) []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow] {
+	loginIP := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.LoginIP = v
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.LoginIP
+		},
+	}
+	loginIP.Name.Edit().Zh(colLoginIPZh).En(colLoginIPEn).Set()
+	loginIP.Description.Edit().Zh(colDescLoginIPZh).En(colDescLoginIPEn).Set()
+
+	loginPort := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			port, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse login port. login-port(%s): %w", v, err)
+			}
+			row.LoginPort = port
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.LoginPort
+		},
+	}
+	loginPort.Name.Edit().Zh(colLoginPortZh).En(colLoginPortEn).Set()
+	loginPort.Description.Edit().Zh(colDescLoginPortZh).En(colDescLoginPortEn).Set()
+
+	loginUser := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.LoginUser = v
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.LoginUser
+		},
+	}
+	loginUser.Name.Edit().Zh(colLoginUserZh).En(colLoginUserEn).Set()
+	loginUser.Description.Edit().Zh(colDescLoginUserZh).En(colDescLoginUserEn).Set()
+
+	isSudo := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  boolOptions,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			if v == "" {
+				return nil
+			}
+			value, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("invalid is_sudo. value(%s): %w", v, err)
+			}
+			row.IsSudo = value
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.IsSudo
+		},
+	}
+	isSudo.Name.Edit().Zh(colIsSudoZh).En(colIsSudoEn).Set()
+	isSudo.Description.Edit().Zh(colDescIsSudoZh).En(colDescIsSudoEn).Set()
+
+	loginMode := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+			Options:  []string{string(types.LoginModePassword), string(types.LoginModeKeyFile), string(types.LoginModePasswordVault)},
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.LoginMode = types.LoginMode(v)
+			if err := row.LoginMode.Validate(); err != nil {
+				return fmt.Errorf("invalid login_mode. login-mode(%s): %w", v, err)
+			}
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.LoginMode
+		},
+	}
+	loginMode.Name.Edit().Zh(colLoginModeZh).En(colLoginModeEn).Set()
+	loginMode.Description.Edit().Zh(colDescLoginModeZh).En(colDescLoginModeEn).Set()
+
+	credit := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.Credit = v
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return row.Credit
+		},
+	}
+	credit.Name.Edit().Zh(colCreditZh).En(colCreditEn).Set()
+	credit.Description.Edit().Zh(colDescCreditZh).En(colDescCreditEn).Set()
+
+	return []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{loginIP, loginPort, loginUser, isSudo, loginMode, credit}
+}
+
+func proxyInstallOptionColumns(boolOptions []string) []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow] {
+	installMethod := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options: []string{
+				string(types.NodeInstallMethodSSH),
+				string(types.NodeInstallMethodWMI),
+			},
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			row.InstallMethod = types.NodeInstallMethod(v)
+			if err := row.InstallMethod.Validate(); err != nil {
+				return fmt.Errorf("invalid install_method. value(%s): %w", v, err)
+			}
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			return string(row.InstallMethod)
+		},
+	}
+	installMethod.Name.Edit().Zh(colInstallMethodZh).En(colInstallMethodEn).Set()
+	installMethod.Description.Edit().Zh(colDescInstallMethodZh).En(colDescInstallMethodEn).Set()
+
+	installPreOrderedPlugins := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  boolOptions,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			if v == "" {
+				return nil
+			}
+			value, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("invalid install_pre_ordered_plugins. value(%s): %w", v, err)
+			}
+			row.InstallPreOrderedPlugins = &value
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			if row.InstallPreOrderedPlugins == nil {
+				return ""
+			}
+
+			return *row.InstallPreOrderedPlugins
+		},
+	}
+	installPreOrderedPlugins.Name.Edit().Zh(colInstallPreOrderedPluginsZh).En(colInstallPreOrderedPluginsEn).Set()
+	installPreOrderedPlugins.Description.Edit().Zh(proxyColDescInstallPreOrderedPluginsZh).En(proxyColDescInstallPreOrderedPluginsEn).Set()
+
+	reRegister := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  boolOptions,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			if v == "" {
+				return nil
+			}
+			value, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("invalid re_register. value(%s): %w", v, err)
+			}
+			row.ReRegister = &value
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			if row.ReRegister == nil {
+				return ""
+			}
+
+			return *row.ReRegister
+		},
+	}
+	reRegister.Name.Edit().Zh(colReRegisterZh).En(colReRegisterEn).Set()
+	reRegister.Description.Edit().Zh(colDescReRegisterZh).En(colDescReRegisterEn).Set()
+
+	dedicatedInstaller := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  boolOptions,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			if v == "" {
+				return nil
+			}
+			value, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("invalid dedicated_installer. value(%s): %w", v, err)
+			}
+			row.DedicatedInstaller = &value
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			if row.DedicatedInstaller == nil {
+				return ""
+			}
+
+			return *row.DedicatedInstaller
+		},
+	}
+	dedicatedInstaller.Name.Edit().Zh(proxyColDedicatedInstallerZh).En(proxyColDedicatedInstallerEn).Set()
+	dedicatedInstaller.Description.Edit().Zh(proxyColDescDedicatedInstallerZh).En(proxyColDescDedicatedInstallerEn).Set()
+
+	return []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{installMethod, installPreOrderedPlugins, reRegister, dedicatedInstaller}
+}
+
+func proxyInstallTunnelColumns(boolOptions []string) []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow] {
+	clusterTunnel := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  boolOptions,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			if v == "" {
+				return nil
+			}
+			value, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("invalid cluster_tunnel. value(%s): %w", v, err)
+			}
+			row.ClusterTunnel = &value
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			if row.ClusterTunnel == nil {
+				return ""
+			}
+
+			return *row.ClusterTunnel
+		},
+	}
+	clusterTunnel.Name.Edit().Zh(proxyColClusterTunnelZh).En(proxyColClusterTunnelEn).Set()
+	clusterTunnel.Description.Edit().Zh(proxyColDescClusterTunnelZh).En(proxyColDescClusterTunnelEn).Set()
+
+	fileTunnel := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  boolOptions,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			if v == "" {
+				return nil
+			}
+			value, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("invalid file_tunnel. value(%s): %w", v, err)
+			}
+			row.FileTunnel = &value
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			if row.FileTunnel == nil {
+				return ""
+			}
+
+			return *row.FileTunnel
+		},
+	}
+	fileTunnel.Name.Edit().Zh(proxyColFileTunnelZh).En(proxyColFileTunnelEn).Set()
+	fileTunnel.Description.Edit().Zh(proxyColDescFileTunnelZh).En(proxyColDescFileTunnelEn).Set()
+
+	dataTunnel := workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  boolOptions,
+		},
+		Parse: func(row *types.ExcelProxyInstallTemplateRow, v string) error {
+			if v == "" {
+				return nil
+			}
+			value, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("invalid data_tunnel. value(%s): %w", v, err)
+			}
+			row.DataTunnel = &value
+
+			return nil
+		},
+		ValueOf: func(row *types.ExcelProxyInstallTemplateRow) any {
+			if row.DataTunnel == nil {
+				return ""
+			}
+
+			return *row.DataTunnel
+		},
+	}
+	dataTunnel.Name.Edit().Zh(proxyColDataTunnelZh).En(proxyColDataTunnelEn).Set()
+	dataTunnel.Description.Edit().Zh(proxyColDescDataTunnelZh).En(proxyColDescDataTunnelEn).Set()
+
+	return []workbook.TypedColumn[types.ExcelProxyInstallTemplateRow]{clusterTunnel, fileTunnel, dataTunnel}
 }
 
 // proxyInstallSampleRows builds the example data rows shown under the template header.
 // nolint:mnd
-func proxyInstallSampleRows() []proxyInstallRow {
+func proxyInstallSampleRows() []types.ExcelProxyInstallTemplateRow {
 	exampleTrue, exampleFalse := true, false
 	exampleCPUArch := "amd64"
 	exampleUserDesc := "login_username"
 	exampleCreditDesc := "fill in your password or key according to LoginMode"
 	var exampleLoginPort int64 = 22
-	return []proxyInstallRow{
+	return []types.ExcelProxyInstallTemplateRow{
 		{
 			InnerIP:                  "1.1.1.1",
 			InnerIPV6:                "",
 			ExportIP:                 "2.2.2.1",
 			Addressing:               types.AddressingStatic,
-			OsType:                   criteria.OSLinux,
+			OSType:                   criteria.OSLinux,
 			LoginIP:                  "1.1.1.1",
 			LoginPort:                exampleLoginPort,
 			LoginUser:                exampleUserDesc,
@@ -548,7 +561,7 @@ func proxyInstallSampleRows() []proxyInstallRow {
 			InnerIPV6:                "",
 			ExportIP:                 "2.2.2.2",
 			Addressing:               types.AddressingStatic,
-			OsType:                   criteria.OSLinux,
+			OSType:                   criteria.OSLinux,
 			LoginIP:                  "1.1.1.2",
 			LoginPort:                exampleLoginPort,
 			LoginUser:                exampleUserDesc,
@@ -570,7 +583,7 @@ func proxyInstallSampleRows() []proxyInstallRow {
 			InnerIPV6:                "",
 			ExportIP:                 "2.2.2.3",
 			Addressing:               types.AddressingDynamic,
-			OsType:                   criteria.OSLinux,
+			OSType:                   criteria.OSLinux,
 			LoginIP:                  "1.1.1.3",
 			LoginPort:                exampleLoginPort,
 			LoginUser:                exampleUserDesc,
@@ -618,7 +631,7 @@ func (h *handler) ExcelParseProxyInstallTemplate(rCtx restserver.IContext) (inte
 		}
 	}()
 
-	tmpl, err := workbook.NewTemplate(proxyInstallSheetName, proxyInstallColumns())
+	tmpl, err := workbook.NewTemplate(proxyInstallSheetName, proxyInstallColumns(nil, nil), workbook.LanguageZh)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create proxy install template")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -640,7 +653,7 @@ func (h *handler) ExcelParseProxyInstallTemplate(rCtx restserver.IContext) (inte
 			continue
 		}
 
-		parsedRow.Value.fillInfo(info)
+		info.ConvertFromTypes(&parsedRow.Value)
 		infos[idx] = info
 	}
 
@@ -648,28 +661,4 @@ func (h *handler) ExcelParseProxyInstallTemplate(rCtx restserver.IContext) (inte
 	resp.Data = &protoApplication.ExcelParseProxyInstallTemplateResp_Data{Items: infos}
 
 	return resp.GetData(), nil
-}
-
-// fillInfo copies one parsed row into the response item.
-func (row *proxyInstallRow) fillInfo(info *protoApplication.ExcelProxyInstallTemplateParsedInfo) {
-	info.BkHostInnerip = row.InnerIP
-	info.BkHostInneripV6 = row.InnerIPV6
-	info.ExportIp = row.ExportIP
-	info.BkAddressing = string(row.Addressing)
-	info.OsType = string(row.OsType)
-	info.LoginIp = row.LoginIP
-	info.LoginPort = row.LoginPort
-	info.LoginUser = row.LoginUser
-	info.IsSudo = row.IsSudo
-	info.LoginMode = string(row.LoginMode)
-	info.Credit = row.Credit
-	info.CpuArch = row.CPUArch
-	info.AdvertiseIp = row.AdvertiseIP
-	info.InstallMethod = string(row.InstallMethod)
-	info.InstallPreOrderedPlugins = row.InstallPreOrderedPlugins
-	info.ReRegister = row.ReRegister
-	info.DedicatedInstaller = row.DedicatedInstaller
-	info.ClusterTunnel = row.ClusterTunnel
-	info.FileTunnel = row.FileTunnel
-	info.DataTunnel = row.DataTunnel
 }
