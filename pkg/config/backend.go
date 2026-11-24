@@ -792,34 +792,75 @@ type GSEDeployCustom struct {
 
 // Validate validates the config.
 func (conf *GSEDeployCustom) Validate() error {
-	for name, ip := range map[string]string{
-		"dataAgentBindIP":      conf.DataAgentBindIP,
-		"fileAgentBindIP":      conf.FileAgentBindIP,
-		"proxyBindIP":          conf.ProxyBindIP,
-		"fileBittorrentBindIP": conf.FileBittorrentBindIP,
-		"fileTopologyBindIP":   conf.FileTopologyBindIP,
-	} {
-		if ip != "" && net.ParseIP(ip) == nil {
-			return fmt.Errorf("invalid %s: %q", name, ip)
-		}
+	if err := conf.validateBindIPs(); err != nil {
+		return err
 	}
 
-	for name, port := range map[string]int64{
-		"dataAgentBindPort":             conf.DataAgentBindPort,
-		"fileAgentBindPort":             conf.FileAgentBindPort,
-		"proxyBindPort":                 conf.ProxyBindPort,
-		"fileBittorrentBindPort":        conf.FileBittorrentBindPort,
-		"fileBittorrentTrackerBindPort": conf.FileBittorrentTrackerBindPort,
-		"fileTopologyBindPort":          conf.FileTopologyBindPort,
-	} {
-		if port < 0 || port > 65535 {
-			return fmt.Errorf("invalid %s: must be 0 (default) or between 1 and 65535, got %d", name, port)
-		}
+	if err := conf.validateBindPorts(); err != nil {
+		return err
 	}
 
 	if conf.FileBittorrentSpeedLimitMBPerSec < 0 {
 		return fmt.Errorf("invalid fileBittorrentSpeedLimitMBPerSec: must be non-negative, got %d",
 			conf.FileBittorrentSpeedLimitMBPerSec)
+	}
+
+	return nil
+}
+
+func (conf *GSEDeployCustom) validateBindIPs() error {
+	if conf.DataAgentBindIP != "" && net.ParseIP(conf.DataAgentBindIP) == nil {
+		return fmt.Errorf("invalid dataAgentBindIP: %q", conf.DataAgentBindIP)
+	}
+
+	if conf.FileAgentBindIP != "" && net.ParseIP(conf.FileAgentBindIP) == nil {
+		return fmt.Errorf("invalid fileAgentBindIP: %q", conf.FileAgentBindIP)
+	}
+
+	if conf.ProxyBindIP != "" && net.ParseIP(conf.ProxyBindIP) == nil {
+		return fmt.Errorf("invalid proxyBindIP: %q", conf.ProxyBindIP)
+	}
+
+	if conf.FileBittorrentBindIP != "" && net.ParseIP(conf.FileBittorrentBindIP) == nil {
+		return fmt.Errorf("invalid fileBittorrentBindIP: %q", conf.FileBittorrentBindIP)
+	}
+
+	if conf.FileTopologyBindIP != "" && net.ParseIP(conf.FileTopologyBindIP) == nil {
+		return fmt.Errorf("invalid fileTopologyBindIP: %q", conf.FileTopologyBindIP)
+	}
+
+	return nil
+}
+
+func (conf *GSEDeployCustom) validateBindPorts() error {
+	if conf.DataAgentBindPort < 0 || conf.DataAgentBindPort > 65535 {
+		return fmt.Errorf("invalid dataAgentBindPort: must be 0 (default) or between 1 and 65535, got %d",
+			conf.DataAgentBindPort)
+	}
+
+	if conf.FileAgentBindPort < 0 || conf.FileAgentBindPort > 65535 {
+		return fmt.Errorf("invalid fileAgentBindPort: must be 0 (default) or between 1 and 65535, got %d",
+			conf.FileAgentBindPort)
+	}
+
+	if conf.ProxyBindPort < 0 || conf.ProxyBindPort > 65535 {
+		return fmt.Errorf("invalid proxyBindPort: must be 0 (default) or between 1 and 65535, got %d",
+			conf.ProxyBindPort)
+	}
+
+	if conf.FileBittorrentBindPort < 0 || conf.FileBittorrentBindPort > 65535 {
+		return fmt.Errorf("invalid fileBittorrentBindPort: must be 0 (default) or between 1 and 65535, got %d",
+			conf.FileBittorrentBindPort)
+	}
+
+	if conf.FileBittorrentTrackerBindPort < 0 || conf.FileBittorrentTrackerBindPort > 65535 {
+		return fmt.Errorf("invalid fileBittorrentTrackerBindPort: must be 0 (default) or between 1 and 65535, got %d",
+			conf.FileBittorrentTrackerBindPort)
+	}
+
+	if conf.FileTopologyBindPort < 0 || conf.FileTopologyBindPort > 65535 {
+		return fmt.Errorf("invalid fileTopologyBindPort: must be 0 (default) or between 1 and 65535, got %d",
+			conf.FileTopologyBindPort)
 	}
 
 	return nil
