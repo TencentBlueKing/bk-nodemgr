@@ -23,37 +23,32 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-// tmpDirInstance is the instance of tmpDir.
-// nolint: gochecknoglobals
-var tmpDirInstance struct {
-	once sync.Once
-	dir  string
-}
-
-// GetTmpDir returns the system's temporary directory path.
+// GetTmpDir creates and returns a unique temporary directory.
 func GetTmpDir() (string, error) {
-	tmpDirInstance.dir = filepath.Join(
+	dir := filepath.Join(
 		os.TempDir(),
 		prefixName+"_"+time.Now().Format("20060102150405")+"_"+strings.ReplaceAll(uuid.New().String(), "-", ""))
 
-	dirInfo, err := os.Stat(tmpDirInstance.dir)
-	if err != nil && os.IsNotExist(err) {
-		if err := os.MkdirAll(tmpDirInstance.dir, 0700); err != nil { // nolint:mnd
+	dirInfo, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0700); err != nil { // nolint:mnd
 			return "", fmt.Errorf("failed to create tmp dir: %w", err)
 		}
 
-		return tmpDirInstance.dir, nil
+		return dir, nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to stat tmp dir: %w", err)
 	}
 
 	if !dirInfo.IsDir() {
-		return "", fmt.Errorf("tmp dir is not a dir, dir(%s) info(%+v)", tmpDirInstance.dir, dirInfo)
+		return "", fmt.Errorf("tmp dir is not a dir, dir(%s) info(%+v)", dir, dirInfo)
 	}
 
-	return tmpDirInstance.dir, nil
+	return dir, nil
 }

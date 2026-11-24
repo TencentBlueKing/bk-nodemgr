@@ -108,8 +108,9 @@ func convertPluginConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginExactFields{
-			Name:  exactCond.GetName(),
-			Group: exactCond.GetGroup(),
+			Name:          exactCond.GetName(),
+			Group:         exactCond.GetGroup(),
+			VisibleBizIDs: exactCond.GetVisibleBizIds(),
 		}
 	}
 
@@ -133,8 +134,9 @@ func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginConditi
 	// exact conditions.
 	if condition.ExactInclude != nil {
 		x.ExactIncludeConditions = &PluginListReq_ExactConditions{
-			Name:  condition.ExactInclude.Name,
-			Group: condition.ExactInclude.Group,
+			Name:          condition.ExactInclude.Name,
+			Group:         condition.ExactInclude.Group,
+			VisibleBizIds: condition.ExactInclude.VisibleBizIDs,
 		}
 	}
 
