@@ -11,7 +11,6 @@
 ## 非职责
 
 - 列间约束、取值合法性等校验，由调用方在 `Parse` 或调用方代码中完成
-- 多语言：当前只输出 zh-CN 文案
 - HTTP 绑定、业务字段转换与主机解析：留在上级 `excel` 处理器包
 
 ## 布局契约
@@ -19,7 +18,7 @@
 | 行  | 内容                                              |
 | --- | ------------------------------------------------- |
 | 1   | `Column.Name`                                     |
-| 2   | `Column.Required` 渲染出的 `必填` / `可选`        |
+| 2   | `Column.Required` → `必填` / `可选` 或 `Required` / `Optional` |
 | 3   | `Column.Description`                              |
 | 4+  | 数据行，`IndexedRow.RowIndex` 即此处的 Excel 行号 |
 
@@ -28,30 +27,31 @@
 ## 下拉校验
 
 - `Options` 为空时不生成校验，单元格自由填写
-- 选项总长不超过 250 个 UTF-16 单元时写内联公式；超长时写入隐藏 sheet `_options_<n>` 并用区域引用
+- 选项总长不超过 250 个 UTF-16 单元时写内联公式。超长时写入隐藏工作表 `_options_<n>` 并用区域引用
 - `AllowCustom=false` 用 stop 级校验（只能选列表值），`true` 用 warning 级（允许自定义值）
 - 校验范围是整列，从第 4 行到工作表末行
 
 ## 解析与错误
 
-- 表头行与列定义不一致 → `invalid excel template header`
+- 表头行与列定义不一致 → `invalid excel template header, please download the latest template`
 - 必填标注行不一致 → `outdated excel template layout, please download the latest template`
 - 无数据行 → `no data found in excel file`
 - `ParseIndexed` 不中断整表解析，把行级错误写入 `IndexedRow.Err`，由调用方决定是否逐行返回
-- `Required: true` 的列为空白时，行级错误为 `column "列名" is required`
+- `Required: true` 的列为空白时，行级错误为 `column "列名" is required`，其中列名取自上传文件
 - 所有单元格均为空白的行会被跳过
-- 错误文案统一英文（含返回给调用方的文件级与行级错误）；zh-CN 仅用于渲染进模板的文案（表头/必填标注/下拉提示）
+- 文件级和行级错误均使用英文
 
-第二行文案变化会让旧模板被判定为 `outdated`，需要用户重新下载模板。
+每列的列名和必填标注均可使用中文或英文，列数和列顺序须与模板一致。已有的三行表头中文模板仍可上传。必填标注有误时，请重新下载模板。
 
-## 文案
+## 模板文案
 
-`constants.go` 集中存放布局、下拉与渲染文案常量（含必填/可选、下拉提示），当前固定 zh-CN。
+列名和填写说明使用 `workbook.Text` 保存。以列名为例，用 `column.Name.Edit().Zh(...).En(...).Set()` 设置中英文文案。
+生成模板时，所选语言也用于必填标注和下拉校验提示。下拉选项的值取自列定义或源数据。
 
 ## 用法
 
-Pass the sheet name and `[]workbook.TypedColumn[T]` to `workbook.NewTemplate`. Use the returned
-`workbook.IHandler[T]` to write `[]T` with `Write` or read `[]workbook.IndexedRow[T]` with `ParseIndexed`.
+将工作表名称、`[]workbook.TypedColumn[T]` 和输出语言传给 `workbook.NewTemplate`。返回的 `workbook.IHandler[T]` 通过
+`Write` 写入 `[]T`，通过 `ParseIndexed` 读取 `[]workbook.IndexedRow[T]`。
 
 ## 放置约束
 
