@@ -26,7 +26,8 @@ ARCHES := amd64 arm64 arm
 UPX_ENABLED ?=
 UPX_LEVEL   ?= 9
 UPX_ARGS    ?= -$(UPX_LEVEL)
-UPX_SUPPORTED_PLATFORMS := linux/amd64 linux/arm64 linux/arm windows/amd64
+# Linux is excluded: the UPX stub needs O_TMPFILE/memfd and crashes (SIGSEGV) on old kernels or restricted environments.
+UPX_SUPPORTED_PLATFORMS := windows/amd64
 
 # fixed go version.
 GO = CGO_ENABLED=0 go1.20.14
