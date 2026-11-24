@@ -94,19 +94,16 @@ func extractWMIBinary() (string, func(), error) {
 	// make the temporary file executable.
 	// nolint: gosec,mnd
 	if err := os.Chmod(tmpFile.Path(), 0700); err != nil {
-		_ = os.Remove(tmpFile.Path())
+		_ = tmpFile.CleanUp()
 
 		return "", nil, fmt.Errorf("failed to make temporary file executable: %w", err)
 	}
 
-	path := tmpFile.Path()
 	cleanup := func() {
-		if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			_ = err
-		}
+		_ = tmpFile.CleanUp()
 	}
 
-	return path, cleanup, nil
+	return tmpFile.Path(), cleanup, nil
 }
 
 func wmiRunCmd(ctx context.Context, args []string, envs []string) (string, string, error) {
