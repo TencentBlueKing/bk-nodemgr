@@ -3,6 +3,7 @@
 - API Version: v3.0.1+.
 - Required Permission: plugin_view (View Plugin).
 - Function: Query the plugin list with pagination, count-only mode, and exact or fuzzy filters.
+- Since v3.0.1-alpha.117+, `visible_biz_ids` is applied throughout the shared query path: the plugin list and count are filtered by the narrowed business visibility scope. Exact-array matching for multiple business IDs is unchanged.
 
 ### URL
 
@@ -26,11 +27,11 @@ POST /api/v3/plugin/list
 
 #### exact_include_conditions
 
-| Parameter Name  | Parameter Type | Required | Description                                                            |
-| --------------- | -------------- | -------- | ---------------------------------------------------------------------- |
-| name            | string array   | No       | Exact match on plugin names                                            |
-| group           | string array   | No       | Exact match on plugin groups                                           |
-| visible_biz_ids | int64 array    | No       | Business ID list; currently has no filtering effect on the plugin list |
+| Parameter Name  | Parameter Type | Required | Description                                                                                                  |
+| --------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| name            | string array   | No       | Exact match on plugin names                                                                                  |
+| group           | string array   | No       | Exact match on plugin groups                                                                                 |
+| visible_biz_ids | int64 array    | No       | Plugin visibility business scope, narrowed by the caller's authorization; omission uses the authorized scope |
 
 #### fuzzy_include_conditions
 
@@ -45,7 +46,8 @@ POST /api/v3/plugin/list
 - Both `exact_include_conditions` and `fuzzy_include_conditions` are inclusive filters; exclude filters are not exposed by this API.
 - `group` commonly uses `default`, but the API itself does not enforce a fixed enum.
 - When `only_count=false` or omitted, provide a valid `page.limit` in `(0, 500]`.
-- The API checks the caller's `plugin_view` permission. `visible_biz_ids` currently has no filtering effect on the plugin list; do not rely on it to select plugins visible to a business.
+- The API checks the caller's `plugin_view` permission and narrows `visible_biz_ids` to the authorized business scope. A restricted caller with an empty effective scope receives an empty list or zero count; a failed permission check returns a permission error.
+- For a nonempty effective business scope, results include plugins with an empty, null, or missing visibility field, and plugins whose visible-business-ID array exactly equals the effective business-scope array. This is not an any-overlap membership filter. A caller with unrestricted business permissions and no business condition has no additional visible-business filter.
 
 ### Request Example
 
