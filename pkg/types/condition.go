@@ -586,6 +586,8 @@ type PluginWorkflowCondition struct {
 // ApplicationPluginOperationListExactFields defines the exact fields for plugin workflow operation list.
 type ApplicationPluginOperationListExactFields struct {
 	HostID        []int64
+	HostInnerIP   []string
+	HostInnerIPV6 []string
 	PluginName    []string
 	PluginVersion []string
 	State         []operation.State

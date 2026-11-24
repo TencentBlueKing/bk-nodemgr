@@ -273,6 +273,24 @@ func convertPluginWorkflowOperationConditionsToOperationTypes(exactCond *PluginW
 	return condition
 }
 
+// ConvertConditionsToHostTypes convert the host related conditions to host types.
+// It returns nil when no inner ip condition is specified, since the plugin deployment only records the host id
+// and the inner ip conditions have to be resolved to host ids through the host storage.
+func (x *PluginWorkflowOperationListReq) ConvertConditionsToHostTypes() *types.HostCondition {
+	exactCond := x.GetExactIncludeConditions()
+	if len(exactCond.GetBkHostInnerip()) == 0 && len(exactCond.GetBkHostInneripV6()) == 0 {
+		return nil
+	}
+
+	return &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			HostID:    exactCond.GetBkHostId(),
+			InnerIP:   exactCond.GetBkHostInnerip(),
+			InnerIPV6: exactCond.GetBkHostInneripV6(),
+		},
+	}
+}
+
 // ConvertConditionsToDeploymentTypes convert conditions to deployment types.
 func (x *PluginWorkflowOperationListReq) ConvertConditionsToDeploymentTypes(tokens []string) *types.PluginDeploymentCondition {
 	return convertPluginWorkflowOperationConditionsToPluginDeploymentTypes(tokens, x.GetExactIncludeConditions())
@@ -325,9 +343,11 @@ func convertPluginWorkOperConditionsFromTypes(condition *types.ApplicationPlugin
 
 	if condition.ExactInclude != nil {
 		exactCond = &PluginWorkflowOperationListReq_ExactConditions{
-			BkHostId:      condition.ExactInclude.HostID,
-			PluginName:    condition.ExactInclude.PluginName,
-			PluginVersion: condition.ExactInclude.PluginVersion,
+			BkHostId:        condition.ExactInclude.HostID,
+			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
+			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
+			PluginName:      condition.ExactInclude.PluginName,
+			PluginVersion:   condition.ExactInclude.PluginVersion,
 			State: conv.SliceToSlice(condition.ExactInclude.State, func(s operation.State) string {
 				return string(s)
 			}),

@@ -101,6 +101,8 @@ message PluginWorkflowOperationListReq {
     repeated string plugin_version = 3;
     repeated string state = 4;
     repeated int64 bk_biz_id = 5;
+    repeated string bk_host_innerip = 6;
+    repeated string bk_host_innerip_v6 = 7;
   }
 
   message FuzzyConditions {}
