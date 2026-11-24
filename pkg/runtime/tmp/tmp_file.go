@@ -43,7 +43,8 @@ func (f *File) Path() string {
 	return f.path
 }
 
-// CleanUp cleans up the temporary file.
+// CleanUp removes the temporary file and its empty directory.
+// Files and directories that are already absent are ignored.
 func (f *File) CleanUp() error {
 	return f.cleanup()
 }
@@ -62,7 +63,19 @@ func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
 		return nil, fmt.Errorf("failed to create temporary file: %w", err)
 	}
 
-	tmpFile, err := os.CreateTemp(tmpDir, name+"-*")
+	var tmpFile *os.File
+	defer func() {
+		if file != nil {
+			return
+		}
+		if tmpFile != nil {
+			_ = tmpFile.Close()
+			_ = os.Remove(tmpFile.Name())
+		}
+		_ = os.Remove(tmpDir)
+	}()
+
+	tmpFile, err = os.CreateTemp(tmpDir, name+"-*")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file: %w", err)
 	}
@@ -71,22 +84,14 @@ func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
 
 	// write data to the temporary file.
 	if _, err = io.Copy(tmpFile, data); err != nil {
-		_ = tmpFile.Close()
-		_ = os.Remove(tmpFilePath)
-
 		return nil, fmt.Errorf("failed to write data to temporary file: %w", err)
 	}
 
 	if err = data.Close(); err != nil {
-		_ = tmpFile.Close()
-		_ = os.Remove(tmpFilePath)
-
 		return nil, fmt.Errorf("failed to close data: %w", err)
 	}
 
 	if err := tmpFile.Close(); err != nil {
-		_ = os.Remove(tmpFilePath)
-
 		return nil, fmt.Errorf("failed to close temporary file: %w", err)
 	}
 
@@ -101,11 +106,15 @@ func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
 			}
 		}()
 
-		if err = os.Remove(tmpFilePath); err != nil {
+		if err = os.Remove(tmpFilePath); err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("failed to remove temporary file: %w", err)
 		}
 
-		return
+		if err = os.Remove(tmpDir); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to remove temporary dir: %w", err)
+		}
+
+		return nil
 	}
 
 	return file, nil
@@ -124,35 +133,35 @@ func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, er
 		return nil, fmt.Errorf("failed to create temporary file with special name: %w", err)
 	}
 
-	if err = os.MkdirAll(tmpDir, 0700); err != nil {
-		return nil, fmt.Errorf("failed to create temporary dir: %w", err)
-	}
+	var tmpFile *os.File
+	defer func() {
+		if file != nil {
+			return
+		}
+		if tmpFile != nil {
+			_ = tmpFile.Close()
+			_ = os.Remove(tmpFile.Name())
+		}
+		_ = os.Remove(tmpDir)
+	}()
 
 	tmpFilePath := filepath.Join(tmpDir, name)
 
-	tmpFile, err := os.Create(tmpFilePath)
+	tmpFile, err = os.Create(tmpFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file with special name: %w", err)
 	}
 
 	// write data to the temporary file.
 	if _, err = io.Copy(tmpFile, data); err != nil {
-		_ = tmpFile.Close()
-		_ = os.Remove(tmpFilePath)
-
 		return nil, fmt.Errorf("failed to write data to temporary file: %w", err)
 	}
 
 	if err = data.Close(); err != nil {
-		_ = tmpFile.Close()
-		_ = os.Remove(tmpFilePath)
-
 		return nil, fmt.Errorf("failed to close data: %w", err)
 	}
 
 	if err := tmpFile.Close(); err != nil {
-		_ = os.Remove(tmpFilePath)
-
 		return nil, fmt.Errorf("failed to close temporary file: %w", err)
 	}
 
@@ -167,15 +176,15 @@ func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, er
 			}
 		}()
 
-		if err = os.Remove(tmpFilePath); err != nil {
+		if err = os.Remove(tmpFilePath); err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("failed to remove temporary file: %w", err)
 		}
 
-		if err = os.Remove(tmpDir); err != nil {
+		if err = os.Remove(tmpDir); err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("failed to remove temporary dir: %w", err)
 		}
 
-		return
+		return nil
 	}
 
 	return file, nil
