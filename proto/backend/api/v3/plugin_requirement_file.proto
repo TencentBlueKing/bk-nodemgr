@@ -1,0 +1,276 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// 当前租户中归属于指定插件的依赖文件记录。进程应用状态由下发结果决定。
+message PluginRequirementFile {
+  // 依赖文件记录的稳定 UUID。
+  string requirement_file_id = 1;
+  // 同一租户、同一插件内唯一的依赖业务名称。
+  string name = 2;
+  // 文件在存储中的对象名称。
+  string file_name = 3;
+  // 文件正文的 MD5。
+  string md5 = 4;
+  // 解码后的文件大小，单位为字节。
+  int64 size = 5;
+  // 最近更新时间，Unix 时间戳，单位为秒。
+  int64 updated_at = 6;
+  // 最近操作人。
+  string operator = 7;
+  // 适用操作系统，空数组表示不限。
+  repeated string os = 8;
+  // 适用 CPU 架构，空数组表示不限。
+  repeated string arch = 9;
+  // 适用插件包版本，空数组表示不限。
+  repeated string version = 10;
+  // 依赖文件归属的插件名称。
+  string plugin_name = 11;
+  // 下发到目标主机的文件名，不含目录。
+  string target_file_name = 12;
+}
+
+// 创建插件依赖文件的参数。
+message PluginRequirementCreateReq {
+  // 同一租户、同一插件内唯一的依赖业务名称。
+  string name = 1;
+  // 文件正文的标准 Base64 编码。
+  string content_base64 = 2;
+  // 适用操作系统，空数组或省略表示不限。
+  // 同一维度内的值为或，不同维度之间为且。
+  repeated string os = 3;
+  // 适用 CPU 架构，空数组或省略表示不限。
+  repeated string arch = 4;
+  // 适用插件包版本，空数组或省略表示不限。
+  repeated string version = 5;
+  // 依赖文件归属的插件名称。
+  string plugin_name = 6;
+  // 下发文件名，必须是安全的单个文件名。
+  string target_file_name = 7;
+}
+
+message PluginRequirementCreateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { PluginRequirementFile file = 1; }
+  Data data = 5;
+}
+
+// 替换依赖业务名称、下发文件名和正文的参数。
+message PluginRequirementUpdateReq {
+  // 依赖文件记录的 UUID。
+  string requirement_file_id = 1;
+  // 替换后的依赖业务名称。
+  string name = 2;
+  // 替换后的文件正文，使用标准 Base64 编码。
+  string content_base64 = 3;
+  // 替换后的下发文件名，必须是安全的单个文件名。
+  string target_file_name = 4;
+}
+
+message PluginRequirementUpdateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { PluginRequirementFile file = 1; }
+  Data data = 5;
+}
+
+// 整体替换依赖文件适用范围的参数。
+message PluginRequirementUpdateScopeReq {
+  // 依赖文件记录的 UUID。
+  string requirement_file_id = 1;
+  // 替换后的操作系统范围，空数组或省略表示不限。
+  // 同一维度内的值为或，不同维度之间为且。
+  repeated string os = 2;
+  // 替换后的 CPU 架构范围，空数组或省略表示不限。
+  repeated string arch = 3;
+  // 替换后的插件包版本范围，空数组或省略表示不限。
+  repeated string version = 4;
+}
+
+message PluginRequirementUpdateScopeResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { PluginRequirementFile file = 1; }
+  Data data = 5;
+}
+
+message PluginRequirementGetReq {
+  // 依赖文件记录的 UUID。
+  string requirement_file_id = 1;
+}
+
+message PluginRequirementGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { PluginRequirementFile file = 1; }
+  Data data = 5;
+}
+
+// 分页查询当前租户的插件依赖文件。
+message PluginRequirementListReq {
+  message Page {
+    // 分页偏移量，从 0 开始。
+    int64 offset = 1;
+    // 每页条数，必须大于 0。
+    int64 limit = 2;
+    // 可选排序表达式。
+    string sort = 3;
+  }
+
+  // 按记录中保存的值精确筛选。同一字段内为或，不同字段之间为且。
+  // 适用范围为空的记录不会展开为具体操作系统、架构或版本。
+  message ExactConditions {
+    repeated string requirement_file_id = 1;
+    repeated string name = 2;
+    repeated string os = 3;
+    repeated string arch = 4;
+    repeated string version = 5;
+    repeated string plugin_name = 6;
+    repeated string target_file_name = 7;
+  }
+
+  message Conditions { ExactConditions exact_include = 1; }
+
+  // 必填分页参数。
+  Page page = 1;
+  Conditions conditions = 2;
+}
+
+message PluginRequirementListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // 匹配条件的记录总数。
+    int64 total = 1;
+    // 当前页的依赖文件记录。
+    repeated PluginRequirementFile items = 2;
+  }
+  Data data = 5;
+}
+
+// 下载插件依赖文件正文的参数。
+message PluginRequirementDownloadReq {
+  // 必填。依赖文件记录的 UUID，通过查询参数传递。
+  string requirement_file_id = 1;
+}
+
+// 插件依赖文件的二进制内容。HTTP 下载直接返回文件正文。
+message PluginRequirementDownloadResp { bytes content = 1; }
+
+// 传输插件依赖文件到目标主机的参数。
+message PluginRequirementTransferReq {
+  // 依赖文件记录的 UUID。
+  string requirement_file_id = 1;
+  // 目标主机上的文件目录，不得为空。
+  string target_dir = 2;
+  // 目标主机 ID。
+  int64 target_host_id = 3;
+}
+
+// 已发起的依赖文件传输任务。
+message PluginRequirementTransferResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // 传输任务 ID，用于查询传输状态。
+    optional string task_id = 1;
+    // 下发到目标主机的文件名。
+    optional string target_file_name = 2;
+    // 本次传输文件的 MD5。
+    optional string file_md5 = 3;
+    // 本次传输文件的大小，单位为字节。
+    optional int64 file_size = 4;
+  }
+  Data data = 5;
+}
+
+// 管理当前租户的插件依赖文件及其传输。
+service PluginRequirement {
+  // 为指定插件创建依赖文件，返回文件记录和内容校验信息。
+  rpc Create(PluginRequirementCreateReq) returns (PluginRequirementCreateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/create"
+      body : "*"
+    };
+  }
+
+  // 替换依赖文件的名称和正文，保留记录 ID、归属插件和适用范围。
+  rpc Update(PluginRequirementUpdateReq) returns (PluginRequirementUpdateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/update"
+      body : "*"
+    };
+  }
+
+  // 整体替换依赖文件的适用范围，保留记录 ID 和正文。
+  rpc UpdateScope(PluginRequirementUpdateScopeReq)
+      returns (PluginRequirementUpdateScopeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/update_scope"
+      body : "*"
+    };
+  }
+
+  // 按 UUID 查询依赖文件记录，响应只包含元数据。
+  rpc Get(PluginRequirementGetReq) returns (PluginRequirementGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/get"
+      body : "*"
+    };
+  }
+
+  // 按元数据分页列举依赖文件，用于管理文件记录。
+  rpc List(PluginRequirementListReq) returns (PluginRequirementListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/list"
+      body : "*"
+    };
+  }
+
+  // 按 UUID 下载当前租户的依赖文件，HTTP 成功响应为二进制正文。
+  rpc Download(PluginRequirementDownloadReq)
+      returns (stream PluginRequirementDownloadResp) {
+    option (google.api.http) = {
+      get : "/api/v3/plugin/requirement/download"
+    };
+  }
+
+  // 使用记录中的下发文件名启动单主机传输。任务 ID
+  // 表示传输已发起，结果需另行查询。
+  rpc Transfer(PluginRequirementTransferReq)
+      returns (PluginRequirementTransferResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/requirement/transfer"
+      body : "*"
+    };
+  }
+}
