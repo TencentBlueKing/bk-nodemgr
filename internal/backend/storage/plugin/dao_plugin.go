@@ -91,6 +91,9 @@ func convertPluginConditionToOptions(conditions []*types.PluginCondition) ([]dao
 				daoPlugin.WithName(condition.ExactInclude.Name...),
 				daoPlugin.WithGroup(condition.ExactInclude.Group...),
 			)
+			if len(condition.ExactInclude.VisibleBizIDs) > 0 {
+				opts = append(opts, daoPlugin.WithVisibleBizIDs(condition.ExactInclude.VisibleBizIDs...))
+			}
 		}
 
 		if condition.FuzzyInclude != nil {

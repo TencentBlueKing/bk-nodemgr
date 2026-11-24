@@ -1,0 +1,902 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "plugin_requirement_file.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "PluginRequirement"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/plugin/requirement/create": {
+      "post": {
+        "summary": "为指定插件创建依赖文件，返回文件记录和内容校验信息。",
+        "operationId": "PluginRequirement_Create",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementCreateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementCreateReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/download": {
+      "get": {
+        "summary": "按 UUID 下载当前租户的依赖文件，HTTP 成功响应为二进制正文。",
+        "operationId": "PluginRequirement_Download",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3PluginRequirementDownloadResp"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3PluginRequirementDownloadResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "requirement_file_id",
+            "description": "必填。依赖文件记录的 UUID，通过查询参数传递。",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/get": {
+      "post": {
+        "summary": "按 UUID 查询依赖文件记录，响应只包含元数据。",
+        "operationId": "PluginRequirement_Get",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/list": {
+      "post": {
+        "summary": "按元数据分页列举依赖文件，用于管理文件记录。",
+        "operationId": "PluginRequirement_List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementListReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/transfer": {
+      "post": {
+        "summary": "使用记录中的下发文件名启动单主机传输。任务 ID\n表示传输已发起，结果需另行查询。",
+        "operationId": "PluginRequirement_Transfer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementTransferResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementTransferReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/update": {
+      "post": {
+        "summary": "替换依赖文件的名称和正文，保留记录 ID、归属插件和适用范围。",
+        "operationId": "PluginRequirement_Update",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    },
+    "/api/v3/plugin/requirement/update_scope": {
+      "post": {
+        "summary": "整体替换依赖文件的适用范围，保留记录 ID 和正文。",
+        "operationId": "PluginRequirement_UpdateScope",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateScopeResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRequirementUpdateScopeReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginRequirement"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "PluginRequirementListReqConditions": {
+      "type": "object",
+      "properties": {
+        "exact_include": {
+          "$ref": "#/definitions/PluginRequirementListReqExactConditions"
+        }
+      }
+    },
+    "PluginRequirementListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "requirement_file_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "os": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "target_file_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "按记录中保存的值精确筛选。同一字段内为或，不同字段之间为且。\n适用范围为空的记录不会展开为具体操作系统、架构或版本。"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3PluginRequirementCreateReq": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "同一租户、同一插件内唯一的依赖业务名称。"
+        },
+        "content_base64": {
+          "type": "string",
+          "title": "文件正文的标准 Base64 编码。"
+        },
+        "os": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "适用操作系统，空数组或省略表示不限。\n同一维度内的值为或，不同维度之间为且。"
+        },
+        "arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "适用 CPU 架构，空数组或省略表示不限。"
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "适用插件包版本，空数组或省略表示不限。"
+        },
+        "plugin_name": {
+          "type": "string",
+          "title": "依赖文件归属的插件名称。"
+        },
+        "target_file_name": {
+          "type": "string",
+          "title": "下发文件名，必须是安全的单个文件名。"
+        }
+      },
+      "title": "创建插件依赖文件的参数。"
+    },
+    "v3PluginRequirementCreateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementCreateRespData"
+        }
+      }
+    },
+    "v3PluginRequirementCreateRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFile"
+        }
+      }
+    },
+    "v3PluginRequirementDownloadResp": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "插件依赖文件的二进制内容。HTTP 下载直接返回文件正文。"
+    },
+    "v3PluginRequirementFile": {
+      "type": "object",
+      "properties": {
+        "requirement_file_id": {
+          "type": "string",
+          "title": "依赖文件记录的稳定 UUID。"
+        },
+        "name": {
+          "type": "string",
+          "title": "同一租户、同一插件内唯一的依赖业务名称。"
+        },
+        "file_name": {
+          "type": "string",
+          "title": "文件在存储中的对象名称。"
+        },
+        "md5": {
+          "type": "string",
+          "title": "文件正文的 MD5。"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "title": "解码后的文件大小，单位为字节。"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int64",
+          "title": "最近更新时间，Unix 时间戳，单位为秒。"
+        },
+        "operator": {
+          "type": "string",
+          "title": "最近操作人。"
+        },
+        "os": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "适用操作系统，空数组表示不限。"
+        },
+        "arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "适用 CPU 架构，空数组表示不限。"
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "适用插件包版本，空数组表示不限。"
+        },
+        "plugin_name": {
+          "type": "string",
+          "title": "依赖文件归属的插件名称。"
+        },
+        "target_file_name": {
+          "type": "string",
+          "title": "下发到目标主机的文件名，不含目录。"
+        }
+      },
+      "title": "当前租户中归属于指定插件的依赖文件记录。进程应用状态由下发结果决定。"
+    },
+    "v3PluginRequirementGetReq": {
+      "type": "object",
+      "properties": {
+        "requirement_file_id": {
+          "type": "string",
+          "title": "依赖文件记录的 UUID。"
+        }
+      }
+    },
+    "v3PluginRequirementGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementGetRespData"
+        }
+      }
+    },
+    "v3PluginRequirementGetRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFile"
+        }
+      }
+    },
+    "v3PluginRequirementListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3PluginRequirementListReqPage",
+          "title": "必填分页参数。"
+        },
+        "conditions": {
+          "$ref": "#/definitions/PluginRequirementListReqConditions"
+        }
+      },
+      "title": "分页查询当前租户的插件依赖文件。"
+    },
+    "v3PluginRequirementListReqPage": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int64",
+          "title": "分页偏移量，从 0 开始。"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int64",
+          "title": "每页条数，必须大于 0。"
+        },
+        "sort": {
+          "type": "string",
+          "title": "可选排序表达式。"
+        }
+      }
+    },
+    "v3PluginRequirementListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementListRespData"
+        }
+      }
+    },
+    "v3PluginRequirementListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "title": "匹配条件的记录总数。"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginRequirementFile"
+          },
+          "title": "当前页的依赖文件记录。"
+        }
+      }
+    },
+    "v3PluginRequirementTransferReq": {
+      "type": "object",
+      "properties": {
+        "requirement_file_id": {
+          "type": "string",
+          "title": "依赖文件记录的 UUID。"
+        },
+        "target_dir": {
+          "type": "string",
+          "title": "目标主机上的文件目录，不得为空。"
+        },
+        "target_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "目标主机 ID。"
+        }
+      },
+      "title": "传输插件依赖文件到目标主机的参数。"
+    },
+    "v3PluginRequirementTransferResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementTransferRespData"
+        }
+      },
+      "title": "已发起的依赖文件传输任务。"
+    },
+    "v3PluginRequirementTransferRespData": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "title": "传输任务 ID，用于查询传输状态。"
+        },
+        "target_file_name": {
+          "type": "string",
+          "title": "下发到目标主机的文件名。"
+        },
+        "file_md5": {
+          "type": "string",
+          "title": "本次传输文件的 MD5。"
+        },
+        "file_size": {
+          "type": "integer",
+          "format": "int64",
+          "title": "本次传输文件的大小，单位为字节。"
+        }
+      }
+    },
+    "v3PluginRequirementUpdateReq": {
+      "type": "object",
+      "properties": {
+        "requirement_file_id": {
+          "type": "string",
+          "title": "依赖文件记录的 UUID。"
+        },
+        "name": {
+          "type": "string",
+          "title": "替换后的依赖业务名称。"
+        },
+        "content_base64": {
+          "type": "string",
+          "title": "替换后的文件正文，使用标准 Base64 编码。"
+        },
+        "target_file_name": {
+          "type": "string",
+          "title": "替换后的下发文件名，必须是安全的单个文件名。"
+        }
+      },
+      "title": "替换依赖业务名称、下发文件名和正文的参数。"
+    },
+    "v3PluginRequirementUpdateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementUpdateRespData"
+        }
+      }
+    },
+    "v3PluginRequirementUpdateRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFile"
+        }
+      }
+    },
+    "v3PluginRequirementUpdateScopeReq": {
+      "type": "object",
+      "properties": {
+        "requirement_file_id": {
+          "type": "string",
+          "title": "依赖文件记录的 UUID。"
+        },
+        "os": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "替换后的操作系统范围，空数组或省略表示不限。\n同一维度内的值为或，不同维度之间为且。"
+        },
+        "arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "替换后的 CPU 架构范围，空数组或省略表示不限。"
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "替换后的插件包版本范围，空数组或省略表示不限。"
+        }
+      },
+      "title": "整体替换依赖文件适用范围的参数。"
+    },
+    "v3PluginRequirementUpdateScopeResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRequirementUpdateScopeRespData"
+        }
+      }
+    },
+    "v3PluginRequirementUpdateScopeRespData": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/definitions/v3PluginRequirementFile"
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
