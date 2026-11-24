@@ -128,6 +128,36 @@ export interface PluginListReq {
   fuzzy_include_conditions: PluginListFuzzyConditions;
 }
 
+// 插件属性去重查询，只返回匹配条件的插件属性，不依赖已安装进程。
+export interface PluginDistinctReq {
+  distinct_field: PluginDistinctReqDistinctField;
+  // 与插件列表相同的精确包含条件。
+  exact_include_conditions: PluginListExactConditions;
+  // 与插件列表相同的模糊包含条件。
+  fuzzy_include_conditions: PluginListFuzzyConditions;
+}
+
+// 要查询的属性；省略时查询全部支持的属性。
+export interface PluginDistinctReqDistinctField {
+  // 是否查询插件组。
+  group: boolean;
+}
+
+// 匹配条件且在调用方权限范围内的插件属性去重结果。
+export interface PluginDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PluginDistinctRespData;
+}
+
+export interface PluginDistinctRespData {
+  // 匹配插件的组名；未选择该属性或没有匹配插件时为空数组。
+  group: string[];
+}
+
 // PluginListResp describes the plugin list response.
 export interface PluginListResp {
   code: number;

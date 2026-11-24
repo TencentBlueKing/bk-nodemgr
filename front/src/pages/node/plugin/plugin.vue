@@ -1,6 +1,6 @@
 <template>
   <div class="p-[24px]">
-    <!-- 操作栏：安装按钮 -->
+    <!-- 操作栏 -->
     <div class="flex items-center gap-[8px] mb-[16px]">
       <Button
         v-if="enabledOperations.has('install')"
@@ -10,6 +10,14 @@
       >
         {{ $t('pluginManagement.plugin.operate.install') }}
       </Button>
+      <SearchSelect
+        v-model="searchSelectValue"
+        class="flex-1 bg-[#fff]"
+        :data="searchSelectData"
+        :unique-select="true"
+        :max-height="240"
+        :placeholder="t('pluginManagement.plugin.table.pluginGroup')"
+      />
     </div>
 
     <Loading :loading="loading">
@@ -130,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown, Loading, Message } from 'bkui-vue';
+import { Button, Dropdown, Loading, Message, SearchSelect } from 'bkui-vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -152,6 +160,30 @@ const { t } = useI18n();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 // 插件列表数据
 const pluginList = ref<any[]>([]);
+const pluginGroups = ref<string[]>([]);
+
+const searchSelectData = computed(() => [{
+  id: 'group',
+  name: t('pluginManagement.plugin.table.pluginGroup'),
+  children: pluginGroups.value.map(group => ({ id: group, name: group })),
+  multiple: true,
+}]);
+const searchSelectValue = ref<{ id: string; name: string; values: { id: string; name: string }[] }[]>([{
+  id: 'group',
+  name: t('pluginManagement.plugin.table.pluginGroup'),
+  values: [{ id: 'default', name: 'default' }],
+}]);
+
+const loadPluginGroups = async () => {
+  const response = await PluginAPIService.DistinctPlugin({
+    distinct_field: { group: true },
+    exact_include_conditions: {
+      visible_biz_ids: mainStore.selectedBusinessId,
+    } as any,
+    fuzzy_include_conditions: {} as any,
+  }).catch(() => ({ group: [] as string[] }));
+  pluginGroups.value = response.group.filter(Boolean);
+};
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting(
@@ -438,6 +470,7 @@ const getParams = () => {
     page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
     exact_include_conditions: {
       visible_biz_ids: mainStore.selectedBusinessId,
+      group: searchSelectValue.value.find(item => item.id === 'group')?.values.map(value => value.id) || [],
     } as any,
     fuzzy_include_conditions: {} as Record<string, string[]>,
   };
@@ -488,14 +521,21 @@ const openSidebar = async (plugin: any) => {
 // 组件挂载时加载数据
 onMounted(() => {
   loadPermittedOperations();
+  loadPluginGroups();
   loadPluginList();
 });
 
 // 切换业务时重置分页并重新查询
 watch(() => mainStore.selectedBusinessId, () => {
   pagination.current = 1;
+  loadPluginGroups();
   loadPluginList();
 });
+
+watch(searchSelectValue, () => {
+  pagination.current = 1;
+  loadPluginList();
+}, { deep: true });
 </script>
 
 <style lang="postcss" scoped>

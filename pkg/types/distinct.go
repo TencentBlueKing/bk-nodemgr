@@ -23,6 +23,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
+// PluginDistinctRequest describes the plugin fields to query.
+type PluginDistinctRequest struct {
+	Group bool
+}
+
+// PluginDistinctResult contains distinct plugin field values.
+type PluginDistinctResult struct {
+	Group []string
+}
+
 // HostDistinctRequest describes the wanted distinct fields.
 type HostDistinctRequest struct {
 	BizID         bool

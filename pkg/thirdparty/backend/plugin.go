@@ -19,6 +19,8 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -38,6 +40,10 @@ type IHandlerPlugin interface {
 	// @param condition the filter conditions.
 	// @return plugin list with page and the total count with filter and error.
 	ListPlugins(nCtx contextx.IContext, page types.Page, condition *types.PluginCondition) ([]*types.Plugin, int64, error)
+
+	// DistinctPlugin queries distinct plugin fields by conditions.
+	DistinctPlugin(nCtx contextx.IContext, request types.PluginDistinctRequest, condition *types.PluginCondition) (
+		*types.PluginDistinctResult, error)
 
 	// InstallPlugin install plugin.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -87,6 +93,21 @@ type IHandlerPlugin interface {
 	// @param stopParam the stop param.
 	// @return the stopping workflow-ids and error.
 	StopPlugin(nCtx contextx.IContext, stopParam ...*types.PluginDeploymentParam) (string, error)
+}
+
+// DistinctPlugin queries distinct plugin fields by conditions.
+func (h *Handler) DistinctPlugin(nCtx contextx.IContext, request types.PluginDistinctRequest,
+	condition *types.PluginCondition) (*types.PluginDistinctResult, error) {
+
+	req := new(protoBackend.PluginDistinctReq)
+	req.ConvertDistinctFieldFromTypes(request)
+	req.ConvertConditionsFromTypes(condition)
+	resp, err := h.cli.distinctPlugin(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct plugin: %w", err)
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }
 
 // CountPlugins count plugins.
