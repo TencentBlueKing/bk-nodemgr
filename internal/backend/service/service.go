@@ -266,6 +266,8 @@ func newSymmetricCrypter(conf *config.BackendService) (crypter.Crypter, error) {
 func (svc *Service) initialCapability() error {
 	var err error
 
+	svc.initialSystemConfig()
+
 	// discover provider watch backend and file service.
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),

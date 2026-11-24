@@ -59,6 +59,9 @@ const (
 
 	// PlatformResourceGlobalSettings represents global settings management.
 	PlatformResourceGlobalSettings PlatformResource = "global_settings"
+
+	// PlatformResourceSystemConfig represents system configuration management.
+	PlatformResourceSystemConfig PlatformResource = "system_config"
 )
 
 // AuthResource describes a single resource instance used for authorization checks.
