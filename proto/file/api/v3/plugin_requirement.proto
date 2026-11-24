@@ -170,12 +170,10 @@ message PluginRequirementDownloadResp { bytes content = 1; }
 message PluginRequirementTransferReq {
   // 文件记录的 UUID。
   string requirement_file_id = 1;
-  reserved 2;
-  reserved "target_name";
   // 目标主机上的文件目录，不得为空。
-  string target_dir = 3;
+  string target_dir = 2;
   // 目标主机 ID。
-  int64 target_host_id = 4;
+  int64 target_host_id = 3;
 }
 
 // 已启动的插件依赖文件传输任务，不代表传输完成。
