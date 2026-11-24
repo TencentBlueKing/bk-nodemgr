@@ -50,6 +50,39 @@
         ]
       }
     },
+    "/api/v3/plugin/distinct": {
+      "post": {
+        "summary": "查询当前租户可见插件的属性去重值，包含尚未安装的插件。",
+        "operationId": "PluginAPI_DistinctPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginAPI"
+        ]
+      }
+    },
     "/api/v3/plugin/install": {
       "post": {
         "summary": "在指定主机上安装插件。",
@@ -404,6 +437,16 @@
         }
       }
     },
+    "PluginDistinctReqDistinctField": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "boolean",
+          "title": "是否查询插件组。"
+        }
+      },
+      "title": "要查询的属性；省略时查询全部支持的属性。"
+    },
     "PluginInstallReqDeploymentSpec": {
       "type": "object",
       "properties": {
@@ -679,6 +722,60 @@
       "properties": {
         "workflow_id": {
           "type": "string"
+        }
+      }
+    },
+    "v3PluginDistinctReq": {
+      "type": "object",
+      "properties": {
+        "distinct_field": {
+          "$ref": "#/definitions/PluginDistinctReqDistinctField"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PluginListExactConditions",
+          "title": "与插件列表相同的精确包含条件。"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3PluginListFuzzyConditions",
+          "title": "与插件列表相同的模糊包含条件。"
+        }
+      },
+      "title": "插件属性去重查询，只返回匹配条件的插件属性，不依赖已安装进程。"
+    },
+    "v3PluginDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginDistinctRespData"
+        }
+      },
+      "title": "匹配条件且在调用方权限范围内的插件属性去重结果。"
+    },
+    "v3PluginDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "匹配插件的组名；未选择该属性或没有匹配插件时为空数组。"
         }
       }
     },

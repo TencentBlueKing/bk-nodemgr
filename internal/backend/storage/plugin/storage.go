@@ -75,6 +75,7 @@ const (
 
 	metricOperationGetPlugin                         = "get_plugin"
 	metricOperationCountPlugins                      = "count_plugins"
+	metricOperationDistinctPlugin                    = "distinct_plugin"
 	metricOperationListPlugins                       = "list_plugins"
 	metricOperationExistPluginByPluginName           = "exist_plugin_by_plugin_name"
 	metricOperationExistDefaultPluginByPluginPkgName = "exist_default_plugin_by_plugin_pkg_name"
@@ -734,6 +735,20 @@ func (s *Storage) GetPlugin(nCtx contextx.IContext, pluginName string) (*types.P
 	})
 
 	return plugin, err
+}
+
+// DistinctPlugin queries distinct plugin fields by conditions.
+func (s *Storage) DistinctPlugin(nCtx contextx.IContext, request types.PluginDistinctRequest,
+	conditions ...*types.PluginCondition) (*types.PluginDistinctResult, error) {
+
+	var result *types.PluginDistinctResult
+	err := s.WrapFn(nCtx, metricOperationDistinctPlugin, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.distinctPlugin(nCtx, request, conditions...)
+		return err
+	})
+
+	return result, err
 }
 
 // CountPlugins count plugins.

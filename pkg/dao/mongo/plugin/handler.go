@@ -41,6 +41,9 @@ type IHandler interface {
 	// List lists plugins by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Plugin, int64, error)
 
+	// DistinctGroup returns distinct plugin groups by conditions.
+	DistinctGroup(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
+
 	// Get gets a plugin by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Plugin, error)
 
@@ -169,6 +172,28 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return plugins, num, nil
+}
+
+// DistinctGroup returns distinct plugin groups by conditions.
+func (h *Handler) DistinctGroup(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	groups, err := h.tenantDao(nCtx.TenantID()).DistinctString(nCtx, FieldKeyGroup, filter, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct plugin groups: %w", err)
+	}
+
+	return groups, nil
 }
 
 // Get get a plugin.

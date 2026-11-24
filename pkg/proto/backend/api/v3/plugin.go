@@ -28,6 +28,51 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+// Validate checks the plugin distinct request.
+func (x *PluginDistinctReq) Validate() error { return nil }
+
+// AutoConvert applies plugin distinct request defaults.
+func (x *PluginDistinctReq) AutoConvert() {}
+
+// ConvertDistinctFieldToTypes converts the selected plugin fields.
+func (x *PluginDistinctReq) ConvertDistinctFieldToTypes() types.PluginDistinctRequest {
+	if x.GetDistinctField() == nil {
+		return types.PluginDistinctRequest{Group: true}
+	}
+	return types.PluginDistinctRequest{Group: x.GetDistinctField().GetGroup()}
+}
+
+// ConvertDistinctFieldFromTypes converts the selected plugin fields from domain types.
+func (x *PluginDistinctReq) ConvertDistinctFieldFromTypes(request types.PluginDistinctRequest) {
+	x.DistinctField = &PluginDistinctReq_DistinctField{Group: request.Group}
+}
+
+// ConvertConditionsToTypes converts plugin filter conditions.
+func (x *PluginDistinctReq) ConvertConditionsToTypes() *types.PluginCondition {
+	return convertPluginConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertConditionsFromTypes converts plugin filter conditions from domain types.
+func (x *PluginDistinctReq) ConvertConditionsFromTypes(condition *types.PluginCondition) {
+	req := new(PluginListReq)
+	req.ConvertConditionFromTypes(condition)
+	x.ExactIncludeConditions = req.GetExactIncludeConditions()
+	x.FuzzyIncludeConditions = req.GetFuzzyIncludeConditions()
+}
+
+// ConvertResultFromTypes converts the plugin distinct result.
+func (x *PluginDistinctResp) ConvertResultFromTypes(result *types.PluginDistinctResult) {
+	x.Data = &PluginDistinctResp_Data{Group: make([]string, 0)}
+	if result != nil {
+		x.Data.Group = append(x.Data.Group, result.Group...)
+	}
+}
+
+// ConvertResultToTypes converts the plugin distinct response to domain types.
+func (x *PluginDistinctResp) ConvertResultToTypes() *types.PluginDistinctResult {
+	return &types.PluginDistinctResult{Group: x.GetData().GetGroup()}
+}
+
 // Validate checks the debug request body.
 func (x *PluginStartDebugReq) Validate() error {
 	if x.GetDebugInfo() == nil {
