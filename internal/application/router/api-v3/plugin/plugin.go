@@ -45,6 +45,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/list", restserver.Handler(h.List))
+	h.rg.POST("/distinct", restserver.Handler(h.Distinct))
 	h.rg.POST("/install", restserver.Handler(h.Install))
 	h.rg.POST("/upgrade", restserver.Handler(h.Upgrade))
 	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))

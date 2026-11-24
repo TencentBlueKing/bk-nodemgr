@@ -48,6 +48,7 @@ POST /api/v3/plugin/list
 - When `only_count=false` or omitted, provide a valid `page.limit` in `(0, 500]`.
 - The API checks the caller's `plugin_view` permission and narrows `visible_biz_ids` to the authorized business scope. A restricted caller with an empty effective scope receives an empty list or zero count; a failed permission check returns a permission error.
 - For a nonempty effective business scope, results include plugins with an empty, null, or missing visibility field, and plugins whose visible-business-ID array exactly equals the effective business-scope array. This is not an any-overlap membership filter. A caller with unrestricted business permissions and no business condition has no additional visible-business filter.
+- When loading group options through `POST /api/v3/plugin/distinct`, supply the same `visible_biz_ids` as the list and refresh the options when the selected business changes.
 
 ### Request Example
 

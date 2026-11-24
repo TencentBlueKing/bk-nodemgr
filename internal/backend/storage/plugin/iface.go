@@ -100,6 +100,10 @@ type IDaoPlugin interface {
 	// GetPlugin get plugin by id.
 	GetPlugin(nCtx contextx.IContext, pluginName string) (*types.Plugin, error)
 
+	// DistinctPlugin queries distinct plugin fields by conditions.
+	DistinctPlugin(nCtx contextx.IContext, request types.PluginDistinctRequest, conditions ...*types.PluginCondition) (
+		*types.PluginDistinctResult, error)
+
 	// CountPlugins count plugins.
 	CountPlugins(nCtx contextx.IContext, conditions ...*types.PluginCondition) (int64, error)
 

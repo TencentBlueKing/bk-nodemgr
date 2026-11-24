@@ -79,6 +79,32 @@ func (s *Storage) listPlugins(nCtx contextx.IContext, page types.Page, condition
 	return plugins, cnt, nil
 }
 
+func (s *Storage) distinctPlugin(nCtx contextx.IContext, request types.PluginDistinctRequest,
+	conditions ...*types.PluginCondition) (*types.PluginDistinctResult, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	opts, err := convertPluginConditionToOptions(conditions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert plugin condition to options: %w", err)
+	}
+
+	result := &types.PluginDistinctResult{Group: make([]string, 0)}
+	if !request.Group {
+		return result, nil
+	}
+
+	groups, err := s.daoPlugin.DistinctGroup(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to distinct plugin: %w", err)
+	}
+	result.Group = groups
+
+	return result, nil
+}
+
 func convertPluginConditionToOptions(conditions []*types.PluginCondition) ([]daoPlugin.OptFn, error) {
 	opts := make([]daoPlugin.OptFn, 0)
 	for _, condition := range conditions {
