@@ -215,34 +215,44 @@ func (m *Manager) syncSharedRelease(nCtx contextx.IContext, source *types.Releas
 		return fmt.Errorf("failed to get target release(%s): %w", source.FileName, err)
 	}
 
-	// Preserve tenant-owned releases and skip synchronized releases with unchanged content.
-	if existed && (!target.IsSynced || target.MD5 == source.MD5) {
+	// Preserve tenant-owned releases.
+	if existed && !target.IsSynced {
 		return nil
 	}
 
 	syncedRelease := *source
-	if !existed {
+	if existed {
+		// Reconcile lifecycle state so system-tenant enable/default changes reach synced releases.
+		syncedRelease = *target
+		syncedRelease.Enabled = source.Enabled
+		syncedRelease.AsDefault, err = m.reconcileSyncedReleaseAsDefault(nCtx, source, target)
+		if err != nil {
+			return fmt.Errorf("failed to check target default release(%s): %w", source.FileName, err)
+		}
+		if target.MD5 == source.MD5 && target.Enabled == syncedRelease.Enabled && target.AsDefault == syncedRelease.AsDefault {
+			return nil
+		}
+		syncedRelease.FileName = source.FileName
+		syncedRelease.MD5 = source.MD5
+		syncedRelease.AdditionInfo = source.AdditionInfo
+	} else {
 		syncedRelease.AsDefault, err = m.shouldSyncReleaseAsDefault(nCtx, source)
 		if err != nil {
 			return fmt.Errorf("failed to check target default release(%s): %w", source.FileName, err)
 		}
 	}
-	if existed {
-		syncedRelease = *target
-		syncedRelease.FileName = source.FileName
-		syncedRelease.MD5 = source.MD5
-		syncedRelease.AdditionInfo = source.AdditionInfo
-	}
 	syncedRelease.IsShared = false
 	syncedRelease.IsSynced = true
 
-	group, err := m.releaseFileGroup(source.Type)
-	if err != nil {
-		return err
-	}
+	if !existed || target.MD5 != source.MD5 {
+		group, err := m.releaseFileGroup(source.Type)
+		if err != nil {
+			return err
+		}
 
-	if err := group.Copy(nCtx, source.FileName, group, ".", true); err != nil {
-		return fmt.Errorf("failed to copy shared release(%s): %w", source.FileName, err)
+		if err := group.Copy(nCtx, source.FileName, group, ".", true); err != nil {
+			return fmt.Errorf("failed to copy shared release(%s): %w", source.FileName, err)
+		}
 	}
 
 	if err := save(syncedRelease); err != nil {
@@ -283,6 +293,19 @@ func (m *Manager) shouldSyncReleaseAsDefault(nCtx contextx.IContext, source *typ
 	}
 
 	return count == 0, nil
+}
+
+// reconcileSyncedReleaseAsDefault mirrors the source default flag onto an existing
+// synced release without creating a second default for the same package key.
+func (m *Manager) reconcileSyncedReleaseAsDefault(nCtx contextx.IContext, source, target *types.Release) (bool, error) {
+	if source.AsDefault == target.AsDefault {
+		return target.AsDefault, nil
+	}
+	if !source.AsDefault {
+		return false, nil
+	}
+
+	return m.shouldSyncReleaseAsDefault(nCtx, source)
 }
 
 // getSyncTargetRelease returns a nil release and false when the target does not exist.
