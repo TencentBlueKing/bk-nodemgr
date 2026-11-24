@@ -17,23 +17,24 @@
  */
 
 // Package workbook renders and parses column-oriented Excel templates with a
-// three-row header and drop-down validations; rendered copy is zh-CN.
+// three-row header and drop-down validations in Chinese or English.
 package workbook
 
 import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 )
 
 // Column describes one template column.
 type Column struct {
 	// Name is the header title (row 1).
-	Name string
+	Name Text
 	// Required marks the column as required.
 	Required bool
 	// Description is the filling guidance.
-	Description string
+	Description Text
 	// Options lists drop-down choices; empty means free text.
 	Options []string
 	// AllowCustom allows values outside Options.
@@ -68,31 +69,32 @@ type IHandler[T any] interface {
 }
 
 type template[T any] struct {
-	sheet   string
-	columns []TypedColumn[T]
-	meta    []Column
+	sheet    string
+	columns  []TypedColumn[T]
+	meta     []Column
+	language Language
 }
 
-// NewTemplate creates a handler for the given sheet and typed columns.
-func NewTemplate[T any](sheet string, columns []TypedColumn[T]) (IHandler[T], error) {
+// NewTemplate creates a handler that writes in the selected language.
+func NewTemplate[T any](sheet string, columns []TypedColumn[T], language Language) (IHandler[T], error) {
 	if len(columns) == 0 {
 		return nil, errors.New("excel columns can not be empty")
 	}
 	for _, col := range columns {
 		if col.Parse == nil {
-			return nil, fmt.Errorf("excel column %q has no Parse", col.Name)
+			return nil, fmt.Errorf("excel column %q has no Parse", col.Name.in(LanguageEn))
 		}
 		if col.ValueOf == nil {
-			return nil, fmt.Errorf("excel column %q has no ValueOf", col.Name)
+			return nil, fmt.Errorf("excel column %q has no ValueOf", col.Name.in(LanguageEn))
 		}
 	}
 
-	copied := make([]TypedColumn[T], len(columns))
-	copy(copied, columns)
+	copied := slices.Clone(columns)
 	meta := make([]Column, len(columns))
-	for idx, col := range copied {
-		meta[idx] = col.Column
+	for idx := range copied {
+		copied[idx].Options = slices.Clone(copied[idx].Options)
+		meta[idx] = copied[idx].Column
 	}
 
-	return &template[T]{sheet: sheet, columns: copied, meta: meta}, nil
+	return &template[T]{sheet: sheet, columns: copied, meta: meta, language: language}, nil
 }

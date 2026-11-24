@@ -22,12 +22,18 @@
 package excel
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/excel/workbook"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
 )
+
+const languageCookieKey = "blueking_language"
 
 type handler struct {
 	rg             *gin.RouterGroup
@@ -55,4 +61,21 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/agent_install_template/download", restserver.FileHandler(h.ExcelDownloadAgentInstallTemplate))
 	h.rg.POST("/proxy_install_template/download", restserver.FileHandler(h.ExcelDownloadProxyInstallTemplate))
 	h.rg.POST("/ops_template/download", restserver.FileHandler(h.ExcelDownloadOpsTemplate))
+}
+
+func templateLanguage(rCtx restserver.IContext) workbook.Language {
+	// Match the frontend when old and new language cookies are both present.
+	var value string
+	for _, cookie := range rCtx.GetRequest().CookiesNamed(languageCookieKey) {
+		if cookie.Value != "" {
+			value = cookie.Value
+		}
+	}
+	locale, _ := url.QueryUnescape(value)
+	language, _, _ := strings.Cut(strings.ToLower(strings.TrimSpace(locale)), "-")
+	if language == string(workbook.LanguageEn) {
+		return workbook.LanguageEn
+	}
+
+	return workbook.LanguageZh
 }

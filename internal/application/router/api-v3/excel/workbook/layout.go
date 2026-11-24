@@ -25,10 +25,15 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func applyLayout(f *excelize.File, sheet string, columns []Column) error {
+func applyLayout(f *excelize.File, sheet string, columns []Column, language Language) error {
 	widths := make([]float64, len(columns))
 	for idx, col := range columns {
-		needed := max(textDisplayWidth(col.Name), textDisplayWidth(requiredLabel(col.Required)), textDisplayWidth(col.Description))
+		label := requiredLabel(col.Required)
+		needed := max(
+			textDisplayWidth(col.Name.in(language)),
+			textDisplayWidth(label.in(language)),
+			textDisplayWidth(col.Description.in(language)),
+		)
 		widths[idx] = float64(min(max(needed+cellPadding, minColWidth), maxColWidth))
 	}
 
@@ -55,9 +60,10 @@ func applyLayout(f *excelize.File, sheet string, columns []Column) error {
 	requiredValues := make([]string, len(columns))
 	describeValues := make([]string, len(columns))
 	for idx, col := range columns {
-		headerValues[idx] = col.Name
-		requiredValues[idx] = requiredLabel(col.Required)
-		describeValues[idx] = col.Description
+		label := requiredLabel(col.Required)
+		headerValues[idx] = col.Name.in(language)
+		requiredValues[idx] = label.in(language)
+		describeValues[idx] = col.Description.in(language)
 	}
 	for row, values := range map[int][]string{
 		headerRow:   headerValues,
@@ -150,10 +156,15 @@ func textDisplayWidth(value string) int {
 	return width
 }
 
-func requiredLabel(required bool) string {
+func requiredLabel(required bool) Text {
+	var label Text
 	if required {
-		return labelRequired
+		label.Edit().Zh(labelRequiredZh).En(labelRequiredEn).Set()
+
+		return label
 	}
 
-	return labelOptional
+	label.Edit().Zh(labelOptionalZh).En(labelOptionalEn).Set()
+
+	return label
 }
