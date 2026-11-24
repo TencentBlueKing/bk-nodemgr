@@ -3951,6 +3951,34 @@ func (c *cli) getProcessDistributionByPluginName(ctx contextx.IContext, req *pro
 	return resp, nil
 }
 
+// distinctPlugin queries distinct plugin fields by conditions.
+func (c *cli) distinctPlugin(ctx contextx.IContext, req *protoBackend.PluginDistinctReq) (
+	*protoBackend.PluginDistinctResp, error) {
+
+	resp := new(protoBackend.PluginDistinctResp)
+	err := c.client.Post().
+		SubResourcef("/plugin/distinct").
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request plugin distinct: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("distinct plugin", resp, resp.GetError())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 // distinctProcess distinct process by conditions.
 func (c *cli) distinctProcess(ctx contextx.IContext, req *protoBackend.ProcessDistinctReq) (
 	*protoBackend.ProcessDistinctResp, error) {
