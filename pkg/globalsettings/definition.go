@@ -54,6 +54,16 @@ const (
 	// OperSyncStoppedPluginProcessInfoMaxConcurrencyNumDefault defines the default max concurrency for sync stopped plugin process info operations.
 	OperSyncStoppedPluginProcessInfoMaxConcurrencyNumDefault = "100"
 
+	// OperCorrectRunningProcessStatusExpiryCycles defines the alive-sync cycles before a running V3 process expires.
+	OperCorrectRunningProcessStatusExpiryCycles = "oper_correct_running_process_status_expiry_cycles"
+	// OperCorrectRunningProcessStatusExpiryCyclesDefault defines the default V3 process expiry multiplier.
+	OperCorrectRunningProcessStatusExpiryCyclesDefault = "3"
+
+	// OperCorrectRunningProcessV2StatusExpiryCycles defines the alive-sync cycles before a running V2 process expires.
+	OperCorrectRunningProcessV2StatusExpiryCycles = "oper_correct_running_process_v2_status_expiry_cycles"
+	// OperCorrectRunningProcessV2StatusExpiryCyclesDefault defines the default V2 process expiry multiplier.
+	OperCorrectRunningProcessV2StatusExpiryCyclesDefault = "3"
+
 	// OperCorrectUnknownProcessStatusMaxConcurrencyNum defines the max concurrency setting for process status correction operations.
 	OperCorrectUnknownProcessStatusMaxConcurrencyNum = "oper_correct_unknown_process_status_max_concurrency_num"
 	// OperCorrectUnknownProcessStatusMaxConcurrencyNumDefault defines the default max concurrency for process status correction operations.
@@ -176,6 +186,14 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: OperSyncStoppedPluginProcessInfoMaxConcurrencyNum,
 			Value:       OperSyncStoppedPluginProcessInfoMaxConcurrencyNumDefault,
+		},
+		{
+			SettingName: OperCorrectRunningProcessStatusExpiryCycles,
+			Value:       OperCorrectRunningProcessStatusExpiryCyclesDefault,
+		},
+		{
+			SettingName: OperCorrectRunningProcessV2StatusExpiryCycles,
+			Value:       OperCorrectRunningProcessV2StatusExpiryCyclesDefault,
 		},
 		{
 			SettingName: OperCorrectUnknownProcessStatusMaxConcurrencyNum,
