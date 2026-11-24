@@ -55,17 +55,17 @@ func (oper *operAssignProxyUnit) Name() string {
 }
 
 // ActionDefNames returns the action def names.
-// Order matters: AssignProxyInfo → UpdateHost → InstallPreOrderedPlugins.
-// UpdateHost must run before InstallPreOrderedPlugins because the plugin installation
+// Order matters: AssignProxyInfo → UpdateHost → InstallProxyPlugins.
+// UpdateHost must run before InstallProxyPlugins because the plugin installation
 // reads host.Dynamic.NetworkUnitID from the DB via inject_plugin_custom_deploy_config.
-// This is an "eventually consistent" design: if InstallPreOrderedPlugins fails after
+// This is an "eventually consistent" design: if InstallProxyPlugins fails after
 // UpdateHost succeeds, the host is already marked with the new unit but plugin install
 // can be retried independently.
 func (oper *operAssignProxyUnit) ActionDefNames() []string {
 	return []string{
 		ActionNameAssignProxyInfo,
 		ActionNameUpdateHost,
-		ActionNameInstallPreOrderedPlugins,
+		ActionNameInstallProxyPlugins,
 	}
 }
 
@@ -75,9 +75,9 @@ func (oper *operAssignProxyUnit) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameAssignProxyInfo:          true,
-			ActionNameInstallPreOrderedPlugins: true,
-			ActionNameUpdateHost:               true,
+			ActionNameAssignProxyInfo:     true,
+			ActionNameInstallProxyPlugins: true,
+			ActionNameUpdateHost:          true,
 		},
 	}
 }

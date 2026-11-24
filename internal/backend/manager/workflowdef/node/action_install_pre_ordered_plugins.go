@@ -48,6 +48,10 @@ const (
 
 // NewActionInstallPreOrderedPlugins get a new action.
 func NewActionInstallPreOrderedPlugins(capability *Capability) action.Definition {
+	return newActionInstallPreOrderedPlugins(capability)
+}
+
+func newActionInstallPreOrderedPlugins(capability *Capability) *actionInstallPreOrderedPlugins {
 	return &actionInstallPreOrderedPlugins{
 		fileHandler:           capability.FileHandler,
 		storageNodeDeployment: capability.StorageNode,
@@ -238,7 +242,6 @@ func (act *actionInstallPreOrderedPlugins) expectedWorkflowCount(std *nodeUtils.
 }
 
 func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtils.NodeActionStandarder) (string, error) {
-	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
 
 	// Skip this action if InstallPreOrderedPlugins is disabled.
@@ -261,9 +264,16 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 		return "", nil
 	}
 
+	return act.installPlugins(std, preOrderedPluginsName)
+}
+
+func (act *actionInstallPreOrderedPlugins) installPlugins(std *nodeUtils.NodeActionStandarder, pluginNames []string) (string, error) {
+	nCtx := std.Context()
+	deployInfo := std.DeployInfo()
+
 	std.InstanceData().Log().
-		Zh("开始安装预置插件(%v)", preOrderedPluginsName).
-		En("start to install pre-ordered plugins(%v)", preOrderedPluginsName).
+		Zh("开始安装插件(%v)", pluginNames).
+		En("start to install plugins(%v)", pluginNames).
 		Info()
 
 	if std.DeployInfo().InstallOptions.IsOffline {
@@ -273,9 +283,9 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 			Info()
 	}
 
-	deployParams := make([]*types.PluginDeploymentParam, len(preOrderedPluginsName))
+	deployParams := make([]*types.PluginDeploymentParam, len(pluginNames))
 	gp := gopool.NewPool()
-	for idx, pluginName := range preOrderedPluginsName {
+	for idx, pluginName := range pluginNames {
 		idx, pluginName := idx, pluginName
 		name := pluginName
 		gp.Go(func() error {
@@ -296,7 +306,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 				Version:                 version,
 				IsOffline:               deployInfo.InstallOptions.IsOffline,
 				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
-				RenewSubConfig: true,
+				RenewSubConfig:          true,
 			}
 
 			return nil
@@ -323,7 +333,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 		Operator:          nCtx.BKUsername(),
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to launch install pre-ordered plugins workflow: %w", err)
+		return "", fmt.Errorf("failed to launch install plugins workflow: %w", err)
 	}
 
 	return workflowID, nil
@@ -332,13 +342,14 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 func (act *actionInstallPreOrderedPlugins) saveSubWorkflowRefs(
 	nCtx contextx.IContext,
 	operInstID string,
+	actionName string,
 	serializedRefs string,
 ) error {
 
 	return act.storageActionInstance.UpsertActionInstancePrivateData(
 		nCtx,
 		operInstID,
-		ActionNameInstallPreOrderedPlugins,
+		actionName,
 		map[string]any{
 			types.PDKeySubWorkflowRefs: serializedRefs,
 		},
@@ -413,7 +424,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 				Version:                 version,
 				IsOffline:               deployInfo.InstallOptions.IsOffline,
 				EnableCompatibilityMode: deployInfo.InstallOptions.EnableCompatibilityMode,
-				RenewSubConfig: true,
+				RenewSubConfig:          true,
 			}
 
 			return nil
@@ -475,6 +486,7 @@ func (act *actionInstallPreOrderedPlugins) waitWorkflow(std *nodeUtils.NodeActio
 	if err = act.saveSubWorkflowRefs(
 		nCtx,
 		std.InstanceData().OperationInstanceID,
+		std.InstanceData().Name,
 		serializedSubWorkflowRefs,
 	); err != nil {
 		return 0, fmt.Errorf("failed to save sub workflow refs to private data: %w", err)
@@ -482,8 +494,8 @@ func (act *actionInstallPreOrderedPlugins) waitWorkflow(std *nodeUtils.NodeActio
 
 	if len(subWorkflowRefs) > 0 {
 		std.InstanceData().Log().
-			Zh("成功启动预置插件安装工作流, workflow(%+v)", subWorkflowRefs).
-			En("succeed to launch install pre-ordered plugins workflow, workflow(%+v)", subWorkflowRefs).
+			Zh("成功启动插件安装工作流, workflow(%+v)", subWorkflowRefs).
+			En("succeed to launch install plugins workflow, workflow(%+v)", subWorkflowRefs).
 			Info()
 
 		std.InstanceData().Log().
@@ -534,8 +546,8 @@ func (act *actionInstallPreOrderedPlugins) checkPluginWorkflowStatus(
 
 		if workflowStatus == types.PluginWorkflowStatusRunning {
 			std.InstanceData().Log().
-				Zh("预置插件安装工作流仍在运行中, workflow-id: %s", workflowID).
-				En("install pre-ordered plugins workflow is still running, workflow-id: %s", workflowID).
+				Zh("插件安装工作流仍在运行中, workflow-id: %s", workflowID).
+				En("install plugins workflow is still running, workflow-id: %s", workflowID).
 				Info()
 
 			return fmt.Errorf("plugin workflow is still running, workflow-id(%s)", workflowID)
@@ -544,36 +556,36 @@ func (act *actionInstallPreOrderedPlugins) checkPluginWorkflowStatus(
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("install pre-ordered plugins workflow polling failed: %w", err)
+		return fmt.Errorf("install plugins workflow polling failed: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("预置插件安装工作流已结束, workflow-id: %s, 状态: %s", workflowID, workflowStatus).
-		En("install pre-ordered plugins workflow finished, workflow-id: %s, status: %s", workflowID, workflowStatus).
+		Zh("插件安装工作流已结束, workflow-id: %s, 状态: %s", workflowID, workflowStatus).
+		En("install plugins workflow finished, workflow-id: %s, status: %s", workflowID, workflowStatus).
 		Info()
 
 	switch workflowStatus {
 	case types.PluginWorkflowStatusSuccess:
 		std.InstanceData().Log().
-			Zh("预置插件安装成功, workflow-id: %s", workflowID).
-			En("install pre-ordered plugins succeeded, workflow-id: %s", workflowID).
+			Zh("插件安装成功, workflow-id: %s", workflowID).
+			En("install plugins succeeded, workflow-id: %s", workflowID).
 			Info()
 
 		return nil
 	case types.PluginWorkflowStatusFailed:
 		std.InstanceData().Log().
-			Zh("预置插件安装失败, workflow-id: %s", workflowID).
-			En("install pre-ordered plugins failed, workflow-id: %s", workflowID).
+			Zh("插件安装失败, workflow-id: %s", workflowID).
+			En("install plugins failed, workflow-id: %s", workflowID).
 			Info()
 
-		return errors.New("install pre-ordered plugins failed")
+		return errors.New("install plugins failed")
 	case types.PluginWorkflowStatusPartialFailed:
 		std.InstanceData().Log().
-			Zh("预置插件安装部分失败, workflow-id: %s", workflowID).
-			En("install pre-ordered plugins partially failed, workflow-id: %s", workflowID).
+			Zh("插件安装部分失败, workflow-id: %s", workflowID).
+			En("install plugins partially failed, workflow-id: %s", workflowID).
 			Info()
 
-		return errors.New("install pre-ordered plugins partially failed")
+		return errors.New("install plugins partially failed")
 	default:
 		return fmt.Errorf("unknown plugin workflow status: %s", workflowStatus)
 	}
