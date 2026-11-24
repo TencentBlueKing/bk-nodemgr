@@ -26,7 +26,13 @@ import (
 )
 
 // addDropdowns adds drop-down validation to columns with options.
-func addDropdowns(f *excelize.File, sheet string, columns []Column) error {
+func addDropdowns(f *excelize.File, sheet string, columns []Column, language Language) error {
+	var warningTitle, warningMessage, stopTitle, stopMessage Text
+	warningTitle.Edit().Zh(dropdownWarningTitleZh).En(dropdownWarningTitleEn).Set()
+	warningMessage.Edit().Zh(dropdownWarningMessageZh).En(dropdownWarningMessageEn).Set()
+	stopTitle.Edit().Zh(dropdownStopTitleZh).En(dropdownStopTitleEn).Set()
+	stopMessage.Edit().Zh(dropdownStopMessageZh).En(dropdownStopMessageEn).Set()
+
 	for colIndex, col := range columns {
 		if len(col.Options) == 0 {
 			continue
@@ -42,23 +48,23 @@ func addDropdowns(f *excelize.File, sheet string, columns []Column) error {
 
 		if dropListUTF16Len(col.Options) <= inlineDropListLimit {
 			if err := dv.SetDropList(col.Options); err != nil {
-				return fmt.Errorf("failed to set excel drop list. column(%s): %w", col.Name, err)
+				return fmt.Errorf("failed to set excel drop list. column(%s): %w", col.Name.in(LanguageEn), err)
 			}
 		} else {
 			sqref, err := writeOptionsSheet(f, colIndex, col.Options)
 			if err != nil {
-				return fmt.Errorf("failed to write excel options sheet. column(%s): %w", col.Name, err)
+				return fmt.Errorf("failed to write excel options sheet. column(%s): %w", col.Name.in(LanguageEn), err)
 			}
 			dv.SetSqrefDropList(sqref)
 		}
 
 		if col.AllowCustom {
-			dv.SetError(excelize.DataValidationErrorStyleWarning, dropdownWarningTitle, dropdownWarningMessage)
+			dv.SetError(excelize.DataValidationErrorStyleWarning, warningTitle.in(language), warningMessage.in(language))
 		} else {
-			dv.SetError(excelize.DataValidationErrorStyleStop, dropdownStopTitle, dropdownStopMessage)
+			dv.SetError(excelize.DataValidationErrorStyleStop, stopTitle.in(language), stopMessage.in(language))
 		}
 		if err := f.AddDataValidation(sheet, dv); err != nil {
-			return fmt.Errorf("failed to add excel data validation. column(%s): %w", col.Name, err)
+			return fmt.Errorf("failed to add excel data validation. column(%s): %w", col.Name.in(LanguageEn), err)
 		}
 	}
 
