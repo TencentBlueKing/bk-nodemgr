@@ -667,25 +667,6 @@ func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.
 	return nil
 }
 
-const (
-	defaultKeyDataAgentBindIP   = "::"
-	defaultKeyDataAgentBindPort = 28625
-
-	defaultKeyFileAgentBindIP   = "::"
-	defaultKeyFileAgentBindPort = 28925
-
-	defaultKeyProxyBindIP   = "::"
-	defaultKeyProxyBindPort = 28668
-
-	defaultKeyFileBittorrentBindIP             = "::"
-	defaultKeyFileBittorrentBindPort           = 10020
-	defaultKeyFileBittorrentTrackerBindPort    = 10030
-	defaultKeyFileBittorrentSpeedLimitMBPerSec = 10000
-
-	defaultKeyFileTopologyBindIP   = "::"
-	defaultKeyFileTopologyBindPort = 28930
-)
-
 // renderLogicSettingNetwork this function is used to set some network related settings.
 func (act *actionRenderNodeDeployment) renderLogicSettingNetwork(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) error {
 	needStaticAccess, err := act.storageDomainGse.NeedStaticAccess(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
@@ -733,26 +714,32 @@ func (act *actionRenderNodeDeployment) renderLogicSettingNetwork(std *nodeUtils.
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
 
-			// notice: in order to support dual-stack network, the bind ip should be "::"
-			nodeConf.PreSetting[GseTemplateKeyDataAgentBindIP] = defaultKeyDataAgentBindIP
+			deployConstant, err := deployconstant.GetNodeDeployConf(
+				std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
+			if err != nil {
+				return fmt.Errorf("failed to get node deploy conf: %w", err)
+			}
+
+			// Bind IPs default to "::" for dual-stack support; release port and speed values retain precedence.
+			nodeConf.PreSetting[GseTemplateKeyDataAgentBindIP] = deployConstant.DataAgentBindIP
 			nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort], defaultKeyDataAgentBindPort)
-			nodeConf.PreSetting[GseTemplateKeyFileAgentBindIP] = defaultKeyFileAgentBindIP
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort], deployConstant.DataAgentBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileAgentBindIP] = deployConstant.FileAgentBindIP
 			nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyFileAgentBindPort)
-			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindIP] = defaultKeyFileTopologyBindIP
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort], deployConstant.FileAgentBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindIP] = deployConstant.FileTopologyBindIP
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort], defaultKeyFileTopologyBindPort)
-			nodeConf.PreSetting[GseTemplateKeyProxyBindIP] = defaultKeyProxyBindIP
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort], deployConstant.FileTopologyBindPort)
+			nodeConf.PreSetting[GseTemplateKeyProxyBindIP] = deployConstant.ProxyBindIP
 			nodeConf.PreSetting[GseTemplateKeyProxyBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyProxyBindPort], defaultKeyProxyBindPort)
-			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindIP] = defaultKeyFileBittorrentBindIP
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyProxyBindPort], deployConstant.ProxyBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindIP] = deployConstant.FileBittorrentBindIP
 			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort], defaultKeyFileBittorrentBindPort)
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort], deployConstant.FileBittorrentBindPort)
 			nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort], defaultKeyFileBittorrentTrackerBindPort)
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort], deployConstant.FileBittorrentTrackerBindPort)
 			nodeConf.PreSetting[GseTemplateKeyFileBittorrentSpeedLimitMBPerSec] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentSpeedLimitMBPerSec], defaultKeyFileBittorrentSpeedLimitMBPerSec)
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentSpeedLimitMBPerSec], deployConstant.FileBittorrentSpeedLimitMBPerSec)
 
 			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(
 				std.Context(),

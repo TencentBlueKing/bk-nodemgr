@@ -21,6 +21,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -773,10 +774,54 @@ type GSEDeployCustom struct {
 	ProxyFileCacheDir string `yaml:"proxyFileCacheDir" usage:"proxy file cache dir, only for linux and proxy node"`
 	ZoneID            string `yaml:"zoneID" usage:"zone id of gse deploy node"`
 	CityID            string `yaml:"cityID" usage:"city id of gse deploy node"`
+
+	// Global proxy network defaults. Empty IPs and zero numeric values use the built-in defaults.
+	DataAgentBindIP                  string `yaml:"dataAgentBindIP" usage:"default data agent bind ip"`
+	DataAgentBindPort                int64  `yaml:"dataAgentBindPort" usage:"default data agent bind port"`
+	FileAgentBindIP                  string `yaml:"fileAgentBindIP" usage:"default file agent bind ip"`
+	FileAgentBindPort                int64  `yaml:"fileAgentBindPort" usage:"default file agent bind port"`
+	ProxyBindIP                      string `yaml:"proxyBindIP" usage:"default proxy bind ip"`
+	ProxyBindPort                    int64  `yaml:"proxyBindPort" usage:"default proxy bind port"`
+	FileBittorrentBindIP             string `yaml:"fileBittorrentBindIP" usage:"default file bittorrent bind ip"`
+	FileBittorrentBindPort           int64  `yaml:"fileBittorrentBindPort" usage:"default file bittorrent bind port"`
+	FileBittorrentTrackerBindPort    int64  `yaml:"fileBittorrentTrackerBindPort" usage:"default file bittorrent tracker bind port"`
+	FileBittorrentSpeedLimitMBPerSec int64  `yaml:"fileBittorrentSpeedLimitMBPerSec" usage:"default file bittorrent speed limit in MB per second"`
+	FileTopologyBindIP               string `yaml:"fileTopologyBindIP" usage:"default file topology bind ip"`
+	FileTopologyBindPort             int64  `yaml:"fileTopologyBindPort" usage:"default file topology bind port"`
 }
 
 // Validate validates the config.
 func (conf *GSEDeployCustom) Validate() error {
+	for name, ip := range map[string]string{
+		"dataAgentBindIP":      conf.DataAgentBindIP,
+		"fileAgentBindIP":      conf.FileAgentBindIP,
+		"proxyBindIP":          conf.ProxyBindIP,
+		"fileBittorrentBindIP": conf.FileBittorrentBindIP,
+		"fileTopologyBindIP":   conf.FileTopologyBindIP,
+	} {
+		if ip != "" && net.ParseIP(ip) == nil {
+			return fmt.Errorf("invalid %s: %q", name, ip)
+		}
+	}
+
+	for name, port := range map[string]int64{
+		"dataAgentBindPort":             conf.DataAgentBindPort,
+		"fileAgentBindPort":             conf.FileAgentBindPort,
+		"proxyBindPort":                 conf.ProxyBindPort,
+		"fileBittorrentBindPort":        conf.FileBittorrentBindPort,
+		"fileBittorrentTrackerBindPort": conf.FileBittorrentTrackerBindPort,
+		"fileTopologyBindPort":          conf.FileTopologyBindPort,
+	} {
+		if port < 0 || port > 65535 {
+			return fmt.Errorf("invalid %s: must be 0 (default) or between 1 and 65535, got %d", name, port)
+		}
+	}
+
+	if conf.FileBittorrentSpeedLimitMBPerSec < 0 {
+		return fmt.Errorf("invalid fileBittorrentSpeedLimitMBPerSec: must be non-negative, got %d",
+			conf.FileBittorrentSpeedLimitMBPerSec)
+	}
+
 	return nil
 }
 
