@@ -50,6 +50,7 @@ import (
 	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/systemconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -385,6 +386,57 @@ func (svc *Service) initialCapability() error {
 	}
 
 	return nil
+}
+
+func (svc *Service) initialSystemConfig() {
+	deployConfigs := make([]types.SystemConfigGSEDeploy, 0, len(svc.conf.GSEDeployConfs))
+	for _, conf := range svc.conf.GSEDeployConfs {
+		var proxyMode types.SystemConfigHTTPProxyMode
+		switch {
+		case !conf.HTTPProxy.Override:
+			proxyMode = types.SystemConfigHTTPProxyModeInherit
+		case conf.HTTPProxy.Address == "":
+			proxyMode = types.SystemConfigHTTPProxyModeDirect
+		default:
+			proxyMode = types.SystemConfigHTTPProxyModeSpecified
+		}
+
+		deployConfigs = append(deployConfigs, types.SystemConfigGSEDeploy{
+			Generation:       conf.Generation,
+			OSType:           conf.OsType,
+			BaseWorkDir:      conf.BaseWorkDir,
+			BaseDeployDir:    conf.BaseDeployDir,
+			ExtraConfigDir:   conf.Custom.ExtraConfigDir,
+			HostIDPath:       conf.PluginCustom.HostIDPath,
+			V2RunDir:         conf.PluginCustom.V2RunDir,
+			V2DataDir:        conf.PluginCustom.V2DataDir,
+			ZoneID:           conf.Custom.ZoneID,
+			CityID:           conf.Custom.CityID,
+			HTTPProxyMode:    proxyMode,
+			FirewallFeatures: conf.Firewall.Features,
+		})
+	}
+
+	svc.Cap.SystemConfig = systemconfig.New(types.SystemConfig{
+		TenantMode: string(svc.conf.TenantMode),
+		System: types.SystemConfigSystem{
+			Env:     svc.conf.System.Env,
+			Edition: svc.conf.System.Edition,
+		},
+		IAM: types.SystemConfigIAM{
+			V3Enabled: svc.conf.IAMV3.Enable,
+			V4Enabled: svc.conf.IAMV4.Enable,
+		},
+		NodeEventDataID: types.SystemConfigNodeEventDataID{
+			AgentBaseAlarmEventDataID: svc.conf.NodeEventDataID.Default.AgentBaseAlarmEventDataID,
+			TaskProcEventDataID:       svc.conf.NodeEventDataID.Default.TaskProcEventDataID,
+		},
+		DefaultDirectNetworkUnit: types.SystemConfigDefaultDirectNetworkUnit{
+			Enabled: svc.conf.NetworkUnit.DefaultDirectUnit.Enabled,
+			Name:    svc.conf.NetworkUnit.DefaultDirectUnit.Name,
+		},
+		GSEDeployConfigs: deployConfigs,
+	})
 }
 
 func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
