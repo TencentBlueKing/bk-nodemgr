@@ -31,6 +31,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
@@ -98,7 +99,7 @@ func (act *actionGenOperCorrectUnknownProcessStatus) Queue() action.Queue {
 	return action.QueueDefault
 }
 
-// Do creates one correction operation per host batch, including hosts without an AgentID.
+// Do creates legacy and generation-specific correction operations per host batch, including hosts without an AgentID.
 func (act *actionGenOperCorrectUnknownProcessStatus) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamGenOperCorrectUnknownProcessStatus)
 	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
@@ -138,14 +139,24 @@ func (act *actionGenOperCorrectUnknownProcessStatus) Do(ctx *action.InstanceCont
 	}
 	err = batchexecutor.Execute(scanCtx, hosts, func(nCtx contextx.IContext, batchHosts []*types.Host) error {
 		hostIDs := conv.SliceToSlice(batchHosts, func(host *types.Host) int64 { return host.HostID })
-		operDef := NewOperCorrectUnknownProcessStatus(OperParamCorrectUnknownProcessStatus{
-			TenantID: std.TenantID(), Operator: std.Operator(), HostIDs: hostIDs,
-		})
-		operParam := operDef.DefaultParameters()
-		operParam.ParentOperationID = std.InstanceData().OperationID
-		operParam.ParentOperInstID = std.InstanceData().OperationInstanceID
-		if _, createErr := triggerCtl.CreateOperation(nCtx, operDef, operParam); createErr != nil {
-			return fmt.Errorf("failed to create correct unknown process status operation for hosts %v: %w", hostIDs, createErr)
+		operDefs := []operation.Definition{
+			NewOperCorrectUnknownProcessStatus(OperParamCorrectUnknownProcessStatus{
+				TenantID: std.TenantID(), Operator: std.Operator(), HostIDs: hostIDs,
+			}),
+			NewOperCorrectRunningProcessStatus(OperParamCorrectRunningProcessStatus{
+				TenantID: std.TenantID(), Operator: std.Operator(), HostIDs: hostIDs,
+			}),
+			NewOperCorrectRunningProcessV2Status(OperParamCorrectRunningProcessV2Status{
+				TenantID: std.TenantID(), Operator: std.Operator(), HostIDs: hostIDs,
+			}),
+		}
+		for _, operDef := range operDefs {
+			operParam := operDef.DefaultParameters()
+			operParam.ParentOperationID = std.InstanceData().OperationID
+			operParam.ParentOperInstID = std.InstanceData().OperationInstanceID
+			if _, createErr := triggerCtl.CreateOperation(nCtx, operDef, operParam); createErr != nil {
+				return fmt.Errorf("failed to create %s operation for hosts %v: %w", operDef.Name(), hostIDs, createErr)
+			}
 		}
 
 		return nil

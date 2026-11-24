@@ -201,20 +201,19 @@ func (act *actionSyncAlivePluginProcessInfo) listProcessesToSync(nCtx contextx.I
 		return nil, err
 	}
 
-	unknownAutoStartProcess, err := listProcesses(&types.ProcessCondition{
+	unknownProcess, err := listProcesses(&types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
-			HostID:          hostIDs,
-			InfoStatus:      []types.ProcessStatus{types.ProcessStatusUnknown},
-			InfoTrusteeship: []bool{true},
+			HostID:     hostIDs,
+			InfoStatus: []types.ProcessStatus{types.ProcessStatusUnknown},
 		},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	aliveProcess := make([]*types.Process, 0, len(runningProcess)+len(unknownAutoStartProcess))
-	aliveProcessMap := make(map[types.ProcessUniqueKey]struct{}, len(runningProcess)+len(unknownAutoStartProcess))
-	for _, processes := range [][]*types.Process{runningProcess, unknownAutoStartProcess} {
+	aliveProcess := make([]*types.Process, 0, len(runningProcess)+len(unknownProcess))
+	aliveProcessMap := make(map[types.ProcessUniqueKey]struct{}, len(runningProcess)+len(unknownProcess))
+	for _, processes := range [][]*types.Process{runningProcess, unknownProcess} {
 		for _, proc := range processes {
 			if _, ok := aliveProcessMap[proc.GetUniqueKey()]; ok {
 				continue
