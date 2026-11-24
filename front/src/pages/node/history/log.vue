@@ -669,31 +669,37 @@ const buildExactConditions = (): Record<string, any> | undefined => {
 // 从任务详情跳转进入时，把路由带入的目标主机条件初始化到搜索栏，
 // 复用「搜索→后端过滤」链路直接命中当前机器；用户清空搜索条件即恢复全量
 const initSearchFromRoute = () => {
-  if (isNode.value) {
-    // node：协议支持 bk_host_innerip / bk_host_innerip_v6 过滤，搜索栏带 IP
-    const ipStr = String(route.query.ip ?? '');
-    const ipv6Str = String(route.query.ipv6 ?? '');
-    const ips = [...parseMultiDelimiterInput(ipStr), ...parseMultiDelimiterInput(ipv6Str)]
-      .filter(ip => !!ip);
-    if (ips.length === 0) return;
-    searchSelectValue.value = [{
+  const conditions: { id: string; name: string; values: { id: string; name: string }[] }[] = [];
+
+  // node / plugin 协议都支持 bk_host_innerip / bk_host_innerip_v6 过滤，搜索栏带 IP
+  const ipStr = String(route.query.ip ?? '');
+  const ipv6Str = String(route.query.ipv6 ?? '');
+  const ips = [...parseMultiDelimiterInput(ipStr), ...parseMultiDelimiterInput(ipv6Str)]
+    .filter(ip => !!ip);
+  if (ips.length > 0) {
+    conditions.push({
       id: 'ip',
       name: 'IP',
       values: Array.from(new Set(ips)).map(ip => ({ id: ip, name: ip })),
-    }];
-    return;
+    });
   }
-  // plugin：协议无 IP 过滤条件，改带 plugin_name（hostId 格式为 `${bk_host_id}_${plugin_name}`）。
-  // 列表会显示该任务下同插件的所有主机，locateCurrentOperate 按 hostId 字符串精确匹配定位目标
-  const hostIdParam = String(route.params.hostId ?? '');
-  const sepIndex = hostIdParam.indexOf('_');
-  if (sepIndex < 0) return;
-  const pluginName = hostIdParam.slice(sepIndex + 1);
-  searchSelectValue.value = [{
-    id: 'plugin_name',
-    name: '插件名',
-    values: [{ id: pluginName, name: pluginName }],
-  }];
+
+  // plugin：同一主机可能有多个插件，还需带 plugin_name（hostId 格式为 `${bk_host_id}_${plugin_name}`）
+  if (!isNode.value) {
+    const hostIdParam = String(route.params.hostId ?? '');
+    const sepIndex = hostIdParam.indexOf('_');
+    if (sepIndex >= 0) {
+      const pluginName = hostIdParam.slice(sepIndex + 1);
+      conditions.push({
+        id: 'plugin_name',
+        name: '插件名',
+        values: [{ id: pluginName, name: pluginName }],
+      });
+    }
+  }
+
+  if (conditions.length === 0) return;
+  searchSelectValue.value = conditions;
 };
 // 搜索条件变化：重置到第一页并触发后端查询
 watch(searchSelectValue, () => {
