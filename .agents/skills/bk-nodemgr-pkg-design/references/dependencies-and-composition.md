@@ -40,11 +40,11 @@ A read-only consumer can accept `IReader`; the full handler still provides the p
 
 ## Parallel Implementation Versus Composition
 
-| Situation                                                 | Approach                                                | What stays stable                                  |
-| --------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------- |
-| A different storage mechanism fulfills the same operation | A parallel implementation                               | Contract and operation consumers                   |
-| Existing operations need a coherent policy around them    | A composition accepting and implementing the capability | Underlying implementations and operation consumers |
-| The required operation's meaning or result changes        | An explicit, authorized contract migration              | Unrelated APIs, not the affected signatures        |
+| Situation                                                 | Approach                                                                    | What stays stable                                                                 |
+| --------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| A different storage mechanism fulfills the same operation | A parallel implementation                                                   | Contract and operation consumers                                                  |
+| Existing operations need a coherent policy around them    | A composition accepting and implementing the capability                     | Underlying implementations and operation consumers                                |
+| The required operation's meaning or result changes        | Compatible additive extension, or an explicitly approved in-place migration | Existing signatures for additive extension; unrelated APIs for approved migration |
 
 Do not force incompatible behavior under one interface just to avoid a contract change.
 
