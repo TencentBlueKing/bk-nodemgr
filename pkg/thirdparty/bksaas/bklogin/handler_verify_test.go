@@ -24,11 +24,23 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/stretchr/testify/require"
 )
+
+type tenantRequiredResolver struct{}
+
+func (tenantRequiredResolver) GetBKUsernameByLoginName(nCtx contextx.IContext, loginName string) (string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return "", err
+	}
+
+	return loginName, nil
+}
 
 func TestHandlerVerify(t *testing.T) {
 	mode, ok := configuredTenantMode(t)
@@ -41,7 +53,31 @@ func TestHandlerVerify(t *testing.T) {
 		return
 	}
 
+	access.SetTenantVirtualUserResolver(tenantRequiredResolver{})
+	t.Cleanup(func() {
+		access.SetTenantVirtualUserResolver(access.NewNoopTenantVirtualUserResolver())
+	})
+
 	nCtx := contextx.New(context.Background())
+
+	t.Run("bk_token_access_token_without_tenant", func(t *testing.T) {
+		h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, req *http.Request) {
+			require.Equal(t, "/login/api/v3/open/bk-tokens/userinfo/", req.URL.Path)
+			require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
+			require.Equal(t, tenant.SystemTenantID, req.Header.Get(apigwheader.BKGWTenantIDKey))
+			require.JSONEq(t, `{"access_token":"access-token"}`, req.Header.Get(apigwheader.BKGWAuthKey))
+
+			_, err := rw.Write([]byte(`{"data":{"bk_username":"token_user","tenant_id":"system","login_name":"admin"}}`))
+			require.NoError(t, err)
+		})
+		h.conf.VirtualUserConfig.AuthMode = apigwclient.AuthModeAt
+		h.conf.VirtualUserConfig.AccessToken = "access-token"
+
+		_, bkUsername, loginName, err := h.Verify(nCtx, "token-value")
+		require.NoError(t, err)
+		require.Equal(t, "token_user", bkUsername)
+		require.Equal(t, "admin", loginName)
+	})
 
 	switch mode {
 	case tenant.ModeSingle:
@@ -71,9 +107,11 @@ func TestHandlerVerify(t *testing.T) {
 				if req.Header.Get(apigwheader.BKGWTenantIDKey) != tenant.SystemTenantID {
 					t.Error("gateway system tenant header is missing")
 				}
-				if req.Header.Get(apigwheader.BKGWAuthKey) == "" {
-					t.Error("gateway authentication header is missing")
-				}
+				require.JSONEq(t, `{
+					"bk_app_code": "bk-nodemgr",
+					"bk_app_secret": "app-secret",
+					"bk_username": ""
+				}`, req.Header.Get(apigwheader.BKGWAuthKey))
 				_, _ = rw.Write([]byte(`{"data":{"bk_username":"token_user","tenant_id":"system","login_name":"admin"}}`))
 			})
 
@@ -91,7 +129,7 @@ func TestHandlerVerify(t *testing.T) {
 				require.JSONEq(t, `{
 						"bk_app_code": "bk-nodemgr",
 						"bk_app_secret": "app-secret",
-						"bk_username": "admin"
+						"bk_username": ""
 					}`, req.Header.Get(apigwheader.BKGWAuthKey))
 
 				_, err := rw.Write([]byte(`{
