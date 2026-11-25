@@ -384,6 +384,8 @@ func convertPluginWorkflowOperationConditionsToTypes(exactCond *PluginWorkflowOp
 	if exactCond != nil {
 		condition.ExactInclude = &types.ApplicationPluginOperationListExactFields{
 			HostID:        exactCond.GetBkHostId(),
+			HostInnerIP:   exactCond.GetBkHostInnerip(),
+			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
 			PluginName:    exactCond.GetPluginName(),
 			PluginVersion: exactCond.GetPluginVersion(),
 			State:         operation.StringListToStateList(exactCond.GetState()),

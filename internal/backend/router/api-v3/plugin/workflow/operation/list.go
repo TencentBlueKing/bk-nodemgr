@@ -101,8 +101,23 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	deploymentCond := req.ConvertConditionsToDeploymentTypes(tokens)
+
+	matched, err := h.resolveInnerIPConditions(rCtx, req, deploymentCond)
+	if err != nil {
+		return nil, err
+	}
+
+	// no host matches the inner ip conditions, return empty result early.
+	if !matched {
+		resp := new(protoBackend.PluginWorkflowOperationListResp)
+		resp.ConvertResultFromTypes(0, nil)
+
+		return resp.GetData(), nil
+	}
+
 	// list all deployments by condition.
-	deployments, num, err := h.daoPluginDeployment.ListPluginDeployment(rCtx, page, req.ConvertConditionsToDeploymentTypes(tokens))
+	deployments, num, err := h.daoPluginDeployment.ListPluginDeployment(rCtx, page, deploymentCond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin deployment")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -169,6 +184,36 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	resp.ConvertResultFromTypes(num, result)
 
 	return resp.GetData(), nil
+}
+
+// resolveInnerIPConditions resolves the inner ip conditions of the request to host ids and fills them into the
+// deployment condition, since the plugin deployment only records the host id.
+// It returns false when the inner ip conditions are specified but no host matches them.
+func (h *handler) resolveInnerIPConditions(rCtx restserver.IContext, req *protoBackend.PluginWorkflowOperationListReq,
+	deploymentCond *types.PluginDeploymentCondition) (bool, error) {
+
+	hostCond := req.ConvertConditionsToHostTypes()
+	if hostCond == nil {
+		return true, nil
+	}
+
+	// only the host id is needed, avoid loading the whole host documents.
+	hosts, _, err := h.daoHost.ListHostWithFields(rCtx, types.UnlimitedPage(), &types.HostFieldSelection{HostID: true}, hostCond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to list host by inner ip")
+		return false, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	// an empty host id list means no filter, so it must not be filled into the deployment condition.
+	if len(hosts) == 0 {
+		return false, nil
+	}
+
+	deploymentCond.ExactInclude.HostID = conv.SliceToSlice[*types.Host, int64](hosts, func(host *types.Host) int64 {
+		return host.HostID
+	})
+
+	return true, nil
 }
 
 // DistinctOperation defines the plugin workflow operation distinct handler.
