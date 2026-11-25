@@ -420,6 +420,17 @@ const getParams = () => {
       return;
     }
 
+    // 管控单元ID：字符串转数字，无法转换的输入（如直接回车的文本）不生效
+    if (item.id === 'bk_networkunit_id' && item.values?.length) {
+      const unitIds = item.values
+        .map((value: any) => Number(value.id))
+        .filter((value: number) => Number.isSafeInteger(value));
+      if (unitIds.length > 0) {
+        params.exact_include_conditions.bk_networkunit_id = Array.from(new Set(unitIds));
+      }
+      return;
+    }
+
     // 其他字段：保持原有 fuzzy/exact 分类逻辑
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions

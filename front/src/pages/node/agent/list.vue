@@ -684,6 +684,8 @@ const statusMap = computed(() => {
 });
 
 const fuzzyKeys = new Set(['bk_host_name', 'dept_name']);
+// 下拉选项值为数字 ID 的筛选字段
+const numericIdKeys = new Set(['bk_biz_id', 'bk_networkarea_id', 'bk_networkunit_id']);
 
 // ---------- 计算属性 ----------
 const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
@@ -974,6 +976,28 @@ const getParams = () => {
       return;
     }
     
+    // 数值型选项字段：直接回车输入的文本不是下拉选项，无法转换为 ID 时不生效
+    if (numericIdKeys.has(item.id)) {
+      const ids: number[] = (item.values ?? [])
+        .map((value: any) => Number(value.id))
+        .filter((value: number) => Number.isSafeInteger(value));
+      if (ids.length > 0) {
+        params.exact_include_conditions[item.id as 'bk_biz_id' | 'bk_networkarea_id' | 'bk_networkunit_id'] = Array.from(new Set(ids));
+      }
+      return;
+    }
+
+    // 状态字段：仅接受合法状态值，直接回车输入的文本不生效
+    if (item.id === 'node_status') {
+      const statuses: string[] = (item.values ?? [])
+        .map((value: any) => value.id)
+        .filter((value: string) => statusMap.value.has(value));
+      if (statuses.length > 0) {
+        params.exact_include_conditions.node_status = Array.from(new Set(statuses));
+      }
+      return;
+    }
+
     // 处理其他字段
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions

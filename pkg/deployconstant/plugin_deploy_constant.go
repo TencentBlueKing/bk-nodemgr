@@ -42,6 +42,27 @@ const (
 	pluginWindowsHostIDPathFormat = "C:\\%s\\data\\host\\hostid"
 )
 
+// HostIDPushMode defines who pushes the host id file to the host.
+type HostIDPushMode string
+
+const (
+	// HostIDPushModeCMDB means the host id file is pushed by CMDB.
+	HostIDPushModeCMDB HostIDPushMode = "cmdb"
+
+	// HostIDPushModeSelf means the host id file is generated and pushed by Node Manager itself.
+	HostIDPushModeSelf HostIDPushMode = "self"
+)
+
+// Validate checks if the host id push mode is valid.
+func (mode HostIDPushMode) Validate() error {
+	switch mode {
+	case HostIDPushModeCMDB, HostIDPushModeSelf:
+		return nil
+	default:
+		return fmt.Errorf("invalid host id push mode(%s), must be %s or %s", mode, HostIDPushModeCMDB, HostIDPushModeSelf)
+	}
+}
+
 // PluginDeployConf defines the deployment configuration for plugin.
 type PluginDeployConf struct {
 	DeployConf
@@ -49,6 +70,7 @@ type PluginDeployConf struct {
 	// custom.
 	LogDir          string
 	HostIDPath      string
+	HostIDPushMode  HostIDPushMode
 	CommonConstants map[string]map[string]any
 
 	// v2 custom.
@@ -60,6 +82,10 @@ type PluginDeployConf struct {
 func (conf PluginDeployConf) Validate() error {
 	if err := conf.DeployConf.Validate(); err != nil {
 		return fmt.Errorf("invalid deploy conf: %w", err)
+	}
+
+	if err := conf.HostIDPushMode.Validate(); err != nil {
+		return fmt.Errorf("invalid host id push mode: %w", err)
 	}
 
 	return nil
@@ -107,6 +133,7 @@ func SetPluginDeployConf(conf PluginDeployConf) error {
 func populatePluginDefaultValues(conf *PluginDeployConf) {
 	conf.LogDir = conv.NonEmptyOr(conf.LogDir, conf.generateDefaultPluginLogDir())
 	conf.HostIDPath = conv.NonEmptyOr(conf.HostIDPath, conf.generateDefaultHostIDPath())
+	conf.HostIDPushMode = conv.NonEmptyOr(conf.HostIDPushMode, HostIDPushModeCMDB)
 }
 
 // generateDefaultPluginLogDir generates the default log directory for the deployment configuration.
