@@ -1744,11 +1744,10 @@ const handleViewLog = async (row: any) => {
     query: {
       active: route.query?.active,
       status: route.query?.status,
-      // node：带上目标主机的 IP，日志页初始化到搜索栏，后端过滤直接命中当前机器；
-      // plugin：协议无 IP 过滤，日志页从 hostId 里拆插件名进搜索栏，无需 IP 参数
-      ...(route.query?.active === 'plugin'
-        ? {}
-        : { ip: row.bk_host_innerip, ipv6: row.bk_host_innerip_v6 }),
+      // 带上目标主机的 IP，日志页初始化到搜索栏，后端过滤直接命中当前机器；
+      // plugin 额外从 hostId 里拆插件名，与 IP 一起过滤以唯一定位
+      ip: row.bk_host_innerip,
+      ipv6: row.bk_host_innerip_v6,
     },
   });
 };

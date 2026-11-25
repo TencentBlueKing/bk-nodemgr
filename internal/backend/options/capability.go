@@ -37,6 +37,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/systemconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -60,6 +61,9 @@ import (
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
+	// SystemConfig provides the read-only business configuration view.
+	SystemConfig systemconfig.ISystemConfig
+
 	// Manager workflow management.
 	Manager manager.IManager
 

@@ -22,9 +22,14 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
+
+// ISharedReleaseSyncHandler synchronizes system shared releases for a tenant.
+type ISharedReleaseSyncHandler interface {
+	// SyncSharedReleases synchronizes system shared releases to the current tenant.
+	SyncSharedReleases(nCtx contextx.IContext) error
+}
 
 // SyncSharedReleases synchronizes system shared releases to the current tenant.
 func (h *handler) SyncSharedReleases(nCtx contextx.IContext) error {
@@ -39,32 +44,4 @@ func (h *handler) SyncSharedReleases(nCtx contextx.IContext) error {
 	}
 
 	return h.cli.syncSharedReleases(nCtx, nCtx.TenantID())
-}
-
-func (c *cli) syncSharedReleases(nCtx contextx.IContext, tenantID string) error {
-	resp := new(protoFile.SyncSharedReleasesResp)
-	header, err := c.getCommonHeader(nCtx, tenantID)
-	if err != nil {
-		return err
-	}
-
-	err = c.client.Post().
-		SubResourcef("/release/sync_shared").
-		WithContext(nCtx).
-		WithHeaders(header).
-		Body(new(protoFile.SyncSharedReleasesReq)).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().
-		Into(resp)
-	if err != nil {
-		return fmt.Errorf("failed to do post request: %w", err)
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("failed to sync shared releases. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return nil
 }

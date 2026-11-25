@@ -54,12 +54,17 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 }
 
 // getHeader get notice common header.
-func (c *cli) getHeader(nCtx contextx.IContext) http.Header {
+func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
+	auth, err := c.config.VirtualUserConfig.GetAuthHeader(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get notice auth header: %w", err)
+	}
+
 	header := http.Header{}
 	header.Set(apigwheader.BKGWTenantIDKey, nCtx.TenantID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
+	header.Set(apigwheader.BKGWAuthKey, auth)
 
-	return header
+	return header, nil
 }
 
 // getCurrentAnnouncements get current announcements from notice center.
@@ -67,7 +72,10 @@ func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
 	params *getCurrentAnnouncementsParams) ([]*announcementData, error) {
 
 	resp := new(BaseBroker[[]*announcementData])
-	header := c.getHeader(nCtx)
+	header, err := c.getHeader(nCtx)
+	if err != nil {
+		return nil, err
+	}
 
 	request := c.client.Get().
 		SubResourcef("/announcement/get_current_announcements").
@@ -81,7 +89,7 @@ func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
 		}
 	}
 
-	err := request.Do().Into(resp)
+	err = request.Do().Into(resp)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +105,12 @@ func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
 // No request body needed - authentication is via header.
 func (c *cli) registerApplication(nCtx contextx.IContext) (*registerApplicationResp, error) {
 	resp := new(BaseBroker[*registerApplicationResp])
-	header := c.getHeader(nCtx)
+	header, err := c.getHeader(nCtx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/register").
 		WithContext(nCtx).
 		WithHeaders(header).

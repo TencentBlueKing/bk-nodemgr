@@ -1971,6 +1971,21 @@ backend:
           logDir: ""
           extraConfigDir: ""
           proxyFileCacheDir: ""
+          # Global Linux Proxy rendering defaults; empty IPs and zero numbers use built-in defaults.
+          # Existing release port/speed values retain precedence. Restart backend after changes;
+          # existing Proxy nodes also require reconfig.
+          dataAgentBindIP: "::"
+          dataAgentBindPort: 28625
+          fileAgentBindIP: "::"
+          fileAgentBindPort: 28925
+          proxyBindIP: "::"
+          proxyBindPort: 28668
+          fileBittorrentBindIP: "::"
+          fileBittorrentBindPort: 10020
+          fileBittorrentTrackerBindPort: 10030
+          fileBittorrentSpeedLimitMBPerSec: 10000
+          fileTopologyBindIP: "::"
+          fileTopologyBindPort: 28930
           dataIPC: ""
           pluginIPC: ""
           zoneID: "default"
@@ -1978,6 +1993,10 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
+          # hostIDPushMode decides who pushes the host id file to the host: cmdb (default) or self.
+          # cmdb asks CMDB to push it; self makes Node Manager generate and push it through GSE,
+          # carrying only the fields Node Manager can decide itself. Empty means cmdb.
+          hostIDPushMode: ""
           commonConstants: {}
           # Empty v2RunDir/v2DataDir keep the shared plugin v2 defaults (<baseDeployDir>/<env>/plugins/run|data) used by
           # the compatibility install; non-empty paths are used as-is.
@@ -2012,6 +2031,10 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
+          # hostIDPushMode decides who pushes the host id file to the host: cmdb (default) or self.
+          # cmdb asks CMDB to push it; self makes Node Manager generate and push it through GSE,
+          # carrying only the fields Node Manager can decide itself. Empty means cmdb.
+          hostIDPushMode: ""
           commonConstants: {}
           # Empty v2RunDir/v2DataDir keep the shared plugin v2 defaults (<baseDeployDir>/<env>/plugins/run|data) used by
           # the compatibility install; non-empty paths are used as-is.

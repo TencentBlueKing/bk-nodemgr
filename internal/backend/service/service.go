@@ -50,6 +50,7 @@ import (
 	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/systemconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -212,14 +213,26 @@ func (svc *Service) initialStaticsConfigs() error {
 		}
 
 		nodeDeployConf := deployconstant.NodeDeployConf{
-			DeployConf:        deployConf,
-			LogDir:            svc.conf.GSEDeployConfs[idx].Custom.LogDir,
-			ExtraConfigDir:    svc.conf.GSEDeployConfs[idx].Custom.ExtraConfigDir,
-			DataIPC:           svc.conf.GSEDeployConfs[idx].Custom.DataIPC,
-			PluginIPC:         svc.conf.GSEDeployConfs[idx].Custom.PluginIPC,
-			ProxyFileCacheDir: svc.conf.GSEDeployConfs[idx].Custom.ProxyFileCacheDir,
-			ZoneID:            svc.conf.GSEDeployConfs[idx].Custom.ZoneID,
-			CityID:            svc.conf.GSEDeployConfs[idx].Custom.CityID,
+			DeployConf:                       deployConf,
+			LogDir:                           svc.conf.GSEDeployConfs[idx].Custom.LogDir,
+			ExtraConfigDir:                   svc.conf.GSEDeployConfs[idx].Custom.ExtraConfigDir,
+			DataIPC:                          svc.conf.GSEDeployConfs[idx].Custom.DataIPC,
+			PluginIPC:                        svc.conf.GSEDeployConfs[idx].Custom.PluginIPC,
+			ProxyFileCacheDir:                svc.conf.GSEDeployConfs[idx].Custom.ProxyFileCacheDir,
+			ZoneID:                           svc.conf.GSEDeployConfs[idx].Custom.ZoneID,
+			CityID:                           svc.conf.GSEDeployConfs[idx].Custom.CityID,
+			DataAgentBindIP:                  svc.conf.GSEDeployConfs[idx].Custom.DataAgentBindIP,
+			DataAgentBindPort:                svc.conf.GSEDeployConfs[idx].Custom.DataAgentBindPort,
+			FileAgentBindIP:                  svc.conf.GSEDeployConfs[idx].Custom.FileAgentBindIP,
+			FileAgentBindPort:                svc.conf.GSEDeployConfs[idx].Custom.FileAgentBindPort,
+			ProxyBindIP:                      svc.conf.GSEDeployConfs[idx].Custom.ProxyBindIP,
+			ProxyBindPort:                    svc.conf.GSEDeployConfs[idx].Custom.ProxyBindPort,
+			FileBittorrentBindIP:             svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentBindIP,
+			FileBittorrentBindPort:           svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentBindPort,
+			FileBittorrentTrackerBindPort:    svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentTrackerBindPort,
+			FileBittorrentSpeedLimitMBPerSec: svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentSpeedLimitMBPerSec,
+			FileTopologyBindIP:               svc.conf.GSEDeployConfs[idx].Custom.FileTopologyBindIP,
+			FileTopologyBindPort:             svc.conf.GSEDeployConfs[idx].Custom.FileTopologyBindPort,
 		}
 		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
 			return fmt.Errorf("failed to set node deploy conf: %w", err)
@@ -229,6 +242,7 @@ func (svc *Service) initialStaticsConfigs() error {
 			DeployConf:      deployConf,
 			LogDir:          svc.conf.GSEDeployConfs[idx].PluginCustom.LogDir,
 			HostIDPath:      svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPath,
+			HostIDPushMode:  deployconstant.HostIDPushMode(svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPushMode),
 			CommonConstants: svc.conf.GSEDeployConfs[idx].PluginCustom.CommonConstants,
 			V2RunDir:        svc.conf.GSEDeployConfs[idx].PluginCustom.V2RunDir,
 			V2DataDir:       svc.conf.GSEDeployConfs[idx].PluginCustom.V2DataDir,
@@ -265,6 +279,8 @@ func newSymmetricCrypter(conf *config.BackendService) (crypter.Crypter, error) {
 // nolint: funlen
 func (svc *Service) initialCapability() error {
 	var err error
+
+	svc.initialSystemConfig()
 
 	// discover provider watch backend and file service.
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
@@ -383,6 +399,57 @@ func (svc *Service) initialCapability() error {
 	}
 
 	return nil
+}
+
+func (svc *Service) initialSystemConfig() {
+	deployConfigs := make([]types.SystemConfigGSEDeploy, 0, len(svc.conf.GSEDeployConfs))
+	for _, conf := range svc.conf.GSEDeployConfs {
+		var proxyMode types.SystemConfigHTTPProxyMode
+		switch {
+		case !conf.HTTPProxy.Override:
+			proxyMode = types.SystemConfigHTTPProxyModeInherit
+		case conf.HTTPProxy.Address == "":
+			proxyMode = types.SystemConfigHTTPProxyModeDirect
+		default:
+			proxyMode = types.SystemConfigHTTPProxyModeSpecified
+		}
+
+		deployConfigs = append(deployConfigs, types.SystemConfigGSEDeploy{
+			Generation:       conf.Generation,
+			OSType:           conf.OsType,
+			BaseWorkDir:      conf.BaseWorkDir,
+			BaseDeployDir:    conf.BaseDeployDir,
+			ExtraConfigDir:   conf.Custom.ExtraConfigDir,
+			HostIDPath:       conf.PluginCustom.HostIDPath,
+			V2RunDir:         conf.PluginCustom.V2RunDir,
+			V2DataDir:        conf.PluginCustom.V2DataDir,
+			ZoneID:           conf.Custom.ZoneID,
+			CityID:           conf.Custom.CityID,
+			HTTPProxyMode:    proxyMode,
+			FirewallFeatures: conf.Firewall.Features,
+		})
+	}
+
+	svc.Cap.SystemConfig = systemconfig.New(types.SystemConfig{
+		TenantMode: string(svc.conf.TenantMode),
+		System: types.SystemConfigSystem{
+			Env:     svc.conf.System.Env,
+			Edition: svc.conf.System.Edition,
+		},
+		IAM: types.SystemConfigIAM{
+			V3Enabled: svc.conf.IAMV3.Enable,
+			V4Enabled: svc.conf.IAMV4.Enable,
+		},
+		NodeEventDataID: types.SystemConfigNodeEventDataID{
+			AgentBaseAlarmEventDataID: svc.conf.NodeEventDataID.Default.AgentBaseAlarmEventDataID,
+			TaskProcEventDataID:       svc.conf.NodeEventDataID.Default.TaskProcEventDataID,
+		},
+		DefaultDirectNetworkUnit: types.SystemConfigDefaultDirectNetworkUnit{
+			Enabled: svc.conf.NetworkUnit.DefaultDirectUnit.Enabled,
+			Name:    svc.conf.NetworkUnit.DefaultDirectUnit.Name,
+		},
+		GSEDeployConfigs: deployConfigs,
+	})
 }
 
 func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {

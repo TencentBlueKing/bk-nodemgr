@@ -293,7 +293,7 @@
           show-overflow
         >
           <template #default="{ row }">
-            {{ row.bk_networkarea_name }}
+            {{ getAreaLabel(row) }}
           </template>
         </TableColumn>
         <TableColumn
@@ -304,7 +304,7 @@
           :min-width="120"
         >
           <template #default="{ row }">
-            {{ networkUnitListMap.get(row.bk_networkunit_id) || row.bk_networkunit_name }}
+            {{ getUnitLabel(row) }}
           </template>
         </TableColumn>
         <TableColumn
@@ -484,6 +484,7 @@ import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import { AGENT_NODE_STATUS_LIST, getStatusIconClass } from '@/common/agent-status';
 import { isNetworkUnitAssigned } from '@/common/const';
+import { formatIdName } from '@/common/util';
 import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
 import BkFooter from '@/pages/app/footer.vue';
@@ -556,7 +557,7 @@ if (route.query.bk_networkarea_id && !route.query.bk_networkunit_id) {
   searchSelectValue.value = [{
     id: 'bk_networkarea_id',
     name: t('platform.nodeMan.bk_cloud_name'),
-    values: [{ id: areaIdStr, name: (route.query.bk_networkarea_name as string) || areaIdStr }],
+    values: [{ id: areaIdStr, name: formatIdName(areaIdStr, route.query.bk_networkarea_name as string) }],
   }];
   filterOptionSource.bk_networkarea_id.checked = [areaIdStr];
 }
@@ -683,6 +684,8 @@ const statusMap = computed(() => {
 });
 
 const fuzzyKeys = new Set(['bk_host_name', 'dept_name']);
+// 下拉选项值为数字 ID 的筛选字段
+const numericIdKeys = new Set(['bk_biz_id', 'bk_networkarea_id', 'bk_networkunit_id']);
 
 // ---------- 计算属性 ----------
 const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
@@ -692,6 +695,13 @@ const total = computed(() => pagination.count);
 const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
 const networkAreaListMap = ref(new Map<number, string>([]));
 const networkUnitListMap = ref(new Map<number, string>([]));
+
+// Display as [id] name; prefer the resolved label (e.g. unassigned) over the row snapshot
+const getAreaLabel = (row: any) => networkAreaListMap.value.get(row.bk_networkarea_id)
+  || formatIdName(row.bk_networkarea_id, row.bk_networkarea_name);
+const getUnitLabel = (row: any) => networkUnitListMap.value.get(row.bk_networkunit_id)
+  || formatIdName(row.bk_networkunit_id, row.bk_networkunit_name);
+
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 
 const searchSelectData = computed(() => [
@@ -966,6 +976,28 @@ const getParams = () => {
       return;
     }
     
+    // 数值型选项字段：直接回车输入的文本不是下拉选项，无法转换为 ID 时不生效
+    if (numericIdKeys.has(item.id)) {
+      const ids: number[] = (item.values ?? [])
+        .map((value: any) => Number(value.id))
+        .filter((value: number) => Number.isSafeInteger(value));
+      if (ids.length > 0) {
+        params.exact_include_conditions[item.id as 'bk_biz_id' | 'bk_networkarea_id' | 'bk_networkunit_id'] = Array.from(new Set(ids));
+      }
+      return;
+    }
+
+    // 状态字段：仅接受合法状态值，直接回车输入的文本不生效
+    if (item.id === 'node_status') {
+      const statuses: string[] = (item.values ?? [])
+        .map((value: any) => value.id)
+        .filter((value: string) => statusMap.value.has(value));
+      if (statuses.length > 0) {
+        params.exact_include_conditions.node_status = Array.from(new Set(statuses));
+      }
+      return;
+    }
+
     // 处理其他字段
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
@@ -991,7 +1023,10 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
   });
   networkAreaListMap.value.set(Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID), t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
-    networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
+    networkAreaListMap.value.set(
+      item.bk_networkarea_id,
+      formatIdName(item.bk_networkarea_id, item.bk_networkarea_name),
+    );
   });
 };
 
@@ -1007,7 +1042,10 @@ const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) =>
   });
   networkUnitListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
-    networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
+    networkUnitListMap.value.set(
+      item.bk_networkunit_id,
+      formatIdName(item.bk_networkunit_id, item.bk_networkunit_name),
+    );
   });
 };
 
@@ -1776,6 +1814,8 @@ watch(() => route.query, async (newQuery, oldQuery) => {
     
     // 等待基础数据加载完成
     const setSearchValue = () => {
+      const unitName = networkUnitListMap.value.get(unitId)
+        || (bk_networkunit_name ? formatIdName(unitId, bk_networkunit_name as string) : String(unitId));
       searchSelectValue.value = [
         ...searchSelectValue.value.filter(item => !['bk_networkarea_id', 'bk_networkunit_id'].includes(item.id)),
         {
@@ -1787,7 +1827,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
         {
           id: 'bk_networkunit_id',
           name: t('platform.nodeMan.bk_cloud_unit'),
-          values: [{ id: unitId, name: bk_networkunit_name || networkUnitListMap.value.get(unitId) || String(unitId) }],
+          values: [{ id: unitId, name: unitName }],
         },
       ];
     };
@@ -1806,7 +1846,8 @@ watch(() => route.query, async (newQuery, oldQuery) => {
   } else if (bk_networkarea_id !== undefined) {
     // 仅传入管控区域ID（从管控区域列表跳转，无单元信息）
     const areaId = Number(bk_networkarea_id);
-    const areaName = (bk_networkarea_name as string) || networkAreaListMap.value.get(areaId) || String(areaId);
+    const areaName = networkAreaListMap.value.get(areaId)
+      || (bk_networkarea_name ? formatIdName(areaId, bk_networkarea_name as string) : String(areaId));
 
     const setSearchValue = () => {
       searchSelectValue.value = [

@@ -42,6 +42,23 @@ const (
 
 	nodeZoneID = "default"
 	nodeCityID = "default"
+
+	nodeDataAgentBindIP   = "::"
+	nodeDataAgentBindPort = 28625
+
+	nodeFileAgentBindIP   = "::"
+	nodeFileAgentBindPort = 28925
+
+	nodeProxyBindIP   = "::"
+	nodeProxyBindPort = 28668
+
+	nodeFileBittorrentBindIP             = "::"
+	nodeFileBittorrentBindPort           = 10020
+	nodeFileBittorrentTrackerBindPort    = 10030
+	nodeFileBittorrentSpeedLimitMBPerSec = 10000
+
+	nodeFileTopologyBindIP   = "::"
+	nodeFileTopologyBindPort = 28930
 )
 
 // NodeDeployConf defines the deployment configuration for agent.
@@ -56,6 +73,20 @@ type NodeDeployConf struct {
 	ProxyFileCacheDir string
 	ZoneID            string
 	CityID            string
+
+	// Global proxy network defaults, independent of per-network-unit deployment settings.
+	DataAgentBindIP                  string
+	DataAgentBindPort                int64
+	FileAgentBindIP                  string
+	FileAgentBindPort                int64
+	ProxyBindIP                      string
+	ProxyBindPort                    int64
+	FileBittorrentBindIP             string
+	FileBittorrentBindPort           int64
+	FileBittorrentTrackerBindPort    int64
+	FileBittorrentSpeedLimitMBPerSec int64
+	FileTopologyBindIP               string
+	FileTopologyBindPort             int64
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -111,6 +142,20 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 	conf.ExtraConfigDir = conv.NonEmptyOr(conf.ExtraConfigDir, conf.generateDefaultExtraConfigDir())
 	conf.ZoneID = conv.NonEmptyOr(conf.ZoneID, nodeZoneID)
 	conf.CityID = conv.NonEmptyOr(conf.CityID, nodeCityID)
+
+	// Empty IPs and zero numeric values preserve the built-in proxy network defaults.
+	conf.DataAgentBindIP = conv.NonEmptyOr(conf.DataAgentBindIP, nodeDataAgentBindIP)
+	conf.DataAgentBindPort = conv.NonEmptyOr(conf.DataAgentBindPort, nodeDataAgentBindPort)
+	conf.FileAgentBindIP = conv.NonEmptyOr(conf.FileAgentBindIP, nodeFileAgentBindIP)
+	conf.FileAgentBindPort = conv.NonEmptyOr(conf.FileAgentBindPort, nodeFileAgentBindPort)
+	conf.ProxyBindIP = conv.NonEmptyOr(conf.ProxyBindIP, nodeProxyBindIP)
+	conf.ProxyBindPort = conv.NonEmptyOr(conf.ProxyBindPort, nodeProxyBindPort)
+	conf.FileBittorrentBindIP = conv.NonEmptyOr(conf.FileBittorrentBindIP, nodeFileBittorrentBindIP)
+	conf.FileBittorrentBindPort = conv.NonEmptyOr(conf.FileBittorrentBindPort, nodeFileBittorrentBindPort)
+	conf.FileBittorrentTrackerBindPort = conv.NonEmptyOr(conf.FileBittorrentTrackerBindPort, nodeFileBittorrentTrackerBindPort)
+	conf.FileBittorrentSpeedLimitMBPerSec = conv.NonEmptyOr(conf.FileBittorrentSpeedLimitMBPerSec, nodeFileBittorrentSpeedLimitMBPerSec)
+	conf.FileTopologyBindIP = conv.NonEmptyOr(conf.FileTopologyBindIP, nodeFileTopologyBindIP)
+	conf.FileTopologyBindPort = conv.NonEmptyOr(conf.FileTopologyBindPort, nodeFileTopologyBindPort)
 }
 
 // generateDefaultNodeLogDir generates the default log directory for the deployment configuration.

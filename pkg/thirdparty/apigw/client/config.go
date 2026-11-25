@@ -184,21 +184,19 @@ func (conf *VirtualUserConfig) Validate() error {
 // # 使用 access_token
 // # Use access_token
 // X-Bkapi-Authorization: {"access_token": "z"}.
-func (conf *VirtualUserConfig) GetAuthHeader(nCtx contextx.IContext) string {
-	bkUsername, _ := access.GetBKUsernameByLoginName(nCtx, conf.LoginName)
-
-	var auth string
-	switch conf.AuthMode {
-	case AuthModeAt:
-		auth = fmt.Sprintf("{\"access_token\":\"%s\"}", conf.AccessToken)
-	case AuthModeUn:
-		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, bkUsername)
-	default:
-		// default use un mode.
-		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, bkUsername)
+func (conf *VirtualUserConfig) GetAuthHeader(nCtx contextx.IContext) (string, error) {
+	if conf.AuthMode == AuthModeAt {
+		return fmt.Sprintf("{\"access_token\":\"%s\"}", conf.AccessToken), nil
 	}
 
-	return auth
+	// Default to username authentication, resolving the configured login name in the request tenant.
+	bkUsername, err := access.GetBKUsernameByLoginName(nCtx, conf.LoginName)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve virtual user bk username: %w", err)
+	}
+	if bkUsername == "" {
+		return "", errors.New("resolved virtual user bk username is empty")
+	}
+
+	return conf.GetAuthHeaderWithBKUsername(bkUsername), nil
 }
