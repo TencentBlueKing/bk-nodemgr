@@ -7828,7 +7828,7 @@ paths:
   /api/v3/plugin/workflow/distinct:
     post:
       operationId: PluginWorkflow_PluginWorkflowDistinct
-      description: 按过滤条件获取插件任务流的类型、主机 ID、操作人和状态去重候选值。
+      description: 查询插件工作流指定字段的去重值。
       tags:
         - PluginWorkflow
       responses:
@@ -8024,11 +8024,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Get distinct plugin workflow type, host ID, operator, and status candidates under the specified filters.
+        descriptionEn:
   /api/v3/plugin/workflow/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowList
-      description: 查询插件任务流列表，支持分页、精确条件过滤和操作时间范围过滤。
+      description: 查询插件工作流列表及执行状态。
       tags:
         - PluginWorkflow
       responses:
@@ -8271,11 +8271,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query plugin workflows with pagination, exact filters, and an operation time range.
+        descriptionEn:
   /api/v3/plugin/workflow/operation/instance/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceList
-      description: 根据操作 ID 列表查询插件任务流操作实例，支持仅返回总数。
+      description: 按插件操作 ID 查询操作实例及历史执行状态。
       tags:
         - PluginWorkflow
       responses:
@@ -8469,11 +8469,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query plugin workflow operation instances by operation ID list, with support for count-only mode.
+        descriptionEn:
   /api/v3/plugin/workflow/operation/instance/log/get:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceLogGet
-      description: 根据操作实例 ID 获取插件任务流操作实例日志，包括各 action 的生命周期、日志内容、子任务流引用及实例级额外执行日志。
+      description: 按插件操作实例 ID 查询步骤状态、日志及子工作流引用。
       tags:
         - PluginWorkflow
       responses:
@@ -8690,11 +8690,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Get plugin workflow operation instance logs by operation instance ID, including per-action lifecycle, log messages, sub-workflow references, and extra execution logs at the instance level.
+        descriptionEn:
   /api/v3/plugin/workflow/operation/instance/status_distribution/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceStatusDistributionList
-      description: 按触发器 ID 查询插件任务流最新操作实例的状态分布。
+      description: 统计插件工作流各操作最新操作实例的状态分布。
       tags:
         - PluginWorkflow
       responses:
@@ -8848,11 +8848,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query the status distribution of the latest plugin workflow operation instances by trigger ID.
+        descriptionEn:
   /api/v3/plugin/workflow/operation/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationList
-      description: 查询指定插件任务流下的操作列表，支持分页、精确条件过滤和仅返回总数。
+      description: 查询插件工作流的执行对象、操作状态及操作实例信息。
       tags:
         - PluginWorkflow
       responses:
@@ -9080,6 +9080,14 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
               description: |-
@@ -9107,11 +9115,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query operations under a specified plugin workflow, with pagination, exact filters, and count-only mode.
+        descriptionEn:
   /api/v3/plugin/workflow/operation/retry:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationRetry
-      description: 重试指定插件任务流中的操作，支持全部重试或按操作 ID 部分重试。
+      description: 重试插件工作流中的指定操作。
       tags:
         - PluginWorkflow
       responses:
@@ -9247,11 +9255,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Retry operations in a plugin workflow, either all eligible operations or selected operation IDs.
+        descriptionEn:
   /api/v3/plugin/workflow/operation/terminate:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationTerminate
-      description: 终止指定插件任务流中一个或多个操作的最新执行实例。
+      description: 终止插件工作流中的指定操作。
       tags:
         - PluginWorkflow
       responses:
@@ -9387,7 +9395,7 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Terminate the latest execution instance of one or more operations in a plugin workflow.
+        descriptionEn:
   /api/v3/package/event/distinct:
     post:
       operationId: Package_PackageEventDistinct
@@ -20988,7 +20996,7 @@ paths:
   /api/v3/plugin/workflow/operation/distinct:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationDistinct
-      description: 获取指定插件任务流下操作状态的去重候选值。
+      description: 查询插件工作流操作指定字段的去重值。
       tags:
         - PluginWorkflow
       responses:
@@ -21137,7 +21145,7 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Get distinct operation state candidates under the specified plugin workflow.
+        descriptionEn:
   /api/v3/node/proxy/install_check:
     post:
       operationId: NodeProxy_NodeProxyInstallCheck
@@ -39045,11 +39053,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query plugin workflows and their execution states.
+        descriptionEn:
   /api/v3/open/plugin/workflow/operation/instance/list:
     post:
       operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList
-      description: 按插件操作 ID 查询执行实例及历史执行状态。
+      description: 按插件操作 ID 查询操作实例及历史执行状态。
       tags:
         - OpenPluginWorkflow
       responses:
@@ -39243,11 +39251,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query execution instances and historical states by plugin operation ID.
+        descriptionEn:
   /api/v3/open/plugin/workflow/operation/instance/log/get:
     post:
       operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceLogGet
-      description: 按插件执行实例 ID 查询步骤状态、日志及子工作流引用。
+      description: 按插件操作实例 ID 查询步骤状态、日志及子工作流引用。
       tags:
         - OpenPluginWorkflow
       responses:
@@ -39464,11 +39472,11 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query action states, logs, and sub-workflow references by plugin operation instance ID.
+        descriptionEn:
   /api/v3/open/plugin/workflow/operation/list:
     post:
       operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationList
-      description: 查询插件工作流的执行对象、操作状态及执行实例信息。
+      description: 查询插件工作流的执行对象、操作状态及操作实例信息。
       tags:
         - OpenPluginWorkflow
       responses:
@@ -39696,6 +39704,14 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
               description: |-
@@ -39723,7 +39739,7 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query execution targets, operation states, and instance IDs in a plugin workflow.
+        descriptionEn:
   /api/v3/open/node/workflow/list:
     post:
       operationId: OpenNodeWorkflow_OpenNodeWorkflowList
@@ -40963,20 +40979,43 @@ paths:
             application/json:
               schema:
                 type: object
+                title: 周期工作流的长期调度配置；启用状态不代表某轮执行已经完成。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            enabled:
+                              type: boolean
+                              title: 是否启用周期调度。
+                            interval:
+                              type: string
+                              title: 周期调度间隔。
+                            operator:
+                              type: string
+                            trigger_id:
+                              type: string
+                            workflow_id:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            workflow_name:
+                              type: string
+                      total:
+                        type: integer
+                        format: int64
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -40987,14 +41026,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -41010,56 +41049,33 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        format: int64
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            workflow_id:
-                              type: string
-                            workflow_name:
-                              type: string
-                            trigger_id:
-                              type: string
-                            operator:
-                              type: string
-                            operate_time:
-                              type: integer
-                              format: int64
-                            enabled:
-                              type: boolean
-                              title: 是否启用周期调度。
-                            interval:
-                              type: string
-                              title: 周期调度间隔。
-                title: 周期工作流的长期调度配置；启用状态不代表某轮执行已经完成。
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
           description: A successful response.
         default:
           content:
@@ -41070,8 +41086,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -41080,30 +41094,49 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
           description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 在当前租户内筛选周期工作流配置。
               properties:
                 page:
                   type: object
+                  title: 分页及排序条件。
                   properties:
-                    offset:
-                      type: integer
-                      format: int32
                     limit:
                       type: integer
                       format: int32
+                    offset:
+                      type: integer
+                      format: int32
                   description: Page describes the generaic conditions when paging query.
-                  title: 分页及排序条件。
                 only_count:
                   type: boolean
                   title: 是否仅返回总数。
+                operate_time_range:
+                  type: object
+                  title: 工作流配置的操作时间范围，不代表执行实例的起止时间。
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
                 exact_include_conditions:
                   type: object
+                  title: 工作流 ID、名称及操作人的精确筛选条件。
                   properties:
+                    operator:
+                      type: array
+                      items:
+                        type: string
                     workflow_id:
                       type: array
                       items:
@@ -41112,32 +41145,15 @@ paths:
                       type: array
                       items:
                         type: string
-                    operator:
-                      type: array
-                      items:
-                        type: string
                   description: |-
                     ScheduleWorkflowExactConditions describes the exact conditions of schedule
                     workflow list request.
-                  title: 工作流 ID、名称及操作人的精确筛选条件。
                 fuzzy_include_conditions:
                   type: object
+                  title: 预留的模糊筛选条件，当前不支持模糊筛选。
                   description: |-
                     ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule
                     workflow list request.
-                  title: 预留的模糊筛选条件，当前不支持模糊筛选。
-                operate_time_range:
-                  type: object
-                  properties:
-                    start_timestamp_sec:
-                      type: integer
-                      format: int64
-                    end_timestamp_sec:
-                      type: integer
-                      format: int64
-                  description: TimeRange describes the time range.
-                  title: 工作流配置的操作时间范围，不代表执行实例的起止时间。
-              title: 在当前租户内筛选周期工作流配置。
         required: true
         description: 在当前租户内筛选周期工作流配置。
       x-bk-apigateway-resource:
@@ -41171,115 +41187,64 @@ paths:
             application/json:
               schema:
                 type: object
+                title: 周期工作流操作记录及最近实例状态；执行历史仅在清理策略的保留范围内可查。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      message:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
-                                  type:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
                   data:
                     type: object
+                    title: 符合条件的操作记录及总数。
                     properties:
+                      total:
+                        type: integer
+                        format: int64
                       operations:
                         type: array
                         items:
                           type: object
+                          title: 一条周期工作流操作记录。
                           properties:
-                            operation_id:
-                              type: string
-                              title: 操作 ID。
-                            instance_ids:
-                              type: array
-                              items:
-                                type: string
-                              title: 该操作的执行实例 ID 列表。
                             operator:
                               type: string
                               title: 操作初始化时记录的操作人；未记录时为空。
                             create_time:
                               type: integer
-                              format: int64
                               title: 操作创建时间，Unix 毫秒时间戳。
+                              format: int64
+                            instance_ids:
+                              type: array
+                              items:
+                                type: string
+                              title: 该操作的执行实例 ID 列表。
+                            operation_id:
+                              type: string
+                              title: 操作 ID。
+                            parent_oper_inst_id:
+                              type: string
+                              title: 父操作实例 ID；无父实例时为空。
+                            parent_operation_id:
+                              type: string
+                              title: 父操作 ID；无父操作时为空。
                             latest_oper_inst_brief_data:
                               type: object
+                              title: 最近一次操作实例的状态及当前步骤。
                               properties:
                                 life_cycle:
                                   type: object
                                   properties:
                                     state:
                                       type: string
-                                    create_time:
+                                    end_time:
+                                      type: integer
+                                      format: int64
+                                    stop_time:
                                       type: integer
                                       format: int64
                                     start_time:
                                       type: integer
                                       format: int64
-                                    end_time:
-                                      type: integer
-                                      format: int64
-                                    stop_time:
+                                    create_time:
                                       type: integer
                                       format: int64
                                   description: WorkflowLifeCycle describes the workflow life cycle.
@@ -41295,19 +41260,70 @@ paths:
                                   description: |-
                                     WorkflowActionInstBriefData describes the workflow action instance brief
                                     data.
-                              title: 最近一次操作实例的状态及当前步骤。
-                            parent_operation_id:
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
                               type: string
-                              title: 父操作 ID；无父操作时为空。
-                            parent_oper_inst_id:
+                            message:
                               type: string
-                              title: 父操作实例 ID；无父实例时为空。
-                          title: 一条周期工作流操作记录。
-                      total:
-                        type: integer
-                        format: int64
-                    title: 符合条件的操作记录及总数。
-                title: 周期工作流操作记录及最近实例状态；执行历史仅在清理策略的保留范围内可查。
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
           description: A successful response.
         default:
           content:
@@ -41318,8 +41334,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -41328,34 +41342,36 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
           description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 查询周期工作流的操作记录，或下钻某轮父操作实例的直接子操作。
               properties:
-                only_count:
-                  type: boolean
-                  title: 是否仅返回总数。
                 page:
                   type: object
+                  title: 分页及排序条件。
                   properties:
-                    offset:
-                      type: integer
-                      format: int32
                     limit:
                       type: integer
                       format: int32
+                    offset:
+                      type: integer
+                      format: int32
                   description: Page describes the generaic conditions when paging query.
-                  title: 分页及排序条件。
+                only_count:
+                  type: boolean
+                  title: 是否仅返回总数。
                 workflow_id:
                   type: string
                   title: 周期工作流 ID，必填。
                 parent_oper_inst_id:
                   type: string
                   title: 父操作实例 ID；提供时只查询该轮实例的直接子操作，为空时查询工作流根操作。
-              title: 查询周期工作流的操作记录，或下钻某轮父操作实例的直接子操作。
         required: true
         description: 查询周期工作流的操作记录，或下钻某轮父操作实例的直接子操作。
       x-bk-apigateway-resource:
@@ -41391,20 +41407,72 @@ paths:
             application/json:
               schema:
                 type: object
+                title: 保留范围内的执行实例及生命周期；每个实例对应一轮执行，不代表长期调度结束。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
+                    title: 符合条件的操作实例及总数。
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            action_names:
+                              type: array
+                              items:
+                                type: string
+                            oper_inst_id:
+                              type: string
+                            operation_id:
+                              type: string
+                            oper_inst_status:
+                              type: string
+                            operation_def_name:
+                              type: string
+                            parent_operation_id:
+                              type: string
+                            latest_action_inst_brief_data:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                tags:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: |-
+                                WorkflowActionInstBriefData describes the workflow action instance brief
+                                data.
+                          description: WorflowOperationInstanceData describes the workflow operation instance data.
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -41415,14 +41483,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -41438,85 +41506,33 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        format: int64
-                      oper_inst_data:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            operation_id:
-                              type: string
-                            oper_inst_id:
-                              type: string
-                            oper_inst_status:
-                              type: string
-                            operation_def_name:
-                              type: string
-                            parent_operation_id:
-                              type: string
-                            action_names:
-                              type: array
-                              items:
-                                type: string
-                            life_cycle:
-                              type: object
-                              properties:
-                                state:
-                                  type: string
-                                create_time:
-                                  type: integer
-                                  format: int64
-                                start_time:
-                                  type: integer
-                                  format: int64
-                                end_time:
-                                  type: integer
-                                  format: int64
-                                stop_time:
-                                  type: integer
-                                  format: int64
-                              description: WorkflowLifeCycle describes the workflow life cycle.
-                            latest_action_inst_brief_data:
-                              type: object
-                              properties:
-                                name:
-                                  type: string
-                                tags:
-                                  type: array
-                                  items:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
                                     type: string
-                              description: |-
-                                WorkflowActionInstBriefData describes the workflow action instance brief
-                                data.
-                          description: WorflowOperationInstanceData describes the workflow operation instance data.
-                    title: 符合条件的操作实例及总数。
-                title: 保留范围内的执行实例及生命周期；每个实例对应一轮执行，不代表长期调度结束。
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
           description: A successful response.
         default:
           content:
@@ -41527,8 +41543,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -41537,27 +41551,29 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
           description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 按操作 ID 或实例 ID 查询当前租户内周期工作流执行链的实例。
               properties:
                 only_count:
                   type: boolean
                   title: 是否仅返回总数。
-                operation_id:
-                  type: array
-                  items:
-                    type: string
-                  title: 操作 ID 列表，每项均不能为空；与 oper_inst_id 至少提供一类。
                 oper_inst_id:
                   type: array
                   items:
                     type: string
                   title: 操作实例 ID 列表，每项均不能为空；与 operation_id 至少提供一类。
-              title: 按操作 ID 或实例 ID 查询当前租户内周期工作流执行链的实例。
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+                  title: 操作 ID 列表，每项均不能为空；与 oper_inst_id 至少提供一类。
         required: true
         description: 按操作 ID 或实例 ID 查询当前租户内周期工作流执行链的实例。
       x-bk-apigateway-resource:
@@ -41593,100 +41609,20 @@ paths:
             application/json:
               schema:
                 type: object
+                title: 执行实例的步骤日志及额外执行日志；不提供超出清理策略保留范围的完整历史。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      message:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
-                                  type:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
                   data:
                     type: object
+                    title: 按步骤 ID 索引的日志及实例级额外日志。
                     properties:
                       oper_inst_logs:
                         type: object
                         additionalProperties:
                           type: object
                           properties:
-                            life_cycle:
-                              type: object
-                              properties:
-                                state:
-                                  type: string
-                                create_time:
-                                  type: integer
-                                  format: int64
-                                start_time:
-                                  type: integer
-                                  format: int64
-                                end_time:
-                                  type: integer
-                                  format: int64
-                                stop_time:
-                                  type: integer
-                                  format: int64
-                              description: WorkflowLifeCycle describes the workflow life cycle.
                             message:
                               type: object
                               properties:
@@ -41700,19 +41636,37 @@ paths:
                                         format: int64
                                       level:
                                         type: string
-                                      text_zh:
-                                        type: string
-                                        title: Chinese log content
                                       text_en:
                                         type: string
                                         title: English log content
+                                      text_zh:
+                                        type: string
+                                        title: Chinese log content
                               description: WorkflowActionMessage describes the workflow action message logs.
-                            display_name_zh:
-                              type: string
-                              title: Chinese display name
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
                             display_name_en:
                               type: string
                               title: English display name
+                            display_name_zh:
+                              type: string
+                              title: Chinese display name
                             sub_workflow_refs:
                               type: array
                               items:
@@ -41737,15 +41691,77 @@ paths:
                                   format: int64
                                 level:
                                   type: string
-                                text_zh:
-                                  type: string
-                                  title: Chinese log content
                                 text_en:
                                   type: string
                                   title: English log content
+                                text_zh:
+                                  type: string
+                                  title: Chinese log content
                         description: WorkflowActionMessage describes the workflow action message logs.
-                    title: 按步骤 ID 索引的日志及实例级额外日志。
-                title: 执行实例的步骤日志及额外执行日志；不提供超出清理策略保留范围的完整历史。
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
           description: A successful response.
         default:
           content:
@@ -41756,8 +41772,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -41766,17 +41780,19 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
           description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 查询当前租户内周期工作流执行链中一个实例的步骤日志。
               properties:
                 oper_inst_id:
                   type: string
                   title: 操作实例 ID，必填。
-              title: 查询当前租户内周期工作流执行链中一个实例的步骤日志。
         required: true
         description: 查询当前租户内周期工作流执行链中一个实例的步骤日志。
       x-bk-apigateway-resource:
@@ -41801,30 +41817,40 @@ paths:
   /api/v3/open/globalsettings/list:
     post:
       operationId: OpenGlobalSettings_OpenGlobalSettingsList
-      tags:
-      - OpenGlobalSettings
       description: 查询全局共享的已存储配置及原始值，包含自定义项；支持分页和仅计数。
+      tags:
+        - OpenGlobalSettings
       responses:
         '200':
-          description: A successful response.
           content:
             application/json:
               schema:
                 type: object
+                title: 全局配置的数据库保存值，不补齐默认值，也不表示进程实际生效值。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            setting_name:
+                              type: string
+                          description: GlobalSetting describes a global setting.
+                      total:
+                        type: integer
+                        format: int64
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -41835,14 +41861,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -41858,46 +41884,35 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        format: int64
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            setting_name:
-                              type: string
-                            value:
-                              type: string
-                          description: GlobalSetting describes a global setting.
-                title: 全局配置的数据库保存值，不补齐默认值，也不表示进程实际生效值。
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -41906,8 +41921,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -41916,59 +41929,62 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 筛选全局共享的已存储配置，包含自定义配置项。
               properties:
                 page:
                   type: object
+                  title: 分页条件；非计数查询时 limit 必须为 1 到 500。
                   properties:
-                    offset:
-                      type: integer
-                      format: int32
                     limit:
                       type: integer
                       format: int32
+                    offset:
+                      type: integer
+                      format: int32
                   description: Page describes the generaic conditions when paging query.
-                  title: 分页条件；非计数查询时 limit 必须为 1 到 500。
                 only_count:
                   type: boolean
                   title: 是否仅返回符合条件的配置项总数。
-                exact_include_conditions:
-                  type: object
-                  properties:
-                    setting_name:
-                      type: array
-                      items:
-                        type: string
-                  title: 配置名称的精确包含条件。
-                fuzzy_include_conditions:
-                  type: object
-                  properties:
-                    setting_name:
-                      type: array
-                      items:
-                        type: string
-                  title: 配置名称的模糊包含条件。
                 exact_exclude_conditions:
                   type: object
+                  title: 配置名称的精确排除条件。
                   properties:
                     setting_name:
                       type: array
                       items:
                         type: string
-                  title: 配置名称的精确排除条件。
+                exact_include_conditions:
+                  type: object
+                  title: 配置名称的精确包含条件。
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_exclude_conditions:
                   type: object
+                  title: 配置名称的模糊排除条件。
                   properties:
                     setting_name:
                       type: array
                       items:
                         type: string
-                  title: 配置名称的模糊排除条件。
-              title: 筛选全局共享的已存储配置，包含自定义配置项。
+                fuzzy_include_conditions:
+                  type: object
+                  title: 配置名称的模糊包含条件。
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
         required: true
       x-bk-apigateway-resource:
         isPublic: false
@@ -41988,18 +42004,15 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query all stored globally shared settings, including custom settings and potentially sensitive raw values. Requires
-          system_access and platform_manage on platform_resource/global_settings. Does not return service startup configuration, supply
-          defaults, verify effective runtime values, or modify settings.
+        descriptionEn: Query all stored globally shared settings, including custom settings and potentially sensitive raw values. Requires system_access and platform_manage on platform_resource/global_settings. Does not return service startup configuration, supply defaults, verify effective runtime values, or modify settings.
   /api/v3/globalsettings/list:
     post:
       operationId: GlobalSettings_ListGlobalSettings
-      tags:
-      - GlobalSettings
       description: 查询全局共享的已存储配置及原始值，包含自定义项；支持分页和仅计数。
+      tags:
+        - GlobalSettings
       responses:
         '200':
-          description: A successful response.
           content:
             application/json:
               schema:
@@ -42008,16 +42021,26 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            setting_name:
+                              type: string
+                          description: GlobalSetting describes a global setting.
+                      total:
+                        type: integer
+                        format: int64
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -42028,14 +42051,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -42051,49 +42074,38 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        format: int64
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            setting_name:
-                              type: string
-                            value:
-                              type: string
-                          description: GlobalSetting describes a global setting.
-                description: 'ListGlobalSettingsResp describes the HTTP response body
-                  when list global
-
-                  settings.'
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  ListGlobalSettingsResp describes the HTTP response body when list global
+                  settings.
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -42102,8 +42114,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -42112,8 +42122,10 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -42122,30 +42134,23 @@ paths:
                 page:
                   type: object
                   properties:
-                    offset:
+                    limit:
                       type: integer
                       format: int32
-                    limit:
+                    offset:
                       type: integer
                       format: int32
                   description: Page describes the generaic conditions when paging query.
                 only_count:
                   type: boolean
-                exact_include_conditions:
-                  type: object
-                  properties:
-                    setting_name:
-                      type: array
-                      items:
-                        type: string
-                fuzzy_include_conditions:
-                  type: object
-                  properties:
-                    setting_name:
-                      type: array
-                      items:
-                        type: string
                 exact_exclude_conditions:
+                  type: object
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
+                exact_include_conditions:
                   type: object
                   properties:
                     setting_name:
@@ -42159,10 +42164,17 @@ paths:
                       type: array
                       items:
                         type: string
-              description: 'ListGlobalSettingsReq describes the HTTP request body when
-                list global
-
-                settings.'
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    setting_name:
+                      type: array
+                      items:
+                        type: string
+              description: |-
+                ListGlobalSettingsReq describes the HTTP request body when list global
+                settings.
+        required: true
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -42181,10 +42193,7 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn: Query stored globally shared settings through application-state
-          authentication, including custom settings and potentially sensitive raw values.
-          Requires system_access and platform_manage on platform_resource/global_settings.
-          Read only; no defaults or effective runtime values.
+        descriptionEn: Query stored globally shared settings through application-state authentication, including custom settings and potentially sensitive raw values. Requires system_access and platform_manage on platform_resource/global_settings. Read only; no defaults or effective runtime values.
   /api/v3/schedule/workflow/list:
     post:
       operationId: ScheduleWorkflow_ListScheduleWorkflow
@@ -42192,8 +42201,7 @@ paths:
       tags:
         - ScheduleWorkflow
       responses:
-        "200":
-          description: A successful response.
+        '200':
           content:
             application/json:
               schema:
@@ -42202,16 +42210,38 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            enabled:
+                              type: boolean
+                              title: 是否启用周期调度。
+                            interval:
+                              type: string
+                              title: 周期调度间隔。
+                            operator:
+                              type: string
+                            trigger_id:
+                              type: string
+                            workflow_id:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            workflow_name:
+                              type: string
+                      total:
+                        type: integer
+                        format: int64
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -42222,14 +42252,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -42245,60 +42275,38 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        format: int64
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            workflow_id:
-                              type: string
-                            workflow_name:
-                              type: string
-                            trigger_id:
-                              type: string
-                            operator:
-                              type: string
-                            operate_time:
-                              type: integer
-                              format: int64
-                            enabled:
-                              type: boolean
-                              title: 是否启用周期调度。
-                            interval:
-                              type: string
-                              title: 周期调度间隔。
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
                 description: |-
                   ListScheduleWorkflowResp describes the HTTP response body when list schedule
                   workflow.
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -42307,8 +42315,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -42317,6 +42323,9 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
@@ -42326,27 +42335,37 @@ paths:
                 page:
                   type: object
                   properties:
-                    offset:
+                    limit:
                       type: integer
                       format: int32
-                    limit:
+                    offset:
                       type: integer
                       format: int32
                   description: Page describes the generaic conditions when paging query.
                 only_count:
                   type: boolean
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
                 exact_include_conditions:
                   type: object
                   properties:
+                    operator:
+                      type: array
+                      items:
+                        type: string
                     workflow_id:
                       type: array
                       items:
                         type: string
                     workflow_name:
-                      type: array
-                      items:
-                        type: string
-                    operator:
                       type: array
                       items:
                         type: string
@@ -42358,16 +42377,6 @@ paths:
                   description: |-
                     ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule
                     workflow list request.
-                operate_time_range:
-                  type: object
-                  properties:
-                    start_timestamp_sec:
-                      type: integer
-                      format: int64
-                    end_timestamp_sec:
-                      type: integer
-                      format: int64
-                  description: TimeRange describes the time range.
               description: |-
                 ListScheduleWorkflowReq describes the HTTP request body when list schedule
                 workflow.
@@ -42398,8 +42407,7 @@ paths:
       tags:
         - ScheduleWorkflow
       responses:
-        "200":
-          description: A successful response.
+        '200':
           content:
             application/json:
               schema:
@@ -42408,16 +42416,12 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -42428,14 +42432,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -42451,34 +42455,38 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
                 description: |-
                   EnableScheduleWorkflowResp describes the HTTP response body when enable
                   schedule workflow.
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -42487,8 +42495,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -42497,6 +42503,9 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
@@ -42535,8 +42544,7 @@ paths:
       tags:
         - ScheduleWorkflow
       responses:
-        "200":
-          description: A successful response.
+        '200':
           content:
             application/json:
               schema:
@@ -42545,16 +42553,12 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -42565,14 +42569,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -42588,34 +42592,38 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
                 description: |-
                   DisableScheduleWorkflowResp describes the HTTP response body when disable
                   schedule workflow.
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -42624,8 +42632,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -42634,6 +42640,9 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
@@ -42672,121 +42681,69 @@ paths:
       tags:
         - ScheduleWorkflow
       responses:
-        "200":
-          description: A successful response.
+        '200':
           content:
             application/json:
               schema:
                 type: object
+                title: 周期工作流的操作记录及最近一次执行状态。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      message:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
-                                  type:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
                   data:
                     type: object
+                    title: 符合条件的操作记录及总数。
                     properties:
+                      total:
+                        type: integer
+                        format: int64
                       operations:
                         type: array
                         items:
                           type: object
+                          title: 一条周期工作流操作记录。
                           properties:
-                            operation_id:
-                              type: string
-                              title: 操作 ID。
-                            instance_ids:
-                              type: array
-                              items:
-                                type: string
-                              title: 该操作的执行实例 ID 列表。
                             operator:
                               type: string
                               title: 操作初始化时记录的操作人；未记录时为空。
                             create_time:
                               type: integer
-                              format: int64
                               title: 操作创建时间，Unix 毫秒时间戳。
+                              format: int64
+                            instance_ids:
+                              type: array
+                              items:
+                                type: string
+                              title: 该操作的执行实例 ID 列表。
+                            operation_id:
+                              type: string
+                              title: 操作 ID。
+                            parent_oper_inst_id:
+                              type: string
+                              title: 父操作实例 ID；无父实例时为空。
+                            parent_operation_id:
+                              type: string
+                              title: 父操作 ID；无父操作时为空。
                             latest_oper_inst_brief_data:
                               type: object
+                              title: 最近一次操作实例的状态及当前步骤。
                               properties:
                                 life_cycle:
                                   type: object
                                   properties:
                                     state:
                                       type: string
-                                    create_time:
+                                    end_time:
+                                      type: integer
+                                      format: int64
+                                    stop_time:
                                       type: integer
                                       format: int64
                                     start_time:
                                       type: integer
                                       format: int64
-                                    end_time:
-                                      type: integer
-                                      format: int64
-                                    stop_time:
+                                    create_time:
                                       type: integer
                                       format: int64
                                   description: WorkflowLifeCycle describes the workflow life cycle.
@@ -42802,21 +42759,72 @@ paths:
                                   description: |-
                                     WorkflowActionInstBriefData describes the workflow action instance brief
                                     data.
-                              title: 最近一次操作实例的状态及当前步骤。
-                            parent_operation_id:
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
                               type: string
-                              title: 父操作 ID；无父操作时为空。
-                            parent_oper_inst_id:
+                            message:
                               type: string
-                              title: 父操作实例 ID；无父实例时为空。
-                          title: 一条周期工作流操作记录。
-                      total:
-                        type: integer
-                        format: int64
-                    title: 符合条件的操作记录及总数。
-                title: 周期工作流的操作记录及最近一次执行状态。
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -42825,8 +42833,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -42835,33 +42841,36 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 按周期工作流查询操作记录的条件。
               properties:
-                only_count:
-                  type: boolean
-                  title: 是否仅返回总数。
                 page:
                   type: object
+                  title: 分页及排序条件。
                   properties:
-                    offset:
-                      type: integer
-                      format: int32
                     limit:
                       type: integer
                       format: int32
+                    offset:
+                      type: integer
+                      format: int32
                   description: Page describes the generaic conditions when paging query.
-                  title: 分页及排序条件。
+                only_count:
+                  type: boolean
+                  title: 是否仅返回总数。
                 workflow_id:
                   type: string
                   title: 周期工作流 ID，必填。
                 parent_oper_inst_id:
                   type: string
                   title: 父操作实例 ID；为空时不按父实例筛选。
-              title: 按周期工作流查询操作记录的条件。
         required: true
       x-bk-apigateway-resource:
         isPublic: false
@@ -42889,26 +42898,77 @@ paths:
       tags:
         - ScheduleWorkflow
       responses:
-        "200":
-          description: A successful response.
+        '200':
           content:
             application/json:
               schema:
                 type: object
+                title: 周期工作流操作实例的生命周期及步骤摘要。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
+                    title: 符合条件的操作实例及总数。
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            action_names:
+                              type: array
+                              items:
+                                type: string
+                            oper_inst_id:
+                              type: string
+                            operation_id:
+                              type: string
+                            oper_inst_status:
+                              type: string
+                            operation_def_name:
+                              type: string
+                            parent_operation_id:
+                              type: string
+                            latest_action_inst_brief_data:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                tags:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: |-
+                                WorkflowActionInstBriefData describes the workflow action instance brief
+                                data.
+                          description: WorflowOperationInstanceData describes the workflow operation instance data.
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -42919,14 +42979,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -42942,87 +43002,35 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        format: int64
-                      oper_inst_data:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            operation_id:
-                              type: string
-                            oper_inst_id:
-                              type: string
-                            oper_inst_status:
-                              type: string
-                            operation_def_name:
-                              type: string
-                            parent_operation_id:
-                              type: string
-                            action_names:
-                              type: array
-                              items:
-                                type: string
-                            life_cycle:
-                              type: object
-                              properties:
-                                state:
-                                  type: string
-                                create_time:
-                                  type: integer
-                                  format: int64
-                                start_time:
-                                  type: integer
-                                  format: int64
-                                end_time:
-                                  type: integer
-                                  format: int64
-                                stop_time:
-                                  type: integer
-                                  format: int64
-                              description: WorkflowLifeCycle describes the workflow life cycle.
-                            latest_action_inst_brief_data:
-                              type: object
-                              properties:
-                                name:
-                                  type: string
-                                tags:
-                                  type: array
-                                  items:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
                                     type: string
-                              description: |-
-                                WorkflowActionInstBriefData describes the workflow action instance brief
-                                data.
-                          description: WorflowOperationInstanceData describes the workflow operation instance data.
-                    title: 符合条件的操作实例及总数。
-                title: 周期工作流操作实例的生命周期及步骤摘要。
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -43031,8 +43039,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -43041,26 +43047,29 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 按操作 ID 或执行实例 ID 查询周期工作流实例；两类 ID 至少提供一类。
               properties:
                 only_count:
                   type: boolean
                   title: 是否仅返回总数。
-                operation_id:
-                  type: array
-                  items:
-                    type: string
-                  title: 操作 ID 列表，每项均不能为空。
                 oper_inst_id:
                   type: array
                   items:
                     type: string
                   title: 操作实例 ID 列表，每项均不能为空。
-              title: 按操作 ID 或执行实例 ID 查询周期工作流实例；两类 ID 至少提供一类。
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+                  title: 操作 ID 列表，每项均不能为空。
         required: true
       x-bk-apigateway-resource:
         isPublic: false
@@ -43088,106 +43097,25 @@ paths:
       tags:
         - ScheduleWorkflow
       responses:
-        "200":
-          description: A successful response.
+        '200':
           content:
             application/json:
               schema:
                 type: object
+                title: 周期工作流操作实例的步骤日志及额外执行日志。
                 properties:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      message:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
-                                  type:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
                   data:
                     type: object
+                    title: 按步骤 ID 索引的日志及实例级额外日志。
                     properties:
                       oper_inst_logs:
                         type: object
                         additionalProperties:
                           type: object
                           properties:
-                            life_cycle:
-                              type: object
-                              properties:
-                                state:
-                                  type: string
-                                create_time:
-                                  type: integer
-                                  format: int64
-                                start_time:
-                                  type: integer
-                                  format: int64
-                                end_time:
-                                  type: integer
-                                  format: int64
-                                stop_time:
-                                  type: integer
-                                  format: int64
-                              description: WorkflowLifeCycle describes the workflow life cycle.
                             message:
                               type: object
                               properties:
@@ -43201,19 +43129,37 @@ paths:
                                         format: int64
                                       level:
                                         type: string
-                                      text_zh:
-                                        type: string
-                                        title: Chinese log content
                                       text_en:
                                         type: string
                                         title: English log content
+                                      text_zh:
+                                        type: string
+                                        title: Chinese log content
                               description: WorkflowActionMessage describes the workflow action message logs.
-                            display_name_zh:
-                              type: string
-                              title: Chinese display name
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
                             display_name_en:
                               type: string
                               title: English display name
+                            display_name_zh:
+                              type: string
+                              title: Chinese display name
                             sub_workflow_refs:
                               type: array
                               items:
@@ -43238,17 +43184,79 @@ paths:
                                   format: int64
                                 level:
                                   type: string
-                                text_zh:
-                                  type: string
-                                  title: Chinese log content
                                 text_en:
                                   type: string
                                   title: English log content
+                                text_zh:
+                                  type: string
+                                  title: Chinese log content
                         description: WorkflowActionMessage describes the workflow action message logs.
-                    title: 按步骤 ID 索引的日志及实例级额外日志。
-                title: 周期工作流操作实例的步骤日志及额外执行日志。
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -43257,8 +43265,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -43267,16 +43273,19 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: 查询一个周期工作流操作实例的步骤日志。
               properties:
                 oper_inst_id:
                   type: string
                   title: 操作实例 ID，必填。
-              title: 查询一个周期工作流操作实例的步骤日志。
         required: true
       x-bk-apigateway-resource:
         isPublic: false
@@ -43304,8 +43313,7 @@ paths:
       tags:
         - Package
       responses:
-        "200":
-          description: A successful response.
+        '200':
           content:
             application/json:
               schema:
@@ -43314,16 +43322,12 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
-                  request_id:
-                    type: string
+                  data:
+                    type: object
                   error:
                     type: object
                     properties:
                       system:
-                        type: string
-                      message:
                         type: string
                       details:
                         type: array
@@ -43334,14 +43338,14 @@ paths:
                               type: string
                             message:
                               type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
                   permission:
                     type: object
                     properties:
                       system:
-                        type: string
-                      system_name:
-                        type: string
-                      apply_url:
                         type: string
                       actions:
                         type: array
@@ -43357,34 +43361,38 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  system_id:
-                                    type: string
-                                  system_name:
-                                    type: string
                                   type:
-                                    type: string
-                                  type_name:
                                     type: string
                                   instances:
                                     type: array
                                     items:
                                       type: object
                                       properties:
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
                                         id:
                                           type: string
                                         name:
                                           type: string
-                  data:
-                    type: object
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
                 description: |-
                   PackageReleasePluginSetHiddenResp describes the HTTP response body when set
                   plugin release hidden state.
+          description: A successful response.
         default:
-          description: An unexpected error response.
           content:
             application/json:
               schema:
@@ -43393,8 +43401,6 @@ paths:
                   code:
                     type: integer
                     format: int32
-                  message:
-                    type: string
                   details:
                     type: array
                     items:
@@ -43403,16 +43409,18 @@ paths:
                         '@type':
                           type: string
                       additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                generation:
-                  type: integer
-                  format: int64
                 name:
+                  type: string
+                version:
                   type: string
                 platform:
                   type: object
@@ -43422,10 +43430,11 @@ paths:
                     cpu_arch:
                       type: string
                   description: Platform describes the platform informations.
-                version:
-                  type: string
                 is_hidden:
                   type: boolean
+                generation:
+                  type: integer
+                  format: int64
               description: |-
                 PackageReleasePluginSetHiddenReq describes the HTTP request body when set
                 plugin release hidden state.
@@ -43783,6 +43792,450 @@ paths:
           name: default
           method: post
           path: /api/v3/plugin/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn:
+  /api/v3/open/system_config/get:
+    post:
+      operationId: OpenSystemConfig_OpenSystemConfigGet
+      description: |-
+        查询当前 Backend
+        实例加载的业务配置；须具有系统访问和平台管理的系统配置资源权限。
+      tags:
+        - OpenSystemConfig
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: 与应用态相同的 Backend 业务配置只读视图。
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    title: |-
+                      命中的 Backend
+                      实例启动时加载的业务配置白名单，不包含凭据、连接端点及内部观测参数。
+                    properties:
+                      iam:
+                        type: object
+                        title: IAM 权限管理开关。
+                        properties:
+                          v3_enabled:
+                            type: boolean
+                          v4_enabled:
+                            type: boolean
+                      system:
+                        type: object
+                        title: 部署环境及版本形态。
+                        properties:
+                          env:
+                            type: string
+                          edition:
+                            type: string
+                      tenant_mode:
+                        type: string
+                        title: 租户模式：single 或 multiple。
+                      gse_deploy_configs:
+                        type: array
+                        items:
+                          type: object
+                          title: |-
+                            按 GSE
+                            代际和操作系统配置的安装默认设置，不解析单次部署覆盖或目标主机实际状态。
+                          properties:
+                            city_id:
+                              type: string
+                              title: 节点部署的城市标识；为空表示未配置覆盖值。
+                            os_type:
+                              type: string
+                            zone_id:
+                              type: string
+                              title: 节点部署的地域标识；为空表示未配置覆盖值。
+                            generation:
+                              type: integer
+                              format: int64
+                            v2_run_dir:
+                              type: string
+                              title: 插件 V2 兼容安装的运行目录；为空表示未配置覆盖值。
+                            v2_data_dir:
+                              type: string
+                              title: 插件 V2 兼容安装的数据目录；为空表示未配置覆盖值。
+                            host_id_path:
+                              type: string
+                              title: 插件读取的主机 ID 文件路径；为空表示未配置覆盖值。
+                            base_work_dir:
+                              type: string
+                            base_deploy_dir:
+                              type: string
+                            http_proxy_mode:
+                              type: string
+                              title: |-
+                                安装 HTTP 代理策略：inherit 沿用主机环境代理，direct 强制直连，specified
+                                使用指定代理；不返回代理地址。
+                            extra_config_dir:
+                              type: string
+                              title: Agent 扩展配置目录；为空表示未配置覆盖值。
+                            firewall_features:
+                              type: array
+                              items:
+                                type: string
+                              title: |-
+                                Windows
+                                安装器管理的防火墙功能：gse、nodemgr；空数组表示不管理规则。不返回允许访问的
+                                IP/CIDR。
+                      node_event_data_id:
+                        type: object
+                        title: 全局默认节点事件 Data ID，不解析业务级覆盖。
+                        properties:
+                          task_proc_event_data_id:
+                            type: integer
+                            format: int64
+                          agent_base_alarm_event_data_id:
+                            type: integer
+                            format: int64
+                      default_direct_network_unit:
+                        type: object
+                        title: 默认直连网络单元的自动创建设置，不表示已存在的网络单元状态。
+                        properties:
+                          name:
+                            type: string
+                          enabled:
+                            type: boolean
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: 用户态查询 Backend 业务配置，无用户或租户切换参数。
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/system_config/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn:
+  /api/v3/system_config/get:
+    post:
+      operationId: SystemConfigQuery_GetSystemConfig
+      description: |-
+        查询当前 Backend
+        实例加载的业务配置；须具有系统访问和平台管理的系统配置资源权限。
+      tags:
+        - SystemConfigQuery
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Backend 业务配置只读视图。
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    title: |-
+                      命中的 Backend
+                      实例启动时加载的业务配置白名单，不包含凭据、连接端点及内部观测参数。
+                    properties:
+                      iam:
+                        type: object
+                        title: IAM 权限管理开关。
+                        properties:
+                          v3_enabled:
+                            type: boolean
+                          v4_enabled:
+                            type: boolean
+                      system:
+                        type: object
+                        title: 部署环境及版本形态。
+                        properties:
+                          env:
+                            type: string
+                          edition:
+                            type: string
+                      tenant_mode:
+                        type: string
+                        title: 租户模式：single 或 multiple。
+                      gse_deploy_configs:
+                        type: array
+                        items:
+                          type: object
+                          title: |-
+                            按 GSE
+                            代际和操作系统配置的安装默认设置，不解析单次部署覆盖或目标主机实际状态。
+                          properties:
+                            city_id:
+                              type: string
+                              title: 节点部署的城市标识；为空表示未配置覆盖值。
+                            os_type:
+                              type: string
+                            zone_id:
+                              type: string
+                              title: 节点部署的地域标识；为空表示未配置覆盖值。
+                            generation:
+                              type: integer
+                              format: int64
+                            v2_run_dir:
+                              type: string
+                              title: 插件 V2 兼容安装的运行目录；为空表示未配置覆盖值。
+                            v2_data_dir:
+                              type: string
+                              title: 插件 V2 兼容安装的数据目录；为空表示未配置覆盖值。
+                            host_id_path:
+                              type: string
+                              title: 插件读取的主机 ID 文件路径；为空表示未配置覆盖值。
+                            base_work_dir:
+                              type: string
+                            base_deploy_dir:
+                              type: string
+                            http_proxy_mode:
+                              type: string
+                              title: |-
+                                安装 HTTP 代理策略：inherit 沿用主机环境代理，direct 强制直连，specified
+                                使用指定代理；不返回代理地址。
+                            extra_config_dir:
+                              type: string
+                              title: Agent 扩展配置目录；为空表示未配置覆盖值。
+                            firewall_features:
+                              type: array
+                              items:
+                                type: string
+                              title: |-
+                                Windows
+                                安装器管理的防火墙功能：gse、nodemgr；空数组表示不管理规则。不返回允许访问的
+                                IP/CIDR。
+                      node_event_data_id:
+                        type: object
+                        title: 全局默认节点事件 Data ID，不解析业务级覆盖。
+                        properties:
+                          task_proc_event_data_id:
+                            type: integer
+                            format: int64
+                          agent_base_alarm_event_data_id:
+                            type: integer
+                            format: int64
+                      default_direct_network_unit:
+                        type: object
+                        title: 默认直连网络单元的自动创建设置，不表示已存在的网络单元状态。
+                        properties:
+                          name:
+                            type: string
+                          enabled:
+                            type: boolean
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: 查询 Backend 业务配置，无筛选参数。
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/system_config/get
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
