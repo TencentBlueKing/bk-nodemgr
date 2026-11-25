@@ -124,8 +124,9 @@ const showTargetVersion = computed(() => !['start', 'restart', 'stop'].includes(
 const networkUnitMap = ref(new Map<number, string>());
 
 const fetchNetworkUnitNames = async (ids: number[]) => {
-  // -1 = 未分配（不用查），只查 >=0 的有效 ID
-  const uniqueIds = [...new Set(ids.filter(id => id != null && id !== -1))];
+  // -1 / 0 = 未分配（不用查）。后端 HostInfo.bk_networkunit_id 为 optional，
+  // 未分配时字段缺失，前端 mapHostItem 兜底为 0，故 0 也不应当作有效 ID
+  const uniqueIds = [...new Set(ids.filter(id => id != null && id > 0))];
   if (uniqueIds.length === 0) return;
   const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: { bk_networkunit_id: uniqueIds },
@@ -150,15 +151,16 @@ const previewData = computed(() => props.formData.selectedHosts.map((host: any) 
     const bizId = host.bk_biz_id ?? host.meta?.bk_biz_id ?? 0;
     const bizName = bizId ? (mainStore.businessList.find(b => b.bk_biz_id === bizId)?.bk_biz_name || `[${bizId}]`) : '—';
     const networkUnitId = host.bk_networkunit_id ?? host.info?.bk_networkunit_id;
+    // -1（未分配约定值）与 0（后端 optional 字段缺失时 mapHostItem 的兜底值）均视为未分配，
+    // 避免 0 被当作有效单元 ID 显示成 [0]
+    const isUnassignedUnit = networkUnitId == null || networkUnitId === -1 || networkUnitId === 0;
     return {
       ip: host.ip || host.bk_host_innerip || host.bk_host_innerip_list?.[0] || '—',
       business: bizName,
       networkArea: host.cloud_area?.name || host.cloudArea?.name || t('pluginOperation.preview.directArea'),
-      networkUnit: networkUnitId === -1
+      networkUnit: isUnassignedUnit
         ? t('pluginOperation.preview.unassigned')
-        : networkUnitId != null
-          ? (networkUnitMap.value.get(networkUnitId) || `[${networkUnitId}]`)
-          : '—',
+        : (networkUnitMap.value.get(networkUnitId) || `[${networkUnitId}]`),
       opType: opTypeLabel.value,
       osType: host.os_name || host.os_type || host.osName || host.osType || '—',
       agentStatus,

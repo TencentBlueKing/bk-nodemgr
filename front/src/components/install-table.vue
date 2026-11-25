@@ -307,7 +307,7 @@
               <Input
                 v-model.trim="row.bk_host_innerip"
                 :disabled="isReinstall"
-                @change="(val: any) => { handleChangeIPv4(val, row, rowIndex); clearError(rowIndex, 'bk_host_innerip'); }"
+                @change="(val: any) => { handleChangeIPv4(val, row, rowIndex); clearError(rowIndex, 'bk_host_innerip'); clearSiblingIpError(rowIndex, row, 'bk_host_innerip'); }"
                 @blur="handleFieldBlur(rowIndex, 'bk_host_innerip', row.bk_host_innerip)"
               />
             </ValidateCell>
@@ -366,7 +366,7 @@
               <Input
                 :disabled="isReinstall"
                 v-model.trim="row.bk_host_innerip_v6"
-                @change="clearError(rowIndex, 'bk_host_innerip_v6')"
+                @change="(val: any) => { row.bk_host_innerip_v6 = val; clearError(rowIndex, 'bk_host_innerip_v6'); clearSiblingIpError(rowIndex, row, 'bk_host_innerip_v6'); }"
                 @blur="handleFieldBlur(rowIndex, 'bk_host_innerip_v6', row.bk_host_innerip_v6)"
               />
             </ValidateCell>
@@ -1465,6 +1465,20 @@ const handleChangeIPv4 = (val: string, row: any, rowIndex: number) => {
   }
 };
 
+// IPv4/IPv6 二选一：任一地址输入后，立即清除另一个字段的「必填/二选一」错误，
+// 不必等点击安装按钮重新走全局校验；对方已有值时不误清其格式错误
+const clearSiblingIpError = (
+  rowIndex: number,
+  row: any,
+  field: 'bk_host_innerip' | 'bk_host_innerip_v6',
+) => {
+  const siblingField = field === 'bk_host_innerip' ? 'bk_host_innerip_v6' : 'bk_host_innerip';
+  // 当前地址有值、且另一个地址为空时，另一个字段的必填/二选一错误即已不成立
+  // （对方有值时保留其自身的格式错误，不误清）
+  if (!row[field] || row[siblingField]) return;
+  clearError(rowIndex, siblingField);
+};
+
 // sudo 提权联动：类 Unix 系统登录账号非 root 时自动开启；Windows 不支持则强制关闭
 const syncSudoState = (row: any) => {
   if (row.os_type === 'windows') {
@@ -1653,6 +1667,16 @@ const validateItemData = (value: any, rulesArr: IValidate[]) => {
 };
 
 const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
+  // IPv4/IPv6 二选一：任一地址已填时，另一个为空不报必填
+  if ((field === 'bk_host_innerip' || field === 'bk_host_innerip_v6') && !value) {
+    const row = tableData.value?.[rowIndex];
+    const siblingValue = field === 'bk_host_innerip' ? row?.bk_host_innerip_v6 : row?.bk_host_innerip;
+    if (siblingValue) {
+      clearError(rowIndex, field);
+      return;
+    }
+  }
+
   const requiredFields = [
     'bk_host_innerip', 'os_type', 'login_ip', 'login_port',
     'login_user', 'login_mode', 'export_ip', 'cpu_arch', 'bk_networkunit_id',

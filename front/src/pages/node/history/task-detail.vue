@@ -181,7 +181,7 @@
             </div>
           </template>
           <template #default="{ row }">
-            <Checkbox class="mt-[6px]" :model-value="row.checked" @change="(val) => handleRowCheck(val, row)" />
+            <Checkbox class="mt-[6px]" :model-value="isRowChecked(row)" @change="handleRowCheck($event, row)" />
           </template>
         </TableColumn>
         <TableColumn
@@ -398,6 +398,7 @@ import guide from './guide.vue';
 import type { HistoricalInstallPrefill } from './install-prefill';
 import { isOfflineGuideStep } from './offline-package';
 
+import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import { TopoService } from '@/api/modules/topo';
@@ -473,6 +474,9 @@ const reTryType = computed(() => [
 ]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
+// 详情头部耗时字段由前端轮询计算后写入 store，接口类型中没有该字段
+type TaskHistoryRow = NodeWorkflowInfo & { cost_time?: number };
+const currentRow = computed(() => nodeManageStore.taskHistoryTableRowData as TaskHistoryRow);
 const stateMinWidth = computed(() => (tableData.value.some(item =>
   (item.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script')
     || isOfflineGuideStep(item.latest_action_inst_brief_data?.tags ?? []))
@@ -480,7 +484,12 @@ const stateMinWidth = computed(() => (tableData.value.some(item =>
 
 // 当前任务状态
 const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
-const statusMap = computed(() => ({
+interface StatusMeta {
+  text: string;
+  icon?: string;
+  tagTheme?: '' | 'info' | 'danger' | 'success' | 'warning';
+}
+const statusMap = computed<Record<string, StatusMeta>>(() => ({
   running: {
     text: t('taskDetail.status.running'),
     tagTheme: 'info',
@@ -651,7 +660,7 @@ const taskInfoList = computed(() => [
   {
     prop: 'cost_time',
     name: t('taskDetail.info.costTime'),
-    value: formatCostTime(nodeManageStore.taskHistoryTableRowData?.cost_time),
+    value: formatCostTime(currentRow.value?.cost_time ?? 0),
   },
   {
     prop: 'workflow_id',
@@ -1059,41 +1068,63 @@ const list = computed(() => [
   },
 ]);
 
-// 表格勾选
-const selection = computed(() => tableData.value.filter((item: any) => item.checked));
-const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout', 'terminated'].includes(item.state)));
-const runningSelection = computed(() => selection.value.filter((item: any) => ['running'].includes(item.state)));
+// 勾选状态以「集合」为准：任务未结束时表格每秒轮询重建行数据，
+// 若把 checked 只挂在行对象上，重建后就会丢勾（表现为「全选后被轮询取消」）。
+const rowIdentity = (row: any): string => (route.query.active === 'plugin'
+  ? `${row.bk_host_id}_${row.plugin_name}`
+  : String(row.bk_host_id));
+const selectedKeys = ref<Set<string>>(new Set());
 
 // --- 跨页全选核心状态 ---
 const isCrossPageSelection = ref(false); // 是否开启跨页全选模式
 const excludedIds = ref<Set<number>>(new Set()); // 全选模式下，用户手动"取消勾选"的 ID 集合
 
+// 行是否选中：始终由集合推导，行对象上的 checked 只是派生值
+const isRowChecked = (row: any): boolean => (isCrossPageSelection.value
+  ? !excludedIds.value.has(row.bk_host_id)
+  : selectedKeys.value.has(rowIdentity(row)));
+
+// 把集合状态写回行对象（复制等组件按行读取 checked）
+const syncRowChecked = (rows: any[]) => {
+  rows.forEach((row) => {
+    row.checked = isRowChecked(row);
+  });
+};
+
+// 表格勾选
+const selection = computed(() => tableData.value.filter((item: any) => isRowChecked(item)));
+const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout', 'terminated'].includes(item.state)));
+const runningSelection = computed(() => selection.value.filter((item: any) => ['running'].includes(item.state)));
+
 // 计算属性：是否有任何选中（用于禁用批量按钮）
-const hasSelection = computed(() => tableData.value.some(item => item.checked) || isCrossPageSelection.value);
+const hasSelection = computed(() => selection.value.length > 0 || isCrossPageSelection.value);
 
 // 计算属性：当前页是否全选（用于表头 Checkbox 状态）
 // eslint-disable-next-line max-len
-const isCurrentPageAllChecked = computed(() => tableData.value.length > 0 && tableData.value.every(item => item.checked));
+const isCurrentPageAllChecked = computed(() => tableData.value.length > 0 && tableData.value.every(item => isRowChecked(item)));
 const isIndeterminate = computed(() => {
-  const selectedCount = tableData.value.filter(item => item.checked).length;
+  const selectedCount = tableData.value.filter(item => isRowChecked(item)).length;
   return selectedCount > 0 && selectedCount < tableData.value.length;
 });
 
 // 1. 处理单行勾选
 const handleRowCheck = (checked: boolean, row: any) => {
   if (!row) return;
-  row.checked = checked;
+  if (checked) selectedKeys.value.add(rowIdentity(row));
+  else selectedKeys.value.delete(rowIdentity(row));
   if (isCrossPageSelection.value) {
     if (!checked) excludedIds.value.add(row.bk_host_id);
     else excludedIds.value.delete(row.bk_host_id);
   }
+  row.checked = checked;
 };
 
 // 2. 跨页全选：置为跨页模式并触发全量数据拉取（供复制/重试/终止复用）
 const handleSelectAllCrossPage = () => {
   isCrossPageSelection.value = true;
   excludedIds.value.clear();
-  tableData.value.forEach(item => (item.checked = true));
+  selectedKeys.value.clear();
+  syncRowChecked(tableData.value);
   loadCrossPageAllOperations();
 };
 
@@ -1101,14 +1132,18 @@ const handleSelectAllCrossPage = () => {
 const handleClearSelection = () => {
   isCrossPageSelection.value = false;
   excludedIds.value.clear();
+  selectedKeys.value.clear();
   clearCrossPageAllOperations();
-  tableData.value.forEach(item => (item.checked = false));
+  syncRowChecked(tableData.value);
 };
 
 // 4. 本页全选
 const handleSelectCurrentPage = () => {
   isCrossPageSelection.value = false;
-  tableData.value.forEach(item => (item.checked = true));
+  tableData.value.forEach((item) => {
+    selectedKeys.value.add(rowIdentity(item));
+  });
+  syncRowChecked(tableData.value);
 };
 
 // 5. 表头 Checkbox 快速切换
@@ -1120,8 +1155,9 @@ const handleChangeRadio = (state: string) => {
   // 切换状态tab，重置选择状态
   isCrossPageSelection.value = false;
   excludedIds.value.clear();
+  selectedKeys.value.clear();
   clearCrossPageAllOperations();
-  tableData.value.forEach(item => (item.checked = false));
+  syncRowChecked(tableData.value);
 
   // 清除状态搜索条件
   const index = searchSelectValue.value.findIndex((item: any) => item.id === 'state');
@@ -1285,8 +1321,11 @@ const serviceCaller = {
     },
   },
 
-  // 统一调用方法
-  async call(method: 'retry' | 'terminate' | 'workflowList' | 'operationList' | 'statistics' | 'operationDistinct', params: any) {
+  // 统一调用方法：各接口返回结构不同，由调用方按需断言
+  async call(
+    method: 'retry' | 'terminate' | 'workflowList' | 'operationList' | 'statistics' | 'operationDistinct',
+    params: any,
+  ): Promise<any> {
     const serviceType = this.getCurrentServiceType();
     const serviceMethod = this.serviceMethods[serviceType][method];
 
@@ -1314,15 +1353,15 @@ const statistics = ref<IWorkflowStatisticsInfo>({
 const getStatistics = async () => {
   // 没有taskId，不请求statistics
   if (!route.params.taskId) return;
-  const res = await serviceCaller.call('statistics', {
+  const res: any = await serviceCaller.call('statistics', {
     workflow_id: [route.params.taskId],
-  }).catch((err) => {
+  }).catch((err): any => {
     console.log(err);
     return {
       items: [],
     };
   });
-  const workflowStatisticsInfoItem = res.items.find(item => item.workflow_id === route.params.taskId);
+  const workflowStatisticsInfoItem = res.items.find((item: any) => item.workflow_id === route.params.taskId);
   if (workflowStatisticsInfoItem) {
     statistics.value = workflowStatisticsInfoItem;
   };
@@ -1359,9 +1398,9 @@ const fetchAllOperations = async (): Promise<any[]> => {
   while (hasMore) {
     const params = getParams();
     params.page = { offset, limit: pageSize };
-    const res = await serviceCaller.call('operationList', params).catch(() => ({ operations: [], total: 0 }));
+    const res: any = await serviceCaller.call('operationList', params).catch((): any => ({ operations: [], total: 0 }));
     const ops = res?.operations ?? [];
-    ops.forEach((item) => {
+    ops.forEach((item: any) => {
       const briefData = item.latest_oper_inst_brief_data;
       const deployInfo = route.query.active !== 'plugin' ? item.node_deployment_info : item.plugin_deployment_info;
       all.push({
@@ -1535,7 +1574,7 @@ const handleBatchTerminate = async () => {
 };
 
 const updataCurrentTaskInfo = async () => {
-  const res = await serviceCaller.call('workflowList', {
+  const res: any = await serviceCaller.call('workflowList', {
     page: {
       limit: pagination.limit,
       offset: (pagination.current - 1) * pagination.limit,
@@ -1543,14 +1582,14 @@ const updataCurrentTaskInfo = async () => {
     exact_include_conditions: {
       workflow_id: [route.params.taskId],
     },
-  }).catch((err) => {
+  }).catch((err): any => {
     console.log(err);
     return {
       total: 0,
       items: [],
     };
   });
-  const list = res.items.map(item => ({
+  const list = res.items.map((item: any) => ({
     ...item,
     cost_time: item.finish_time > 0 ? item.finish_time - item.operate_time : new Date().getTime() - item.operate_time,
   }));
@@ -1639,12 +1678,12 @@ const getOperateList = async () => {
 
   subTasksStatus.value = [];
   const searchParameters = getParams();
-  const res = await serviceCaller.call('operationList', searchParameters).catch(() => ({
+  const res: any = await serviceCaller.call('operationList', searchParameters).catch((): any => ({
     operations: [],
     total: 0,
   }));
   pagination.count = res.total;
-  const mapList = res.operations.map((item) => {
+  const mapList = res.operations.map((item: any) => {
     const briefData = item.latest_oper_inst_brief_data;
     briefData && subTasksStatus.value?.push(briefData.life_cycle.state);
     const endTime = briefData ? briefData.life_cycle.end_time : new Date().getTime();
@@ -1682,22 +1721,17 @@ const getOperateList = async () => {
       && item.total_time_second === mapList[index]?.total_time_second);
   if (!isEqual) {
     tableData.value = mapList;
-    tableData.value.forEach((item) => {
-      let isChecked = false;
-      if (isCrossPageSelection.value) {
-        // 如果是跨页模式，只要不在排除名单里就是选中
-        isChecked = !excludedIds.value.has(item.bk_host_id);
-      }
-      item.checked = isChecked;
-    });
+    // 轮询重建后按集合还原勾选，避免「全选」被刷新清空
+    syncRowChecked(tableData.value);
   }
   // 轮询期间实时更新任务头部耗时
   const taskRow = nodeManageStore.taskHistoryTableRowData;
   if (taskRow && taskRow.finish_time <= 0 && taskRow.operate_time > 0) {
-    nodeManageStore.updateCurrentRowData({
+    const nextRow: TaskHistoryRow = {
       ...taskRow,
       cost_time: new Date().getTime() - taskRow.operate_time,
-    });
+    };
+    nodeManageStore.updateCurrentRowData(nextRow);
   }
 };
 const handleViewLog = async (row: any) => {
@@ -1846,7 +1880,7 @@ onMounted(async () => {
       name: t('taskDetail.search.status'),
       values: [{
         id: route.query.status,
-        name: statusMap.value[route.query.status]?.text || route.query.status,
+        name: statusMap.value[route.query.status as string]?.text || route.query.status,
       }],
     });
   }
