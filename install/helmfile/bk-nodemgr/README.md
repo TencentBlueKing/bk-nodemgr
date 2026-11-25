@@ -140,7 +140,14 @@ flowchart LR
 
 ## 自监控 release
 
-`monitoring` release 参考 `install/helm/bk-nodemgr/values-example.yaml`，默认启用：
+在 `env.yaml` 中通过 `monitoring.enabled` 一键控制内置自监控体系，省略时默认为 `true`：
+
+```yaml
+monitoring:
+  enabled: true
+```
+
+`monitoring` release 参考 `install/helm/bk-nodemgr/values-example.yaml`，启用自监控时部署：
 
 - `tempo`
 - `opentelemetryGateway`
@@ -166,9 +173,20 @@ Grafana 默认配置：
 - `path` 使用 `global.ingress.grafanaPath`。
 - TLS secret 使用 `global.ingress.tlsSecretName`；为空时不渲染 TLS。
 
-`file`、`backend`、`application` 的 tracing 会自动指向 monitoring release 中的 `opentelemetryGateway`，Gateway 再导出到内置 Tempo。该联动只设置 OTLP exporter、endpoint、protocol 和 insecure 模式，不修改各服务的 `traceSampleRate`。
+`monitoring.enabled` 只控制内置自监控体系，外部 Trace 采集独立生效：
 
-如需额外发送到统一采集端，在 `env.yaml` 的 `opentelemetryGateway.exporters` 中填写原生 Collector exporter 配置即可。模板会保留内置 Tempo，并自动将所有额外 exporter 加入 traces pipeline；无需填写 receivers、processors 或 pipelines。多个 namespace 各自保留 Gateway 时，填写相同的采集端地址即可汇聚，跨 namespace 请使用 Service 完整 DNS，避免指回当前 Gateway 或形成转发环路。`exporters: {}` 保持默认行为，`otlp/tempo` 为内置 Tempo 保留名称。高级自定义仍放在 `overrides/monitoring.yaml`，其配置优先于模板生成值。
+| `monitoring.enabled` | `opentelemetryGateway.exporters` | Trace 上报目标 |
+| --- | --- | --- |
+| `true` | 空 | 内置 Tempo |
+| `true` | 非空 | 内置 Tempo + 外部采集端 |
+| `false` | 空 | 不自动启用 Trace 上报 |
+| `false` | 非空 | 仅外部采集端（保留 Gateway） |
+
+Gateway 启用时，`file`、`backend`、`application` 的 tracing 自动指向它，未显式设置的采样率默认为 `1`。Gateway 关闭时，不再自动注入 OTLP 配置及采样率，沿用 Chart 默认值或用户显式配置。内置自监控关闭时，也不再默认开启 Profiling 或注入 Pyroscope 地址；服务日志与 Metrics 接口仍保留。
+
+如需额外发送到统一采集端，在 `env.yaml` 的 `opentelemetryGateway.exporters` 中填写原生 Collector exporter 配置即可。模板会自动将所有额外 exporter 加入 traces pipeline；无需填写 receivers、processors 或 pipelines。多个 namespace 各自保留 Gateway 时，填写相同的采集端地址即可汇聚，跨 namespace 请使用 Service 完整 DNS，避免指回当前 Gateway 或形成转发环路。`otlp/tempo` 为内置 Tempo 保留名称。高级自定义仍放在 `overrides/*.yaml`，其配置优先于模板生成值。
+
+切换已有环境时，对完整环境执行 `./deploy.sh diff <environment>` 确认变更，再执行 `./deploy.sh apply <environment>`；不要仅更新 monitoring release，否则服务采集配置不会同步更新。切换会触发相关业务服务的配置更新和滚动发布。关闭时可能删除自监控组件及其持久化资源，切换前确认数据保留策略并按需备份。
 
 `tempo` 没有复制 `values-example.yaml` 中的 S3 示例；S3 是生产外部对象存储示例，不适合作为本地 minikube 默认值。
 
