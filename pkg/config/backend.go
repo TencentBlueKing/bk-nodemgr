@@ -775,7 +775,8 @@ type GSEDeployCustom struct {
 	ZoneID            string `yaml:"zoneID" usage:"zone id of gse deploy node"`
 	CityID            string `yaml:"cityID" usage:"city id of gse deploy node"`
 
-	// Global proxy network defaults. Empty IPs and zero numeric values use the built-in defaults.
+	// Global Linux proxy network defaults. Non-Linux agents do not use these fields.
+	// Empty IPs and zero numeric values use the built-in defaults on Linux.
 	DataAgentBindIP                  string `yaml:"dataAgentBindIP" usage:"default data agent bind ip"`
 	DataAgentBindPort                int64  `yaml:"dataAgentBindPort" usage:"default data agent bind port"`
 	FileAgentBindIP                  string `yaml:"fileAgentBindIP" usage:"default file agent bind ip"`

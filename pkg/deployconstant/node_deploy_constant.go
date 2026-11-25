@@ -74,7 +74,7 @@ type NodeDeployConf struct {
 	ZoneID            string
 	CityID            string
 
-	// Global proxy network defaults, independent of per-network-unit deployment settings.
+	// Global Linux proxy network defaults, independent of per-network-unit deployment settings.
 	DataAgentBindIP                  string
 	DataAgentBindPort                int64
 	FileAgentBindIP                  string
@@ -143,6 +143,12 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 	conf.ZoneID = conv.NonEmptyOr(conf.ZoneID, nodeZoneID)
 	conf.CityID = conv.NonEmptyOr(conf.CityID, nodeCityID)
 
+	if conf.OsType == criteria.OSLinux {
+		populateProxyDefaultValues(conf)
+	}
+}
+
+func populateProxyDefaultValues(conf *NodeDeployConf) {
 	// Empty IPs and zero numeric values preserve the built-in proxy network defaults.
 	conf.DataAgentBindIP = conv.NonEmptyOr(conf.DataAgentBindIP, nodeDataAgentBindIP)
 	conf.DataAgentBindPort = conv.NonEmptyOr(conf.DataAgentBindPort, nodeDataAgentBindPort)
