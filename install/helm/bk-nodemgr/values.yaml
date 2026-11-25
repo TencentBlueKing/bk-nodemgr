@@ -1971,6 +1971,21 @@ backend:
           logDir: ""
           extraConfigDir: ""
           proxyFileCacheDir: ""
+          # Global Linux Proxy rendering defaults; empty IPs and zero numbers use built-in defaults.
+          # Existing release port/speed values retain precedence. Restart backend after changes;
+          # existing Proxy nodes also require reconfig.
+          dataAgentBindIP: "::"
+          dataAgentBindPort: 28625
+          fileAgentBindIP: "::"
+          fileAgentBindPort: 28925
+          proxyBindIP: "::"
+          proxyBindPort: 28668
+          fileBittorrentBindIP: "::"
+          fileBittorrentBindPort: 10020
+          fileBittorrentTrackerBindPort: 10030
+          fileBittorrentSpeedLimitMBPerSec: 10000
+          fileTopologyBindIP: "::"
+          fileTopologyBindPort: 28930
           dataIPC: ""
           pluginIPC: ""
           zoneID: "default"

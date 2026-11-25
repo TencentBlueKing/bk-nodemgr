@@ -212,14 +212,26 @@ func (svc *Service) initialStaticsConfigs() error {
 		}
 
 		nodeDeployConf := deployconstant.NodeDeployConf{
-			DeployConf:        deployConf,
-			LogDir:            svc.conf.GSEDeployConfs[idx].Custom.LogDir,
-			ExtraConfigDir:    svc.conf.GSEDeployConfs[idx].Custom.ExtraConfigDir,
-			DataIPC:           svc.conf.GSEDeployConfs[idx].Custom.DataIPC,
-			PluginIPC:         svc.conf.GSEDeployConfs[idx].Custom.PluginIPC,
-			ProxyFileCacheDir: svc.conf.GSEDeployConfs[idx].Custom.ProxyFileCacheDir,
-			ZoneID:            svc.conf.GSEDeployConfs[idx].Custom.ZoneID,
-			CityID:            svc.conf.GSEDeployConfs[idx].Custom.CityID,
+			DeployConf:                       deployConf,
+			LogDir:                           svc.conf.GSEDeployConfs[idx].Custom.LogDir,
+			ExtraConfigDir:                   svc.conf.GSEDeployConfs[idx].Custom.ExtraConfigDir,
+			DataIPC:                          svc.conf.GSEDeployConfs[idx].Custom.DataIPC,
+			PluginIPC:                        svc.conf.GSEDeployConfs[idx].Custom.PluginIPC,
+			ProxyFileCacheDir:                svc.conf.GSEDeployConfs[idx].Custom.ProxyFileCacheDir,
+			ZoneID:                           svc.conf.GSEDeployConfs[idx].Custom.ZoneID,
+			CityID:                           svc.conf.GSEDeployConfs[idx].Custom.CityID,
+			DataAgentBindIP:                  svc.conf.GSEDeployConfs[idx].Custom.DataAgentBindIP,
+			DataAgentBindPort:                svc.conf.GSEDeployConfs[idx].Custom.DataAgentBindPort,
+			FileAgentBindIP:                  svc.conf.GSEDeployConfs[idx].Custom.FileAgentBindIP,
+			FileAgentBindPort:                svc.conf.GSEDeployConfs[idx].Custom.FileAgentBindPort,
+			ProxyBindIP:                      svc.conf.GSEDeployConfs[idx].Custom.ProxyBindIP,
+			ProxyBindPort:                    svc.conf.GSEDeployConfs[idx].Custom.ProxyBindPort,
+			FileBittorrentBindIP:             svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentBindIP,
+			FileBittorrentBindPort:           svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentBindPort,
+			FileBittorrentTrackerBindPort:    svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentTrackerBindPort,
+			FileBittorrentSpeedLimitMBPerSec: svc.conf.GSEDeployConfs[idx].Custom.FileBittorrentSpeedLimitMBPerSec,
+			FileTopologyBindIP:               svc.conf.GSEDeployConfs[idx].Custom.FileTopologyBindIP,
+			FileTopologyBindPort:             svc.conf.GSEDeployConfs[idx].Custom.FileTopologyBindPort,
 		}
 		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
 			return fmt.Errorf("failed to set node deploy conf: %w", err)
