@@ -208,17 +208,17 @@ externalRedis:
 
 ## 用户标识兼容与平台升级
 
-`backend.config.userManager.useLegacyUsername` 和 `application.config.userManager.useLegacyUsername` 均默认为 `false`，必须在两个服务中同步配置。该开关仅控制是否沿用 `bk_username = login_name` 的旧用户标识规则，与 `tenantMode` 独立；`tenantMode` 仍负责租户模式，不用于判断用户标识体系。
+`backend.config.userManager.useLegacyUsername`、`application.config.userManager.useLegacyUsername` 和 `file.config.userManager.useLegacyUsername` 均默认为 `false`，必须在三个服务中同步配置。该开关仅控制是否沿用 `bk_username = login_name` 的旧用户标识规则，与 `tenantMode` 独立；`tenantMode` 仍负责租户模式，不用于判断用户标识体系。`useLegacyUsername: true` 仅支持 `single`，不允许用于 `multiple`。
 
 以下 7.2/7.3 指**蓝鲸平台大版本**，不是节点管理版本：
 
-| 蓝鲸平台 | 租户模式             | 两个服务的 `userManager.useLegacyUsername` | 用户标识处理                                                       |
+| 蓝鲸平台 | 租户模式             | 三个服务的 `userManager.useLegacyUsername` | 用户标识处理                                                       |
 | -------- | -------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
 | 7.2      | 非多租户（`single`） | `true`                                     | 沿用 `bk_username = login_name`，不调用 lookup                     |
 | 7.3      | `single`             | `false`                                    | 按当前租户通过用户管理 lookup 将 `login_name` 映射为 `bk_username` |
 | 7.3      | `multiple`           | `false`                                    | 按当前租户通过用户管理 lookup 将 `login_name` 映射为 `bk_username` |
 
-仍运行蓝鲸 7.2 平台时，即使升级节点管理，也必须保留两个服务的 `useLegacyUsername: true`：
+仍运行蓝鲸 7.2 平台时，即使升级节点管理，也必须保留三个服务的 `useLegacyUsername: true`：
 
 ```yaml
 backend:
@@ -229,11 +229,15 @@ application:
   config:
     userManager:
       useLegacyUsername: true
+file:
+  config:
+    userManager:
+      useLegacyUsername: true
 ```
 
-蓝鲸平台从 7.2 升级到 7.3 时，必须同步将两个服务切换为 `false`，并为节点管理应用开通用户管理 `/open/tenant/virtual-users/-/lookup/` 的调用权限，确保 `userManager.endpoints`、应用凭证及请求租户标识与目标环境一致。7.3 关闭多租户后的 `single` 模式不等同于 7.2 旧版，仍需 lookup。lookup 请求失败、无权限或未找到用户时会返回错误，**不会回退为 `bk_username = login_name`**；应修复权限、租户或用户数据，而不是通过开启兼容开关绕过。
+蓝鲸平台从 7.2 升级到 7.3 时，必须同步将三个服务切换为 `false`，确保 `userManager.endpoints`、应用凭证及请求租户标识与目标环境一致。File 使用 lookup 解析配置的 `gse.user`，不枚举租户。用户管理 lookup 默认仅需应用认证，无需申请资源权限；目标环境若调整了网关策略，须按实际配置处理，见[第三方 APIGateway 资源使用清单](../../../docs/operation/installation/thirdparty_apigateway_permission.md#bk-user)。7.3 关闭多租户后的 `single` 模式不等同于 7.2 旧版，仍需 lookup。lookup 请求失败、无权限或未找到用户时会返回错误，**不会回退为 `bk_username = login_name`**；应修复权限、租户或用户数据，而不是通过开启兼容开关绕过。
 
-使用 Helmfile 时，在 environment 的 `backend.config.userManager` 和 `application.config.userManager` 中同步设置该字段；Docker Compose 在两个服务的配置模板中提供固定默认值 `false`，部署到蓝鲸 7.2 前须同步改为 `true`。本开关不替代 `application.config.bkSaaS.bkLogin.useLegacyAPI`，登录接口的兼容配置仍按上一节选择。
+使用 Helmfile 时，在 environment 的 `backend.config.userManager`、`application.config.userManager` 和 `file.config.userManager` 中同步设置该字段；Docker Compose 在三个服务的配置模板中提供固定默认值 `false`，部署到蓝鲸 7.2 前须同步改为 `true`。本开关不替代 `application.config.bkSaaS.bkLogin.useLegacyAPI`，登录接口的兼容配置仍按上一节选择。
 
 ## Ingress 访问配置
 

@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/token"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -68,6 +69,9 @@ type Capability struct {
 
 	// StoragePackageExport provides package export storage handler.
 	StoragePackageExport packageexport.IStorage
+
+	// UserManagerHandler provides user manager handler.
+	UserManagerHandler usermanager.IHandler
 
 	// GSEHandler provides gse handler.
 	GSEHandler gse.IHandler
