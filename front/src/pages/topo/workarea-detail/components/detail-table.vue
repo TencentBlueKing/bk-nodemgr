@@ -140,7 +140,7 @@
           show-overflow
         >
           <template #default="{ row }">
-            {{ row.bk_networkarea_name }}
+            {{ getAreaLabel(row) }}
           </template>
         </TableColumn>
         <TableColumn
@@ -151,7 +151,7 @@
           :min-width="130"
         >
           <template #default="{ row }">
-            {{ networkUnitListMap.get(row.bk_networkunit_id) || row.bk_networkunit_name }}
+            {{ getUnitLabel(row) }}
           </template>
         </TableColumn>
         <TableColumn
@@ -324,6 +324,7 @@ import type {
   TopoHostFuzzyConditions,
 } from '@/@types/topo.d';
 import { AGENT_NODE_STATUS_LIST, getStatusIconClass } from '@/common/agent-status';
+import { formatIdName } from '@/common/util';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import useAuthLock from '@/composables/use-auth-lock';
@@ -793,6 +794,13 @@ const handleReinstall = (row: Host) => {
  */
 const networkAreaListMap = ref(new Map<number, string>([]));
 const networkUnitListMap = ref(new Map<number, string>([]));
+
+// Display as [id] name; prefer the resolved label (e.g. unassigned) over the row snapshot
+const getAreaLabel = (row: any) => networkAreaListMap.value.get(row.bk_networkarea_id)
+  || formatIdName(row.bk_networkarea_id, row.bk_networkarea_name);
+const getUnitLabel = (row: any) => networkUnitListMap.value.get(row.bk_networkunit_id)
+  || formatIdName(row.bk_networkunit_id, row.bk_networkunit_name);
+
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
   prop: K,
@@ -816,7 +824,10 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
   });
   networkAreaListMap.value.set(Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID), t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
-    networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
+    networkAreaListMap.value.set(
+      item.bk_networkarea_id,
+      formatIdName(item.bk_networkarea_id, item.bk_networkarea_name),
+    );
   });
 };
 
@@ -829,7 +840,10 @@ const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) =>
   });
   networkUnitListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
-    networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
+    networkUnitListMap.value.set(
+      item.bk_networkunit_id,
+      formatIdName(item.bk_networkunit_id, item.bk_networkunit_name),
+    );
   });
 };
 

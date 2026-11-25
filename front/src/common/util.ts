@@ -177,6 +177,13 @@ export function parseCookies() {
   return cookies;
 };
 
+/**
+ * Format a resource as `[id] name`, used for network area / network unit display and search.
+ */
+export function formatIdName(id: number | string, name?: string): string {
+  return `[${id}] ${name ?? ''}`;
+}
+
 export function getFirstIp(ip: string | undefined): string {
   return ip?.split(',')[0]?.trim() || '';
 }
