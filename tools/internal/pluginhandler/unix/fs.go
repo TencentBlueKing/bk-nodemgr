@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/throttle"
 )
@@ -70,8 +71,11 @@ func (handler *PluginHandler) CheckIntegrity(ctx context.Context) error {
 }
 
 // Purge implement pluginhandler.IPluginFSHandler.
-func (handler *PluginHandler) Purge(_ context.Context) error {
-	return handler.removeAll(handler.setupDir)
+func (handler *PluginHandler) Purge(ctx context.Context) error {
+	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	return backoff.Do(ctx, func(_ int) error {
+		return handler.removeAll(handler.setupDir)
+	})
 }
 
 // SaveSubConfigDir implement pluginhandler.IPluginFSHandler.

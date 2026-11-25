@@ -74,8 +74,8 @@ func (h *handler) CountPackageEvent(nCtx contextx.IContext, conditions ...*types
 
 // DistinctPackageEvent returns distinct package event values with a condition.
 func (h *handler) DistinctPackageEvent(
-	nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition) (
-	*types.PackageEventDistinctResult, error) {
+	nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition,
+) (*types.PackageEventDistinctResult, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err

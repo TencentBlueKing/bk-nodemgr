@@ -21,7 +21,9 @@ Record a compact impact map with the actual symbols or locations relevant to the
 
 ## Worked Change: Bytes to a Caller-Owned Stream
 
-Assume an approved requirement changes:
+Prefer compatible additive extension for a stable contract. Approval to support streaming alone does not authorize replacing an existing signature. This example assumes explicit approval of the in-place signature migration and its compatibility scope, with applicable project and scoped rules satisfied. Without that approval, retain the stable operation and propose a compatible streaming capability instead.
+
+The explicitly approved migration changes:
 
 ```go
 Read(ctx context.Context, key string) ([]byte, error)
