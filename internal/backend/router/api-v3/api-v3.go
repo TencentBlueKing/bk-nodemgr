@@ -36,6 +36,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/systemconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
 	"github.com/gin-gonic/gin"
 )
@@ -77,6 +78,7 @@ func LoadBasicSystemAPIs(rg *gin.RouterGroup, capability *options.Capability, mi
 	deploypolicy.Load(h.rg, capability)
 	ciphersuite.Load(h.rg, capability)
 	authRouter.Load(h.rg, capability)
+	systemconfig.Load(h.rg, capability)
 }
 
 // LoadBasicOpenAPIs register the basic apis.
@@ -99,6 +101,7 @@ func LoadBasicOpenAPIs(rg *gin.RouterGroup, capability *options.Capability, midd
 	process.Load(h.rg, capability)
 	ciphersuite.Load(h.rg, capability)
 	authRouter.Load(h.rg, capability)
+	systemconfig.Load(h.rg, capability)
 }
 
 // LoadCallbackAPIs register the callback apis.
