@@ -141,13 +141,6 @@ func (c *cli) getUserInfoByBKTokenMultipleTenantMode(
 
 	// This API requires application authentication, not a virtual username; bk_token identifies the user.
 	auth := c.config.VirtualUserConfig.AppConfig.GetAuthHeader()
-	if c.config.VirtualUserConfig.AuthMode == apigwclient.AuthModeAt {
-		var err error
-		auth, err = c.config.VirtualUserConfig.GetAuthHeader(nCtx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get bklogin auth header: %w", err)
-		}
-	}
 
 	// The gateway requires a tenant header, but this API does not differentiate tenants.
 	apigwHeader := http.Header{}

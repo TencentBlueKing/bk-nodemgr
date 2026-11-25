@@ -27,7 +27,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
-	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/stretchr/testify/require"
 )
@@ -59,25 +58,6 @@ func TestHandlerVerify(t *testing.T) {
 	})
 
 	nCtx := contextx.New(context.Background())
-
-	t.Run("bk_token_access_token_without_tenant", func(t *testing.T) {
-		h := newTestHandler(t, CookieKeyBKToken, false, func(rw http.ResponseWriter, req *http.Request) {
-			require.Equal(t, "/login/api/v3/open/bk-tokens/userinfo/", req.URL.Path)
-			require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
-			require.Equal(t, tenant.SystemTenantID, req.Header.Get(apigwheader.BKGWTenantIDKey))
-			require.JSONEq(t, `{"access_token":"access-token"}`, req.Header.Get(apigwheader.BKGWAuthKey))
-
-			_, err := rw.Write([]byte(`{"data":{"bk_username":"token_user","tenant_id":"system","login_name":"admin"}}`))
-			require.NoError(t, err)
-		})
-		h.conf.VirtualUserConfig.AuthMode = apigwclient.AuthModeAt
-		h.conf.VirtualUserConfig.AccessToken = "access-token"
-
-		_, bkUsername, loginName, err := h.Verify(nCtx, "token-value")
-		require.NoError(t, err)
-		require.Equal(t, "token_user", bkUsername)
-		require.Equal(t, "admin", loginName)
-	})
 
 	switch mode {
 	case tenant.ModeSingle:
