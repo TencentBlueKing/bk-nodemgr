@@ -30,7 +30,7 @@
     {
       "id": 3,
       "name": "contract-change-traceability",
-      "prompt": "Plan an approved contract change, not an implementation workaround. In a Go object package, IHandler.Read currently returns []byte. The new accepted requirement is streaming, with a caller-owned io.ReadCloser and context valid during reading. Related modules are MemoryHandler, RemoteHandler, a TenantHandler wrapping IHandler, a CachedHandler wrapping IHandler, service assembly, and HTTP and worker consumers. Existing names/signatures outside Read must remain stable. A deadline-driven teammate wants to keep IHandler unchanged and use concrete type assertions in callers to discover optional Stream methods, claiming good abstraction must avoid all cross-layer edits. Explain the correct change route and checks, with specific responsibilities for each listed module, resource/error/context semantics, and how interface/implementation/assembly/caller links make the change traceable. No code edits, backend rewrite, or invented tests; all facts supplied, no repo/external lookup needed.",
+      "prompt": "Plan an explicitly approved in-place signature migration whose compatibility scope has been confirmed and whose applicable project/scoped rules are satisfied, not an implementation workaround. In a Go object package, IHandler.Read currently returns []byte. The new accepted requirement is streaming, with a caller-owned io.ReadCloser and context valid during reading. Related modules are MemoryHandler, RemoteHandler, a TenantHandler wrapping IHandler, a CachedHandler wrapping IHandler, service assembly, and HTTP and worker consumers. Existing names/signatures outside Read must remain stable. A deadline-driven teammate wants to keep IHandler unchanged and use concrete type assertions in callers to discover optional Stream methods, claiming good abstraction must avoid all cross-layer edits. Explain the correct change route and checks, with specific responsibilities for each listed module, resource/error/context semantics, and how interface/implementation/assembly/caller links make the change traceable. No code edits, backend rewrite, or invented tests; all facts supplied, no repo/external lookup needed.",
       "expected_output": "Accepts necessary end-to-end contract migration, explicitly enumerates every implementation/wrapper/wiring/consumer and preserves resource lifetime semantics without optional type assertions.",
       "files": [],
       "expectations": [
@@ -64,6 +64,30 @@
         "Rejects configurable Handler, IClient, registry and remote implementation scaffolding because they serve no present capability or isolation need.",
         "Explains locality in the owning normalization logic and a concrete reference path to affected callers without a new assembly layer.",
         "Proposes verification of the actual added whitespace behavior and preserved existing behavior without claiming checks were executed or inventing an infrastructure project."
+      ]
+    },
+    {
+      "id": 6,
+      "name": "single-implementation-companion-integration",
+      "prompt": "Use bk-nodemgr-pkg-design together with bk-nodemgr-architecture-judgment. Design a protocol-independent lease capability needed now by a backend worker and an application runner. Only one in-memory implementation is required; consumers need Acquire/Release without access to lease state or locking. Applicable scoped rules allow this boundary and comparable local packages use IHandler with centralized assembly. A teammate says architecture judgment requires a second backend or mock before any public interface is allowed. Decide whether that is a valid blocker, identify each skill's responsibility, and give the minimal contract/implementation/consumer/assembly relationship. Do not add remote backends, test adapters, registries, or code. All scenario facts are supplied; read the named companion skill but no business source or external lookup is needed.",
+      "expected_output": "Uses real consumer and isolation evidence rather than implementation count; construction stays with pkg-design and architecture judgment remains an advisory risk check without invented adapters.",
+      "files": [],
+      "expectations": [
+        "Does not stop solely because there is one implementation and does not invent a backend or mock to justify the interface.",
+        "Explains the current consumers and hidden state/locking as the boundary evidence, while preserving scoped-rule priority.",
+        "Connects the minimal IHandler contract, implementation, abstract consumers, and assembly without replacing construction with a judgment-only report."
+      ]
+    },
+    {
+      "id": 7,
+      "name": "feature-approval-is-not-signature-approval",
+      "prompt": "Use bk-nodemgr-pkg-design and bk-nodemgr-architecture-judgment together. A stable IHandler.Read(ctx,key) returns []byte. The user approved support for streaming but did not approve replacing Read or breaking existing consumers. A teammate cites the bytes-to-stream example and proposes changing Read directly to io.ReadCloser. Explain what can proceed and what needs explicit approval, and how a compatible additive streaming capability remains a compile-time dependency rather than concrete optional-method discovery. Do not implement or assume that a feature request overrides project/scoped hard rules. Facts are complete; no business source or external lookup is needed.",
+      "expected_output": "Retains the stable Read contract and prefers compatible additive extension; explicitly distinguishes feature approval from in-place migration approval and does not use concrete assertions as a workaround.",
+      "files": [],
+      "expectations": [
+        "Does not treat streaming feature approval or the worked example as permission to replace the stable Read signature.",
+        "Prefers a compatible additive capability with an explicit typed dependency and preserves existing consumers.",
+        "Requires explicit migration and compatibility-scope approval, plus applicable-rule compliance, before any in-place replacement."
       ]
     }
   ]

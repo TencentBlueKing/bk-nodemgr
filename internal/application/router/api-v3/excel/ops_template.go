@@ -81,20 +81,10 @@ func (h *handler) ExcelDownloadOpsTemplate(rCtx restserver.IContext) (*restserve
 		}
 	}
 
-	columns := opsTemplateColumns()
-	for idx := range columns {
-		switch columns[idx].Name {
-		case opsColBiz:
-			columns[idx].Options = bizNames
-		case opsColNetworkArea, opsColConsoleArea:
-			columns[idx].Options = areaNames
-		case opsColOutBandProtocol:
-			columns[idx].Options = protocolOptions
-		}
-	}
+	columns := opsTemplateColumns(bizNames, areaNames, protocolOptions)
 
 	buffer := new(bytes.Buffer)
-	tmpl, err := workbook.NewTemplate(opsTemplateSheetName, columns)
+	tmpl, err := workbook.NewTemplate(opsTemplateSheetName, columns, templateLanguage(rCtx))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create ops template")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -128,109 +118,129 @@ type opsTemplateRow struct {
 }
 
 // opsTemplateColumns defines the ops template columns.
-func opsTemplateColumns() []workbook.TypedColumn[opsTemplateRow] {
-	return []workbook.TypedColumn[opsTemplateRow]{
-		{
-			Column: workbook.Column{
-				Name:        opsColBiz,
-				Required:    true,
-				Description: opsColDescBiz,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.Biz = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.Biz },
+func opsTemplateColumns(bizNames, areaNames, protocolOptions []string) []workbook.TypedColumn[opsTemplateRow] {
+	biz := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+			Options:  bizNames,
 		},
-		{
-			Column: workbook.Column{
-				Name:        opsColNetworkArea,
-				Required:    true,
-				Description: opsColDescNetworkArea,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.NetworkArea = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.NetworkArea },
-		},
-		{
-			Column: workbook.Column{
-				Name:        colInnerIP,
-				Required:    false,
-				Description: opsColDescInnerIP,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.InnerIP = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.InnerIP },
-		},
-		{
-			Column: workbook.Column{
-				Name:        colInnerIPV6,
-				Required:    false,
-				Description: opsColDescInnerIPV6,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.InnerIPV6 = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.InnerIPV6 },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColConsoleArea,
-				Required:    false,
-				Description: opsColDescConsoleArea,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.ConsoleArea = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.ConsoleArea },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColConsoleInnerIP,
-				Required:    false,
-				Description: opsColDescConsoleInnerIP,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.ConsoleInnerIP = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.ConsoleInnerIP },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColConsoleInnerIPV6,
-				Required:    false,
-				Description: opsColDescConsoleInnerIPV6,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.ConsoleInnerIPV6 = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.ConsoleInnerIPV6 },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColOutBandType,
-				Required:    false,
-				Description: opsColDescOutBandType,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.OutBandType = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.OutBandType },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColOutBandProtocol,
-				Required:    false,
-				Description: opsColDescOutBandProtocol,
-				AllowCustom: true,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.OutBandProtocol = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.OutBandProtocol },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColOutBandIP,
-				Required:    false,
-				Description: opsColDescOutBandIP,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.OutBandIP = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.OutBandIP },
-		},
-		{
-			Column: workbook.Column{
-				Name:        opsColOutBandPort,
-				Required:    false,
-				Description: opsColDescOutBandPort,
-			},
-			Parse:   func(row *opsTemplateRow, v string) error { row.OutBandPort = v; return nil },
-			ValueOf: func(row *opsTemplateRow) any { return row.OutBandPort },
-		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.Biz = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.Biz },
 	}
+	biz.Name.Edit().Zh(opsColBizZh).En(opsColBizEn).Set()
+	biz.Description.Edit().Zh(opsColDescBizZh).En(opsColDescBizEn).Set()
+
+	networkArea := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: true,
+			Options:  areaNames,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.NetworkArea = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.NetworkArea },
+	}
+	networkArea.Name.Edit().Zh(opsColNetworkAreaZh).En(opsColNetworkAreaEn).Set()
+	networkArea.Description.Edit().Zh(opsColDescNetworkAreaZh).En(opsColDescNetworkAreaEn).Set()
+
+	innerIPv4 := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.InnerIP = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.InnerIP },
+	}
+	innerIPv4.Name.Edit().Zh(colInnerIPZh).En(colInnerIPEn).Set()
+	innerIPv4.Description.Edit().Zh(opsColDescInnerIPZh).En(opsColDescInnerIPEn).Set()
+
+	innerIPv6 := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.InnerIPV6 = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.InnerIPV6 },
+	}
+	innerIPv6.Name.Edit().Zh(colInnerIPV6Zh).En(colInnerIPV6En).Set()
+	innerIPv6.Description.Edit().Zh(opsColDescInnerIPV6Zh).En(opsColDescInnerIPV6En).Set()
+
+	consoleArea := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+			Options:  areaNames,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.ConsoleArea = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.ConsoleArea },
+	}
+	consoleArea.Name.Edit().Zh(opsColConsoleAreaZh).En(opsColConsoleAreaEn).Set()
+	consoleArea.Description.Edit().Zh(opsColDescConsoleAreaZh).En(opsColDescConsoleAreaEn).Set()
+
+	consoleIPv4 := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.ConsoleInnerIP = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.ConsoleInnerIP },
+	}
+	consoleIPv4.Name.Edit().Zh(opsColConsoleInnerIPZh).En(opsColConsoleInnerIPEn).Set()
+	consoleIPv4.Description.Edit().Zh(opsColDescConsoleInnerIPZh).En(opsColDescConsoleInnerIPEn).Set()
+
+	consoleIPv6 := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.ConsoleInnerIPV6 = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.ConsoleInnerIPV6 },
+	}
+	consoleIPv6.Name.Edit().Zh(opsColConsoleInnerIPV6Zh).En(opsColConsoleInnerIPV6En).Set()
+	consoleIPv6.Description.Edit().Zh(opsColDescConsoleInnerIPV6Zh).En(opsColDescConsoleInnerIPV6En).Set()
+
+	columns := []workbook.TypedColumn[opsTemplateRow]{biz, networkArea, innerIPv4, innerIPv6, consoleArea, consoleIPv4, consoleIPv6}
+
+	return append(columns, opsOutBandColumns(protocolOptions)...)
+}
+
+func opsOutBandColumns(protocolOptions []string) []workbook.TypedColumn[opsTemplateRow] {
+	outBandType := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.OutBandType = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.OutBandType },
+	}
+	outBandType.Name.Edit().Zh(opsColOutBandTypeZh).En(opsColOutBandTypeEn).Set()
+	outBandType.Description.Edit().Zh(opsColDescOutBandTypeZh).En(opsColDescOutBandTypeEn).Set()
+
+	outBandProtocol := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required:    false,
+			Options:     protocolOptions,
+			AllowCustom: true,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.OutBandProtocol = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.OutBandProtocol },
+	}
+	outBandProtocol.Name.Edit().Zh(opsColOutBandProtocolZh).En(opsColOutBandProtocolEn).Set()
+	outBandProtocol.Description.Edit().Zh(opsColDescOutBandProtocolZh).En(opsColDescOutBandProtocolEn).Set()
+
+	outBandIP := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.OutBandIP = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.OutBandIP },
+	}
+	outBandIP.Name.Edit().Zh(opsColOutBandIPZh).En(opsColOutBandIPEn).Set()
+	outBandIP.Description.Edit().Zh(opsColDescOutBandIPZh).En(opsColDescOutBandIPEn).Set()
+
+	outBandPort := workbook.TypedColumn[opsTemplateRow]{
+		Column: workbook.Column{
+			Required: false,
+		},
+		Parse:   func(row *opsTemplateRow, v string) error { row.OutBandPort = v; return nil },
+		ValueOf: func(row *opsTemplateRow) any { return row.OutBandPort },
+	}
+	outBandPort.Name.Edit().Zh(opsColOutBandPortZh).En(opsColOutBandPortEn).Set()
+	outBandPort.Description.Edit().Zh(opsColDescOutBandPortZh).En(opsColDescOutBandPortEn).Set()
+
+	return []workbook.TypedColumn[opsTemplateRow]{outBandType, outBandProtocol, outBandIP, outBandPort}
 }
 
 // opsSampleRows builds example rows using real dropdown names when available.
@@ -284,7 +294,7 @@ func (h *handler) ExcelParseOpsTemplate(rCtx restserver.IContext) (interface{}, 
 		}
 	}()
 
-	tmpl, err := workbook.NewTemplate(opsTemplateSheetName, opsTemplateColumns())
+	tmpl, err := workbook.NewTemplate(opsTemplateSheetName, opsTemplateColumns(nil, nil, nil), workbook.LanguageZh)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create ops template")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -310,17 +320,20 @@ func (h *handler) ExcelParseOpsTemplate(rCtx restserver.IContext) (interface{}, 
 	infos := make([]*protoApplication.ExcelOpsTemplateParsedInfo, len(rows))
 	for idx, parsedRow := range rows {
 		info := &protoApplication.ExcelOpsTemplateParsedInfo{RowIndex: int64(parsedRow.RowIndex)}
+		infos[idx] = info
 		if parsedRow.Err != nil {
 			info.ErrorMessage = parsedRow.Err.Error()
-			infos[idx] = info
 
 			continue
 		}
 
-		if err := resolver.resolve(&parsedRow.Value, info); err != nil {
+		result, err := resolver.resolve(&parsedRow.Value)
+		if err != nil {
 			info.ErrorMessage = err.Error()
+
+			continue
 		}
-		infos[idx] = info
+		info.ConvertFromTypes(&result)
 	}
 
 	resp := new(protoApplication.ExcelParseOpsTemplateResp)
@@ -442,79 +455,87 @@ func (h *handler) listHostsByIPs(rCtx restserver.IContext, ips, ipv6s []string) 
 	return merged, nil
 }
 
-// resolve fills one parsed info, returning a row-level error on any mismatch.
-func (resolver *opsRowResolver) resolve(row *opsTemplateRow, info *protoApplication.ExcelOpsTemplateParsedInfo) error {
+// resolve validates an Ops row and returns the matched hosts and settings.
+func (resolver *opsRowResolver) resolve(row *opsTemplateRow) (types.ExcelOpsTemplateRowResult, error) {
+	var result types.ExcelOpsTemplateRowResult
 	if row.InnerIP == "" && row.InnerIPV6 == "" {
-		return errors.New("inner IPv4 and inner IPv6 can not both be empty")
+		return result, errors.New("inner IPv4 and inner IPv6 can not both be empty")
 	}
 
 	bizID, err := resolver.lookupName(resolver.bizIDs, row.Biz, "business")
 	if err != nil {
-		return err
+		return result, err
 	}
 	areaID, err := resolver.lookupName(resolver.areaIDs, row.NetworkArea, "network area")
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	host, err := matchHost(resolver.targetHosts, bizID, areaID, row.InnerIP, row.InnerIPV6)
 	if err != nil {
-		return fmt.Errorf("failed to match target host: %w", err)
+		return result, fmt.Errorf("failed to match target host: %w", err)
 	}
 
-	info.BkHostId = host.HostID
-	info.BkBizId = bizID
-	info.BkBizName = row.Biz
-	info.BkNetworkareaId = areaID
-	info.BkNetworkareaName = row.NetworkArea
-	info.BkHostInnerip = row.InnerIP
-	info.BkHostInneripV6 = row.InnerIPV6
-	info.OpsOutBandType = row.OutBandType
-	info.OpsOutBandProtocol = row.OutBandProtocol
-	info.OpsOutBandIp = row.OutBandIP
-
+	var port int64
 	if row.OutBandPort != "" {
-		port, err := strconv.ParseInt(row.OutBandPort, 10, 64)
+		port, err = strconv.ParseInt(row.OutBandPort, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid out-of-band port: %s", row.OutBandPort)
+			return result, fmt.Errorf("invalid out-of-band port: %s", row.OutBandPort)
 		}
-		info.OpsOutBandPort = port
 	}
 
-	if err := resolver.resolveConsoleHost(row, info); err != nil {
-		return err
+	var consoleHost *types.Host
+	if row.ConsoleArea != "" || row.ConsoleInnerIP != "" || row.ConsoleInnerIPV6 != "" {
+		consoleHost, err = resolver.resolveConsoleHost(row)
+		if err != nil {
+			return result, err
+		}
 	}
 
-	return nil
+	result = types.ExcelOpsTemplateRowResult{
+		HostID:             host.HostID,
+		BizID:              bizID,
+		BizName:            row.Biz,
+		NetworkAreaID:      areaID,
+		NetworkAreaName:    row.NetworkArea,
+		InnerIP:            row.InnerIP,
+		InnerIPV6:          row.InnerIPV6,
+		OpsOutBandType:     row.OutBandType,
+		OpsOutBandProtocol: row.OutBandProtocol,
+		OpsOutBandIP:       row.OutBandIP,
+		OpsOutBandPort:     port,
+	}
+	if consoleHost == nil {
+		return result, nil
+	}
+
+	result.OpsConsoleHostID = consoleHost.HostID
+	if len(consoleHost.Static.InnerIPList) > 0 {
+		result.OpsConsoleHostIP = consoleHost.Static.InnerIPList[0]
+	} else if len(consoleHost.Static.InnerIPV6List) > 0 {
+		result.OpsConsoleHostIP = consoleHost.Static.InnerIPV6List[0]
+	}
+
+	return result, nil
 }
 
-// resolveConsoleHost locates the console host when any console field is filled.
-func (resolver *opsRowResolver) resolveConsoleHost(row *opsTemplateRow, info *protoApplication.ExcelOpsTemplateParsedInfo) error {
-	if row.ConsoleArea == "" && row.ConsoleInnerIP == "" && row.ConsoleInnerIPV6 == "" {
-		return nil
-	}
+// resolveConsoleHost matches a configured console host by its network area and IP.
+func (resolver *opsRowResolver) resolveConsoleHost(row *opsTemplateRow) (*types.Host, error) {
 	if row.ConsoleInnerIP == "" && row.ConsoleInnerIPV6 == "" {
-		return errors.New("console IPv4 and console IPv6 can not both be empty")
+		return nil, errors.New("console IPv4 and console IPv6 can not both be empty")
 	}
 
 	consoleAreaID, err := resolver.lookupName(resolver.areaIDs, row.ConsoleArea, "console network area")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	host, err := matchHost(resolver.consoleHosts, -1, consoleAreaID, row.ConsoleInnerIP, row.ConsoleInnerIPV6)
 	if err != nil {
-		return fmt.Errorf("failed to match console host: %w", err)
+		return nil, fmt.Errorf("failed to match console host: %w", err)
 	}
 
-	info.OpsConsoleHostId = host.HostID
-	if len(host.Static.InnerIPList) > 0 {
-		info.OpsConsoleHostIp = host.Static.InnerIPList[0]
-	} else if len(host.Static.InnerIPV6List) > 0 {
-		info.OpsConsoleHostIp = host.Static.InnerIPV6List[0]
-	}
-
-	return nil
+	return host, nil
 }
 
 // lookupName resolves a display name to its ID, rejecting unknown or ambiguous names.

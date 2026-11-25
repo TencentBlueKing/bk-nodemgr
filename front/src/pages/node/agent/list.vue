@@ -293,7 +293,7 @@
           show-overflow
         >
           <template #default="{ row }">
-            {{ row.bk_networkarea_name }}
+            {{ getAreaLabel(row) }}
           </template>
         </TableColumn>
         <TableColumn
@@ -304,7 +304,7 @@
           :min-width="120"
         >
           <template #default="{ row }">
-            {{ networkUnitListMap.get(row.bk_networkunit_id) || row.bk_networkunit_name }}
+            {{ getUnitLabel(row) }}
           </template>
         </TableColumn>
         <TableColumn
@@ -484,6 +484,7 @@ import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import { AGENT_NODE_STATUS_LIST, getStatusIconClass } from '@/common/agent-status';
 import { isNetworkUnitAssigned } from '@/common/const';
+import { formatIdName } from '@/common/util';
 import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
 import BkFooter from '@/pages/app/footer.vue';
@@ -556,7 +557,7 @@ if (route.query.bk_networkarea_id && !route.query.bk_networkunit_id) {
   searchSelectValue.value = [{
     id: 'bk_networkarea_id',
     name: t('platform.nodeMan.bk_cloud_name'),
-    values: [{ id: areaIdStr, name: (route.query.bk_networkarea_name as string) || areaIdStr }],
+    values: [{ id: areaIdStr, name: formatIdName(areaIdStr, route.query.bk_networkarea_name as string) }],
   }];
   filterOptionSource.bk_networkarea_id.checked = [areaIdStr];
 }
@@ -692,6 +693,13 @@ const total = computed(() => pagination.count);
 const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
 const networkAreaListMap = ref(new Map<number, string>([]));
 const networkUnitListMap = ref(new Map<number, string>([]));
+
+// Display as [id] name; prefer the resolved label (e.g. unassigned) over the row snapshot
+const getAreaLabel = (row: any) => networkAreaListMap.value.get(row.bk_networkarea_id)
+  || formatIdName(row.bk_networkarea_id, row.bk_networkarea_name);
+const getUnitLabel = (row: any) => networkUnitListMap.value.get(row.bk_networkunit_id)
+  || formatIdName(row.bk_networkunit_id, row.bk_networkunit_name);
+
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 
 const searchSelectData = computed(() => [
@@ -991,7 +999,10 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
   });
   networkAreaListMap.value.set(Number(window.PROJECT_CONFIG.UNASSIGNED_NETWORK_AREA_ID), t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
-    networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
+    networkAreaListMap.value.set(
+      item.bk_networkarea_id,
+      formatIdName(item.bk_networkarea_id, item.bk_networkarea_name),
+    );
   });
 };
 
@@ -1007,7 +1018,10 @@ const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) =>
   });
   networkUnitListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
-    networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
+    networkUnitListMap.value.set(
+      item.bk_networkunit_id,
+      formatIdName(item.bk_networkunit_id, item.bk_networkunit_name),
+    );
   });
 };
 
@@ -1776,6 +1790,8 @@ watch(() => route.query, async (newQuery, oldQuery) => {
     
     // 等待基础数据加载完成
     const setSearchValue = () => {
+      const unitName = networkUnitListMap.value.get(unitId)
+        || (bk_networkunit_name ? formatIdName(unitId, bk_networkunit_name as string) : String(unitId));
       searchSelectValue.value = [
         ...searchSelectValue.value.filter(item => !['bk_networkarea_id', 'bk_networkunit_id'].includes(item.id)),
         {
@@ -1787,7 +1803,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
         {
           id: 'bk_networkunit_id',
           name: t('platform.nodeMan.bk_cloud_unit'),
-          values: [{ id: unitId, name: bk_networkunit_name || networkUnitListMap.value.get(unitId) || String(unitId) }],
+          values: [{ id: unitId, name: unitName }],
         },
       ];
     };
@@ -1806,7 +1822,8 @@ watch(() => route.query, async (newQuery, oldQuery) => {
   } else if (bk_networkarea_id !== undefined) {
     // 仅传入管控区域ID（从管控区域列表跳转，无单元信息）
     const areaId = Number(bk_networkarea_id);
-    const areaName = (bk_networkarea_name as string) || networkAreaListMap.value.get(areaId) || String(areaId);
+    const areaName = networkAreaListMap.value.get(areaId)
+      || (bk_networkarea_name ? formatIdName(areaId, bk_networkarea_name as string) : String(areaId));
 
     const setSearchValue = () => {
       searchSelectValue.value = [

@@ -36,14 +36,20 @@ type templateTestRow struct {
 func testTypedColumns() []TypedColumn[templateTestRow] {
 	return []TypedColumn[templateTestRow]{
 		{
-			Column: Column{Name: "内网 IPv4", Required: true, Description: "目标主机内网 IPv4 地址。"},
-			Parse:  func(row *templateTestRow, value string) error { row.IP = value; return nil },
+			Column: Column{
+				Name: testText("内网 IPv4", "Internal IPv4"), Required: true,
+				Description: testText("目标主机内网 IPv4 地址。", "Internal IPv4 address of the target host."),
+			},
+			Parse: func(row *templateTestRow, value string) error { row.IP = value; return nil },
 			ValueOf: func(row *templateTestRow) any {
 				return row.IP
 			},
 		},
 		{
-			Column: Column{Name: "端口", Required: true, Description: "登录端口。"},
+			Column: Column{
+				Name: testText("端口", "Port"), Required: true,
+				Description: testText("登录端口。", "Login port."),
+			},
 			Parse: func(row *templateTestRow, value string) error {
 				port, err := strconv.ParseInt(value, 10, 64)
 				if err != nil {
@@ -58,8 +64,11 @@ func testTypedColumns() []TypedColumn[templateTestRow] {
 			},
 		},
 		{
-			Column: Column{Name: "备注", Required: false, Description: "自由填写。"},
-			Parse:  func(row *templateTestRow, value string) error { row.Note = value; return nil },
+			Column: Column{
+				Name:        testText("备注", "Note"),
+				Description: testText("自由填写。", "Enter any text."),
+			},
+			Parse: func(row *templateTestRow, value string) error { row.Note = value; return nil },
 			ValueOf: func(row *templateTestRow) any {
 				return row.Note
 			},
@@ -69,7 +78,7 @@ func testTypedColumns() []TypedColumn[templateTestRow] {
 
 func newTestTemplate(t *testing.T, columns []TypedColumn[templateTestRow]) IHandler[templateTestRow] {
 	t.Helper()
-	tmpl, err := NewTemplate("typed_sheet", columns)
+	tmpl, err := NewTemplate("typed_sheet", columns, LanguageZh)
 	if err != nil {
 		t.Fatalf("newTemplate failed: %v", err)
 	}
@@ -78,31 +87,45 @@ func newTestTemplate(t *testing.T, columns []TypedColumn[templateTestRow]) IHand
 }
 
 func TestTemplateWriteParseRoundTrip(t *testing.T) {
-	tmpl := newTestTemplate(t, testTypedColumns())
+	chineseTemplate := newTestTemplate(t, testTypedColumns())
+	englishTemplate, err := NewTemplate("typed_sheet", testTypedColumns(), LanguageEn)
+	if err != nil {
+		t.Fatalf("NewTemplate failed: %v", err)
+	}
 	samples := []templateTestRow{
 		{IP: "1.1.1.1", Port: 22, Note: "first"},
 		{IP: "1.1.1.2", Port: 2222, Note: "second"},
 	}
 
-	buf := new(bytes.Buffer)
-	if err := tmpl.Write(buf, samples); err != nil {
-		t.Fatalf("Write failed: %v", err)
-	}
+	for _, testCase := range []struct {
+		name           string
+		writer, reader IHandler[templateTestRow]
+	}{
+		{name: "Chinese into English", writer: chineseTemplate, reader: englishTemplate},
+		{name: "English into Chinese", writer: englishTemplate, reader: chineseTemplate},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			buf := new(bytes.Buffer)
+			if err := testCase.writer.Write(buf, samples); err != nil {
+				t.Fatalf("Write failed: %v", err)
+			}
 
-	indexed, err := tmpl.ParseIndexed(bytes.NewReader(buf.Bytes()))
-	if err != nil {
-		t.Fatalf("ParseIndexed failed: %v", err)
-	}
-	if len(indexed) != len(samples) {
-		t.Fatalf("want %d rows, got %d", len(samples), len(indexed))
-	}
-	for idx, item := range indexed {
-		if item.Err != nil {
-			t.Fatalf("row %d: unexpected parse error: %v", idx, item.Err)
-		}
-		if item.Value != samples[idx] {
-			t.Fatalf("row %d: want %+v, got %+v", idx, samples[idx], item.Value)
-		}
+			indexed, err := testCase.reader.ParseIndexed(bytes.NewReader(buf.Bytes()))
+			if err != nil {
+				t.Fatalf("ParseIndexed failed: %v", err)
+			}
+			if len(indexed) != len(samples) {
+				t.Fatalf("want %d rows, got %d", len(samples), len(indexed))
+			}
+			for idx, item := range indexed {
+				if item.Err != nil {
+					t.Fatalf("row %d: unexpected parse error: %v", idx, item.Err)
+				}
+				if item.Value != samples[idx] {
+					t.Fatalf("row %d: want %+v, got %+v", idx, samples[idx], item.Value)
+				}
+			}
+		})
 	}
 }
 
@@ -145,6 +168,7 @@ func TestTemplateParseIndexedErrorCarriesRowIndex(t *testing.T) {
 	samples := []templateTestRow{
 		{IP: "1.1.1.1", Port: 22},
 		{IP: "1.1.1.2", Port: 22},
+		{Port: 22},
 	}
 	if err := tmpl.Write(buf, samples); err != nil {
 		t.Fatalf("Write failed: %v", err)
@@ -157,6 +181,9 @@ func TestTemplateParseIndexedErrorCarriesRowIndex(t *testing.T) {
 	if err := f.SetCellValue("typed_sheet", "B5", "not-a-port"); err != nil {
 		t.Fatal(err)
 	}
+	if err := f.SetCellValue("typed_sheet", "A1", "Internal IPv4"); err != nil {
+		t.Fatal(err)
+	}
 	broken := new(bytes.Buffer)
 	if err := f.Write(broken); err != nil {
 		t.Fatal(err)
@@ -167,8 +194,8 @@ func TestTemplateParseIndexedErrorCarriesRowIndex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseIndexed failed: %v", err)
 	}
-	if len(indexed) != 2 {
-		t.Fatalf("want 2 rows, got %d", len(indexed))
+	if len(indexed) != len(samples) {
+		t.Fatalf("want %d rows, got %d", len(samples), len(indexed))
 	}
 	if indexed[0].Err != nil {
 		t.Fatalf("first row should parse, got %v", indexed[0].Err)
@@ -177,29 +204,39 @@ func TestTemplateParseIndexedErrorCarriesRowIndex(t *testing.T) {
 		t.Fatalf("error row should carry index %d, got %d", dataStartRow+1, indexed[1].RowIndex)
 	}
 	requireErrorContaining(t, indexed[1].Err, "failed to parse port", "row error should carry the column parse failure")
+	requireErrorContaining(t, indexed[2].Err, `column "Internal IPv4" is required`, "row error should use the uploaded title")
 }
 
 func TestTemplateRejectsNilCallbacks(t *testing.T) {
 	columns := testTypedColumns()
 	columns[0].ValueOf = nil
-	_, err := NewTemplate("typed_sheet", columns)
+	_, err := NewTemplate("typed_sheet", columns, LanguageZh)
 	requireError(t, err, "nil ValueOf should be rejected on construction")
 
 	columns = testTypedColumns()
 	columns[0].Parse = nil
-	_, err = NewTemplate("typed_sheet", columns)
+	_, err = NewTemplate("typed_sheet", columns, LanguageZh)
 	requireError(t, err, "nil Parse should be rejected on construction")
 }
 
 func TestTemplateRejectsEmptyColumns(t *testing.T) {
-	_, err := NewTemplate[templateTestRow]("typed_sheet", nil)
+	_, err := NewTemplate[templateTestRow]("typed_sheet", nil, LanguageZh)
 	requireError(t, err, "empty columns should be rejected on construction")
 }
 
 func TestTemplateCopiesColumns(t *testing.T) {
 	columns := testTypedColumns()
+	columns[1].Options = []string{"22", "2222"}
 	tmpl := newTestTemplate(t, columns)
-	columns[0].Column.Name = "被修改的表头"
+	columns[1].Options[0] = "9999"
+	title := columns[0].Name.Edit().Zh("被修改的表头")
+	if columns[0].Name.in(LanguageZh) != "内网 IPv4" {
+		t.Fatal("editing a title should preserve the current value until Set")
+	}
+	title.Set()
+	if columns[0].Name.in(LanguageZh) != "被修改的表头" || columns[0].Name.in(LanguageEn) != "Internal IPv4" {
+		t.Fatal("Set should update the edited translation on the target field")
+	}
 
 	buf := new(bytes.Buffer)
 	if err := tmpl.Write(buf, []templateTestRow{{IP: "1.1.1.1", Port: 22}}); err != nil {
@@ -218,6 +255,14 @@ func TestTemplateCopiesColumns(t *testing.T) {
 	}
 	if value != "内网 IPv4" {
 		t.Fatalf("template should keep its own columns, got %q", value)
+	}
+
+	validations, err := f.GetDataValidations("typed_sheet")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(validations) != 1 || validations[0].Formula1 != `"22,2222"` {
+		t.Fatalf("template should keep its own drop-down options, got %+v", validations)
 	}
 }
 

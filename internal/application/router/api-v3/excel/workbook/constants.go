@@ -69,12 +69,18 @@ const (
 )
 
 const (
-	// Template copy rendered into templates (zh-CN).
-	labelRequired = "必填"
-	labelOptional = "可选"
+	// Template labels and drop-down notices.
+	labelRequiredZh = "必填"
+	labelRequiredEn = "Required"
+	labelOptionalZh = "可选"
+	labelOptionalEn = "Optional"
 
-	dropdownWarningTitle   = "输入提示"
-	dropdownWarningMessage = "建议从下拉列表中选择值，也可填写自定义值"
-	dropdownStopTitle      = "输入不合法"
-	dropdownStopMessage    = "请从下拉列表中选择值"
+	dropdownWarningTitleZh   = "输入提示"
+	dropdownWarningTitleEn   = "Input Guidance"
+	dropdownWarningMessageZh = "建议从下拉列表中选择值，也可填写自定义值"
+	dropdownWarningMessageEn = "Select a value from the drop-down list or enter a custom value."
+	dropdownStopTitleZh      = "输入不合法"
+	dropdownStopTitleEn      = "Invalid Input"
+	dropdownStopMessageZh    = "请从下拉列表中选择值"
+	dropdownStopMessageEn    = "Select a value from the drop-down list."
 )

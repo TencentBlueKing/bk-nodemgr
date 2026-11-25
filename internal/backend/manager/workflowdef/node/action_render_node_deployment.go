@@ -854,8 +854,8 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeAc
 	if len(matchResult.MatchedPolicies) > 0 {
 		for _, p := range matchResult.MatchedPolicies {
 			std.InstanceData().Log().
-				Zh("命中原始策略. configpolicy-id(%d), configpolicy-name(%s), priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
-				En("matched original policy. configpolicy-id(%d), configpolicy-name(%s), priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
+				Zh("命中原始策略. configpolicy-id(%d), configpolicy-name(%s)", p.PolicyID, p.PolicyName).
+				En("matched original policy. configpolicy-id(%d), configpolicy-name(%s)", p.PolicyID, p.PolicyName).
 				Info()
 		}
 

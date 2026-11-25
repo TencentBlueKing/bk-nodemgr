@@ -30,6 +30,18 @@
       "prompt": "A user asks a pure Go question unrelated to bk-nodemgr contracts: 'Should this exported interface name end with -er, and how should I test this tiny helper?' Route this without overloading project-specific skills.",
       "expected_output": "Falls back to golang-how-to and generic Go companions such as golang-naming, golang-testing, and golang-code-style, and explicitly avoids loading bk-nodemgr project contract skills because no project surface or source anchor is involved.",
       "files": []
+    },
+    {
+      "id": 6,
+      "name": "package-capability-and-protocol-routing",
+      "prompt": "Route three bk-nodemgr tasks without loading every skill: (1) build a small independent lease capability with one implementation, real worker/runner consumers, abstract dependencies and centralized assembly; (2) add a service-private audit composition accepting and implementing an existing capability contract; (3) adjust only a third-party provider raw API path/query without changing its handler contract or assembly. Explain which skill owns each task and when architecture judgment, naming, error, context, and protocol companions are actually needed. This is skill routing only, not permission to edit code or start a deepening scan.",
+      "expected_output": "Routes capability construction and same-contract composition to bk-nodemgr-pkg-design, adds architecture judgment for placement or shared-boundary risk rather than replacing construction, and keeps protocol-only changes with bk-nodemgr-thirdparty.",
+      "files": [],
+      "expectations": [
+        "Routes both independent capability construction and same-contract composition to bk-nodemgr-pkg-design.",
+        "Uses architecture judgment as a focused companion for actual architecture risks, not an alternative terminal workflow or automatic deepening scan.",
+        "Keeps raw API-only changes with bk-nodemgr-thirdparty and loads other companions only for their actual surfaces."
+      ]
     }
   ]
 }

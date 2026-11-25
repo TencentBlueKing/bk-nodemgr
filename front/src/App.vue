@@ -679,6 +679,26 @@ body {
 .bk-vxe-table .vxe-table--filter-body {
   min-height: 80px;
 }
+/* 表格列筛选面板搜索框（由 scripts/patch-bk-table.cjs 注入） */
+.vxe-table--filter-wrapper .vxe-table--filter-header > li.vxe-table--filter-search {
+  max-width: none;
+  padding: 8px 8px 4px;
+  cursor: default;
+  .vxe-table--filter-search-input {
+    width: 100%;
+    height: 28px;
+    padding: 0 8px;
+    font-size: 12px;
+    color: #313238;
+    border: 1px solid #c4c6cc;
+    border-radius: 2px;
+    outline: none;
+    box-sizing: border-box;
+    &:focus {
+      border-color: #3a84ff;
+    }
+  }
+}
 
 /* ====== 表格设置弹窗 - 旧版蓝鲸样式覆盖 ====== */
 .tippy-box[data-theme~='bk-vxe-table-setting-column-theme'] {
