@@ -109,8 +109,7 @@ func TestHandlerVerify(t *testing.T) {
 				}
 				require.JSONEq(t, `{
 					"bk_app_code": "bk-nodemgr",
-					"bk_app_secret": "app-secret",
-					"bk_username": ""
+					"bk_app_secret": "app-secret"
 				}`, req.Header.Get(apigwheader.BKGWAuthKey))
 				_, _ = rw.Write([]byte(`{"data":{"bk_username":"token_user","tenant_id":"system","login_name":"admin"}}`))
 			})
@@ -128,8 +127,7 @@ func TestHandlerVerify(t *testing.T) {
 				require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
 				require.JSONEq(t, `{
 						"bk_app_code": "bk-nodemgr",
-						"bk_app_secret": "app-secret",
-						"bk_username": ""
+						"bk_app_secret": "app-secret"
 					}`, req.Header.Get(apigwheader.BKGWAuthKey))
 
 				_, err := rw.Write([]byte(`{

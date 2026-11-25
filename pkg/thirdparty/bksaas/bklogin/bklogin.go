@@ -139,9 +139,8 @@ func (c *cli) getUserInfoByBKTokenMultipleTenantMode(
 	req *GetUserInfoByBKTokenMultipleTenantModeReq,
 ) (*GetUserInfoByBKTokenMultipleTenantModeResp, error) {
 
-	// The token determines the user and tenant, so no tenant-scoped virtual user can be resolved yet.
-	// Preserve the empty bk_username used by this API before tenant-aware authentication errors were propagated.
-	auth := c.config.VirtualUserConfig.GetAuthHeaderWithBKUsername("")
+	// This API requires application authentication, not a virtual username; bk_token identifies the user.
+	auth := c.config.VirtualUserConfig.AppConfig.GetAuthHeader()
 	if c.config.VirtualUserConfig.AuthMode == apigwclient.AuthModeAt {
 		var err error
 		auth, err = c.config.VirtualUserConfig.GetAuthHeader(nCtx)
