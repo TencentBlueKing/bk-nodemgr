@@ -61,22 +61,30 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 }
 
 // getHeader returns common HTTP headers for IAM API requests.
-func (c *cli) getHeader(ctx contextx.IContext) http.Header {
+func (c *cli) getHeader(ctx contextx.IContext) (http.Header, error) {
+	authHeader, err := c.config.VirtualUserConfig.GetAuthHeader(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get auth header: %w", err)
+	}
+
 	header := http.Header{}
 	// Use non-canonical header name as required by IAM API
 	header[HeaderKeyIAMVersion] = []string{HeaderValueIAMVersion}
 	header.Set(apigwheader.BKGWTenantIDKey, ctx.TenantID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(ctx))
+	header.Set(apigwheader.BKGWAuthKey, authHeader)
 
-	return header
+	return header, nil
 }
 
 // v2PolicyQuery performs V2 policy query API call.
 func (c *cli) v2PolicyQuery(ctx contextx.IContext, req *PolicyQueryInput) (*expression.ExprCell, error) {
 	resp := new(BaseBroker[*expression.ExprCell])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v2/policy/systems/%s/query/", req.System).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -99,9 +107,12 @@ func (c *cli) v2PolicyQueryByActions(ctx contextx.IContext, req *PolicyQueryByAc
 	[]map[string]interface{}, error) {
 
 	resp := new(BaseBroker[[]map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v2/policy/systems/%s/query_by_actions/", req.System).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -123,9 +134,12 @@ func (c *cli) v2PolicyQueryByActions(ctx contextx.IContext, req *PolicyQueryByAc
 // nolint:unused // Reserved for future use or V1 API compatibility.
 func (c *cli) policyQuery(ctx contextx.IContext, req *PolicyQueryInput) (map[string]interface{}, error) {
 	resp := new(BaseBroker[map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/policy/query").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -149,9 +163,12 @@ func (c *cli) policyQueryByActions(ctx contextx.IContext, req *PolicyQueryByActi
 	[]map[string]interface{}, error) {
 
 	resp := new(BaseBroker[[]map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/policy/query_by_actions").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -173,9 +190,12 @@ func (c *cli) policyQueryByActions(ctx contextx.IContext, req *PolicyQueryByActi
 // nolint:unused // Reserved for future use.
 func (c *cli) policyAuth(ctx contextx.IContext, req *PolicyAuthInput) (map[string]interface{}, error) {
 	resp := new(BaseBroker[map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/policy/auth").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -197,9 +217,12 @@ func (c *cli) policyAuth(ctx contextx.IContext, req *PolicyAuthInput) (map[strin
 // nolint:unused // Reserved for future use.
 func (c *cli) v2PolicyAuth(ctx contextx.IContext, req *PolicyAuthInput) (map[string]interface{}, error) {
 	resp := new(BaseBroker[map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v2/policy/systems/%s/auth/", req.System).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -223,9 +246,12 @@ func (c *cli) policyAuthByResources(ctx contextx.IContext, req *PolicyAuthByReso
 	[]map[string]interface{}, error) {
 
 	resp := new(BaseBroker[[]map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/policy/auth_by_resources").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -249,9 +275,12 @@ func (c *cli) policyAuthByActions(ctx contextx.IContext, req *PolicyAuthByAction
 	[]map[string]interface{}, error) {
 
 	resp := new(BaseBroker[[]map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/policy/auth_by_actions").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -272,9 +301,12 @@ func (c *cli) policyAuthByActions(ctx contextx.IContext, req *PolicyAuthByAction
 // getToken retrieves the system token from IAM.
 func (c *cli) getToken(ctx contextx.IContext, system string) (string, error) {
 	resp := new(BaseBroker[TokenResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return "", err
+	}
 
-	err := c.client.Get().
+	err = c.client.Get().
 		SubResourcef("/v1/model/systems/%s/token", system).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -293,9 +325,12 @@ func (c *cli) getToken(ctx contextx.IContext, system string) (string, error) {
 // getApplyURL retrieves the permission apply URL from IAM.
 func (c *cli) getApplyURL(ctx contextx.IContext, app *Application) (string, error) {
 	resp := new(BaseBroker[ApplyURLResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return "", err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/open/application/").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -330,9 +365,12 @@ type PolicyListInput struct {
 // nolint:unused // Reserved for future use.
 func (c *cli) policyGet(ctx contextx.IContext, system string, policyID int64) (map[string]interface{}, error) {
 	resp := new(BaseBroker[map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Get().
+	err = c.client.Get().
 		SubResourcef("/v1/systems/%s/policies/%d", system, policyID).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -358,9 +396,12 @@ type PolicyListResponse struct {
 // nolint:unused // Reserved for future use.
 func (c *cli) policyList(ctx contextx.IContext, system string, page, pageSize int) (*PolicyListResponse, error) {
 	resp := new(BaseBroker[PolicyListResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Get().
+	err = c.client.Get().
 		SubResourcef("/v1/systems/%s/policies/?page=%d&page_size=%d", system, page, pageSize).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -382,9 +423,12 @@ func (c *cli) policySubjects(ctx contextx.IContext, system string, policyIDs str
 	[]map[string]interface{}, error) {
 
 	resp := new(BaseBroker[[]map[string]interface{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Get().
+	err = c.client.Get().
 		SubResourcef("/v1/systems/%s/policies/-/subjects/?ids=%s", system, policyIDs).
 		WithContext(ctx).
 		WithHeaders(header).

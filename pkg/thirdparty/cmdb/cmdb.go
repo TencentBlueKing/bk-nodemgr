@@ -86,13 +86,17 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 }
 
 // getHeader get cmdb common header.
-// nolint: unparam
 func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
+	auth, err := c.config.VirtualUserConfig.GetAuthHeader(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmdb auth header: %w", err)
+	}
+
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
 	header.Set(HeaderKeyLanguage, HeaderValueLanguage)
 	header.Set(restheader.RequestIDKey, identifier.GenRequestID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
+	header.Set(apigwheader.BKGWAuthKey, auth)
 
 	return header, nil
 }

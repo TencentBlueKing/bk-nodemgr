@@ -140,12 +140,17 @@ func (c *cli) getUserInfoByBKTokenMultipleTenantMode(
 ) (*GetUserInfoByBKTokenMultipleTenantModeResp, error) {
 
 	// This is a special logic: the API gateway is required to take a tenant ID, but this API does not differentiate tenants.
+	auth, err := c.config.VirtualUserConfig.GetAuthHeader(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bklogin auth header: %w", err)
+	}
+
 	apigwHeader := http.Header{}
 	apigwHeader.Set(apigwheader.BKGWTenantIDKey, tenant.SystemTenantID)
-	apigwHeader.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
+	apigwHeader.Set(apigwheader.BKGWAuthKey, auth)
 
 	resp := new(BKTokenMultipleTenantModeBroker)
-	err := c.client.Get().
+	err = c.client.Get().
 		SubResourcef("/open/bk-tokens/userinfo/").
 		WithContext(nCtx).
 		WithHeaders(apigwHeader).
