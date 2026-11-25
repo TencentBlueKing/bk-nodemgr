@@ -70,7 +70,6 @@ func NewInitTenantCMD(
 				cmd.Context(),
 				contextx.WithTenantID(tenantID),
 				contextx.WithLoginName(loginName),
-				contextx.WithBKUsername(loginName),
 			)
 			result, err := handler.InitTenant(nCtx, targetTenantID)
 			if err != nil {

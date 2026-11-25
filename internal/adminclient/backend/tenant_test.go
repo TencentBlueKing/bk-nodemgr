@@ -75,7 +75,7 @@ func TestInitTenantCommandSeparatesAuthTenantAndTargetTenant(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, handler.calls)
 	assert.Equal(t, "auth-tenant", handler.nCtx.TenantID())
-	assert.Equal(t, "admin", handler.nCtx.BKUsername())
+	assert.Empty(t, handler.nCtx.BKUsername())
 	assert.Equal(t, "admin", handler.nCtx.LoginName())
 	assert.Equal(t, "target-tenant", handler.targetTenantID)
 	assert.Contains(t, out.String(), "Successfully initialized tenant")
