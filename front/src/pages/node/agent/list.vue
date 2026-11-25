@@ -30,7 +30,7 @@
   </page-header>
   <div class="p-[24px]">
     <!-- agnet操作及搜索 -->
-    <section class="flex justify-between mb-[15px]">
+    <section class="flex w-full mb-[15px]">
       <div class="flex gap-[8px]">
         <!-- <Dropdown
           theme="light"
@@ -138,7 +138,7 @@
           </Button>
         </span>
       </div>
-      <div class="flex gap-[8px]">
+      <div class="flex flex-1 gap-[8px]">
         <!-- <Cascader
           class="w-[250px]"
           is-remote
@@ -153,7 +153,7 @@
         /> -->
         <SearchSelect
           :max-height="240"
-          class="w-[480px] z-99 bg-[#fff]"
+          class="w-full z-99 bg-[#fff]"
           ref="searchSelect"
           :data="searchSelectData"
           v-model.trim="searchSelectValue"

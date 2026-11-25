@@ -265,7 +265,7 @@ onMounted(async () => {
             bk_host_innerip_v6: h.ipv6 || '',
             bk_host_name: h.host_name || '',
             os_name: h.os_name || h.os_type || '',
-            bk_networkunit_id: h.bk_networkunit_id ?? 0,
+            bk_networkunit_id: h.bk_networkunit_id ?? -1,
             cloud_area: h.cloud_area || { id: 0, name: '' },
             alive: h.alive ?? 1,
             meta: h.meta || { scope_type: '', scope_id: '', bk_biz_id: '' },
@@ -312,7 +312,7 @@ const ipSelectorValue = computed(() => ({
     ipv6: h.ipv6 || h.bk_host_innerip_v6 || '',
     hostName: h.host_name || h.bk_host_name || '',
     osName: h.os_name || h.os_type || '',
-    bk_networkunit_id: h.bk_networkunit_id ?? 0,
+    bk_networkunit_id: h.bk_networkunit_id ?? -1,
     cloudArea: h.cloud_area || h.cloudArea || { id: h.bk_cloud_id || 0, name: '' },
     alive: h.alive ?? 1,
     meta: h.meta || { scope_type: '', scope_id: '', bk_biz_id: '' },
@@ -329,6 +329,15 @@ const hostDetailLoading = ref(false);
 
 const handleIpSelectorChange = async (value: any) => {
   const hosts = value?.hostList || [];
+  // IP 选择器库回传的 host 可能丢失 bk_networkunit_id：优先回退到 info / 上一次已选值，
+  // 最终以 -1 表示未分配（不能用 0 兜底，否则会被预览当成有效单元 ID 显示成 [0]）
+  const prevUnitMap = new Map<number, any>(
+    (formData.value.selectedHosts || []).map((h: any) => [h.host_id || h.bk_host_id, h.bk_networkunit_id]),
+  );
+  const resolveUnitId = (h: any, hostId: number) => {
+    const raw = h.bk_networkunit_id ?? h.info?.bk_networkunit_id ?? prevUnitMap.get(hostId);
+    return (raw == null || raw === 0) ? -1 : raw;
+  };
   const mappedHosts = hosts.map((h: any) => {
     const hostId = h.hostId || h.host_id || h.bk_host_id || 0;
     return {
@@ -344,7 +353,7 @@ const handleIpSelectorChange = async (value: any) => {
       ipv6: h.ipv6 || h.bk_host_innerip_v6 || '',
       host_name: h.hostName || h.host_name || h.bk_host_name || '',
       os_name: h.osName || h.os_name || h.osType || h.os_type || '',
-      bk_networkunit_id: h.bk_networkunit_id ?? 0,
+      bk_networkunit_id: resolveUnitId(h, hostId),
       cloud_area: h.cloudArea || h.cloud_area || h.cloudAreaObj || {},
       alive: h.alive ?? h.bk_agent_alive,
       meta: h.meta || {},
@@ -352,7 +361,11 @@ const handleIpSelectorChange = async (value: any) => {
   });
 
   // 跨页全选：IpSelector 库只含已浏览页面的主机，补全缺失字段的 host
-  const incompleteHosts = mappedHosts.filter((h: any) => !h.ip && !h.os_type);
+  // 另外 IP 选择器库不识别 bk_networkunit_id，回传时可能丢失（0/-1），
+  // 需按 host_id 调 host/list 补全真实管控单元 ID（info.bk_networkunit_id）
+  const incompleteHosts = mappedHosts.filter(
+    (h: any) => (!h.ip && !h.os_type) || !h.bk_networkunit_id || h.bk_networkunit_id <= 0,
+  );
   if (incompleteHosts.length > 0) {
     hostDetailLoading.value = true;
     try {
@@ -374,7 +387,9 @@ const handleIpSelectorChange = async (value: any) => {
           os_type: detail.os_type || detail.osType || h.os_type || '',
           os_name: detail.os_name || detail.osName || h.os_name || '',
           cpu_arch: detail.cpu_arch || detail.cpuArch || h.cpu_arch || '',
-          bk_networkunit_id: detail.bk_networkunit_id ?? h.bk_networkunit_id ?? 0,
+          bk_networkunit_id: (detail.bk_networkunit_id && detail.bk_networkunit_id > 0)
+            ? detail.bk_networkunit_id
+            : (h.bk_networkunit_id && h.bk_networkunit_id > 0 ? h.bk_networkunit_id : -1),
           bk_biz_id: detail.bk_biz_id ?? h.bk_biz_id ?? 0,
           meta: detail.meta || h.meta || {},
           cloud_area: detail.cloud_area || detail.cloudArea || h.cloud_area || {},

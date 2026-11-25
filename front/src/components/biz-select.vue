@@ -141,17 +141,12 @@ const selectedBizIds = computed(() => {
 });
 
 // ===== 权限判断 =====
-// 业务可访问范围统一通过 biz_access 判断（与菜单页 view 权限解耦）
-// 若传入了 action prop，则叠加校验该 action 的 biz 权限
+// 业务可访问范围统一通过 biz_access 判断（与页面/操作权限解耦）
+// action prop 仅用于「点击无权限业务时申请权限」，不参与业务过滤
 const BIZ_ACCESS_ACTION = 'biz_access';
 const isBizAuthorized = (bizId: number): boolean => {
   if (!authStore.authorizedLoaded) return true; // 未加载完成时默认有权限，避免闪烁
-  const hasBizAccess = authStore.hasAuthorizedBiz(BIZ_ACCESS_ACTION, bizId);
-  if (!hasBizAccess) return false;
-  if (props.action?.length) {
-    return authStore.hasAuthorizedBiz(props.action, bizId);
-  }
-  return true;
+  return authStore.hasAuthorizedBiz(BIZ_ACCESS_ACTION, bizId);
 };
 
 // ===== 排序逻辑 =====
@@ -159,16 +154,12 @@ const sortBusinessList = () => {
   const list = [...businessList.value];
   const bizAccessIds = authStore.getAuthorizedBizIds(BIZ_ACCESS_ACTION);
   const bizAccessSet = bizAccessIds === null ? null : new Set(bizAccessIds);
-  const actionIds = props.action
-    ? authStore.getAuthorizedBizIds(props.action)
-    : null;
-  const actionSet = actionIds === null ? null : new Set(actionIds || []);
   const collectedSet = new Set(collectList.value);
   const selectedSet = new Set(selectedBizIds.value);
   list.sort((a, b) => {
     // 有权限的排前面（biz_access 已加载时才生效）
-    const aAuth = isAuthorizedWithSets(a.bk_biz_id, bizAccessSet, actionSet);
-    const bAuth = isAuthorizedWithSets(b.bk_biz_id, bizAccessSet, actionSet);
+    const aAuth = isAuthorizedWithSets(a.bk_biz_id, bizAccessSet);
+    const bAuth = isAuthorizedWithSets(b.bk_biz_id, bizAccessSet);
     if (aAuth && !bAuth) return -1;
     if (!aAuth && bAuth) return 1;
 
@@ -207,11 +198,10 @@ watch(businessList, sortBusinessList, { immediate: true });
 function isAuthorizedWithSets(
   bizId: number,
   bizAccessSet: Set<string> | null,
-  actionSet: Set<string> | null,
 ): boolean {
   if (!authStore.authorizedLoaded) return true;
   if (bizAccessSet !== null && !bizAccessSet.has(String(bizId))) return false;
-  return actionSet === null || actionSet.has(String(bizId));
+  return true;
 }
 
 // ===== 搜索过滤 =====
