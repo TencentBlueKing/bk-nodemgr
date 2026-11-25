@@ -49,9 +49,14 @@ func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
 		return nil, err
 	}
 
+	auth, err := c.config.VirtualUserConfig.GetAuthHeader(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get monitor auth header: %w", err)
+	}
+
 	header := http.Header{}
 	header.Set(apigwheader.BKGWTenantIDKey, nCtx.TenantID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
+	header.Set(apigwheader.BKGWAuthKey, auth)
 
 	return header, nil
 }
