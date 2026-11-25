@@ -33,20 +33,24 @@ externalMongodb:
 {{- $_ := set $config "adminServer" (dict "jwtServerConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
 {{- $_ := set $config "access" (dict "virtualUser" (dig "global" "access" "virtualUser" "" .Values)) }}
 {{- $_ := set $config "file" (dict "jwtClientConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
+{{- $monitoringEnabled := dig "monitoring" "enabled" true .Values }}
+{{- $gatewayEnabled := or $monitoringEnabled (not (empty (dig "opentelemetryGateway" "exporters" dict .Values))) }}
+{{- if $gatewayEnabled }}
 {{- $tracing := deepCopy (dig "tracing" dict $config) }}
 {{- $_ := set $tracing "exporterType" "otlp" }}
 {{- $_ := set $tracing "otlpEndpoint" (printf "bk-nodemgr-opentelemetry-gateway.%s.svc.cluster.local:4317" .Values.namespaces.monitoring) }}
 {{- $_ := set $tracing "otlpProtocol" "grpc" }}
 {{- $_ := set $tracing "otlpInsecure" true }}
 {{- $_ := set $config "tracing" $tracing }}
+{{- end }}
 {{- $log := deepCopy (dig "log" dict $config) }}
 {{- $_ := set $log "alsoToStderr" true }}
 {{- $_ := set $config "log" $log }}
 {{- $profiling := deepCopy (dig "profiling" dict $config) }}
 {{- if not (hasKey $profiling "enabled") }}
-{{- $_ := set $profiling "enabled" true }}
+{{- $_ := set $profiling "enabled" $monitoringEnabled }}
 {{- end }}
-{{- if and (dig "enabled" false $profiling) (eq (trim (dig "serverAddress" "" $profiling)) "") }}
+{{- if and $monitoringEnabled (dig "enabled" false $profiling) (eq (trim (dig "serverAddress" "" $profiling)) "") }}
 {{- $_ := set $profiling "serverAddress" (printf "http://bk-nodemgr-pyroscope.%s.svc:4040" .Values.namespaces.monitoring) }}
 {{- end }}
 {{- $_ := set $config "profiling" $profiling }}
@@ -92,21 +96,21 @@ externalMongodb:
 {{- $_ := set $config "front" $front }}
 {{- range $configName := list "backend" "userManager" "notice" "infoServer" "adminServer" "basicServer" "mongodb" "file" "iamV3" }}
 {{- $current := deepCopy (dig $configName dict $config) }}
-{{- if not (hasKey $current "traceSampleRate") }}
+{{- if and $gatewayEnabled (not (hasKey $current "traceSampleRate")) }}
 {{- $_ := set $current "traceSampleRate" 1 }}
 {{- end }}
 {{- $_ := set $config $configName $current }}
 {{- end }}
 {{- $bkSaaS := deepCopy (dig "bkSaaS" dict $config) }}
 {{- $bkLogin := deepCopy (dig "bkLogin" dict $bkSaaS) }}
-{{- if not (hasKey $bkLogin "traceSampleRate") }}
+{{- if and $gatewayEnabled (not (hasKey $bkLogin "traceSampleRate")) }}
 {{- $_ := set $bkLogin "traceSampleRate" 1 }}
 {{- end }}
 {{- $_ := set $bkSaaS "bkLogin" $bkLogin }}
 {{- $_ := set $config "bkSaaS" $bkSaaS }}
 {{- $tracing := deepCopy (dig "tracing" dict $config) }}
 {{- $globalService := deepCopy (dig "globalService" dict $tracing) }}
-{{- if not (hasKey $globalService "traceSampleRate") }}
+{{- if and $gatewayEnabled (not (hasKey $globalService "traceSampleRate")) }}
 {{- $_ := set $globalService "traceSampleRate" 1 }}
 {{- end }}
 {{- $_ := set $tracing "globalService" $globalService }}
