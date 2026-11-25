@@ -55,6 +55,8 @@ data:
 
     gse: {{ .Values.file.config.gse | toYaml | nindent 6 }}
 
+    userManager: {{ .Values.file.config.userManager | toYaml | nindent 6 }}
+
     log:
       {{- include "bk-nodemgr.logConfig" (dict "config" .Values.file.config.log "context" $) | nindent 6 }}
 

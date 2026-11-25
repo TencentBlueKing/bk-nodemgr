@@ -100,8 +100,9 @@ const (
 	defaultFileTracingExporterType    = "stdout"
 	defaultFileGlobalTraceServiceName = "file"
 
-	defaultFileGSETraceServiceName  = "file-client-gse"
-	defaultFileRepoTraceServiceName = "file-client-bkrepo"
+	defaultFileGSETraceServiceName         = "file-client-gse"
+	defaultFileUserManagerTraceServiceName = "file-client-usermanager"
+	defaultFileRepoTraceServiceName        = "file-client-bkrepo"
 )
 
 func defaultFileEtcdEndpoints() []string {
@@ -109,6 +110,8 @@ func defaultFileEtcdEndpoints() []string {
 }
 
 // NewFileService generates a new FileService with default values.
+// nolint: funlen
+// NOCC: golint/fnsize(default file configuration is clearer as one initializer).
 func NewFileService() *FileService {
 	return &FileService{
 		RunMode:    defaultFileRunMode,
@@ -122,6 +125,13 @@ func NewFileService() *FileService {
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultFileGSETraceServiceName,
+				},
+			},
+		},
+		UserManager: UserManager{
+			APIGatewayClient: APIGatewayClient{
+				TraceService: TraceService{
+					TraceServiceName: defaultFileUserManagerTraceServiceName,
 				},
 			},
 		},
@@ -267,6 +277,7 @@ type FileService struct {
 	KMS                KMS                  `yaml:"kms" usage:"kms secret of file service"`
 	Etcd               Etcd                 `yaml:"etcd" usage:"etcd config of file service"`
 	GSE                GSE                  `yaml:"gse" usage:"gse config of file service"`
+	UserManager        UserManager          `yaml:"userManager" usage:"user manager config of file service"`
 	InfoServer         HTTPServer           `yaml:"infoServer" usage:"info server config of file service"`
 	AdminServer        HTTPServer           `yaml:"adminServer" usage:"admin server config of file service"`
 	BasicServer        HTTPServer           `yaml:"basicServer" usage:"basic server config of file service"`
@@ -402,6 +413,10 @@ func (svc *FileService) Validate() error {
 
 	if err := svc.GSE.Validate(); err != nil {
 		return fmt.Errorf("failed to validate gse config: %w", err)
+	}
+
+	if err := svc.UserManager.ValidateForTenantMode(svc.TenantMode); err != nil {
+		return fmt.Errorf("failed to validate user manager config: %w", err)
 	}
 
 	if err := svc.Repo.Validate(); err != nil {

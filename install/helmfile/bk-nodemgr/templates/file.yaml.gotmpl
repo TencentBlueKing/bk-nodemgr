@@ -54,7 +54,17 @@ backend:
 {{- $gseEndpoint := replace "{gateway_name}" "bk-gse" $bkAPITmpl }}
 {{- $_ := set $gse "endpoints" (dig "gateways" "gse" "endpoints" (list $gseEndpoint) .Values) }}
 {{- $_ := set $config "gse" $gse }}
-{{- range $configName := list "infoServer" "adminServer" "basicServer" "downloadServer" "exportServer" "downloader" "repo" "mongodb" "redis" }}
+{{- $userManager := deepCopy (dig "userManager" dict $config) }}
+{{- $_ := set $userManager "appCode" (dig "global" "appCode" "" .Values) }}
+{{- $_ := set $userManager "appSecret" (dig "global" "appSecret" "" .Values) }}
+{{- $_ := set $userManager "user" (dig "global" "user" "" .Values) }}
+{{- $userManagerEndpoint := replace "{gateway_name}" "bk-user" $bkAPITmpl }}
+{{- $_ := set $userManager "endpoints" (dig "gateways" "userManager" "endpoints" (list $userManagerEndpoint) .Values) }}
+{{- if not (hasKey $userManager "useLegacyUsername") }}
+{{- $_ := set $userManager "useLegacyUsername" false }}
+{{- end }}
+{{- $_ := set $config "userManager" $userManager }}
+{{- range $configName := list "infoServer" "adminServer" "basicServer" "downloadServer" "exportServer" "downloader" "repo" "mongodb" "redis" "userManager" }}
 {{- $current := deepCopy (dig $configName dict $config) }}
 {{- if not (hasKey $current "traceSampleRate") }}
 {{- $_ := set $current "traceSampleRate" 1 }}

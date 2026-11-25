@@ -106,6 +106,7 @@ flowchart LR
 
 - `file.config.repo.endpoint`、`projectID`、`repoName`、`accessKey`、`secretKey`：BKRepo 直连配置。该配置不走 API Gateway，必须显式填写。
 - `file.config.gse.pluginSlotID`、`file.config.gse.pluginSlotToken`：GSE plugin slot 信息。
+- `file.config.userManager.useLegacyUsername`：仅蓝鲸平台 7.2 的单租户环境启用，须与 Backend、Application 同步；默认 `false`，通过用户管理 lookup 解析 `file.config.gse.user`。网关地址和应用凭证沿用 `global` 与 `gateways.userManager` 映射。
 
 ### kms
 

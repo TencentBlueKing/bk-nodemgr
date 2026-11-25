@@ -422,6 +422,9 @@ func (k *KMS) ParseFileServiceConfig(service *FileService) error {
 	// - gse
 	service.GSE.AppCode = dataGlobal.BKAppIDSecret.Default.AppCode
 	service.GSE.AppSecret = dataGlobal.BKAppIDSecret.Default.AppSecret
+	// - user manager
+	service.UserManager.AppCode = dataGlobal.BKAppIDSecret.Default.AppCode
+	service.UserManager.AppSecret = dataGlobal.BKAppIDSecret.Default.AppSecret
 
 	// bkrepo.
 	service.Repo.AccessKey = dataModule.BKRepo.Default.AccessKey
