@@ -354,7 +354,7 @@ function handleChangeSubMenu(item: Omit<NavItem, 'group'>) {
 // 业务选择器
 const bizSelectorRef = ref<InstanceType<typeof BizSelector>>();
 // opsSetting 是 agent/proxy 共用的带外管理页，菜单高亮需跟随进入来源（store 中记录的 nodeType），
-// 避免从 proxy 状态页进入时左侧菜单跳到「Agent状态」
+// 避免从 proxy 状态页进入时左侧菜单跳到「Agent管理」
 const currentActive = computed(() => {
   if (route.name === 'opsSetting') {
     return nodeManageStore.opsFieldsParams.nodeType === 'proxy' ? 'proxy' : 'agent';
