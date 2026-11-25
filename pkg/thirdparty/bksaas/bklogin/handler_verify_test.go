@@ -24,22 +24,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/stretchr/testify/require"
 )
-
-type tenantRequiredResolver struct{}
-
-func (tenantRequiredResolver) GetBKUsernameByLoginName(nCtx contextx.IContext, loginName string) (string, error) {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return "", err
-	}
-
-	return loginName, nil
-}
 
 func TestHandlerVerify(t *testing.T) {
 	mode, ok := configuredTenantMode(t)
@@ -51,11 +40,6 @@ func TestHandlerVerify(t *testing.T) {
 		}
 		return
 	}
-
-	access.SetTenantVirtualUserResolver(tenantRequiredResolver{})
-	t.Cleanup(func() {
-		access.SetTenantVirtualUserResolver(access.NewNoopTenantVirtualUserResolver())
-	})
 
 	nCtx := contextx.New(context.Background())
 
