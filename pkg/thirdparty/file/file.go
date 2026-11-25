@@ -89,8 +89,7 @@ func (c *cli) getCommonHeader(nCtx contextx.IContext, tenantID string) (http.Hea
 	return header, nil
 }
 
-func (c *cli) uploadOriginAgent(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginAgentReq, fileName string, file io.Reader) (
+func (c *cli) uploadOriginAgent(nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginAgentReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginAgentResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginAgentResp)
@@ -133,8 +132,7 @@ func (c *cli) uploadOriginAgent(
 	return data, nil
 }
 
-func (c *cli) uploadOriginServer(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginServerReq, fileName string, file io.Reader) (
+func (c *cli) uploadOriginServer(nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginServerReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginServerResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginServerResp)
@@ -177,8 +175,7 @@ func (c *cli) uploadOriginServer(
 	return data, nil
 }
 
-func (c *cli) uploadOriginProxy(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginProxyReq, fileName string, file io.Reader) (
+func (c *cli) uploadOriginProxy(nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginProxyReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginProxyResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginProxyResp)
@@ -221,8 +218,7 @@ func (c *cli) uploadOriginProxy(
 	return data, nil
 }
 
-func (c *cli) uploadOriginCert(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginCertReq, fileName string, file io.Reader) (
+func (c *cli) uploadOriginCert(nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginCertReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginCertResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginCertResp)
@@ -265,8 +261,7 @@ func (c *cli) uploadOriginCert(
 	return data, nil
 }
 
-func (c *cli) uploadOriginBinTool(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginBinToolReq, fileName string, file io.Reader) (
+func (c *cli) uploadOriginBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginBinToolReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginBinToolResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginBinToolResp)
@@ -309,9 +304,7 @@ func (c *cli) uploadOriginBinTool(
 	return data, nil
 }
 
-func (c *cli) generateUploadFileBody(
-	metadata interface{}, header http.Header, fileName string, file io.Reader) (io.ReadCloser, error) {
-
+func (c *cli) generateUploadFileBody(metadata interface{}, header http.Header, fileName string, file io.Reader) (io.ReadCloser, error) {
 	metadataStr, err := json.Marshal(metadata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal metadata: %w", err)
@@ -378,9 +371,7 @@ func (c *cli) publishReleaseAgent(nCtx contextx.IContext, tenantID string, req *
 	return resp.GetData(), nil
 }
 
-func (c *cli) downloadReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadAgentReq) (
-	*restserver.StreamResponse, error) {
-
+func (c *cli) downloadReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadAgentReq) (*restserver.StreamResponse, error) {
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
@@ -428,9 +419,7 @@ func (c *cli) downloadRemoteFile(nCtx contextx.IContext, tenantID string, req *p
 	}, nil
 }
 
-func (c *cli) downloadReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadProxyReq) (
-	*restserver.StreamResponse, error) {
-
+func (c *cli) downloadReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadProxyReq) (*restserver.StreamResponse, error) {
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
@@ -454,9 +443,7 @@ func (c *cli) downloadReleaseProxy(nCtx contextx.IContext, tenantID string, req 
 	}, nil
 }
 
-func (c *cli) downloadReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginReq) (
-	*restserver.StreamResponse, error) {
-
+func (c *cli) downloadReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginReq) (*restserver.StreamResponse, error) {
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
@@ -480,9 +467,7 @@ func (c *cli) downloadReleasePlugin(nCtx contextx.IContext, tenantID string, req
 	}, nil
 }
 
-func (c *cli) downloadReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadCertReq) (
-	*restserver.StreamResponse, error) {
-
+func (c *cli) downloadReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadCertReq) (*restserver.StreamResponse, error) {
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
@@ -506,9 +491,7 @@ func (c *cli) downloadReleaseCert(nCtx contextx.IContext, tenantID string, req *
 	}, nil
 }
 
-func (c *cli) downloadReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadBinToolReq) (
-	*restserver.StreamResponse, error) {
-
+func (c *cli) downloadReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadBinToolReq) (*restserver.StreamResponse, error) {
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
@@ -558,9 +541,7 @@ func (c *cli) downloadReleasePluginBinTool(nCtx contextx.IContext, tenantID stri
 	}, nil
 }
 
-func (c *cli) downloadInstaller(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadInstallerReq) (
-	*restserver.StreamResponse, error) {
-
+func (c *cli) downloadInstaller(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadInstallerReq) (*restserver.StreamResponse, error) {
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
@@ -776,9 +757,7 @@ func (c *cli) launchTransferInstaller(nCtx contextx.IContext, tenantID string, r
 	return resp, nil
 }
 
-func (c *cli) queryTransfer(nCtx contextx.IContext, tenantID string, req *protoFile.TransferQueryReq) (
-	*protoFile.TransferQueryResp, error) {
-
+func (c *cli) queryTransfer(nCtx contextx.IContext, tenantID string, req *protoFile.TransferQueryReq) (*protoFile.TransferQueryResp, error) {
 	resp := new(protoFile.TransferQueryResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
@@ -810,8 +789,7 @@ func (c *cli) queryTransfer(nCtx contextx.IContext, tenantID string, req *protoF
 	return resp, nil
 }
 
-func (c *cli) uploadOriginPluginV2(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginV2Req, fileName string, file io.Reader) (
+func (c *cli) uploadOriginPluginV2(nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginV2Req, fileName string, file io.Reader) (
 	*protoFile.UploadOriginPluginV2Resp_Data, error) {
 
 	resp := new(protoFile.UploadOriginPluginV2Resp)
@@ -855,8 +833,8 @@ func (c *cli) uploadOriginPluginV2(
 }
 
 func (c *cli) uploadOriginExternalPluginV2(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginExternalPluginV2Req, fileName string, file io.Reader) (
-	*protoFile.UploadOriginExternalPluginV2Resp_Data, error) {
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginExternalPluginV2Req, fileName string, file io.Reader,
+) (*protoFile.UploadOriginExternalPluginV2Resp_Data, error) {
 
 	resp := new(protoFile.UploadOriginExternalPluginV2Resp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
@@ -898,8 +876,7 @@ func (c *cli) uploadOriginExternalPluginV2(
 	return data, nil
 }
 
-func (c *cli) uploadOriginPluginV3(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginV3Req, fileName string, file io.Reader) (
+func (c *cli) uploadOriginPluginV3(nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginV3Req, fileName string, file io.Reader) (
 	*protoFile.UploadOriginPluginV3Resp_Data, error) {
 
 	resp := new(protoFile.UploadOriginPluginV3Resp)
@@ -1033,8 +1010,8 @@ func (c *cli) publishReleasePluginV3(nCtx contextx.IContext, tenantID string, re
 }
 
 func (c *cli) uploadOriginPluginBinTool(
-	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginBinToolReq, fileName string, file io.Reader) (
-	*protoFile.UploadOriginPluginBinToolResp_Data, error) {
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginBinToolReq, fileName string, file io.Reader,
+) (*protoFile.UploadOriginPluginBinToolResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginPluginBinToolResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
@@ -1106,9 +1083,7 @@ func (c *cli) publishReleasePluginBinTool(nCtx contextx.IContext, tenantID strin
 	return resp.GetData(), nil
 }
 
-func (c *cli) infoReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadAgentReq) (
-	*protoFile.FileInfoResp_Data, error) {
-
+func (c *cli) infoReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadAgentReq) (*protoFile.FileInfoResp_Data, error) {
 	resp := new(protoFile.FileInfoResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
@@ -1141,9 +1116,7 @@ func (c *cli) infoReleaseAgent(nCtx contextx.IContext, tenantID string, req *pro
 	return data, nil
 }
 
-func (c *cli) infoReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadProxyReq) (
-	*protoFile.FileInfoResp_Data, error) {
-
+func (c *cli) infoReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadProxyReq) (*protoFile.FileInfoResp_Data, error) {
 	resp := new(protoFile.FileInfoResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
@@ -1176,9 +1149,7 @@ func (c *cli) infoReleaseProxy(nCtx contextx.IContext, tenantID string, req *pro
 	return data, nil
 }
 
-func (c *cli) infoReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginReq) (
-	*protoFile.FileInfoResp_Data, error) {
-
+func (c *cli) infoReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginReq) (*protoFile.FileInfoResp_Data, error) {
 	resp := new(protoFile.FileInfoResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
@@ -1211,9 +1182,7 @@ func (c *cli) infoReleasePlugin(nCtx contextx.IContext, tenantID string, req *pr
 	return data, nil
 }
 
-func (c *cli) infoReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadCertReq) (
-	*protoFile.FileInfoResp_Data, error) {
-
+func (c *cli) infoReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadCertReq) (*protoFile.FileInfoResp_Data, error) {
 	resp := new(protoFile.FileInfoResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
@@ -1246,9 +1215,7 @@ func (c *cli) infoReleaseCert(nCtx contextx.IContext, tenantID string, req *prot
 	return data, nil
 }
 
-func (c *cli) infoReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadBinToolReq) (
-	*protoFile.FileInfoResp_Data, error) {
-
+func (c *cli) infoReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadBinToolReq) (*protoFile.FileInfoResp_Data, error) {
 	resp := new(protoFile.FileInfoResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
@@ -1316,9 +1283,7 @@ func (c *cli) infoReleasePluginBinTool(nCtx contextx.IContext, tenantID string, 
 	return data, nil
 }
 
-func (c *cli) infoInstaller(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadInstallerReq) (
-	*protoFile.FileInfoResp_Data, error) {
-
+func (c *cli) infoInstaller(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadInstallerReq) (*protoFile.FileInfoResp_Data, error) {
 	resp := new(protoFile.FileInfoResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
@@ -1385,8 +1350,8 @@ func (c *cli) exportPrepareOriginPluginPackage(nCtx contextx.IContext, tenantID 
 }
 
 func (c *cli) exportGetOriginPluginPackageDownloadAddress(
-	nCtx contextx.IContext, tenantID string, req *protoFile.ExportGetOriginPluginPackageDownloadAddressReq) (
-	*protoFile.ExportGetOriginPluginPackageDownloadAddressResp_Data, error) {
+	nCtx contextx.IContext, tenantID string, req *protoFile.ExportGetOriginPluginPackageDownloadAddressReq,
+) (*protoFile.ExportGetOriginPluginPackageDownloadAddressResp_Data, error) {
 
 	resp := new(protoFile.ExportGetOriginPluginPackageDownloadAddressResp)
 	header, err := c.getCommonHeader(nCtx, tenantID)
@@ -2751,4 +2716,213 @@ func (c *cli) distinctPackageEvent(nCtx contextx.IContext, tenantID string, req 
 	}
 
 	return resp.GetData(), nil
+}
+
+// ===============================================================================
+// Shared Release Sync Related Interface
+// ===============================================================================
+
+func (c *cli) syncSharedReleases(nCtx contextx.IContext, tenantID string) error {
+	resp := new(protoFile.SyncSharedReleasesResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/release/sync_shared").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(new(protoFile.SyncSharedReleasesReq)).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().
+		Into(resp)
+	if err != nil {
+		return fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("failed to sync shared releases. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// Plugin Requirement Related Interface
+// ===============================================================================
+
+func (c *cli) createPluginRequirement(nCtx contextx.IContext, req *protoFile.PluginRequirementCreateReq) (
+	*protoFile.PluginRequirementCreateResp, error) {
+
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementCreateResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/create").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement create: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement create failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData().GetFile() == nil {
+		return nil, fmt.Errorf("plugin requirement create returned empty file, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updatePluginRequirement(nCtx contextx.IContext, req *protoFile.PluginRequirementUpdateReq) (
+	*protoFile.PluginRequirementUpdateResp, error) {
+
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementUpdateResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/update").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement update: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement update failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData().GetFile() == nil {
+		return nil, fmt.Errorf("plugin requirement update returned empty file, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updatePluginRequirementScope(nCtx contextx.IContext, req *protoFile.PluginRequirementUpdateScopeReq) (
+	*protoFile.PluginRequirementUpdateScopeResp, error) {
+
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementUpdateScopeResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/update_scope").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement update scope: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement update scope failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData().GetFile() == nil {
+		return nil, fmt.Errorf("plugin requirement update scope returned empty file, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listPluginRequirements(nCtx contextx.IContext, req *protoFile.PluginRequirementListReq) (*protoFile.PluginRequirementListResp, error) {
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementListResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/list").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement list: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement list failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("plugin requirement list returned empty data, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) getPluginRequirement(nCtx contextx.IContext, req *protoFile.PluginRequirementGetReq) (*protoFile.PluginRequirementGetResp, error) {
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementGetResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/get").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement get: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement get failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData().GetFile() == nil {
+		return nil, fmt.Errorf("plugin requirement get returned empty file, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) transferPluginRequirement(nCtx contextx.IContext, req *protoFile.PluginRequirementTransferReq) (
+	*protoFile.PluginRequirementTransferResp, error) {
+
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	resp := new(protoFile.PluginRequirementTransferResp)
+	if err := c.client.Post().
+		SubResourcef("/plugin/requirement/transfer").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().
+		Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to post plugin requirement transfer: %w", err)
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("plugin requirement transfer failed: code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("plugin requirement transfer returned empty data, request-id(%s)", resp.GetRequestId())
+	}
+	if resp.GetData().GetTaskId() == "" {
+		return nil, fmt.Errorf("plugin requirement transfer returned empty task id, request-id(%s)", resp.GetRequestId())
+	}
+
+	return resp, nil
 }

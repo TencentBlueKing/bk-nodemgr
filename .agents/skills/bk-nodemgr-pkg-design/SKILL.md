@@ -47,7 +47,7 @@ For external protocols, isolate transport requests and responses behind the capa
 - **Implementation change:** preserve the capability and keep the change inside its implementation.
 - **Parallel implementation:** implement the existing contract for a genuinely required alternative mechanism.
 - **Composition:** depend on an existing capability, add one coherent responsibility, and implement the same contract outward where semantics remain compatible.
-- **Contract change:** when approved requirements change the capability itself, update the affected chain rather than hiding required behavior behind concrete assertions or optional methods.
+- **Contract change:** prefer compatible additive extension for stable contracts. Feature approval alone does not authorize replacing a stable signature. If an in-place migration is necessary, obtain explicit approval of that migration and its compatibility scope, subject to applicable rules, then update the affected chain. Required capabilities remain explicit dependencies, not concrete assertions or optional-method discovery.
 
 Read [Dependencies and Composition](references/dependencies-and-composition.md) when adding an implementation, injecting dependencies, or layering policy. No speculative implementation is required to justify a real capability boundary, but an interface with no consumer need or isolation benefit is not useful by itself.
 
@@ -89,7 +89,13 @@ Do not generate a permanent architecture document or repeat this entire checklis
 
 ## Companion Boundaries
 
-This skill guides construction and evolution, not a second architecture approval process. Use `bk-nodemgr-architecture-judgment` for unresolved placement or architectural departures, and `bk-nodemgr-thirdparty` for external API contracts. Use the relevant project context, error, logging, and config skills rather than duplicating their rules here.
+This skill guides construction and evolution, not a second architecture approval process.
+
+- `bk-nodemgr-how-to` routes independent capability work here; ordinary local implementation edits do not need this workflow.
+- `bk-nodemgr-architecture-judgment` checks placement, new shared-boundary risk, and architectural departures; it complements rather than replaces construction.
+- `bk-nodemgr-thirdparty` owns external API contracts and client/protocol reuse. Load both when both surfaces apply; protocol-only changes do not need this skill.
+- `bk-nodemgr-naming-boundary` resolves domain terminology or names that imply incorrect ownership; this skill's `IHandler`/`Handler` defaults do not authorize renaming established domain terms.
+- Use `bk-nodemgr-contextx`, `bk-nodemgr-error-handling`, `bk-nodemgr-logger`, and `bk-nodemgr-config-sync` when their respective surfaces apply, rather than duplicating their rules here.
 
 ## Evaluation
 

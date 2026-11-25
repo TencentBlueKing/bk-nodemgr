@@ -153,6 +153,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionUninstallPagent(nodeCap),
 		node.NewActionResetNodeDynamic(nodeCap),
 		node.NewActionInstallPreOrderedPlugins(nodeCap),
+		node.NewActionInstallProxyPlugins(nodeCap),
 		node.NewActionGenManualCommand(nodeCap),
 		node.NewActionWaitDetectInfoByManual(nodeCap),
 		node.NewActionInstallNodeByManual(nodeCap),
