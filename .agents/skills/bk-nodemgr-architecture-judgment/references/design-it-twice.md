@@ -39,7 +39,7 @@ Useful design constraints:
 - Minimal interface: 1-3 entry points with maximum leverage.
 - Caller-centric: make the common caller trivial while keeping internals hidden.
 - Ownership-first: keep business logic in the owning service/package and delay `pkg` exposure.
-- Adapter-first: use a port only when production and test adapters are both justified.
+- Evidence-first: justify a port through current consumer needs and hidden implementation decisions, not a required count of production or test adapters.
 
 Each design must include:
 
@@ -87,10 +87,10 @@ Use `Stop` when no safe recommendation can be made without a missing product/API
 
 ## Common Mistakes
 
-| Mistake                                            | Better move                                                                |
-| -------------------------------------------------- | -------------------------------------------------------------------------- |
-| Comparing two names for the same design            | Change seam placement, ownership, or interface shape.                      |
-| Designing an interface for a single implementation | Keep it private unless a second adapter or test adapter proves the seam.   |
-| Picking the flexible design by default             | Prefer current requirement leverage and reversibility over future options. |
-| Hiding proto/front contract impact                 | Treat public contract questions as `Stop`.                                 |
-| Turning recommendation into implementation         | Ask for an implementation plan or explicit go-ahead first.                 |
+| Mistake                                          | Better move                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Comparing two names for the same design          | Change seam placement, ownership, or interface shape.                                 |
+| Justifying an interface by hypothetical adapters | Require current consumer needs or concrete isolation benefit; do not invent adapters. |
+| Picking the flexible design by default           | Prefer current requirement leverage and reversibility over future options.            |
+| Hiding proto/front contract impact               | Treat public contract questions as `Stop`.                                            |
+| Turning recommendation into implementation       | Ask for an implementation plan or explicit go-ahead first.                            |
