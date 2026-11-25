@@ -21,8 +21,56 @@ mongodb:
 
 tempo:
   enabled: true
+{{- $traceExporters := dig "opentelemetryGateway" "exporters" dict .Values }}
+{{- if hasKey $traceExporters "otlp/tempo" }}
+{{- fail "opentelemetryGateway.exporters: otlp/tempo is reserved for embedded Tempo" }}
+{{- end }}
 opentelemetryGateway:
   enabled: true
+  {{- if $traceExporters }}
+  alternateConfig:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      memory_limiter:
+        limit_mib: 512
+        spike_limit_mib: 128
+        check_interval: 5s
+      batch: {}
+    exporters:
+      otlp/tempo:
+        endpoint: '{{`{{ include "bk-nodemgr.tempo.otlpGrpcEndpoint" . }}`}}'
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+        retry_on_failure:
+          enabled: true
+{{ $traceExporters | toYaml | indent 6 }}
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        traces:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlp/tempo
+            {{- range $name := keys $traceExporters | sortAlpha }}
+            - {{ $name | quote }}
+            {{- end }}
+  {{- end }}
 prometheus:
   enabled: true
   nodemgrScrape:

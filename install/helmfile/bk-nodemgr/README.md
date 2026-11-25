@@ -168,6 +168,8 @@ Grafana 默认配置：
 
 `file`、`backend`、`application` 的 tracing 会自动指向 monitoring release 中的 `opentelemetryGateway`，Gateway 再导出到内置 Tempo。该联动只设置 OTLP exporter、endpoint、protocol 和 insecure 模式，不修改各服务的 `traceSampleRate`。
 
+如需额外发送到统一采集端，在 `env.yaml` 的 `opentelemetryGateway.exporters` 中填写原生 Collector exporter 配置即可。模板会保留内置 Tempo，并自动将所有额外 exporter 加入 traces pipeline；无需填写 receivers、processors 或 pipelines。多个 namespace 各自保留 Gateway 时，填写相同的采集端地址即可汇聚，跨 namespace 请使用 Service 完整 DNS，避免指回当前 Gateway 或形成转发环路。`exporters: {}` 保持默认行为，`otlp/tempo` 为内置 Tempo 保留名称。高级自定义仍放在 `overrides/monitoring.yaml`，其配置优先于模板生成值。
+
 `tempo` 没有复制 `values-example.yaml` 中的 S3 示例；S3 是生产外部对象存储示例，不适合作为本地 minikube 默认值。
 
 ## 部署命令
