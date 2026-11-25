@@ -777,18 +777,21 @@ type GSEDeployCustom struct {
 
 	// Global Linux proxy network defaults. Non-Linux agents do not use these fields.
 	// Empty IPs and zero numeric values use the built-in defaults on Linux.
-	DataAgentBindIP                  string `yaml:"dataAgentBindIP" usage:"default data agent bind ip"`
-	DataAgentBindPort                int64  `yaml:"dataAgentBindPort" usage:"default data agent bind port"`
-	FileAgentBindIP                  string `yaml:"fileAgentBindIP" usage:"default file agent bind ip"`
-	FileAgentBindPort                int64  `yaml:"fileAgentBindPort" usage:"default file agent bind port"`
-	ProxyBindIP                      string `yaml:"proxyBindIP" usage:"default proxy bind ip"`
-	ProxyBindPort                    int64  `yaml:"proxyBindPort" usage:"default proxy bind port"`
-	FileBittorrentBindIP             string `yaml:"fileBittorrentBindIP" usage:"default file bittorrent bind ip"`
-	FileBittorrentBindPort           int64  `yaml:"fileBittorrentBindPort" usage:"default file bittorrent bind port"`
-	FileBittorrentTrackerBindPort    int64  `yaml:"fileBittorrentTrackerBindPort" usage:"default file bittorrent tracker bind port"`
-	FileBittorrentSpeedLimitMBPerSec int64  `yaml:"fileBittorrentSpeedLimitMBPerSec" usage:"default file bittorrent speed limit in MB per second"`
-	FileTopologyBindIP               string `yaml:"fileTopologyBindIP" usage:"default file topology bind ip"`
-	FileTopologyBindPort             int64  `yaml:"fileTopologyBindPort" usage:"default file topology bind port"`
+	DataAgentBindIP               string `yaml:"dataAgentBindIP" usage:"default data agent bind ip"`
+	DataAgentBindPort             int64  `yaml:"dataAgentBindPort" usage:"default data agent bind port"`
+	FileAgentBindIP               string `yaml:"fileAgentBindIP" usage:"default file agent bind ip"`
+	FileAgentBindPort             int64  `yaml:"fileAgentBindPort" usage:"default file agent bind port"`
+	ProxyBindIP                   string `yaml:"proxyBindIP" usage:"default proxy bind ip"`
+	ProxyBindPort                 int64  `yaml:"proxyBindPort" usage:"default proxy bind port"`
+	FileBittorrentBindIP          string `yaml:"fileBittorrentBindIP" usage:"default file bittorrent bind ip"`
+	FileBittorrentBindPort        int64  `yaml:"fileBittorrentBindPort" usage:"default file bittorrent bind port"`
+	FileBittorrentTrackerBindPort int64  `yaml:"fileBittorrentTrackerBindPort" usage:"default file bittorrent tracker bind port"`
+	FileTopologyBindIP            string `yaml:"fileTopologyBindIP" usage:"default file topology bind ip"`
+	FileTopologyBindPort          int64  `yaml:"fileTopologyBindPort" usage:"default file topology bind port"`
+	FileAgentBindPortV1           int64  `yaml:"fileAgentBindPortV1" usage:"default file agent v1 bind port"`
+	FileTopologyThriftBindPort    int64  `yaml:"fileTopologyThriftBindPort" usage:"default file topology thrift bind port"`
+	FileMetricExporterBindPort    int64  `yaml:"fileMetricExporterBindPort" usage:"default file metric exporter bind port"`
+	DataMetricExporterBindPort    int64  `yaml:"dataMetricExporterBindPort" usage:"default data metric exporter bind port"`
 }
 
 // Validate validates the config.
@@ -797,16 +800,7 @@ func (conf *GSEDeployCustom) Validate() error {
 		return err
 	}
 
-	if err := conf.validateBindPorts(); err != nil {
-		return err
-	}
-
-	if conf.FileBittorrentSpeedLimitMBPerSec < 0 {
-		return fmt.Errorf("invalid fileBittorrentSpeedLimitMBPerSec: must be non-negative, got %d",
-			conf.FileBittorrentSpeedLimitMBPerSec)
-	}
-
-	return nil
+	return conf.validateBindPorts()
 }
 
 func (conf *GSEDeployCustom) validateBindIPs() error {
@@ -834,34 +828,26 @@ func (conf *GSEDeployCustom) validateBindIPs() error {
 }
 
 func (conf *GSEDeployCustom) validateBindPorts() error {
-	if conf.DataAgentBindPort < 0 || conf.DataAgentBindPort > 65535 {
-		return fmt.Errorf("invalid dataAgentBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.DataAgentBindPort)
+	ports := []struct {
+		name  string
+		value int64
+	}{
+		{"dataAgentBindPort", conf.DataAgentBindPort},
+		{"fileAgentBindPort", conf.FileAgentBindPort},
+		{"proxyBindPort", conf.ProxyBindPort},
+		{"fileBittorrentBindPort", conf.FileBittorrentBindPort},
+		{"fileBittorrentTrackerBindPort", conf.FileBittorrentTrackerBindPort},
+		{"fileTopologyBindPort", conf.FileTopologyBindPort},
+		{"fileAgentBindPortV1", conf.FileAgentBindPortV1},
+		{"fileTopologyThriftBindPort", conf.FileTopologyThriftBindPort},
+		{"fileMetricExporterBindPort", conf.FileMetricExporterBindPort},
+		{"dataMetricExporterBindPort", conf.DataMetricExporterBindPort},
 	}
 
-	if conf.FileAgentBindPort < 0 || conf.FileAgentBindPort > 65535 {
-		return fmt.Errorf("invalid fileAgentBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileAgentBindPort)
-	}
-
-	if conf.ProxyBindPort < 0 || conf.ProxyBindPort > 65535 {
-		return fmt.Errorf("invalid proxyBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.ProxyBindPort)
-	}
-
-	if conf.FileBittorrentBindPort < 0 || conf.FileBittorrentBindPort > 65535 {
-		return fmt.Errorf("invalid fileBittorrentBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileBittorrentBindPort)
-	}
-
-	if conf.FileBittorrentTrackerBindPort < 0 || conf.FileBittorrentTrackerBindPort > 65535 {
-		return fmt.Errorf("invalid fileBittorrentTrackerBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileBittorrentTrackerBindPort)
-	}
-
-	if conf.FileTopologyBindPort < 0 || conf.FileTopologyBindPort > 65535 {
-		return fmt.Errorf("invalid fileTopologyBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileTopologyBindPort)
+	for _, port := range ports {
+		if port.value < 0 || port.value > 65535 {
+			return fmt.Errorf("invalid %s: must be 0 (default) or between 1 and 65535, got %d", port.name, port.value)
+		}
 	}
 
 	return nil
