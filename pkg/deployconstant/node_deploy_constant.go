@@ -143,11 +143,12 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 	conf.ZoneID = conv.NonEmptyOr(conf.ZoneID, nodeZoneID)
 	conf.CityID = conv.NonEmptyOr(conf.CityID, nodeCityID)
 
-	// Proxy is supported only on Linux; other OS configurations need only the common node defaults.
-	if conf.OsType != criteria.OSLinux {
-		return
+	if conf.OsType == criteria.OSLinux {
+		populateProxyDefaultValues(conf)
 	}
+}
 
+func populateProxyDefaultValues(conf *NodeDeployConf) {
 	// Empty IPs and zero numeric values preserve the built-in proxy network defaults.
 	conf.DataAgentBindIP = conv.NonEmptyOr(conf.DataAgentBindIP, nodeDataAgentBindIP)
 	conf.DataAgentBindPort = conv.NonEmptyOr(conf.DataAgentBindPort, nodeDataAgentBindPort)
