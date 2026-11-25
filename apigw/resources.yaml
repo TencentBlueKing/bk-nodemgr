@@ -44018,12 +44018,13 @@ paths:
           timeout: 0
         pluginConfigs: []
         authConfig:
-          userVerifiedRequired: false
+          userVerifiedRequired: true
           appVerifiedRequired: true
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn:
+        descriptionEn: Query the business configuration whitelist loaded at startup by the responding Backend instance. Requires system_access
+          and platform_manage on platform_resource/system_config. Excludes credentials, connection endpoints and internal observability settings.
   /api/v3/system_config/get:
     post:
       operationId: SystemConfigQuery_GetSystemConfig
@@ -44245,4 +44246,5 @@ paths:
           resourcePermissionRequired: true
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
-        descriptionEn:
+        descriptionEn: Query the business configuration whitelist loaded at startup by the responding Backend instance. Requires system_access
+          and platform_manage on platform_resource/system_config. Excludes credentials, connection endpoints and internal observability settings.
