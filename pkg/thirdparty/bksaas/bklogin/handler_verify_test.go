@@ -71,9 +71,10 @@ func TestHandlerVerify(t *testing.T) {
 				if req.Header.Get(apigwheader.BKGWTenantIDKey) != tenant.SystemTenantID {
 					t.Error("gateway system tenant header is missing")
 				}
-				if req.Header.Get(apigwheader.BKGWAuthKey) == "" {
-					t.Error("gateway authentication header is missing")
-				}
+				require.JSONEq(t, `{
+					"bk_app_code": "bk-nodemgr",
+					"bk_app_secret": "app-secret"
+				}`, req.Header.Get(apigwheader.BKGWAuthKey))
 				_, _ = rw.Write([]byte(`{"data":{"bk_username":"token_user","tenant_id":"system","login_name":"admin"}}`))
 			})
 
@@ -90,8 +91,7 @@ func TestHandlerVerify(t *testing.T) {
 				require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
 				require.JSONEq(t, `{
 						"bk_app_code": "bk-nodemgr",
-						"bk_app_secret": "app-secret",
-						"bk_username": "admin"
+						"bk_app_secret": "app-secret"
 					}`, req.Header.Get(apigwheader.BKGWAuthKey))
 
 				_, err := rw.Write([]byte(`{
