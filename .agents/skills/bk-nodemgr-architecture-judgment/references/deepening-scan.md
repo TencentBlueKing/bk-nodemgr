@@ -27,7 +27,7 @@ Strong candidates usually have evidence like:
 - A `handler` derives business results that belong in `service` or domain logic.
 - `storage` or DAO code owns business policy rather than persistence access.
 - Proto structs cross the `pkg/proto` conversion boundary into business logic.
-- A `pkg` helper, converter, interface, or adapter is service-specific or has only one real caller.
+- A `pkg` helper, converter, interface, or adapter is service-specific, or lacks a current consumer need or concrete isolation benefit.
 - Repeated converter/helper logic appears in parallel packages.
 - Interface surface is almost as complex as the implementation it hides.
 - Tests can only exercise fragments, not observable behavior through a stable interface.
@@ -39,14 +39,14 @@ Weak candidates should be rejected when they are just style preferences, local n
 
 Use these categories to judge seam placement:
 
-| Category            | Use for                                               | Scan implication                                                                                    |
-| ------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| In-process          | Pure calculation, converters, in-memory orchestration | Prefer deepening inside the owning module; do not add a public port.                                |
-| Local-substitutable | Mongo/Redis paths using `testsuite/support`           | Test through local stand-ins when tests are in scope; keep seams internal unless callers need them. |
-| Remote but owned    | bk-nodemgr or BlueKing-owned HTTP/gRPC/queue boundary | A port is justified only with real production and test adapters.                                    |
-| True external       | Third-party or externally controlled service          | Hide SDK/API details behind injected adapter/mock.                                                  |
+| Category            | Use for                                               | Scan implication                                                                                                            |
+| ------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| In-process          | Pure calculation, converters, in-memory orchestration | Prefer deepening inside the owning module; expose a public capability only for current consumer needs or isolation benefit. |
+| Local-substitutable | Mongo/Redis paths using `testsuite/support`           | Test through local stand-ins when tests are in scope; keep seams internal unless callers need them.                         |
+| Remote but owned    | bk-nodemgr or BlueKing-owned HTTP/gRPC/queue boundary | Justify a port through current consumer needs or isolation of protocol details, not adapter count.                          |
+| True external       | Third-party or externally controlled service          | Hide SDK/API details behind injected adapter/mock.                                                                          |
 
-One adapter means a hypothetical seam. Two adapters means a real seam.
+Use the core skill's consumer-need and isolation-benefit criteria. A second implementation can provide evidence, but is not required; do not invent a backend or test adapter to justify a seam.
 
 ## HTML Report Contract
 

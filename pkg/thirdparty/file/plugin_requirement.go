@@ -27,11 +27,36 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// IPluginRequirementHandler manages and transfers plugin requirement files.
+type IPluginRequirementHandler interface {
+	// CreatePluginRequirement stores a named plugin dependency with its filename and applicability.
+	CreatePluginRequirement(
+		nCtx contextx.IContext, key types.PluginRequirementFileKey, targetFileName, contentBase64 string, scope types.PluginRequirementFileScope) (
+		*types.PluginRequirementFileRecord, error)
+
+	// UpdatePluginRequirement replaces content and names without changing plugin ownership or applicability.
+	UpdatePluginRequirement(nCtx contextx.IContext, requirementFileID, name, targetFileName, contentBase64 string) (
+		*types.PluginRequirementFileRecord, error)
+
+	// UpdatePluginRequirementScope replaces a stored file's applicability without replacing its content.
+	UpdatePluginRequirementScope(nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope) (*types.PluginRequirementFileRecord, error)
+
+	// ListPluginRequirements retrieves one page of file records using exact filters.
+	ListPluginRequirements(nCtx contextx.IContext, page types.Page, condition *types.PluginRequirementFileCondition) (
+		[]*types.PluginRequirementFileRecord, int64, error)
+
+	// GetPluginRequirement retrieves a stored file record by ID.
+	GetPluginRequirement(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error)
+
+	// LaunchTransferPluginRequirement transfers a stored file to a host.
+	LaunchTransferPluginRequirement(nCtx contextx.IContext, requirementFileID, targetDir string, targetHost *types.Host) (
+		types.ISimpleTransferHandler, error)
+}
+
 // CreatePluginRequirement forwards a named plugin dependency to File without decoding its content.
 func (h *handler) CreatePluginRequirement(
-	nCtx contextx.IContext, key types.PluginRequirementFileKey, targetFileName, contentBase64 string,
-	scope types.PluginRequirementFileScope,
-) (*types.PluginRequirementFileRecord, error) {
+	nCtx contextx.IContext, key types.PluginRequirementFileKey, targetFileName, contentBase64 string, scope types.PluginRequirementFileScope) (
+	*types.PluginRequirementFileRecord, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
@@ -52,9 +77,8 @@ func (h *handler) CreatePluginRequirement(
 }
 
 // UpdatePluginRequirement replaces a stored file by ID.
-func (h *handler) UpdatePluginRequirement(
-	nCtx contextx.IContext, requirementFileID, name, targetFileName, contentBase64 string,
-) (*types.PluginRequirementFileRecord, error) {
+func (h *handler) UpdatePluginRequirement(nCtx contextx.IContext, requirementFileID, name, targetFileName, contentBase64 string) (
+	*types.PluginRequirementFileRecord, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
@@ -74,9 +98,8 @@ func (h *handler) UpdatePluginRequirement(
 }
 
 // UpdatePluginRequirementScope replaces a stored file's applicability without replacing its content.
-func (h *handler) UpdatePluginRequirementScope(
-	nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope,
-) (*types.PluginRequirementFileRecord, error) {
+func (h *handler) UpdatePluginRequirementScope(nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope) (
+	*types.PluginRequirementFileRecord, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
@@ -93,9 +116,8 @@ func (h *handler) UpdatePluginRequirementScope(
 }
 
 // ListPluginRequirements retrieves one page of file records using exact filters.
-func (h *handler) ListPluginRequirements(
-	nCtx contextx.IContext, page types.Page, condition *types.PluginRequirementFileCondition,
-) ([]*types.PluginRequirementFileRecord, int64, error) {
+func (h *handler) ListPluginRequirements(nCtx contextx.IContext, page types.Page, condition *types.PluginRequirementFileCondition) (
+	[]*types.PluginRequirementFileRecord, int64, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, 0, err
@@ -115,10 +137,7 @@ func (h *handler) ListPluginRequirements(
 }
 
 // GetPluginRequirement retrieves a stored file record by ID.
-func (h *handler) GetPluginRequirement(
-	nCtx contextx.IContext, id string,
-) (*types.PluginRequirementFileRecord, error) {
-
+func (h *handler) GetPluginRequirement(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
@@ -132,9 +151,8 @@ func (h *handler) GetPluginRequirement(
 }
 
 // LaunchTransferPluginRequirement transfers a stored file to a host.
-func (h *handler) LaunchTransferPluginRequirement(
-	nCtx contextx.IContext, requirementFileID, targetDir string, targetHost *types.Host,
-) (types.ISimpleTransferHandler, error) {
+func (h *handler) LaunchTransferPluginRequirement(nCtx contextx.IContext, requirementFileID, targetDir string, targetHost *types.Host) (
+	types.ISimpleTransferHandler, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
@@ -164,187 +182,4 @@ func (h *handler) LaunchTransferPluginRequirement(
 		},
 		handler: h,
 	}, nil
-}
-
-func (c *cli) createPluginRequirement(
-	nCtx contextx.IContext, req *protoFile.PluginRequirementCreateReq,
-) (*protoFile.PluginRequirementCreateResp, error) {
-
-	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
-	}
-
-	resp := new(protoFile.PluginRequirementCreateResp)
-	if err := c.client.Post().
-		SubResourcef("/plugin/requirement/create").
-		WithContext(nCtx).
-		WithHeaders(header).
-		Body(req).
-		Do().
-		Into(resp); err != nil {
-		return nil, fmt.Errorf("failed to post plugin requirement create: %w", err)
-	}
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("plugin requirement create failed: code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-	if resp.GetData().GetFile() == nil {
-		return nil, fmt.Errorf("plugin requirement create returned empty file, request-id(%s)", resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) updatePluginRequirement(
-	nCtx contextx.IContext, req *protoFile.PluginRequirementUpdateReq,
-) (*protoFile.PluginRequirementUpdateResp, error) {
-
-	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
-	}
-
-	resp := new(protoFile.PluginRequirementUpdateResp)
-	if err := c.client.Post().
-		SubResourcef("/plugin/requirement/update").
-		WithContext(nCtx).
-		WithHeaders(header).
-		Body(req).
-		Do().
-		Into(resp); err != nil {
-		return nil, fmt.Errorf("failed to post plugin requirement update: %w", err)
-	}
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("plugin requirement update failed: code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-	if resp.GetData().GetFile() == nil {
-		return nil, fmt.Errorf("plugin requirement update returned empty file, request-id(%s)", resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) updatePluginRequirementScope(
-	nCtx contextx.IContext, req *protoFile.PluginRequirementUpdateScopeReq,
-) (*protoFile.PluginRequirementUpdateScopeResp, error) {
-
-	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
-	}
-
-	resp := new(protoFile.PluginRequirementUpdateScopeResp)
-	if err := c.client.Post().
-		SubResourcef("/plugin/requirement/update_scope").
-		WithContext(nCtx).
-		WithHeaders(header).
-		Body(req).
-		Do().
-		Into(resp); err != nil {
-		return nil, fmt.Errorf("failed to post plugin requirement update scope: %w", err)
-	}
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("plugin requirement update scope failed: code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-	if resp.GetData().GetFile() == nil {
-		return nil, fmt.Errorf("plugin requirement update scope returned empty file, request-id(%s)", resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) listPluginRequirements(
-	nCtx contextx.IContext, req *protoFile.PluginRequirementListReq,
-) (*protoFile.PluginRequirementListResp, error) {
-
-	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
-	}
-
-	resp := new(protoFile.PluginRequirementListResp)
-	if err := c.client.Post().
-		SubResourcef("/plugin/requirement/list").
-		WithContext(nCtx).
-		WithHeaders(header).
-		Body(req).
-		Do().
-		Into(resp); err != nil {
-		return nil, fmt.Errorf("failed to post plugin requirement list: %w", err)
-	}
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("plugin requirement list failed: code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-	if resp.GetData() == nil {
-		return nil, fmt.Errorf("plugin requirement list returned empty data, request-id(%s)", resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) getPluginRequirement(
-	nCtx contextx.IContext, req *protoFile.PluginRequirementGetReq,
-) (*protoFile.PluginRequirementGetResp, error) {
-
-	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
-	}
-
-	resp := new(protoFile.PluginRequirementGetResp)
-	if err := c.client.Post().
-		SubResourcef("/plugin/requirement/get").
-		WithContext(nCtx).
-		WithHeaders(header).
-		Body(req).
-		Do().
-		Into(resp); err != nil {
-		return nil, fmt.Errorf("failed to post plugin requirement get: %w", err)
-	}
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("plugin requirement get failed: code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-	if resp.GetData().GetFile() == nil {
-		return nil, fmt.Errorf("plugin requirement get returned empty file, request-id(%s)", resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) transferPluginRequirement(
-	nCtx contextx.IContext, req *protoFile.PluginRequirementTransferReq,
-) (*protoFile.PluginRequirementTransferResp, error) {
-
-	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
-	}
-
-	resp := new(protoFile.PluginRequirementTransferResp)
-	if err := c.client.Post().
-		SubResourcef("/plugin/requirement/transfer").
-		WithContext(nCtx).
-		WithHeaders(header).
-		Body(req).
-		Do().
-		Into(resp); err != nil {
-		return nil, fmt.Errorf("failed to post plugin requirement transfer: %w", err)
-	}
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("plugin requirement transfer failed: code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-	if resp.GetData() == nil {
-		return nil, fmt.Errorf("plugin requirement transfer returned empty data, request-id(%s)", resp.GetRequestId())
-	}
-	if resp.GetData().GetTaskId() == "" {
-		return nil, fmt.Errorf("plugin requirement transfer returned empty task id, request-id(%s)", resp.GetRequestId())
-	}
-
-	return resp, nil
 }

@@ -59,19 +59,19 @@ Emit exactly one final verdict. Precedence is `Stop` over `Warn` over `Continue`
 
 If the intended path requires an unapproved departure, return `Stop` for that path. If the existing approach safely meets the task, assess that approach instead and defer the optional proposal to delivery; do not block unrelated work. An approved departure remains subject to hard rules and the risk checks below.
 
-| Verdict    | Use when                                                                                                                                                                                                                                                                                                                       | Required behavior                                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `Stop`     | A hard `AGENTS.md` rule is violated; proto/front contract, public handler/interface, storage data format, tenant/auth/permission/trust boundary, irreversible action, or long-lived cross-component decision is materially unresolved; evidence is insufficient to choose safely; deepening-scan user choice is still pending. | Do not recommend or begin implementation. State the blocker, evidence, and one precise decision or fact needed to resume. |
-| `Warn`     | The path is reversible and locally actionable, but has documented architecture risk: under-proven `pkg` helper/interface/converter/adapter, one-adapter hypothetical seam, terminology conflict, duplication risk, or explicitly approved drift. | Within the approved scope only, record the warning, simplest safe path, and verification requirement; this verdict does not authorize a departure. |
-| `Continue` | Evidence backs the decision, scoped instructions and dominant local patterns agree, and no unresolved architecture-level risk remains.                                                                                                                                                                                         | State why proceeding is safe and preserve implementation guardrails.                                                      |
+| Verdict    | Use when                                                                                                                                                                                                                                                                                                                       | Required behavior                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Stop`     | A hard `AGENTS.md` rule is violated; proto/front contract, public handler/interface, storage data format, tenant/auth/permission/trust boundary, irreversible action, or long-lived cross-component decision is materially unresolved; evidence is insufficient to choose safely; deepening-scan user choice is still pending. | Do not recommend or begin implementation. State the blocker, evidence, and one precise decision or fact needed to resume.                          |
+| `Warn`     | The path is reversible and locally actionable, but has documented architecture risk: under-proven `pkg` helper/interface/converter/adapter, incompletely evidenced isolation benefit, terminology conflict, duplication risk, or explicitly approved drift.                                                                    | Within the approved scope only, record the warning, simplest safe path, and verification requirement; this verdict does not authorize a departure. |
+| `Continue` | Evidence backs the decision, scoped instructions and dominant local patterns agree, and no unresolved architecture-level risk remains.                                                                                                                                                                                         | State why proceeding is safe and preserve implementation guardrails.                                                                               |
 
 Common hard stops in bk-nodemgr:
 
 - Adding proto/front fields before endpoint semantics are clear.
 - Putting service-specific logic into `pkg`.
 - Passing proto structs through business logic instead of converting at `pkg/proto` boundaries.
-- Creating a public interface, adapter, or shared helper for one current implementation.
-- Mutating stable handler, interface, or proto fields instead of additive extension.
+- Creating a public interface, adapter, or shared helper without a current consumer need or concrete isolation benefit; implementation count alone does not decide this.
+- Mutating stable handler, interface, or proto contracts without explicit approval of that migration and its compatibility scope. Prefer additive extension; approval of a feature alone is not migration approval, and applicable hard rules still govern.
 - Adding speculative workers, Helm knobs, feature flags, or shared abstractions for future needs.
 
 ## Output Contracts
@@ -180,10 +180,10 @@ Use dependency category to judge seam placement and testing surface.
 | ------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | In-process          | Pure helpers, converters, domain orchestration, in-memory calculation | Usually deepenable without a public port. Test through the owning module interface when tests are in scope. |
 | Local-substitutable | Mongo/Redis paths covered by `testsuite/support`                      | Can use real local stand-ins. Keep seams internal unless callers need them.                                 |
-| Remote but owned    | bk-nodemgr or BlueKing-owned HTTP/gRPC/queue boundaries               | Define a port only when production and test adapters are both justified.                                    |
+| Remote but owned    | bk-nodemgr or BlueKing-owned HTTP/gRPC/queue boundaries               | Justify a port through current consumer needs or isolation of protocol details, not adapter count.          |
 | True external       | Third-party systems or SDKs not owned here                            | Inject the external dependency behind an adapter/mock; do not leak SDK types into business code.            |
 
-One adapter means a hypothetical seam. Two adapters means a real seam.
+A second real implementation is useful evidence, not a prerequisite. A single implementation can justify a capability boundary through actual consumer needs and concrete hidden decisions or state. Do not invent a second backend or test adapter to satisfy a count; reject seams justified only by hypothetical future use.
 
 ## Terminology
 
@@ -210,6 +210,7 @@ Ask before writing persistent decision documents. A good prompt is: `Want me to 
 ## Companion Integration
 
 - `bk-nodemgr-how-to`: load this skill for cross-layer placement, competing designs, dependency direction, shared-contract impact, or architecture drift signals, then load the narrower project skill for the affected surface.
+- `bk-nodemgr-pkg-design`: owns independent capability construction and evolution: contracts, hidden implementations, composition, assembly, and consumer impact. Use it alongside this judgment lens when those tasks apply; do not duplicate its implementation workflow or require a second adapter merely to enter it.
 - `code-review`: use `post-flight` only when a diff affects architecture boundaries, dependency direction, shared contracts, or departs from the intended design.
 - `api-scaffold`: may use `pre-flight` before scaffolding high-risk endpoints, but should not duplicate this skill's matrix.
 - Ordinary companion usage must stay lightweight and must not generate a deepening HTML report.
@@ -226,7 +227,7 @@ Ask before writing persistent decision documents. A good prompt is: `Want me to 
 | Treating this skill as permission to refactor       | Return a verdict and wait for explicit implementation approval.            |
 | Turning every risky task into a deepening scan      | Use lightweight `pre-flight` unless the user explicitly asks for a scan.   |
 | Adding a `pkg` helper because one endpoint needs it | Keep logic in the owning package until real cross-package reuse is proven. |
-| Creating an interface for one implementation        | Wait for a second real adapter or a test adapter that proves the seam.     |
+| Judging an interface only by implementation count   | Check current consumers and isolation benefit; do not invent adapters.     |
 | Reporting many blockers                             | Ask one precise blocking question and put the rest in watch points.        |
 | Letting proto structs pass through business layers  | Convert at `pkg/proto` boundaries and keep business logic on domain types. |
 
