@@ -388,6 +388,17 @@ const routes = setupLayouts([
       },
     ],
   },
+  {
+    path: '/wiki',
+    redirect: () => ({ name: 'wiki', params: {
+      language: i18n.global.locale.value.startsWith('zh') ? 'zh' : 'en', document: ['README.md'],
+    } }),
+  },
+  {
+    path: '/wiki/:language/:document(.*)*',
+    name: 'wiki',
+    component: () => import('@/pages/wiki/index.vue'),
+  },
   { path: '/403', name: '403', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: '404', component: NotFound },
 ]);
