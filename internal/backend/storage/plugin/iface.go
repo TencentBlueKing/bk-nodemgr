@@ -27,6 +27,7 @@ import (
 )
 
 // IStorage defines the storage interface.
+// nolint: interfacebloat // The storage facade composes independently injected domain and DAO interfaces.
 type IStorage interface {
 	basestorage.Interface
 
@@ -40,6 +41,7 @@ type IStorage interface {
 
 	IDomainPlugin
 	IDomainProcess
+	IDomainProcessV2
 }
 
 // IDaoPluginDeployment defines the plugin deployment dao interface.
@@ -266,4 +268,13 @@ type IDomainPlugin interface {
 type IDomainProcess interface {
 	// MarkExpiredProcessesUnknown marks stale processes unknown and refreshes their last sync time for the specified hosts.
 	MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error
+
+	// MarkExpiredRunningProcessesUnknown marks stale running processes unknown and refreshes their last sync time for the specified hosts.
+	MarkExpiredRunningProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error
+}
+
+// IDomainProcessV2 defines v2 process domain queries.
+type IDomainProcessV2 interface {
+	// MarkExpiredRunningProcessesV2Unknown marks stale running v2 processes unknown and refreshes their last sync time for the specified hosts.
+	MarkExpiredRunningProcessesV2Unknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error
 }

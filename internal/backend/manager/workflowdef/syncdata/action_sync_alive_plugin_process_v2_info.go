@@ -215,9 +215,8 @@ func (act *actionSyncAlivePluginProcessV2Info) listProcessesToSync(nCtx contextx
 			continue
 		}
 
-		// A process trusteeship by GSE whose state was never confirmed is synced again, while a stopped process
-		// keeps its recorded state.
-		if proc.Info.Status == types.ProcessStatusUnknown && proc.Info.AutoStart {
+		// Unknown processes are queried regardless of auto-start so expired observations can recover.
+		if proc.Info.Status == types.ProcessStatusUnknown {
 			aliveProcesses = append(aliveProcesses, proc)
 		}
 	}

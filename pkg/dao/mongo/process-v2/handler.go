@@ -21,6 +21,7 @@ package processv2
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -59,6 +60,9 @@ type IHandler interface {
 
 	// UpdateManyInfo batch update the process info of v2 processes.
 	UpdateManyInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
+
+	// UpdateInfoStatusAndLastSyncAt atomically updates v2 process status and last sync time by conditions.
+	UpdateInfoStatusAndLastSyncAt(nCtx contextx.IContext, status types.ProcessStatus, lastSyncAt time.Time, opts ...OptFn) error
 }
 
 var _ IHandler = &Handler{}
@@ -321,6 +325,39 @@ func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processInfoDeltas []*ty
 		logger.G.Sys().WithErr(err).Error("failed to batch update process v2 info")
 
 		return fmt.Errorf("failed to batch update process v2 info: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateInfoStatusAndLastSyncAt atomically updates v2 process status and last sync time by conditions.
+func (h *Handler) UpdateInfoStatusAndLastSyncAt(nCtx contextx.IContext, status types.ProcessStatus, lastSyncAt time.Time, opts ...OptFn) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %w", err)
+	}
+
+	if err := status.Validate(); err != nil {
+		return err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	updates := []*base.DocumentFieldUpdate{{
+		Filter: filter,
+		Fields: map[string]any{
+			FieldKeyInfoStatus:     string(status),
+			FieldKeyInfoLastSyncAt: lastSyncAt,
+		},
+	}}
+	if err := h.tenantDao(nCtx.TenantID()).UpdateManyFieldsBulk(nCtx, updates); err != nil {
+		return fmt.Errorf("failed to update v2 process info status and last sync time: %w", err)
 	}
 
 	return nil
