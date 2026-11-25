@@ -1978,6 +1978,10 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
+          # hostIDPushMode decides who pushes the host id file to the host: cmdb (default) or self.
+          # cmdb asks CMDB to push it; self makes Node Manager generate and push it through GSE,
+          # carrying only the fields Node Manager can decide itself. Empty means cmdb.
+          hostIDPushMode: ""
           commonConstants: {}
           # Empty v2RunDir/v2DataDir keep the shared plugin v2 defaults (<baseDeployDir>/<env>/plugins/run|data) used by
           # the compatibility install; non-empty paths are used as-is.
@@ -2012,6 +2016,10 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
+          # hostIDPushMode decides who pushes the host id file to the host: cmdb (default) or self.
+          # cmdb asks CMDB to push it; self makes Node Manager generate and push it through GSE,
+          # carrying only the fields Node Manager can decide itself. Empty means cmdb.
+          hostIDPushMode: ""
           commonConstants: {}
           # Empty v2RunDir/v2DataDir keep the shared plugin v2 defaults (<baseDeployDir>/<env>/plugins/run|data) used by
           # the compatibility install; non-empty paths are used as-is.

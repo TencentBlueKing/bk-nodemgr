@@ -107,6 +107,22 @@ gseDeployConfs:
 
 这里的 `<env>` 来自 `pkg/system.GetEnv()`。
 
+### 如何选择由谁推送 hostid？
+
+安装 Agent 后，hostid 文件默认由配置平台（CMDB）推送。可以通过 `gseDeployConfs[*].pluginCustom.hostIDPushMode` 改为由节点管理自行推送：
+
+```yaml
+gseDeployConfs:
+  - generation: 2
+    osType: linux
+    pluginCustom:
+      hostIDPushMode: "self" # cmdb（默认，留空等同 cmdb）或 self
+```
+
+- `cmdb`：由配置平台推送，内容由配置平台生成。
+- `self`：节点管理生成 hostid 并通过 GSE 推送到上面的 `hostIDPath`，内容只包含节点管理自己能确定的字段（主机 ID、管控区域 ID、第一个内网 IP、Agent ID、寻址方式、租户 ID），不含业务拓扑关联和进程信息。
+- 取值非法时 backend 启动失败。
+
 ## 4. 如何修改兼容性安装（插件 V2）的运行目录和数据目录？
 
 这个问题对应的是 backend 配置里的 `gseDeployConfs[*].pluginCustom.v2RunDir` 和 `gseDeployConfs[*].pluginCustom.v2DataDir`。

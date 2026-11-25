@@ -784,6 +784,7 @@ func (conf *GSEDeployCustom) Validate() error {
 type GSEDeployPluginCustom struct {
 	LogDir          string                    `yaml:"logDir" usage:"log dir"`
 	HostIDPath      string                    `yaml:"hostIDPath" usage:"host id path"`
+	HostIDPushMode  string                    `yaml:"hostIDPushMode" usage:"who pushes the host id file, cmdb or self"`
 	CommonConstants map[string]map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
 	V2RunDir        string                    `yaml:"v2RunDir" usage:"run dir of plugin v2 compatibility install"`
 	V2DataDir       string                    `yaml:"v2DataDir" usage:"data dir of plugin v2 compatibility install"`

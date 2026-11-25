@@ -229,6 +229,7 @@ func (svc *Service) initialStaticsConfigs() error {
 			DeployConf:      deployConf,
 			LogDir:          svc.conf.GSEDeployConfs[idx].PluginCustom.LogDir,
 			HostIDPath:      svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPath,
+			HostIDPushMode:  deployconstant.HostIDPushMode(svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPushMode),
 			CommonConstants: svc.conf.GSEDeployConfs[idx].PluginCustom.CommonConstants,
 			V2RunDir:        svc.conf.GSEDeployConfs[idx].PluginCustom.V2RunDir,
 			V2DataDir:       svc.conf.GSEDeployConfs[idx].PluginCustom.V2DataDir,
