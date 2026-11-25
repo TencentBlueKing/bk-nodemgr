@@ -74,7 +74,7 @@ type NodeDeployConf struct {
 	ZoneID            string
 	CityID            string
 
-	// Global proxy network defaults, independent of per-network-unit deployment settings.
+	// Global Linux proxy network defaults, independent of per-network-unit deployment settings.
 	DataAgentBindIP                  string
 	DataAgentBindPort                int64
 	FileAgentBindIP                  string
@@ -142,6 +142,11 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 	conf.ExtraConfigDir = conv.NonEmptyOr(conf.ExtraConfigDir, conf.generateDefaultExtraConfigDir())
 	conf.ZoneID = conv.NonEmptyOr(conf.ZoneID, nodeZoneID)
 	conf.CityID = conv.NonEmptyOr(conf.CityID, nodeCityID)
+
+	// Proxy is supported only on Linux; other OS configurations need only the common node defaults.
+	if conf.OsType != criteria.OSLinux {
+		return
+	}
 
 	// Empty IPs and zero numeric values preserve the built-in proxy network defaults.
 	conf.DataAgentBindIP = conv.NonEmptyOr(conf.DataAgentBindIP, nodeDataAgentBindIP)
