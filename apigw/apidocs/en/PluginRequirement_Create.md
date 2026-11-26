@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.119+.
+- API Version: v3.0.1-alpha.121+.
 - Required Permission: plugin_operate (Operate Plugin).
 - Function: Create a dependency file for the specified plugin and return the file record with content verification information.
 

@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.119+.
+- API Version: v3.0.1-alpha.121+.
 - Required Permission: plugin_view (View Plugin).
 - Function: Download the dependency file content by UUID; a successful response is the binary file content.
 

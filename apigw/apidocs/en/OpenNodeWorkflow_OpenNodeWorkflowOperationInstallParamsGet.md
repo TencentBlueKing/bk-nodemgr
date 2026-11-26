@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.120+.
+- API Version: v3.0.1-alpha.121+.
 - Required Permission: system_access (System Access), agent_history_view (View Agent History), proxy_history_view (View Proxy History). Permissions are checked for the businesses associated with the historical workflow according to its node roles: `blank` and `agent` require Agent history permission, `proxy` requires Proxy history permission, and mixed, unknown, or missing roles require both.
 - Function: Read recoverable parameters from selected historical Agent / Proxy installation operations for execution diagnosis (for example, to check historical target versions, authentication modes, and connection parameters). This API does not create installations, retry operations, or modify historical tasks.
 - The API gateway authenticates and forwards the user identity; no username or tenant parameter is needed in the request body.
