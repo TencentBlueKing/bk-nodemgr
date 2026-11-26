@@ -87,6 +87,11 @@ proxyServer:
   traceServiceName: "backend-server-proxy"
   traceSampleRate: 0
 
+jinja2:
+  portRange:
+    start: __BK_NODEMGR_BACKEND_JINJA2_PORT_RANGE_START__
+    end: __BK_NODEMGR_BACKEND_JINJA2_PORT_RANGE_END__
+
 # workflow defines the backend workflow settings.
 workflow:
   workerNum: __BK_NODEMGR_BACKEND_WORKFLOW_WORKER_NUM__

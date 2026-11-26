@@ -25,6 +25,6 @@ import (
 	"errors"
 )
 
-func jinja2ExecRunCmd(_ context.Context, _ []string, _ []string) (string, string, error) {
-	return "", "", errors.New("jinja2 executable is not supported on windows")
+func startServer(_ context.Context, _, _ int) (*serverProcess, error) {
+	return nil, errors.New("jinja2 executable is not supported on windows")
 }

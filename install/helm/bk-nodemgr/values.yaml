@@ -1740,6 +1740,12 @@ backend:
       traceServiceName: "backend-server-proxy"
       traceSampleRate: 0
 
+    # Embedded Jinja2 renderer listens only on loopback.
+    jinja2:
+      portRange:
+        start: 28150
+        end: 28159
+
     ## defines the workflow related settings.
     workflow:
       # workerNum is the number of workers.
