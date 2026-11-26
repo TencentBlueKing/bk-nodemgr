@@ -236,7 +236,9 @@ cd install/helmfile/bk-nodemgr
 ./deploy.sh render-values example
 ```
 
-`render-values` 底层使用 Helmfile `write-values`，默认追加 `--skip-deps`，输出到：
+`render-values` 使用当前环境指定的 Chart（本地 Chart 或指定版本的远程 Chart），通过 Helm 原生渲染导出最终 `.Values`，包含 Chart 及启用的子 Chart 默认值、Helmfile 模板生成值和用户 override。覆盖优先级与部署时一致：Chart 默认值 < 模板生成值 < `overrides/<module>.yaml` < 命令行 `--values` / `--set`。
+
+默认追加 `--skip-deps`，需要 Chart 已包含所需依赖；使用远程 Chart 时需确保对应 Helm 仓库已配置且可访问。渲染仅使用临时 Chart 副本，不修改原始 Chart，也不部署到集群。输出到：
 
 ```text
 rendered-values/<environment>/values/<namespace>.yaml
@@ -250,7 +252,7 @@ rendered-values/example/values/blueking-nodemgr-backend.yaml
 rendered-values/example/values/blueking-nodemgr-application.yaml
 ```
 
-`rendered-values/<environment>/values/` 默认被 `.gitignore` 忽略，只作为本地检查和排查使用，不提交到仓库。
+`rendered-values/<environment>/values/` 默认被 `.gitignore` 忽略，只作为本地检查和排查使用，不提交到仓库。最终 values 可能包含凭证等敏感配置，请勿直接分享。
 
 `render-values` 要求选中的 release name 全部相同，文件名按 namespace 区分。当前 Helmfile 拓扑中各 module 的 release name 均为 `bk-nodemgr`，namespace 可不同。
 
