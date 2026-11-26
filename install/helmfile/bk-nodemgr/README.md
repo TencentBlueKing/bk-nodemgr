@@ -127,6 +127,8 @@ flowchart LR
 
 如果目标环境已有外部 Etcd/Redis/MongoDB，在对应 `overrides/*.yaml` 覆盖 `externalEtcd`、`externalRedis`、`externalMongodb`。
 
+使用外部 Redis Sentinel 时，在 `overrides/backend.yaml` 和 `overrides/file.yaml` 中配置 `externalRedis.type: sentinel`，并设置 Sentinel 地址列表 `addrs`、主节点名称 `masterName` 和 Redis 数据节点密码 `password`。Sentinel 要求密码认证时，同时填写 `sentinelPassword`。
+
 ## overrides 边界
 
 `environments/example/overrides/*.yaml` 是 Helm 原生兜底覆盖入口，不是常规环境配置入口。

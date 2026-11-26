@@ -34,31 +34,41 @@ func TestResolveRedisAddrPreservesSentinelMasterHostPort(t *testing.T) {
 	binDir := t.TempDir()
 	redisCLI := filepath.Join(binDir, "redis-cli")
 	require.NoError(t, os.WriteFile(redisCLI, []byte(`#!/bin/sh
+if [ -z "$TEST_SENTINEL_AUTH" ]; then
+    [ -z "${REDISCLI_AUTH+x}" ] || exit 1
+else
+    [ "$REDISCLI_AUTH" = "$TEST_SENTINEL_AUTH" ] || exit 1
+fi
 printf '%s\r\n' "$TEST_SENTINEL_HOST" "$TEST_SENTINEL_PORT"
 `), 0o700))
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("REDISCLI_AUTH", "inherited-auth")
 
 	tests := []struct {
-		name string
-		host string
-		port string
+		name             string
+		host             string
+		port             string
+		sentinelPassword string
 	}{
 		{name: "ipv4", host: "127.0.0.1", port: "6379"},
-		{name: "hostname", host: "redis-master", port: "6380"},
+		{name: "hostname", host: "redis-master", port: "6380", sentinelPassword: "sentinel-auth"},
 		{name: "ipv6", host: "::1", port: "6380"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("TEST_SENTINEL_HOST", tt.host)
+			t.Setenv("TEST_SENTINEL_PORT", tt.port)
+			t.Setenv("TEST_SENTINEL_AUTH", tt.sentinelPassword)
+
 			conf := &config.Redis{
-				Type:       config.RedisTypeSentinel,
-				Addrs:      []string{"127.0.0.1:26379"},
-				MasterName: "mymaster",
+				Type:             config.RedisTypeSentinel,
+				Addrs:            []string{"127.0.0.1:26379"},
+				Password:         "redis-auth",
+				MasterName:       "mymaster",
+				SentinelPassword: tt.sentinelPassword,
 			}
-			addr, err := resolveRedisAddr(conf, nil, []string{
-				"TEST_SENTINEL_HOST=" + tt.host,
-				"TEST_SENTINEL_PORT=" + tt.port,
-			}, io.Discard)
+			addr, err := resolveRedisAddr(conf, nil, io.Discard)
 			require.NoError(t, err)
 
 			host, port, err := net.SplitHostPort(addr)

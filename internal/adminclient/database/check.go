@@ -180,14 +180,15 @@ func checkRedis(ctx context.Context, out io.Writer, conf *config.Redis) error {
 	const maxRetriesDisabled = -1
 
 	cli := redis.NewUniversalClient(&redis.UniversalOptions{
-		IsClusterMode: conf.Type == config.RedisTypeCluster,
-		Addrs:         conf.Addrs,
-		MasterName:    conf.MasterName,
-		Password:      conf.Password,
-		DB:            conf.DB,
-		DialTimeout:   checkDialTimeout,
-		MaxRetries:    maxRetriesDisabled,
-		TLSConfig:     tlsConf,
+		IsClusterMode:    conf.Type == config.RedisTypeCluster,
+		Addrs:            conf.Addrs,
+		MasterName:       conf.MasterName,
+		Password:         conf.Password,
+		SentinelPassword: conf.SentinelPassword,
+		DB:               conf.DB,
+		DialTimeout:      checkDialTimeout,
+		MaxRetries:       maxRetriesDisabled,
+		TLSConfig:        tlsConf,
 		// maintenance notifications (Redis Cloud endpoint migration push) are irrelevant
 		// to a one-shot probe; auto mode would log a misleading handshake error against
 		// servers without the CLIENT MAINT_NOTIFICATIONS command.

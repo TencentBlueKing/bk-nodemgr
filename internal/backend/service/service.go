@@ -750,12 +750,13 @@ func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
 		Info("initializing redis universal client")
 
 	client := redis.NewUniversalClient(&redis.UniversalOptions{
-		IsClusterMode: svc.conf.Redis.Type == config.RedisTypeCluster,
-		Addrs:         svc.conf.Redis.Addrs,
-		MasterName:    svc.conf.Redis.MasterName,
-		Password:      svc.conf.Redis.Password,
-		DB:            svc.conf.Redis.DB,
-		TLSConfig:     tlsConfig,
+		IsClusterMode:    svc.conf.Redis.Type == config.RedisTypeCluster,
+		Addrs:            svc.conf.Redis.Addrs,
+		MasterName:       svc.conf.Redis.MasterName,
+		Password:         svc.conf.Redis.Password,
+		SentinelPassword: svc.conf.Redis.SentinelPassword,
+		DB:               svc.conf.Redis.DB,
+		TLSConfig:        tlsConfig,
 	})
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
