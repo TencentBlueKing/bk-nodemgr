@@ -22,6 +22,7 @@ package renderer
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer/gotemplate"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer/jinja2x"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -44,11 +45,27 @@ func NewRenderer(renderType types.TemplateRendererType) (IHandler, error) {
 	}
 }
 
+// RenderWithContext renders with the caller's context when supported by the handler.
+func RenderWithContext(nCtx contextx.IContext, handler IHandler, tmpl string, content map[string]any) (string, error) {
+	if contextual, ok := handler.(interface {
+		RenderWithContext(nCtx contextx.IContext, tmpl string, content map[string]any) (string, error)
+	}); ok {
+		return contextual.RenderWithContext(nCtx, tmpl, content)
+	}
+
+	return handler.Render(tmpl, content)
+}
+
 // RenderNestedMap renders every template string nested in nested with context and keeps other values as is.
 func RenderNestedMap(handler IHandler, nested, context map[string]any) (map[string]any, error) {
+	return RenderNestedMapWithContext(contextx.Background(), handler, nested, context)
+}
+
+// RenderNestedMapWithContext renders nested template strings with the caller's context.
+func RenderNestedMapWithContext(nCtx contextx.IContext, handler IHandler, nested, context map[string]any) (map[string]any, error) {
 	rendered := make(map[string]any, len(nested))
 	for key, value := range nested {
-		renderedValue, err := renderNestedValue(handler, value, context, key)
+		renderedValue, err := renderNestedValue(nCtx, handler, value, context, key)
 		if err != nil {
 			return nil, err
 		}
@@ -60,10 +77,10 @@ func RenderNestedMap(handler IHandler, nested, context map[string]any) (map[stri
 }
 
 // renderNestedValue renders the template strings inside a single value, the path locates the value in error messages.
-func renderNestedValue(handler IHandler, value any, context map[string]any, path string) (any, error) {
+func renderNestedValue(nCtx contextx.IContext, handler IHandler, value any, context map[string]any, path string) (any, error) {
 	switch typedValue := value.(type) {
 	case string:
-		rendered, err := handler.Render(typedValue, context)
+		rendered, err := RenderWithContext(nCtx, handler, typedValue, context)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render %s: %w", path, err)
 		}
@@ -72,7 +89,7 @@ func renderNestedValue(handler IHandler, value any, context map[string]any, path
 	case map[string]any:
 		rendered := make(map[string]any, len(typedValue))
 		for key, item := range typedValue {
-			renderedItem, err := renderNestedValue(handler, item, context, path+"."+key)
+			renderedItem, err := renderNestedValue(nCtx, handler, item, context, path+"."+key)
 			if err != nil {
 				return nil, err
 			}
@@ -84,7 +101,7 @@ func renderNestedValue(handler IHandler, value any, context map[string]any, path
 	case []any:
 		rendered := make([]any, len(typedValue))
 		for index, item := range typedValue {
-			renderedItem, err := renderNestedValue(handler, item, context, fmt.Sprintf("%s[%d]", path, index))
+			renderedItem, err := renderNestedValue(nCtx, handler, item, context, fmt.Sprintf("%s[%d]", path, index))
 			if err != nil {
 				return nil, err
 			}

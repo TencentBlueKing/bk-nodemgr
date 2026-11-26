@@ -212,7 +212,7 @@ func (act *actionRenderPluginConfigV2) renderPluginConf(std *pluginV2Utils.Plugi
 	maps.Copy(customValueContext, systemContext)
 	maps.Copy(customValueContext, customContext)
 
-	renderedCustomContext, err := renderer.RenderNestedMap(renderHandler, customContext, customValueContext)
+	renderedCustomContext, err := renderer.RenderNestedMapWithContext(std.Context(), renderHandler, customContext, customValueContext)
 	if err != nil {
 		return fmt.Errorf("failed to render custom config context: %w", err)
 	}
@@ -227,7 +227,8 @@ func (act *actionRenderPluginConfigV2) renderPluginConf(std *pluginV2Utils.Plugi
 	}
 
 	for idx := range pluginConf.ConfigFilesDetail {
-		pluginConf.ConfigFilesDetail[idx].Content, err = renderHandler.Render(pluginConf.ConfigFilesDetail[idx].Content, renderContext)
+		pluginConf.ConfigFilesDetail[idx].Content, err = renderer.RenderWithContext(
+			std.Context(), renderHandler, pluginConf.ConfigFilesDetail[idx].Content, renderContext)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to render config template")
 			return fmt.Errorf("failed to render sub config template: %w", err)

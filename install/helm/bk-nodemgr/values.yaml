@@ -1749,6 +1749,8 @@ backend:
       portRange:
         start: 28150
         end: 28159
+      traceServiceName: "backend-client-jinja2x"
+      traceSampleRate: 0
 
     ## defines the workflow related settings.
     workflow:
