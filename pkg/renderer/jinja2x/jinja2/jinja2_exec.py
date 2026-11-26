@@ -8,10 +8,17 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import argparse
 import copy
+import hmac
 import json
+import os
+import socket
 import sys
+import threading
+from functools import lru_cache
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import six
@@ -21,7 +28,10 @@ from jinja2.sandbox import SandboxedEnvironment as Environment
 jinja2渲染相关的公共函数
 """
 
-TEMPLATE_CACHE = {}
+
+@lru_cache(maxsize=256)
+def compile_template(data):
+    return Environment().from_string(data)
 
 
 def find_element(element, dict_data):
@@ -48,13 +58,9 @@ def nested_render_data(data, context):
             return data
         try:
             # 尝试渲染用户参数，一旦失败，立即返回原数据
-            template = TEMPLATE_CACHE.get(data)
-            if not template:
-                template = Environment().from_string(data)
-                TEMPLATE_CACHE[data] = template
-            return template.render(context)
-        except Exception as err:
-            print(f"render template failed: {err}", file=sys.stderr)
+            return compile_template(data).render(context)
+        except Exception:
+            # Preserve the original template on rendering errors.
             return data
     elif isinstance(data, dict):
         if "$for" in data and "$item" in data and "$body" in data:
@@ -118,9 +124,12 @@ def load_context_file(context_path):
             # 如果不是 JSON，尝试作为 Python 字面量解析（兼容原有的示例数据）
             try:
                 import ast
+
                 return ast.literal_eval(content)
             except (ValueError, SyntaxError):
-                raise ValueError(f"Context file is not valid JSON or Python literal: {e}")
+                raise ValueError(
+                    f"Context file is not valid JSON or Python literal: {e}"
+                )
 
     except Exception as e:
         print(f"Failed to load context file: {e}", file=sys.stderr)
@@ -143,6 +152,84 @@ def save_output_file(output_path, content):
         sys.exit(1)
 
 
+class RenderHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *args):
+        pass
+
+    def setup(self):
+        self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        super().setup()
+        self.connection.settimeout(60)
+
+    def respond(self, status, data):
+        body = json.dumps(data).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def authorized(self):
+        return hmac.compare_digest(
+            self.headers.get("Authorization", "").encode("utf-8"),
+            self.server.token,
+        )
+
+    def do_GET(self):
+        if not self.authorized():
+            self.send_error(403)
+            return
+        if self.path != "/healthz":
+            self.send_error(404)
+            return
+        self.respond(200, {})
+
+    def do_POST(self):
+        if not self.authorized():
+            self.send_error(403)
+            return
+        if self.path != "/render":
+            self.send_error(404)
+            return
+        try:
+            length = int(self.headers["Content-Length"])
+            if length < 0:
+                raise ValueError("invalid content length")
+            request = json.loads(self.rfile.read(length))
+            template = request["template"].replace("\r\n", "\n").replace("\r", "\n")
+            result = nested_render_data(template, request["context"])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            self.send_error(400)
+            return
+        self.respond(200, {"result": result})
+
+
+def serve(start_port, end_port):
+    token = os.environ.pop("JINJA2_SERVER_TOKEN").encode("utf-8")
+    if not token:
+        raise ValueError("missing server token")
+    for port in range(start_port, end_port + 1):
+        try:
+            server = ThreadingHTTPServer(("127.0.0.1", port), RenderHandler)
+        except OSError:
+            continue
+        with server:
+            server.token = token
+
+            # The Go parent owns stdin; EOF also detects an unexpected parent exit.
+            def wait_for_parent():
+                sys.stdin.buffer.read()
+                server.shutdown()
+
+            threading.Thread(target=wait_for_parent, daemon=True).start()
+            print(port, flush=True)
+            server.serve_forever()
+        return
+    raise RuntimeError("no available port in configured range")
+
+
 def main():
     """
     主函数，支持命令行参数
@@ -160,18 +247,38 @@ Examples:
 
   # Use with JSON context data
   python jinjia2.py config.yaml data.json result.yaml
-        """
+        """,
     )
 
     # 支持位置参数或选项参数
     parser.add_argument("template", nargs="?", help="Input Jinja2 template file path")
-    parser.add_argument("context", nargs="?", help="Input context file path (JSON format)")
-    parser.add_argument("output", nargs="?", help="Output file path (optional, prints to stdout if not specified)")
-    parser.add_argument("-t", "--template", dest="template_file", help="Input Jinja2 template file path")
-    parser.add_argument("-c", "--context", dest="context_file", help="Input context file path (JSON format)")
+    parser.add_argument(
+        "context", nargs="?", help="Input context file path (JSON format)"
+    )
+    parser.add_argument(
+        "output",
+        nargs="?",
+        help="Output file path (optional, prints to stdout if not specified)",
+    )
+    parser.add_argument(
+        "-t", "--template", dest="template_file", help="Input Jinja2 template file path"
+    )
+    parser.add_argument(
+        "-c",
+        "--context",
+        dest="context_file",
+        help="Input context file path (JSON format)",
+    )
     parser.add_argument("-o", "--output", dest="output_file", help="Output file path")
 
+    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument(
+        "--serve", nargs=2, type=int, metavar=("START_PORT", "END_PORT")
+    )
     args = parser.parse_args()
+    if args.serve:
+        serve(*args.serve)
+        return
 
     # 确定文件路径（优先使用选项参数）
     template_path = args.template_file or args.template
@@ -180,7 +287,9 @@ Examples:
 
     # 检查必需参数
     if not template_path or not context_path:
-        parser.error("Both template and context files are required. Use positional arguments or -t/-c options.")
+        parser.error(
+            "Both template and context files are required. Use positional arguments or -t/-c options."
+        )
 
     # 加载模板文件
     if args.verbose:
@@ -209,4 +318,3 @@ Examples:
 
 if __name__ == "__main__":
     main()
-

@@ -65,6 +65,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer/jinja2x"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -176,6 +177,10 @@ func NewService(conf *config.BackendService) (*Service, error) {
 }
 
 func (svc *Service) initialStaticsConfigs() error {
+	if err := jinja2x.SetPortRange(svc.conf.Jinja2x.PortRange.Start, svc.conf.Jinja2x.PortRange.End); err != nil {
+		return fmt.Errorf("failed to configure jinja2 renderer: %w", err)
+	}
+
 	// initial system edition.
 	system.SetEnv(svc.conf.System.Env)
 	if err := system.SetEdition(system.Edition(svc.conf.System.Edition)); err != nil {
@@ -1494,6 +1499,7 @@ func (svc *Service) GracefulShutdown() error {
 	}
 
 	defer svc.cancelFunc()
+	defer jinja2x.Close()
 
 	serverErr := svc.shutdownRestServers(context.Background())
 	if serverErr != nil {
