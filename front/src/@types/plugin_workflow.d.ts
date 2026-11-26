@@ -107,6 +107,8 @@ export interface PluginWorkflowOperationExactConditions {
   plugin_version: string[];
   state: string[];
   bk_biz_id: number[];
+  bk_host_innerip: string[];
+  bk_host_innerip_v6: string[];
 }
 
 // PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of
@@ -265,5 +267,54 @@ export interface PluginWorkflowOperationTerminateResp {
 }
 
 export interface PluginWorkflowOperationTerminateRespData {
+}
+
+// 历史插件安装操作中可恢复的表单参数。
+export interface PluginWorkflowOperationInstallParams {
+  // 历史操作 ID。
+  operation_id: string;
+  // 安装目标主机 ID。
+  bk_host_id: number;
+  // 插件名称。
+  plugin_name: string;
+  // 历史部署中保存的安装版本。
+  version: string;
+  // 历史自定义配置参数。
+  custom_config_context: Record<string, any>;
+  // 历史自定义部署规格，未指定时为空。
+  custom_spec: PluginWorkflowOperationInstallParamsDeploymentSpec;
+  // 无法恢复的字段名称。
+  missing_fields: string[];
+}
+
+export interface PluginWorkflowOperationInstallParamsDeploymentSpec {
+  resource: ProcessResource;
+  monitor_policy: ProcessMonitorPolicy;
+}
+
+// 按工作流及选中的操作读取历史插件安装参数。
+export interface PluginWorkflowOperationInstallParamsGetReq {
+  // 必填，历史工作流 ID。
+  workflow_id: string;
+  // 必填，非空且无重复 ID 的操作列表。
+  operation_ids: string[];
+}
+
+// 返回可恢复的安装参数和无法恢复参数的操作 ID。
+export interface PluginWorkflowOperationInstallParamsGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PluginWorkflowOperationInstallParamsGetRespData;
+}
+
+export interface PluginWorkflowOperationInstallParamsGetRespData {
+  // 历史安装工作流类型。
+  type: string;
+  items: PluginWorkflowOperationInstallParams[];
+  // 无法恢复部署记录的操作 ID。
+  unavailable_operation_ids: string[];
 }
 

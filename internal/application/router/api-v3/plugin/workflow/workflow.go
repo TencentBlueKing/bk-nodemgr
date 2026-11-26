@@ -50,6 +50,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/statistics", restserver.Handler(h.Statistics))
 	h.rg.POST("/distinct", restserver.Handler(h.Distinct))
+	h.rg.POST("/operation/install_params/get", restserver.Handler(h.GetInstallParams))
 	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
 	h.rg.POST("/operation/distinct", restserver.Handler(h.DistinctOperation))
 	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))

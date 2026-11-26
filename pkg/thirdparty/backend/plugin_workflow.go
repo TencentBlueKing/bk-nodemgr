@@ -19,6 +19,8 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -26,9 +28,28 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
+// GetPluginWorkflowInstallParams retrieves historical installation form inputs.
+func (h *Handler) GetPluginWorkflowInstallParams(nCtx contextx.IContext, workflowID string, operationIDs []string) (
+	*types.PluginWorkflowInstallParamsResult, error) {
+
+	req := &protoBackend.PluginWorkflowOperationInstallParamsGetReq{
+		WorkflowId: workflowID, OperationIds: operationIDs,
+	}
+	resp, err := h.cli.getPluginWorkflowInstallParams(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin workflow install params: %w", err)
+	}
+
+	return resp.ConvertResultToTypes(), nil
+}
+
 // IHandlerPluginWorkflow defines the plugin workflow Handler.
 // nolint: interfacebloat
 type IHandlerPluginWorkflow interface {
+	// GetPluginWorkflowInstallParams reads form inputs from selected historical installation operations.
+	GetPluginWorkflowInstallParams(nCtx contextx.IContext, workflowID string, operationIDs []string) (
+		*types.PluginWorkflowInstallParamsResult, error)
+
 	// ListPluginWorkflow list plugin workflow within specified tenant in contextx.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.

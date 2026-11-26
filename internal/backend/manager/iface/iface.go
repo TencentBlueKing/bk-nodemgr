@@ -69,6 +69,10 @@ type iNodeManagerWorkflow interface {
 
 // IPluginManager defines the PluginManager interface.
 type IPluginManager interface {
+	// GetPluginWorkflowInstallParams retrieves inputs for a fresh installation from selected historical operations.
+	GetPluginWorkflowInstallParams(nCtx contextx.IContext, workflowID string, operationIDs []string) (
+		*types.PluginWorkflowInstallParamsResult, error)
+
 	// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
 	LaunchRetryPluginOperationFromLastInstance(nCtx contextx.IContext, param types.RetryPluginWorkflowOperationParam) error
 

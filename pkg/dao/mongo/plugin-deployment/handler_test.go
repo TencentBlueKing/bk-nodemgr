@@ -33,6 +33,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var instance struct {
@@ -505,6 +506,27 @@ func TestConvertPluginDeploymentPluginConfRemoveAllConfigs(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+func TestConvertPluginDeploymentPluginConfNestedCustomContext(t *testing.T) {
+	raw, err := bson.Marshal(bson.M{"custom_config_context": bson.M{
+		"items": bson.A{bson.M{"enabled": true}, bson.A{"a", "b"}},
+	}})
+	if err != nil {
+		t.Fatalf("bson.Marshal() error = %v", err)
+	}
+	var persisted PluginConf
+	if err := bson.Unmarshal(raw, &persisted); err != nil {
+		t.Fatalf("bson.Unmarshal() error = %v", err)
+	}
+	got := convertPluginDeploymentPluginConfToTypes(&persisted)
+	want := map[string]any{"items": []any{map[string]any{"enabled": true}, []any{"a", "b"}}}
+	if !reflect.DeepEqual(got.CustomConfigContext, want) {
+		t.Fatalf("CustomConfigContext = %#v, want %#v", got.CustomConfigContext, want)
+	}
+	if _, err := structpb.NewStruct(got.CustomConfigContext); err != nil {
+		t.Fatalf("structpb.NewStruct() error = %v", err)
 	}
 }
 
