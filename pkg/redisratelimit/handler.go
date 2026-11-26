@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package redisratelimit implements shared token buckets backed by Redis.
+// Package redisratelimit implements shared rate limiters backed by Redis.
 package redisratelimit
 
 import (
@@ -33,7 +33,7 @@ import (
 
 var (
 	_ ratelimit.IHandler = (*Handler)(nil)
-	_ ratelimit.ILimiter = (*limiter)(nil)
+	_ ratelimit.ILimiter = (*tokenBucketLimiter)(nil)
 )
 
 // Handler creates limiters sharing a Redis namespace. The caller owns the client.
@@ -88,8 +88,10 @@ func (handler *Handler) NewLimiter(name string, rule ratelimit.Rule) (ratelimit.
 	if name == "" {
 		return nil, errors.New("limiter name is empty")
 	}
-	if err := rule.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid limiter rule: %w", err)
+	key := handler.namespace + ":ratelimit:v1:" + base64.RawURLEncoding.EncodeToString([]byte(name))
+	lim, err := handler.newLimiter(key, rule)
+	if err != nil {
+		return nil, err
 	}
 
 	handler.mu.Lock()
@@ -99,20 +101,29 @@ func (handler *Handler) NewLimiter(name string, rule ratelimit.Rule) (ratelimit.
 	}
 	handler.rules[name] = rule
 
-	return &limiter{
-		client: handler.client,
-		key:    handler.namespace + ":ratelimit:v1:" + base64.RawURLEncoding.EncodeToString([]byte(name)),
-		rule:   rule,
-	}, nil
+	return lim, nil
 }
 
-type limiter struct {
+func (handler *Handler) newLimiter(key string, rule ratelimit.Rule) (ratelimit.ILimiter, error) {
+	switch config := rule.(type) {
+	case ratelimit.TokenBucketRule:
+		if err := config.Validate(); err != nil {
+			return nil, fmt.Errorf("invalid limiter rule: %w", err)
+		}
+
+		return &tokenBucketLimiter{client: handler.client, key: key, rule: config}, nil
+	default:
+		return nil, fmt.Errorf("unsupported Redis limiter rule %T", rule)
+	}
+}
+
+type tokenBucketLimiter struct {
 	client redis.UniversalClient
 	key    string
-	rule   ratelimit.Rule
+	rule   ratelimit.TokenBucketRule
 }
 
-func (lim *limiter) Allow(ctx context.Context) (bool, error) {
+func (lim *tokenBucketLimiter) Allow(ctx context.Context) (bool, error) {
 	delay, err := lim.acquire(ctx)
 	if err != nil {
 		return false, err
@@ -121,7 +132,7 @@ func (lim *limiter) Allow(ctx context.Context) (bool, error) {
 	return delay == 0, nil
 }
 
-func (lim *limiter) Wait(ctx context.Context) error {
+func (lim *tokenBucketLimiter) Wait(ctx context.Context) error {
 	for {
 		delay, err := lim.acquire(ctx)
 		if err != nil {
@@ -142,7 +153,7 @@ func (lim *limiter) Wait(ctx context.Context) error {
 	}
 }
 
-func (lim *limiter) acquire(ctx context.Context) (time.Duration, error) {
+func (lim *tokenBucketLimiter) acquire(ctx context.Context) (time.Duration, error) {
 	if ctx == nil {
 		return 0, errors.New("context is nil")
 	}

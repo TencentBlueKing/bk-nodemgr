@@ -16,13 +16,12 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package ratelimit defines portable token bucket limiters and their in-memory implementation.
+// Package ratelimit defines portable rate limiters and built-in implementations.
 package ratelimit
 
 import (
 	"context"
 	"errors"
-	"time"
 )
 
 // ErrRuleConflict indicates that an existing quota uses a different rule.
@@ -35,41 +34,33 @@ type IHandler interface {
 	NewLimiter(name string, rule Rule) (ILimiter, error)
 }
 
-// ILimiter acquires one token per successful operation. It is safe for concurrent use.
+// ILimiter grants permission according to its configured rule. It is safe for concurrent use.
+// A successful limited operation consumes one unit of quota; unrestricted rules consume none.
 // An ambiguous remote failure may consume quota without returning permission.
 type ILimiter interface {
-	// Allow attempts to acquire a token without waiting for quota recovery.
+	// Allow attempts to acquire permission without waiting for quota recovery.
 	// A false result with no error indicates normal rate limiting.
 	Allow(ctx context.Context) (bool, error)
 
-	// Wait acquires a token, waiting for quota recovery until ctx is cancelled
+	// Wait acquires permission, waiting for quota recovery until ctx is cancelled
 	// or its deadline expires. It does not guarantee FIFO ordering.
 	Wait(ctx context.Context) error
 }
 
-// Rule defines a token bucket that refills Limit tokens per Interval, up to Burst.
-// New buckets start full. Rules cannot change during the lifetime of a limiter.
-type Rule struct {
-	Limit    int
-	Interval time.Duration
-	Burst    int
-}
+// Algorithm identifies a rate limiting policy, independently of its storage backend.
+type Algorithm string
 
-// maxCredit bounds integer arithmetic to a range exactly representable in Redis Lua.
-// One token costs Interval.Microseconds() credits; each microsecond adds Limit credits.
-const maxCredit = 1 << 40
+const (
+	// AlgorithmNone allows requests without imposing a rate limit.
+	AlgorithmNone Algorithm = "none"
+	// AlgorithmTokenBucket refills a bounded pool of tokens continuously.
+	AlgorithmTokenBucket Algorithm = "token_bucket"
+)
 
-// Validate checks that the rule is representable at microsecond precision in both backends.
-func (rule Rule) Validate() error {
-	if rule.Limit <= 0 || rule.Burst <= 0 || rule.Interval <= 0 {
-		return errors.New("limit, interval and burst must be positive")
-	}
-	if rule.Interval%time.Microsecond != 0 {
-		return errors.New("interval must be a whole number of microseconds")
-	}
-	if int64(rule.Limit) > maxCredit || int64(rule.Burst) > maxCredit/rule.Interval.Microseconds() {
-		return errors.New("rate limiter rule exceeds supported credit range")
-	}
-
-	return nil
+// Rule describes an algorithm-specific, immutable configuration.
+// Built-in handlers accept supported, comparable concrete rule values, not pointers.
+// Unsupported rules must return an error rather than fall back to another algorithm.
+type Rule interface {
+	Algorithm() Algorithm
+	Validate() error
 }

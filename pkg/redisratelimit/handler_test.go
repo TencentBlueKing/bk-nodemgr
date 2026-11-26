@@ -51,8 +51,15 @@ func TestRedisLimiter(t *testing.T) {
 	second, err := New(secondClient, prefix)
 	require.NoError(t, err)
 
+	t.Run("unsupported rules", func(t *testing.T) {
+		for _, rule := range []ratelimit.Rule{nil, ratelimit.NoneRule{}, (*ratelimit.TokenBucketRule)(nil)} {
+			_, err := first.NewLimiter("unsupported", rule)
+			require.Error(t, err)
+		}
+	})
+
 	t.Run("shared concurrent quota and rule conflict", func(t *testing.T) {
-		rule := ratelimit.Rule{Limit: 1, Interval: time.Hour, Burst: 5}
+		rule := ratelimit.TokenBucketRule{Limit: 1, Interval: time.Hour, Burst: 5}
 		a, err := first.NewLimiter("shared", rule)
 		require.NoError(t, err)
 		b, err := second.NewLimiter("shared", rule)
@@ -95,7 +102,7 @@ func TestRedisLimiter(t *testing.T) {
 	})
 
 	t.Run("wait cancellation and refill", func(t *testing.T) {
-		rule := ratelimit.Rule{Limit: 1, Interval: time.Second, Burst: 1}
+		rule := ratelimit.TokenBucketRule{Limit: 1, Interval: time.Second, Burst: 1}
 		a, err := first.NewLimiter("wait", rule)
 		require.NoError(t, err)
 		b, err := second.NewLimiter("wait", rule)
@@ -113,12 +120,12 @@ func TestRedisLimiter(t *testing.T) {
 	})
 
 	t.Run("idle expiration preserves capacity", func(t *testing.T) {
-		rule := ratelimit.Rule{Limit: 1, Interval: 200 * time.Millisecond, Burst: 2}
+		rule := ratelimit.TokenBucketRule{Limit: 1, Interval: 200 * time.Millisecond, Burst: 2}
 		lim, err := first.NewLimiter("expiry", rule)
 		require.NoError(t, err)
 		require.NoError(t, lim.Wait(t.Context()))
 		require.NoError(t, lim.Wait(t.Context()))
-		key := lim.(*limiter).key
+		key := lim.(*tokenBucketLimiter).key
 		count, err := client.Exists(t.Context(), key).Result()
 		require.NoError(t, err)
 		require.EqualValues(t, 1, count)
@@ -141,7 +148,7 @@ func TestRedisLimiter(t *testing.T) {
 	})
 
 	t.Run("backend failure", func(t *testing.T) {
-		lim, err := second.NewLimiter("failure", ratelimit.Rule{Limit: 1, Interval: time.Second, Burst: 1})
+		lim, err := second.NewLimiter("failure", ratelimit.TokenBucketRule{Limit: 1, Interval: time.Second, Burst: 1})
 		require.NoError(t, err)
 		require.NoError(t, secondClient.Close())
 		require.Error(t, lim.Wait(t.Context()))

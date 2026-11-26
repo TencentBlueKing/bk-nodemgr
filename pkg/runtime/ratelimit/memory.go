@@ -27,60 +27,78 @@ import (
 )
 
 var (
-	_ IHandler = (*Handler)(nil)
-	_ ILimiter = (*memoryLimiter)(nil)
+	_ IHandler = (*MemoryHandler)(nil)
+	_ ILimiter = (*tokenBucketLimiter)(nil)
 )
 
-// Handler creates process-local limiters. Each handler owns an independent quota scope.
+// MemoryHandler creates process-local limiters. Each handler owns an independent quota scope.
 // Entries are retained for the lifetime of the handler; use stable, bounded names.
-type Handler struct {
+type MemoryHandler struct {
 	mu       sync.Mutex
-	limiters map[string]*memoryLimiter
+	limiters map[string]memoryEntry
 }
 
-// New creates an independent process-local limiter factory.
-func New() *Handler {
-	return &Handler{limiters: make(map[string]*memoryLimiter)}
+type memoryEntry struct {
+	rule    Rule
+	limiter ILimiter
+}
+
+// NewMemory creates an independent process-local limiter factory.
+func NewMemory() *MemoryHandler {
+	return &MemoryHandler{limiters: make(map[string]memoryEntry)}
 }
 
 // NewLimiter returns a limiter for the named quota without resetting its state.
-func (handler *Handler) NewLimiter(name string, rule Rule) (ILimiter, error) {
+func (handler *MemoryHandler) NewLimiter(name string, rule Rule) (ILimiter, error) {
 	if name == "" {
 		return nil, errors.New("limiter name is empty")
 	}
-	if err := rule.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid limiter rule: %w", err)
+	limiter, err := newMemoryLimiter(rule)
+	if err != nil {
+		return nil, err
 	}
 
 	handler.mu.Lock()
 	defer handler.mu.Unlock()
 
-	if limiter, exists := handler.limiters[name]; exists {
-		if limiter.rule != rule {
+	if entry, exists := handler.limiters[name]; exists {
+		if entry.rule != rule {
 			return nil, fmt.Errorf("limiter %q: %w", name, ErrRuleConflict)
 		}
 
-		return limiter, nil
+		return entry.limiter, nil
 	}
 
-	limiter := &memoryLimiter{
-		rule:    rule,
-		credits: int64(rule.Burst) * rule.Interval.Microseconds(),
-		last:    time.Now(),
-	}
-	handler.limiters[name] = limiter
+	handler.limiters[name] = memoryEntry{rule: rule, limiter: limiter}
 
 	return limiter, nil
 }
 
-type memoryLimiter struct {
-	rule    Rule
+func newMemoryLimiter(rule Rule) (ILimiter, error) {
+	switch config := rule.(type) {
+	case TokenBucketRule:
+		if err := config.Validate(); err != nil {
+			return nil, fmt.Errorf("invalid limiter rule: %w", err)
+		}
+
+		return &tokenBucketLimiter{
+			rule:    config,
+			credits: int64(config.Burst) * config.Interval.Microseconds(),
+			last:    time.Now(),
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported memory limiter rule %T", rule)
+	}
+}
+
+type tokenBucketLimiter struct {
+	rule    TokenBucketRule
 	mu      sync.Mutex
 	credits int64
 	last    time.Time
 }
 
-func (limiter *memoryLimiter) Allow(ctx context.Context) (bool, error) {
+func (limiter *tokenBucketLimiter) Allow(ctx context.Context) (bool, error) {
 	delay, err := limiter.acquire(ctx)
 	if err != nil {
 		return false, err
@@ -89,7 +107,7 @@ func (limiter *memoryLimiter) Allow(ctx context.Context) (bool, error) {
 	return delay == 0, nil
 }
 
-func (limiter *memoryLimiter) Wait(ctx context.Context) error {
+func (limiter *tokenBucketLimiter) Wait(ctx context.Context) error {
 	for {
 		delay, err := limiter.acquire(ctx)
 		if err != nil {
@@ -111,7 +129,7 @@ func (limiter *memoryLimiter) Wait(ctx context.Context) error {
 }
 
 // acquire returns zero after consuming one token, or a positive delay without consuming it.
-func (limiter *memoryLimiter) acquire(ctx context.Context) (time.Duration, error) {
+func (limiter *tokenBucketLimiter) acquire(ctx context.Context) (time.Duration, error) {
 	if ctx == nil {
 		return 0, errors.New("context is nil")
 	}

@@ -30,17 +30,17 @@ import (
 )
 
 func TestNewLimiterValidation(t *testing.T) {
-	rule := Rule{Limit: 1, Interval: time.Second, Burst: 1}
-	handler := New()
+	rule := TokenBucketRule{Limit: 1, Interval: time.Second, Burst: 1}
+	handler := NewMemory()
 	for _, tc := range []struct {
 		name string
-		rule Rule
+		rule TokenBucketRule
 	}{
-		{"zero limit", Rule{Interval: time.Second, Burst: 1}},
-		{"zero interval", Rule{Limit: 1, Burst: 1}},
-		{"zero burst", Rule{Limit: 1, Interval: time.Second}},
-		{"unsupported precision", Rule{Limit: 1, Interval: time.Nanosecond, Burst: 1}},
-		{"unsupported capacity", Rule{Limit: 1, Interval: time.Hour, Burst: 1000000}},
+		{"zero limit", TokenBucketRule{Interval: time.Second, Burst: 1}},
+		{"zero interval", TokenBucketRule{Limit: 1, Burst: 1}},
+		{"zero burst", TokenBucketRule{Limit: 1, Interval: time.Second}},
+		{"unsupported precision", TokenBucketRule{Limit: 1, Interval: time.Nanosecond, Burst: 1}},
+		{"unsupported capacity", TokenBucketRule{Limit: 1, Interval: time.Hour, Burst: 1000000}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := handler.NewLimiter("quota", tc.rule)
@@ -49,13 +49,17 @@ func TestNewLimiterValidation(t *testing.T) {
 	}
 	_, err := handler.NewLimiter("", rule)
 	require.Error(t, err)
+	for _, unsupported := range []Rule{nil, NoneRule{}, (*TokenBucketRule)(nil), &rule} {
+		_, err := handler.NewLimiter("quota", unsupported)
+		require.Error(t, err)
+	}
 }
 
 func TestMemoryLimiterSharedQuota(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		ctx := t.Context()
-		handler := New()
-		rule := Rule{Limit: 2, Interval: time.Second, Burst: 2}
+		handler := NewMemory()
+		rule := TokenBucketRule{Limit: 2, Interval: time.Second, Burst: 2}
 		first, err := handler.NewLimiter("quota", rule)
 		require.NoError(t, err)
 		require.NoError(t, first.Wait(ctx))
@@ -68,9 +72,9 @@ func TestMemoryLimiterSharedQuota(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, allowed)
 
-		_, err = handler.NewLimiter("quota", Rule{Limit: 1, Interval: time.Second, Burst: 2})
+		_, err = handler.NewLimiter("quota", TokenBucketRule{Limit: 1, Interval: time.Second, Burst: 2})
 		require.ErrorIs(t, err, ErrRuleConflict)
-		other, err := New().NewLimiter("quota", rule)
+		other, err := NewMemory().NewLimiter("quota", rule)
 		require.NoError(t, err)
 		allowed, err = other.Allow(ctx)
 		require.NoError(t, err)
@@ -97,7 +101,7 @@ func TestMemoryLimiterSharedQuota(t *testing.T) {
 
 func TestMemoryLimiterConcurrentQuota(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		limiter, err := New().NewLimiter("quota", Rule{Limit: 1, Interval: time.Second, Burst: 5})
+		limiter, err := NewMemory().NewLimiter("quota", TokenBucketRule{Limit: 1, Interval: time.Second, Burst: 5})
 		require.NoError(t, err)
 		var count atomic.Int64
 		var wg sync.WaitGroup
@@ -120,7 +124,7 @@ func TestMemoryLimiterConcurrentQuota(t *testing.T) {
 
 func TestMemoryLimiterWaitCancellation(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		limiter, err := New().NewLimiter("quota", Rule{Limit: 1, Interval: time.Second, Burst: 1})
+		limiter, err := NewMemory().NewLimiter("quota", TokenBucketRule{Limit: 1, Interval: time.Second, Burst: 1})
 		require.NoError(t, err)
 		require.NoError(t, limiter.Wait(t.Context()))
 		ctx, cancel := context.WithTimeout(t.Context(), 200*time.Millisecond)
