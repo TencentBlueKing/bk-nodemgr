@@ -27,6 +27,7 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -116,7 +117,24 @@ func (act *actUpdateProcess) Do(ctx *action.InstanceContext) (err error) {
 	}()
 
 	nCtx := std.Context()
-	err = act.daoProcess.UpdateProcess(nCtx, std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, &std.DeployInfo().Process)
+	process := &std.DeployInfo().Process
+	fields := types.ProcessUpdateFields{
+		HostID:        true,
+		BizID:         true,
+		PluginName:    true,
+		PluginGroup:   true,
+		PluginPkgName: true,
+		Generation:    true,
+		Platform:      true,
+		BindIP:        true,
+		BindPort:      true,
+		Info:          true,
+		Identity:      true,
+		Controller:    true,
+		Resource:      true,
+		MonitorPolicy: true,
+	}
+	err = act.daoProcess.UpdateProcess(nCtx, process.HostID, process.PluginName, fields, process)
 	if err != nil {
 		return fmt.Errorf("failed to update process, plugin-name(%s), host-id(%d): %w",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, err)

@@ -63,8 +63,8 @@ type IHandler interface {
 
 // IUpdater process updater interface.
 type IUpdater interface {
-	// Update update a process by conditions.
-	Update(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error
+	// Update writes the selected fields of a process. Selecting Requirements with an empty slice clears them.
+	Update(nCtx contextx.IContext, hostID int64, pluginName string, fields types.ProcessUpdateFields, process *types.Process) error
 
 	// UpdateInfo update a process info by conditions.
 	UpdateInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error
@@ -256,8 +256,8 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, er
 	return convertProcessToTypes(data), nil
 }
 
-// Update update process.
-func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error {
+// Update writes the selected fields of a process. Selecting Requirements with an empty slice clears them.
+func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string, fields types.ProcessUpdateFields, process *types.Process) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return fmt.Errorf("failed to check tenant id: %v", err)
 	}
@@ -266,45 +266,72 @@ func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string
 		return fmt.Errorf("process is nil")
 	}
 
-	filter := base.AliveFilter()
-	opts := []base.OptFn{
-		WithHostID(hostID),
-		WithPluginName(pluginName),
-	}
-
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
-
 	data := convProcessFromTypes(process)
-
-	updates := []*base.DocumentFieldUpdate{
-		{
-			Filter: filter,
-			Fields: map[string]any{
-				FieldKeyHostID:        data.HostID,
-				FieldKeyBizID:         data.BizID,
-				FieldKeyPluginName:    data.Name,
-				FieldKeyGroup:         data.Group,
-				FieldKeyPkgName:       data.PluginPkgName,
-				FieldKeyGeneration:    data.Generation,
-				FieldKeyPlatform:      data.Platform,
-				FieldKeyBindIP:        data.BindIP,
-				FieldKeyBindPort:      data.BindPort,
-				FieldKeyInfo:          data.Info,
-				FieldKeyIdentity:      data.Identity,
-				FieldKeyController:    data.Controller,
-				FieldKeyResource:      data.Resource,
-				FieldKeyMonitorPolicy: data.MonitorPolicy,
-			},
-		},
+	updates := generateProcessUpdates(fields, data)
+	if len(updates) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("no fields to update"))
 	}
 
-	if err := h.tenantDao(nCtx.TenantID()).UpdateOneFieldBulk(nCtx, updates); err != nil {
-		return fmt.Errorf("failed to update process: %v", err)
+	filter := base.AliveFilter()
+	filter = WithHostID(hostID)(filter)
+	filter = WithPluginName(pluginName)(filter)
+	docs := []*base.DocumentFieldUpdate{{Filter: filter, Fields: updates}}
+	if err := h.tenantDao(nCtx.TenantID()).UpdateOneFieldBulk(nCtx, docs); err != nil {
+		return fmt.Errorf("failed to update process: %w", err)
 	}
 
 	return nil
+}
+
+func generateProcessUpdates(fields types.ProcessUpdateFields, data *Process) map[string]any {
+	updates := make(map[string]any)
+	if fields.HostID {
+		updates[FieldKeyHostID] = data.HostID
+	}
+	if fields.BizID {
+		updates[FieldKeyBizID] = data.BizID
+	}
+	if fields.PluginName {
+		updates[FieldKeyPluginName] = data.Name
+	}
+	if fields.PluginGroup {
+		updates[FieldKeyGroup] = data.Group
+	}
+	if fields.PluginPkgName {
+		updates[FieldKeyPkgName] = data.PluginPkgName
+	}
+	if fields.Generation {
+		updates[FieldKeyGeneration] = data.Generation
+	}
+	if fields.Platform {
+		updates[FieldKeyPlatform] = data.Platform
+	}
+	if fields.BindIP {
+		updates[FieldKeyBindIP] = data.BindIP
+	}
+	if fields.BindPort {
+		updates[FieldKeyBindPort] = data.BindPort
+	}
+	if fields.Info {
+		updates[FieldKeyInfo] = data.Info
+	}
+	if fields.Identity {
+		updates[FieldKeyIdentity] = data.Identity
+	}
+	if fields.Controller {
+		updates[FieldKeyController] = data.Controller
+	}
+	if fields.Resource {
+		updates[FieldKeyResource] = data.Resource
+	}
+	if fields.MonitorPolicy {
+		updates[FieldKeyMonitorPolicy] = data.MonitorPolicy
+	}
+	if fields.Requirements {
+		updates[FieldKeyRequirements] = data.Requirements
+	}
+
+	return updates
 }
 
 // UpdateInfo update process info.
@@ -735,6 +762,14 @@ func convertProcessToTypes(data *Process) *types.Process {
 			StopCheckSecs:  data.MonitorPolicy.StopCheckSecs,
 			OpTimeoutSecs:  data.MonitorPolicy.OpTimeoutSecs,
 		},
+		Requirements: conv.SliceToSlice(data.Requirements, func(requirement processRequirement) types.ProcessRequirement {
+			return types.ProcessRequirement{
+				RequirementID:  requirement.RequirementID,
+				TargetPath:     requirement.TargetPath,
+				TargetFileName: requirement.TargetFileName,
+				MD5:            requirement.MD5,
+			}
+		}),
 	}
 
 	return process
@@ -774,6 +809,14 @@ func convProcessFromTypes(process *types.Process) *Process {
 			StopCheckSecs:  process.MonitorPolicy.StopCheckSecs,
 			OpTimeoutSecs:  process.MonitorPolicy.OpTimeoutSecs,
 		},
+		Requirements: conv.SliceToSlice(process.Requirements, func(requirement types.ProcessRequirement) processRequirement {
+			return processRequirement{
+				RequirementID:  requirement.RequirementID,
+				TargetPath:     requirement.TargetPath,
+				TargetFileName: requirement.TargetFileName,
+				MD5:            requirement.MD5,
+			}
+		}),
 	}
 
 	return data
