@@ -134,18 +134,70 @@ function has_helmfile_arg() {
 	return 1
 }
 
+function render_module_values() (
+	local environment=$1
+	local module=$2
+	local temp_dir
+	umask 077
+	temp_dir=$(mktemp -d)
+	trap 'rm -rf "$temp_dir"' EXIT
+
+	# Fetch accepts global flags, but not additional release values.
+	local fetch_args=()
+	local skip_value=false
+	local arg
+	for arg in "${HELMFILE_ARGS[@]}"; do
+		if [ "$skip_value" = true ]; then
+			skip_value=false
+			continue
+		fi
+		case "$arg" in
+		--set | --values)
+			skip_value=true
+			;;
+		--set=* | --values=*) ;;
+		*) fetch_args+=("$arg") ;;
+		esac
+	done
+
+	run_module fetch "$environment" "$module" "${fetch_args[@]}" \
+		--output-dir "$temp_dir" --output-dir-template '{{ .OutputDir }}/{{ .Release.Namespace }}/chart'
+
+	# Local charts are copied directly; remote charts are unpacked into a subdirectory.
+	local chart_file
+	for chart_file in "$temp_dir"/*/chart/Chart.yaml "$temp_dir"/*/chart/*/Chart.yaml; do
+		if [ -f "$chart_file" ]; then
+			break
+		fi
+	done
+	if [ ! -f "$chart_file" ]; then
+		echo "Failed to resolve chart for module: $module" >&2
+		exit 1
+	fi
+	local chart_dir=${chart_file%/Chart.yaml}
+	local namespace=${chart_dir#"$temp_dir/"}
+	namespace=${namespace%%/*}
+
+	# Let Helm coalesce chart and subchart defaults with the release values.
+	printf '{{- toYaml .Values }}\n' >"$chart_dir/templates/rendered-values.yaml"
+	run_module template "$environment" "$module" "${HELMFILE_ARGS[@]}" \
+		--chart "$chart_dir" --show-only templates/rendered-values.yaml >"$temp_dir/values.yaml"
+	mv "$temp_dir/values.yaml" "$ROOT_DIR/rendered-values/$environment/values/$namespace.yaml"
+)
+
 function render_values() {
 	local environment=$1
 	shift
 	local modules=("$@")
-	local output_template="rendered-values/$environment/values/{{ .Release.Namespace }}.yaml"
 	mkdir -p "$ROOT_DIR/rendered-values/$environment/values"
 	ensure_same_release_name "$environment" "${modules[@]}"
 	if ! has_helmfile_arg "--skip-deps"; then
 		HELMFILE_ARGS+=("--skip-deps")
 	fi
-	HELMFILE_ARGS+=("--output-file-template" "$output_template")
-	run_modules "write-values" "$environment" "${modules[@]}"
+	local module
+	for module in "${modules[@]}"; do
+		render_module_values "$environment" "$module"
+	done
 }
 
 if [ "$#" -lt 1 ]; then
