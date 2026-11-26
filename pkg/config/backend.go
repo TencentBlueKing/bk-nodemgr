@@ -172,7 +172,7 @@ type BackendService struct {
 	IAMV4              IAMV4             `yaml:"iamV4" usage:"IAM v4 gateway config"`
 	Monitor            Monitor           `yaml:"monitor" usage:"monitor gateway config"`
 	NodeEventDataID    NodeEventDataID   `yaml:"nodeEventDataID" usage:"node event data-id config"`
-	Jinja2             Jinja2            `yaml:"jinja2" usage:"embedded jinja2 renderer config"`
+	Render             Render            `yaml:"render" usage:"renderer config of backend service"`
 	Workflow           Workflow          `yaml:"workflow" usage:"workflow config of backend service"`
 	InfoServer         HTTPServer        `yaml:"infoServer" usage:"info server config of backend service"`
 	AdminServer        HTTPServer        `yaml:"adminServer" usage:"admin server config of backend service"`
@@ -197,24 +197,34 @@ type BackendService struct {
 	Wiki               Wiki              `yaml:"wiki" usage:"product user wiki link config"`
 }
 
-// Jinja2 configures the embedded renderer.
-type Jinja2 struct {
-	PortRange Jinja2PortRange `yaml:"portRange" usage:"local renderer port range"`
+// Render configures backend renderers.
+type Render struct {
+	Jinja2x Jinja2x `yaml:"jinja2x" usage:"embedded jinja2 renderer config"`
 }
 
-// Jinja2PortRange defines the inclusive range of loopback ports.
-type Jinja2PortRange struct {
+// Validate validates renderer configurations.
+func (c Render) Validate() error {
+	return c.Jinja2x.Validate()
+}
+
+// Jinja2x configures the embedded Jinja2 renderer.
+type Jinja2x struct {
+	PortRange Jinja2xPortRange `yaml:"portRange" usage:"local renderer port range"`
+}
+
+// Jinja2xPortRange defines the inclusive range of loopback ports.
+type Jinja2xPortRange struct {
 	Start int `yaml:"start" usage:"first renderer port"`
 	End   int `yaml:"end" usage:"last renderer port"`
 }
 
 // Validate validates the renderer port range.
-func (c Jinja2) Validate() error {
+func (c Jinja2x) Validate() error {
 	if c.PortRange.Start < 1 || c.PortRange.Start > 65535 {
-		return fmt.Errorf("jinja2.portRange.start must be between 1 and 65535")
+		return fmt.Errorf("render.jinja2x.portRange.start must be between 1 and 65535")
 	}
 	if c.PortRange.End < c.PortRange.Start || c.PortRange.End > 65535 {
-		return fmt.Errorf("jinja2.portRange.end must be between start and 65535")
+		return fmt.Errorf("render.jinja2x.portRange.end must be between start and 65535")
 	}
 	return nil
 }
@@ -307,7 +317,7 @@ func NewBackendService() *BackendService {
 				TaskProcEventDataID:       defaultBackendTaskProcEventDataID,
 			},
 		},
-		Jinja2: Jinja2{PortRange: Jinja2PortRange{Start: 28150, End: 28159}},
+		Render: Render{Jinja2x: Jinja2x{PortRange: Jinja2xPortRange{Start: 28150, End: 28159}}},
 		Workflow: Workflow{
 			TraceService: TraceService{
 				TraceServiceName: defaultBackendWorkflowTraceServiceName,
@@ -506,8 +516,8 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate wiki config: %w", err)
 	}
 
-	if err := svc.Jinja2.Validate(); err != nil {
-		return fmt.Errorf("failed to validate jinja2 config: %w", err)
+	if err := svc.Render.Validate(); err != nil {
+		return fmt.Errorf("failed to validate render config: %w", err)
 	}
 
 	if err := svc.Workflow.Validate(); err != nil {

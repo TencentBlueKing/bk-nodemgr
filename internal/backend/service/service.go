@@ -177,7 +177,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 }
 
 func (svc *Service) initialStaticsConfigs() error {
-	if err := jinja2x.SetPortRange(svc.conf.Jinja2.PortRange.Start, svc.conf.Jinja2.PortRange.End); err != nil {
+	if err := jinja2x.SetPortRange(svc.conf.Render.Jinja2x.PortRange.Start, svc.conf.Render.Jinja2x.PortRange.End); err != nil {
 		return fmt.Errorf("failed to configure jinja2 renderer: %w", err)
 	}
 
