@@ -57,7 +57,6 @@ POST /api/v3/policy/config/get
     "updated_time": 1744675200000,
     "operator": "admin",
     "version": 3,
-    "priority": 1,
     "target_host_ids": [
       1001,
       1002
@@ -95,7 +94,6 @@ POST /api/v3/policy/config/get
 | updated_time      | int64       | 更新时间，Unix 毫秒时间戳                                                               |
 | operator          | string      | 操作人                                                                           |
 | version           | int64       | 配置策略版本                                                                        |
-| priority          | int64       | 优先级，数值越小优先级越高                                                                 |
 | target_host_ids   | int64 array | 定向目标主机 ID 列表                                                                  |
 
 #### data.scopes[n]

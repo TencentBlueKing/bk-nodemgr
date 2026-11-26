@@ -67,13 +67,11 @@ POST /api/v3/policy/config/preview
         "matched_policies": [
           {
             "configpolicy_id": 10001,
-            "configpolicy_name": "prod-plugin-config",
-            "priority": 1
+            "configpolicy_name": "prod-plugin-config"
           },
           {
             "configpolicy_id": 10003,
-            "configpolicy_name": "fallback-plugin-config",
-            "priority": 2
+            "configpolicy_name": "fallback-plugin-config"
           }
         ],
         "merged_config": "{\"plugin\":{\"base\":{\"cpu_percent_limit\":10,\"mem_percent_limit\":10}}}"
@@ -122,4 +120,3 @@ POST /api/v3/policy/config/preview
 | ----------------- | -------- | ------------ |
 | configpolicy_id   | int64    | 配置策略 ID  |
 | configpolicy_name | string   | 配置策略名称 |
-| priority          | int64    | 策略优先级   |

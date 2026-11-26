@@ -22,7 +22,6 @@ POST /api/v3/policy/config/update
 | configs_int        | object      | No       | Integer config key-value pairs                                                                             |
 | configs_bool       | object      | No       | Boolean config key-value pairs                                                                             |
 | operator           | string      | No       | Operator                                                                                                   |
-| priority           | int64       | Yes      | Priority, must be greater than `0`                                                                         |
 | target_host_ids    | int64 array | No       | Target host ID list                                                                                        |
 | target_plugin_name | string      | No       | Target plugin name; required when `configpolicy_type` is `config_policy_plugin`                            |
 
@@ -63,7 +62,6 @@ POST /api/v3/policy/config/update
     "enable_metrics": true
   },
   "operator": "admin",
-  "priority": 1,
   "target_host_ids": [1001, 1002],
   "target_plugin_name": "bkmonitorbeat"
 }

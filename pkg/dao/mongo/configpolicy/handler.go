@@ -264,9 +264,6 @@ func generateConfigPolicyUpdates(fields types.ConfigPolicyFields, configPolicy *
 	if fields.Configs {
 		updates[FieldKeyConfigs] = configPolicy.Configs
 	}
-	if fields.Priority {
-		updates[FieldKeyPriority] = configPolicy.Priority
-	}
 	if fields.Operator {
 		updates[FieldKeyOperator] = configPolicy.Operator
 	}

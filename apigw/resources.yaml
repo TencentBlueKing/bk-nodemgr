@@ -20161,9 +20161,6 @@ paths:
                         format: int64
                       operator:
                         type: string
-                      priority:
-                        type: integer
-                        format: int64
                       bk_biz_id:
                         type: integer
                         format: int64
@@ -20349,9 +20346,6 @@ paths:
                               format: int64
                             operator:
                               type: string
-                            priority:
-                              type: integer
-                              format: int64
                             bk_biz_id:
                               type: integer
                               format: int64
@@ -20653,9 +20647,6 @@ paths:
                     description: ConfigPolicyScope describes the config policy scope.
                 operator:
                   type: string
-                priority:
-                  type: integer
-                  format: int64
                 bk_biz_id:
                   type: integer
                   format: int64
@@ -21558,9 +21549,6 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  priority:
-                                    type: integer
-                                    format: int64
                                   configpolicy_id:
                                     type: integer
                                     format: int64
@@ -21592,9 +21580,6 @@ paths:
                               items:
                                 type: object
                                 properties:
-                                  priority:
-                                    type: integer
-                                    format: int64
                                   configpolicy_id:
                                     type: integer
                                     format: int64

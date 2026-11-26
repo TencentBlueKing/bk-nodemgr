@@ -103,9 +103,9 @@ POST /api/v3/policy/config/list
         "updated_time": 1744675200000,
         "operator": "admin",
         "version": 3,
-        "priority": 1,
         "target_host_ids": [1001, 1002],
-        "target_plugin_name": "bkmonitorbeat"
+        "target_plugin_name": "bkmonitorbeat",
+        "priority_rank": 1
       }
     ]
   }
@@ -148,9 +148,9 @@ POST /api/v3/policy/config/list
 | updated_time       | int64       | 更新时间，Unix 毫秒时间戳                                                                  |
 | operator           | string      | 操作人                                                                                     |
 | version            | int64       | 配置策略版本                                                                               |
-| priority           | int64       | 优先级，数值越小优先级越高                                                                 |
 | target_host_ids    | int64 array | 定向目标主机 ID 列表                                                                       |
 | target_plugin_name | string      | 目标插件名称                                                                               |
+| priority_rank      | int64       | 筛选结果中启用策略的优先级序号，从 `1` 开始，跨页连续。仅启用策略返回该字段。                |
 
 #### data.items[n].scopes[n]
 

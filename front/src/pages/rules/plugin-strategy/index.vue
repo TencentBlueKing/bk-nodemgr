@@ -13,7 +13,7 @@
           <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
           {{ $t('agentStrategy.createPluginConfig') }}
         </Button>
-        <Button @click="handleSortPreview">
+        <Button :loading="sortPreviewLoading" @click="handleSortPreview">
           {{ $t('agentStrategy.sortAndPreview') }}
         </Button>
       </div>
@@ -57,8 +57,8 @@
           fixed="left"
         >
           <template #default="{ row }">
-            <Tag v-if="row.enabled" class="priority-tag">
-              {{ enabledPriorityIndex(row) + 1 }}
+            <Tag v-if="row.priority_rank" class="priority-tag">
+              {{ row.priority_rank }}
             </Tag>
             <span v-else>-</span>
           </template>
@@ -249,7 +249,7 @@
   <!-- SortPreview 排序并预览组件（与 agent 配置策略共用） -->
   <SortPreview
     v-model:is-show="isShowSortPreview"
-    :config-list="tableData"
+    :config-list="sortPreviewConfigList"
     :configpolicy-type="'config_policy_plugin'"
     :biz-id="strategyBizId || 0"
     @save-sort="handleSaveSort"
@@ -293,12 +293,6 @@ const maxHeight = computed(() => mainStore.windowInnerHeight - 255 - (mainStore.
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
 const loading = ref(false);
-
-const enabledRows = computed(() => tableData.value.filter(row => row.enabled));
-const enabledPriorityIndex = (row: ConfigPolicy) => {
-  const idx = enabledRows.value.indexOf(row);
-  return idx >= 0 ? idx : -1;
-};
 
 const isShowSideslider = ref(false);
 const sidesliderMode = ref<'create' | 'edit' | 'view'>('create');
@@ -369,8 +363,43 @@ const handleSave = async () => { await getConfigPolicyList(); };
 
 // ===== SortPreview =====
 const isShowSortPreview = ref(false);
-const handleSortPreview = () => {
-  isShowSortPreview.value = true;
+const sortPreviewConfigList = ref<ConfigPolicy[]>([]);
+const sortPreviewLoading = ref(false);
+const handleSortPreview = async () => {
+  if (sortPreviewLoading.value || !strategyBizId.value) return;
+
+  const bizId = strategyBizId.value;
+  const allConfigs: ConfigPolicy[] = [];
+  const pageSize = 1000;
+  let offset = 0;
+  let hasMore = true;
+  sortPreviewLoading.value = true;
+  try {
+    while (hasMore) {
+      const res = await ConfigPolicyAPIService.ConfigPolicyList({
+        page: { offset, limit: pageSize },
+        only_count: false,
+        exact_include_conditions: {
+          bk_biz_id: [bizId],
+          configpolicy_type: ['config_policy_plugin'],
+          enabled: [true],
+        },
+        fuzzy_include_conditions: {},
+      });
+      if (bizId !== strategyBizId.value) return;
+
+      allConfigs.push(...res.items);
+      offset += pageSize;
+      hasMore = res.items.length === pageSize;
+    }
+
+    sortPreviewConfigList.value = allConfigs;
+    isShowSortPreview.value = true;
+  } catch {
+    // error handled by fetch interceptor
+  } finally {
+    sortPreviewLoading.value = false;
+  }
 };
 
 const handleSaveSort = async () => {

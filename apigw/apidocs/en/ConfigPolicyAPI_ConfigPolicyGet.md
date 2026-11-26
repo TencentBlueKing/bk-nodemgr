@@ -57,7 +57,6 @@ POST /api/v3/policy/config/get
     "updated_time": 1744675200000,
     "operator": "admin",
     "version": 3,
-    "priority": 1,
     "target_host_ids": [
       1001,
       1002
@@ -95,7 +94,6 @@ POST /api/v3/policy/config/get
 | updated_time      | int64       | Update time, Unix timestamp in milliseconds                                                                |
 | operator          | string      | Operator                                                                                                   |
 | version           | int64       | Config policy version                                                                                      |
-| priority          | int64       | Priority, smaller value means higher priority                                                              |
 | target_host_ids   | int64 array | Target host ID list                                                                                        |
 
 #### data.scopes[n]

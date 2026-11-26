@@ -103,9 +103,9 @@ Query enabled plugin config policies under business `2`.
         "updated_time": 1744675200000,
         "operator": "admin",
         "version": 3,
-        "priority": 1,
         "target_host_ids": [1001, 1002],
-        "target_plugin_name": "bkmonitorbeat"
+        "target_plugin_name": "bkmonitorbeat",
+        "priority_rank": 1
       }
     ]
   }
@@ -148,9 +148,9 @@ Query enabled plugin config policies under business `2`.
 | updated_time       | int64       | Update time, Unix timestamp in milliseconds                                                                |
 | operator           | string      | Operator                                                                                                   |
 | version            | int64       | Config policy version                                                                                      |
-| priority           | int64       | Priority, smaller value means higher priority                                                              |
 | target_host_ids    | int64 array | Target host ID list                                                                                        |
 | target_plugin_name | string      | Target plugin name                                                                                         |
+| priority_rank      | int64       | Priority rank among enabled policies in the filtered results, starting at `1` and continuing across pages. Returned only for enabled policies. |
 
 #### data.items[n].scopes[n]
 

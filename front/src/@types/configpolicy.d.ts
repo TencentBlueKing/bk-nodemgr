@@ -132,7 +132,6 @@ export interface ConfigPolicyUpdateReq {
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
   operator: string;
-  priority: number;
   target_host_ids: number[];
   target_plugin_name: string;
 }
@@ -266,7 +265,6 @@ export interface ConfigPolicyPreviewResp {
 export interface ConfigPolicyPreviewRespMatchedPolicy {
   configpolicy_id: number;
   configpolicy_name: string;
-  priority: number;
 }
 
 export interface ConfigPolicyPreviewRespPreviewItem {

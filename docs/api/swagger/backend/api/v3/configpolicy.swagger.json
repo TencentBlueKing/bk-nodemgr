@@ -401,10 +401,6 @@
         },
         "configpolicy_name": {
           "type": "string"
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
@@ -547,10 +543,6 @@
           "type": "integer",
           "format": "int64"
         },
-        "priority": {
-          "type": "integer",
-          "format": "int64"
-        },
         "target_host_ids": {
           "type": "array",
           "items": {
@@ -560,6 +552,11 @@
         },
         "target_plugin_name": {
           "type": "string"
+        },
+        "priority_rank": {
+          "type": "integer",
+          "format": "int64",
+          "title": "列表筛选结果中的优先级序号，从 1 开始。禁用策略和详情响应的值为空。"
         }
       },
       "description": "ConfigPolocy decribes the config policy."
@@ -1365,10 +1362,6 @@
         },
         "operator": {
           "type": "string"
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int64"
         },
         "target_host_ids": {
           "type": "array",

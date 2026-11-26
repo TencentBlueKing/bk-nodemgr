@@ -131,10 +131,9 @@ message ConfigPolicyUpdateReq {
   string remark = 5;
   repeated ConfigPolicyScope scopes = 6;
   repeated ConfigPolicyConfigBlock configs = 7;
-  string operator = 9;
-  int64 priority = 10;
-  repeated int64 target_host_ids = 11;
-  optional string target_plugin_name = 12;
+  string operator = 8;
+  repeated int64 target_host_ids = 9;
+  optional string target_plugin_name = 10;
 }
 
 // ConfigPolicyUpdateResp describes HTTP response body when update config
@@ -252,7 +251,6 @@ message ConfigPolicyPreviewResp {
   message MatchedPolicy {
     int64 configpolicy_id = 1;
     string configpolicy_name = 2;
-    int64 priority = 3;
   }
 
   message PreviewItem {

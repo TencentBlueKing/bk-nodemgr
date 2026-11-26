@@ -45,6 +45,10 @@ type ConfigPolicy struct {
 	Priority         int64
 	UpdatedAt        time.Time
 	Operator         string
+
+	// PriorityRank is the one-based position in the filtered list.
+	// Unranked items use ConfigPolicyPriorityDisabled.
+	PriorityRank int64
 }
 
 // Validate config policy type.
@@ -68,7 +72,6 @@ type ConfigPolicyFields struct {
 	TargetHostIDs    bool
 	TargetPluginName bool
 	Configs          bool
-	Priority         bool
 	Operator         bool
 }
 
@@ -81,7 +84,6 @@ func UpdateAllConfigPolicyFields() ConfigPolicyFields {
 		TargetHostIDs:    true,
 		TargetPluginName: true,
 		Configs:          true,
-		Priority:         true,
 		Operator:         true,
 	}
 }
@@ -90,7 +92,6 @@ func UpdateAllConfigPolicyFields() ConfigPolicyFields {
 type ConfigPolicyMatchedPolicy struct {
 	PolicyID   int64
 	PolicyName string
-	Priority   int64
 }
 
 // ConfigPolicyMatchResult holds the match result.
