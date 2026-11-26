@@ -348,6 +348,37 @@ platform:
   pkgManagerName: Package Management
   platformManagerName: Platform Management
   platformManagerComingSoon: This feature is not available yet
+schedulerWorkflow:
+  refresh: Refresh
+  refreshLogs: Refresh logs
+  searchPlaceholder: Exact match by task name, Workflow ID, or operator
+  loadFailed: Failed to load data. Refresh to retry.
+  name: Task name
+  interval: Schedule interval
+  scheduleStatus: Schedule status
+  enabled: Enabled
+  disabled: Disabled
+  operator: Operator
+  operateTime: Operation time
+  createTime: Creation time
+  history: Execution history
+  executionStatus: Execution status
+  instance: Execution instance
+  parentOperation: Parent operation ID
+  parentInstance: Parent instance ID
+  extraLogs: Extra execution logs
+  noLogs: No logs
+  states:
+    init: Initializing
+    launched: Waiting
+    pending: Pending
+    running: Running
+    success: Succeeded
+    failed: Failed
+    timeout: Timed out
+    terminated: Terminated
+    skipped: Skipped
+    unknown: Unknown
 pluginManagement:
   pluginGroupName: Plugin
   plugin:
