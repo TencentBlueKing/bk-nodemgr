@@ -101,6 +101,10 @@ const (
 	defaultBackendMongoDBAppName          = "bk_nodemgr_backend"
 	defaultBackendMongoDBTraceServiceName = "bk_nodemgr_mongo"
 
+	defaultBackendJinja2xTraceServiceName = "backend-client-jinja2x"
+	defaultBackendJinja2xStartPort        = 28150
+	defaultBackendJinja2xEndPort          = 28159
+
 	defaultBackendWorkflowTraceServiceName            = "workflow"
 	defaultBackendWorkflowWorkerNum                   = 10
 	defaultBackendWorkflowGracefulShutdownTimeoutSecs = 60
@@ -200,7 +204,8 @@ type BackendService struct {
 
 // Jinja2x configures the embedded Jinja2 renderer.
 type Jinja2x struct {
-	PortRange Jinja2xPortRange `yaml:"portRange" usage:"local renderer port range"`
+	TraceService `yaml:",inline"`
+	PortRange    Jinja2xPortRange `yaml:"portRange" usage:"local renderer port range"`
 }
 
 // Jinja2xPortRange defines the inclusive range of loopback ports.
@@ -209,14 +214,18 @@ type Jinja2xPortRange struct {
 	End   int `yaml:"end" usage:"last renderer port"`
 }
 
-// Validate validates the renderer port range.
-func (c Jinja2x) Validate() error {
-	if c.PortRange.Start < 1 || c.PortRange.Start > 65535 {
+// Validate validates the renderer configuration.
+func (conf Jinja2x) Validate() error {
+	if err := conf.TraceService.Validate(); err != nil {
+		return err
+	}
+	if conf.PortRange.Start < 1 || conf.PortRange.Start > 65535 {
 		return fmt.Errorf("jinja2x.portRange.start must be between 1 and 65535")
 	}
-	if c.PortRange.End < c.PortRange.Start || c.PortRange.End > 65535 {
+	if conf.PortRange.End < conf.PortRange.Start || conf.PortRange.End > 65535 {
 		return fmt.Errorf("jinja2x.portRange.end must be between start and 65535")
 	}
+
 	return nil
 }
 
@@ -308,7 +317,10 @@ func NewBackendService() *BackendService {
 				TaskProcEventDataID:       defaultBackendTaskProcEventDataID,
 			},
 		},
-		Jinja2x: Jinja2x{PortRange: Jinja2xPortRange{Start: 28150, End: 28159}},
+		Jinja2x: Jinja2x{
+			TraceService: TraceService{TraceServiceName: defaultBackendJinja2xTraceServiceName},
+			PortRange:    Jinja2xPortRange{Start: defaultBackendJinja2xStartPort, End: defaultBackendJinja2xEndPort},
+		},
 		Workflow: Workflow{
 			TraceService: TraceService{
 				TraceServiceName: defaultBackendWorkflowTraceServiceName,

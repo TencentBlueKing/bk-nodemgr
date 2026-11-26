@@ -91,6 +91,8 @@ jinja2x:
   portRange:
     start: __BK_NODEMGR_BACKEND_RENDER_JINJA2X_PORT_RANGE_START__
     end: __BK_NODEMGR_BACKEND_RENDER_JINJA2X_PORT_RANGE_END__
+  traceServiceName: "backend-client-jinja2x"
+  traceSampleRate: 0
 
 # workflow defines the backend workflow settings.
 workflow:

@@ -115,14 +115,16 @@ func extractJinja2ExecBinary() (string, func(), error) {
 	return tmpFile.Path(), cleanup, nil
 }
 
+// The embedded process has a lifecycle independent from the starting request.
+// nolint: contextcheck
 func startServer(ctx context.Context, start, end int) (*serverProcess, error) {
 	binPath, err := jinja2ExecBinaryPath()
 	if err != nil {
 		return nil, err
 	}
 	token := rand.Text()
-	// The shared process must outlive the render request that starts it.
-	processCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
+	// The shared process must not retain the render request's context.
+	processCtx, cancel := context.WithCancel(context.Background())
 	// nolint: gosec
 	cmd := exec.CommandContext(processCtx, binPath, "--serve", strconv.Itoa(start), strconv.Itoa(end))
 	cmd.Env = append(os.Environ(), "JINJA2_SERVER_TOKEN="+token)
@@ -188,7 +190,11 @@ func startServer(ctx context.Context, start, end int) (*serverProcess, error) {
 			process.stop()
 			return nil, fmt.Errorf("jinja2 server failed to bind configured port range %d-%d", start, end)
 		}
-		process.client = newClient(port, token)
+		process.client, err = newClient(port, token)
+		if err != nil {
+			process.stop()
+			return nil, err
+		}
 		if err := process.client.request(startupCtx, http.MethodGet, "/healthz", nil, &struct{}{}); err != nil {
 			process.stop()
 			return nil, fmt.Errorf("jinja2 server readiness check failed: %w", err)

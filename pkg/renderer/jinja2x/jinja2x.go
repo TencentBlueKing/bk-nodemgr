@@ -20,8 +20,9 @@
 package jinja2x
 
 import (
-	"context"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
 const renderTimeout = time.Minute
@@ -32,7 +33,12 @@ type Handler struct {
 
 // Render implement IHandler.
 func (h Handler) Render(tmpl string, content map[string]any) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), renderTimeout)
+	return h.RenderWithContext(contextx.Background(), tmpl, content)
+}
+
+// RenderWithContext renders a template with the caller's trace context and deadline.
+func (h Handler) RenderWithContext(nCtx contextx.IContext, tmpl string, content map[string]any) (string, error) {
+	ctx, cancel := contextx.WithTimeout(nCtx, renderTimeout)
 	defer cancel()
 
 	client, err := defaultServer.getClient(ctx)
