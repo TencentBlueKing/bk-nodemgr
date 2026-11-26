@@ -68,7 +68,7 @@ func TestInitTenantCommandSeparatesAuthTenantAndTargetTenant(t *testing.T) {
 	cmd.SetOut(out)
 	cmd.SetErr(out)
 	cmd.SetArgs([]string{"--target-tenant-id", "target-tenant"})
-	cmd.SetContext(contextx.New(context.Background(), contextx.WithTenantID("base"), contextx.WithLoginName("base-login")))
+	cmd.SetContext(contextx.New(context.Background(), contextx.WithTenantID("base")))
 
 	err := cmd.Execute()
 
@@ -76,7 +76,7 @@ func TestInitTenantCommandSeparatesAuthTenantAndTargetTenant(t *testing.T) {
 	assert.Equal(t, 1, handler.calls)
 	assert.Equal(t, "auth-tenant", handler.nCtx.TenantID())
 	assert.Empty(t, handler.nCtx.BKUsername())
-	assert.Equal(t, "admin", handler.nCtx.LoginName())
+	assert.Empty(t, handler.nCtx.LoginName())
 	assert.Equal(t, "target-tenant", handler.targetTenantID)
 	assert.Contains(t, out.String(), "Successfully initialized tenant")
 }
@@ -153,7 +153,7 @@ func TestBackendCMDUsesTenantIDFromTenantMode(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, 1, handler.initCalls)
 			assert.Equal(t, tt.wantTenantID, handler.initTenantCtx.TenantID())
-			assert.Equal(t, "admin", handler.initTenantCtx.LoginName())
+			assert.Empty(t, handler.initTenantCtx.LoginName())
 			assert.Equal(t, "target-tenant", handler.initTenantID)
 		})
 	}

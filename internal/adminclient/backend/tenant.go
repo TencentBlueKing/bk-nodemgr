@@ -65,12 +65,8 @@ func NewInitTenantCMD(
 				return fmt.Errorf("backend handler does not support initializing tenants")
 			}
 
-			tenantID, loginName := getAuthInfo()
-			nCtx := contextx.New(
-				cmd.Context(),
-				contextx.WithTenantID(tenantID),
-				contextx.WithLoginName(loginName),
-			)
+			tenantID, _ := getAuthInfo()
+			nCtx := contextx.New(cmd.Context(), contextx.WithTenantID(tenantID))
 			result, err := handler.InitTenant(nCtx, targetTenantID)
 			if err != nil {
 				return err
