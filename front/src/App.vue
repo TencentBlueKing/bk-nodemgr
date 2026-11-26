@@ -545,6 +545,7 @@ watch(
   { immediate: true },
 );
 onBeforeMount(async () => {
+  void authStore.fetchAuthorized(getModuleAuthorizedItems('platformManager'), 'platformManager');
   userStore.getUser();
   // 获取平台配置信息
   await getPlatformInfo();
