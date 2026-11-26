@@ -64,7 +64,9 @@ bk-nodemgr-adminclient database redis [-f config] [login|status]
 | `login`（默认） | 打开交互式 redis-cli 会话 |
 | `status` | `PING` 并输出简要服务器信息（cluster 模式输出 `CLUSTER INFO`） |
 
-密码通过 `REDISCLI_AUTH` 环境变量传递，不出现在进程参数中。sentinel 模式先经首个 sentinel 解析 master 地址再连接；cluster 模式自动加 `-c`。
+密码通过 `REDISCLI_AUTH` 环境变量传递。Sentinel 模式先经首个 Sentinel 解析主节点地址。启用了 Sentinel 密码认证时，查询使用 `redis.sentinelPassword`，随后连接主节点使用 `redis.password`。Cluster 模式自动加 `-c`。
+
+KMS 模式下，`redis.sentinelPassword` 从 global envelope 的 `redis.default.sentinel_password` 读取并覆盖配置文件中的值。
 
 ## mongodb：mongo shell 代理
 

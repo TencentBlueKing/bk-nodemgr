@@ -102,6 +102,9 @@ Params: dict "root" . "workflow" <workflow config values>
       db: {{ .root.Values.externalRedis.db }}
       {{- if eq .root.Values.externalRedis.type "sentinel" }}
       masterName: {{ .root.Values.externalRedis.masterName }}
+      {{- with .root.Values.externalRedis.sentinelPassword }}
+      sentinelPassword: {{ . | quote }}
+      {{- end }}
       {{- end }}
       tls:
         {{- if len .root.Values.externalRedis.tls.ca }}

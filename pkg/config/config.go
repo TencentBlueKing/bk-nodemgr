@@ -150,6 +150,8 @@ type Redis struct {
 	DB int `yaml:"db" usage:"db of redis (standalone/sentinel mode only)"`
 	// MasterName is the name of the master node (sentinel mode only).
 	MasterName string `yaml:"masterName" usage:"master name (sentinel mode only)"`
+	// SentinelPassword is the optional password for authenticating to Sentinel.
+	SentinelPassword string `yaml:"sentinelPassword" usage:"password of redis sentinel (sentinel mode only)"`
 	// TLS defines the TLS configuration.
 	TLS TLSConfig `yaml:"tls" usage:"tls of redis"`
 

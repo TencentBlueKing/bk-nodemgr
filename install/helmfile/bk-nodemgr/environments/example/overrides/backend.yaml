@@ -1,3 +1,7 @@
 # Native Helm chart values override for the backend release.
 # Put normal environment settings in environments/example/env.yaml under backend:.
 # Use this file only for release-local chart values that the shared template does not cover.
+
+# For an external Redis Sentinel that requires authentication:
+# externalRedis:
+#   sentinelPassword: ""
