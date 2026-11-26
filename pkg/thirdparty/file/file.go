@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"time"
@@ -2893,6 +2894,40 @@ func (c *cli) getPluginRequirement(nCtx contextx.IContext, req *protoFile.Plugin
 	}
 
 	return resp, nil
+}
+
+func (c *cli) downloadPluginRequirement(nCtx contextx.IContext, req *protoFile.PluginRequirementDownloadReq) (*restserver.StreamResponse, error) {
+	header, err := c.getCommonHeader(nCtx, nCtx.TenantID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate file service headers: %w", err)
+	}
+
+	result := c.client.Get().
+		SubResourcef("/plugin/requirement/download").
+		WithContext(nCtx).
+		WithHeaders(header).
+		WithParam("requirement_file_id", req.GetRequirementFileId()).
+		Do()
+	content, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin requirement content: %w", err)
+	}
+
+	contentType, _, err := mime.ParseMediaType(result.Header.Get("Content-Type"))
+	if result.StatusCode != http.StatusOK || err != nil || contentType != restserver.MIMETypeBin.String() {
+		_ = content.Close()
+		return nil, fmt.Errorf("unexpected plugin requirement download response, status(%d), content-type(%q)",
+			result.StatusCode, result.Header.Get("Content-Type"))
+	}
+
+	headers := make(http.Header)
+	for _, name := range []string{"Content-Type", "Content-Disposition", "Content-Length"} {
+		if value := result.Header.Get(name); value != "" {
+			headers.Set(name, value)
+		}
+	}
+
+	return &restserver.StreamResponse{Data: content, StatusCode: result.StatusCode, Headers: headers}, nil
 }
 
 func (c *cli) transferPluginRequirement(nCtx contextx.IContext, req *protoFile.PluginRequirementTransferReq) (

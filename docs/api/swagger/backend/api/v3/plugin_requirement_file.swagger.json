@@ -156,39 +156,6 @@
         ]
       }
     },
-    "/api/v3/plugin/requirement/transfer": {
-      "post": {
-        "summary": "使用记录中的下发文件名启动单主机传输。任务 ID\n表示传输已发起，结果需另行查询。",
-        "operationId": "PluginRequirement_Transfer",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PluginRequirementTransferResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PluginRequirementTransferReq"
-            }
-          }
-        ],
-        "tags": [
-          "PluginRequirement"
-        ]
-      }
-    },
     "/api/v3/plugin/requirement/update": {
       "post": {
         "summary": "替换依赖文件的名称和正文，保留记录 ID、归属插件和适用范围。",
@@ -671,72 +638,6 @@
             "$ref": "#/definitions/v3PluginRequirementFile"
           },
           "title": "当前页的依赖文件记录。"
-        }
-      }
-    },
-    "v3PluginRequirementTransferReq": {
-      "type": "object",
-      "properties": {
-        "requirement_file_id": {
-          "type": "string",
-          "title": "依赖文件记录的 UUID。"
-        },
-        "target_dir": {
-          "type": "string",
-          "title": "目标主机上的文件目录，不得为空。"
-        },
-        "target_host_id": {
-          "type": "integer",
-          "format": "int64",
-          "title": "目标主机 ID。"
-        }
-      },
-      "title": "传输插件依赖文件到目标主机的参数。"
-    },
-    "v3PluginRequirementTransferResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PluginRequirementTransferRespData"
-        }
-      },
-      "title": "已发起的依赖文件传输任务。"
-    },
-    "v3PluginRequirementTransferRespData": {
-      "type": "object",
-      "properties": {
-        "task_id": {
-          "type": "string",
-          "title": "传输任务 ID，用于查询传输状态。"
-        },
-        "target_file_name": {
-          "type": "string",
-          "title": "下发到目标主机的文件名。"
-        },
-        "file_md5": {
-          "type": "string",
-          "title": "本次传输文件的 MD5。"
-        },
-        "file_size": {
-          "type": "integer",
-          "format": "int64",
-          "title": "本次传输文件的大小，单位为字节。"
         }
       }
     },

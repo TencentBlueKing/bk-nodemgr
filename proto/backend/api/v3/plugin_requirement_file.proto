@@ -182,38 +182,7 @@ message PluginRequirementDownloadReq {
 // 插件依赖文件的二进制内容。HTTP 下载直接返回文件正文。
 message PluginRequirementDownloadResp { bytes content = 1; }
 
-// 传输插件依赖文件到目标主机的参数。
-message PluginRequirementTransferReq {
-  // 依赖文件记录的 UUID。
-  string requirement_file_id = 1;
-  // 目标主机上的文件目录，不得为空。
-  string target_dir = 2;
-  // 目标主机 ID。
-  int64 target_host_id = 3;
-}
-
-// 已发起的依赖文件传输任务。
-message PluginRequirementTransferResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {
-    // 传输任务 ID，用于查询传输状态。
-    optional string task_id = 1;
-    // 下发到目标主机的文件名。
-    optional string target_file_name = 2;
-    // 本次传输文件的 MD5。
-    optional string file_md5 = 3;
-    // 本次传输文件的大小，单位为字节。
-    optional int64 file_size = 4;
-  }
-  Data data = 5;
-}
-
-// 管理当前租户的插件依赖文件及其传输。
+// 管理当前租户的插件依赖文件。
 service PluginRequirement {
   // 为指定插件创建依赖文件，返回文件记录和内容校验信息。
   rpc Create(PluginRequirementCreateReq) returns (PluginRequirementCreateResp) {
@@ -261,16 +230,6 @@ service PluginRequirement {
       returns (stream PluginRequirementDownloadResp) {
     option (google.api.http) = {
       get : "/api/v3/plugin/requirement/download"
-    };
-  }
-
-  // 使用记录中的下发文件名启动单主机传输。任务 ID
-  // 表示传输已发起，结果需另行查询。
-  rpc Transfer(PluginRequirementTransferReq)
-      returns (PluginRequirementTransferResp) {
-    option (google.api.http) = {
-      post : "/api/v3/plugin/requirement/transfer"
-      body : "*"
     };
   }
 }

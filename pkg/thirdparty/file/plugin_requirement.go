@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -39,7 +40,8 @@ type IPluginRequirementHandler interface {
 		*types.PluginRequirementFileRecord, error)
 
 	// UpdatePluginRequirementScope replaces a stored file's applicability without replacing its content.
-	UpdatePluginRequirementScope(nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope) (*types.PluginRequirementFileRecord, error)
+	UpdatePluginRequirementScope(nCtx contextx.IContext, id string, scope types.PluginRequirementFileScope) (
+		*types.PluginRequirementFileRecord, error)
 
 	// ListPluginRequirements retrieves one page of file records using exact filters.
 	ListPluginRequirements(nCtx contextx.IContext, page types.Page, condition *types.PluginRequirementFileCondition) (
@@ -47,6 +49,9 @@ type IPluginRequirementHandler interface {
 
 	// GetPluginRequirement retrieves a stored file record by ID.
 	GetPluginRequirement(nCtx contextx.IContext, id string) (*types.PluginRequirementFileRecord, error)
+
+	// DownloadPluginRequirement streams a stored file by ID.
+	DownloadPluginRequirement(nCtx contextx.IContext, id string) (*restserver.StreamResponse, error)
 
 	// LaunchTransferPluginRequirement transfers a stored file to a host.
 	LaunchTransferPluginRequirement(nCtx contextx.IContext, requirementFileID, targetDir string, targetHost *types.Host) (
@@ -148,6 +153,20 @@ func (h *handler) GetPluginRequirement(nCtx contextx.IContext, id string) (*type
 	}
 
 	return resp.GetData().ConvertFileToTypes(), nil
+}
+
+// DownloadPluginRequirement streams a stored file by ID.
+func (h *handler) DownloadPluginRequirement(nCtx contextx.IContext, id string) (*restserver.StreamResponse, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.downloadPluginRequirement(nCtx, &protoFile.PluginRequirementDownloadReq{RequirementFileId: id})
+	if err != nil {
+		return nil, fmt.Errorf("failed to download plugin requirement: %w", err)
+	}
+
+	return resp, nil
 }
 
 // LaunchTransferPluginRequirement transfers a stored file to a host.
