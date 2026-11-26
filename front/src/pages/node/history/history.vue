@@ -362,7 +362,8 @@ const restoreFiltersFromQuery = (query: LocationQuery) => {
     const start = Number(query.date_start) * 1000;
     const end = Number(query.date_end) * 1000;
     if (start > 0 && end > 0) {
-      dateValue.value = [start, end];
+      // DatePicker 的区间值必须是 Date 对象，直接塞时间戳会在内部调用 getHours() 时报错
+      dateValue.value = [new Date(start), new Date(end)];
     }
   }
 
@@ -413,8 +414,10 @@ const pageValueChange = async (current: number) => {
 const loading = ref(false);
 
 // 日期选择
-const dateValue = ref([
-  new Date().setTime(new Date().getTime() - 3600 * 1000 * 24 * 7),
+// 注意：这里必须是 Date 对象。new Date().setTime(...) 返回的是时间戳 number，
+// 传入 DatePicker 会导致内部调用 getHours() 时报 "getHour is not a function"
+const dateValue = ref<[Date, Date]>([
+  new Date(new Date().getTime() - 3600 * 1000 * 24 * 7),
   new Date(),
 ]);
 const shortcutsRange = reactive([
@@ -846,7 +849,7 @@ const filterOptionSource = reactive<Record<string, FilterOption>>({
   },
 });
 
-const getTimestampInSeconds = (originalDate: string) => {
+const getTimestampInSeconds = (originalDate: number | Date) => {
   const timestampInMilliseconds = new Date(originalDate).getTime();
   const timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
   return timestampInSeconds;

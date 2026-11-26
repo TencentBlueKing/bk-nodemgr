@@ -542,6 +542,18 @@ const (
 	// GseTemplateKeyFileBittorrentTrackerBindPort the config template key of gse file bittorrent tracker bind port.
 	GseTemplateKeyFileBittorrentTrackerBindPort = "__BK_GSE_FILE_BITTORRENT_TRACKER_BIND_PORT__"
 
+	// GseTemplateKeyFileAgentBindPortV1 the config template key of gse file agent v1 bind port.
+	GseTemplateKeyFileAgentBindPortV1 = "__BK_GSE_FILE_AGENT_BIND_PORT_V1__"
+
+	// GseTemplateKeyFileTopologyThriftBindPort the config template key of gse file topology thrift bind port.
+	GseTemplateKeyFileTopologyThriftBindPort = "__BK_GSE_FILE_TOPOLOGY_THRIFT_BIND_PORT__"
+
+	// GseTemplateKeyFileMetricExporterBindPort the config template key of gse file metric exporter bind port.
+	GseTemplateKeyFileMetricExporterBindPort = "__BK_GSE_FILE_METRIC_EXPORTER_BIND_PORT__"
+
+	// GseTemplateKeyDataMetricExporterBindPort the config template key of gse data metric exporter bind port.
+	GseTemplateKeyDataMetricExporterBindPort = "__BK_GSE_DATA_METRIC_EXPORTER_BIND_PORT__"
+
 	// GseTemplateKeyFileBittorrentSpeedLimitMBPerSec the config template key of gse file bittorrent speed limit mb per sec.
 	GseTemplateKeyFileBittorrentSpeedLimitMBPerSec = "__BK_GSE_FILE_BITTORRENT_SPEED_LIMIT_MB_PER_SEC__"
 
@@ -720,24 +732,23 @@ func (act *actionRenderNodeDeployment) renderLogicSettingNetwork(std *nodeUtils.
 				return fmt.Errorf("failed to get node deploy conf: %w", err)
 			}
 
-			// Bind IPs default to "::" for dual-stack support; release port and speed values retain precedence.
+			// Global deploy conf takes precedence over the values shipped in the release package.
 			nodeConf.PreSetting[GseTemplateKeyDataAgentBindIP] = deployConstant.DataAgentBindIP
-			nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort], deployConstant.DataAgentBindPort)
+			nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort] = deployConstant.DataAgentBindPort
 			nodeConf.PreSetting[GseTemplateKeyFileAgentBindIP] = deployConstant.FileAgentBindIP
-			nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort], deployConstant.FileAgentBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort] = deployConstant.FileAgentBindPort
+			nodeConf.PreSetting[GseTemplateKeyFileAgentBindPortV1] = deployConstant.FileAgentBindPortV1
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindIP] = deployConstant.FileTopologyBindIP
-			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort], deployConstant.FileTopologyBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort] = deployConstant.FileTopologyBindPort
+			nodeConf.PreSetting[GseTemplateKeyFileTopologyThriftBindPort] = deployConstant.FileTopologyThriftBindPort
 			nodeConf.PreSetting[GseTemplateKeyProxyBindIP] = deployConstant.ProxyBindIP
-			nodeConf.PreSetting[GseTemplateKeyProxyBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyProxyBindPort], deployConstant.ProxyBindPort)
+			nodeConf.PreSetting[GseTemplateKeyProxyBindPort] = deployConstant.ProxyBindPort
 			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindIP] = deployConstant.FileBittorrentBindIP
-			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort], deployConstant.FileBittorrentBindPort)
-			nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort] =
-				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort], deployConstant.FileBittorrentTrackerBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort] = deployConstant.FileBittorrentBindPort
+			nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort] = deployConstant.FileBittorrentTrackerBindPort
+			nodeConf.PreSetting[GseTemplateKeyFileMetricExporterBindPort] = deployConstant.FileMetricExporterBindPort
+			nodeConf.PreSetting[GseTemplateKeyDataMetricExporterBindPort] = deployConstant.DataMetricExporterBindPort
+			// The speed limit is not exposed globally; the release value retains precedence.
 			nodeConf.PreSetting[GseTemplateKeyFileBittorrentSpeedLimitMBPerSec] =
 				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentSpeedLimitMBPerSec], deployConstant.FileBittorrentSpeedLimitMBPerSec)
 

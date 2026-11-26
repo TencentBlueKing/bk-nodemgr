@@ -94,6 +94,7 @@ const (
 	metricOperationUpdateProcessInfo                  = "update_process_info"
 	metricOperationUpdateManyProcessInfo              = "update_many_process_info"
 	metricOperationMarkExpiredProcessesUnknown        = "mark_expired_processes_unknown"
+	metricOperationMarkExpiredRunningProcessesUnknown = "mark_expired_running_processes_unknown"
 	metricOperationUpdateProcessBizID                 = "update_process_biz_id"
 	metricOperationDeleteProcess                      = "delete_process"
 	metricOperationExistProcess                       = "exist_process"
@@ -110,15 +111,16 @@ const (
 	metricOperationListProcessConfig                      = "list_process_config"
 	metricOperationCountProcessConfig                     = "count_process_config"
 
-	metricOperationCreateProcessV2         = "create_process_v2"
-	metricOperationExistProcessV2          = "exist_process_v2"
-	metricOperationUpdateProcessV2         = "update_process_v2"
-	metricOperationUpdateProcessInfoV2     = "update_process_info_v2"
-	metricOperationGetProcessV2            = "get_process_v2"
-	metricOperationListProcessV2           = "list_process_v2"
-	metricOperationCountProcessV2          = "count_process_v2"
-	metricOperationUpdateManyProcessInfoV2 = "update_many_process_info_v2"
-	metricOperationDeleteProcessV2         = "delete_process_v2"
+	metricOperationCreateProcessV2                      = "create_process_v2"
+	metricOperationExistProcessV2                       = "exist_process_v2"
+	metricOperationUpdateProcessV2                      = "update_process_v2"
+	metricOperationUpdateProcessInfoV2                  = "update_process_info_v2"
+	metricOperationGetProcessV2                         = "get_process_v2"
+	metricOperationListProcessV2                        = "list_process_v2"
+	metricOperationCountProcessV2                       = "count_process_v2"
+	metricOperationUpdateManyProcessInfoV2              = "update_many_process_info_v2"
+	metricOperationDeleteProcessV2                      = "delete_process_v2"
+	metricOperationMarkExpiredRunningProcessesV2Unknown = "mark_expired_running_processes_v2_unknown"
 
 	metricOperationUpsertManyProcessConfigsV2               = "upsert_many_process_configs_v2"
 	metricOperationGetProcessConfigV2                       = "get_process_config_v2"
@@ -1088,6 +1090,24 @@ func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessD
 func (s *Storage) MarkExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error {
 	err := s.WrapFn(nCtx, metricOperationMarkExpiredProcessesUnknown, func(nCtx contextx.IContext) error {
 		return s.markExpiredProcessesUnknown(nCtx, hostIDs, deadline)
+	})
+
+	return err
+}
+
+// MarkExpiredRunningProcessesUnknown marks stale running processes unknown and refreshes their last sync time for the specified hosts.
+func (s *Storage) MarkExpiredRunningProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error {
+	err := s.WrapFn(nCtx, metricOperationMarkExpiredRunningProcessesUnknown, func(ctx contextx.IContext) error {
+		return s.markExpiredRunningProcessesUnknown(ctx, hostIDs, deadline)
+	})
+
+	return err
+}
+
+// MarkExpiredRunningProcessesV2Unknown marks stale running v2 processes unknown and refreshes their last sync time for the specified hosts.
+func (s *Storage) MarkExpiredRunningProcessesV2Unknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error {
+	err := s.WrapFn(nCtx, metricOperationMarkExpiredRunningProcessesV2Unknown, func(ctx contextx.IContext) error {
+		return s.markExpiredRunningProcessesV2Unknown(ctx, hostIDs, deadline)
 	})
 
 	return err

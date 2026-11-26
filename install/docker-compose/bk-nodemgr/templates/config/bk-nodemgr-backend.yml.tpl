@@ -87,6 +87,11 @@ proxyServer:
   traceServiceName: "backend-server-proxy"
   traceSampleRate: 0
 
+jinja2x:
+  portRange:
+    start: __BK_NODEMGR_BACKEND_RENDER_JINJA2X_PORT_RANGE_START__
+    end: __BK_NODEMGR_BACKEND_RENDER_JINJA2X_PORT_RANGE_END__
+
 # workflow defines the backend workflow settings.
 workflow:
   workerNum: __BK_NODEMGR_BACKEND_WORKFLOW_WORKER_NUM__
@@ -106,21 +111,24 @@ gseDeployConfs:
     baseDeployDir: "/usr/local/"
     manualScriptPath: "/bk-nodemgr/script/manual/linux/install.sh"
     custom:
-      # Global Linux Proxy rendering defaults; empty IPs and zero numbers use built-in defaults.
-      # Existing release port/speed values retain precedence. Restart backend after changes;
-      # existing Proxy nodes also require reconfig.
+      # Global Linux Proxy network settings. Empty IPs and zero ports use the built-in defaults below.
+      # These values override the ones shipped in the Proxy release package env file.
+      # Restart backend after changes; existing Proxy nodes also require reconfig.
       dataAgentBindIP: "::"
       dataAgentBindPort: 28625
       fileAgentBindIP: "::"
       fileAgentBindPort: 28925
+      fileAgentBindPortV1: 58925
       proxyBindIP: "::"
       proxyBindPort: 28668
       fileBittorrentBindIP: "::"
       fileBittorrentBindPort: 10020
       fileBittorrentTrackerBindPort: 10030
-      fileBittorrentSpeedLimitMBPerSec: 10000
       fileTopologyBindIP: "::"
       fileTopologyBindPort: 28930
+      fileTopologyThriftBindPort: 58930
+      fileMetricExporterBindPort: 29404
+      dataMetricExporterBindPort: 29402
     pluginCustom:
       v2RunDir: ""
       v2DataDir: ""
@@ -172,7 +180,7 @@ cmdb:
 
 # defines the UserManager (bk-apigw) related settings.
 userManager:
-  # Enable only on BlueKing platform 7.2; keep both services in sync.
+  # Enable only on BlueKing platform 7.2; keep all three services in sync.
   # BlueKing 7.3 requires lookup in both single and multiple tenant modes.
   useLegacyUsername: false
   supplierAccount: "0"

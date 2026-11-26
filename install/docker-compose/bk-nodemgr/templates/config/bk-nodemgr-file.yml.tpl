@@ -134,6 +134,21 @@ gse:
   traceServiceName: "file-client-gse"
   traceSampleRate: 0
 
+# user manager settings.
+userManager:
+  # Enable only on BlueKing platform 7.2; keep all three services in sync.
+  # BlueKing 7.3 requires lookup in both single and multiple tenant modes.
+  useLegacyUsername: false
+  endpoints:
+    - "__BK_NODEMGR_USER_MANAGER_ENDPOINT__"
+  appCode: __BK_NODEMGR_APPCODE__
+  appSecret: __BK_NODEMGR_APPSECRET__
+  user: __BK_NODEMGR_VIRTUAL_USER__
+  authMode: "un"
+  accessToken: ""
+  traceServiceName: "file-client-usermanager"
+  traceSampleRate: 0
+
 # log settings.
 log:
   dir: /bk-nodemgr/log/

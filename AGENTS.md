@@ -4,6 +4,8 @@
 |Compression Rule:Follow pipe-index format; keep concise; no prose/code blocks
 |Scope:repo-root
 |Overview:BlueKing Node Manager monorepo; Go multi-service backend + Vue3/TypeScript frontend|runtime domains split by service in cmd/internal and shared libraries in pkg
+|Product terminology:current project=nodemgr (Node Manager 3.0)|legacy project=nodeman (Node Manager 2.0)
+|Version terminology:most v2 references in this codebase denote compatibility interfaces/adapters for nodeman 2.0, not a second version of nodemgr itself|confirm each reference from its context; do not assume every v2 denotes nodeman compatibility
 |Structure:./:{cmd,internal,pkg,proto,front,tools,install,testsuite,docs}
 |Where to look:service startup/wiring:`cmd/*`|`internal/*`/service:{cmd/backend/main.go,cmd/file/main.go,cmd/relay/main.go,cmd/application/root.go}
 |Where to look:API routers/handlers:`internal/*`/router/api-v3:routing is service-scoped

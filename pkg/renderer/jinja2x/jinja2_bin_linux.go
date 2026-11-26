@@ -21,17 +21,23 @@
 package jinja2x
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer/jinja2x/jinja2"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
@@ -109,63 +115,101 @@ func extractJinja2ExecBinary() (string, func(), error) {
 	return tmpFile.Path(), cleanup, nil
 }
 
-func jinja2ExecRunCmd(ctx context.Context, args []string, envs []string) (string, string, error) {
+func startServer(ctx context.Context, start, end int) (*serverProcess, error) {
 	binPath, err := jinja2ExecBinaryPath()
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
-
+	token := rand.Text()
+	// The shared process must outlive the render request that starts it.
+	processCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
 	// nolint: gosec
-	cmd := exec.CommandContext(ctx, binPath, args...)
-	cmd.Env = envs
-	// Create a new process group and set Pdeathsig to ensure all child processes
-	// (including staticx-forked Python processes) are killed when the parent dies.
-	// Pdeathsig ensures that if jinja2_exec is killed, its children receive SIGKILL
-	// immediately, preventing them from becoming orphaned zombies adopted by backend.
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid:   true,            // Create new process group
-		Pdeathsig: syscall.SIGKILL, // Kill children when parent dies
+	cmd := exec.CommandContext(processCtx, binPath, "--serve", strconv.Itoa(start), strconv.Itoa(end))
+	cmd.Env = append(os.Environ(), "JINJA2_SERVER_TOKEN="+token)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true, Pdeathsig: syscall.SIGKILL}
+	cmd.Cancel = func() error { return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) }
+	cmd.WaitDelay = 0
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		cancel()
+		return nil, err
 	}
-	// WaitDelay specifies how long to wait after the context is canceled
-	// before sending SIGKILL to the process group.
-	cmd.WaitDelay = 0 // Kill immediately after context cancellation
-	// Kill the entire process group (negative PID) to terminate all descendants.
-	cmd.Cancel = func() error {
-		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	stdout, writer, err := os.Pipe()
+	if err != nil {
+		cancel()
+		_ = stdin.Close()
+
+		return nil, err
 	}
+	cmd.Stdout = writer
+	defer func() { _ = writer.Close() }()
+	if err := cmd.Start(); err != nil {
+		cancel()
+		_ = stdin.Close()
+		_ = stdout.Close()
 
-	stdOut := &bytes.Buffer{}
-	stdErr := &bytes.Buffer{}
-	cmd.Stdout = stdOut
-	cmd.Stderr = stdErr
-
-	err = cmd.Run()
-	// After cmd.Run() returns, the main jinja2_exec process has been waited.
-	// However, staticx-forked Python children may have been reparented to backend
-	// and killed by SIGKILL, becoming zombies. We need to wait for all processes
-	// in the process group to prevent zombie accumulation.
-	if cmd.Process != nil {
-		// Wait for all remaining processes in the process group.
-		// Use WNOHANG to avoid blocking if no zombies exist.
-		// Add a safety limit to prevent infinite loops in edge cases.
-		pgid := cmd.Process.Pid
-		const maxWaitAttempts = 100 // Safety limit
-		for i := 0; i < maxWaitAttempts; i++ {
-			var status syscall.WaitStatus
-			// Wait for any process in the process group (negative PID).
-			// WNOHANG returns immediately if no zombie exists.
-			pid, waitErr := syscall.Wait4(-pgid, &status, syscall.WNOHANG, nil)
-			if waitErr != nil || pid <= 0 {
-				// No more zombies in this process group, or error occurred.
-				break
-			}
-			// Successfully reaped a zombie process, continue to check for more.
+		return nil, fmt.Errorf("failed to start jinja2 server: %w", err)
+	}
+	_ = writer.Close()
+	process := &serverProcess{done: make(chan struct{})}
+	process.stop = func() {
+		_ = stdin.Close()
+		const stopTimeout = 2 * time.Second
+		timer := time.NewTimer(stopTimeout)
+		defer timer.Stop()
+		select {
+		case <-process.done:
+		case <-timer.C:
+			cancel()
+			<-process.done
 		}
 	}
-	if err != nil {
-		return "", "", fmt.Errorf("commands cannot be executed using jinja2, stdOut(%s), stdErr(%s): %w",
-			stdOut.String(), stdErr.String(), err)
-	}
+	ready := make(chan string, 1)
+	go func() {
+		line, _ := bufio.NewReader(stdout).ReadString('\n')
+		ready <- line
+	}()
+	go func() {
+		_ = cmd.Wait()
+		_ = stdin.Close()
+		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		_ = stdout.Close()
+		reapServerGroup(cmd.Process.Pid)
+		cancel()
+		close(process.done)
+	}()
+	const startupTimeout = 10 * time.Second
+	startupCtx, stopStartup := context.WithTimeout(ctx, startupTimeout)
+	defer stopStartup()
+	select {
+	case line := <-ready:
+		port, err := strconv.Atoi(strings.TrimSpace(line))
+		if err != nil || port < start || port > end {
+			process.stop()
+			return nil, fmt.Errorf("jinja2 server failed to bind configured port range %d-%d", start, end)
+		}
+		process.client = newClient(port, token)
+		if err := process.client.request(startupCtx, http.MethodGet, "/healthz", nil, &struct{}{}); err != nil {
+			process.stop()
+			return nil, fmt.Errorf("jinja2 server readiness check failed: %w", err)
+		}
 
-	return stdOut.String(), stdErr.String(), nil
+		return process, nil
+	case <-process.done:
+		return nil, fmt.Errorf("jinja2 server exited during startup")
+	case <-startupCtx.Done():
+		process.stop()
+		return nil, fmt.Errorf("jinja2 server startup timed out: %w", startupCtx.Err())
+	}
+}
+
+func reapServerGroup(pgid int) {
+	const maxWaitAttempts = 100
+	for range maxWaitAttempts {
+		var status syscall.WaitStatus
+		pid, err := syscall.Wait4(-pgid, &status, syscall.WNOHANG, nil)
+		if err != nil || pid <= 0 {
+			break
+		}
+	}
 }

@@ -21,6 +21,11 @@ export default ({ mode }: { mode: string }) => {
       // https: {},
       open: true,
       proxy: {
+        '/wiki': {
+          target: env.BK_API_BASE_URL,
+          changeOrigin: true,
+          secure: true,
+        },
         '/api': {
           target: env.BK_API_BASE_URL,
           changeOrigin: true,

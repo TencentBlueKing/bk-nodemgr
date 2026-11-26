@@ -40,6 +40,7 @@ import (
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -57,9 +58,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/token"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
@@ -72,8 +75,9 @@ import (
 )
 
 const (
-	clientNameRepo = "bkrepo"
-	clientNameGse  = "gse"
+	clientNameRepo        = "bkrepo"
+	clientNameGse         = "gse"
+	clientNameUserManager = "usermanager"
 
 	mongoMaxPoolSize     = uint64(500)
 	mongoMinPoolSize     = uint64(5)
@@ -163,6 +167,12 @@ func (svc *Service) initialCapability(nCtx contextx.IContext) error {
 		return fmt.Errorf("failed to create export token generator: %w", err)
 	}
 
+	// initial user manager handler before GSE authentication resolves configured users.
+	svc.Cap.UserManagerHandler, err = svc.newUserManagerHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create user manager handler: %w", err)
+	}
+
 	// initial gse handler.
 	svc.Cap.GSEHandler, err = svc.newGSEHandler()
 	if err != nil {
@@ -198,6 +208,46 @@ func (svc *Service) initialCapability(nCtx contextx.IContext) error {
 	}
 
 	return nil
+}
+
+func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
+	virtualUserConfig := newVirtualUserConfig(&svc.conf.UserManager.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(
+		clientNameUserManager,
+		&svc.conf.UserManager.APIGatewayClient,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for user manager: %w", err)
+	}
+
+	var usermgrHandler usermanager.IHandler
+	if tenant.GetMode() == tenant.ModeSingle {
+		usermgrHandler, err = usermanager.NewHandlerSingle(
+			apiGwClientCapability,
+			&usermanager.Config{
+				VirtualUserConfig: virtualUserConfig,
+				UseLegacyUsername: svc.conf.UserManager.UseLegacyUsername,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create single-tenant user manager handler: %w", err)
+		}
+	} else {
+		usermgrHandler, err = usermanager.NewHandlerMultiTenant(
+			apiGwClientCapability,
+			&usermanager.Config{
+				VirtualUserConfig: virtualUserConfig,
+				UseLegacyUsername: svc.conf.UserManager.UseLegacyUsername,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create multi-tenant user manager handler: %w", err)
+		}
+	}
+
+	access.SetTenantVirtualUserResolver(usermgrHandler)
+
+	return usermgrHandler, nil
 }
 
 func (svc *Service) newGSEHandler() (gse.IHandler, error) {

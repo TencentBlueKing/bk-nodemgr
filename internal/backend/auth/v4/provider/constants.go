@@ -51,6 +51,7 @@ func platformResourceDisplayNames() map[types.PlatformResource]string {
 	return map[types.PlatformResource]string{
 		types.PlatformResourceSchedulerWorkflow: "定时任务调度",
 		types.PlatformResourceGlobalSettings:    "全局配置",
+		types.PlatformResourceSystemConfig:      "系统配置",
 	}
 }
 
@@ -59,6 +60,7 @@ func allPlatformResources() []types.PlatformResource {
 	return []types.PlatformResource{
 		types.PlatformResourceSchedulerWorkflow,
 		types.PlatformResourceGlobalSettings,
+		types.PlatformResourceSystemConfig,
 	}
 }
 

@@ -19,12 +19,65 @@ mongodb:
 {{- $grafanaPath := dig "grafanaPath" "/grafana" $ingress }}
 {{- $tlsSecretName := dig "tlsSecretName" "" $ingress }}
 
+{{- $monitoringEnabled := dig "monitoring" "enabled" true .Values }}
 tempo:
-  enabled: true
+  enabled: {{ $monitoringEnabled }}
+{{- $traceExporters := dig "opentelemetryGateway" "exporters" dict .Values }}
+{{- if hasKey $traceExporters "otlp/tempo" }}
+{{- fail "opentelemetryGateway.exporters: otlp/tempo is reserved for embedded Tempo" }}
+{{- end }}
 opentelemetryGateway:
-  enabled: true
+  enabled: {{ or $monitoringEnabled (not (empty $traceExporters)) }}
+  {{- if $traceExporters }}
+  alternateConfig:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      memory_limiter:
+        limit_mib: 512
+        spike_limit_mib: 128
+        check_interval: 5s
+      batch: {}
+    exporters:
+      {{- if $monitoringEnabled }}
+      otlp/tempo:
+        endpoint: '{{`{{ include "bk-nodemgr.tempo.otlpGrpcEndpoint" . }}`}}'
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+        retry_on_failure:
+          enabled: true
+      {{- end }}
+{{ $traceExporters | toYaml | indent 6 }}
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        traces:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            {{- if $monitoringEnabled }}
+            - otlp/tempo
+            {{- end }}
+            {{- range $name := keys $traceExporters | sortAlpha }}
+            - {{ $name | quote }}
+            {{- end }}
+  {{- end }}
 prometheus:
-  enabled: true
+  enabled: {{ $monitoringEnabled }}
   nodemgrScrape:
     namespaces:
       application: {{ .Values.namespaces.application | quote }}
@@ -36,7 +89,7 @@ prometheus:
       storageClass: ""
       size: 8Gi
 grafana:
-  enabled: true
+  enabled: {{ $monitoringEnabled }}
   rootURL: https://{{ $ingressDomain }}{{ $grafanaPath }}/
   persistence:
     enabled: true
@@ -56,20 +109,20 @@ grafana:
           - {{ $ingressDomain | quote }}
     {{- end }}
 loki:
-  enabled: true
+  enabled: {{ $monitoringEnabled }}
   singleBinary:
     persistence:
       enabled: true
       storageClass: ""
       size: 8Gi
 alloy:
-  enabled: true
+  enabled: {{ $monitoringEnabled }}
   nodemgrNamespaces:
     - {{ .Values.namespaces.application | quote }}
     - {{ .Values.namespaces.backend | quote }}
     - {{ .Values.namespaces.file | quote }}
 pyroscope:
-  enabled: true
+  enabled: {{ $monitoringEnabled }}
   pyroscope:
     persistence:
       enabled: true

@@ -29,6 +29,7 @@ backend:
         clusterEndpoints: [] # 上游GSE cluster通道endpoint列表
         fileEndpoints: [] # 上游GSE file通道endpoint列表
         dataEndpoints: [] # 上游GSE data通道endpoint列表
+        accessPoints: [] # 下游接入点列表, 供其他管控单元的Proxy接入
 ```
 
 启用示例（endpoint 为 `host:port` 格式，下方端口仅为示例，请以环境中 GSE 接入层的实际地址为准）：
@@ -47,6 +48,14 @@ backend:
           - "10.0.1.1:20002"
         dataEndpoints:
           - "10.0.1.1:20003"
+        accessPoints:
+          - name: "default-ap"
+            clusterEndpoints:
+              - "10.0.1.1:20011"
+            fileEndpoints:
+              - "10.0.1.1:28930"
+            dataEndpoints:
+              - "10.0.1.1:20013"
 ```
 
 ### 字段说明
@@ -54,10 +63,24 @@ backend:
 | 字段 | 类型 | 说明 |
 | ---- | ---- | ---- |
 | `enabled` | bool | 是否启用自动创建，默认 `false` |
-| `name` | string | 自动创建的直连网络单元名称，默认 `default` |
+| `name` | string | 自动创建的直连网络单元名称，默认 `default`；启用时不能为空 |
 | `clusterEndpoints` | []string | 上游 GSE cluster 通道接入地址，`host:port` 格式 |
 | `fileEndpoints` | []string | 上游 GSE file 通道接入地址，`host:port` 格式 |
 | `dataEndpoints` | []string | 上游 GSE data 通道接入地址，`host:port` 格式 |
+| `accessPoints` | []object | 下游接入点列表，默认为空（不创建接入点）。每项字段见下表 |
+
+`accessPoints` 每一项的字段：
+
+| 字段 | 类型 | 说明 |
+| ---- | ---- | ---- |
+| `name` | string | 接入点名称，必填，不能为空 |
+| `clusterEndpoints` | []string | 接入点 cluster 通道地址，至少一条，`IP:端口` 格式 |
+| `fileEndpoints` | []string | 接入点 file 通道地址，至少一条，`IP:端口` 格式 |
+| `dataEndpoints` | []string | 接入点 data 通道地址，至少一条，`IP:端口` 格式 |
+
+`enabled=true` 时，Backend 启动阶段会校验 `name` 非空以及 `accessPoints` 的以上规则，不满足则启动失败；`enabled=false` 时跳过校验。
+
+> `accessPoints` 描述的是供**其他管控单元的 Proxy** 连接本单元的地址，与上面供本单元 Agent 使用的直连 endpoint 用途不同，不要直接复制；尤其注意区分 Agent 文件接入端口与 Proxy 文件通道的上游端口。详见 [Access Point（接入点）](../../concepts/topo/accesspoint.md)。
 
 > 三类 endpoint 对应 GSE 的 cluster / file / data 通道，取值与环境中 GSE 接入层（GSE Cluster）对节点暴露的地址一致，可向平台管理员或 GSE 部署配置获取。
 
@@ -70,7 +93,7 @@ backend:
    - `enabled=false`：跳过，不做任何事；
    - 默认管控区域（id=0）尚未从 CMDB 同步：本轮跳过，等待下一轮；
    - 默认管控区域下**已存在任意直连单元**：跳过（幂等，不会重复创建，也不会更新已有单元）；
-   - 否则：创建一个 `is_direct=true`、名称为 `name`、GSE 版本为 V2（generation=2）的网络单元，并写入三类 endpoint。
+   - 否则：创建一个 `is_direct=true`、名称为 `name`、GSE 版本为 V2（generation=2）的网络单元，并写入三类 endpoint；若配置了 `accessPoints`，同时创建对应的下游接入点并关联到该单元。
 
 因此从 Backend 就绪到直连单元创建完成，最长需要等待约 10 分钟（默认管控区域完成同步之后的那一轮调度）。
 
@@ -86,5 +109,5 @@ backend:
 
 - **endpoint 不能为空**：若开启 `enabled` 但三类 endpoint 为空，会创建出一个没有上游通道地址的直连单元，默认管控区域内的 Agent 安装与管控通道建立会失败。
 - **只影响默认管控区域**：该配置仅作用于默认管控区域（id=0），其他管控区域下的网络单元仍需手工或按需创建。
-- **不做更新**：自动创建仅在默认管控区域下不存在直连单元时执行一次；后续修改 `name` / endpoint 配置**不会**同步更新已创建的单元，如需调整请在页面上直接编辑该网络单元。
+- **不做更新**：自动创建仅在默认管控区域下不存在直连单元时执行一次；后续修改 `name` / endpoint / `accessPoints` 配置**不会**同步更新已创建的单元，如需调整请在页面上直接编辑该网络单元。
 - **手工触发不包含创建动作**：页面 / API 手动触发的「同步管控区域」只执行 `sync_networkarea`，直连单元的创建只发生在定时同步工作流中。

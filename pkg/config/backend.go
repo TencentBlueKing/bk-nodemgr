@@ -22,6 +22,7 @@ package config
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -172,6 +173,7 @@ type BackendService struct {
 	IAMV4              IAMV4             `yaml:"iamV4" usage:"IAM v4 gateway config"`
 	Monitor            Monitor           `yaml:"monitor" usage:"monitor gateway config"`
 	NodeEventDataID    NodeEventDataID   `yaml:"nodeEventDataID" usage:"node event data-id config"`
+	Jinja2x            Jinja2x           `yaml:"jinja2x" usage:"embedded jinja2 renderer config"`
 	Workflow           Workflow          `yaml:"workflow" usage:"workflow config of backend service"`
 	InfoServer         HTTPServer        `yaml:"infoServer" usage:"info server config of backend service"`
 	AdminServer        HTTPServer        `yaml:"adminServer" usage:"admin server config of backend service"`
@@ -194,6 +196,28 @@ type BackendService struct {
 	Tracing            Tracing           `yaml:"tracing" usage:"tracing config of backend service"`
 	Profiling          Profiling         `yaml:"profiling" usage:"profiling config of backend service"`
 	Wiki               Wiki              `yaml:"wiki" usage:"product user wiki link config"`
+}
+
+// Jinja2x configures the embedded Jinja2 renderer.
+type Jinja2x struct {
+	PortRange Jinja2xPortRange `yaml:"portRange" usage:"local renderer port range"`
+}
+
+// Jinja2xPortRange defines the inclusive range of loopback ports.
+type Jinja2xPortRange struct {
+	Start int `yaml:"start" usage:"first renderer port"`
+	End   int `yaml:"end" usage:"last renderer port"`
+}
+
+// Validate validates the renderer port range.
+func (c Jinja2x) Validate() error {
+	if c.PortRange.Start < 1 || c.PortRange.Start > 65535 {
+		return fmt.Errorf("jinja2x.portRange.start must be between 1 and 65535")
+	}
+	if c.PortRange.End < c.PortRange.Start || c.PortRange.End > 65535 {
+		return fmt.Errorf("jinja2x.portRange.end must be between start and 65535")
+	}
+	return nil
 }
 
 // BackendFileCache configures the local artifact file cache used by backend SSH install flows.
@@ -284,6 +308,7 @@ func NewBackendService() *BackendService {
 				TaskProcEventDataID:       defaultBackendTaskProcEventDataID,
 			},
 		},
+		Jinja2x: Jinja2x{PortRange: Jinja2xPortRange{Start: 28150, End: 28159}},
 		Workflow: Workflow{
 			TraceService: TraceService{
 				TraceServiceName: defaultBackendWorkflowTraceServiceName,
@@ -482,6 +507,10 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate wiki config: %w", err)
 	}
 
+	if err := svc.Jinja2x.Validate(); err != nil {
+		return fmt.Errorf("failed to validate jinja2x config: %w", err)
+	}
+
 	if err := svc.Workflow.Validate(); err != nil {
 		return fmt.Errorf("failed to validate workflow service config: %w", err)
 	}
@@ -599,6 +628,10 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate profiling config: %w", err)
 	}
 
+	if err := svc.NetworkUnit.Validate(); err != nil {
+		return fmt.Errorf("failed to validate network unit config: %w", err)
+	}
+
 	return nil
 }
 
@@ -607,13 +640,76 @@ type NetworkUnit struct {
 	DefaultDirectUnit DefaultDirectUnit `yaml:"defaultDirectUnit" usage:"default direct network unit config"`
 }
 
+// Validate validates the config.
+func (conf NetworkUnit) Validate() error {
+	return conf.DefaultDirectUnit.Validate()
+}
+
 // DefaultDirectUnit defines the default direct network unit config.
 type DefaultDirectUnit struct {
-	Enabled          bool     `yaml:"enabled" usage:"enable auto-create default direct network unit"`
-	Name             string   `yaml:"name" usage:"name of the default direct network unit"`
-	ClusterEndpoints []string `yaml:"clusterEndpoints" usage:"cluster endpoints of the default direct network unit"`
-	FileEndpoints    []string `yaml:"fileEndpoints" usage:"file endpoints of the default direct network unit"`
-	DataEndpoints    []string `yaml:"dataEndpoints" usage:"data endpoints of the default direct network unit"`
+	Enabled          bool                           `yaml:"enabled" usage:"enable auto-create default direct network unit"`
+	Name             string                         `yaml:"name" usage:"name of the default direct network unit"`
+	ClusterEndpoints []string                       `yaml:"clusterEndpoints" usage:"cluster endpoints of the default direct network unit"`
+	FileEndpoints    []string                       `yaml:"fileEndpoints" usage:"file endpoints of the default direct network unit"`
+	DataEndpoints    []string                       `yaml:"dataEndpoints" usage:"data endpoints of the default direct network unit"`
+	AccessPoints     []DefaultDirectUnitAccessPoint `yaml:"accessPoints" usage:"downstream access points of the default direct network unit"`
+}
+
+// Validate validates the config.
+func (conf DefaultDirectUnit) Validate() error {
+	if !conf.Enabled {
+		return nil
+	}
+
+	if conf.Name == "" {
+		return fmt.Errorf("name is empty")
+	}
+
+	for idx, accessPoint := range conf.AccessPoints {
+		if err := accessPoint.Validate(); err != nil {
+			return fmt.Errorf("invalid accessPoints[%d]: %w", idx, err)
+		}
+	}
+
+	return nil
+}
+
+// DefaultDirectUnitAccessPoint defines a downstream access point of the default direct network unit.
+type DefaultDirectUnitAccessPoint struct {
+	Name             string   `yaml:"name" usage:"name of the access point"`
+	ClusterEndpoints []string `yaml:"clusterEndpoints" usage:"cluster endpoints of the access point"`
+	FileEndpoints    []string `yaml:"fileEndpoints" usage:"file endpoints of the access point"`
+	DataEndpoints    []string `yaml:"dataEndpoints" usage:"data endpoints of the access point"`
+}
+
+// Validate validates the config: the name is required, and each of the cluster, file and data
+// endpoints must contain at least one entry in the form of IP:port.
+func (conf DefaultDirectUnitAccessPoint) Validate() error {
+	if conf.Name == "" {
+		return fmt.Errorf("name is empty")
+	}
+
+	channels := []struct {
+		field     string
+		endpoints []string
+	}{
+		{"clusterEndpoints", conf.ClusterEndpoints},
+		{"fileEndpoints", conf.FileEndpoints},
+		{"dataEndpoints", conf.DataEndpoints},
+	}
+	for _, channel := range channels {
+		if len(channel.endpoints) == 0 {
+			return fmt.Errorf("%s is empty", channel.field)
+		}
+
+		for _, endpoint := range channel.endpoints {
+			if _, err := netip.ParseAddrPort(endpoint); err != nil {
+				return fmt.Errorf("invalid %s: endpoint %q is not in IP:port form: %w", channel.field, endpoint, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Monitor defines the monitor gateway configuration.
@@ -775,19 +871,23 @@ type GSEDeployCustom struct {
 	ZoneID            string `yaml:"zoneID" usage:"zone id of gse deploy node"`
 	CityID            string `yaml:"cityID" usage:"city id of gse deploy node"`
 
-	// Global proxy network defaults. Empty IPs and zero numeric values use the built-in defaults.
-	DataAgentBindIP                  string `yaml:"dataAgentBindIP" usage:"default data agent bind ip"`
-	DataAgentBindPort                int64  `yaml:"dataAgentBindPort" usage:"default data agent bind port"`
-	FileAgentBindIP                  string `yaml:"fileAgentBindIP" usage:"default file agent bind ip"`
-	FileAgentBindPort                int64  `yaml:"fileAgentBindPort" usage:"default file agent bind port"`
-	ProxyBindIP                      string `yaml:"proxyBindIP" usage:"default proxy bind ip"`
-	ProxyBindPort                    int64  `yaml:"proxyBindPort" usage:"default proxy bind port"`
-	FileBittorrentBindIP             string `yaml:"fileBittorrentBindIP" usage:"default file bittorrent bind ip"`
-	FileBittorrentBindPort           int64  `yaml:"fileBittorrentBindPort" usage:"default file bittorrent bind port"`
-	FileBittorrentTrackerBindPort    int64  `yaml:"fileBittorrentTrackerBindPort" usage:"default file bittorrent tracker bind port"`
-	FileBittorrentSpeedLimitMBPerSec int64  `yaml:"fileBittorrentSpeedLimitMBPerSec" usage:"default file bittorrent speed limit in MB per second"`
-	FileTopologyBindIP               string `yaml:"fileTopologyBindIP" usage:"default file topology bind ip"`
-	FileTopologyBindPort             int64  `yaml:"fileTopologyBindPort" usage:"default file topology bind port"`
+	// Global Linux proxy network defaults. Non-Linux agents do not use these fields.
+	// Empty IPs and zero numeric values use the built-in defaults on Linux.
+	DataAgentBindIP               string `yaml:"dataAgentBindIP" usage:"default data agent bind ip"`
+	DataAgentBindPort             int64  `yaml:"dataAgentBindPort" usage:"default data agent bind port"`
+	FileAgentBindIP               string `yaml:"fileAgentBindIP" usage:"default file agent bind ip"`
+	FileAgentBindPort             int64  `yaml:"fileAgentBindPort" usage:"default file agent bind port"`
+	ProxyBindIP                   string `yaml:"proxyBindIP" usage:"default proxy bind ip"`
+	ProxyBindPort                 int64  `yaml:"proxyBindPort" usage:"default proxy bind port"`
+	FileBittorrentBindIP          string `yaml:"fileBittorrentBindIP" usage:"default file bittorrent bind ip"`
+	FileBittorrentBindPort        int64  `yaml:"fileBittorrentBindPort" usage:"default file bittorrent bind port"`
+	FileBittorrentTrackerBindPort int64  `yaml:"fileBittorrentTrackerBindPort" usage:"default file bittorrent tracker bind port"`
+	FileTopologyBindIP            string `yaml:"fileTopologyBindIP" usage:"default file topology bind ip"`
+	FileTopologyBindPort          int64  `yaml:"fileTopologyBindPort" usage:"default file topology bind port"`
+	FileAgentBindPortV1           int64  `yaml:"fileAgentBindPortV1" usage:"default file agent v1 bind port"`
+	FileTopologyThriftBindPort    int64  `yaml:"fileTopologyThriftBindPort" usage:"default file topology thrift bind port"`
+	FileMetricExporterBindPort    int64  `yaml:"fileMetricExporterBindPort" usage:"default file metric exporter bind port"`
+	DataMetricExporterBindPort    int64  `yaml:"dataMetricExporterBindPort" usage:"default data metric exporter bind port"`
 }
 
 // Validate validates the config.
@@ -796,16 +896,7 @@ func (conf *GSEDeployCustom) Validate() error {
 		return err
 	}
 
-	if err := conf.validateBindPorts(); err != nil {
-		return err
-	}
-
-	if conf.FileBittorrentSpeedLimitMBPerSec < 0 {
-		return fmt.Errorf("invalid fileBittorrentSpeedLimitMBPerSec: must be non-negative, got %d",
-			conf.FileBittorrentSpeedLimitMBPerSec)
-	}
-
-	return nil
+	return conf.validateBindPorts()
 }
 
 func (conf *GSEDeployCustom) validateBindIPs() error {
@@ -833,34 +924,26 @@ func (conf *GSEDeployCustom) validateBindIPs() error {
 }
 
 func (conf *GSEDeployCustom) validateBindPorts() error {
-	if conf.DataAgentBindPort < 0 || conf.DataAgentBindPort > 65535 {
-		return fmt.Errorf("invalid dataAgentBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.DataAgentBindPort)
+	ports := []struct {
+		name  string
+		value int64
+	}{
+		{"dataAgentBindPort", conf.DataAgentBindPort},
+		{"fileAgentBindPort", conf.FileAgentBindPort},
+		{"proxyBindPort", conf.ProxyBindPort},
+		{"fileBittorrentBindPort", conf.FileBittorrentBindPort},
+		{"fileBittorrentTrackerBindPort", conf.FileBittorrentTrackerBindPort},
+		{"fileTopologyBindPort", conf.FileTopologyBindPort},
+		{"fileAgentBindPortV1", conf.FileAgentBindPortV1},
+		{"fileTopologyThriftBindPort", conf.FileTopologyThriftBindPort},
+		{"fileMetricExporterBindPort", conf.FileMetricExporterBindPort},
+		{"dataMetricExporterBindPort", conf.DataMetricExporterBindPort},
 	}
 
-	if conf.FileAgentBindPort < 0 || conf.FileAgentBindPort > 65535 {
-		return fmt.Errorf("invalid fileAgentBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileAgentBindPort)
-	}
-
-	if conf.ProxyBindPort < 0 || conf.ProxyBindPort > 65535 {
-		return fmt.Errorf("invalid proxyBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.ProxyBindPort)
-	}
-
-	if conf.FileBittorrentBindPort < 0 || conf.FileBittorrentBindPort > 65535 {
-		return fmt.Errorf("invalid fileBittorrentBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileBittorrentBindPort)
-	}
-
-	if conf.FileBittorrentTrackerBindPort < 0 || conf.FileBittorrentTrackerBindPort > 65535 {
-		return fmt.Errorf("invalid fileBittorrentTrackerBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileBittorrentTrackerBindPort)
-	}
-
-	if conf.FileTopologyBindPort < 0 || conf.FileTopologyBindPort > 65535 {
-		return fmt.Errorf("invalid fileTopologyBindPort: must be 0 (default) or between 1 and 65535, got %d",
-			conf.FileTopologyBindPort)
+	for _, port := range ports {
+		if port.value < 0 || port.value > 65535 {
+			return fmt.Errorf("invalid %s: must be 0 (default) or between 1 and 65535, got %d", port.name, port.value)
+		}
 	}
 
 	return nil
@@ -870,6 +953,7 @@ func (conf *GSEDeployCustom) validateBindPorts() error {
 type GSEDeployPluginCustom struct {
 	LogDir          string                    `yaml:"logDir" usage:"log dir"`
 	HostIDPath      string                    `yaml:"hostIDPath" usage:"host id path"`
+	HostIDPushMode  string                    `yaml:"hostIDPushMode" usage:"who pushes the host id file, cmdb or self"`
 	CommonConstants map[string]map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
 	V2RunDir        string                    `yaml:"v2RunDir" usage:"run dir of plugin v2 compatibility install"`
 	V2DataDir       string                    `yaml:"v2DataDir" usage:"data dir of plugin v2 compatibility install"`

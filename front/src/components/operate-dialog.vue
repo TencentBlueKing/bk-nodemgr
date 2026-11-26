@@ -50,7 +50,7 @@
     </div>
     <template #footer>
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-[8px]" v-if="showRestartOptions">
+        <div class="flex items-center gap-[8px]" v-if="showRestartOptions && !forceRestartOnly">
           <Radio.Group v-model="isForce">
             <Radio.Button :label="true">
               {{ $t('components.operateDialog.forceRestart') }}
@@ -140,6 +140,11 @@ const props = defineProps({
   },
   /** 隐藏重启选项（插件重启等场景不需要强制/无损切换） */
   hideRestartOptions: {
+    type: Boolean,
+    default: false,
+  },
+  /** 仅强制重启（proxy 重载场景：隐藏无损/时间选项，固定 force=true） */
+  forceRestartOnly: {
     type: Boolean,
     default: false,
   },
@@ -267,8 +272,8 @@ watch(
         if (row) row.checked = false;
       });
       selection.value = [];
-      // 重置强制重启选项
-      isForce.value = false;
+      // 重置强制重启选项：仅强制重启场景固定为 true
+      isForce.value = props.forceRestartOnly;
       gracefulTimeout.value = 120;
       isReconfig.value = true;
     }

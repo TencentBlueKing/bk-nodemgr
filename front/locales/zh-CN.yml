@@ -17,7 +17,7 @@ platform:
         pluginNamePlaceholder: 请输入插件名称
         pluginNameRequired: 请填写插件名称
     agentStatus:
-      title: Agent 状态
+      title: Agent 管理
       reinstall: 重装
       upgrade: 升级
       agentUpgrade: Agent 升级
@@ -109,7 +109,7 @@ platform:
       assignUnitConfirmDeleteRow: 确认移除该行主机？
       assignUnitConfirmDeleteRowSub: 移除后主机 {ip} 将不会被分配管控单元
     proxyStatus:
-      title: Proxy 状态
+      title: Proxy 管理
       online: 正常
       abnormal: 异常
       notInstalled: 未安装
@@ -346,6 +346,8 @@ platform:
   topoManagerName: 拓扑管理
   ruleManagerName: 策略管理
   pkgManagerName: 包管理
+  platformManagerName: 平台管理
+  platformManagerComingSoon: 功能暂未开放
 pluginManagement:
   pluginGroupName: 插件
   plugin:
@@ -1435,8 +1437,8 @@ installProxy:
   assignUnitPartialSuccess: 成功分配 {success} 台，失败 {failed} 台
   assignUnitFailed: 分配管控单元失败
 route:
-  agentStatus: Agent状态
-  proxyStatus: Proxy状态
+  agentStatus: Agent管理
+  proxyStatus: Proxy管理
   installAgent: 安装Agent
   installReinstallAgent: 安装/重装Agent
   assignUnit: 分配管控单元
@@ -1478,7 +1480,11 @@ route:
   toolManageSubtitle: 工具提供对GSE组件的运维操作支持，包括启动脚本、排障工具等
   pluginToolManageSubtitle: 插件工具提供对插件统一的运维操作支持，包括启动脚本、排障工具等
   pkgOperationRecordsSubtitle: 包管理操作的历史记录
+  systemConfig: 系统配置
+  schedulerWorkflow: 定时任务
+  globalSettings: 全局变量
 menu:
+  platformGroup: 平台管理
   topoGroup: 拓扑
   recordGroup: 记录
   strategyGroup: 配置策略
@@ -1592,3 +1598,12 @@ pluginOperation:
     nextStep: 下一步
     prevStep: 上一步
     cancel: 取消
+
+wiki:
+  title: "用户 Wiki"
+  language: "文档语言"
+  retry: "重新加载"
+  catalog: "本页目录"
+  notFound: "文档不存在或 Wiki 未启用"
+  invalidResponse: "文档接口未返回 Markdown 文本"
+  loadFailed: "文档加载失败"

@@ -31,6 +31,7 @@ import (
 
 var (
 	errPluginOperateDeniedByEmptyScope = errors.New("no authorized plugin operates")
+	errPluginRequirementDeniedByScope  = errors.New("plugin is outside the authorized scope")
 )
 
 func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext, requestedIDs []int64) ([]int64, bool, error) {
@@ -60,36 +61,13 @@ func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext, 
 }
 
 func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, pluginName ...string) error {
-	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginOperate, types.AuthResourceTypeBiz)
+	names, scopeIsAny, err := h.authorizedPluginNames(rCtx, auth.ActionPluginOperate, pluginName)
 	if err != nil {
 		return err
 	}
 
-	narrowedIDs, scopeIsAny, _, err := auth.ResolveAuthorizedResourceIDsInt64(
-		scope, nil, types.AuthResourceTypeBiz,
-	)
-	if err != nil {
-		return err
-	}
-
-	if scopeIsAny {
-		return nil
-	}
-
-	plugins, err := h.domainPlugin.ListVisiblePluginByBizIDs(rCtx, narrowedIDs)
-	if err != nil {
-		return err
-	}
-
-	authorizedPlugins := map[string]struct{}{}
-	for _, plugin := range plugins {
-		authorizedPlugins[plugin.Name] = struct{}{}
-	}
-
-	for _, plugin := range pluginName {
-		if _, ok := authorizedPlugins[plugin]; !ok {
-			return errPluginOperateDeniedByEmptyScope
-		}
+	if !scopeIsAny && len(names) < len(pluginName) {
+		return errPluginOperateDeniedByEmptyScope
 	}
 
 	return nil
@@ -111,4 +89,57 @@ func narrowPluginConditionByBiz(condition *types.PluginCondition, narrowedBizIDs
 	condition.ExactInclude.VisibleBizIDs = conv.SliceUnique(narrowedBizIDs)
 
 	return condition
+}
+
+func (h *handler) authorizeRequirementPlugin(rCtx restserver.IContext, action auth.Action, name string) error {
+	names, scopeIsAny, err := h.authorizedPluginNames(rCtx, action, []string{name})
+	if err != nil {
+		return err
+	}
+	if !scopeIsAny && len(names) == 0 {
+		return errPluginRequirementDeniedByScope
+	}
+
+	return nil
+}
+
+func (h *handler) authorizedPluginNames(rCtx restserver.IContext, action auth.Action, names []string) ([]string, bool, error) {
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, action, types.AuthResourceTypeBiz)
+	if err != nil {
+		return nil, false, err
+	}
+
+	bizIDs, scopeIsAny, _, err := auth.ResolveAuthorizedResourceIDsInt64(scope, nil, types.AuthResourceTypeBiz)
+	if err != nil {
+		return nil, false, err
+	}
+	if scopeIsAny {
+		return names, true, nil
+	}
+
+	// An empty biz scope must still resolve global plugins (visible_biz_ids empty,
+	// null, or missing); short-circuiting here would make them unreachable.
+	plugins, err := h.domainPlugin.ListVisiblePluginByBizIDs(rCtx, bizIDs)
+	if err != nil {
+		return nil, false, err
+	}
+
+	// An empty name filter keeps every visible plugin.
+	if len(names) == 0 {
+		return conv.SliceToSlice(plugins, func(plugin *types.Plugin) string { return plugin.Name }), false, nil
+	}
+
+	visibleNames := make(map[string]struct{}, len(plugins))
+	for _, plugin := range plugins {
+		visibleNames[plugin.Name] = struct{}{}
+	}
+
+	authorizedNames := make([]string, 0, len(names))
+	for _, name := range names {
+		if _, ok := visibleNames[name]; ok {
+			authorizedNames = append(authorizedNames, name)
+		}
+	}
+
+	return authorizedNames, false, nil
 }

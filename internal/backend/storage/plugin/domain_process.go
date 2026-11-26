@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	daoProcess "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
+	daoProcessV2 "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-v2"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -44,6 +45,52 @@ func (s *Storage) markExpiredProcessesUnknown(nCtx contextx.IContext, hostIDs []
 	)
 	if err != nil {
 		return fmt.Errorf("failed to mark expired processes unknown: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Storage) markExpiredRunningProcessesUnknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	err := s.daoProcess.UpdateInfoStatusAndLastSyncAt(
+		nCtx, types.ProcessStatusUnknown,
+		time.Now(),
+		daoProcess.WithHostID(hostIDs...),
+		daoProcess.WithInfoStatus(types.ProcessStatusRunning),
+		daoProcess.WithInfoLastSyncAtBefore(deadline),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to mark expired running processes unknown: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Storage) markExpiredRunningProcessesV2Unknown(nCtx contextx.IContext, hostIDs []int64, deadline time.Time) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	err := s.daoProcessV2.UpdateInfoStatusAndLastSyncAt(
+		nCtx, types.ProcessStatusUnknown,
+		time.Now(),
+		daoProcessV2.WithHostID(hostIDs...),
+		daoProcessV2.WithInfoStatus(types.ProcessStatusRunning),
+		daoProcessV2.WithInfoLastSyncAtBefore(deadline),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to mark expired running v2 processes unknown: %w", err)
 	}
 
 	return nil

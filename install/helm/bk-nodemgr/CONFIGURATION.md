@@ -56,7 +56,7 @@ backend:
     wiki:
       mode: application
       application:
-        prefixURL: https://nodemgr.example.com/wiki/
+        prefixURL: "https://nodemgr.example.com/#/wiki/"
 application:
   config:
     wiki:
@@ -65,9 +65,11 @@ application:
 
 application 的 Wiki 默认关闭，需设置 `application.config.wiki.enabled: true` 才会注册 `/wiki/` 路由；设为 `false` 后不提供文档访问。该开关不改变 backend 的链接模式，关闭前需确认 backend 不再生成指向该入口的链接。
 
-`application.prefixURL` 必须配置为用户可访问的绝对文档 URL 前缀，而不是集群内服务地址；默认空值仅适用于 `github` 模式。请确保用户访问入口将 `/wiki/` 路径转发至 application 服务，并将前缀设置为对应的外部地址。
+`application.prefixURL` 必须配置为用户可访问的绝对 HTTP(S) 文档 URL 前缀，而不是集群内服务地址；不得包含凭据或 query，默认空值仅适用于 `github` 模式。标准 Web 阅读页使用 `/#/wiki/` 前缀，复用现有 Web 登录流程，不增加独立登录配置。通过子路径部署时，应保留 `#` 前的部署路径，例如 `https://nodemgr.example.com/deploy/#/wiki/`。请确保用户访问入口可访问 Web 页面，并将 `/wiki/` 原文请求转发至 application 服务；通过 `/deploy/` 子路径部署时，浏览器请求 `/deploy/wiki/`，入口代理需将其映射到 application 的 `/wiki/`。
 
-backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`。application 返回原始 Markdown，不提供 HTML 渲染；文档可免登录访问，请勿在产品 Wiki 中放置敏感信息。
+backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，中文 SSH 排障指引为 `https://nodemgr.example.com/#/wiki/zh/troubleshooting/unix-ssh-connection-failed.md`，由 Web 阅读页渲染 Markdown，原文仍通过现有 `/wiki/` 接口读取；无需新增开关或接口。
+
+原有 `https://nodemgr.example.com/wiki/` 前缀仍可使用，直接链接到原始 Markdown。`/wiki/` 保持匿名、只读访问，由上述 `application.config.wiki.enabled` 开关控制；阅读页的登录流程不改变原文可免登录访问的边界，请勿在产品 Wiki 中放置敏感信息。
 
 ## IAM V3 模型同步
 
@@ -94,7 +96,7 @@ apigwSync:
     enabled: true
 ```
 
-`apigwSync.mcp.enabled` 默认关闭；开启时优先于 `extraEnvVars` 中的 `ENABLE_SYNC_MCP_SERVERS`，自动启用 MCP 同步。它不自动发布网关资源：`config.spec_version` 必须为 `2`，对应 stage 需已发布包含 MCP 所引用资源的版本。内置清单由同步镜像中的产品定义提供；开启特性时将其 `status` 设为 `1`，其他字段沿用产品定义，不额外更改公开性、OAuth 或调用权限。当前内置拓扑查询 MCP 使用 `OpenTopo_*` 资源、`Official` 分类，保持非公开、关闭 public client OAuth，允许 personal client token。
+`apigwSync.mcp.enabled` 默认关闭；开启时优先于 `extraEnvVars` 中的 `ENABLE_SYNC_MCP_SERVERS`，自动启用 MCP 同步。它不自动发布网关资源：`config.spec_version` 必须为 `2`，对应 stage 需已发布包含 MCP 所引用资源的版本。内置清单由同步镜像中的产品定义提供；开启特性时将其 `status` 设为 `1`，其他字段沿用产品定义，不额外更改公开性、OAuth 或调用权限。内置拓扑查询和执行诊断 MCP 对外公开，系统诊断 MCP 保持非公开；三者均支持 public client OAuth2 和 personal client token，调用仍需满足对应的用户认证及资源权限要求。
 
 各 stage 的配置优先级如下，不按 MCP 名称或字段合并：
 
@@ -208,17 +210,17 @@ externalRedis:
 
 ## 用户标识兼容与平台升级
 
-`backend.config.userManager.useLegacyUsername` 和 `application.config.userManager.useLegacyUsername` 均默认为 `false`，必须在两个服务中同步配置。该开关仅控制是否沿用 `bk_username = login_name` 的旧用户标识规则，与 `tenantMode` 独立；`tenantMode` 仍负责租户模式，不用于判断用户标识体系。
+`backend.config.userManager.useLegacyUsername`、`application.config.userManager.useLegacyUsername` 和 `file.config.userManager.useLegacyUsername` 均默认为 `false`，必须在三个服务中同步配置。该开关仅控制是否沿用 `bk_username = login_name` 的旧用户标识规则，与 `tenantMode` 独立；`tenantMode` 仍负责租户模式，不用于判断用户标识体系。`useLegacyUsername: true` 仅支持 `single`，不允许用于 `multiple`。
 
 以下 7.2/7.3 指**蓝鲸平台大版本**，不是节点管理版本：
 
-| 蓝鲸平台 | 租户模式             | 两个服务的 `userManager.useLegacyUsername` | 用户标识处理                                                       |
+| 蓝鲸平台 | 租户模式             | 三个服务的 `userManager.useLegacyUsername` | 用户标识处理                                                       |
 | -------- | -------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
 | 7.2      | 非多租户（`single`） | `true`                                     | 沿用 `bk_username = login_name`，不调用 lookup                     |
 | 7.3      | `single`             | `false`                                    | 按当前租户通过用户管理 lookup 将 `login_name` 映射为 `bk_username` |
 | 7.3      | `multiple`           | `false`                                    | 按当前租户通过用户管理 lookup 将 `login_name` 映射为 `bk_username` |
 
-仍运行蓝鲸 7.2 平台时，即使升级节点管理，也必须保留两个服务的 `useLegacyUsername: true`：
+仍运行蓝鲸 7.2 平台时，即使升级节点管理，也必须保留三个服务的 `useLegacyUsername: true`：
 
 ```yaml
 backend:
@@ -229,11 +231,15 @@ application:
   config:
     userManager:
       useLegacyUsername: true
+file:
+  config:
+    userManager:
+      useLegacyUsername: true
 ```
 
-蓝鲸平台从 7.2 升级到 7.3 时，必须同步将两个服务切换为 `false`，并为节点管理应用开通用户管理 `/open/tenant/virtual-users/-/lookup/` 的调用权限，确保 `userManager.endpoints`、应用凭证及请求租户标识与目标环境一致。7.3 关闭多租户后的 `single` 模式不等同于 7.2 旧版，仍需 lookup。lookup 请求失败、无权限或未找到用户时会返回错误，**不会回退为 `bk_username = login_name`**；应修复权限、租户或用户数据，而不是通过开启兼容开关绕过。
+蓝鲸平台从 7.2 升级到 7.3 时，必须同步将三个服务切换为 `false`，确保 `userManager.endpoints`、应用凭证及请求租户标识与目标环境一致。File 使用 lookup 解析配置的 `gse.user`，不枚举租户。用户管理 lookup 默认仅需应用认证，无需申请资源权限；目标环境若调整了网关策略，须按实际配置处理，见[第三方 APIGateway 资源使用清单](../../../docs/operation/installation/thirdparty_apigateway_permission.md#bk-user)。7.3 关闭多租户后的 `single` 模式不等同于 7.2 旧版，仍需 lookup。lookup 请求失败、无权限或未找到用户时会返回错误，**不会回退为 `bk_username = login_name`**；应修复权限、租户或用户数据，而不是通过开启兼容开关绕过。
 
-使用 Helmfile 时，在 environment 的 `backend.config.userManager` 和 `application.config.userManager` 中同步设置该字段；Docker Compose 在两个服务的配置模板中提供固定默认值 `false`，部署到蓝鲸 7.2 前须同步改为 `true`。本开关不替代 `application.config.bkSaaS.bkLogin.useLegacyAPI`，登录接口的兼容配置仍按上一节选择。
+使用 Helmfile 时，在 environment 的 `backend.config.userManager`、`application.config.userManager` 和 `file.config.userManager` 中同步设置该字段；Docker Compose 在三个服务的配置模板中提供固定默认值 `false`，部署到蓝鲸 7.2 前须同步改为 `true`。本开关不替代 `application.config.bkSaaS.bkLogin.useLegacyAPI`，登录接口的兼容配置仍按上一节选择。
 
 ## Ingress 访问配置
 

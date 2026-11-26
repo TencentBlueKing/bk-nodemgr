@@ -41,7 +41,7 @@ extraDeploy: []
 image:
   registry: "hub.bktencent.com"
   repository: blueking/bk-nodemgr-server
-  tag: v3.0.1-alpha.118
+  tag: v3.0.1-alpha.120
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -59,7 +59,7 @@ image:
 apiManagerImage:
   registry: "hub.bktencent.com"
   repository: "blueking/bk-nodemgr-apigw-sync"
-  tag: v3.0.1-alpha.118
+  tag: v3.0.1-alpha.120
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -1660,6 +1660,10 @@ backend:
         clusterEndpoints: []
         fileEndpoints: []
         dataEndpoints: []
+        # accessPoints define the downstream access points of the default direct network unit,
+        # which are used by the proxies of other network units to connect to this unit.
+        # Each item: {name, clusterEndpoints, fileEndpoints, dataEndpoints}.
+        accessPoints: []
 
     ## defines the local file cache used by backend SSH install flows.
     fileCache:
@@ -1739,6 +1743,12 @@ backend:
       port: 28104
       traceServiceName: "backend-server-proxy"
       traceSampleRate: 0
+
+    # Embedded Jinja2 renderer listens only on loopback.
+    jinja2x:
+      portRange:
+        start: 28150
+        end: 28159
 
     ## defines the workflow related settings.
     workflow:
@@ -1971,21 +1981,24 @@ backend:
           logDir: ""
           extraConfigDir: ""
           proxyFileCacheDir: ""
-          # Global Linux Proxy rendering defaults; empty IPs and zero numbers use built-in defaults.
-          # Existing release port/speed values retain precedence. Restart backend after changes;
-          # existing Proxy nodes also require reconfig.
+          # Global Linux Proxy network settings. Empty IPs and zero ports use the built-in defaults below.
+          # These values override the ones shipped in the Proxy release package env file.
+          # Restart backend after changes; existing Proxy nodes also require reconfig.
           dataAgentBindIP: "::"
           dataAgentBindPort: 28625
           fileAgentBindIP: "::"
           fileAgentBindPort: 28925
+          fileAgentBindPortV1: 58925
           proxyBindIP: "::"
           proxyBindPort: 28668
           fileBittorrentBindIP: "::"
           fileBittorrentBindPort: 10020
           fileBittorrentTrackerBindPort: 10030
-          fileBittorrentSpeedLimitMBPerSec: 10000
           fileTopologyBindIP: "::"
           fileTopologyBindPort: 28930
+          fileTopologyThriftBindPort: 58930
+          fileMetricExporterBindPort: 29404
+          dataMetricExporterBindPort: 29402
           dataIPC: ""
           pluginIPC: ""
           zoneID: "default"
@@ -1993,6 +2006,10 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
+          # hostIDPushMode decides who pushes the host id file to the host: cmdb (default) or self.
+          # cmdb asks CMDB to push it; self makes Node Manager generate and push it through GSE,
+          # carrying only the fields Node Manager can decide itself. Empty means cmdb.
+          hostIDPushMode: ""
           commonConstants: {}
           # Empty v2RunDir/v2DataDir keep the shared plugin v2 defaults (<baseDeployDir>/<env>/plugins/run|data) used by
           # the compatibility install; non-empty paths are used as-is.
@@ -2027,6 +2044,10 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
+          # hostIDPushMode decides who pushes the host id file to the host: cmdb (default) or self.
+          # cmdb asks CMDB to push it; self makes Node Manager generate and push it through GSE,
+          # carrying only the fields Node Manager can decide itself. Empty means cmdb.
+          hostIDPushMode: ""
           commonConstants: {}
           # Empty v2RunDir/v2DataDir keep the shared plugin v2 defaults (<baseDeployDir>/<env>/plugins/run|data) used by
           # the compatibility install; non-empty paths are used as-is.
@@ -2364,6 +2385,44 @@ file:
 
     mountHostDir: "/data/bk-nodemgr-file-mount/"
 
+    # defines the user manager (BK API gateway) related settings.
+    userManager:
+      # Enable only on BlueKing platform 7.2 where bk_username equals login_name.
+      # Keep false on BlueKing 7.3 in both single and multiple tenant modes.
+      useLegacyUsername: false
+      # endpoints is a seed list of host:port addresses of user manager apigw nodes.
+      endpoints:
+        - "https://example.com/api/bk-user/prod"
+      # appCode is the BlueKing app code of Nodemgr to request api gateway.
+      appCode: ""
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
+      appSecret: ""
+      # user is the BlueKing user of Nodemgr to request api gateway.
+      user: ""
+      # authMode is the mode to do api access verification.
+      # 1. oa use bkTicket access.
+      # 2. ee use bkToken access.
+      # 3. at use accessToken access.
+      # 4. un use no user authentication required.
+      authMode: "un"
+      # accessToken is the BlueKing access token of Nodemgr to request api gateway.
+      accessToken: ""
+      # trace service name for UserManager client.
+      traceServiceName: "file-client-usermanager"
+      traceSampleRate: 0
+      # defines tls related options.
+      tls:
+        # server should be accessed without verifying the TLS certificate.
+        insecureSkipVerify: false
+        # server requires TLS client certificate authentication.
+        certFile: ""
+        # server requires TLS client certificate authentication.
+        keyFile: ""
+        # trusted root certificates for server.
+        caFile: ""
+        # the password to decrypt the certificate.
+        password: ""
+
     # defines the gse related settings.
     gse:
       # endpoints is a seed list of host:port addresses of apigw nodes.
@@ -2488,9 +2547,9 @@ apigwSync:
   config:
     spec_version: 2
     release:
-      version: "3.0.1-alpha.118"
+      version: "3.0.1-alpha.120"
       title: "bk-nodemgr"
-      comment: "3.0.1-alpha.118"
+      comment: "3.0.1-alpha.120"
     apigateway:
       description: "蓝鲸节点管理"
       description_en: "bk-nodemgr"

@@ -20,17 +20,11 @@
 package jinja2x
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"os"
-	"strings"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
+	"time"
 )
+
+const renderTimeout = time.Minute
 
 // Handler the handler for jinja2x.
 type Handler struct {
@@ -38,68 +32,15 @@ type Handler struct {
 
 // Render implement IHandler.
 func (h Handler) Render(tmpl string, content map[string]any) (string, error) {
-	templateBuffer := strings.NewReader(tmpl)
-	templateFile, err := tmp.NewTempFileWithSpecialName(io.NopCloser(templateBuffer), "template.conf")
+	ctx, cancel := context.WithTimeout(context.Background(), renderTimeout)
+	defer cancel()
+
+	client, err := defaultServer.getClient(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to create template file: %w", err)
+		return "", err
 	}
 
-	defer func() {
-		cleanErr := templateFile.CleanUp()
-		if cleanErr != nil {
-			logger.G.Sys().WithErr(cleanErr).Warn("failed to clean up temp file")
-		}
-	}()
-
-	contentByes, err := json.Marshal(content)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal content: %w", err)
-	}
-
-	contentBuffer := bytes.NewReader(contentByes)
-	contentFile, err := tmp.NewTempFileWithSpecialName(io.NopCloser(contentBuffer), "content.json")
-	if err != nil {
-		return "", fmt.Errorf("failed to create content file: %w", err)
-	}
-
-	defer func() {
-		cleanErr := contentFile.CleanUp()
-		if cleanErr != nil {
-			logger.G.Sys().WithErr(cleanErr).Warn("failed to clean up temp file")
-		}
-	}()
-
-	resultFile, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader("")), "result.conf")
-	if err != nil {
-		return "", fmt.Errorf("failed to create result file: %w", err)
-	}
-
-	defer func() {
-		cleanErr := resultFile.CleanUp()
-		if cleanErr != nil {
-			logger.G.Sys().WithErr(cleanErr).Warn("failed to clean up temp file")
-		}
-	}()
-
-	args := []string{
-		"-t",
-		fmt.Sprintf("%s", templateFile.Path()),
-		"-c",
-		fmt.Sprintf("%s", contentFile.Path()),
-		"-o",
-		fmt.Sprintf("%s", resultFile.Path()),
-	}
-	stdout, stderr, err := jinja2ExecRunCmd(context.Background(), args, os.Environ())
-	if err != nil {
-		return "", fmt.Errorf("failed to render template, stdout(%s), stderr(%s): %w", stdout, stderr, err)
-	}
-
-	result, err := os.ReadFile(resultFile.Path())
-	if err != nil {
-		return "", fmt.Errorf("failed to read result file: %w", err)
-	}
-
-	return string(result), nil
+	return client.render(ctx, tmpl, content)
 }
 
 // New create a new Handler.

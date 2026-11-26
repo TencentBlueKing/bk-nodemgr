@@ -223,6 +223,8 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionGenOperSyncStoppedPluginProcessV2Info(syncdataCap),
 		syncdata.NewActionGenOperCorrectUnknownProcessStatus(syncdataCap),
 		syncdata.NewActionCorrectUnknownProcessStatus(syncdataCap),
+		syncdata.NewActionCorrectRunningProcessStatus(syncdataCap),
+		syncdata.NewActionCorrectRunningProcessV2Status(syncdataCap),
 		syncdata.NewActionGenOperCleanOrphanProcess(syncdataCap),
 		syncdata.NewActionCleanOrphanProcess(syncdataCap),
 	); err != nil {

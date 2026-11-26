@@ -196,7 +196,10 @@ func Test_cli_getHeader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := testClient(t)
-			got := c.getHeader(tt.args.ctx)
+			got, err := c.getHeader(tt.args.ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			// Verify required headers are set
 			if got.Get("X-Bk-Tenant-Id") == "" {

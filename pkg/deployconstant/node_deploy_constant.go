@@ -59,6 +59,11 @@ const (
 
 	nodeFileTopologyBindIP   = "::"
 	nodeFileTopologyBindPort = 28930
+
+	nodeFileAgentBindPortV1        = 58925
+	nodeFileTopologyThriftBindPort = 58930
+	nodeFileMetricExporterBindPort = 29404
+	nodeDataMetricExporterBindPort = 29402
 )
 
 // NodeDeployConf defines the deployment configuration for agent.
@@ -74,7 +79,7 @@ type NodeDeployConf struct {
 	ZoneID            string
 	CityID            string
 
-	// Global proxy network defaults, independent of per-network-unit deployment settings.
+	// Global Linux proxy network defaults, independent of per-network-unit deployment settings.
 	DataAgentBindIP                  string
 	DataAgentBindPort                int64
 	FileAgentBindIP                  string
@@ -87,12 +92,51 @@ type NodeDeployConf struct {
 	FileBittorrentSpeedLimitMBPerSec int64
 	FileTopologyBindIP               string
 	FileTopologyBindPort             int64
+	FileAgentBindPortV1              int64
+	FileTopologyThriftBindPort       int64
+	FileMetricExporterBindPort       int64
+	DataMetricExporterBindPort       int64
 }
 
 // Validate checks if the deployment configuration is valid.
 func (conf NodeDeployConf) Validate() error {
 	if err := conf.DeployConf.Validate(); err != nil {
 		return fmt.Errorf("invalid deploy conf: %w", err)
+	}
+
+	if conf.OsType != criteria.OSLinux {
+		return nil
+	}
+
+	return conf.validateProxyBindPortsUnique()
+}
+
+// validateProxyBindPortsUnique rejects proxy bind ports that collide with each other.
+// Proxy defaults are only populated on Linux, so callers must not use it for other OS types.
+func (conf NodeDeployConf) validateProxyBindPortsUnique() error {
+	ports := []struct {
+		name  string
+		value int64
+	}{
+		{"dataAgentBindPort", conf.DataAgentBindPort},
+		{"fileAgentBindPort", conf.FileAgentBindPort},
+		{"proxyBindPort", conf.ProxyBindPort},
+		{"fileBittorrentBindPort", conf.FileBittorrentBindPort},
+		{"fileBittorrentTrackerBindPort", conf.FileBittorrentTrackerBindPort},
+		{"fileTopologyBindPort", conf.FileTopologyBindPort},
+		{"fileAgentBindPortV1", conf.FileAgentBindPortV1},
+		{"fileTopologyThriftBindPort", conf.FileTopologyThriftBindPort},
+		{"fileMetricExporterBindPort", conf.FileMetricExporterBindPort},
+		{"dataMetricExporterBindPort", conf.DataMetricExporterBindPort},
+	}
+
+	seen := make(map[int64]string, len(ports))
+	for _, port := range ports {
+		if prev, ok := seen[port.value]; ok {
+			return fmt.Errorf("proxy bind port conflict: %s and %s both use port %d", prev, port.name, port.value)
+		}
+
+		seen[port.value] = port.name
 	}
 
 	return nil
@@ -143,6 +187,12 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 	conf.ZoneID = conv.NonEmptyOr(conf.ZoneID, nodeZoneID)
 	conf.CityID = conv.NonEmptyOr(conf.CityID, nodeCityID)
 
+	if conf.OsType == criteria.OSLinux {
+		populateProxyDefaultValues(conf)
+	}
+}
+
+func populateProxyDefaultValues(conf *NodeDeployConf) {
 	// Empty IPs and zero numeric values preserve the built-in proxy network defaults.
 	conf.DataAgentBindIP = conv.NonEmptyOr(conf.DataAgentBindIP, nodeDataAgentBindIP)
 	conf.DataAgentBindPort = conv.NonEmptyOr(conf.DataAgentBindPort, nodeDataAgentBindPort)
@@ -156,6 +206,10 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 	conf.FileBittorrentSpeedLimitMBPerSec = conv.NonEmptyOr(conf.FileBittorrentSpeedLimitMBPerSec, nodeFileBittorrentSpeedLimitMBPerSec)
 	conf.FileTopologyBindIP = conv.NonEmptyOr(conf.FileTopologyBindIP, nodeFileTopologyBindIP)
 	conf.FileTopologyBindPort = conv.NonEmptyOr(conf.FileTopologyBindPort, nodeFileTopologyBindPort)
+	conf.FileAgentBindPortV1 = conv.NonEmptyOr(conf.FileAgentBindPortV1, nodeFileAgentBindPortV1)
+	conf.FileTopologyThriftBindPort = conv.NonEmptyOr(conf.FileTopologyThriftBindPort, nodeFileTopologyThriftBindPort)
+	conf.FileMetricExporterBindPort = conv.NonEmptyOr(conf.FileMetricExporterBindPort, nodeFileMetricExporterBindPort)
+	conf.DataMetricExporterBindPort = conv.NonEmptyOr(conf.DataMetricExporterBindPort, nodeDataMetricExporterBindPort)
 }
 
 // generateDefaultNodeLogDir generates the default log directory for the deployment configuration.

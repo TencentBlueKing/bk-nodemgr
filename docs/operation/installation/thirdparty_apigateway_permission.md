@@ -1,32 +1,32 @@
 # 第三方 APIGateway 资源使用清单
 
-安装前请为 `bk-nodemgr` 按以下资源清单申请第三方 APIGateway 权限，申请期限选择永久。
+安装前请为 `bk-nodemgr` 按以下资源清单核对第三方 APIGateway 认证与权限要求；需申请权限的资源，申请期限选择永久。
 
 `BKRepo` 不走 `APIGateway`，不在本清单范围内；其资源使用清单见 [BKRepo 资源使用说明](thirdparty_bkrepo_resource.md)。
 
 ## bk-gse
 
 | resource                                    | 资源说明                                                                                                      | 备注 | 申请期限 |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --- | -------- |
-| `async_extensions_execute_script`           | 异步脚本执行, 可支持扩展型目标, 包括容器和主机                                                                | — | 永久     |
-| `async_extensions_push_file`                | 通过任务通道直接发送文件内容到目标机; 文件内容大小不超过 10KB; 当前版本仅支持纯文本内容推送，不支持二进制内容 | — | 永久     |
-| `async_extensions_terminate_execute_script` | 终止脚本任务执行, 可支持扩展型目标, 包括容器和主机                                                            | — | 永久     |
-| `async_extensions_terminate_transfer_file`  | 终止文件分发任务, 可支持扩展型目标, 包括容器和主机                                                            | — | 永久     |
-| `async_extensions_transfer_file`            | 启动文件分发任务, 可支持扩展型目标, 包括容器和主机                                                            | — | 永久     |
-| `dispatch_message`                          | 消息槽下发消息                                                                                                | — | 永久     |
-| `get_extensions_execute_script_result`      | 查询脚本执行的结果信息, 可支持扩展型目标, 包括容器和主机                                                      | — | 永久     |
-| `get_extensions_transfer_file_result`       | 查询文件传输结果, 可支持扩展型目标, 包括容器和主机                                                            | — | 永久     |
-| `get_proc_operate_result_v2`                | 进程操作                                                                                                      | — | 永久     |
-| `list_agent_info`                           | 查询Agent详情列表信息                                                                                         | — | 永久     |
-| `list_agent_state`                          | 查询Agent状态列表信息                                                                                         | — | 永久     |
-| `operate_agent`                             | 操作控制Agent                                                                                                 | — | 永久     |
-| `operate_proc_multi`                        | 批量进程操作                                                                                                  | — | 永久     |
-| `operate_proc_v2`                           | 进程操作                                                                                                      | — | 永久     |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---- | -------- |
+| `async_extensions_execute_script`           | 异步脚本执行, 可支持扩展型目标, 包括容器和主机                                                                | —    | 永久     |
+| `async_extensions_push_file`                | 通过任务通道直接发送文件内容到目标机; 文件内容大小不超过 10KB; 当前版本仅支持纯文本内容推送，不支持二进制内容 | —    | 永久     |
+| `async_extensions_terminate_execute_script` | 终止脚本任务执行, 可支持扩展型目标, 包括容器和主机                                                            | —    | 永久     |
+| `async_extensions_terminate_transfer_file`  | 终止文件分发任务, 可支持扩展型目标, 包括容器和主机                                                            | —    | 永久     |
+| `async_extensions_transfer_file`            | 启动文件分发任务, 可支持扩展型目标, 包括容器和主机                                                            | —    | 永久     |
+| `dispatch_message`                          | 消息槽下发消息                                                                                                | —    | 永久     |
+| `get_extensions_execute_script_result`      | 查询脚本执行的结果信息, 可支持扩展型目标, 包括容器和主机                                                      | —    | 永久     |
+| `get_extensions_transfer_file_result`       | 查询文件传输结果, 可支持扩展型目标, 包括容器和主机                                                            | —    | 永久     |
+| `get_proc_operate_result_v2`                | 进程操作                                                                                                      | —    | 永久     |
+| `list_agent_info`                           | 查询Agent详情列表信息                                                                                         | —    | 永久     |
+| `list_agent_state`                          | 查询Agent状态列表信息                                                                                         | —    | 永久     |
+| `operate_agent`                             | 操作控制Agent                                                                                                 | —    | 永久     |
+| `operate_proc_multi`                        | 批量进程操作                                                                                                  | —    | 永久     |
+| `operate_proc_v2`                           | 进程操作                                                                                                      | —    | 永久     |
 
 ## bk-cmdb
 
-| resource                                | 资源说明                                                 | 备注 | 申请期限 |
-| --------------------------------------- | -------------------------------------------------------- | --- | -------- |
+| resource                                | 资源说明                                                 | 备注     | 申请期限 |
+| --------------------------------------- | -------------------------------------------------------- | -------- | -------- |
 | `add_host_to_business_idle`             | 添加主机到业务空闲机                                     | 隐藏接口 | 永久     |
 | `add_host_to_resource_pool`             | 添加主机到资源池                                         | 隐藏接口 | 永久     |
 | `batch_update_host`                     | 批量更新主机属性                                         | 隐藏接口 | 永久     |
@@ -54,7 +54,7 @@
 | `list_biz_hosts`                        | 查询业务下的主机                                         | 隐藏接口 | 永久     |
 | `list_biz_hosts_topo`                   | 查询业务下的主机和拓扑信息                               | 隐藏接口 | 永久     |
 | `list_hosts_without_biz`                | 没有业务ID的主机查询                                     | 隐藏接口 | 永久     |
-| `list_resource_pool_hosts`         | 查询资源池中的主机                                       | 隐藏接口 | 永久     |
+| `list_resource_pool_hosts`              | 查询资源池中的主机                                       | 隐藏接口 | 永久     |
 | `list_proc_template`                    | 查询进程模板列表                                         | 隐藏接口 | 永久     |
 | `list_process_instance`                 | 查询进程实例列表                                         | 隐藏接口 | 永久     |
 | `list_service_instance`                 | 查询服务实例列表                                         | 隐藏接口 | 永久     |
@@ -79,39 +79,50 @@
 
 ## bk-monitor
 
-| resource                            | 资源说明                                           | 备注 | 申请期限 |
-| ----------------------------------- | -------------------------------------------------- | --- | -------- |
+| resource                            | 资源说明                                 | 备注     | 申请期限 |
+| ----------------------------------- | ---------------------------------------- | -------- | -------- |
 | `get_or_create_agent_event_data_id` | 获取或创建节点管理 Agent 告警事件数据 ID | 隐藏接口 | 永久     |
 
 ## bkiam（IAM V4）
 
-| resource | 资源说明 | 备注 | 申请期限 |
-| --- | --- | --- | --- |
-| `direct_auth` | 单操作鉴权；支持无资源操作 | — | 永久 |
-| `direct_auth_by_resources` | 同一操作的多资源批量鉴权 | — | 永久 |
-| `direct_auth_by_actions` | 同一资源的多操作批量鉴权 | — | 永久 |
-| `list_authorized_resource` | 查询有权限的资源范围 | 隐藏接口 | 永久 |
-| `generate_perm_apply_url` | 生成权限申请链接 | — | 永久 |
-| `retrieve_system_auth_token` | 获取系统回调认证凭据 | 隐藏接口 | 永久 |
-| `add_authorization` | 授予管理角色 | — | 永久 |
-| `retrieve_system` | 查询接入系统是否存在 | 隐藏接口 | 永久 |
-| `create_system` | 创建接入系统 | 隐藏接口 | 永久 |
-| `update_system` | 更新系统信息及回调配置 | 隐藏接口 | 永久 |
-| `list_resource_type` | 查询资源类型列表 | 隐藏接口 | 永久 |
-| `batch_create_resource_type` | 创建资源类型 | 隐藏接口 | 永久 |
-| `update_resource_type` | 更新资源类型 | 隐藏接口 | 永久 |
-| `list_action` | 查询操作列表 | 隐藏接口 | 永久 |
-| `batch_create_action` | 创建操作 | 隐藏接口 | 永久 |
-| `update_action` | 更新操作 | 隐藏接口 | 永久 |
-| `list_role` | 查询角色及其操作绑定 | 隐藏接口 | 永久 |
-| `batch_create_role` | 创建角色 | 隐藏接口 | 永久 |
-| `update_role` | 更新角色信息 | 隐藏接口 | 永久 |
-| `batch_create_role_action` | 增加角色的操作绑定 | 隐藏接口 | 永久 |
-| `batch_delete_role_action` | 移除角色的操作绑定 | 隐藏接口 | 永久 |
+| resource                     | 资源说明                   | 备注     | 申请期限 |
+| ---------------------------- | -------------------------- | -------- | -------- |
+| `direct_auth`                | 单操作鉴权；支持无资源操作 | —        | 永久     |
+| `direct_auth_by_resources`   | 同一操作的多资源批量鉴权   | —        | 永久     |
+| `direct_auth_by_actions`     | 同一资源的多操作批量鉴权   | —        | 永久     |
+| `list_authorized_resource`   | 查询有权限的资源范围       | 隐藏接口 | 永久     |
+| `generate_perm_apply_url`    | 生成权限申请链接           | —        | 永久     |
+| `retrieve_system_auth_token` | 获取系统回调认证凭据       | 隐藏接口 | 永久     |
+| `add_authorization`          | 授予管理角色               | —        | 永久     |
+| `retrieve_system`            | 查询接入系统是否存在       | 隐藏接口 | 永久     |
+| `create_system`              | 创建接入系统               | 隐藏接口 | 永久     |
+| `update_system`              | 更新系统信息及回调配置     | 隐藏接口 | 永久     |
+| `list_resource_type`         | 查询资源类型列表           | 隐藏接口 | 永久     |
+| `batch_create_resource_type` | 创建资源类型               | 隐藏接口 | 永久     |
+| `update_resource_type`       | 更新资源类型               | 隐藏接口 | 永久     |
+| `list_action`                | 查询操作列表               | 隐藏接口 | 永久     |
+| `batch_create_action`        | 创建操作                   | 隐藏接口 | 永久     |
+| `update_action`              | 更新操作                   | 隐藏接口 | 永久     |
+| `list_role`                  | 查询角色及其操作绑定       | 隐藏接口 | 永久     |
+| `batch_create_role`          | 创建角色                   | 隐藏接口 | 永久     |
+| `update_role`                | 更新角色信息               | 隐藏接口 | 永久     |
+| `batch_create_role_action`   | 增加角色的操作绑定         | 隐藏接口 | 永久     |
+| `batch_delete_role_action`   | 移除角色的操作绑定         | 隐藏接口 | 永久     |
+
+## bk-user
+
+以下资源仅需应用认证（`bk_app_code`、`bk_app_secret`），不需要用户登录票据。[用户管理默认网关定义](https://github.com/TencentBlueKing/bk-user/blob/76fb160ad9d33ee91b3e33756ef52d53fa77be6a/src/bk-user/support-files/bk-user-apigateway/resources.yaml)未开启资源权限校验，默认无需申请；目标环境若调整了认证或权限策略，应按实际网关配置处理。
+
+| resource                    | 资源说明                                                                | 备注                                                                            | 申请期限         |
+| --------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------- |
+| `list_tenant`               | 查询租户列表；`GET /api/v3/open/tenants/`                               | 多租户模式下发现租户                                                            | 无需申请（默认） |
+| `batch_lookup_virtual_user` | 批量查询虚拟用户信息；`GET /api/v3/open/tenant/virtual-users/-/lookup/` | 按请求租户将 `login_name` 映射为 `bk_username`；Backend、Application、File 共用 | 无需申请（默认） |
+
+`batch_lookup_virtual_user` 使用 `lookups=<login_name>&lookup_field=login_name` 查询。File 使用该接口解析配置的 `gse.user`，不调用 `list_tenant` 枚举租户。蓝鲸平台 7.3 的 `single` 和 `multiple` 模式均需要 lookup；蓝鲸平台 7.2 的 `single` 模式须在 Backend、Application、File 中同步设置 `userManager.useLegacyUsername: true`，不调用 lookup。`multiple` 模式不支持该兼容开关。配置与升级要求见 [用户标识兼容与平台升级](../../../install/helm/bk-nodemgr/CONFIGURATION.md#用户标识兼容与平台升级)。
 
 ## bk-notice
 
 | resource                                 | 资源说明                     | 备注 | 申请期限 |
-| ---------------------------------------- | ---------------------------- | --- | -------- |
-| `announcement_get_current_announcements` | Get announcement list        | — | 永久     |
-| `register_application`                   | register for the application | — | 永久     |
+| ---------------------------------------- | ---------------------------- | ---- | -------- |
+| `announcement_get_current_announcements` | Get announcement list        | —    | 永久     |
+| `register_application`                   | register for the application | —    | 永久     |

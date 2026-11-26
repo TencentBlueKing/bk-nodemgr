@@ -106,6 +106,7 @@ flowchart LR
 
 - `file.config.repo.endpoint`、`projectID`、`repoName`、`accessKey`、`secretKey`：BKRepo 直连配置。该配置不走 API Gateway，必须显式填写。
 - `file.config.gse.pluginSlotID`、`file.config.gse.pluginSlotToken`：GSE plugin slot 信息。
+- `file.config.userManager.useLegacyUsername`：仅蓝鲸平台 7.2 的单租户环境启用，须与 Backend、Application 同步；默认 `false`，通过用户管理 lookup 解析 `file.config.gse.user`。网关地址和应用凭证沿用 `global` 与 `gateways.userManager` 映射。
 
 ### kms
 
@@ -139,7 +140,14 @@ flowchart LR
 
 ## 自监控 release
 
-`monitoring` release 参考 `install/helm/bk-nodemgr/values-example.yaml`，默认启用：
+在 `env.yaml` 中通过 `monitoring.enabled` 一键控制内置自监控体系，省略时默认为 `true`：
+
+```yaml
+monitoring:
+  enabled: true
+```
+
+`monitoring` release 参考 `install/helm/bk-nodemgr/values-example.yaml`，启用自监控时部署：
 
 - `tempo`
 - `opentelemetryGateway`
@@ -165,7 +173,20 @@ Grafana 默认配置：
 - `path` 使用 `global.ingress.grafanaPath`。
 - TLS secret 使用 `global.ingress.tlsSecretName`；为空时不渲染 TLS。
 
-`file`、`backend`、`application` 的 tracing 会自动指向 monitoring release 中的 `opentelemetryGateway`，Gateway 再导出到内置 Tempo。该联动只设置 OTLP exporter、endpoint、protocol 和 insecure 模式，不修改各服务的 `traceSampleRate`。
+`monitoring.enabled` 只控制内置自监控体系，外部 Trace 采集独立生效：
+
+| `monitoring.enabled` | `opentelemetryGateway.exporters` | Trace 上报目标 |
+| --- | --- | --- |
+| `true` | 空 | 内置 Tempo |
+| `true` | 非空 | 内置 Tempo + 外部采集端 |
+| `false` | 空 | 不自动启用 Trace 上报 |
+| `false` | 非空 | 仅外部采集端（保留 Gateway） |
+
+Gateway 启用时，`file`、`backend`、`application` 的 tracing 自动指向它，未显式设置的采样率默认为 `1`。Gateway 关闭时，不再自动注入 OTLP 配置及采样率，沿用 Chart 默认值或用户显式配置。内置自监控关闭时，也不再默认开启 Profiling 或注入 Pyroscope 地址；服务日志与 Metrics 接口仍保留。
+
+如需额外发送到统一采集端，在 `env.yaml` 的 `opentelemetryGateway.exporters` 中填写原生 Collector exporter 配置即可。模板会自动将所有额外 exporter 加入 traces pipeline；无需填写 receivers、processors 或 pipelines。多个 namespace 各自保留 Gateway 时，填写相同的采集端地址即可汇聚，跨 namespace 请使用 Service 完整 DNS，避免指回当前 Gateway 或形成转发环路。`otlp/tempo` 为内置 Tempo 保留名称。高级自定义仍放在 `overrides/*.yaml`，其配置优先于模板生成值。
+
+切换已有环境时，对完整环境执行 `./deploy.sh diff <environment>` 确认变更，再执行 `./deploy.sh apply <environment>`；不要仅更新 monitoring release，否则服务采集配置不会同步更新。切换会触发相关业务服务的配置更新和滚动发布。关闭时可能删除自监控组件及其持久化资源，切换前确认数据保留策略并按需备份。
 
 `tempo` 没有复制 `values-example.yaml` 中的 S3 示例；S3 是生产外部对象存储示例，不适合作为本地 minikube 默认值。
 
@@ -215,7 +236,9 @@ cd install/helmfile/bk-nodemgr
 ./deploy.sh render-values example
 ```
 
-`render-values` 底层使用 Helmfile `write-values`，默认追加 `--skip-deps`，输出到：
+`render-values` 使用当前环境指定的 Chart（本地 Chart 或指定版本的远程 Chart），通过 Helm 原生渲染导出最终 `.Values`，包含 Chart 及启用的子 Chart 默认值、Helmfile 模板生成值和用户 override。覆盖优先级与部署时一致：Chart 默认值 < 模板生成值 < `overrides/<module>.yaml` < 命令行 `--values` / `--set`。
+
+默认追加 `--skip-deps`，需要 Chart 已包含所需依赖；使用远程 Chart 时需确保对应 Helm 仓库已配置且可访问。渲染仅使用临时 Chart 副本，不修改原始 Chart，也不部署到集群。输出到：
 
 ```text
 rendered-values/<environment>/values/<namespace>.yaml
@@ -229,7 +252,7 @@ rendered-values/example/values/blueking-nodemgr-backend.yaml
 rendered-values/example/values/blueking-nodemgr-application.yaml
 ```
 
-`rendered-values/<environment>/values/` 默认被 `.gitignore` 忽略，只作为本地检查和排查使用，不提交到仓库。
+`rendered-values/<environment>/values/` 默认被 `.gitignore` 忽略，只作为本地检查和排查使用，不提交到仓库。最终 values 可能包含凭证等敏感配置，请勿直接分享。
 
 `render-values` 要求选中的 release name 全部相同，文件名按 namespace 区分。当前 Helmfile 拓扑中各 module 的 release name 均为 `bk-nodemgr`，namespace 可不同。
 

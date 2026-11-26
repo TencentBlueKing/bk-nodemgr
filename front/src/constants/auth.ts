@@ -130,13 +130,22 @@ export function matchPageAuth(
  *    biz 类 view（agent_view/proxy_view/plugin_view/history 系列/config_policy_view）由路由守卫 verify 实时校验，
  *    页面渲染不读 authorizedMap（少数需要的页面自行 fetchAuthorized），无需模块级预加载
  * 2. 非 view 类（operate/manage/create/edit/delete/upload）由具体菜单页按需加载
- * 3. 唯一保留的模块级项：bizSelector 的 biz_access（业务选择器全局共享，所有页面都需要）
+ * 3. 全局预加载业务选择器和平台管理导航所需的授权范围
  */
 export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
   // 业务选择器：仅需 biz_access 判断业务访问权限（所有页面共享，全局预加载）
   bizSelector: [
     { action: 'biz_access', resource_type: 'biz' },
   ],
+  platformManager: [
+    { action: 'platform_manage', resource_type: 'platform_resource' },
+  ],
+};
+
+export const PLATFORM_ROUTE_RESOURCE_MAP: Record<string, string> = {
+  systemConfig: 'system_config',
+  schedulerWorkflow: 'scheduler_workflow',
+  globalSettings: 'global_settings',
 };
 
 /**

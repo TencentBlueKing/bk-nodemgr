@@ -53,12 +53,17 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 }
 
 // getHeader returns common HTTP headers for IAM v4 API requests.
-func (c *cli) getHeader(ctx contextx.IContext) http.Header {
+func (c *cli) getHeader(ctx contextx.IContext) (http.Header, error) {
+	authHeader, err := c.config.VirtualUserConfig.GetAuthHeader(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get auth header: %w", err)
+	}
+
 	header := http.Header{}
 	header.Set(apigwheader.BKGWTenantIDKey, ctx.TenantID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(ctx))
+	header.Set(apigwheader.BKGWAuthKey, authHeader)
 
-	return header
+	return header, nil
 }
 
 func (c *cli) addAuthorization(ctx contextx.IContext, systemID string, req AuthorizationRequest) error {
@@ -76,7 +81,10 @@ func (c *cli) addAuthorization(ctx contextx.IContext, systemID string, req Autho
 	}
 
 	resp := new(BaseBroker[struct{}])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return fmt.Errorf("add authorization: %w", err)
+	}
 	header.Set("X-Bkiam-Operator", ctx.BKUsername())
 	// IAM requires application and resource permission; send one grant as an array (maximum 20).
 	result := c.client.Post().
@@ -102,9 +110,12 @@ func (c *cli) addAuthorization(ctx contextx.IContext, systemID string, req Autho
 
 func (c *cli) directAuth(ctx contextx.IContext, systemID string, req DirectAuthRequest) (bool, error) {
 	resp := new(BaseBroker[DirectAuthResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return false, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/open/rbac/authorization/systems/%s/auth/", systemID).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -127,9 +138,12 @@ func (c *cli) authByResources(
 ) ([]AuthByResourcesResponse, error) {
 
 	resp := new(BaseBroker[[]AuthByResourcesResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/open/rbac/authorization/systems/%s/auth-by-resources/", systemID).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -149,9 +163,12 @@ func (c *cli) authByResources(
 
 func (c *cli) authByActions(ctx contextx.IContext, systemID string, req AuthByActionsRequest) ([]AuthByActionsResponse, error) {
 	resp := new(BaseBroker[[]AuthByActionsResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/open/rbac/authorization/systems/%s/auth-by-actions/", systemID).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -174,9 +191,12 @@ func (c *cli) listAuthorizedResources(
 ) ([]AuthorizedResourceResponse, error) {
 
 	resp := new(BaseBroker[[]AuthorizedResourceResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/open/rbac/authorization/systems/%s/relation/authorized-resources/", systemID).
 		WithContext(ctx).
 		WithHeaders(header).
@@ -196,9 +216,12 @@ func (c *cli) listAuthorizedResources(
 
 func (c *cli) getApplyURL(ctx contextx.IContext, req ApplyURLRequest) (string, error) {
 	resp := new(BaseBroker[ApplyURLResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return "", err
+	}
 
-	err := c.client.Post().
+	err = c.client.Post().
 		SubResourcef("/v1/open/application/permission-apply-urls/").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -218,9 +241,12 @@ func (c *cli) getApplyURL(ctx contextx.IContext, req ApplyURLRequest) (string, e
 
 func (c *cli) getToken(ctx contextx.IContext, systemID string) (string, error) {
 	resp := new(BaseBroker[TokenResponse])
-	header := c.getHeader(ctx)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return "", err
+	}
 
-	err := c.client.Get().
+	err = c.client.Get().
 		SubResourcef("/v1/open/rbac/model/systems/%s/auth-token/", systemID).
 		WithContext(ctx).
 		WithHeaders(header).

@@ -47,6 +47,7 @@ type handler struct {
 	authorizer            auth.IAuthorizer
 	cmdbHandler           cmdb.IHandler
 	fileHandler           file.IReleasePluginHandler
+	requirementFiles      file.IPluginRequirementHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -64,6 +65,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		authorizer:            capability.Authorizer,
 		cmdbHandler:           capability.CmdbHandler,
 		fileHandler:           capability.FileHandler,
+		requirementFiles:      capability.FileHandler,
 	}
 }
 
@@ -81,6 +83,13 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/remove_subconfig", restserver.Handler(h.RemoveSubConfig))
 	h.rg.POST("/set_memo", restserver.Handler(h.SetMemo))
 	h.rg.POST("/list_config_files", restserver.Handler(h.ListConfigFiles))
+
+	h.rg.POST("/requirement/create", restserver.Handler(h.CreateRequirementFile))
+	h.rg.POST("/requirement/update", restserver.Handler(h.UpdateRequirementFile))
+	h.rg.POST("/requirement/update_scope", restserver.Handler(h.UpdateRequirementFileScope))
+	h.rg.POST("/requirement/get", restserver.Handler(h.GetRequirementFile))
+	h.rg.POST("/requirement/list", restserver.Handler(h.ListRequirementFiles))
+	h.rg.GET("/requirement/download", restserver.StreamHandler(h.DownloadRequirementFile))
 
 	h.rg.POST("/start", restserver.Handler(h.Start))
 	h.rg.POST("/restart", restserver.Handler(h.Restart))

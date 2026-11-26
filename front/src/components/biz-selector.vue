@@ -102,13 +102,14 @@ const selectRef = ref<{
 } | null>(null);
 
 // ===== 可见性与模式 =====
-const NO_BIZ_SELECTOR_MAIN_MENUS = ['topoManager', 'pkgManager'];
+const NO_BIZ_SELECTOR_MAIN_MENUS = ['topoManager', 'pkgManager', 'platformManager'];
 
 // 业务访问权限 action
 const BIZ_ACCESS_ACTION = 'biz_access';
 
 const isVisible = computed(() => {
-  if (route.path.includes('topo-manager') || route.path.includes('pkg-manager')) return false;
+  if (route.path.includes('topo-manager') || route.path.includes('pkg-manager')
+    || route.path.includes('platform-manager')) return false;
   // 403/404 页面：通过 mainMenu 判断原模块是否不需要业务选择器
   if (route.name === '403' || route.name === '404') {
     const mainMenu = route.query.mainMenu as string;
