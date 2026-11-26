@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.119+.
+- API Version: v3.0.1-alpha.121+.
 - Required Permission: plugin_view (View Plugin).
 - Function: List the current tenant's dependency files by metadata with pagination, for file record management.
 
