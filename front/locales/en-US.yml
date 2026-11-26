@@ -17,7 +17,7 @@ platform:
         pluginNamePlaceholder: Enter plugin name
         pluginNameRequired: Please enter plugin name
     agentStatus:
-      title: Agent Management
+      title: Agent
       reinstall: Reinstall
       upgrade: Upgrade/Rollback
       agentUpgrade: Agent Upgrade/Rollback
@@ -109,7 +109,7 @@ platform:
       assignUnitConfirmDeleteRow: Confirm to remove this host?
       assignUnitConfirmDeleteRowSub: Host {ip} will not be assigned a network unit after removal
     proxyStatus:
-      title: Proxy Management
+      title: Proxy
       online: Normal
       abnormal: Abnormal
       notInstalled: Not Installed
