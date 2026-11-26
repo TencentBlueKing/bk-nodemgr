@@ -143,6 +143,7 @@ config:
       clusterEndpoints: [] # 上游GSE cluster通道endpoint列表
       fileEndpoints: [] # 上游GSE file通道endpoint列表
       dataEndpoints: [] # 上游GSE data通道endpoint列表
+      accessPoints: [] # 下游接入点列表, 供其他管控单元的Proxy接入, 每项包含 name/clusterEndpoints/fileEndpoints/dataEndpoints
 ```
 
 > `tenantMode`的合法取值是`multiple`或`single`，不能写作`multi`

@@ -1660,6 +1660,10 @@ backend:
         clusterEndpoints: []
         fileEndpoints: []
         dataEndpoints: []
+        # accessPoints define the downstream access points of the default direct network unit,
+        # which are used by the proxies of other network units to connect to this unit.
+        # Each item: {name, clusterEndpoints, fileEndpoints, dataEndpoints}.
+        accessPoints: []
 
     ## defines the local file cache used by backend SSH install flows.
     fileCache:
