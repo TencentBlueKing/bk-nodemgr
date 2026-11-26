@@ -3,6 +3,9 @@ import { useRoute } from 'vue-router';
 
 import { i18n } from '../modules/i18n';
 
+import { PLATFORM_ROUTE_RESOURCE_MAP } from '@/constants/auth';
+import { useAuthStore } from '@/stores/auth';
+
 export interface NavGroup {
   title: string;
   children: Array<Omit<NavItem, 'group'>>
@@ -223,18 +226,24 @@ const navList = [
 
 export default function useMenu() {
   const route = useRoute();
+  const authStore = useAuthStore();
   const currentMainMenu = computed(() => (route.meta?.mainMenu || (route.query.mainMenu as string)));
 
-  const navData = computed<NavItem[]>(() => navList.map(item => ({
-    ...item,
-    params: {},
-  })));
+  const navData = computed<NavItem[]>(() => navList.map((item) => {
+    if (item.routeName !== 'platformManager') return { ...item, params: {} };
 
-  const subMenuData = computed(() => {
-    const groups = navData.value.find(item => item.routeName === currentMainMenu.value)?.group || [];
-    // 所有模块：菜单始终显示，无权限时由路由守卫跳转 403 占位页
-    return groups;
-  });
+    const group = item.group.map(group => ({
+      ...group,
+      children: group.children.filter((child) => {
+        const resourceId = PLATFORM_ROUTE_RESOURCE_MAP[child.routeName];
+        return !!resourceId && authStore.hasAuthorizedResource('platform_manage', resourceId);
+      }),
+    })).filter(group => group.children.length > 0);
+
+    return { ...item, group, params: {} };
+  }).filter(item => item.routeName !== 'platformManager' || item.group.length > 0));
+
+  const subMenuData = computed(() => navData.value.find(item => item.routeName === currentMainMenu.value)?.group || []);
 
   return {
     navData,

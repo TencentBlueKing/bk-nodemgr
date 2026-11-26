@@ -5,10 +5,12 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import { cancelRequest } from '@/api/request-queue';
 import { userStorage } from '@/common/storage';
 import {
+  getModuleAuthorizedItems,
   getPageAuthorizedItems,
   handleDeferredBizAuthCheck,
   matchPageAuth,
   PAGE_AUTH_CONFIG,
+  PLATFORM_ROUTE_RESOURCE_MAP,
   shouldDeferBizAuthCheck,
 } from '@/constants/auth';
 import { i18n } from '@/modules/i18n';
@@ -463,6 +465,25 @@ export const install: UserModule = ({ app }) => {
     const authStore = useAuthStore();
     const mainStore = useMainStore();
     const permissionStore = usePermissionStore();
+
+    if (to.meta.mainMenu === 'platformManager') {
+      await authStore.fetchAuthorized(getModuleAuthorizedItems('platformManager'), 'platformManager');
+      const pageName = typeof to.name === 'string' ? to.name : '';
+      const resourceId = PLATFORM_ROUTE_RESOURCE_MAP[pageName];
+      if (resourceId && authStore.hasAuthorizedResource('platform_manage', resourceId)) return true;
+
+      if (to.redirectedFrom?.name === 'platformManager') {
+        const firstAllowedPage = Object.keys(PLATFORM_ROUTE_RESOURCE_MAP).find(name => (
+          authStore.hasAuthorizedResource('platform_manage', PLATFORM_ROUTE_RESOURCE_MAP[name])
+        ));
+        if (firstAllowedPage) return { name: firstAllowedPage, query: to.query, hash: to.hash, replace: true };
+      }
+
+      authStore.setDeniedActionIds([]);
+      permissionStore.hideDialog();
+      return { name: '403', query: { mainMenu: 'platformManager', from: to.fullPath } };
+    }
+
     const isRuleManagerRoute = to.path.includes('rule-manager');
 
     let selectedBizIds = isRuleManagerRoute && mainStore.strategyBizId
