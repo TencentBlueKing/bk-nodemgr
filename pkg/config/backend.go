@@ -22,6 +22,7 @@ package config
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -599,6 +600,10 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate profiling config: %w", err)
 	}
 
+	if err := svc.NetworkUnit.Validate(); err != nil {
+		return fmt.Errorf("failed to validate network unit config: %w", err)
+	}
+
 	return nil
 }
 
@@ -607,13 +612,76 @@ type NetworkUnit struct {
 	DefaultDirectUnit DefaultDirectUnit `yaml:"defaultDirectUnit" usage:"default direct network unit config"`
 }
 
+// Validate validates the config.
+func (conf NetworkUnit) Validate() error {
+	return conf.DefaultDirectUnit.Validate()
+}
+
 // DefaultDirectUnit defines the default direct network unit config.
 type DefaultDirectUnit struct {
-	Enabled          bool     `yaml:"enabled" usage:"enable auto-create default direct network unit"`
-	Name             string   `yaml:"name" usage:"name of the default direct network unit"`
-	ClusterEndpoints []string `yaml:"clusterEndpoints" usage:"cluster endpoints of the default direct network unit"`
-	FileEndpoints    []string `yaml:"fileEndpoints" usage:"file endpoints of the default direct network unit"`
-	DataEndpoints    []string `yaml:"dataEndpoints" usage:"data endpoints of the default direct network unit"`
+	Enabled          bool                           `yaml:"enabled" usage:"enable auto-create default direct network unit"`
+	Name             string                         `yaml:"name" usage:"name of the default direct network unit"`
+	ClusterEndpoints []string                       `yaml:"clusterEndpoints" usage:"cluster endpoints of the default direct network unit"`
+	FileEndpoints    []string                       `yaml:"fileEndpoints" usage:"file endpoints of the default direct network unit"`
+	DataEndpoints    []string                       `yaml:"dataEndpoints" usage:"data endpoints of the default direct network unit"`
+	AccessPoints     []DefaultDirectUnitAccessPoint `yaml:"accessPoints" usage:"downstream access points of the default direct network unit"`
+}
+
+// Validate validates the config.
+func (conf DefaultDirectUnit) Validate() error {
+	if !conf.Enabled {
+		return nil
+	}
+
+	if conf.Name == "" {
+		return fmt.Errorf("name is empty")
+	}
+
+	for idx, accessPoint := range conf.AccessPoints {
+		if err := accessPoint.Validate(); err != nil {
+			return fmt.Errorf("invalid accessPoints[%d]: %w", idx, err)
+		}
+	}
+
+	return nil
+}
+
+// DefaultDirectUnitAccessPoint defines a downstream access point of the default direct network unit.
+type DefaultDirectUnitAccessPoint struct {
+	Name             string   `yaml:"name" usage:"name of the access point"`
+	ClusterEndpoints []string `yaml:"clusterEndpoints" usage:"cluster endpoints of the access point"`
+	FileEndpoints    []string `yaml:"fileEndpoints" usage:"file endpoints of the access point"`
+	DataEndpoints    []string `yaml:"dataEndpoints" usage:"data endpoints of the access point"`
+}
+
+// Validate validates the config: the name is required, and each of the cluster, file and data
+// endpoints must contain at least one entry in the form of IP:port.
+func (conf DefaultDirectUnitAccessPoint) Validate() error {
+	if conf.Name == "" {
+		return fmt.Errorf("name is empty")
+	}
+
+	channels := []struct {
+		field     string
+		endpoints []string
+	}{
+		{"clusterEndpoints", conf.ClusterEndpoints},
+		{"fileEndpoints", conf.FileEndpoints},
+		{"dataEndpoints", conf.DataEndpoints},
+	}
+	for _, channel := range channels {
+		if len(channel.endpoints) == 0 {
+			return fmt.Errorf("%s is empty", channel.field)
+		}
+
+		for _, endpoint := range channel.endpoints {
+			if _, err := netip.ParseAddrPort(endpoint); err != nil {
+				return fmt.Errorf("invalid %s: endpoint %q is not in IP:port form: %w", channel.field, endpoint, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Monitor defines the monitor gateway configuration.

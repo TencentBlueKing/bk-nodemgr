@@ -158,7 +158,21 @@ func (act *actionEnsureDirectNetworkUnit) Do(ctx *action.InstanceContext) error 
 		Generation: types.Generation2,
 	}
 
-	if _, _, err = act.storageNetworkUnit.CreateNetworkUnit(nCtx, networkUnit); err != nil {
+	accessPoints := make([]*types.AccessPoint, 0, len(directUnitCfg.AccessPoints))
+	for _, ap := range directUnitCfg.AccessPoints {
+		accessPoints = append(accessPoints, &types.AccessPoint{
+			TenantID:      std.TenantID(),
+			NetworkAreaID: types.DefaultNetworkAreaID,
+			Name:          ap.Name,
+			Endpoints: types.Endpoints{
+				Cluster: ap.ClusterEndpoints,
+				File:    ap.FileEndpoints,
+				Data:    ap.DataEndpoints,
+			},
+		})
+	}
+
+	if _, _, err = act.storageNetworkUnit.CreateNetworkUnit(nCtx, networkUnit, accessPoints...); err != nil {
 		return fmt.Errorf("failed to create default direct network unit: %w", err)
 	}
 

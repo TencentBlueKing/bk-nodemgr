@@ -40,7 +40,7 @@
 
 默认管控区域（ID 为 `0`）支持通过 Backend 配置 `networkUnit.defaultDirectUnit` 自动创建一个直连单元。默认关闭；启用后，定时管控区域同步会在默认区域已同步、且其中尚无直连单元时创建，已有直连单元则跳过。
 
-启用前必须填写环境中真实可用的 `clusterEndpoints`、`fileEndpoints` 和 `dataEndpoints`。该配置只负责创建单元，不保证网络连通，也不会把默认区域中的其他单元变成直连单元。配置方法见[默认直连单元配置](../../operation/installation/default_direct_unit.md)。
+启用前必须填写环境中真实可用的 `clusterEndpoints`、`fileEndpoints` 和 `dataEndpoints`；如需供其他单元的 Proxy 接入，还可通过 `accessPoints` 同时配置[下游接入点](accesspoint.md)。该配置只负责创建单元，不保证网络连通，也不会把默认区域中的其他单元变成直连单元。配置方法见[默认直连单元配置](../../operation/installation/default_direct_unit.md)。
 
 ## 相关文档
 
