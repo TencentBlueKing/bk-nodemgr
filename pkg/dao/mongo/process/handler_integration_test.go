@@ -78,6 +78,7 @@ func testProcess(tenantID string) *types.Process {
 			StopCheckSecs:  6,
 			OpTimeoutSecs:  7,
 		},
+		Requirements: []types.ProcessRequirement{},
 	}
 }
 
@@ -111,6 +112,42 @@ func TestHandler_ProcessIntegration(t *testing.T) {
 		exist, err := h.Exist(nCtx, created.HostID, created.PluginName)
 		require.NoError(t, err)
 		require.True(t, exist)
+	})
+
+	t.Run("update selected fields", func(t *testing.T) {
+		requirements := []types.ProcessRequirement{{
+			RequirementID:  "0b6f0f18-6f1f-4c88-9d3f-2a4f1f3d1a11",
+			TargetPath:     "/opt/plugin/conf/extra",
+			TargetFileName: "rules.json",
+			MD5:            "d41d8cd98f00b204e9800998ecf8427e",
+		}}
+		opts := []OptFn{WithHostID(created.HostID), WithPluginName(created.PluginName)}
+		require.Error(t, h.Update(nCtx, created.HostID, created.PluginName, types.ProcessUpdateFields{}, created))
+		fields := types.ProcessUpdateFields{Requirements: true}
+		updated := &types.Process{Requirements: requirements}
+		require.NoError(t, h.Update(nCtx, created.HostID, created.PluginName, fields, updated))
+		got, err := h.Get(nCtx, opts...)
+		require.NoError(t, err)
+		expected := *created
+		expected.Requirements = requirements
+		require.Equal(t, &expected, got)
+
+		fields = types.ProcessUpdateFields{Info: true}
+		updated = &types.Process{Info: created.Info}
+		updated.Info.Pid = 0
+		require.NoError(t, h.Update(nCtx, created.HostID, created.PluginName, fields, updated))
+		got, err = h.Get(nCtx, opts...)
+		require.NoError(t, err)
+		require.Equal(t, updated.Info.Pid, got.Info.Pid)
+		require.Equal(t, requirements, got.Requirements)
+
+		fields.Requirements = true
+		updated.Info.Pid = created.Info.Pid
+		require.NoError(t, h.Update(nCtx, created.HostID, created.PluginName, fields, updated))
+		got, err = h.Get(nCtx, opts...)
+		require.NoError(t, err)
+		require.Equal(t, updated.Info.Pid, got.Info.Pid)
+		require.Equal(t, []types.ProcessRequirement{}, got.Requirements)
 	})
 
 	require.NoError(t, h.Delete(nCtx, created.HostID, created.PluginName))

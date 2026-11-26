@@ -954,10 +954,12 @@ func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) 
 	return err
 }
 
-// UpdateProcess create process.
-func (s *Storage) UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error {
+// UpdateProcess writes the selected fields of a process.
+func (s *Storage) UpdateProcess(
+	nCtx contextx.IContext, hostID int64, pluginName string, fields types.ProcessUpdateFields, process *types.Process) error {
+
 	err := s.WrapFn(nCtx, metricOperationUpdateProcess, func(nCtx contextx.IContext) error {
-		return s.updateProcess(nCtx, process, hostID, pluginName)
+		return s.updateProcess(nCtx, hostID, pluginName, fields, process)
 	})
 
 	return err

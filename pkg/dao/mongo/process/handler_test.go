@@ -17,7 +17,27 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 )
+
+func TestProcessRequirementsBSONRoundTrip(t *testing.T) {
+	requirements := []types.ProcessRequirement{{
+		RequirementID:  "0b6f0f18-6f1f-4c88-9d3f-2a4f1f3d1a11",
+		TargetPath:     "/opt/plugin/conf/extra",
+		TargetFileName: "rules.json",
+		MD5:            "d41d8cd98f00b204e9800998ecf8427e",
+	}}
+	encoded, err := bson.Marshal(convProcessFromTypes(&types.Process{Requirements: requirements}))
+	require.NoError(t, err)
+	requirement := bson.Raw(encoded).Lookup("requirements", "0").Document()
+	require.Equal(t, requirements[0].RequirementID, requirement.Lookup("requirement_id").StringValue())
+
+	var data Process
+	require.NoError(t, bson.Unmarshal(encoded, &data))
+	require.Equal(t, requirements, convertProcessToTypes(&data).Requirements)
+	require.Equal(t, []types.ProcessRequirement{}, convertProcessToTypes(&Process{}).Requirements)
+	require.Equal(t, []processRequirement{}, convProcessFromTypes(&types.Process{}).Requirements)
+}
 
 func TestConvProcessFromTypesKeepsDebugCmd(t *testing.T) {
 	process := &types.Process{
@@ -124,6 +144,7 @@ func TestConvertProcessToTypesKeepsDebugCmd(t *testing.T) {
 			StopCheckSecs:  6,
 			OpTimeoutSecs:  7,
 		},
+		Requirements: []processRequirement{},
 	}
 
 	got := convertProcessToTypes(data)
