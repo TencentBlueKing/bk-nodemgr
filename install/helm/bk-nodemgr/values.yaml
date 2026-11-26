@@ -1741,11 +1741,10 @@ backend:
       traceSampleRate: 0
 
     # Embedded Jinja2 renderer listens only on loopback.
-    render:
-      jinja2x:
-        portRange:
-          start: 28150
-          end: 28159
+    jinja2x:
+      portRange:
+        start: 28150
+        end: 28159
 
     ## defines the workflow related settings.
     workflow:
