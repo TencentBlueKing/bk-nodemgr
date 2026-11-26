@@ -40967,6 +40967,288 @@ paths:
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
         descriptionEn: Read recoverable parameters from selected historical Agent or Proxy installation operations to prefill a new installation form, without credential contents. Does not create installations or modify historical tasks.
+  /api/v3/open/node/workflow/operation/install_params/get:
+    post:
+      operationId: OpenNodeWorkflow_OpenNodeWorkflowOperationInstallParamsGet
+      description: |-
+        查询选中历史 Agent 或 Proxy 安装操作可恢复的参数，用于执行诊断，不返回认证凭据，不执行安装或修改历史任务。
+      tags:
+        - OpenNodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: 返回可恢复的安装参数和无法恢复参数的操作 ID。
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        title: 历史安装工作流类型。
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          title: 单个历史安装操作可复制的参数。
+                          properties:
+                            host:
+                              type: object
+                              title: 可复制到新安装表单的历史主机参数，不包含凭据内容。
+                              properties:
+                                is_sudo:
+                                  type: boolean
+                                  title: 是否使用 sudo。
+                                os_type:
+                                  type: string
+                                  title: 操作系统类型。
+                                cpu_arch:
+                                  type: string
+                                  title: CPU 架构。
+                                login_ip:
+                                  type: string
+                                  title: 登录地址。
+                                bk_biz_id:
+                                  type: integer
+                                  title: 业务 ID。
+                                  format: int64
+                                export_ip:
+                                  type: string
+                                  title: 对外服务 IPv4 地址。
+                                bk_host_id:
+                                  type: integer
+                                  title: 主机 ID。
+                                  format: int64
+                                login_mode:
+                                  type: string
+                                  title: 登录认证方式，不包含认证凭据内容。
+                                login_port:
+                                  type: integer
+                                  title: 登录端口。
+                                  format: int64
+                                login_user:
+                                  type: string
+                                  title: 登录用户。
+                                proxy_tags:
+                                  type: array
+                                  items:
+                                    type: string
+                                  title: Proxy 标签。
+                                re_register:
+                                  type: boolean
+                                  title: 是否重新注册主机。
+                                advertise_ip:
+                                  type: string
+                                  title: 广播 IPv4 地址。
+                                export_ip_v6:
+                                  type: string
+                                  title: 对外服务 IPv6 地址。
+                                bk_addressing:
+                                  type: string
+                                  title: 寻址方式。
+                                install_method:
+                                  type: string
+                                  title: 安装连接方式。
+                                renew_gse_proc:
+                                  type: boolean
+                                  title: 是否更新 GSE proc 组件。
+                                renew_gse_task:
+                                  type: boolean
+                                  title: 是否更新 GSE task 组件。
+                                advertise_ip_v6:
+                                  type: string
+                                  title: 广播 IPv6 地址。
+                                bk_host_innerip:
+                                  type: array
+                                  items:
+                                    type: string
+                                  title: 内网 IPv4 地址。
+                                bk_networkarea_id:
+                                  type: integer
+                                  title: 管控区域 ID。
+                                  format: int64
+                                bk_networkunit_id:
+                                  type: integer
+                                  title: 管控单元 ID。
+                                  format: int64
+                                bk_host_innerip_v6:
+                                  type: array
+                                  items:
+                                    type: string
+                                  title: 内网 IPv6 地址。
+                                relay_callback_port:
+                                  type: integer
+                                  title: Relay 回调端口。
+                                  format: int64
+                                relay_download_port:
+                                  type: integer
+                                  title: Relay 下载端口。
+                                  format: int64
+                                install_pre_ordered_plugins:
+                                  type: boolean
+                                  title: 是否安装预订阅插件。
+                                proxy_install_origin_unit_id:
+                                  type: integer
+                                  title: Proxy 安装来源管控单元 ID。
+                                  format: int64
+                            is_manual:
+                              type: boolean
+                              title: 是否手动安装。
+                            is_offline:
+                              type: boolean
+                              title: 是否离线安装。
+                            operation_id:
+                              type: string
+                              title: 历史操作 ID。
+                            missing_fields:
+                              type: array
+                              items:
+                                type: string
+                              title: 需要在新安装表单中补充的字段。
+                            target_version:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  os_type:
+                                    type: string
+                                  version:
+                                    type: string
+                                  cpu_arch:
+                                    type: string
+                              title: 历史目标版本。
+                        title: 可恢复的安装参数。
+                      unavailable_operation_ids:
+                        type: array
+                        items:
+                          type: string
+                        title: 无法恢复安装参数的操作 ID。
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: 按工作流及选中的操作读取历史安装参数。
+              properties:
+                workflow_id:
+                  type: string
+                  title: 必填，历史工作流 ID。
+                operation_ids:
+                  type: array
+                  items:
+                    type: string
+                  title: 必填，非空且无空白或重复 ID 的操作列表。
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/node/workflow/operation/install_params/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Query recoverable parameters from selected historical Agent or Proxy installation operations for execution diagnosis, without credential contents. Does not install nodes or modify historical tasks.
   /api/v3/open/schedule/workflow/list:
     post:
       operationId: OpenScheduleWorkflow_OpenScheduleWorkflowList

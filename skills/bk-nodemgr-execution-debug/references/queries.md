@@ -4,24 +4,25 @@ Use only the selected domain. The MCP resources and CLI paths below refer to the
 
 ## Resource Mapping
 
-All eight resources are read-only POST requests. MCP tool registration can add a server-specific prefix; discover the actual tool name instead of guessing it.
+All nine resources are read-only POST requests. MCP tool registration can add a server-specific prefix; discover the actual tool name instead of guessing it.
 
-| Domain | Query         | Resource / operationId                                         | Gateway entry path                                        |
-| ------ | ------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
-| node   | Workflow      | `OpenNodeWorkflow_OpenNodeWorkflowList`                        | `/api/v3/open/node/workflow/list`                         |
-| node   | Operations    | `OpenNodeWorkflow_OpenNodeWorkflowOperationList`               | `/api/v3/open/node/workflow/operation/list`               |
-| node   | Instances     | `OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList`       | `/api/v3/open/node/workflow/operation/instance/list`      |
-| node   | Instance logs | `OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet`     | `/api/v3/open/node/workflow/operation/instance/log/get`   |
-| plugin | Workflow      | `OpenPluginWorkflow_OpenPluginWorkflowList`                    | `/api/v3/open/plugin/workflow/list`                       |
-| plugin | Operations    | `OpenPluginWorkflow_OpenPluginWorkflowOperationList`           | `/api/v3/open/plugin/workflow/operation/list`             |
-| plugin | Instances     | `OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList`   | `/api/v3/open/plugin/workflow/operation/instance/list`    |
-| plugin | Instance logs | `OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceLogGet` | `/api/v3/open/plugin/workflow/operation/instance/log/get` |
+| Domain | Query              | Resource / operationId                                         | Gateway entry path                                        |
+| ------ | ------------------ | -------------------------------------------------------------- | --------------------------------------------------------- |
+| node   | Workflow           | `OpenNodeWorkflow_OpenNodeWorkflowList`                        | `/api/v3/open/node/workflow/list`                         |
+| node   | Operations         | `OpenNodeWorkflow_OpenNodeWorkflowOperationList`               | `/api/v3/open/node/workflow/operation/list`               |
+| node   | Install parameters | `OpenNodeWorkflow_OpenNodeWorkflowOperationInstallParamsGet`   | `/api/v3/open/node/workflow/operation/install_params/get` |
+| node   | Instances          | `OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList`       | `/api/v3/open/node/workflow/operation/instance/list`      |
+| node   | Instance logs      | `OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet`     | `/api/v3/open/node/workflow/operation/instance/log/get`   |
+| plugin | Workflow           | `OpenPluginWorkflow_OpenPluginWorkflowList`                    | `/api/v3/open/plugin/workflow/list`                       |
+| plugin | Operations         | `OpenPluginWorkflow_OpenPluginWorkflowOperationList`           | `/api/v3/open/plugin/workflow/operation/list`             |
+| plugin | Instances          | `OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList`   | `/api/v3/open/plugin/workflow/operation/instance/list`    |
+| plugin | Instance logs      | `OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceLogGet` | `/api/v3/open/plugin/workflow/operation/instance/log/get` |
 
 The runtime has a complete repository checkout. Resolve paths relative to that checkout, not this installed Skill's directory:
 
 - `apigw/resources.yaml`: entry paths, methods, operation IDs, schemas, gateway identity requirements.
 - `apigw/apidocs/zh/<operationId>.md` or `apigw/apidocs/en/<operationId>.md`: selected API's business meaning, field constraints, permissions, and response details.
-- `apigw/definition.yaml`: MCP resource membership, not proof of a deployed connection or publication.
+- `apigw/mcp_servers.yaml`: built-in MCP resource membership; explicit stage definitions in `apigw/definition.yaml` can override it. Neither proves a deployed connection or publication.
 - `pkg/identifier/identifier.go`: identifier prefixes and formatting.
 
 Read only the relevant operations, not the entire catalog. If the actual tool schema, documentation, and observed response conflict, resolve the material difference or report it rather than inventing fields. Gateway app/resource permission and user IAM checks are separate. These user-state queries require `system_access` and the applicable node or plugin history permissions; obtain the exact target-dependent requirements from the selected API documentation.
@@ -78,6 +79,21 @@ Use one operation in the array. Do not batch operations from different workflows
 ```
 
 Here `oper_inst_id` is a **string**. `oper_inst_logs` is keyed by action name, not action-instance ID; map order is not execution order. Use the instance's `action_names` and lifecycle timestamps. Inspect `message.logs`, `sub_workflow_refs`, and relevant `extra_execution_logs` according to the response schema. Log entries use `text_zh` and `text_en`, not the former `text` field; this also applies to `extra_execution_logs.logs`. Prefer the user's language and fall back to the other available text. An empty language field or missing `.text` does not mean there are no logs. Do not add undocumented action, paging, or time-window parameters to this endpoint.
+
+### Read historical installation parameters
+
+For `node` workflows of type `install_agent` or `install_proxy` only:
+
+```json
+{
+  "workflow_id": "wf:7eb0e3fa0afd4543ac43561eb526e7ea",
+  "operation_ids": ["oper:00000000000000000000000000000001"]
+}
+```
+
+Both fields are required. Here `operation_ids` is plural, unlike the instance-list filter. Select nonempty, unique operation IDs belonging to the same workflow; use the operation list if selection is needed. Do not invent a workflow ID when only an operation ID is known. No pagination or instance ID is accepted.
+
+Inspect `data.items` by `operation_id`, including `host`, `target_version`, `is_manual`, and `is_offline`. `missing_fields` identifies inputs that could not be recovered, and `unavailable_operation_ids` identifies operations without usable deployment records. Do not interpret unavailable or missing values as previous choices. Historical records are not a complete request snapshot, a current configuration, or evidence of a particular attempt's actual runtime settings. Credentials and deployment tokens are excluded; do not seek them in other sources. This query never requires a failed operation and does not install or retry anything.
 
 ## One CLI Example
 
