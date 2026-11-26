@@ -193,6 +193,32 @@ const navList = [
       },
     ],
   },
+  {
+    routeName: 'platformManager',
+    title: i18n.global.t('platform.platformManagerName'),
+    group: [
+      {
+        title: i18n.global.t('menu.platformGroup'),
+        children: [
+          {
+            routeName: 'systemConfig',
+            icon: 'nodeman-icon nc-setting',
+            title: i18n.global.t('route.systemConfig'),
+          },
+          {
+            routeName: 'schedulerWorkflow',
+            icon: 'nodeman-icon nc-history',
+            title: i18n.global.t('route.schedulerWorkflow'),
+          },
+          {
+            routeName: 'globalSettings',
+            icon: 'nodeman-icon nc-manual',
+            title: i18n.global.t('route.globalSettings'),
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export default function useMenu() {

@@ -346,6 +346,8 @@ platform:
   topoManagerName: Topology Management
   ruleManagerName: Strategy Management
   pkgManagerName: Package Management
+  platformManagerName: Platform Management
+  platformManagerComingSoon: This feature is not available yet
 pluginManagement:
   pluginGroupName: Plugin
   plugin:
@@ -1474,7 +1476,11 @@ route:
   toolManageSubtitle: Tools provide operational support for GSE components, including startup scripts and troubleshooting tools
   pluginToolManageSubtitle: Plugin tools provide unified operational support for plugins, including startup scripts and troubleshooting tools
   pkgOperationRecordsSubtitle: Historical records of package management operations
+  systemConfig: System Configuration
+  schedulerWorkflow: Scheduled Tasks
+  globalSettings: Global Variables
 menu:
+  platformGroup: Platform Management
   topoGroup: Topology
   recordGroup: Records
   strategyGroup: Config Strategy

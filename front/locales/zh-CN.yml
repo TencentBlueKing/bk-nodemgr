@@ -346,6 +346,8 @@ platform:
   topoManagerName: 拓扑管理
   ruleManagerName: 策略管理
   pkgManagerName: 包管理
+  platformManagerName: 平台管理
+  platformManagerComingSoon: 功能暂未开放
 pluginManagement:
   pluginGroupName: 插件
   plugin:
@@ -1478,7 +1480,11 @@ route:
   toolManageSubtitle: 工具提供对GSE组件的运维操作支持，包括启动脚本、排障工具等
   pluginToolManageSubtitle: 插件工具提供对插件统一的运维操作支持，包括启动脚本、排障工具等
   pkgOperationRecordsSubtitle: 包管理操作的历史记录
+  systemConfig: 系统配置
+  schedulerWorkflow: 定时任务
+  globalSettings: 全局变量
 menu:
+  platformGroup: 平台管理
   topoGroup: 拓扑
   recordGroup: 记录
   strategyGroup: 配置策略

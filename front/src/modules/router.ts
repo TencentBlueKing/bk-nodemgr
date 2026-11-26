@@ -31,6 +31,9 @@ import CertBintoolMng from '@/pages/pkg/cert-bintool-manage/list.vue';
 import PkgManager from '@/pages/pkg/index.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
+import GlobalSettings from '@/pages/platform/global-settings.vue';
+import SchedulerWorkflow from '@/pages/platform/scheduler-workflow.vue';
+import SystemConfig from '@/pages/platform/system-config.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
 import PluginStrategy from '@/pages/rules/plugin-strategy/index.vue';
 import DeployPolicyStrategy from '@/pages/rules/deploy-policy-strategy/index.vue';
@@ -382,6 +385,44 @@ const routes = setupLayouts([
               subTitle: i18n.global.t('route.pkgOperationRecordsSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
+            },
+          },
+        ],
+      },
+      // 平台管理
+      {
+        name: 'platformManager',
+        path: 'platform-manager',
+        redirect: { name: 'systemConfig' },
+        children: [
+          {
+            name: 'systemConfig',
+            path: 'system-config',
+            component: SystemConfig,
+            meta: {
+              title: i18n.global.t('route.systemConfig'),
+              back: false,
+              mainMenu: 'platformManager',
+            },
+          },
+          {
+            name: 'schedulerWorkflow',
+            path: 'scheduler-workflow',
+            component: SchedulerWorkflow,
+            meta: {
+              title: i18n.global.t('route.schedulerWorkflow'),
+              back: false,
+              mainMenu: 'platformManager',
+            },
+          },
+          {
+            name: 'globalSettings',
+            path: 'global-settings',
+            component: GlobalSettings,
+            meta: {
+              title: i18n.global.t('route.globalSettings'),
+              back: false,
+              mainMenu: 'platformManager',
             },
           },
         ],
