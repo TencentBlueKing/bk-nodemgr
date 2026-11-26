@@ -117,6 +117,7 @@ func (k *KMS) ParseAdminClientDatabase(conf *AdminClientDatabase) error {
 
 	// redis.
 	conf.Redis.Password = dataGlobal.Redis.Default.Password
+	conf.Redis.SentinelPassword = dataGlobal.Redis.Default.SentinelPassword
 
 	// mongodb.
 	conf.MongoDB.Username = dataGlobal.MongoDB.Default.Username
@@ -317,6 +318,7 @@ func (k *KMS) ParseBackendServiceConfig(service *BackendService) error {
 
 	// redis.
 	service.Redis.Password = dataGlobal.Redis.Default.Password
+	service.Redis.SentinelPassword = dataGlobal.Redis.Default.SentinelPassword
 
 	// services.
 	// - info
