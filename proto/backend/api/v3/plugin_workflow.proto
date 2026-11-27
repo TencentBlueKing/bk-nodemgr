@@ -4,8 +4,10 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/
 
 import "common.proto";
 import "workflow.proto";
+import "plugin.proto";
 
 import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
 
 // PluginWorkflowInfo describes the plugin workflow information.
 message PluginWorkflowInfo {
@@ -282,7 +284,75 @@ message PluginWorkflowOperationInstanceStatusDistributionListResp {
   Data data = 5;
 }
 
+// 历史插件安装操作中可恢复的表单参数。
+message PluginWorkflowOperationInstallParams {
+  string operation_id = 1; // 历史操作 ID。
+  int64 bk_host_id = 2;    // 安装目标主机 ID。
+  string plugin_name = 3;  // 插件名称。
+  string version = 4;      // 历史部署中保存的安装版本。
+  optional google.protobuf.Struct custom_config_context =
+      5; // 历史自定义配置参数。
+  optional PluginInstallReq.DeploymentSpec custom_spec =
+      6;                              // 历史自定义部署规格，未指定时为空。
+  repeated string missing_fields = 7; // 无法恢复的字段名称。
+}
+
+// 按工作流及选中的操作读取历史插件安装参数。
+message PluginWorkflowOperationInstallParamsGetReq {
+  string workflow_id = 1;            // 必填，历史工作流 ID。
+  repeated string operation_ids = 2; // 必填，非空且无重复 ID 的操作列表。
+}
+
+// 返回可恢复的安装参数和无法恢复参数的操作 ID。
+message PluginWorkflowOperationInstallParamsGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  message Data {
+    string type = 1; // 历史安装工作流类型。
+    repeated PluginWorkflowOperationInstallParams items = 2;
+    repeated string unavailable_operation_ids =
+        3; // 无法恢复部署记录的操作 ID。
+  }
+  Data data = 5;
+}
+
+// 按工作流及选中的操作读取历史插件安装参数。
+message OpenPluginWorkflowOperationInstallParamsGetReq {
+  string workflow_id = 1;            // 必填，历史工作流 ID。
+  repeated string operation_ids = 2; // 必填，非空且无重复 ID 的操作列表。
+}
+
+// 返回可恢复的安装参数和无法恢复参数的操作 ID。
+message OpenPluginWorkflowOperationInstallParamsGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  message Data {
+    string type = 1; // 历史安装工作流类型。
+    repeated PluginWorkflowOperationInstallParams items = 2;
+    repeated string unavailable_operation_ids =
+        3; // 无法恢复部署记录的操作 ID。
+  }
+  Data data = 5;
+}
+
 service PluginWorkflow {
+  // 读取选中历史插件安装操作的参数，供新安装使用，不执行安装或修改历史任务。仅支持
+  // install_plugin 工作流。
+  rpc PluginWorkflowOperationInstallParamsGet(
+      PluginWorkflowOperationInstallParamsGetReq)
+      returns (PluginWorkflowOperationInstallParamsGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/install_params/get"
+      body : "*"
+    };
+  }
+
   // 查询插件工作流列表及执行状态。
   rpc PluginWorkflowList(PluginWorkflowListReq)
       returns (PluginWorkflowListResp) {
@@ -369,8 +439,19 @@ service PluginWorkflow {
   }
 }
 
-// 用户态的插件执行历史与步骤日志查询接口。
+// 用户态的插件执行历史、步骤日志与历史安装参数查询接口。
 service OpenPluginWorkflow {
+  // 查询选中历史插件安装操作可恢复的参数，用于执行诊断，不执行安装或修改历史任务。
+  // 仅支持 install_plugin 工作流。
+  rpc OpenPluginWorkflowOperationInstallParamsGet(
+      OpenPluginWorkflowOperationInstallParamsGetReq)
+      returns (OpenPluginWorkflowOperationInstallParamsGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/open/plugin/workflow/operation/install_params/get"
+      body : "*"
+    };
+  }
+
   // 查询插件工作流列表及执行状态。
   rpc OpenPluginWorkflowList(PluginWorkflowListReq)
       returns (PluginWorkflowListResp) {

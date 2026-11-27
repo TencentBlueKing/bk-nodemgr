@@ -4105,6 +4105,33 @@ func (c *cli) distinctPluginWorkflows(ctx contextx.IContext, req *protoBackend.P
 	return resp, nil
 }
 
+func (c *cli) getPluginWorkflowInstallParams(
+	ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationInstallParamsGetReq,
+) (*protoBackend.PluginWorkflowOperationInstallParamsGetResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowOperationInstallParamsGetResp)
+	// Historical custom configuration values must not be included in response logs.
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/install_params/get").
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		// Into errors may contain the raw response body, including custom configuration values.
+		return nil, fmt.Errorf("failed to read plugin workflow install params response")
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get plugin workflow install params", resp, resp.GetError())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get plugin workflow install params failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listPluginWorkflowOperation(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationListReq) (
 	*protoBackend.PluginWorkflowOperationListResp, error) {
 

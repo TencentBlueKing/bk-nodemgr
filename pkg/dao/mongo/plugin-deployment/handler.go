@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -917,12 +918,47 @@ func convertPluginDeploymentPluginConfToTypes(conf *PluginConf) *types.PluginDep
 		TemplateRenderer:     types.TemplateRendererType(conf.TemplateRenderer),
 		ConfigFilesDetail:    convertPluginConfigDetailsToTypes(conf.ConfigFilesDetail...),
 		SystemConfigContext:  conf.SystemConfigContext,
-		CustomConfigContext:  conf.CustomConfigContext,
+		CustomConfigContext:  convCustomConfigContextToTypes(conf.CustomConfigContext),
 		RemoveConfigFileName: conf.RemoveConfigFileName,
 		RemoveAllConfigs:     conf.RemoveAllConfigs,
 	}
 
 	return pluginConf
+}
+
+// convCustomConfigContextToTypes normalizes Mongo containers to JSON-compatible config values.
+func convCustomConfigContextToTypes(ctx map[string]any) map[string]any {
+	if len(ctx) == 0 {
+		return ctx
+	}
+	result := make(map[string]any, len(ctx))
+	for key, value := range ctx {
+		result[key] = convCustomConfigValueToTypes(value)
+	}
+
+	return result
+}
+
+func convCustomConfigValueToTypes(value any) any {
+	switch typed := value.(type) {
+	case primitive.M:
+		return convCustomConfigContextToTypes(map[string]any(typed))
+	case primitive.D:
+		result := make(map[string]any, len(typed))
+		for _, item := range typed {
+			result[item.Key] = convCustomConfigValueToTypes(item.Value)
+		}
+
+		return result
+	case primitive.A:
+		return conv.SliceToSlice([]any(typed), convCustomConfigValueToTypes)
+	case map[string]any:
+		return convCustomConfigContextToTypes(typed)
+	case []any:
+		return conv.SliceToSlice(typed, convCustomConfigValueToTypes)
+	default:
+		return value
+	}
 }
 
 func convertPluginDeploymentPluginConfFromTypes(conf *types.PluginDeploymentPluginConf) *PluginConf {

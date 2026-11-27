@@ -60,6 +60,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
+	h.rg.POST("/install_params/get", restserver.Handler(h.GetInstallParams))
 	h.rg.POST("/list", restserver.Handler(h.ListOperation))
 	h.rg.POST("/distinct", restserver.Handler(h.DistinctOperation))
 	h.rg.POST("/retry", restserver.Handler(h.RetryOperation))
