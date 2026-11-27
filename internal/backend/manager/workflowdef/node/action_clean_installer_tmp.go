@@ -154,7 +154,7 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 		InstallerFileName: toolName,
 	}
 
-	// exec upgrade command
+	// Execute the installer cleanup script.
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doCleanWindows(std, cleanParams)
 	}
@@ -164,18 +164,18 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 
 // nolint: perfsprint
 func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
-	cleanCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
+	cleanScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("清理安装器命令: %s", cleanCmd).
-		En("clean installer cmd: %s", cleanCmd).
+		Zh("清理安装器脚本: %s", cleanScript).
+		En("clean installer script: %s", cleanScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		cleanCmd,
+		cleanScript,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -195,18 +195,18 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 
 // nolint: perfsprint
 func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
-	cleanCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
+	cleanScript, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("清理安装器命令: %s", cleanCmd).
-		En("clean installer cmd: %s", cleanCmd).
+		Zh("清理安装器脚本: %s", cleanScript).
+		En("clean installer script: %s", cleanScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		cleanCmd,
+		cleanScript,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

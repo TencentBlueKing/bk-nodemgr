@@ -190,7 +190,7 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	// exec upgrade command
+	// Execute the pagent upgrade script.
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doUpgradeWindows(std, upgradeParams)
 	}
@@ -199,19 +199,19 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	upgradeCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
+	upgradeScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("升级节点命令: %s", upgradeCmd).
-		En("upgrade node command: %s", upgradeCmd).
+		Zh("升级节点脚本: %s", upgradeScript).
+		En("upgrade node script: %s", upgradeScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		upgradeCmd,
+		upgradeScript,
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -231,19 +231,19 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarde
 }
 
 func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	upgradeCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
+	upgradeScript, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("升级节点命令: %s", upgradeCmd).
-		En("upgrade node command: %s", upgradeCmd).
+		Zh("升级节点脚本: %s", upgradeScript).
+		En("upgrade node script: %s", upgradeScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		upgradeCmd,
+		upgradeScript,
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

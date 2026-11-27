@@ -259,7 +259,7 @@ func (h *handler) executeProxyInstallCommand(nCtx contextx.IContext, client *ssh
 		return "", fmt.Errorf("proxy installer command is empty")
 	}
 
-	// SYNC: node.actionInstallProxyBySSH.buildSSHOnlyProxyInstallCmd sends script-write and launch only, without a workspace.
+	// SYNC: node.actionInstallProxyBySSH.buildSSHOnlyProxyInstallScript sends script-write and launch only, without a workspace.
 	command, err := installer.UnixWorkspaceCommand(event.InstallerWorkDir, event.InstallerCmd)
 	if err != nil {
 		return "", fmt.Errorf("failed to build proxy installer workspace command: %w", err)
