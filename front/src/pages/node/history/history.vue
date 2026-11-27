@@ -562,6 +562,9 @@ const typeMap = computed(() => ({
   remove_plugin_subconfig: {
     text: t('platform.nodeMan.taskHistory.taskType.remove_plugin_subconfig'),
   },
+  apply_plugin_requirements: {
+    text: t('platform.nodeMan.taskHistory.taskType.apply_plugin_requirements'),
+  },
   restart_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
   },

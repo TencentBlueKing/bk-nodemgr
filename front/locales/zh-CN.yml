@@ -312,6 +312,7 @@ platform:
         apply_plugin_subconfig: 插件应用子配置
         remove_plugin_subconfig: 插件移除子配置
         restart_plugin: 插件重启
+        apply_plugin_requirements: 插件依赖更新
         stop_plugin: 插件停止
       statusType:
         running: 执行中

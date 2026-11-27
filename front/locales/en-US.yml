@@ -312,6 +312,7 @@ platform:
         apply_plugin_subconfig: Plugin Apply Sub-Config
         remove_plugin_subconfig: Plugin Remove Sub-Config
         restart_plugin: Plugin Restart
+        apply_plugin_requirements: Plugin Requirements Update
         stop_plugin: Plugin Stop
       statusType:
         running: Running
