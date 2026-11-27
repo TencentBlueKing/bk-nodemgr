@@ -119,6 +119,8 @@ spec:
           ports:
             - name: info-http
               containerPort: {{ .Values.application.config.infoServer.port }}
+            - name: admin-http
+              containerPort: {{ .Values.application.config.adminServer.port }}
             - name: basic-http
               containerPort: {{ .Values.application.config.basicServer.port }}
           {{- if .Values.livenessProbe.enabled }}
