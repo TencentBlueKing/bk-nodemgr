@@ -117,7 +117,13 @@ func (h *handler) InstallPagentBySSH(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).With("filename", event.ToolsName, "dest-dir", installerPath).Info("transfer file successfully")
 
 	// ensure tool is executable
-	stdoutResult, stderrResult, err = client.RunCommand("chmod +x " + installerPath)
+	chmodCmd, err := installer.UnixMakeExecutableCommand(installerPath)
+	if err != nil {
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", installerPath).Error("failed to build chmod command")
+
+		return
+	}
+	stdoutResult, stderrResult, err = client.RunCommand(chmodCmd)
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", installerPath).Error("failed to chmod file")
 

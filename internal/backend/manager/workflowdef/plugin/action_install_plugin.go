@@ -278,37 +278,19 @@ func (act *actionInstallPlugin) buildInstallParams(
 }
 
 func (act *actionInstallPlugin) buildUnixInstallScript(param *pluginInstallParams) (types.ScriptType, string, error) {
-	scriptName, scriptContent, err := param.ToUnixScript()
+	scriptContent, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return "", "", err
 	}
-
-	scriptContent = fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > %s && sh %s`,
-		param.InstallerWorkDir,
-		param.InstallerWorkDir,
-		scriptContent,
-		scriptName,
-		scriptName,
-	)
 
 	return types.ScriptTypeBash, scriptContent, nil
 }
 
 func (act *actionInstallPlugin) buildWindowsInstallScript(param *pluginInstallParams) (types.ScriptType, string, error) {
-	scriptName, scriptContent, err := param.ToWindowsScript()
+	scriptContent, err := installer.RenderWindowsLaunchScript(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return "", "", err
 	}
-
-	scriptContent = fmt.Sprintf(
-		`mkdir "%s" 2>nul & cd "%s" && echo %s > "%s" && cmd /c "%s"`,
-		param.InstallerWorkDir,
-		param.InstallerWorkDir,
-		scriptContent,
-		scriptName,
-		scriptName,
-	)
 
 	return types.ScriptTypeBat, scriptContent, nil
 }

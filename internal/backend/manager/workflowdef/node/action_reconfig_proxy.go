@@ -187,7 +187,7 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	// exec reconfig command
+	// Execute the proxy reconfiguration script.
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doReconfigWindows(std, reconfigParams)
 	}
@@ -197,22 +197,18 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) (err error) {
 
 // nolint: perfsprint
 func (act *actionReconfigProxy) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToUnixScript()
+	reconfigScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render proxy reconfig script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("重新配置 Proxy 命令: %s", reconfigCmd).
-		En("reconfig proxy cmd: %s", reconfigCmd).
+		Zh("重新配置 Proxy 脚本: %s", reconfigScript).
+		En("reconfig proxy script: %s", reconfigScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigScript,
 		reconfigProxyScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -232,21 +228,18 @@ func (act *actionReconfigProxy) doReconfigUnix(std *nodeUtils.NodeActionStandard
 
 // nolint: perfsprint
 func (act *actionReconfigProxy) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToWindowsScript()
+	reconfigScript, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render proxy reconfig script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("重新配置 Proxy 命令: %s", reconfigCmd).
-		En("reconfig proxy cmd: %s", reconfigCmd).
+		Zh("重新配置 Proxy 脚本: %s", reconfigScript).
+		En("reconfig proxy script: %s", reconfigScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigScript,
 		reconfigProxyScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

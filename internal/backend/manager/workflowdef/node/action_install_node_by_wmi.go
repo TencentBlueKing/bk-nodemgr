@@ -224,7 +224,11 @@ func (act *actionInstallNodeByWMI) installByWMI(std *nodeUtils.NodeActionStandar
 
 func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *wmix.Client) error {
 	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
-	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+workDir)
+	prepareCmd, err := installer.WindowsEnsureDirectoryCommand(workDir)
+	if err != nil {
+		return fmt.Errorf("failed to build workspace command: %w", err)
+	}
+	stdout, stderr, err := client.RunCommand(std.Context(), prepareCmd)
 	if err != nil {
 		return fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
 			workDir, stdout, stderr, err)
@@ -391,7 +395,11 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return fmt.Errorf("failed to transfer bat file for wmi execution: %w", err)
 	}
 
-	installCMD := winpath.Clean(winpath.Join(workDir, installBatName))
+	batchPath := winpath.Clean(winpath.Join(workDir, installBatName))
+	installCMD, err := installer.WindowsBatchCommand(batchPath)
+	if err != nil {
+		return fmt.Errorf("failed to build install batch command: %w", err)
+	}
 	stdout, stderr, err := client.RunSilentCommand(std.Context(), installCMD)
 	if err != nil {
 		return fmt.Errorf("failed to run install node: %w", err)
