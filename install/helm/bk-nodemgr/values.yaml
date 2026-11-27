@@ -1667,6 +1667,25 @@ backend:
         # Each item: {name, clusterEndpoints, fileEndpoints, dataEndpoints}.
         accessPoints: []
 
+    ## defines globally shared cloud security group pools. Secret keys are injected by KMS
+    ## through the backend module envelope and are never rendered into the ConfigMap.
+    cloudSecurityGroup:
+      pools: []
+      # - poolID: "tencent-prod"
+      #   poolName: "Tencent production pool"
+      #   vendor: "tencent"
+      #   region: "ap-guangzhou"
+      #   # endpoint is optional, empty uses the vendor public default.
+      #   # internal vpc deployments may use vpc.internal.tencentcloudapi.com.
+      #   endpoint: ""
+      #   # portAll authorizes ALL ports for every rule instead of the accesspoint endpoint ports.
+      #   portAll: false
+      #   secretID: ""
+      #   # secretKey may be set here for deployments without kms;
+      #   # it is overridden by kms when kms is enabled.
+      #   secretKey: ""
+      #   securityGroupIDs: ["sg-xxxxxxxx"]
+
     ## defines the local file cache used by backend SSH install flows.
     fileCache:
       # dir is the absolute path for the local file cache directory.

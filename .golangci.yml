@@ -134,6 +134,14 @@ linters:
       alias:
         - pkg: errors
           alias: ""
+        - pkg: github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common
+          alias: sdkCommon
+        - pkg: github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors
+          alias: sdkErrors
+        - pkg: github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile
+          alias: sdkProfile
+        - pkg: github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312
+          alias: sdkVpc
         - pkg: go.etcd.io/etcd/client/v3
           alias: clientv3
         - pkg: github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api
