@@ -1542,6 +1542,11 @@ func (svc *Service) GracefulShutdown() error {
 	defer jinja2x.Close()
 	defer wmix.Close()
 
+	discoverErr := svc.Cap.DiscoverProvider.GracefulShutdown()
+	if discoverErr != nil {
+		logger.G.Sys().WithErr(discoverErr).Error("failed to gracefully shutdown discover provider")
+	}
+
 	serverErr := svc.shutdownRestServers(context.Background())
 	if serverErr != nil {
 		logger.G.Sys().WithErr(serverErr).Error("failed to gracefully shutdown rest servers")
@@ -1552,7 +1557,7 @@ func (svc *Service) GracefulShutdown() error {
 		logger.G.Sys().WithErr(capErr).Error("failed to gracefully shutdown capability")
 	}
 
-	if err := errors.Join(serverErr, capErr); err != nil {
+	if err := errors.Join(discoverErr, serverErr, capErr); err != nil {
 		return err
 	}
 
