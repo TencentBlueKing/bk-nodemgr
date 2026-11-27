@@ -25,6 +25,6 @@ import (
 	"errors"
 )
 
-func wmiRunCmd(_ context.Context, _ []string, _ []string) (string, string, error) {
-	return "", "", errors.New("wmiexec is not supported on darwin")
+func startServer(_ context.Context, _, _ int) (*serverProcess, error) {
+	return nil, errors.New("wmiexec is not supported on darwin")
 }

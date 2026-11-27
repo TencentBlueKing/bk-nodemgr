@@ -74,6 +74,8 @@ const (
 	defaultRelayFileCacheMaxSizeMB       = 10240
 	defaultRelayFileCacheRestoreOnStart  = true
 
+	defaultRelayWMITraceServiceName = "relay-client-wmix"
+
 	defaultRelayTracingExporterType    = "stdout"
 	defaultRelayGlobalTraceServiceName = "relay"
 )
@@ -91,6 +93,7 @@ type RelayService struct {
 	RelayWorkspaceFileGroup FileGroup `yaml:"relayWorkspaceFileGroup" usage:"relay workspace file group config of relay service"`
 
 	FileCache RelayFileCache `yaml:"fileCache" usage:"installation package cache config of relay service"`
+	WMI       WMI            `yaml:"wmi" usage:"embedded WMI HTTP service config"`
 
 	Tracing   Tracing   `yaml:"tracing" usage:"tracing config of relay service"`
 	Profiling Profiling `yaml:"profiling" usage:"profiling config of relay service"`
@@ -207,6 +210,10 @@ func NewRelayService() *RelayService {
 		RelayWorkspaceFileGroup: FileGroup{
 			FullPath: defaultRelayWorkspaceGroupFullPath,
 		},
+		WMI: WMI{
+			TraceService: TraceService{TraceServiceName: defaultRelayWMITraceServiceName},
+			PortRange:    WMIPortRange{Start: defaultWMIStartPort, End: defaultWMIEndPort},
+		},
 		FileCache: RelayFileCache{
 			ExpirationHours: defaultRelayFileCacheExpirationHours,
 			GCIntervalHours: defaultRelayFileCacheGCIntervalHours,
@@ -268,6 +275,10 @@ func (svc *RelayService) Validate() error {
 
 	if err := svc.FileCache.Validate(); err != nil {
 		return fmt.Errorf("failed to validate file cache config: %w", err)
+	}
+
+	if err := svc.WMI.Validate(); err != nil {
+		return fmt.Errorf("failed to validate WMI config: %w", err)
 	}
 
 	if err := svc.Log.Validate(); err != nil {

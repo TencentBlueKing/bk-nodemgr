@@ -43,6 +43,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -88,8 +89,16 @@ func NewService(conf *config.RelayService) (*Service, error) {
 
 	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(contextx.Background()))
 
+	if err := wmix.SetPortRange(svc.conf.WMI.PortRange.Start, svc.conf.WMI.PortRange.End); err != nil {
+		return nil, fmt.Errorf("failed to configure WMI service: %w", err)
+	}
+
 	if err := svc.initTracing(); err != nil {
 		return nil, fmt.Errorf("failed to init tracing: %w", err)
+	}
+
+	if err := svc.initWmixTracing(); err != nil {
+		return nil, fmt.Errorf("failed to init wmix tracing: %w", err)
 	}
 
 	if err := svc.initialCapability(); err != nil {
@@ -101,6 +110,19 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	}
 
 	return svc, nil
+}
+
+func (svc *Service) initWmixTracing() error {
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName:     svc.conf.WMI.TraceServiceName,
+		ServiceCategory: tracing.ServiceCategoryHTTP,
+		SampleRate:      svc.conf.WMI.TraceSampleRate,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create wmix trace service: %w", err)
+	}
+
+	return wmix.SetTraceService(traceSvc)
 }
 
 func (svc *Service) initTracing() error {
@@ -419,6 +441,7 @@ func (svc *Service) GracefulShutdown() error {
 	}
 
 	defer svc.cancelFunc()
+	defer wmix.Close()
 
 	err := svc.Cap.GracefulShutdown()
 	if err != nil {

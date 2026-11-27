@@ -1199,6 +1199,38 @@ func (conf Profiling) Validate() error {
 	return nil
 }
 
+const (
+	defaultWMIStartPort = 28160
+	defaultWMIEndPort   = 28169
+)
+
+// WMI configures the embedded WMI HTTP service.
+type WMI struct {
+	TraceService `yaml:",inline"`
+	PortRange    WMIPortRange `yaml:"portRange" usage:"local WMI service port range"`
+}
+
+// WMIPortRange defines the inclusive range of loopback ports.
+type WMIPortRange struct {
+	Start int `yaml:"start" usage:"first WMI service port"`
+	End   int `yaml:"end" usage:"last WMI service port"`
+}
+
+// Validate validates the WMI service configuration.
+func (conf WMI) Validate() error {
+	if err := conf.TraceService.Validate(); err != nil {
+		return fmt.Errorf("failed to validate WMI trace service: %w", err)
+	}
+	if conf.PortRange.Start < 1 || conf.PortRange.Start > 65535 {
+		return fmt.Errorf("wmi.portRange.start must be between 1 and 65535")
+	}
+	if conf.PortRange.End < conf.PortRange.Start || conf.PortRange.End > 65535 {
+		return fmt.Errorf("wmi.portRange.end must be between start and 65535")
+	}
+
+	return nil
+}
+
 // TraceService defines the trace service.
 type TraceService struct {
 	// TraceServiceName is the trace service name.

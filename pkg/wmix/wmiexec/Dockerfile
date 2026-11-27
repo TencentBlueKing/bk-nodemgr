@@ -6,6 +6,13 @@ RUN apt-get update && apt-get install -y wget && apt-get clean
 # 更新apt源
 RUN wget -O /etc/apt/sources.list https://mirrors.tencent.com/repo/ubuntu20_sources.list
 
+# 提供ARG用于检测当前架构
+ARG TARGETARCH
+
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      sed -i 's#/ubuntu/#/ubuntu-ports/#' /etc/apt/sources.list; \
+    fi
+
 # 安装基本依赖
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -39,10 +46,7 @@ RUN pip3 install impacket
 COPY wmiexec.py /app/
 
 # 使用PyInstaller构建可执行文件
-RUN pyinstaller --onefile --clean --strip --noupx wmiexec.py
-
-# 提供ARG用于检测当前架构
-ARG TARGETARCH
+RUN pyinstaller --onefile --clean --strip --noupx --copy-metadata impacket wmiexec.py
 
 # 根据不同架构使用不同的库路径
 RUN if [ "$TARGETARCH" = "amd64" ]; then \

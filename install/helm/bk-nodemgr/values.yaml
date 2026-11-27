@@ -1746,6 +1746,14 @@ backend:
       traceServiceName: "backend-server-proxy"
       traceSampleRate: 0
 
+    # Embedded WMI HTTP service listens only on loopback.
+    wmi:
+      portRange:
+        start: 28160
+        end: 28169
+      traceServiceName: "backend-client-wmix"
+      traceSampleRate: 0
+
     # Embedded Jinja2 renderer listens only on loopback.
     jinja2x:
       portRange:

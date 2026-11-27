@@ -70,7 +70,7 @@ application:
 {{- $iamV4 := deepCopy (dig "iamV4" dict $config) }}
 {{- $_ := set $iamV4 "authMode" (dig "global" "authMode" "un" .Values) }}
 {{- $_ := set $config "iamV4" $iamV4 }}
-{{- range $configName := list "infoServer" "adminServer" "basicServer" "callbackServer" "proxyServer" "jinja2x" "workflow" "cmdb" "gse" "userManager" "monitor" "mongodb" "redis" "iamV3" "file" }}
+{{- range $configName := list "infoServer" "adminServer" "basicServer" "callbackServer" "proxyServer" "wmi" "jinja2x" "workflow" "cmdb" "gse" "userManager" "monitor" "mongodb" "redis" "iamV3" "file" }}
 {{- $current := deepCopy (dig $configName dict $config) }}
 {{- if and $gatewayEnabled (not (hasKey $current "traceSampleRate")) }}
 {{- $_ := set $current "traceSampleRate" 1 }}
