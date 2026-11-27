@@ -31,13 +31,21 @@ Use this skill when the user:
 - Wants proto definitions and conversion layer without business logic
 - Mentions creating a REST API handler in internal/*/router/api-v3
 
+## API Delivery Scope
+
+For new or extended API capabilities, default to **application-state APIs as the primary delivery, with user-state APIs as supplementary delivery**. Do not default to user-state-only delivery or defer the application-state API as an optional follow-up. Follow an explicit user restriction to one caller mode and record that scope exception rather than expanding it silently.
+
+- Identify caller mode separately from the service. The `application` service name does not mean application-state authentication, and `backend` alone does not identify caller mode. Inspect the selected service's route registration and authentication wiring, plus comparable endpoints in the same domain.
+- Reuse an existing application-state capability when adding its user-state entry. Preserve both entries' tenant, identity, and permission boundaries; do not replace the application-state entry, relax its authentication, or duplicate business logic to add user-state access.
+- Before scaffolding, state each entry's caller mode, route, authentication/authorization path, and whether it already exists or needs to be added. Resolve material permission or exposure conflicts before implementing the affected entry; do not guess a new auth model.
+
 ## Information Gathering
 
-Before starting, collect these details from the user:
+Retrieve these details from the request and existing code first; ask only for material gaps. When caller mode is unspecified, apply the delivery default above rather than asking the user to choose it again:
 
 ### Required Information
 
-1. **Service name**: Which service? (backend, file, relay, application)
+1. **Service and caller modes**: Which service owns the capability (backend, file, relay, application)? Identify the primary application-state entry and supplementary user-state entry, or the user's explicit single-mode scope.
 2. **Module name**: Which module? (auth, node, package, networkarea, etc.)
 3. **Endpoint name**: What's the API called? (e.g., "Authorized", "ListNodes")
 4. **Request structure**: What fields does the request need?
@@ -328,7 +336,9 @@ func convertAuthResourceFromTypes(resources []types.AuthResource) []*AuthResourc
 
 **File**: `internal/{service}/router/api-v3/{module}/{module}.go`
 
-Add the route registration in the `Load()` function:
+Register the primary application-state entry and supplementary user-state entry through the selected service's existing loaders and authentication wiring, unless the user explicitly limited the scope. Check the service entrypoint as well as the domain loader: adding a route to one `Load()` function does not prove both caller modes are reachable. Preserve existing auth middleware and reuse the domain path where its authorization semantics allow it; do not create a second business implementation.
+
+For a domain using `Load()`, the registration pattern is:
 
 ```go
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
@@ -423,6 +433,8 @@ Ensure:
 - No undefined references
 - All imports are correct
 - Proto generation succeeded
+- The primary application-state entry and supplementary user-state entry are accounted for in route/auth wiring and corresponding Proto/Swagger contracts, or an explicit single-mode scope exception is recorded
+- Each entry preserves its tenant/auth/permission boundary; the scaffold does not claim runtime authorization or business behavior has been verified before that implementation exists
 
 If there are errors, fix them before proceeding.
 
