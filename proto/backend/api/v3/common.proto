@@ -340,9 +340,10 @@ message ConfigPolicy {
   optional int64 updated_time = 12;
   optional string operator = 13;
   optional int64 version = 14;
-  optional int64 priority = 15;
-  repeated int64 target_host_ids = 16;
-  optional string target_plugin_name = 17;
+  repeated int64 target_host_ids = 15;
+  optional string target_plugin_name = 16;
+  // 列表筛选结果中的优先级序号，从 1 开始。禁用策略和详情响应的值为空。
+  optional int64 priority_rank = 17;
 }
 
 // ConfigPolicyEvent describes the config policy event.

@@ -392,9 +392,9 @@ interface ConfigPolicy {
   updated_time: number;
   operator: string;
   version: number;
-  priority: number;
   target_host_ids: number[];
   target_plugin_name: string;
+  priority_rank?: number | null;
 }
 
 // ConfigPolicyEvent describes the config policy event.

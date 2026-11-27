@@ -71,8 +71,8 @@
           fixed="left"
         >
           <template #default="{ row }">
-            <Tag v-if="row.enabled" class="priority-tag">
-              {{ enabledPriorityIndex(row) + 1 }}
+            <Tag v-if="row.priority_rank" class="priority-tag">
+              {{ row.priority_rank }}
             </Tag>
             <span v-else>-</span>
           </template>
@@ -322,14 +322,6 @@ const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
 const loading = ref(false);
 
-// Priority: global index among enabled rows (0-based).
-// The list is sorted enabled-first by priority ASC, so all rows on previous
-// pages are enabled and the page offset equals the enabled rows before this page.
-const enabledRows = computed(() => tableData.value.filter(row => row.enabled));
-const enabledPriorityIndex = (row: ConfigPolicy) => {
-  const idx = enabledRows.value.indexOf(row);
-  return idx >= 0 ? (pagination.current - 1) * pagination.limit + idx : -1;
-};
 const active = ref('');
 const panels = computed(() => [
   { name: 'configStrategy', label: t('agentStrategy.configStrategy') },

@@ -129,6 +129,9 @@ func (x *ConfigPolicyListResp) ConvertConfigPoliciesFromTypes(total int64, confi
 	items := make([]*ConfigPolicy, len(configPolicies))
 	for idx, configPolicy := range configPolicies {
 		items[idx] = convertConfigPolicyFromTypes(configPolicy, nil)
+		if configPolicy.PriorityRank > 0 {
+			items[idx].PriorityRank = &configPolicy.PriorityRank
+		}
 	}
 
 	x.Data = &ConfigPolicyListResp_Data{
@@ -148,6 +151,7 @@ func (x *ConfigPolicyListResp) ConvertConfigPoliciesToTypes() (int64, []*types.C
 	result := make([]*types.ConfigPolicy, len(items))
 	for idx, item := range items {
 		result[idx] = convertConfigPolicyToTypes(item)
+		result[idx].PriorityRank = conv.NonEmptyOr(item.GetPriorityRank(), types.ConfigPolicyPriorityDisabled)
 	}
 
 	return data.GetTotal(), result
@@ -316,7 +320,6 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 		Scopes:           scopes,
 		TargetHostIDs:    x.GetTargetHostIds(),
 		TargetPluginName: x.GetTargetPluginName(),
-		Priority:         x.GetPriority(),
 		Operator:         x.GetOperator(),
 	}, convertConfigPolicyConfigsToTypes(x.GetConfigs())
 }
@@ -377,7 +380,6 @@ func convertConfigPolicyFromTypes(configPolicy *types.ConfigPolicy, blocks []typ
 	*item.UpdatedTime = configPolicy.UpdatedAt.UnixMilli()
 	*item.Operator = configPolicy.Operator
 	*item.Version = int64(configPolicy.Version)
-	item.Priority = &configPolicy.Priority
 
 	return item
 }
@@ -399,7 +401,6 @@ func convertConfigPolicyToTypes(configPolicy *ConfigPolicy) *types.ConfigPolicy 
 		TargetHostIDs:    configPolicy.GetTargetHostIds(),
 		TargetPluginName: configPolicy.GetTargetPluginName(),
 		Enabled:          configPolicy.GetEnabled(),
-		Priority:         configPolicy.GetPriority(),
 		UpdatedAt:        time.UnixMilli(configPolicy.GetUpdatedTime()),
 		Operator:         configPolicy.GetOperator(),
 		Version:          int(configPolicy.GetVersion()),
@@ -509,7 +510,6 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		UpdatedTime:      new(int64),
 		Operator:         new(string),
 		Version:          new(int64),
-		Priority:         new(int64),
 	}
 }
 
@@ -635,7 +635,6 @@ func convertAppPreviewMatchResults(
 			matchedPolicies[j] = &ConfigPolicyPreviewResp_MatchedPolicy{
 				ConfigpolicyId:   mp.PolicyID,
 				ConfigpolicyName: mp.PolicyName,
-				Priority:         mp.Priority,
 			}
 		}
 

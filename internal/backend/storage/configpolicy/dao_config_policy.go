@@ -95,7 +95,6 @@ func buildMatchResult(hostID int64, policies []*types.ConfigPolicy) types.Config
 		return types.ConfigPolicyMatchedPolicy{
 			PolicyID:   p.ID,
 			PolicyName: p.Name,
-			Priority:   p.Priority,
 		}
 	})
 
@@ -139,7 +138,23 @@ func (s *Storage) listConfigPolicy(nCtx contextx.IContext, page types.Page, cond
 		return nil, 0, err
 	}
 
-	return s.daoConfigPolicy.List(nCtx, page, opts...)
+	policies, total, err := s.daoConfigPolicy.List(nCtx, page, opts...)
+	if err != nil {
+		return policies, total, err
+	}
+
+	rank := int64(max(0, page.Offset))
+	for _, policy := range policies {
+		if !policy.Enabled {
+			policy.PriorityRank = types.ConfigPolicyPriorityDisabled
+			continue
+		}
+
+		rank++
+		policy.PriorityRank = rank
+	}
+
+	return policies, total, nil
 }
 
 // getConfigPolicy gets the config policy.

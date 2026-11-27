@@ -141,6 +141,9 @@ func (x *ConfigPolicyListResp) ConvertConfigPoliciesFromTypes(total int64, confi
 	items := make([]*ConfigPolicy, len(configPolicies))
 	for idx, configPolicy := range configPolicies {
 		items[idx] = convertConfigPolicyFromTypes(configPolicy)
+		if configPolicy.PriorityRank > 0 {
+			items[idx].PriorityRank = &configPolicy.PriorityRank
+		}
 	}
 
 	x.Data = &ConfigPolicyListResp_Data{
@@ -160,6 +163,7 @@ func (x *ConfigPolicyListResp) ConvertConfigPoliciesToTypes() (int64, []*types.C
 	result := make([]*types.ConfigPolicy, len(items))
 	for idx, item := range items {
 		result[idx] = convertConfigPolicyToTypes(item)
+		result[idx].PriorityRank = conv.NonEmptyOr(item.GetPriorityRank(), types.ConfigPolicyPriorityDisabled)
 	}
 
 	return data.GetTotal(), result
@@ -316,7 +320,6 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() *types.ConfigPolicy
 		TargetHostIDs:    x.GetTargetHostIds(),
 		TargetPluginName: x.GetTargetPluginName(),
 		Configs:          configs,
-		Priority:         x.GetPriority(),
 		Operator:         x.GetOperator(),
 	}
 }
@@ -338,7 +341,6 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyFromTypes(configPolicy *types
 	x.Operator = configPolicy.Operator
 	x.TargetHostIds = configPolicy.TargetHostIDs
 	x.TargetPluginName = &configPolicy.TargetPluginName
-	x.Priority = configPolicy.Priority
 }
 
 // ConvertConfigPolicyID convert config policy id.
@@ -397,7 +399,6 @@ func convertConfigPolicyFromTypes(configPolicy *types.ConfigPolicy) *ConfigPolic
 	*item.UpdatedTime = configPolicy.UpdatedAt.UnixMilli()
 	*item.Operator = configPolicy.Operator
 	*item.Version = int64(configPolicy.Version)
-	item.Priority = &configPolicy.Priority
 
 	return item
 }
@@ -423,7 +424,6 @@ func convertConfigPolicyToTypes(configPolicy *ConfigPolicy) *types.ConfigPolicy 
 			configPolicy.ConfigsInt,
 			configPolicy.ConfigsBool),
 		Enabled:   configPolicy.GetEnabled(),
-		Priority:  configPolicy.GetPriority(),
 		UpdatedAt: time.UnixMilli(configPolicy.GetUpdatedTime()),
 		Operator:  configPolicy.GetOperator(),
 		Version:   int(configPolicy.GetVersion()),
@@ -508,7 +508,6 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		UpdatedTime:      new(int64),
 		Operator:         new(string),
 		Version:          new(int64),
-		Priority:         new(int64),
 	}
 }
 
@@ -662,7 +661,6 @@ func convertPreviewMatchResults(results []types.ConfigPolicyMatchResult) []*Conf
 			matchedPolicies[j] = &ConfigPolicyPreviewResp_MatchedPolicy{
 				ConfigpolicyId:   matchedPolicy.PolicyID,
 				ConfigpolicyName: matchedPolicy.PolicyName,
-				Priority:         matchedPolicy.Priority,
 			}
 		}
 
@@ -692,7 +690,6 @@ func convertPreviewItemsToMatchResults(items []*ConfigPolicyPreviewResp_PreviewI
 			matchedPolicies = append(matchedPolicies, types.ConfigPolicyMatchedPolicy{
 				PolicyID:   matchedPolicy.GetConfigpolicyId(),
 				PolicyName: matchedPolicy.GetConfigpolicyName(),
-				Priority:   matchedPolicy.GetPriority(),
 			})
 		}
 

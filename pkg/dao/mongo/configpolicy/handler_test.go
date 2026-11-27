@@ -398,6 +398,14 @@ func Test_UpdateMany(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
+	priorities := make(map[int64]int64, len(preparedConfigPolicyIDs))
+	for _, id := range preparedConfigPolicyIDs {
+		policy, err := h.Get(nCtx, id)
+		if err != nil {
+			t.Fatalf("Get(%d) error = %v", id, err)
+		}
+		priorities[id] = policy.Priority
+	}
 
 	type args struct {
 		nCtx          contextx.IContext
@@ -452,13 +460,19 @@ func Test_UpdateMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := h.UpdateMany(tt.args.nCtx, types.UpdateAllConfigPolicyFields(), tt.args.configPolicys...)
+			updated, err := h.UpdateMany(tt.args.nCtx, types.UpdateAllConfigPolicyFields(), tt.args.configPolicys...)
 			if err != nil {
 				t.Logf("UpdateMany() error = %v", err)
 			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateMany() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			for _, policy := range updated {
+				want := priorities[policy.ID]
+				if policy.Priority != want {
+					t.Errorf("UpdateMany() policy %d priority = %d, want %d", policy.ID, policy.Priority, want)
+				}
 			}
 		})
 	}
