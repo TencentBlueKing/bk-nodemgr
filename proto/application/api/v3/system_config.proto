@@ -1,0 +1,91 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+
+// Backend 实例启动时加载的业务配置白名单，不包含凭据、连接端点及内部观测参数。
+message SystemConfig {
+  // 租户模式：single 或 multiple。
+  string tenant_mode = 1;
+  // 部署环境及版本形态。
+  message System {
+    string env = 1;
+    string edition = 2;
+  }
+  System system = 2;
+  // IAM 权限管理开关。
+  message IAM {
+    bool v3_enabled = 1;
+    bool v4_enabled = 2;
+  }
+  IAM iam = 3;
+  reserved 4, 5;
+  reserved "use_legacy_username", "monitor_enabled";
+  // 全局默认节点事件 Data ID，不解析业务级覆盖。
+  message NodeEventDataID {
+    int64 agent_base_alarm_event_data_id = 1;
+    int64 task_proc_event_data_id = 2;
+  }
+  NodeEventDataID node_event_data_id = 6;
+  // 默认直连网络单元的自动创建设置，不表示已存在的网络单元状态。
+  message DefaultDirectNetworkUnit {
+    bool enabled = 1;
+    string name = 2;
+  }
+  DefaultDirectNetworkUnit default_direct_network_unit = 7;
+  // 按 GSE
+  // 代际和操作系统配置的安装默认设置，不解析单次部署覆盖或目标主机实际状态。
+  message GSEDeployConfig {
+    int64 generation = 1;
+    string os_type = 2;
+    string base_work_dir = 3;
+    string base_deploy_dir = 4;
+    // Agent 扩展配置目录；为空表示未配置覆盖值。
+    string extra_config_dir = 5;
+    // 插件读取的主机 ID 文件路径；为空表示未配置覆盖值。
+    string host_id_path = 6;
+    // 插件 V2 兼容安装的运行目录；为空表示未配置覆盖值。
+    string v2_run_dir = 7;
+    // 插件 V2 兼容安装的数据目录；为空表示未配置覆盖值。
+    string v2_data_dir = 8;
+    // 节点部署的地域标识；为空表示未配置覆盖值。
+    string zone_id = 9;
+    // 节点部署的城市标识；为空表示未配置覆盖值。
+    string city_id = 10;
+    // 安装 HTTP 代理策略：inherit 沿用主机环境代理，direct 强制直连，specified
+    // 使用指定代理；不返回代理地址。
+    string http_proxy_mode = 11;
+    // Windows
+    // 安装器管理的防火墙功能：gse、nodemgr；空数组表示不管理规则。不返回允许访问的
+    // IP/CIDR。
+    repeated string firewall_features = 12;
+  }
+  repeated GSEDeployConfig gse_deploy_configs = 8;
+}
+
+// 查询 Backend 业务配置，无筛选参数。
+message GetSystemConfigReq {}
+
+// Backend 业务配置只读视图。
+message GetSystemConfigResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  SystemConfig data = 5;
+  Permission permission = 6;
+}
+
+// 平台系统配置只读查询。
+service SystemConfigQuery {
+  // 查询 Backend
+  // 实例加载的业务配置；须具有系统访问和平台管理的系统配置资源权限。
+  rpc GetSystemConfig(GetSystemConfigReq) returns (GetSystemConfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/system_config/get"
+      body : "*"
+    };
+  }
+}

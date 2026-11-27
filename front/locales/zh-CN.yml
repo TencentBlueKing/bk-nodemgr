@@ -348,6 +348,49 @@ platform:
   pkgManagerName: 包管理
   platformManagerName: 平台管理
   platformManagerComingSoon: 功能暂未开放
+  systemConfig:
+    refresh: 刷新
+    retry: 重试
+    snapshotNotice: 本页只读展示本次请求命中的 Backend 实例启动时加载的配置快照，不代表主机实时状态或单次部署的覆盖结果。刷新仅重新查询快照，不会重新加载 Backend 配置；本页不支持编辑或保存。
+    loadFailed: 系统配置加载失败
+    loadFailedTips: 请检查网络及访问权限后重试。
+    basicSettings: 基础配置
+    tenantMode: 租户模式
+    singleTenant: 单租户
+    multipleTenants: 多租户
+    environment: 部署环境
+    edition: 版本形态
+    iamV3: IAM V3 权限管理
+    iamV4: IAM V4 权限管理
+    enabled: 已启用
+    disabled: 未启用
+    nodeEventDataID: 节点事件 Data ID
+    nodeEventDataIDTips: 全局默认值，不包含业务级覆盖。
+    agentBaseAlarmEventDataID: Agent 基础告警事件 Data ID
+    taskProcEventDataID: 任务进程事件 Data ID
+    defaultDirectNetworkUnit: 默认直连网络单元
+    defaultDirectNetworkUnitTips: 自动创建开关仅表示启动配置，不表示默认直连网络单元是否已存在。
+    autoCreate: 自动创建
+    networkUnitName: 网络单元名称
+    gseDeployConfigs: GSE 安装默认配置
+    gseDeployConfigsTips: 按 GSE 代际和操作系统展示安装默认设置，不解析单次部署覆盖。未配置覆盖值不等于实际使用的默认路径；V2 目录用于插件 V2 兼容安装。
+    noGSEDeployConfigs: 暂无 GSE 安装默认配置
+    deployConfigTitle: 'GSE {generation} / {os}'
+    baseWorkDir: 基础工作目录
+    baseDeployDir: 基础安装目录
+    extraConfigDir: Agent 扩展配置目录
+    hostIDPath: 插件主机 ID 文件路径
+    v2RunDir: 插件 V2 兼容运行目录
+    v2DataDir: 插件 V2 兼容数据目录
+    zoneID: 地域标识
+    cityID: 城市标识
+    noOverride: 未配置覆盖值
+    httpProxyMode: 安装 HTTP 代理策略
+    proxyInherit: 沿用主机环境代理
+    proxyDirect: 强制直连
+    proxySpecified: 使用指定代理（不展示代理地址）
+    firewallFeatures: Windows 安装器管理的防火墙功能
+    firewallUnmanaged: 不管理防火墙规则
 schedulerWorkflow:
   refresh: 刷新
   refreshLogs: 刷新日志

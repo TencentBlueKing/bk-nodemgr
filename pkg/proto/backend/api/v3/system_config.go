@@ -73,6 +73,40 @@ func (x *SystemConfig) ConvertFromTypes(value types.SystemConfig) {
 	}
 }
 
+// ConvertToTypes converts the Backend wire view to the business-facing configuration.
+func (x *SystemConfig) ConvertToTypes() types.SystemConfig {
+	return types.SystemConfig{
+		TenantMode: x.GetTenantMode(),
+		System: types.SystemConfigSystem{
+			Env: x.GetSystem().GetEnv(), Edition: x.GetSystem().GetEdition(),
+		},
+		IAM: types.SystemConfigIAM{
+			V3Enabled: x.GetIam().GetV3Enabled(), V4Enabled: x.GetIam().GetV4Enabled(),
+		},
+		NodeEventDataID: types.SystemConfigNodeEventDataID{
+			AgentBaseAlarmEventDataID: x.GetNodeEventDataId().GetAgentBaseAlarmEventDataId(),
+			TaskProcEventDataID:       x.GetNodeEventDataId().GetTaskProcEventDataId(),
+		},
+		DefaultDirectNetworkUnit: types.SystemConfigDefaultDirectNetworkUnit{
+			Enabled: x.GetDefaultDirectNetworkUnit().GetEnabled(),
+			Name:    x.GetDefaultDirectNetworkUnit().GetName(),
+		},
+		GSEDeployConfigs: conv.SliceToSlice(x.GetGseDeployConfigs(), func(conf *SystemConfig_GSEDeployConfig) types.SystemConfigGSEDeploy {
+			return types.SystemConfigGSEDeploy{
+				Generation: conf.GetGeneration(), OSType: conf.GetOsType(),
+				BaseWorkDir: conf.GetBaseWorkDir(), BaseDeployDir: conf.GetBaseDeployDir(),
+				ExtraConfigDir: conf.GetExtraConfigDir(), HostIDPath: conf.GetHostIdPath(),
+				V2RunDir: conf.GetV2RunDir(), V2DataDir: conf.GetV2DataDir(),
+				ZoneID: conf.GetZoneId(), CityID: conf.GetCityId(),
+				HTTPProxyMode: types.SystemConfigHTTPProxyMode(conf.GetHttpProxyMode()),
+				FirewallFeatures: conv.SliceToSlice(conf.GetFirewallFeatures(), func(feature string) types.FirewallFeature {
+					return types.FirewallFeature(feature)
+				}),
+			}
+		}),
+	}
+}
+
 // ConvertSystemConfigFromTypes sets the application-state response view.
 func (x *GetSystemConfigResp) ConvertSystemConfigFromTypes(value types.SystemConfig) {
 	x.Data = new(SystemConfig)
