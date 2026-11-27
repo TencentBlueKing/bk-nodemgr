@@ -591,6 +591,57 @@ func TestConvertPluginDeploymentInfoKeepsDebugCmd(t *testing.T) {
 	}
 }
 
+func TestConvertPluginDeploymentInfoRequirementsRoundTrip(t *testing.T) {
+	requirements := []types.ProcessRequirement{{
+		RequirementID:  "0b6f0f18-6f1f-4c88-9d3f-2a4f1f3d1a11",
+		TargetPath:     "/opt/plugin/conf/extra",
+		TargetFileName: "rules.json",
+		MD5:            "d41d8cd98f00b204e9800998ecf8427e",
+	}}
+	options := types.PluginDeploymentRequirementOptions{
+		RequirementIDs: []string{requirements[0].RequirementID},
+		ApplyAll:       true,
+	}
+	info := &types.PluginDeploymentInfo{
+		Process:            types.Process{Requirements: requirements},
+		RequirementOptions: options,
+	}
+
+	data, err := convertPluginDeploymentInfoFromTypes(info)
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() error = %v", err)
+	}
+	encoded, err := bson.Marshal(data)
+	if err != nil {
+		t.Fatalf("bson.Marshal() error = %v", err)
+	}
+	var decoded Info
+	if err = bson.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatalf("bson.Unmarshal() error = %v", err)
+	}
+	got, err := convertPluginDeploymentInfoToTypes(&decoded)
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() error = %v", err)
+	}
+	if !reflect.DeepEqual(got.Process.Requirements, requirements) {
+		t.Fatalf("round-trip requirements = %+v, want %+v", got.Process.Requirements, requirements)
+	}
+	if !reflect.DeepEqual(got.RequirementOptions, options) {
+		t.Fatalf("round-trip requirement options = %+v, want %+v", got.RequirementOptions, options)
+	}
+
+	empty, err := convertPluginDeploymentInfoToTypes(&Info{})
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() error = %v", err)
+	}
+	if !reflect.DeepEqual(empty.Process.Requirements, []types.ProcessRequirement{}) {
+		t.Fatalf("nil requirements should normalize to empty slice, got %+v", empty.Process.Requirements)
+	}
+	if len(empty.RequirementOptions.RequirementIDs) != 0 {
+		t.Fatalf("nil requirement ids should stay empty, got %+v", empty.RequirementOptions.RequirementIDs)
+	}
+}
+
 func TestConvertPluginDeploymentInfoKeepsConfigSource(t *testing.T) {
 	processCreateTime := time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC)
 	processLastTime := time.Date(2026, 9, 3, 10, 1, 0, 0, time.UTC)

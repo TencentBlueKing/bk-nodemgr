@@ -35,6 +35,12 @@ type PluginDeployment struct {
 
 // NewPluginDeployment new a plugin deployment.
 func NewPluginDeployment(info *PluginDeploymentInfo, conf *PluginDeploymentPluginConf) *PluginDeployment {
+	// New deployments always carry an explicit empty requirement selection;
+	// requirement options preselected by the caller are preserved.
+	if info.RequirementOptions.RequirementIDs == nil {
+		info.RequirementOptions.RequirementIDs = []string{}
+	}
+
 	return &PluginDeployment{
 		Token:      strings.ReplaceAll(uuid.New().String(), "-", ""),
 		Info:       info,
@@ -110,6 +116,9 @@ type PluginDeploymentInfo struct {
 
 	// TransferOptions is used to control the tools when transfer plugin.
 	TransferOptions PluginDeploymentTransferOptions
+
+	// RequirementOptions selects the dependency files to distribute in this operation.
+	RequirementOptions PluginDeploymentRequirementOptions
 }
 
 // PluginDeploymentInstallerRuntime this is the installer runtime for plugin deployment.
@@ -182,6 +191,16 @@ type PluginDeploymentTransferOptions struct {
 	DisableReleasePackage bool
 	// means disable transfer installer.
 	DisableInstaller bool
+}
+
+// PluginDeploymentRequirementOptions selects the dependency files to distribute.
+// check_plugin_requirements fills RequirementIDs; an empty selection means nothing to distribute.
+type PluginDeploymentRequirementOptions struct {
+	// RequirementIDs lists the dependency file record IDs selected for distribution.
+	RequirementIDs []string
+	// ApplyAll distributes every applicable dependency file without comparing against
+	// the applied process records. It defaults to false.
+	ApplyAll bool
 }
 
 // PluginSpec defines the specification for plugin deployment.
