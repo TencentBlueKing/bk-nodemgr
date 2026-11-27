@@ -919,8 +919,10 @@ type Front struct {
 	// BKDomain is the domain of bk platform.
 	BKDomain string `yaml:"bkDomain" usage:"bk domain"`
 
-	// BKDocsCenterURL is the URL of bk docs center.
-	BKDocsCenterURL string `yaml:"bkDocsCenterURL" usage:"bk docs center url"`
+	// BKDocsCenterURL is the bk docs center url prefix, the nodemgr doc link stays empty when it is empty.
+	BKDocsCenterURL string `yaml:"bkDocsCenterURL" usage:"bk docs center url prefix"`
+	// BKDocsCenterNodemgrDocPath is the nodemgr doc path appended to BKDocsCenterURL.
+	BKDocsCenterNodemgrDocPath string `yaml:"bkDocsCenterNodemgrDocPath" usage:"bk docs center nodemgr doc path"`
 
 	// BKSharedResBaseJSURL is the URL of the bk shared resource base js, used to load platform config (logo, title, footer, etc.).
 	BKSharedResBaseJSURL string `yaml:"bkSharedResBaseJSURL" usage:"bk shared res base js url"`

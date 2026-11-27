@@ -1232,8 +1232,10 @@ application:
       bkUserWebURL: ""
       ## bk domain, default is empty.
       bkDomain: ""
-      ## bk docs center url, default is empty.
+      ## bk docs center url prefix; the product doc link stays empty when it is empty.
       bkDocsCenterURL: ""
+      ## nodemgr user guide path in bk docs center, appended to the url prefix.
+      bkDocsCenterNodemgrDocPath: "/markdown/NodeMgr/UserGuide/Introduce/Overview.md"
       ## bk shared res base js url (platform config: logo, title, footer, etc.), default is empty.
       bkSharedResBaseJSURL: ""
       ## bk app nav open source url, default is empty.
