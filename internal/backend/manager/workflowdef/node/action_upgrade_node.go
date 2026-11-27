@@ -196,7 +196,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	_, upgradeCmd, err := param.ToUnixScript()
+	upgradeCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)
 	}
@@ -208,11 +208,7 @@ func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder,
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > upgrade.sh && sh upgrade.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			upgradeCmd),
+		upgradeCmd,
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -233,7 +229,7 @@ func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder,
 }
 
 func (act *actionUpgradeNode) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	_, upgradeCmd, err := param.ToWindowsScript()
+	upgradeCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)
 	}
@@ -245,10 +241,7 @@ func (act *actionUpgradeNode) doUpgradeWindows(std *nodeUtils.NodeActionStandard
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			upgradeCmd),
+		upgradeCmd,
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

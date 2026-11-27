@@ -140,11 +140,17 @@ func (h *handler) prepareProxyInstallTarget(
 
 	// ensure the workspace dir; in sudo-mode the workdir is created via sudo and handed
 	// to the login user, with parent dirs opened so every user gets its own workspace.
-	prepareCmd := installer.EnsureUserWorkDirCmd(event.InstallerWorkDir) + " && mkdir -p " + configDir
-	if event.IsSudo {
-		prepareCmd = installer.SudoEnsureUserWorkDirCmd(event.InstallerWorkDir, event.User) + " && mkdir -p " + configDir
+	configDirCmd, err := installer.UnixEnsureDirectoryCommand(configDir)
+	if err != nil {
+		_ = client.Close()
+
+		return nil, "", fmt.Errorf("failed to build config directory command: %w", err)
 	}
-	stdoutResult, stderrResult, err := client.RunCommand(prepareCmd)
+	prepareCmd := installer.EnsureUserWorkDirCmd(event.InstallerWorkDir)
+	if event.IsSudo {
+		prepareCmd = installer.SudoEnsureUserWorkDirCmd(event.InstallerWorkDir, event.User)
+	}
+	stdoutResult, stderrResult, err := client.RunCommand(prepareCmd + " && " + configDirCmd)
 	if err != nil {
 		_ = client.Close()
 
@@ -197,7 +203,11 @@ func (h *handler) transferProxyInstallFiles(
 			Info("transfer proxy install file successfully")
 	}
 
-	stdoutResult, stderrResult, err := client.RunCommand("chmod +x " + path.Clean(path.Join(event.InstallerWorkDir, event.InstallerName)))
+	chmodCmd, err := installer.UnixMakeExecutableCommand(path.Clean(path.Join(event.InstallerWorkDir, event.InstallerName)))
+	if err != nil {
+		return outStr, fmt.Errorf("failed to build chmod command: %w", err)
+	}
+	stdoutResult, stderrResult, err := client.RunCommand(chmodCmd)
 	if err != nil {
 		return outStr, fmt.Errorf("failed to chmod installer: %w", err)
 	}
@@ -249,12 +259,17 @@ func (h *handler) executeProxyInstallCommand(nCtx contextx.IContext, client *ssh
 		return "", fmt.Errorf("proxy installer command is empty")
 	}
 
-	cmd := fmt.Sprintf("mkdir -p %s && cd %s && %s", event.InstallerWorkDir, event.InstallerWorkDir, event.InstallerCmd)
+	// SYNC: node.actionInstallProxyBySSH.buildSSHOnlyProxyInstallCmd sends script-write and launch only, without a workspace.
+	command, err := installer.UnixWorkspaceCommand(event.InstallerWorkDir, event.InstallerCmd)
+	if err != nil {
+		return "", fmt.Errorf("failed to build proxy installer workspace command: %w", err)
+	}
+
 	logger.G.Biz(nCtx).
 		With("installer-work-dir", event.InstallerWorkDir).
 		Info("try to run proxy install command")
 
-	stdoutResult, stderrResult, err := client.RunCommand(cmd)
+	stdoutResult, stderrResult, err := client.RunCommand(command)
 	outStr := buildLogOutput("install", "installer command", stdoutResult, stderrResult)
 	if err != nil {
 		return outStr, fmt.Errorf("failed to run proxy install command: %w", err)

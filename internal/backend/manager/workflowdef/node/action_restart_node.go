@@ -258,7 +258,7 @@ func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionSta
 
 // nolint: perfsprint
 func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
-	_, restartCmd, err := param.ToUnixScript()
+	restartCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)
 	}
@@ -269,11 +269,7 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > restart.sh && sh restart.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			restartCmd),
+		restartCmd,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -293,7 +289,7 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 
 // nolint: perfsprint
 func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
-	_, restartCmd, err := param.ToWindowsScript()
+	restartCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)
 	}
@@ -304,10 +300,7 @@ func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeAc
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			restartCmd),
+		restartCmd,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

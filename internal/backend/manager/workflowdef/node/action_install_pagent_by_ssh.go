@@ -363,16 +363,10 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	_, installCmd, err := installParams.ToUnixScriptDownloadBeforeCallback()
+	result, err := installer.RenderUnixLaunchScript(workDir, installParams.ToUnixScriptDownloadBeforeCallback)
 	if err != nil {
 		return "", fmt.Errorf("failed to render node install script: %w", err)
 	}
-
-	result := fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		workDir,
-		workDir,
-		installCmd)
 
 	std.InstanceData().Log().
 		Zh("构建安装命令: %v", result).

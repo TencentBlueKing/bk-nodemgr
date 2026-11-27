@@ -19,13 +19,11 @@
 package node
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
 	"time"
-	"unicode/utf16"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -51,11 +49,6 @@ const (
 	ActionNameInstallNodeByWindowsSSH = "install_node_by_windows_ssh"
 
 	installShellName = "install.sh"
-)
-
-const (
-	utf16BytesPerCodeUnit = 2
-	utf16BitsPerByte      = 8
 )
 
 // NewActionInstallNodeByWindowsSSH get a new action.
@@ -273,10 +266,10 @@ func (act *actionInstallNodeByWindowsSSH) newWindowsSSHClient(std *nodeUtils.Nod
 
 func (act *actionInstallNodeByWindowsSSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
 	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
-	command := buildPowerShellCommand(fmt.Sprintf(
-		"New-Item -ItemType Directory -Force -Path %s | Out-Null",
-		powerShellSingleQuote(workDir),
-	))
+	command, err := installer.EnsureWindowsWorkDirCommand(workDir)
+	if err != nil {
+		return fmt.Errorf("failed to render installer workspace command: %w", err)
+	}
 
 	stdout, stderr, err := client.RunCommand(command)
 	if err != nil {
@@ -395,7 +388,10 @@ func (act *actionInstallNodeByWindowsSSH) ensureCygwinWorkspace(
 ) error {
 
 	workDir := winpath.ToSlash(winpath.Clean(std.DeployInfo().InstallerRuntime.LoginWorkDir))
-	command := fmt.Sprintf("mkdir -p %s", shellDoubleQuote(workDir))
+	command, err := installer.EnsureWindowsShellWorkDirCommand(workDir)
+	if err != nil {
+		return fmt.Errorf("failed to render installer workspace command: %w", err)
+	}
 
 	stdout, stderr, err := client.RunCommand(command)
 	if err != nil {
@@ -436,7 +432,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareNativeInstallCommand(
 		return "", fmt.Errorf("failed to transfer bat file for windows ssh execution: %w", err)
 	}
 
-	return buildWindowsSSHNativeInstallCommand(workDir, installBatPath), nil
+	return installer.WindowsSSHLaunchCommand(workDir, installBatPath)
 }
 
 func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
@@ -463,7 +459,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
 		return "", fmt.Errorf("failed to transfer shell file for cygwin windows ssh execution: %w", err)
 	}
 
-	return buildWindowsSSHCygwinInstallCommand(workDir), nil
+	return installer.WindowsShellLaunchCommand(workDir, installShellName)
 }
 
 func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
@@ -534,47 +530,4 @@ func windowsSSHTransferPath(winPath string) string {
 	// Adapt to slash form only at the SFTP boundary because sshx.TransferFile
 	// uses POSIX path helpers to derive the destination directory.
 	return winpath.ToSlash(winpath.Clean(winPath))
-}
-
-func buildWindowsSSHNativeInstallCommand(workDir string, installBatPath string) string {
-	argumentList := fmt.Sprintf("/c \"%s\"", strings.ReplaceAll(installBatPath, "\"", "\"\""))
-
-	return buildPowerShellCommand(fmt.Sprintf(
-		"Start-Process -FilePath %s -ArgumentList %s -WorkingDirectory %s",
-		powerShellSingleQuote("cmd.exe"),
-		powerShellSingleQuote(argumentList),
-		powerShellSingleQuote(workDir),
-	))
-}
-
-func buildWindowsSSHCygwinInstallCommand(workDir string) string {
-	return fmt.Sprintf(
-		"cd %s && sh %s",
-		shellDoubleQuote(winpath.ToSlash(winpath.Clean(workDir))),
-		shellDoubleQuote(installShellName),
-	)
-}
-
-func buildPowerShellCommand(script string) string {
-	return "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand " +
-		encodePowerShellCommand(script)
-}
-
-func encodePowerShellCommand(script string) string {
-	codeUnits := utf16.Encode([]rune(script))
-	encoded := make([]byte, len(codeUnits)*utf16BytesPerCodeUnit)
-	for i, codeUnit := range codeUnits {
-		encoded[i*utf16BytesPerCodeUnit] = byte(codeUnit)
-		encoded[i*utf16BytesPerCodeUnit+1] = byte(codeUnit >> utf16BitsPerByte)
-	}
-
-	return base64.StdEncoding.EncodeToString(encoded)
-}
-
-func powerShellSingleQuote(value string) string {
-	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
-}
-
-func shellDoubleQuote(value string) string {
-	return "\"" + strings.ReplaceAll(value, "\"", "\\\"") + "\""
 }

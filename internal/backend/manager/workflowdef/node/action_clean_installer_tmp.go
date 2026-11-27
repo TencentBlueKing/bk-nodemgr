@@ -164,7 +164,7 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 
 // nolint: perfsprint
 func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
-	_, cleanCmd, err := param.ToUnixScript()
+	cleanCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)
 	}
@@ -175,11 +175,7 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > clean.sh && sh clean.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			cleanCmd),
+		cleanCmd,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -199,7 +195,7 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 
 // nolint: perfsprint
 func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
-	_, cleanCmd, err := param.ToWindowsScript()
+	cleanCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)
 	}
@@ -210,10 +206,7 @@ func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandar
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			cleanCmd),
+		cleanCmd,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

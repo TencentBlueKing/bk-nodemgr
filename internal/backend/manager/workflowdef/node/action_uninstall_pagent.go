@@ -200,7 +200,7 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) (err error) {
 
 // nolint: perfsprint
 func (act *actionUninstallPagent) doUninstallUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
-	_, uninstallCmd, err := param.ToUnixScript()
+	uninstallCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
@@ -211,11 +211,7 @@ func (act *actionUninstallPagent) doUninstallUnix(std *nodeUtils.NodeActionStand
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > uninstall.sh && sh uninstall.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			uninstallCmd),
+		uninstallCmd,
 		uninstallPagentScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -235,7 +231,7 @@ func (act *actionUninstallPagent) doUninstallUnix(std *nodeUtils.NodeActionStand
 
 // nolint: perfsprint
 func (act *actionUninstallPagent) doUninstallWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
-	_, uninstallCmd, err := param.ToWindowsScript()
+	uninstallCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
@@ -246,10 +242,7 @@ func (act *actionUninstallPagent) doUninstallWindows(std *nodeUtils.NodeActionSt
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			uninstallCmd),
+		uninstallCmd,
 		uninstallPagentScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

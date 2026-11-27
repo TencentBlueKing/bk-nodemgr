@@ -196,7 +196,7 @@ func (act *actionUpgradeProxy) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionUpgradeProxy) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	_, upgradeCmd, err := param.ToUnixScript()
+	upgradeCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render proxy upgrade script: %w", err)
 	}
@@ -208,11 +208,7 @@ func (act *actionUpgradeProxy) doUpgradeUnix(std *nodeUtils.NodeActionStandarder
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > upgrade.sh && sh upgrade.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			upgradeCmd),
+		upgradeCmd,
 		upgradeProxyScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -233,7 +229,7 @@ func (act *actionUpgradeProxy) doUpgradeUnix(std *nodeUtils.NodeActionStandarder
 }
 
 func (act *actionUpgradeProxy) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	_, upgradeCmd, err := param.ToWindowsScript()
+	upgradeCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render proxy upgrade script: %w", err)
 	}
@@ -245,10 +241,7 @@ func (act *actionUpgradeProxy) doUpgradeWindows(std *nodeUtils.NodeActionStandar
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			upgradeCmd),
+		upgradeCmd,
 		upgradeProxyScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

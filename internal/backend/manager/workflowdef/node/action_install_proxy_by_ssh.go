@@ -302,7 +302,8 @@ func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.N
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	_, installCmd, err := installParams.ToUnixScript()
+	// SYNC: relay/handler.executeProxyInstallCommand adds the workspace; wire content remains script-write and launch only.
+	installCmd, err := installer.RenderUnixScript(installParams.ToUnixScript)
 	if err != nil {
 		return "", fmt.Errorf("failed to build ssh-only proxy install cmd: %w", err)
 	}
@@ -311,7 +312,7 @@ func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.N
 		En("install proxy cmd (cross-unit SSH-only): %s", installCmd).
 		Info()
 
-	return fmt.Sprintf(`echo "%s" > install.sh && sh install.sh`, installCmd), nil
+	return installCmd, nil
 }
 
 func (act *actionInstallProxyBySSH) notifyRelayToInstallProxyBySSH(

@@ -464,12 +464,7 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 		En("install node cmd (cross-unit SSH-only): %s", installCmd).
 		Info()
 
-	outStr, _, err := client.RunCommand(fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		workDir,
-		workDir,
-		installCmd),
-	)
+	outStr, _, err := client.RunCommand(installCmd)
 	if err != nil {
 		return fmt.Errorf("failed to run install node: %w", err)
 	}
@@ -523,7 +518,11 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 		Info()
 
 	// make sure tool is executable
-	if _, stderr, err := client.RunCommand("chmod +x " + installerPath); err != nil {
+	chmodCommand, err := installer.UnixMakeExecutableCommand(installerPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to render installer chmod command: %w", err)
+	}
+	if _, stderr, err := client.RunCommand(chmodCommand); err != nil {
 		return "", fmt.Errorf("failed to run command. command(chmod +x %s), stderr(%s): %w", installerPath, stderr, err)
 	}
 
@@ -624,12 +623,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		Info()
 
 	// exec install command.
-	outStr, stderr, err := client.RunCommand(fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		workDir,
-		workDir,
-		installCmd),
-	)
+	outStr, stderr, err := client.RunCommand(installCmd)
 	if err != nil {
 		err = fmt.Errorf("failed to run install node: %w", err)
 
@@ -645,7 +639,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 }
 
 func (act *actionInstallNodeBySSH) buildCMD(param *installer.NodeInstallParams) (string, error) {
-	_, installCmd, err := param.ToUnixScript()
+	installCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return "", fmt.Errorf("failed to render node install script: %w", err)
 	}

@@ -219,7 +219,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 
 // nolint: perfsprint
 func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToUnixScript()
+	reconfigCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
 	}
@@ -230,11 +230,7 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigCmd,
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -254,7 +250,7 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 
 // nolint: perfsprint
 func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToWindowsScript()
+	reconfigCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
 	}
@@ -265,10 +261,7 @@ func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStanda
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigCmd,
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

@@ -197,7 +197,7 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) (err error) {
 
 // nolint: perfsprint
 func (act *actionReconfigProxy) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToUnixScript()
+	reconfigCmd, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render proxy reconfig script: %w", err)
 	}
@@ -208,11 +208,7 @@ func (act *actionReconfigProxy) doReconfigUnix(std *nodeUtils.NodeActionStandard
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigCmd,
 		reconfigProxyScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -232,7 +228,7 @@ func (act *actionReconfigProxy) doReconfigUnix(std *nodeUtils.NodeActionStandard
 
 // nolint: perfsprint
 func (act *actionReconfigProxy) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToWindowsScript()
+	reconfigCmd, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render proxy reconfig script: %w", err)
 	}
@@ -243,10 +239,7 @@ func (act *actionReconfigProxy) doReconfigWindows(std *nodeUtils.NodeActionStand
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigCmd,
 		reconfigProxyScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
