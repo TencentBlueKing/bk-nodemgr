@@ -97,6 +97,30 @@ application:
 backend:
 {{ toYaml $backend | nindent 2 }}
 
+{{- $iamV3 := deepCopy (dig "iamV3" dict .Values) }}
+{{- $provider := deepCopy (dig "provider" dict $iamV3) }}
+{{- if not (dig "host" "" $provider) }}
+{{- $_ := set $provider "host" (replace "{gateway_name}" "bk-nodemgr" $bkAPITmpl) }}
+{{- end }}
+{{- if not (dig "path" "" $provider) }}
+{{- $_ := set $provider "path" (dig "iamV3" "callbackPath" "/api/v3/iam/v3/resource" $config) }}
+{{- end }}
+{{- $_ := set $iamV3 "provider" $provider }}
+iamV3:
+{{ toYaml $iamV3 | nindent 2 }}
+
+{{- $iamV4 := deepCopy (dig "iamV4" dict .Values) }}
+{{- $providerV4 := deepCopy (dig "provider" dict $iamV4) }}
+{{- if not (dig "host" "" $providerV4) }}
+{{- $_ := set $providerV4 "host" (replace "{gateway_name}" "bk-nodemgr" $bkAPITmpl) }}
+{{- end }}
+{{- if not (dig "path" "" $providerV4) }}
+{{- $_ := set $providerV4 "path" (dig "iamV4" "callbackPath" "/api/v3/iam/v4/resource" $config) }}
+{{- end }}
+{{- $_ := set $iamV4 "provider" $providerV4 }}
+iamV4:
+{{ toYaml $iamV4 | nindent 2 }}
+
 file:
   enabled: false
 

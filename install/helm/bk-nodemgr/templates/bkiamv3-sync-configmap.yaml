@@ -1,4 +1,4 @@
-{{- if .Values.backend.config.iamV3.enable }}
+{{- if .Values.iamV3.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -73,17 +73,24 @@ backend 在该前缀后拼接 `zh/` 或 `en/` 及相对文件路径。例如，�
 
 ## IAM V3 模型同步
 
-启用 `backend.config.iamV3.enable` 后，安装和升级会自动执行 IAM V3 模型同步 Job。`iamV3.option.allowActionReplace` 默认为 `false`；设为 `true` 时，Job 向 `do_migrate.py` 传入 `--allow-action-replace`，允许清理策略、删除旧 Action 并按目标资源绑定重建。此开关作用于本次全目录同步中所有发生资源绑定变化的 `upsert_action`，不只限于 `package_history_view`。
+启用 `iamV3.enabled` 后，安装和升级会自动执行 IAM V3 模型同步 Job；该开关独立于运行时鉴权开关 `backend.config.iamV3.enable`，默认关闭。网关和应用凭证仍取自 `backend.config.iamV3`。注册模型的 `iamV3.system.id` 默认是 `bk_nodemgr`，应与运行时 `systemID` 及 IAM 中已注册的系统一致，不能用应用 `appCode` 代替。`iamV3.option.allowActionReplace` 默认为 `false`；设为 `true` 时，Job 向 `do_migrate.py` 传入 `--allow-action-replace`，允许清理策略、删除旧 Action 并按目标资源绑定重建。此开关作用于本次全目录同步中所有发生资源绑定变化的 `upsert_action`，不只限于 `package_history_view`。
 
 ```yaml
 iamV3:
+  enabled: true
+  system:
+    id: bk_nodemgr
   option:
     allowActionReplace: true
 ```
 
 启用前需确认目标系统、租户及全部绑定变更。**策略删除不可逆，已有授权不会自动迁移**；同步后需重新配置并验证受影响的权限。完成改绑后将此开关恢复为 `false`，后续同步对相同绑定只执行普通更新。关闭开关或回退 Chart 无法恢复已删除的策略。
 
-Helmfile 部署时，将上述片段合并到对应 environment 的 `overrides/backend.yaml`。服务运行时 IAM 配置保持不变。使用的 server 镜像需包含支持 `--allow-action-replace` 的迁移脚本；IAM 版本要求、异步删除及失败恢复边界见 [IAM V3 迁移工具](https://github.com/TencentBlueKing/bk-nodemgr/blob/master/support-files/bkiamv3/README.md#显式替换-action-资源绑定)。
+Helmfile 部署时，在对应 environment 的 `env.yaml` 中配置顶层 `iamV3.enabled` 和 `iamV3.system.id`；`option.allowActionReplace` 等高级配置仍可通过 `overrides/backend.yaml` 覆盖。服务运行时 IAM 配置保持不变。
+
+**升级注意：** 此前仅通过 `backend.config.iamV3.enable` 自动触发同步的环境，需显式设置 `iamV3.enabled: true` 才会继续同步；不需要同步时保持 `false`，不要关闭运行时鉴权。若已有 IAM 系统 ID 是 `bk-nodemgr` 或其他值，须显式保留原 ID 并与运行时配置一致，不要直接改用新的默认值，以免注册到另一套系统。
+
+使用的 server 镜像需包含支持 `--allow-action-replace` 的迁移脚本；IAM 版本要求、异步删除及失败恢复边界见 [IAM V3 迁移工具](https://github.com/TencentBlueKing/bk-nodemgr/blob/master/support-files/bkiamv3/README.md#显式替换-action-资源绑定)。
 
 ## MCP 内置特性与完整覆写
 

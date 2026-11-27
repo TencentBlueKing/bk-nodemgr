@@ -1504,7 +1504,7 @@ application:
       # cmdbSystemID is the cmdb system identifier registered in IAM v3.
       cmdbSystemID: "bk_cmdb"
       # callbackPath is the callback path for IAM resource provider.
-      callbackPath: "/api/v3/iam/callback"
+      callbackPath: "/api/v3/iam/v3/resource"
       # trace service name for IAM v3 client
       traceServiceName: "application-client-iam-v3"
       traceSampleRate: 0
@@ -2118,7 +2118,7 @@ backend:
       # cmdbSystemID is the cmdb system identifier registered in IAM v3.
       cmdbSystemID: "bk_cmdb"
       # callbackPath is the callback path for IAM resource provider.
-      callbackPath: "/api/v3/iam/callback"
+      callbackPath: "/api/v3/iam/v3/resource"
       # trace service name for IAM v3 client
       traceServiceName: "backend-client-iam-v3"
       traceSampleRate: 0
@@ -2636,6 +2636,7 @@ initPackages:
       ## Agent private key (base64), used for the agent communication chain
       key: ""
 
+## IAM V3 model initialization, independent of runtime authorization.
 iamV3:
   enabled: false
   option:
@@ -2646,9 +2647,10 @@ iamV3:
     backoffLimit: 3
     parallelism: 1
   system:
-    id: "bk-nodemgr"
-    name: "节点管理"
-    name_en: "NodeManager"
+    # IAM system ID; independent of the application code used for API authentication.
+    id: "bk_nodemgr"
+    name: "节点管理V3"
+    name_en: "NodeManagerV3"
     description: "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能"
     description_en: "BlueKing Node Manager, provides node management, plugin management and other functions"
     clients: "bk-nodemgr"
@@ -2690,7 +2692,7 @@ iamV4:
     parallelism: 1
   system:
     id: "bk_nodemgr"
-    name: "节点管理"
+    name: "节点管理V3"
     description: "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能"
     clients:
       - "bk-nodemgr"
