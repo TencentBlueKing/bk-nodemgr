@@ -23,6 +23,7 @@ import (
 	"io"
 	"net"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -81,7 +82,7 @@ func runRedisCLI(cmd *cobra.Command, conf *config.Redis, command string) error {
 	// Redis.Validate already guarantees it is non-empty.
 	extraEnv := []string{redisCLIAuthEnvName + "=" + conf.Password}
 
-	addr, err := resolveRedisAddr(conf, tlsArgs, extraEnv, cmd.ErrOrStderr())
+	addr, err := resolveRedisAddr(conf, tlsArgs, cmd.ErrOrStderr())
 	if err != nil {
 		return err
 	}
@@ -165,7 +166,7 @@ func isRedisInfoSummaryLine(line string) bool {
 
 // resolveRedisAddr resolves the address to connect to. In sentinel mode the master
 // address is resolved via the first sentinel, other modes use the first configured addr.
-func resolveRedisAddr(conf *config.Redis, tlsArgs, extraEnv []string, errOut io.Writer) (string, error) {
+func resolveRedisAddr(conf *config.Redis, tlsArgs []string, errOut io.Writer) (string, error) {
 	if conf.Type != config.RedisTypeSentinel {
 		return conf.Addrs[0], nil
 	}
@@ -174,9 +175,10 @@ func resolveRedisAddr(conf *config.Redis, tlsArgs, extraEnv []string, errOut io.
 	_, _ = fmt.Fprintf(errOut, "Resolving master '%s' via sentinel: %s\n", conf.MasterName, sentinel)
 
 	host, port := splitHostPort(sentinel, defaultRedisPort)
-	args := append([]string{"-h", host, "-p", port}, tlsArgs...)
+	args := append([]string{"-h", host, "-p", port, "-e"}, tlsArgs...)
 
-	output, err := outputRedisCLI(args, extraEnv, "SENTINEL", "get-master-addr-by-name", conf.MasterName)
+	sentinelEnv := []string{redisCLIAuthEnvName + "=" + conf.SentinelPassword}
+	output, err := outputRedisCLI(args, sentinelEnv, "SENTINEL", "get-master-addr-by-name", conf.MasterName)
 	if err != nil {
 		return "", fmt.Errorf("could not resolve master '%s' from sentinel %s: %w", conf.MasterName, sentinel, err)
 	}
@@ -221,7 +223,10 @@ func execRedisCLI(cmd *cobra.Command, args []string, extraEnv []string, cmdArgs 
 // outputRedisCLI runs redis-cli and returns its stdout.
 func outputRedisCLI(args []string, extraEnv []string, cmdArgs ...string) (string, error) {
 	cli := exec.Command("redis-cli", append(args, cmdArgs...)...) // nolint: gosec
-	cli.Env = mergeEnv(extraEnv)
+	// redis-cli attempts AUTH even when its auth environment variable is empty.
+	cli.Env = slices.DeleteFunc(mergeEnv(extraEnv), func(entry string) bool {
+		return entry == redisCLIAuthEnvName+"="
+	})
 
 	output, err := cli.Output()
 	if err != nil {

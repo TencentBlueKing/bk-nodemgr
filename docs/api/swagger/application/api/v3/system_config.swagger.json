@@ -1,0 +1,354 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "system_config.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "SystemConfigQuery"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/system_config/get": {
+      "post": {
+        "summary": "查询 Backend\n实例加载的业务配置；须具有系统访问和平台管理的系统配置资源权限。",
+        "operationId": "SystemConfigQuery_GetSystemConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3GetSystemConfigResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3GetSystemConfigReq"
+            }
+          }
+        ],
+        "tags": [
+          "SystemConfigQuery"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "SystemConfigDefaultDirectNetworkUnit": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "title": "默认直连网络单元的自动创建设置，不表示已存在的网络单元状态。"
+    },
+    "SystemConfigGSEDeployConfig": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "base_work_dir": {
+          "type": "string"
+        },
+        "base_deploy_dir": {
+          "type": "string"
+        },
+        "extra_config_dir": {
+          "type": "string",
+          "title": "Agent 扩展配置目录；为空表示未配置覆盖值。"
+        },
+        "host_id_path": {
+          "type": "string",
+          "title": "插件读取的主机 ID 文件路径；为空表示未配置覆盖值。"
+        },
+        "v2_run_dir": {
+          "type": "string",
+          "title": "插件 V2 兼容安装的运行目录；为空表示未配置覆盖值。"
+        },
+        "v2_data_dir": {
+          "type": "string",
+          "title": "插件 V2 兼容安装的数据目录；为空表示未配置覆盖值。"
+        },
+        "zone_id": {
+          "type": "string",
+          "title": "节点部署的地域标识；为空表示未配置覆盖值。"
+        },
+        "city_id": {
+          "type": "string",
+          "title": "节点部署的城市标识；为空表示未配置覆盖值。"
+        },
+        "http_proxy_mode": {
+          "type": "string",
+          "title": "安装 HTTP 代理策略：inherit 沿用主机环境代理，direct 强制直连，specified\n使用指定代理；不返回代理地址。"
+        },
+        "firewall_features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Windows\n安装器管理的防火墙功能：gse、nodemgr；空数组表示不管理规则。不返回允许访问的\nIP/CIDR。"
+        }
+      },
+      "title": "按 GSE\n代际和操作系统配置的安装默认设置，不解析单次部署覆盖或目标主机实际状态。"
+    },
+    "SystemConfigIAM": {
+      "type": "object",
+      "properties": {
+        "v3_enabled": {
+          "type": "boolean"
+        },
+        "v4_enabled": {
+          "type": "boolean"
+        }
+      },
+      "title": "IAM 权限管理开关。"
+    },
+    "SystemConfigNodeEventDataID": {
+      "type": "object",
+      "properties": {
+        "agent_base_alarm_event_data_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "task_proc_event_data_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "全局默认节点事件 Data ID，不解析业务级覆盖。"
+    },
+    "SystemConfigSystem": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "type": "string"
+        },
+        "edition": {
+          "type": "string"
+        }
+      },
+      "title": "部署环境及版本形态。"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3GetSystemConfigReq": {
+      "type": "object",
+      "title": "查询 Backend 业务配置，无筛选参数。"
+    },
+    "v3GetSystemConfigResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SystemConfig"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        }
+      },
+      "title": "Backend 业务配置只读视图。"
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SystemConfig": {
+      "type": "object",
+      "properties": {
+        "tenant_mode": {
+          "type": "string",
+          "title": "租户模式：single 或 multiple。"
+        },
+        "system": {
+          "$ref": "#/definitions/SystemConfigSystem"
+        },
+        "iam": {
+          "$ref": "#/definitions/SystemConfigIAM"
+        },
+        "node_event_data_id": {
+          "$ref": "#/definitions/SystemConfigNodeEventDataID"
+        },
+        "default_direct_network_unit": {
+          "$ref": "#/definitions/SystemConfigDefaultDirectNetworkUnit"
+        },
+        "gse_deploy_configs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/SystemConfigGSEDeployConfig"
+          }
+        }
+      },
+      "title": "Backend 实例启动时加载的业务配置白名单，不包含凭据、连接端点及内部观测参数。"
+    }
+  }
+}

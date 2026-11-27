@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.119+.
+- API Version: v3.0.1-alpha.121+.
 - Required Permission: plugin_view (View Plugin).
 - Function: Query a dependency file record by UUID; the response contains metadata only, without file content.
 

@@ -53,6 +53,14 @@ type Process struct {
 	Controller    processController    `json:"controller" bson:"controller"`
 	Resource      processResource      `json:"resource" bson:"resource"`
 	MonitorPolicy processMonitorPolicy `json:"monitor_policy" bson:"monitor_policy"`
+	Requirements  []processRequirement `json:"requirements,omitempty" bson:"requirements,omitempty"`
+}
+
+type processRequirement struct {
+	RequirementID  string `json:"requirement_id" bson:"requirement_id"`
+	TargetPath     string `json:"target_path" bson:"target_path"`
+	TargetFileName string `json:"target_file_name" bson:"target_file_name"`
+	MD5            string `json:"md5" bson:"md5"`
 }
 
 // processInfo represents the info of process.

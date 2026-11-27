@@ -40,6 +40,9 @@ const (
 	// FieldKeyMonitorPolicy the monitor policy field key.
 	FieldKeyMonitorPolicy = "data.monitor_policy"
 
+	// FieldKeyRequirements is the field key for the applied dependency files.
+	FieldKeyRequirements = "data.requirements"
+
 	// FieldKeyPluginName the name field key.
 	FieldKeyPluginName = "data.name"
 

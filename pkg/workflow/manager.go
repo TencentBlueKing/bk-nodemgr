@@ -124,6 +124,7 @@ func WithRedis(redisConf config.Redis) OptionsFunc {
 			NormalTasksPollPeriod:  redisNormalTasksPollPeriod,
 			DelayedTasksPollPeriod: redisDelayedTasksPollPeriod,
 			MasterName:             redisConf.MasterName,
+			SentinelPassword:       redisConf.SentinelPassword,
 		}
 
 		// NOTE: NewGR modifies the addrs slice in-place (extracts and removes password from first address).

@@ -17,7 +17,7 @@ platform:
         pluginNamePlaceholder: Enter plugin name
         pluginNameRequired: Please enter plugin name
     agentStatus:
-      title: Agent Management
+      title: Agent
       reinstall: Reinstall
       upgrade: Upgrade/Rollback
       agentUpgrade: Agent Upgrade/Rollback
@@ -109,7 +109,7 @@ platform:
       assignUnitConfirmDeleteRow: Confirm to remove this host?
       assignUnitConfirmDeleteRowSub: Host {ip} will not be assigned a network unit after removal
     proxyStatus:
-      title: Proxy Management
+      title: Proxy
       online: Normal
       abnormal: Abnormal
       notInstalled: Not Installed
@@ -348,6 +348,80 @@ platform:
   pkgManagerName: Package Management
   platformManagerName: Platform Management
   platformManagerComingSoon: This feature is not available yet
+  systemConfig:
+    refresh: Refresh
+    retry: Retry
+    snapshotNotice: This read-only page shows the configuration snapshot loaded at startup by the Backend instance serving this request, not live host state or per-deployment overrides. Refresh queries the snapshot again without reloading Backend configuration. Editing and saving are not supported here.
+    loadFailed: Failed to load system configuration
+    loadFailedTips: Check your network connection and access permissions, then retry.
+    basicSettings: Basic Configuration
+    tenantMode: Tenant Mode
+    singleTenant: Single Tenant
+    multipleTenants: Multiple Tenants
+    environment: Deployment Environment
+    edition: Edition
+    iamV3: IAM V3 Authorization
+    iamV4: IAM V4 Authorization
+    enabled: Enabled
+    disabled: Disabled
+    nodeEventDataID: Node Event Data IDs
+    nodeEventDataIDTips: Global defaults only; business-level overrides are not included.
+    agentBaseAlarmEventDataID: Agent Base Alarm Event Data ID
+    taskProcEventDataID: Task Process Event Data ID
+    defaultDirectNetworkUnit: Default Direct Network Unit
+    defaultDirectNetworkUnitTips: Auto-create reflects the startup configuration only, not whether the default direct network unit currently exists.
+    autoCreate: Auto-create
+    networkUnitName: Network Unit Name
+    gseDeployConfigs: GSE Installation Defaults
+    gseDeployConfigsTips: Installation defaults are grouped by GSE generation and OS, without resolving per-deployment overrides. An unconfigured override does not indicate the actual default path in use. V2 directories are for plugin V2-compatible installation.
+    noGSEDeployConfigs: No GSE installation defaults configured
+    deployConfigTitle: 'GSE {generation} / {os}'
+    baseWorkDir: Base Working Directory
+    baseDeployDir: Base Installation Directory
+    extraConfigDir: Agent Extra Configuration Directory
+    hostIDPath: Plugin Host ID File Path
+    v2RunDir: Plugin V2-compatible Run Directory
+    v2DataDir: Plugin V2-compatible Data Directory
+    zoneID: Zone ID
+    cityID: City ID
+    noOverride: No override configured
+    httpProxyMode: Installation HTTP Proxy Policy
+    proxyInherit: Inherit host environment proxy
+    proxyDirect: Force direct connection
+    proxySpecified: Use specified proxy (address not displayed)
+    firewallFeatures: Windows Installer-managed Firewall Features
+    firewallUnmanaged: Do not manage firewall rules
+schedulerWorkflow:
+  refresh: Refresh
+  refreshLogs: Refresh logs
+  searchPlaceholder: Exact match by task name, Workflow ID, or operator
+  loadFailed: Failed to load data. Refresh to retry.
+  name: Task name
+  interval: Schedule interval
+  scheduleStatus: Schedule status
+  enabled: Enabled
+  disabled: Disabled
+  operator: Operator
+  operateTime: Operation time
+  createTime: Creation time
+  history: Execution history
+  executionStatus: Execution status
+  instance: Execution instance
+  parentOperation: Parent operation ID
+  parentInstance: Parent instance ID
+  extraLogs: Extra execution logs
+  noLogs: No logs
+  states:
+    init: Initializing
+    launched: Waiting
+    pending: Pending
+    running: Running
+    success: Succeeded
+    failed: Failed
+    timeout: Timed out
+    terminated: Terminated
+    skipped: Skipped
+    unknown: Unknown
 pluginManagement:
   pluginGroupName: Plugin
   plugin:

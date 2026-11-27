@@ -46,7 +46,9 @@ func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) 
 	return nil
 }
 
-func (s *Storage) updateProcess(nCtx contextx.IContext, process *types.Process, hostID int64, pluginName string) error {
+func (s *Storage) updateProcess(
+	nCtx contextx.IContext, hostID int64, pluginName string, fields types.ProcessUpdateFields, process *types.Process) error {
+
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -55,7 +57,7 @@ func (s *Storage) updateProcess(nCtx contextx.IContext, process *types.Process, 
 		return base.ErrInvalidParam(fmt.Errorf("process is nil"))
 	}
 
-	err := s.daoProcess.Update(nCtx, hostID, pluginName, process)
+	err := s.daoProcess.Update(nCtx, hostID, pluginName, fields, process)
 	if err != nil {
 		return fmt.Errorf("failed to update process: %w", err)
 	}

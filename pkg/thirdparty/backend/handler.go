@@ -37,10 +37,12 @@ type IHandler interface {
 	IHandlerDeployPolicy
 	IHandlerPlugin
 	IHandlerPluginWorkflow
+	IHandlerScheduleWorkflow
 	IHandlerProcess
 	IHandlerEvent
 	IHandlerTopo
 	IHandlerCipher
+	IHandlerSystemConfig
 }
 
 var _ IHandler = &Handler{}

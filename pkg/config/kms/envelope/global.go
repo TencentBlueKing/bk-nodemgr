@@ -59,6 +59,8 @@ type Etcd struct {
 // Redis defines redis config in kms.
 type Redis struct {
 	Password string `json:"password"`
+	// SentinelPassword is the password for authenticating to Redis Sentinel (sentinel mode only).
+	SentinelPassword string `json:"sentinel_password"`
 }
 
 // MongoDB defines mongodb config in kms.

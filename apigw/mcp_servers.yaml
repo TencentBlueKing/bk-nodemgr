@@ -32,10 +32,12 @@ mcp_servers:
     description: >-
       提供节点与插件执行情况的用户态只读查询。调用方需明确指定 node 或 plugin，
       并提供 workflow_id 或 operation_id；通过工作流、操作、执行实例与步骤日志查询定位执行情况。
-      operation_id 可直接用于实例查询，无需先查询工作流。不提供重试、终止或修改操作。
+      operation_id 可直接用于实例查询，无需先查询工作流。节点安装诊断可通过 workflow_id 和 operation_ids
+      查询历史 Agent 或 Proxy 安装操作可恢复的参数，不返回认证凭据。不提供重试、终止或修改操作。
     resource_names:
       - "OpenNodeWorkflow_OpenNodeWorkflowList"
       - "OpenNodeWorkflow_OpenNodeWorkflowOperationList"
+      - "OpenNodeWorkflow_OpenNodeWorkflowOperationInstallParamsGet"
       - "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceList"
       - "OpenNodeWorkflow_OpenNodeWorkflowOperationInstanceLogGet"
       - "OpenPluginWorkflow_OpenPluginWorkflowList"

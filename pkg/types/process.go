@@ -267,6 +267,36 @@ type Process struct {
 	Controller    ProcessController
 	Resource      ProcessResource
 	MonitorPolicy ProcessMonitorPolicy
+
+	// Requirements records the dependency files applied to the process.
+	Requirements []ProcessRequirement
+}
+
+// ProcessRequirement records a dependency file applied to a process.
+type ProcessRequirement struct {
+	RequirementID  string // ID of the source PluginRequirementFileRecord.
+	TargetPath     string // Directory where the file was distributed.
+	TargetFileName string
+	MD5            string
+}
+
+// ProcessUpdateFields selects the fields to write when updating a process.
+type ProcessUpdateFields struct {
+	HostID        bool
+	BizID         bool
+	PluginName    bool
+	PluginGroup   bool
+	PluginPkgName bool
+	Generation    bool
+	Platform      bool
+	BindIP        bool
+	BindPort      bool
+	Info          bool
+	Identity      bool
+	Controller    bool
+	Resource      bool
+	MonitorPolicy bool
+	Requirements  bool
 }
 
 // ToProcessSpec converts the process to a process spec.

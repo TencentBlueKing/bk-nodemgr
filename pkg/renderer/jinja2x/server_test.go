@@ -75,6 +75,9 @@ func TestServerConcurrentRenderAndRecovery(t *testing.T) {
 	if first == second {
 		t.Fatal("server was not replaced after exit")
 	}
+	if first.rest != second.rest || first.http != second.http {
+		t.Fatal("shared REST client was replaced after server exit")
+	}
 	got, err := second.render(ctx, "{{ name }}", map[string]any{"name": "recovered"})
 	if err != nil || got != "recovered" {
 		t.Fatalf("render after restart: %q, %v", got, err)

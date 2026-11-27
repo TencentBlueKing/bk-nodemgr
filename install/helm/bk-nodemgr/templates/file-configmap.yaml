@@ -129,6 +129,9 @@ data:
       db: {{ .Values.externalRedis.db }}
       {{- if eq .Values.externalRedis.type "sentinel" }}
       masterName: {{ .Values.externalRedis.masterName }}
+      {{- with .Values.externalRedis.sentinelPassword }}
+      sentinelPassword: {{ . | quote }}
+      {{- end }}
       {{- end }}
       tls:
         {{- if len .Values.externalRedis.tls.ca }}

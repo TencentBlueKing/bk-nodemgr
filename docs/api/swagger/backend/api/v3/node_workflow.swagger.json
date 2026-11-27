@@ -491,6 +491,39 @@
         ]
       }
     },
+    "/api/v3/open/node/workflow/operation/install_params/get": {
+      "post": {
+        "summary": "查询选中历史 Agent 或 Proxy\n安装操作可恢复的参数，用于执行诊断，不返回认证凭据，不执行安装或修改历史任务。",
+        "operationId": "OpenNodeWorkflow_OpenNodeWorkflowOperationInstallParamsGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3OpenNodeWorkflowOperationInstallParamsGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3OpenNodeWorkflowOperationInstallParamsGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "OpenNodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/open/node/workflow/operation/instance/list": {
       "post": {
         "summary": "按节点操作 ID 查询操作实例及历史执行状态。",
@@ -1961,6 +1994,72 @@
     },
     "v3NodeWorkflowOperationTerminateRespData": {
       "type": "object"
+    },
+    "v3OpenNodeWorkflowOperationInstallParamsGetReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "title": "必填，历史工作流 ID。"
+        },
+        "operation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "必填，非空且无空白或重复 ID 的操作列表。"
+        }
+      },
+      "title": "按工作流及选中的操作读取历史安装参数。"
+    },
+    "v3OpenNodeWorkflowOperationInstallParamsGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3OpenNodeWorkflowOperationInstallParamsGetRespData"
+        }
+      },
+      "title": "返回可恢复的安装参数和无法恢复参数的操作 ID。"
+    },
+    "v3OpenNodeWorkflowOperationInstallParamsGetRespData": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "title": "历史安装工作流类型。"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowOperationInstallParams"
+          },
+          "title": "可恢复的安装参数。"
+        },
+        "unavailable_operation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "无法恢复安装参数的操作 ID。"
+        }
+      }
     },
     "v3Page": {
       "type": "object",

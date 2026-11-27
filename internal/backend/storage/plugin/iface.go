@@ -143,8 +143,8 @@ type IDaoProcess interface {
 	// CreateProcess create process.
 	CreateProcess(nCtx contextx.IContext, process *types.Process) error
 
-	// UpdateProcess update process.
-	UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error
+	// UpdateProcess writes the selected fields of a process.
+	UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, fields types.ProcessUpdateFields, process *types.Process) error
 
 	// UpdateProcessInfo update process.
 	UpdateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error

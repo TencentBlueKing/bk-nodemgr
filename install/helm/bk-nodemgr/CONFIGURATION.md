@@ -179,6 +179,7 @@ externalRedis:
 | externalRedis.password   | string | 空         | 外置 Redis 服务密码                                                                        |
 | externalRedis.db         | int    | 0          | standalone/sentinel 数据库编号，cluster 模式忽略                                           |
 | externalRedis.masterName | string | 空         | sentinel 模式的 master 名称                                                                |
+| externalRedis.sentinelPassword | string | 空   | Sentinel 端点要求密码认证时填写，Redis 数据节点密码填在 `externalRedis.password` |
 | externalRedis.tls.ca     | string | 空         | 外置redis服务的客户端证书CA内容(base64编码)                                                |
 | externalRedis.tls.cert   | string | 空         | 外置redis服务的客户端证书Cert内容(base64编码)                                              |
 | externalRedis.tls.key    | string | 空         | 外置redis服务的客户端证书Key内容(base64编码)                                               |

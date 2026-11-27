@@ -44,6 +44,7 @@ redis:
     - redis-0.redis-headless:26379
   password: redis-pass
   masterName: mymaster
+  sentinelPassword: sentinel-auth
 mongodb:
   hosts:
     - mongodb-0.mongodb-headless:27017
@@ -65,6 +66,7 @@ mongodb:
 	assert.Equal(t, RedisTypeSentinel, conf.Redis.Type)
 	assert.Equal(t, "redis-pass", conf.Redis.Password)
 	assert.Equal(t, "mymaster", conf.Redis.MasterName)
+	assert.Equal(t, "sentinel-auth", conf.Redis.SentinelPassword)
 	assert.Equal(t, []string{"mongodb-0.mongodb-headless:27017"}, conf.MongoDB.Hosts)
 	assert.Equal(t, "bk-nodemgr", conf.MongoDB.Username)
 	assert.Equal(t, "mongo-pass", conf.MongoDB.Password)

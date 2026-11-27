@@ -186,6 +186,7 @@ redis:
   db: 0
   # masterName is required for sentinel mode
   # masterName: mymaster
+  # sentinelPassword: "" # Set when the Sentinel endpoints require authentication.
 
 # tracing settings.
 tracing:

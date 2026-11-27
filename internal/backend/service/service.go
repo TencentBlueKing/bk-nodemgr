@@ -165,6 +165,10 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, fmt.Errorf("failed to init tracing: %w", err)
 	}
 
+	if err := svc.initJinja2xTracing(); err != nil {
+		return nil, fmt.Errorf("failed to init jinja2x tracing: %w", err)
+	}
+
 	if err := svc.initialCapability(); err != nil {
 		return nil, fmt.Errorf("failed to initialize capability: %w", err)
 	}
@@ -174,6 +178,19 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	return svc, nil
+}
+
+func (svc *Service) initJinja2xTracing() error {
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName:     svc.conf.Jinja2x.TraceServiceName,
+		ServiceCategory: tracing.ServiceCategoryHTTP,
+		SampleRate:      svc.conf.Jinja2x.TraceSampleRate,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create jinja2x trace service: %w", err)
+	}
+
+	return jinja2x.SetTraceService(traceSvc)
 }
 
 func (svc *Service) initialStaticsConfigs() error {
@@ -750,12 +767,13 @@ func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
 		Info("initializing redis universal client")
 
 	client := redis.NewUniversalClient(&redis.UniversalOptions{
-		IsClusterMode: svc.conf.Redis.Type == config.RedisTypeCluster,
-		Addrs:         svc.conf.Redis.Addrs,
-		MasterName:    svc.conf.Redis.MasterName,
-		Password:      svc.conf.Redis.Password,
-		DB:            svc.conf.Redis.DB,
-		TLSConfig:     tlsConfig,
+		IsClusterMode:    svc.conf.Redis.Type == config.RedisTypeCluster,
+		Addrs:            svc.conf.Redis.Addrs,
+		MasterName:       svc.conf.Redis.MasterName,
+		Password:         svc.conf.Redis.Password,
+		SentinelPassword: svc.conf.Redis.SentinelPassword,
+		DB:               svc.conf.Redis.DB,
+		TLSConfig:        tlsConfig,
 	})
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
