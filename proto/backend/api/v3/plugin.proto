@@ -346,6 +346,30 @@ message PluginRestartResp {
   Data data = 5;
 }
 
+// 下发指定主机上插件进程的全部适用依赖文件，并在成功后重启进程。
+message PluginApplyRequirementsReq {
+  message ApplyInfo {
+    // 目标主机 ID。
+    int64 bk_host_id = 1;
+    // 目标主机上的插件名称，对应进程名称。
+    string plugin_name = 2;
+  }
+
+  repeated ApplyInfo plugin = 1;
+}
+
+// 已启动的插件依赖下发与重启工作流，不代表文件下发或重启已经完成。
+message PluginApplyRequirementsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // PluginStopReq describes the plugin stop request.
 message PluginStopReq {
   message StopInfo {
@@ -567,6 +591,15 @@ service Plugin {
   rpc RestartPlugin(PluginRestartReq) returns (PluginRestartResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/restart"
+      body : "*"
+    };
+  }
+
+  // 下发指定插件进程的适用依赖文件，全部成功后重启进程并记录实际依赖。
+  rpc ApplyPluginRequirements(PluginApplyRequirementsReq)
+      returns (PluginApplyRequirementsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/apply_requirements"
       body : "*"
     };
   }

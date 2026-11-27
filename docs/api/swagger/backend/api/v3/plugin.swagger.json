@@ -52,6 +52,39 @@
         ]
       }
     },
+    "/api/v3/plugin/apply_requirements": {
+      "post": {
+        "summary": "下发指定插件进程的适用依赖文件，全部成功后重启进程并记录实际依赖。",
+        "operationId": "Plugin_ApplyPluginRequirements",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginApplyRequirementsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginApplyRequirementsReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/apply_subconfig": {
       "post": {
         "summary": "在指定主机上批量下发插件子配置。",
@@ -642,6 +675,20 @@
         }
       }
     },
+    "PluginApplyRequirementsReqApplyInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64",
+          "title": "目标主机 ID。"
+        },
+        "plugin_name": {
+          "type": "string",
+          "title": "目标主机上的插件名称，对应进程名称。"
+        }
+      }
+    },
     "PluginApplySubConfigReqApplySubConfigInfo": {
       "type": "object",
       "properties": {
@@ -1022,6 +1069,52 @@
             "type": "object",
             "$ref": "#/definitions/v3Action"
           }
+        }
+      }
+    },
+    "v3PluginApplyRequirementsReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PluginApplyRequirementsReqApplyInfo"
+          }
+        }
+      },
+      "title": "下发指定主机上插件进程的全部适用依赖文件，并在成功后重启进程。"
+    },
+    "v3PluginApplyRequirementsResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginApplyRequirementsRespData"
+        }
+      },
+      "title": "已启动的插件依赖下发与重启工作流，不代表文件下发或重启已经完成。"
+    },
+    "v3PluginApplyRequirementsRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
         }
       }
     },
