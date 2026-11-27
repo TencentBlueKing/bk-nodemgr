@@ -37,6 +37,7 @@ type IHandler interface {
 	IHandlerDeployPolicy
 	IHandlerPlugin
 	IHandlerPluginWorkflow
+	IHandlerScheduleWorkflow
 	IHandlerProcess
 	IHandlerEvent
 	IHandlerTopo

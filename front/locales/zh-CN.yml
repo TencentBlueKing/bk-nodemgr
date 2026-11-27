@@ -348,6 +348,37 @@ platform:
   pkgManagerName: 包管理
   platformManagerName: 平台管理
   platformManagerComingSoon: 功能暂未开放
+schedulerWorkflow:
+  refresh: 刷新
+  refreshLogs: 刷新日志
+  searchPlaceholder: 精确搜索任务名称、Workflow ID、操作人
+  loadFailed: 数据加载失败，请刷新重试
+  name: 任务名称
+  interval: 调度间隔
+  scheduleStatus: 调度状态
+  enabled: 已启用
+  disabled: 已停用
+  operator: 操作人
+  operateTime: 操作时间
+  createTime: 创建时间
+  history: 执行记录
+  executionStatus: 执行状态
+  instance: 执行实例
+  parentOperation: 父操作 ID
+  parentInstance: 父实例 ID
+  extraLogs: 额外执行日志
+  noLogs: 暂无日志
+  states:
+    init: 初始化
+    launched: 等待执行
+    pending: 等待执行
+    running: 执行中
+    success: 执行成功
+    failed: 执行失败
+    timeout: 超时
+    terminated: 已终止
+    skipped: 已跳过
+    unknown: 未知
 pluginManagement:
   pluginGroupName: 插件
   plugin:

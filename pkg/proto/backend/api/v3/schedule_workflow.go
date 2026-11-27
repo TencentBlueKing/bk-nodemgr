@@ -326,3 +326,67 @@ func (x *ScheduleWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(res
 		ExtraExecutionLogs: convertExtraExecutionLogs(result),
 	}
 }
+
+// ConvertScheduleWorkflowsToTypes converts schedule configurations to domain models.
+func (x *ListScheduleWorkflowResp) ConvertScheduleWorkflowsToTypes() ([]*types.ScheduledWorkflow, int64) {
+	items := conv.SliceToSlice(x.GetData().GetItems(), func(item *ListScheduleWorkflowResp_ScheduleWorkflow) *types.ScheduledWorkflow {
+		return &types.ScheduledWorkflow{
+			WorkflowID: item.GetWorkflowId(), WorkflowName: item.GetWorkflowName(),
+			TriggerID: item.GetTriggerId(), Operator: item.GetOperator(),
+			OperateTime: time.UnixMilli(item.GetOperateTime()), Enabled: item.GetEnabled(), Interval: item.GetInterval(),
+		}
+	})
+	return items, x.GetData().GetTotal()
+}
+
+// ConvertResultToTypes converts operation records to domain models.
+func (x *ScheduleWorkflowOperationListResp) ConvertResultToTypes() ([]*operation.Operation, int64) {
+	items := conv.SliceToSlice(x.GetData().GetOperations(), func(item *ScheduleWorkflowOperationListResp_ScheduleWorkflowOperation) *operation.Operation {
+		op := &operation.Operation{
+			OperationID: item.GetOperationId(), InstanceIDs: item.GetInstanceIds(),
+			CreateTime: time.UnixMilli(item.GetCreateTime()),
+			Param: operation.Param{
+				ParentOperationID: item.GetParentOperationId(), ParentOperInstID: item.GetParentOperInstId(),
+				InitContent: map[string]any{"operator": item.GetOperator()},
+			},
+		}
+		if latest := item.GetLatestOperInstBriefData(); latest != nil {
+			op.LatestInstBriefData = &operation.InstanceBriefData{
+				Lifecycle:                 convertNodeWorkflowOperInstLifeCycleToTypes(latest.GetLifeCycle()),
+				LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataToTypes(latest.GetLatestActionInstBriefData()),
+			}
+			op.LatestInstBriefData.Lifecycle.StoppedAt = time.UnixMilli(latest.GetLifeCycle().GetStopTime())
+		}
+		return op
+	})
+	return items, x.GetData().GetTotal()
+}
+
+// ConvertConditionsFromTypes converts the supported operation and instance filters.
+func (x *ScheduleWorkflowOperationInstanceListReq) ConvertConditionsFromTypes(condition *types.OperInstDataCondition) {
+	if condition == nil || condition.ExactInclude == nil {
+		return
+	}
+	x.OperationId = condition.ExactInclude.OperationID
+	x.OperInstId = condition.ExactInclude.OperInstID
+}
+
+// ConvertResultToTypes reuses the shared workflow instance conversion.
+func (x *ScheduleWorkflowOperationInstanceListResp) ConvertResultToTypes() ([]*operation.InstanceBriefData, int64) {
+	resp := &NodeWorkflowOperationInstanceListResp{Data: &NodeWorkflowOperationInstanceListResp_Data{
+		Total: x.GetData().GetTotal(), OperInstData: x.GetData().GetOperInstData(),
+	}}
+	items, total := resp.ConvertWorkflowOperationInstanceToTypes()
+	for idx, item := range x.GetData().GetOperInstData() {
+		items[idx].Lifecycle.StoppedAt = time.UnixMilli(item.GetLifeCycle().GetStopTime())
+	}
+	return items, total
+}
+
+// ConvertResultToTypes reuses the shared workflow log conversion.
+func (x *ScheduleWorkflowOperationInstanceLogGetResp) ConvertResultToTypes() *operation.InstanceData {
+	resp := &NodeWorkflowOperationInstanceLogGetResp{Data: &NodeWorkflowOperationInstanceLogGetResp_Data{
+		OperInstLogs: x.GetData().GetOperInstLogs(), ExtraExecutionLogs: x.GetData().GetExtraExecutionLogs(),
+	}}
+	return resp.ConvertWorkflowOperationInstanceLogToTypes()
+}

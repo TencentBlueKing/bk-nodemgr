@@ -1,0 +1,807 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "schedule_workflow.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ScheduleWorkflow"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/schedule/workflow/list": {
+      "post": {
+        "summary": "查询当前租户的周期工作流调度配置。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowListReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/schedule/workflow/operation/instance/list": {
+      "post": {
+        "summary": "按操作 ID 或实例 ID 查询周期工作流执行实例及历史状态。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowOperationInstanceList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceListReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/schedule/workflow/operation/instance/log/get": {
+      "post": {
+        "summary": "按实例 ID 查询周期工作流步骤状态、双语日志及子工作流引用。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowOperationInstanceLogGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceLogGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceLogGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
+    },
+    "/api/v3/schedule/workflow/operation/list": {
+      "post": {
+        "summary": "查询周期工作流根操作，或按父实例下钻直接子操作。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowOperationList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowOperationListReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "ScheduleWorkflowListRespScheduleWorkflow": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_name": {
+          "type": "string"
+        },
+        "trigger_id": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "integer",
+          "format": "int64",
+          "title": "配置操作时间，Unix 毫秒时间戳。"
+        },
+        "enabled": {
+          "type": "boolean",
+          "title": "是否启用周期调度。"
+        },
+        "interval": {
+          "type": "string",
+          "title": "周期调度间隔。"
+        }
+      },
+      "title": "一项周期工作流调度配置。"
+    },
+    "ScheduleWorkflowOperationListRespScheduleWorkflowOperation": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "string",
+          "title": "操作初始化时记录的操作人；未记录时为空。"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64",
+          "title": "操作创建时间，Unix 毫秒时间戳。"
+        },
+        "latest_oper_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowOperInstBriefData"
+        },
+        "parent_operation_id": {
+          "type": "string"
+        },
+        "parent_oper_inst_id": {
+          "type": "string"
+        }
+      },
+      "title": "一条周期工作流操作记录。"
+    },
+    "WorkflowActionMessageMessage": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "level": {
+          "type": "string"
+        },
+        "text_zh": {
+          "type": "string",
+          "title": "Chinese log content"
+        },
+        "text_en": {
+          "type": "string",
+          "title": "English log content"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v3ScheduleWorkflowExactConditions": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "workflow_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "周期工作流 ID、名称及操作人的精确筛选条件。"
+    },
+    "v3ScheduleWorkflowFuzzyConditions": {
+      "type": "object",
+      "title": "预留的模糊筛选条件，当前不支持模糊筛选。"
+    },
+    "v3ScheduleWorkflowListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page",
+          "title": "分页条件。"
+        },
+        "only_count": {
+          "type": "boolean",
+          "title": "是否仅返回总数。"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ScheduleWorkflowExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ScheduleWorkflowFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange",
+          "title": "配置操作时间范围，不代表执行实例的起止时间。"
+        }
+      },
+      "title": "查询当前租户的周期工作流配置。"
+    },
+    "v3ScheduleWorkflowListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowListRespData"
+        }
+      },
+      "title": "周期工作流的长期调度配置；启用状态不代表某轮执行已经完成。"
+    },
+    "v3ScheduleWorkflowListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ScheduleWorkflowListRespScheduleWorkflow"
+          }
+        }
+      }
+    },
+    "v3ScheduleWorkflowOperationInstanceListReq": {
+      "type": "object",
+      "properties": {
+        "only_count": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "操作 ID 列表，每项均不能为空。"
+        },
+        "oper_inst_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "操作实例 ID 列表，每项均不能为空。"
+        }
+      },
+      "title": "按操作 ID 或实例 ID 查询周期工作流执行实例；两类 ID 至少提供一类。"
+    },
+    "v3ScheduleWorkflowOperationInstanceListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceListRespData"
+        }
+      },
+      "title": "保留范围内的执行实例及生命周期；每个实例对应一轮执行。"
+    },
+    "v3ScheduleWorkflowOperationInstanceListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "oper_inst_data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3WorflowOperationInstanceData"
+          }
+        }
+      }
+    },
+    "v3ScheduleWorkflowOperationInstanceLogGetReq": {
+      "type": "object",
+      "properties": {
+        "oper_inst_id": {
+          "type": "string",
+          "title": "操作实例 ID，必填。"
+        }
+      },
+      "title": "查询一个周期工作流操作实例的步骤日志。"
+    },
+    "v3ScheduleWorkflowOperationInstanceLogGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationInstanceLogGetRespData"
+        }
+      },
+      "title": "执行实例的步骤日志及额外执行日志，受历史清理策略保留范围限制。"
+    },
+    "v3ScheduleWorkflowOperationInstanceLogGetRespData": {
+      "type": "object",
+      "properties": {
+        "oper_inst_logs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3WorkflowActionData"
+          }
+        },
+        "extra_execution_logs": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        }
+      }
+    },
+    "v3ScheduleWorkflowOperationListReq": {
+      "type": "object",
+      "properties": {
+        "only_count": {
+          "type": "boolean"
+        },
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "workflow_id": {
+          "type": "string",
+          "title": "周期工作流 ID，必填。"
+        },
+        "parent_oper_inst_id": {
+          "type": "string",
+          "title": "父操作实例 ID；为空时查询工作流根操作。"
+        }
+      },
+      "title": "查询周期工作流根操作，或下钻某轮父实例的直接子操作。"
+    },
+    "v3ScheduleWorkflowOperationListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowOperationListRespData"
+        }
+      },
+      "title": "周期工作流的操作记录及最近一次执行状态。"
+    },
+    "v3ScheduleWorkflowOperationListRespData": {
+      "type": "object",
+      "properties": {
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ScheduleWorkflowOperationListRespScheduleWorkflowOperation"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3SubWorkflowRef": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_domain": {
+          "type": "string"
+        }
+      },
+      "description": "SubWorkflowRef describes a child workflow reference surfaced in action logs."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
+    },
+    "v3WorflowOperationInstanceData": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "oper_inst_id": {
+          "type": "string"
+        },
+        "oper_inst_status": {
+          "type": "string"
+        },
+        "operation_def_name": {
+          "type": "string"
+        },
+        "parent_operation_id": {
+          "type": "string"
+        },
+        "action_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
+        }
+      },
+      "description": "WorflowOperationInstanceData describes the workflow operation instance data."
+    },
+    "v3WorkflowActionData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "message": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        },
+        "display_name_zh": {
+          "type": "string",
+          "title": "Chinese display name"
+        },
+        "display_name_en": {
+          "type": "string",
+          "title": "English display name"
+        },
+        "sub_workflow_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SubWorkflowRef"
+          }
+        }
+      },
+      "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionInstBriefData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "WorkflowActionInstBriefData describes the workflow action instance brief\ndata."
+    },
+    "v3WorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/WorkflowActionMessageMessage"
+          }
+        }
+      },
+      "description": "WorkflowActionMessage describes the workflow action message logs."
+    },
+    "v3WorkflowLifeCycle": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stop_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "WorkflowLifeCycle describes the workflow life cycle."
+    },
+    "v3WorkflowOperInstBriefData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
+        }
+      },
+      "description": "WorkflowOperInstBriefData describes the brief data of operation instance."
+    }
+  }
+}
