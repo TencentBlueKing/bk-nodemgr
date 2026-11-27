@@ -68,6 +68,8 @@ func (oper *operUpgradePlugin) ActionDefNames() []string {
 		ActionNameUpgradePlugin,
 		ActionNameWaitPluginInstallerComplete,
 		ActionNamePushPluginConfig,
+		ActionNameCheckPluginRequirements,
+		ActionNameApplyPluginRequirements,
 		ActionNameStartProcess,
 		ActionNameUpdateProcess,
 	}
@@ -94,6 +96,8 @@ func (oper *operUpgradePlugin) DefaultParameters() operation.Param {
 			ActionNameWaitPluginInstallerComplete:           false,
 			ActionNameFetchProcessSubConfigIntoDeployment:   true,
 			ActionNamePushPluginConfig:                      true,
+			ActionNameCheckPluginRequirements:               true,
+			ActionNameApplyPluginRequirements:               true,
 			ActionNameStartProcess:                          true,
 			ActionNameUpdateProcess:                         true,
 		},

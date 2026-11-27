@@ -133,6 +133,7 @@ func (act *actUpdateProcess) Do(ctx *action.InstanceContext) (err error) {
 		Controller:    true,
 		Resource:      true,
 		MonitorPolicy: true,
+		Requirements:  true,
 	}
 	err = act.daoProcess.UpdateProcess(nCtx, process.HostID, process.PluginName, fields, process)
 	if err != nil {

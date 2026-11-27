@@ -21,10 +21,12 @@ package types
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
@@ -42,6 +44,13 @@ type PluginRequirementFileRecord struct {
 	Size              int64
 	UpdatedAt         time.Time
 	Operator          string
+}
+
+// AppliesTo reports whether the file applies to the selected plugin process.
+func (record *PluginRequirementFileRecord) AppliesTo(target platform.Platform, version string) bool {
+	return (len(record.OS) == 0 || slices.Contains(record.OS, target.OS)) &&
+		(len(record.Arch) == 0 || slices.Contains(record.Arch, target.Arch)) &&
+		(len(record.Version) == 0 || slices.Contains(record.Version, version))
 }
 
 // PluginRequirementFileKey identifies a named requirement within a plugin and tenant.

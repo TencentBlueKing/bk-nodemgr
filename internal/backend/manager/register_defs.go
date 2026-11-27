@@ -298,6 +298,8 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionStartProcess(pluginCap),
 		plugin.NewActionStopProcess(pluginCap),
 		plugin.NewActionRestartProcess(pluginCap),
+		plugin.NewActionCheckPluginRequirements(pluginCap),
+		plugin.NewActionApplyPluginRequirements(pluginCap),
 		plugin.NewActionReloadProcess(pluginCap),
 		plugin.NewActionTrusteeshipProcess(pluginCap),
 		plugin.NewActionUnTrusteeshipProcess(pluginCap),
