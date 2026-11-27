@@ -92,7 +92,10 @@ flowchart LR
 - `backend.config.networkUnit.defaultDirectUnit`：默认直连 network unit。
 - `backend.config.gse.pluginSlotID`、`backend.config.gse.pluginSlotToken`：GSE plugin slot 信息。
 - `backend.config.gseDeployConfs`：Linux/Windows 部署路径和脚本配置。
-- `backend.config.iamV3`、`backend.config.iamV4`：IAM 是否启用、system ID 和 callback path。
+- `backend.config.iamV3`、`backend.config.iamV4`：运行时 IAM 是否启用、system ID 和 callback path。
+- 顶层 `iamV3.enabled`、`iamV4.enabled`：对应版本的 IAM 模型同步开关，独立于运行时鉴权，默认 `false`。
+- 顶层 `iamV3.system.id`、`iamV4.system.id`：已注册的 IAM system ID，默认 `bk_nodemgr`，不从 `global.appCode` 推导，须与对应运行时 `backend.config.iamV3.systemID`、`backend.config.iamV4.systemID` 保持一致。`iamV3.provider.host`、`iamV4.provider.host` 为空时，使用 `global.bkApiUrlTmpl` 生成 `bk-nodemgr` 网关地址；原生 overrides 仍优先。
+- `iamV3.provider.path`、`iamV4.provider.path` 未设置或为空时，分别取 `backend.config.iamV3.callbackPath`、`backend.config.iamV4.callbackPath`，默认是 `/api/v3/iam/v3/resource`、`/api/v3/iam/v4/resource`。显式 `provider.path` 优先；`callbackPath` 不改变 Backend 固定路由，自定义外部路径需配置相应网关映射。在原生 overrides 中修改 `callbackPath` 时，须同时覆盖对应的 `provider.path`，因为 environment 映射已在 overrides 加载前完成。
 
 ### application
 

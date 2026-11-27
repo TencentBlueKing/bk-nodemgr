@@ -395,7 +395,7 @@ the backend workload itself is not deployed. New consumers of the backend config
 must extend this condition.
 */}}
 {{- define "bk-nodemgr.backendConfigRequired" -}}
-{{- if or .Values.backend.enabled .Values.apigwSync.enabled .Values.backend.config.iamV3.enable .Values.iamV4.enabled -}}true{{- end -}}
+{{- if or .Values.backend.enabled .Values.apigwSync.enabled .Values.iamV3.enabled .Values.iamV4.enabled -}}true{{- end -}}
 {{- end -}}
 
 {{/*
