@@ -391,6 +391,19 @@ platform:
     proxySpecified: Use specified proxy (address not displayed)
     firewallFeatures: Windows Installer-managed Firewall Features
     firewallUnmanaged: Do not manage firewall rules
+globalSettings:
+  refresh: Refresh
+  storedValueNotice: Global variables are shared across tenants and include custom entries. Only raw database values are shown, without default completion; these are not necessarily the values currently used by running processes.
+  searchPlaceholder: Exact match by variable name
+  loadFailed: Failed to load data. Refresh to retry.
+  name: Variable name
+  value: Stored value
+  viewValue: View raw value
+  copyValue: Copy raw value
+  rawValueNotice: Values are displayed and copied exactly as stored, without parsing or formatting.
+  emptyString: (empty string)
+  copySuccess: Copied successfully
+  copyFailed: Copy failed. Select the raw value and copy it manually.
 schedulerWorkflow:
   refresh: Refresh
   refreshLogs: Refresh logs

@@ -25,6 +25,7 @@ import (
 	ciphersuite "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/excel"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/notice"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg"
@@ -72,4 +73,5 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	versionlog.Load(h.rg, capability)
 	excel.Load(h.rg, capability)
 	systemconfig.Load(h.rg, capability)
+	globalsettings.Load(h.rg, capability)
 }
