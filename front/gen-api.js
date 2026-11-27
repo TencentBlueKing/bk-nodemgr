@@ -65,7 +65,7 @@ function appendInterfaceToTypeDefinitions(type, fileName, prefix = '') {
     output += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
     // 当前类型是否在当前fields中定义，如果定义了则重新命名，防止名称冲突
     const fieldTypeName = mapProtoTypeToTs(field);
-    const isCurrentTypeInFields = type.nestedArray.find(t => t.name === fieldTypeName);
+    const isCurrentTypeInFields = type.nestedArray.find(t => t.name === field.type);
     output += `  ${field.name}: ${isCurrentTypeInFields ? `${type.name}${fieldTypeName}` : fieldTypeName};\n`;
   });
   output += '}\n\n';

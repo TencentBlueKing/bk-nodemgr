@@ -2101,6 +2101,35 @@ func (c *cli) getDeployConstant(ctx contextx.IContext, req *protoBackend.NodeCon
 	return resp, nil
 }
 
+func (c *cli) getSystemConfig(ctx contextx.IContext, req *protoBackend.GetSystemConfigReq,
+) (*protoBackend.GetSystemConfigResp, error) {
+
+	resp := new(protoBackend.GetSystemConfigResp)
+
+	err := c.client.Post().
+		SubResourcef("/system_config/get").
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request system config: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get system config", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get system config failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 // ===============================================================================
 // Node Ops Related Interfaces
 // ===============================================================================
