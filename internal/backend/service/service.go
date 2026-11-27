@@ -90,6 +90,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wiki"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/extra/redisotel/v9"
@@ -165,6 +166,10 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, fmt.Errorf("failed to init tracing: %w", err)
 	}
 
+	if err := svc.initWmixTracing(); err != nil {
+		return nil, fmt.Errorf("failed to init wmix tracing: %w", err)
+	}
+
 	if err := svc.initJinja2xTracing(); err != nil {
 		return nil, fmt.Errorf("failed to init jinja2x tracing: %w", err)
 	}
@@ -178,6 +183,19 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	return svc, nil
+}
+
+func (svc *Service) initWmixTracing() error {
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName:     svc.conf.WMI.TraceServiceName,
+		ServiceCategory: tracing.ServiceCategoryHTTP,
+		SampleRate:      svc.conf.WMI.TraceSampleRate,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create wmix trace service: %w", err)
+	}
+
+	return wmix.SetTraceService(traceSvc)
 }
 
 func (svc *Service) initJinja2xTracing() error {
@@ -194,6 +212,10 @@ func (svc *Service) initJinja2xTracing() error {
 }
 
 func (svc *Service) initialStaticsConfigs() error {
+	if err := wmix.SetPortRange(svc.conf.WMI.PortRange.Start, svc.conf.WMI.PortRange.End); err != nil {
+		return fmt.Errorf("failed to configure WMI service: %w", err)
+	}
+
 	if err := jinja2x.SetPortRange(svc.conf.Jinja2x.PortRange.Start, svc.conf.Jinja2x.PortRange.End); err != nil {
 		return fmt.Errorf("failed to configure jinja2 renderer: %w", err)
 	}
@@ -1518,6 +1540,7 @@ func (svc *Service) GracefulShutdown() error {
 
 	defer svc.cancelFunc()
 	defer jinja2x.Close()
+	defer wmix.Close()
 
 	serverErr := svc.shutdownRestServers(context.Background())
 	if serverErr != nil {

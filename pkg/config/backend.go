@@ -101,6 +101,8 @@ const (
 	defaultBackendMongoDBAppName          = "bk_nodemgr_backend"
 	defaultBackendMongoDBTraceServiceName = "bk_nodemgr_mongo"
 
+	defaultBackendWMITraceServiceName = "backend-client-wmix"
+
 	defaultBackendJinja2xTraceServiceName = "backend-client-jinja2x"
 	defaultBackendJinja2xStartPort        = 28150
 	defaultBackendJinja2xEndPort          = 28159
@@ -178,6 +180,7 @@ type BackendService struct {
 	Monitor            Monitor           `yaml:"monitor" usage:"monitor gateway config"`
 	NodeEventDataID    NodeEventDataID   `yaml:"nodeEventDataID" usage:"node event data-id config"`
 	Jinja2x            Jinja2x           `yaml:"jinja2x" usage:"embedded jinja2 renderer config"`
+	WMI                WMI               `yaml:"wmi" usage:"embedded WMI HTTP service config"`
 	Workflow           Workflow          `yaml:"workflow" usage:"workflow config of backend service"`
 	InfoServer         HTTPServer        `yaml:"infoServer" usage:"info server config of backend service"`
 	AdminServer        HTTPServer        `yaml:"adminServer" usage:"admin server config of backend service"`
@@ -316,6 +319,10 @@ func NewBackendService() *BackendService {
 				AgentBaseAlarmEventDataID: defaultBackendAgentBaseAlarmEventDataID,
 				TaskProcEventDataID:       defaultBackendTaskProcEventDataID,
 			},
+		},
+		WMI: WMI{
+			TraceService: TraceService{TraceServiceName: defaultBackendWMITraceServiceName},
+			PortRange:    WMIPortRange{Start: defaultWMIStartPort, End: defaultWMIEndPort},
 		},
 		Jinja2x: Jinja2x{
 			TraceService: TraceService{TraceServiceName: defaultBackendJinja2xTraceServiceName},
@@ -517,6 +524,10 @@ func (svc *BackendService) Validate() error {
 
 	if err := svc.Wiki.Validate(); err != nil {
 		return fmt.Errorf("failed to validate wiki config: %w", err)
+	}
+
+	if err := svc.WMI.Validate(); err != nil {
+		return fmt.Errorf("failed to validate WMI config: %w", err)
 	}
 
 	if err := svc.Jinja2x.Validate(); err != nil {

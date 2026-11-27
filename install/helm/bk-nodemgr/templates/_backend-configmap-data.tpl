@@ -42,6 +42,8 @@ Params: dict "root" . "workflow" <workflow config values>
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
+    wmi: {{ .root.Values.backend.config.wmi | toYaml | nindent 6 }}
+
     jinja2x: {{ .root.Values.backend.config.jinja2x | toYaml | nindent 6 }}
 
     workflow: {{ include "bk-nodemgr.workflowConfig" (dict "config" .workflow "terminationGracePeriodSeconds" (.root.Values.backend.terminationGracePeriodSeconds | default .root.Values.terminationGracePeriodSeconds)) | nindent 6 }}
