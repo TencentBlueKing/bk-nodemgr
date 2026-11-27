@@ -4,6 +4,18 @@
     {
       "operation": "upsert_role",
       "data": {
+        "id": "platform_manager",
+        "name": "平台管理员",
+        "description": "支持平台管理；资源范围以授权为准。",
+        "actions": [
+          {"id": "system_access", "resource_type_id": ""},
+          {"id": "platform_manage", "resource_type_id": "platform_resource"}
+        ]
+      }
+    },
+    {
+      "operation": "upsert_role",
+      "data": {
         "id": "plugin_manager",
         "name": "插件管理员",
         "description": "支持业务访问，查看和操作插件及查看其历史；资源范围以授权为准。",
