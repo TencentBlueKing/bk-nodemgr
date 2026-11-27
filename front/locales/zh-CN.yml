@@ -405,6 +405,10 @@ globalSettings:
   copySuccess: 复制成功
   copyFailed: 复制失败，请手动选择原始值复制
 schedulerWorkflow:
+  executionDetail: 定时任务执行详情
+  step: 步骤
+  duration: 耗时
+  executionLog: 执行日志
   refresh: 刷新
   refreshLogs: 刷新日志
   searchPlaceholder: 精确搜索任务名称、Workflow ID、操作人

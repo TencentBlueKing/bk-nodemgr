@@ -405,6 +405,10 @@ globalSettings:
   copySuccess: Copied successfully
   copyFailed: Copy failed. Select the raw value and copy it manually.
 schedulerWorkflow:
+  executionDetail: Scheduled task execution details
+  step: Step
+  duration: Duration
+  executionLog: Execution log
   refresh: Refresh
   refreshLogs: Refresh logs
   searchPlaceholder: Exact match by task name, Workflow ID, or operator
