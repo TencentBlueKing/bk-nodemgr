@@ -28,6 +28,7 @@ import (
 	"testing"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -41,6 +42,25 @@ import (
 func TestMain(m *testing.M) {
 	pkgTenant.SetMode(pkgTenant.ModeMultiple)
 	os.Exit(m.Run())
+}
+
+type fakeVirtualUserResolver struct {
+	err error
+}
+
+func (f fakeVirtualUserResolver) GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error) {
+	if f.err != nil {
+		return "", f.err
+	}
+
+	return ctx.TenantID() + "-" + loginName, nil
+}
+
+func setFakeVirtualUserResolver(t *testing.T, resolver access.ITenantVirtualUserResolver) {
+	t.Helper()
+
+	access.SetTenantVirtualUserResolver(resolver)
+	t.Cleanup(func() { access.SetTenantVirtualUserResolver(access.NewNoopTenantVirtualUserResolver()) })
 }
 
 type fakeTenantStorage struct {
@@ -171,6 +191,7 @@ func (f *fakeRequestData) GetRequestID() string { return f.requestID }
 func (f *fakeRequestData) SetRequestID(requestID string) { f.requestID = requestID }
 
 func TestInitEnsuresTenantAndLaunchesInitWorkflows(t *testing.T) {
+	setFakeVirtualUserResolver(t, fakeVirtualUserResolver{})
 	storage := &fakeTenantStorage{}
 	syncManager := &fakeSyncManager{}
 	h := &handler{
@@ -197,7 +218,7 @@ func TestInitEnsuresTenantAndLaunchesInitWorkflows(t *testing.T) {
 	assert.Equal(t, resp.TriggeredWorkflows, syncManager.calls)
 	for _, syncCtx := range syncManager.ctxs {
 		assert.Equal(t, "tenant-a", syncCtx.TenantID())
-		assert.Equal(t, "admin", syncCtx.BKUsername())
+		assert.Equal(t, "tenant-a-"+access.GetVirtualUser(), syncCtx.BKUsername())
 	}
 }
 
@@ -231,7 +252,25 @@ func TestInitRejectsDisabledTenant(t *testing.T) {
 	assert.Equal(t, resterrf.InvalidParameter, code)
 }
 
+func TestInitFailsWhenVirtualUserCannotBeResolved(t *testing.T) {
+	setFakeVirtualUserResolver(t, fakeVirtualUserResolver{err: errors.New("lookup failed")})
+	syncManager := &fakeSyncManager{}
+	h := &handler{
+		syncManager:        syncManager,
+		tenantStorage:      &fakeTenantStorage{},
+		userManagerHandler: &fakeUserManagerHandler{tenants: []*types.Tenant{{ID: "tenant-a", Name: "Tenant A", Enabled: true}}},
+	}
+
+	_, err := h.Init(newFakeRestContext(`{"tenant_id":"tenant-a"}`))
+
+	require.Error(t, err)
+	code, _ := resterrf.ErrUnwrap(err)
+	assert.Equal(t, resterrf.BackendOperateFailed, code)
+	assert.Empty(t, syncManager.calls)
+}
+
 func TestInitContinuesLaunchingWorkflowsAndReturnsAggregateError(t *testing.T) {
+	setFakeVirtualUserResolver(t, fakeVirtualUserResolver{})
 	syncManager := &fakeSyncManager{errs: map[string]error{initWorkflowSyncNetworkArea: errors.New("boom")}}
 	h := &handler{
 		syncManager:        syncManager,

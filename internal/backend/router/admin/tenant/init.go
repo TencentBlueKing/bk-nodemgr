@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -149,11 +150,13 @@ func (h *handler) launchInitWorkflows(rCtx restserver.IContext, tenantID string)
 		return nil, fmt.Errorf("sync manager is nil")
 	}
 
-	operator := rCtx.BKUsername()
-	if operator == "" {
-		operator = rCtx.LoginName()
+	// Init workflows are system tasks, so they run as the target tenant's virtual user instead of the operator.
+	tenantCtx := contextx.From(rCtx, contextx.WithTenantID(tenantID))
+	operator, err := access.GetVirtualUserBKUsername(tenantCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get virtual user bk username: %w", err)
 	}
-	tenantCtx := contextx.From(rCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(operator))
+	tenantCtx = contextx.From(tenantCtx, contextx.WithBKUsername(operator))
 
 	workflowLaunchers := []struct {
 		name   string
