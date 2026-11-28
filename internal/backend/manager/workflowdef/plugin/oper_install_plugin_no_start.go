@@ -71,6 +71,8 @@ func (oper *operInstallPluginNoStart) ActionDefNames() []string {
 		ActionNameTransferPluginPkgToNode,
 		ActionNameInstallPlugin,
 		ActionNameWaitPluginInstallerComplete,
+		ActionNameCheckPluginRequirements,
+		ActionNameApplyPluginRequirements,
 		ActionNameMarkPluginProcessStopped,
 		ActionNameUpdateProcess,
 	}
@@ -94,6 +96,8 @@ func (oper *operInstallPluginNoStart) DefaultParameters() operation.Param {
 			ActionNameTransferPluginPkgToNode:            true,
 			ActionNameInstallPlugin:                      true,
 			ActionNameWaitPluginInstallerComplete:        false,
+			ActionNameCheckPluginRequirements:            true,
+			ActionNameApplyPluginRequirements:            true,
 			ActionNameMarkPluginProcessStopped:           true,
 			ActionNameUpdateProcess:                      true,
 		},
