@@ -21,6 +21,7 @@
 - 中途终止（门禁触发或会话中断）时，已发现的问题不丢失
 
 **checklist.md 示例：**
+
 ```markdown
 # Review Checklist
 
@@ -40,9 +41,11 @@ Started: 2026-03-02T10:30:00Z
 ## Issues Found
 
 ### ❌ 严重（Design）
+
 - `pkg/service/auth.go` — service 逻辑不应放在 `pkg`，应移至 `internal/backend/service/`
 
 ### ⚠️ 重要
+
 （续审时继续补充）
 ```
 
@@ -79,6 +82,7 @@ Started: 2026-03-02T10:30:00Z
 ### 每步骤更新
 
 每个步骤完成后：
+
 1. 更新 `checklist.md` 中对应步骤的状态（`[ ]` → `[x]`）
 2. 将该步骤发现的问题追加到 Issues Found 部分
 3. 更新 `meta.json` 的 `currentStep`
@@ -90,6 +94,7 @@ Started: 2026-03-02T10:30:00Z
 ### 步骤 1: 确定审查范围
 
 首先确定需要审查的文件：
+
 ```bash
 git status -uno  # 查看已暂存的提交文件
 ```
@@ -97,6 +102,7 @@ git status -uno  # 查看已暂存的提交文件
 **识别文件类型和模块：**
 
 根据文件路径判断：
+
 - `proto/*.proto` → Proto 文件规范
 - `internal/backend/dpmgr/` → dpmgr-executor 模式
 - `pkg/dao/` → 数据访问层规范
@@ -108,6 +114,7 @@ git status -uno  # 查看已暂存的提交文件
 在理解审查范围之后、进入语法检查之前，评估代码的设计合理性 **并检查 AGENTS.md 合规性**。Design 问题和 AGENTS.md Anti-pattern 违反比语法错误更根本——如果代码放错了位置或引入了不合理的依赖，后续的修复都无意义。
 
 **使用工具：**
+
 - `🧠 sequential-thinking` — 结构化评估设计合理性，逐项分析代码放置、依赖方向、抽象层级
 - `🔍 codegraph_explore` — 调查变更文件的符号结构、调用路径和依赖方向，检查模块归属及反向依赖（`pkg` 不应依赖 `internal`）
 - `Read AGENTS.md` — 必须读取项目根目录 AGENTS.md，获取最新的 Anti-patterns 和 Where to look 约定
@@ -116,12 +123,14 @@ git status -uno  # 查看已暂存的提交文件
 **检查内容：**
 
 **A. AGENTS.md Anti-patterns（违反即阻塞 ❌）：**
+
 - 是否手动修改了 `*.pb.go` 文件？
 - proto struct 是否直接用于业务逻辑而未通过 `pkg/proto/*` 转换？
 - 是否引入了 duplicate helper / parallel conversion logic？（用 `codegraph_explore` 搜索同名或功能相似的函数）
 - service-specific 逻辑是否错误地放在了 `pkg/` 而非 `internal/<service>/`？
 
 **B. 代码放置位置（基于 AGENTS.md Where to look）：**
+
 - service startup 代码是否在 `cmd/*`？
 - router/handler 是否在 `internal/*/router/api-v3`？
 - DAO 是否在 `pkg/dao/mongo` 或 `internal/*/storage`？
@@ -131,14 +140,17 @@ git status -uno  # 查看已暂存的提交文件
   - 确认路由分组与领域能力对齐，而非仅按数据存储位置分组
 
 **C. 模块依赖合理性：**
+
 - `pkg/` 是否 import 了 `internal/` 下的包？（严重 ❌）
 - 是否引入了不合理的跨模块依赖？
 - 新增的接口/结构是否在合理的抽象层级上？
 
 **D. 架构原则（参见 [architecture-principles.md](architecture-principles.md)）：**
+
 - DRY：是否与已有代码功能重叠？
 - 正交性：是否引入了不必要的耦合？
 - 可逆性：设计决策是否允许后续变更？
+- 数据访问设计：查询类变更使用 `design-data-queries` 确认模型关联和真实访问路径，不以全量拉取后本地匹配代替关联分析；详细成本在步骤 6 复核。
 
 **门禁行为：**
 
@@ -152,6 +164,7 @@ git status -uno  # 查看已暂存的提交文件
 ### 步骤 3: 语法错误检查（阻塞性门禁）
 
 对于 Go 项目：
+
 ```bash
 go build ./path/to/package/...
 go vet ./path/to/package/...
@@ -160,12 +173,14 @@ go vet ./path/to/package/...
 使用 ReadLints 检查文件的 linter 错误。
 
 **为什么优先检查语法错误？**
+
 - 阻止编译的问题必须首先解决
 - 避免在语法错误的代码上浪费时间审查逻辑
 
 ### 步骤 4: 项目规范检查 + AGENTS.md Conventions
 
 **首先检查 AGENTS.md Conventions（违反 → ⚠️ 重要）：**
+
 - 导出的 Go 函数/类型是否有英文文档注释？
 - 是否使用 `pkg/logger` 记录日志？
 - 是否优先扩展已有 code path 而非新建平行实现？
@@ -174,6 +189,7 @@ go vet ./path/to/package/...
 **然后根据文件类型和模块，参考相应的规范文档：**
 
 #### API 接口开发
+
 - 文件路径包含 `proto/` 或 API 相关代码
 - **参考文档**: `docs/api/API接口开发流程.md`
 - **检查项**:
@@ -182,6 +198,7 @@ go vet ./path/to/package/...
   - 错误码和错误处理
 
 #### Proto 文件
+
 - 文件后缀为 `.proto`
 - **参考文档**: `proto/README.md`
 - **检查项**:
@@ -190,6 +207,7 @@ go vet ./path/to/package/...
   - 注释完整性
 
 #### 开发规范
+
 - **参考文档**: `docs/developer/README.md`
 - **检查项**:
   - 代码风格和命名规范
@@ -199,26 +217,31 @@ go vet ./path/to/package/...
 ### 步骤 5: 逻辑一致性检查
 
 **模块特定规范：**
+
 - `internal/backend/dpmgr/executor.go` → [../patterns/dpmgr-executor.md](../patterns/dpmgr-executor.md)
 - 其他模块规范参见 [../patterns/README.md](../patterns/README.md)
 
 **一般检查项：**
+
 - 函数签名是否与相似函数一致
 - 错误处理模式是否统一
 - 日志格式是否一致
 - 数据结构构建是否符合模式
 
 **架构原则检查（参见 [architecture-principles.md](architecture-principles.md)）：**
+
 - DRY：搜索是否存在功能重复的代码
 - 控制熵：新代码是否遵循同模块的既定范式
 - 统一术语：新增的命名是否与已有约定一致
 - 显式处理：忽略返回值是否显式标注
 
 **案例库参考：**
+
 - 检查 `cases/` 目录中是否有与当前发现类似的案例
 - 如有匹配案例，在报告中引用：`参见案例 cases/XXX.md`
 
 **如何进行一致性检查：**
+
 1. 使用 `codegraph_explore` 查询相关模块、相似函数和代码模式；正则匹配或工具无法满足时使用 Grep
 2. 比对函数签名、错误处理、日志格式
 3. 检查数据结构构建模式
@@ -226,11 +249,13 @@ go vet ./path/to/package/...
 ### 步骤 6: 代码质量检查
 
 **核心规范：**
+
 - 遵循 `.golangci.yml` 规则
 - 遵循 `.cursor/rules/conv.mdc` 数据转换规则
 - **遵循 `AGENTS.md` 约定（Conventions 部分，步骤 4 已检查 Anti-patterns）**
 
 **架构原则检查（参见 [architecture-principles.md](architecture-principles.md)）：**
+
 - [ ] 单层级函数：函数体内抽象层级是否统一
 - [ ] 只管命令不要询问：是否先 Get 再 Set 同一对象
 - [ ] 传入最小参数集：函数参数是否过于宽泛
@@ -238,11 +263,13 @@ go vet ./path/to/package/...
 - [ ] 尽早崩溃：是否有 `recover()` 后空操作、静默忽略错误
 
 **常规检查清单：**
+
 - [ ] 错误处理是否完整（使用 `fmt.Errorf` 和 `%w`）
 - [ ] 是否遵循项目代码风格（导入别名、命名、注释）
 - [ ] 是否使用了 `pkg/runtime/conv` 进行数据转换
 - [ ] 日志记录是否使用结构化日志
 - [ ] 公共函数是否有完整注释
+- [ ] 按 [checklist.md 的 3B.7](checklist.md#3b7-算法复杂度与外部读写成本) 检查算法复杂度及外部读写成本，覆盖相关下游路径和批量/循环组合，区分新增回归与历史限制
 
 **参考 [go-standards.md](go-standards.md) 了解详细的 Go 项目规范。**
 
@@ -251,6 +278,7 @@ go vet ./path/to/package/...
 **报告前检查——Documentation 同步：**
 
 在生成最终报告前，快速扫描变更是否涉及需要同步更新的关联文档：
+
 - 变更涉及 proto 定义或 API 行为 → 检查 `docs/` 和 proto README 是否已更新
 - 变更涉及公共接口或项目结构 → 检查 `AGENTS.md` 是否需要更新
 - 若相关文档未随代码变更，在报告审查总结中添加文档同步提醒（提醒式，非阻塞）
@@ -258,11 +286,13 @@ go vet ./path/to/package/...
 **报告生成：**
 
 从 `.review/checklist.md` 的 Issues Found 汇总生成最终报告，按优先级分类：
+
 - ❌ 严重问题（必须修复）
 - ⚠️ 重要问题（强烈建议修复）
 - 💡 建议改进（可选）
 
 关注以下潜在问题：
+
 - **性能问题**: 不必要的循环、重复计算、资源浪费
 - **安全问题**: SQL 注入、XSS、敏感信息泄露
 - **并发问题**: 竞态条件、死锁、goroutine 泄露
@@ -273,6 +303,7 @@ go vet ./path/to/package/...
 ## 审查 Commit 的特殊流程
 
 审查 commit 时：
+
 1. 使用 `git show <commit-hash>` 查看变更
 2. 识别变更的文件类型和模块
 3. 评估代码设计（放置位置、依赖合理性）

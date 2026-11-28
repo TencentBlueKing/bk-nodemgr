@@ -12,11 +12,13 @@ description: Use when user asks to review code, check for errors, audit commits,
 ## When to Use
 
 **使用场景：**
+
 - 用户要求审查代码、检查错误、审计提交或审查 PR
 - 审查 Go 代码中的 lint 失败、不一致模式或逻辑错误
 - 合并前的代码质量验证
 
 **不适用场景：**
+
 - 仅需理解代码含义（使用普通代码阅读，不启动完整审查流程）
 - 快速单行修复确认（无需创建 worktree 和生成报告）
 
@@ -30,6 +32,7 @@ description: Use when user asks to review code, check for errors, audit commits,
 | 2         | codegraph           | 代码结构、符号、调用路径和影响范围分析（`codegraph_explore`） |
 | 3         | context7            | 文档查询、规范验证                                            |
 | 补充/降级 | Read/Grep/Glob      | 补充核实或在 MCP 工具不可用时使用                             |
+
 `codegraph_explore({query: string, projectPath: string, maxFiles?: number})` 的 `projectPath` 使用目标项目绝对路径。返回相关符号的带行号源码、调用路径和影响摘要，不是完整引用索引；按需用 Read/Grep/Glob 补充核实。工具不可用或项目无索引时说明限制并降级，不自行初始化索引。
 
 详细工具选择策略参见：[references/tools-usage.md](references/tools-usage.md)
@@ -53,6 +56,7 @@ git worktree add .worktrees/"$BRANCH" "$BRANCH"
 审查过程中在 worktree 下生成 `.review/` 文件夹，保存审查进度和已发现的问题，支持跨会话续审。
 
 **文件结构：**
+
 ```
 .review/
 ├── checklist.md        # 审查进度：各步骤 [x]/[ ] 状态 + 已发现问题摘要
@@ -63,6 +67,7 @@ git worktree add .worktrees/"$BRANCH" "$BRANCH"
 - **`meta.json`**：记录 target branch、commit hash、startedAt、currentStep、totalSteps。
 
 **续审检测规则：**
+
 - `.review/` 不存在 → 从步骤 1 开始
 - branch 名不匹配 → 清空 `.review/` 重新开始
 - branch + commit 均匹配 → 提示用户"检测到上次审查进度，是否从步骤 N 继续？"
@@ -96,21 +101,32 @@ When a diff affects architecture boundaries, dependency direction, shared contra
 代码审查关注四大类检查项：
 
 ### AGENTS.md 合规性（强制）
+
 - Anti-patterns 零容忍：不手编 pb.go、proto 仅作 boundary type、不引入重复 helper、service 逻辑不放 pkg
 - Conventions 必须遵循：extending existing code paths、pkg/logger、公共类型英文注释
 - Where to look 约定：代码放置位置和依赖方向必须正确
 
 ### 语法检查（阻塞性）
+
 - 编译通过、静态分析无错误、Linter 无错误
 
 ### 规范一致性
+
 - 错误处理、日志记录、数据转换、注释、命名规范
 
 ### 架构与设计原则
+
 - DRY、正交性、单层级函数、显式处理、控制熵
 - 详见 [references/architecture-principles.md](references/architecture-principles.md)
 
+### 算法复杂度与外部读写成本
+
+- 设计审查识别数据关联与访问路径，质量检查核对完整链路的成本；不能只看调用次数或本地循环。
+- 查询类变更使用 `design-data-queries`，复核模型关联、实际过滤链路及语义保持；具体检查见 [checklist.md 的 3B.7](references/checklist.md#3b7-算法复杂度与外部读写成本)。
+- 区分新增退化与历史限制；问题是否阻塞由具体影响和本次范围决定，不因发现全量读取就自动判定阻塞。
+
 ### 逻辑一致性
+
 - 函数签名、错误消息、日志格式、数据结构一致性
 
 **详细检查清单**：参见 [references/checklist.md](references/checklist.md)
@@ -148,12 +164,14 @@ When a diff affects architecture boundaries, dependency direction, shared contra
 `patterns/` 目录存储模块特定的审查规范。当审查特定模块的代码时，读取相应的 pattern 文档。
 
 **如何使用 Patterns**：
+
 1. 识别被修改的文件属于哪个模块
 2. 读取对应的 pattern 文档
 3. 使用 `codegraph_explore` 查找同系列的其他函数
 4. 检查一致性：函数签名、错误处理、日志格式、数据结构
 
 **当前支持的模块**：
+
 - **Deploy Policy Manager Executor**: [patterns/dpmgr-executor.md](patterns/dpmgr-executor.md)
 
 **添加新 Pattern**：参见 [patterns/README.md](patterns/README.md) 和 [patterns/_TEMPLATE.md](patterns/_TEMPLATE.md)
@@ -163,6 +181,7 @@ When a diff affects architecture boundaries, dependency direction, shared contra
 `cases/` 目录逐步积累代码审查中发现的典型案例（好/坏代码对比 + 违反原则标签），供 reviewer 参考。
 
 **审查中的使用方式**：
+
 - 步骤 5（一致性检查）和步骤 6（质量检查）时，若发现的问题与已有案例相似，在报告中引用案例
 - 审查结束后，若发现了新的典型问题，可补充为新案例
 
