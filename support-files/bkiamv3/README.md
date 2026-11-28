@@ -42,6 +42,7 @@ python do_migrate.py \
 
 - `templates/0003_bk_nodemgr_actions.json.tpl` 注册无资源绑定的 `system_access`（系统访问），`related_resource_types` 为 `[]`。该权限仅用于系统准入，不替代具体功能和资源权限。原有 32 个 Action 均增加 `system_access` 依赖，保留已有依赖；除下述 `package_history_view` 改绑外，其余资源绑定不变。
 - `templates/0004_bk_nodemgr_action_groups.json.tpl` 增加“系统”操作分组，保留原有分组及成员。
+- `templates/0006_bk_nodemgr_20261121-0259_iam.json.tpl` 将 `platform_manage` 放入独立的“平台管理”（Platform Management）一级分组；“系统”分组仅保留 `system_access`，其他分组及成员不变。已同步该模板的环境需重新执行以更新分组；分组更新为全量覆盖，重跑 `0004` 后须再次执行 `0006`。此调整不改变 Action、资源绑定或已有授权。
 - `templates/0005_bk_nodemgr_common_actions.json.tpl` 的全部五个常用操作组合均包含 `system_access`。新增“平台管理员”（Platform Manager）组合，仅包含 `system_access` 和 `platform_manage`，保留其余四个组合及其原有成员。
 
 已完成历史同步的环境也需重新执行上述模板，使远端模型包含 `system_access` 及其依赖、分组和常用操作配置。
