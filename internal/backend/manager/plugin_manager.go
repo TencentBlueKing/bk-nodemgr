@@ -1065,6 +1065,118 @@ func (mgr *Manager) getPluginRestartOperationDef(deploy *types.PluginDeployment,
 	})
 }
 
+// LaunchApplyPluginRequirements applies dependency files and restarts plugin processes.
+func (mgr *Manager) LaunchApplyPluginRequirements(nCtx contextx.IContext, param types.ApplyPluginRequirementsParam) (string, error) {
+	triggerCtl, err := mgr.createOrderedPluginTrigger(
+		nCtx,
+		globalsettings.OperPluginRestartProcessMaxConcurrencyNum,
+		globalsettings.OperPluginRestartProcessMaxConcurrencyNumDefault,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	needRollback := true
+	defer func() {
+		if !needRollback {
+			return
+		}
+
+		if err := triggerCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to inactivate trigger after launch failure")
+		}
+
+		if err := mgr.conf.StoragePlugin.UpdatePluginWorkflowStatus(
+			nCtx, workflowID, types.PluginWorkflowStatusFailed,
+		); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).
+				With("workflow-id", workflowID, "trigger-id", triggerCtl.GetTriggerID()).
+				Error("failed to mark plugin workflow as failed after launch failure")
+		}
+	}()
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+
+		gp.Go(func() error {
+			return mgr.createApplyPluginRequirementsOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch apply plugin requirements task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	needRollback = false
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createApplyPluginRequirementsOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPluginApplyRequirementsOperationDef(deploy, operator)
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to launch apply plugin requirements task.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("plugin-token", deploy.Token).
+		Info("launched apply plugin requirements task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPluginApplyRequirementsOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
+	return plugin.NewOperApplyPluginRequirements(plugin.OperParamApplyPluginRequirements{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
+}
+
 // LaunchMigrateFromV2 launch a task to migrate plugin process from v2. returns the workflow-id.
 func (mgr *Manager) LaunchMigrateFromV2(
 	nCtx contextx.IContext,

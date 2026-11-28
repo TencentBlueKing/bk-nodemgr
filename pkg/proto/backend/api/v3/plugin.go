@@ -21,6 +21,7 @@ package v3
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 
@@ -973,6 +974,71 @@ func (x *PluginRestartReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMappin
 // GetHostIDs returns host ids.
 func (x *PluginRestartReq) GetHostIDs() []int64 {
 	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginRestartReq_RestartInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
+// Validate checks every apply-requirements target.
+func (x *PluginApplyRequirementsReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return fmt.Errorf("plugins[%d]: %w", idx, err)
+		}
+	}
+
+	return nil
+}
+
+// Validate checks one apply-requirements target.
+func (x *PluginApplyRequirementsReq_ApplyInfo) Validate() error {
+	if x.GetBkHostId() <= 0 {
+		return errors.New("bk_host_id must be positive")
+	}
+	if strings.TrimSpace(x.GetPluginName()) == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert preserves the supplied target.
+func (x *PluginApplyRequirementsReq_ApplyInfo) AutoConvert() {}
+
+// AutoConvert converts all apply-requirements targets.
+func (x *PluginApplyRequirementsReq) AutoConvert() {
+	plugins := x.GetPlugin()
+	for idx := range plugins {
+		plugins[idx].AutoConvert()
+	}
+}
+
+// ConvertParamToTypesWithHostTopoMapping converts distinct targets to plugin deployment parameters.
+func (x *PluginApplyRequirementsReq) ConvertParamToTypesWithHostTopoMapping(
+	hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
+
+	targets := conv.SliceUnique(conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginApplyRequirementsReq_ApplyInfo) types.ProcessUniqueKey {
+		return types.ProcessUniqueKey{
+			HostID: plugin.GetBkHostId(),
+			Name:   plugin.GetPluginName(),
+		}
+	}))
+	return conv.SliceToSlice(targets, func(target types.ProcessUniqueKey) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     target.HostID,
+			PluginName: target.Name,
+			BizID:      hostTopoMapping[target.HostID].BizID,
+		}
+	})
+}
+
+// GetHostIDs returns target host IDs.
+func (x *PluginApplyRequirementsReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginApplyRequirementsReq_ApplyInfo) int64 {
 		return item.GetBkHostId()
 	})
 }

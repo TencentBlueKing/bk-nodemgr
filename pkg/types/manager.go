@@ -150,6 +150,15 @@ type RestartProcessParam struct {
 	PluginDeployments []*PluginDeployment
 }
 
+// ApplyPluginRequirementsParam defines the params for applying dependency files and restarting processes.
+type ApplyPluginRequirementsParam struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	PluginDeployments []*PluginDeployment
+}
+
 // MigrateFromV2Param define the param of LaunchMigrateFromV2.
 type MigrateFromV2Param struct {
 	Type              PluginWorkflowType

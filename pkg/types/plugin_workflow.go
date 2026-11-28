@@ -81,6 +81,9 @@ const (
 	// PluginWorkflowTypeRestart is the operation type for restart plugin.
 	PluginWorkflowTypeRestart PluginWorkflowType = "restart_plugin"
 
+	// PluginWorkflowTypeApplyRequirements applies plugin dependency files and restarts processes.
+	PluginWorkflowTypeApplyRequirements PluginWorkflowType = "apply_plugin_requirements"
+
 	// PluginWorkflowTypeStop is the operation type for stop plugin.
 	PluginWorkflowTypeStop PluginWorkflowType = "stop_plugin"
 
@@ -115,6 +118,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeRemovePluginSubConfig,
 		PluginWorkflowTypeStart,
 		PluginWorkflowTypeRestart,
+		PluginWorkflowTypeApplyRequirements,
 		PluginWorkflowTypeMigrateV2,
 		PluginWorkflowTypeStop,
 		PluginWorkflowTypeDebug,
