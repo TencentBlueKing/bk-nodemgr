@@ -14,13 +14,12 @@ import {
   shouldDeferBizAuthCheck,
 } from '@/constants/auth';
 import { i18n } from '@/modules/i18n';
-
 import Forbidden from '@/pages/app/403.vue';
 import NotFound from '@/pages/app/404.vue';
 import AssignUnit from '@/pages/node/agent/assign-unit.vue';
-import OpsSetting from '@/pages/node/agent/ops-setting.vue';
 import AgentImport from '@/pages/node/agent/import.vue';
 import AgentManager from '@/pages/node/agent/list.vue';
+import OpsSetting from '@/pages/node/agent/ops-setting.vue';
 import AgentSetup from '@/pages/node/agent/setup.vue';
 import TaskHistory from '@/pages/node/history/history.vue';
 import Log from '@/pages/node/history/log.vue';
@@ -34,12 +33,13 @@ import PkgManager from '@/pages/pkg/index.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
 import GlobalSettings from '@/pages/platform/global-settings.vue';
+import SchedulerDetail from '@/pages/platform/scheduler-detail.vue';
 import SchedulerWorkflow from '@/pages/platform/scheduler-workflow.vue';
 import SystemConfig from '@/pages/platform/system-config.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
-import PluginStrategy from '@/pages/rules/plugin-strategy/index.vue';
 import DeployPolicyStrategy from '@/pages/rules/deploy-policy-strategy/index.vue';
 import Rules from '@/pages/rules/index.vue';
+import PluginStrategy from '@/pages/rules/plugin-strategy/index.vue';
 import RulesRecord from '@/pages/rules/record/record.vue';
 import OperationRecord from '@/pages/topo/record/record.vue';
 import Topography from '@/pages/topo/topography/topo.vue';
@@ -415,6 +415,15 @@ const routes = setupLayouts([
               title: i18n.global.t('route.schedulerWorkflow'),
               back: false,
               mainMenu: 'platformManager',
+            },
+          },
+          {
+            name: 'schedulerDetail',
+            path: 'scheduler-workflow/:workflowId/operation/:operationId',
+            component: SchedulerDetail,
+            meta: {
+              mainMenu: 'platformManager',
+              parentName: 'schedulerWorkflow',
             },
           },
           {

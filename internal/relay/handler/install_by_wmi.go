@@ -26,6 +26,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
@@ -71,7 +72,13 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("connect to host successfully")
 
 	// make sure the installer workspace exists
-	stdOut, stdErr, err := client.RunCommand(nCtx, "mkdir "+event.InstallerWorkDir)
+	prepareCmd, err := installer.WindowsEnsureDirectoryCommand(event.InstallerWorkDir)
+	if err != nil {
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("dir", event.InstallerWorkDir).Error("failed to build workspace command")
+
+		return
+	}
+	stdOut, stdErr, err := client.RunCommand(nCtx, prepareCmd)
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("dir", event.InstallerWorkDir).Error("failed to make dir")
 
@@ -134,7 +141,13 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 		Info("transfer file successfully")
 
 	// execute install bat
-	installCMD := winpath.Clean(winpath.Join(event.InstallerWorkDir, event.InstallerBatName))
+	batchPath := winpath.Clean(winpath.Join(event.InstallerWorkDir, event.InstallerBatName))
+	installCMD, err := installer.WindowsBatchCommand(batchPath)
+	if err != nil {
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", batchPath).Error("failed to build install batch command")
+
+		return
+	}
 	stdOut, stdErr, err = client.RunSilentCommand(nCtx, installCMD)
 	if err != nil {
 		logger.G.Biz(nCtx).

@@ -221,8 +221,8 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// normal install.
-	if err := act.executeInstallCMD(std, client, installerPath); err != nil {
-		return fmt.Errorf("failed to execute install cmd: %w", err)
+	if err := act.executeInstallScript(std, client, installerPath); err != nil {
+		return fmt.Errorf("failed to execute install script: %w", err)
 	}
 
 	if err = saveWaitInstallerPrivateData(std.Context(), act.storageActionInstance,
@@ -247,9 +247,9 @@ func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(std *nodeUtils.NodeAc
 		return fmt.Errorf("failed to ensure proxy artifacts: %w", err)
 	}
 
-	// execute install command with skip flags.
-	if err := act.executeSSHOnlyProxyInstallCMD(std, client, installerPath); err != nil {
-		return fmt.Errorf("failed to execute ssh-only proxy install cmd: %w", err)
+	// execute install script with skip flags.
+	if err := act.executeSSHOnlyProxyInstallScript(std, client, installerPath); err != nil {
+		return fmt.Errorf("failed to execute ssh-only proxy install script: %w", err)
 	}
 
 	if err := saveWaitInstallerPrivateData(std.Context(), act.storageActionInstance,
@@ -420,8 +420,8 @@ func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeUtils.NodeActionSt
 	return reader, pkgFileName, nil
 }
 
-// executeSSHOnlyProxyInstallCMD builds and runs the ssh only installer command with --skip_callback --skip_download flags.
-func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
+// executeSSHOnlyProxyInstallScript builds and runs the SSH-only installer script with --skip_callback --skip_download flags.
+func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallScript(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 
 	// ssh-only proxy install runs through the login channel, so use the login workdir.
@@ -455,21 +455,16 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	installCmd, err := act.buildCMD(installParams)
+	installScript, err := act.buildInstallScript(installParams)
 	if err != nil {
-		return fmt.Errorf("failed to build ssh-only proxy install cmd: %w", err)
+		return fmt.Errorf("failed to build ssh-only proxy install script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("安装节点命令(跨管控单元 SSH-only): %s", installCmd).
-		En("install node cmd (cross-unit SSH-only): %s", installCmd).
+		Zh("安装节点脚本(跨管控单元 SSH-only): %s", installScript).
+		En("install node script (cross-unit SSH-only): %s", installScript).
 		Info()
 
-	outStr, _, err := client.RunCommand(fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		workDir,
-		workDir,
-		installCmd),
-	)
+	outStr, _, err := client.RunCommand(installScript)
 	if err != nil {
 		return fmt.Errorf("failed to run install node: %w", err)
 	}
@@ -523,7 +518,11 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 		Info()
 
 	// make sure tool is executable
-	if _, stderr, err := client.RunCommand("chmod +x " + installerPath); err != nil {
+	chmodCommand, err := installer.UnixMakeExecutableCommand(installerPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to render installer chmod command: %w", err)
+	}
+	if _, stderr, err := client.RunCommand(chmodCommand); err != nil {
 		return "", fmt.Errorf("failed to run command. command(chmod +x %s), stderr(%s): %w", installerPath, stderr, err)
 	}
 
@@ -572,7 +571,7 @@ func (act *actionInstallNodeBySSH) openInstallerReader(std *nodeUtils.NodeAction
 	return reader, nil
 }
 
-func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
+func (act *actionInstallNodeBySSH) executeInstallScript(std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 	// direct SSH install runs through the login channel, so use the login workdir.
 	workDir := std.DeployInfo().InstallerRuntime.LoginWorkDir
 	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
@@ -614,22 +613,17 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	installCmd, err := act.buildCMD(installParams)
+	installScript, err := act.buildInstallScript(installParams)
 	if err != nil {
-		return fmt.Errorf("failed to build install cmd: %w", err)
+		return fmt.Errorf("failed to build install script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("安装节点命令: %s", installCmd).
-		En("install node cmd: %s", installCmd).
+		Zh("安装节点脚本: %s", installScript).
+		En("install node script: %s", installScript).
 		Info()
 
-	// exec install command.
-	outStr, stderr, err := client.RunCommand(fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		workDir,
-		workDir,
-		installCmd),
-	)
+	// exec install script.
+	outStr, stderr, err := client.RunCommand(installScript)
 	if err != nil {
 		err = fmt.Errorf("failed to run install node: %w", err)
 
@@ -638,17 +632,17 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 
 	std.InstanceData().Log().
 		Zh("安装指令结果: stdout(%s), stderr(%s)", outStr, stderr).
-		En("install command result: stdout(%s), stderr(%s)", outStr, stderr).
+		En("install script result: stdout(%s), stderr(%s)", outStr, stderr).
 		Info()
 
 	return nil
 }
 
-func (act *actionInstallNodeBySSH) buildCMD(param *installer.NodeInstallParams) (string, error) {
-	_, installCmd, err := param.ToUnixScript()
+func (act *actionInstallNodeBySSH) buildInstallScript(param *installer.NodeInstallParams) (string, error) {
+	installScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return "", fmt.Errorf("failed to render node install script: %w", err)
 	}
 
-	return installCmd, nil
+	return installScript, nil
 }

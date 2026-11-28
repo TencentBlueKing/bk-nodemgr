@@ -5,6 +5,18 @@
       "operation": "upsert_common_actions",
       "data": [
         {
+          "name": "平台管理员",
+          "name_en": "Platform Manager",
+          "actions": [
+            {
+              "id": "system_access"
+            },
+            {
+              "id": "platform_manage"
+            }
+          ]
+        },
+        {
           "name": "业务节点管理员",
           "name_en": "Agent Manager",
           "actions": [

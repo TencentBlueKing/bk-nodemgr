@@ -62,6 +62,7 @@
 import { Alert, Button, Loading, SearchSelect, Sideslider, Tag } from 'bkui-vue';
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
@@ -82,6 +83,7 @@ interface SearchValue {
 }
 
 const { t } = useI18n();
+const route = useRoute();
 const mainStore = useMainStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 220 - (mainStore.noticeShow ? 40 : 0));
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
@@ -95,7 +97,7 @@ const searchOptions = computed(() => [
   { id: 'operator', name: t('schedulerWorkflow.operator'), multiple: true },
 ]);
 const historyVisible = ref(false);
-const selectedWorkflow = ref<ScheduledWorkflow>();
+const selectedWorkflow = ref<Pick<ScheduledWorkflow, 'workflow_id' | 'workflow_name'>>();
 const historyTitle = computed(() => `${t('schedulerWorkflow.history')} - ${
   selectedWorkflow.value?.workflow_name || selectedWorkflow.value?.workflow_id || ''}`);
 let requestId = 0;
@@ -145,6 +147,11 @@ watch(searchValues, () => {
   pagination.current = 1;
   getWorkflows();
 }, { deep: true, immediate: true });
+watch(() => route.query.workflow_id, (id) => {
+  if (typeof id !== 'string' || !id) return;
+  selectedWorkflow.value = { workflow_id: id, workflow_name: '' };
+  historyVisible.value = true;
+}, { immediate: true });
 onBeforeUnmount(() => {
   requestId += 1;
 });

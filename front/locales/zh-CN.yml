@@ -392,7 +392,24 @@ platform:
     proxySpecified: 使用指定代理（不展示代理地址）
     firewallFeatures: Windows 安装器管理的防火墙功能
     firewallUnmanaged: 不管理防火墙规则
+globalSettings:
+  refresh: 刷新
+  storedValueNotice: 全局变量跨租户共享，包含自定义项；本页仅展示数据库保存的原始值，不补齐默认值，也不表示进程实际生效值。
+  searchPlaceholder: 按变量名精确搜索
+  loadFailed: 数据加载失败，请刷新重试
+  name: 变量名
+  value: 保存值
+  viewValue: 查看原始值
+  copyValue: 复制原始值
+  rawValueNotice: 按保存内容原样展示和复制，不解析或格式化。
+  emptyString: （空字符串）
+  copySuccess: 复制成功
+  copyFailed: 复制失败，请手动选择原始值复制
 schedulerWorkflow:
+  executionDetail: 定时任务执行详情
+  step: 步骤
+  duration: 耗时
+  executionLog: 执行日志
   refresh: 刷新
   refreshLogs: 刷新日志
   searchPlaceholder: 精确搜索任务名称、Workflow ID、操作人

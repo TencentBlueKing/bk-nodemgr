@@ -145,6 +145,7 @@ export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
 export const PLATFORM_ROUTE_RESOURCE_MAP: Record<string, string> = {
   systemConfig: 'system_config',
   schedulerWorkflow: 'scheduler_workflow',
+  schedulerDetail: 'scheduler_workflow',
   globalSettings: 'global_settings',
 };
 

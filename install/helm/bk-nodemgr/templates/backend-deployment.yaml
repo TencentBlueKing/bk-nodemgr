@@ -118,6 +118,8 @@ spec:
           ports:
             - name: info-http
               containerPort: {{ .Values.backend.config.infoServer.port }}
+            - name: admin-http
+              containerPort: {{ .Values.backend.config.adminServer.port }}
             - name: basic-http
               containerPort: {{ .Values.backend.config.basicServer.port }}
             - name: callback-http

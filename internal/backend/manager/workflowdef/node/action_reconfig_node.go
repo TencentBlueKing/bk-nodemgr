@@ -209,7 +209,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	// exec reconfig command
+	// Execute the node reconfiguration script.
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doReconfigWindows(std, reconfigParams)
 	}
@@ -219,22 +219,18 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 
 // nolint: perfsprint
 func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToUnixScript()
+	reconfigScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("重新配置节点命令: %s", reconfigCmd).
-		En("reconfig node cmd: %s", reconfigCmd).
+		Zh("重新配置节点脚本: %s", reconfigScript).
+		En("reconfig node script: %s", reconfigScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigScript,
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -254,21 +250,18 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 
 // nolint: perfsprint
 func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
-	_, reconfigCmd, err := param.ToWindowsScript()
+	reconfigScript, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("重新配置节点命令: %s", reconfigCmd).
-		En("reconfig node cmd: %s", reconfigCmd).
+		Zh("重新配置节点脚本: %s", reconfigScript).
+		En("reconfig node script: %s", reconfigScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			reconfigCmd),
+		reconfigScript,
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

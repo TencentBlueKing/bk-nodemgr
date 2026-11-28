@@ -95,6 +95,22 @@ access:
 	assert.Equal(t, "bk-nodemgr-app", svc.Access.VirtualUser)
 	assert.Equal(t, int64(-1), svc.Front.UnassignedNetworkAreaID)
 	assert.Equal(t, "[]", svc.Front.OpsOutBandProtocols)
+	assert.Equal(t, "/markdown/NodeMgr/UserGuide/Introduce/Overview.md", svc.Front.BKDocsCenterNodemgrDocPath)
+}
+
+func TestApplicationService_LoadFromFileReadsDocsCenterURLParts(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
+	configContent := []byte(`front:
+  bkDocsCenterURL: "https://docs.example.com"
+  bkDocsCenterNodemgrDocPath: "/custom/Overview.md"
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	svc := NewApplicationService()
+	require.NoError(t, svc.LoadFromFile(configPath))
+
+	assert.Equal(t, "https://docs.example.com", svc.Front.BKDocsCenterURL)
+	assert.Equal(t, "/custom/Overview.md", svc.Front.BKDocsCenterNodemgrDocPath)
 }
 
 func TestApplicationService_LoadFromFileReadsUnassignedNetworkAreaID(t *testing.T) {

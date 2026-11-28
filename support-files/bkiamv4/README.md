@@ -8,7 +8,7 @@
 
 | 文件                | 说明                                                              |
 | ------------------- | ----------------------------------------------------------------- |
-| `templates/`        | V4 System、五类本地 ResourceType、29 个 Action 与十四个 Role 模板 |
+| `templates/`        | V4 System、五类本地 ResourceType、29 个 Action 与十五个 Role 模板 |
 | `vars.yaml.example` | 变量配置示例                                                      |
 | `render/`           | 渲染工具源码，构建后生成 `render/iam-render`                      |
 | `migrate/`          | 迁移工具源码，构建后生成 `migrate/iam-migrate`                    |
@@ -277,10 +277,11 @@ JSON
 
 ### Role 更新规则
 
-`0004` 在 Action 之后注册以下十四个角色。所有角色均显式包含无资源绑定的 `system_access`，仅授予系统准入，不替代各功能的 Action 和资源范围校验。Agent 和 Proxy 管理人员各自管理对应节点，包含 NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限，不再包含 Plugin 权限；插件权限由独立的插件管理员和插件只读人员提供。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理人员和只读人员分别包含 Config Policy 的管理或只读权限。不自动展开 `related_actions`。
+`0004` 在 Action 之后注册以下十五个角色。所有角色均显式包含无资源绑定的 `system_access`，仅授予系统准入，不替代各功能的 Action 和资源范围校验。Agent 和 Proxy 管理人员各自管理对应节点，包含 NetworkArea/NetworkUnit 查看及对应的 NetworkUnit 使用权限，不再包含 Plugin 权限；插件权限由独立的插件管理员和插件只读人员提供。管控区域创建权限由独立角色提供，管控区域和管控单元各有管理角色；配置策略管理人员和只读人员分别包含 Config Policy 的管理或只读权限。不自动展开 `related_actions`。
 
 | Role ID                 | 名称             | Action 数 |
 | ----------------------- | ---------------- | --------- |
+| `platform_manager`      | 平台管理员       | 2         |
 | `plugin_manager`        | 插件管理员       | 5         |
 | `plugin_viewer`         | 插件只读人员     | 4         |
 | `config_policy_viewer`  | 配置策略只读人员 | 4         |
@@ -295,6 +296,8 @@ JSON
 | `proxy_viewer`          | Proxy 只读人员   | 4         |
 | `topo_viewer`           | 网络拓扑只读人员 | 5         |
 | `package_viewer`        | 资源包只读人员   | 3         |
+
+**平台管理员：** `platform_manager` 包含无资源绑定的 `system_access` 和绑定 `platform_resource` 的 `platform_manage`。平台资源范围以授权为准，不自动授予全部平台资源，也不包含 Agent、Proxy、插件等其他管理权限。
 
 **只读角色：** 除共同的 `system_access` 外，Agent 和 Proxy 只读人员各自仅包含对应节点的查看、历史查看及业务访问权限。`plugin_viewer` 包含插件查看、历史查看及业务访问权限；`config_policy_viewer` 包含配置策略的查看、历史查看及业务访问权限。网络拓扑只读人员包含管控区域和管控单元的查看及历史查看权限；资源包只读人员仅包含资源包查看及历史查看权限。只读角色不包含创建、编辑、删除、操作、管理、上传或使用管控单元部署的权限；Action 资源绑定保持不变，资源范围以授权为准。
 

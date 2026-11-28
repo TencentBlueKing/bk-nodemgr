@@ -177,20 +177,19 @@ func NewApplicationService() *ApplicationService {
 			SystemID:     defaultIAMV3SystemID,
 			CMDBSystemID: defaultIAMV3CMDBSystemID,
 			APIGatewayClient: APIGatewayClient{
-				TraceService: TraceService{
-					TraceServiceName: defaultApplicationIAMV3TraceServiceName,
-				},
+				TraceService: TraceService{TraceServiceName: defaultApplicationIAMV3TraceServiceName},
 			},
 		},
 		Front: Front{
-			PasswordVaultSwitch:     defaultApplicationFrontPasswordVaultSwitch,
-			PasswordVaultName:       defaultApplicationFrontPasswordVaultName,
-			BKAppNavOpenSourceURL:   defaultApplicationFrontBKAppNavOpenSourceURL,
-			WindowsWMIPortDefault:   defaultApplicationFrontWindowsWMIPortDefault,
-			WindowsSSHPortDefault:   defaultApplicationFrontWindowsSSHPortDefault,
-			UnixSSHPortDefault:      defaultApplicationFrontUnixSSHPortDefault,
-			OpsOutBandProtocols:     defaultApplicationFrontOpsOutBandProtocols,
-			UnassignedNetworkAreaID: defaultApplicationFrontUnassignedNetworkAreaID,
+			PasswordVaultSwitch:        defaultApplicationFrontPasswordVaultSwitch,
+			PasswordVaultName:          defaultApplicationFrontPasswordVaultName,
+			BKAppNavOpenSourceURL:      defaultApplicationFrontBKAppNavOpenSourceURL,
+			BKDocsCenterNodemgrDocPath: "/markdown/NodeMgr/UserGuide/Introduce/Overview.md",
+			WindowsWMIPortDefault:      defaultApplicationFrontWindowsWMIPortDefault,
+			WindowsSSHPortDefault:      defaultApplicationFrontWindowsSSHPortDefault,
+			UnixSSHPortDefault:         defaultApplicationFrontUnixSSHPortDefault,
+			OpsOutBandProtocols:        defaultApplicationFrontOpsOutBandProtocols,
+			UnassignedNetworkAreaID:    defaultApplicationFrontUnassignedNetworkAreaID,
 		},
 		Backend: Backend{
 			APIGatewayClient: APIGatewayClient{

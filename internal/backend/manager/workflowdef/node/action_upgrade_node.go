@@ -187,7 +187,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	// exec upgrade command
+	// Execute the node upgrade script.
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doUpgradeWindows(std, upgradeParams)
 	}
@@ -196,23 +196,19 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	_, upgradeCmd, err := param.ToUnixScript()
+	upgradeScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("升级节点命令: %s", upgradeCmd).
-		En("upgrade node cmd: %s", upgradeCmd).
+		Zh("升级节点脚本: %s", upgradeScript).
+		En("upgrade node script: %s", upgradeScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > upgrade.sh && sh upgrade.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			upgradeCmd),
+		upgradeScript,
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -233,22 +229,19 @@ func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder,
 }
 
 func (act *actionUpgradeNode) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUpgradeParams) error {
-	_, upgradeCmd, err := param.ToWindowsScript()
+	upgradeScript, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node upgrade script: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("升级节点命令: %s", upgradeCmd).
-		En("upgrade node cmd: %s", upgradeCmd).
+		Zh("升级节点脚本: %s", upgradeScript).
+		En("upgrade node script: %s", upgradeScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			upgradeCmd),
+		upgradeScript,
 		upgradeScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
