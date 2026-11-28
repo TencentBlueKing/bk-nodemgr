@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-// Package workflow describes the read-only scheduler workflow router.
+// Package workflow describes the scheduler workflow router.
 package workflow
 
 import (
@@ -38,13 +38,30 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{rg: rg.Group("/workflow"), backendHandler: capability.BackendHandler}
 }
 
-// Load registers only scheduler read APIs; authorization remains in backend.
+// Load registers scheduler APIs; authorization remains in backend.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
+	h.rg.POST("/interval/update", restserver.Handler(h.UpdateInterval))
 	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
+}
+
+// UpdateInterval saves a schedule expression through the authorized backend endpoint.
+func (h *handler) UpdateInterval(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.ScheduleWorkflowUpdateIntervalReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update schedule workflow interval, invalid request")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if err := h.backendHandler.UpdateScheduleWorkflowInterval(rCtx, req.GetWorkflowId(), req.GetInterval()); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update schedule workflow interval")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return &protoApplication.ScheduleWorkflowUpdateIntervalResp_Data{}, nil
 }
 
 // List reads schedule configurations without modifying scheduler state.

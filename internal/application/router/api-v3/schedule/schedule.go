@@ -25,7 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Load loads read-only scheduler APIs.
+// Load loads scheduler APIs.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	workflow.Load(rg.Group("/schedule"), capability)
 }

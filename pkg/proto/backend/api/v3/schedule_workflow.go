@@ -21,12 +21,34 @@ package v3
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
+
+// Validate checks the workflow identifier and schedule expression with the runtime parser.
+func (x *UpdateScheduleWorkflowIntervalReq) Validate() error {
+	if strings.TrimSpace(x.GetWorkflowId()) == "" {
+		return errors.New("workflow_id is required")
+	}
+	if strings.TrimSpace(x.GetInterval()) == "" {
+		return errors.New("interval is required")
+	}
+	if _, err := scheduler.NextActiveTime(x.GetInterval(), time.Now()); err != nil {
+		return fmt.Errorf("invalid interval: %w", err)
+	}
+
+	return nil
+}
+
+// AutoConvert trims surrounding whitespace in the schedule expression.
+func (x *UpdateScheduleWorkflowIntervalReq) AutoConvert() {
+	x.Interval = strings.TrimSpace(x.GetInterval())
+}
 
 // Validate check body.
 func (x *EnableScheduleWorkflowReq) Validate() error {

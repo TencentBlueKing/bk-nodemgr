@@ -415,6 +415,11 @@ schedulerWorkflow:
   loadFailed: Failed to load data. Refresh to retry.
   name: Task name
   interval: Schedule interval
+  editInterval: Edit schedule interval
+  intervalRequired: Enter a schedule interval
+  intervalHelp: 'Use a fixed interval (e.g. {every}) or a six-field Cron including seconds (second minute hour day month weekday, e.g. {cron}).'
+  intervalEffect: Changes are synced asynchronously (checked about every 10 seconds; exact timing is not guaranteed). Running instances are not stopped, and the last trigger time is not reset.
+  intervalUpdateFailed: Save failed. Check the schedule expression or try again later.
   scheduleStatus: Schedule status
   enabled: Enabled
   disabled: Disabled

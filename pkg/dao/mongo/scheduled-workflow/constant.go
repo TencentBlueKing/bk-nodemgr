@@ -29,6 +29,9 @@ const (
 	// FieldKeyTriggerID is the key for status.
 	FieldKeyTriggerID = "data.trigger_id"
 
+	// FieldKeyInterval is the key for interval.
+	FieldKeyInterval = "data.interval"
+
 	// FieldKeyPrivateData is the key for private data.
 	FieldKeyPrivateData = "data.private_data"
 

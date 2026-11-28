@@ -27,8 +27,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// IHandlerScheduleWorkflow provides tenant-scoped, read-only scheduler queries.
+// IHandlerScheduleWorkflow provides tenant-scoped scheduler configuration and queries.
 type IHandlerScheduleWorkflow interface {
+	UpdateScheduleWorkflowInterval(ctx contextx.IContext, workflowID, interval string) error
 	ListScheduleWorkflow(ctx contextx.IContext, page types.Page, condition *types.ScheduledWorkflowCondition) (
 		[]*types.ScheduledWorkflow, int64, error)
 	CountScheduleWorkflow(ctx contextx.IContext, condition *types.ScheduledWorkflowCondition) (int64, error)
@@ -39,6 +40,19 @@ type IHandlerScheduleWorkflow interface {
 		[]*operation.InstanceBriefData, int64, error)
 	CountScheduleWorkflowOperationInstance(ctx contextx.IContext, condition *types.OperInstDataCondition) (int64, error)
 	GetScheduleWorkflowOperationInstanceLog(ctx contextx.IContext, instanceID string) (*operation.InstanceData, error)
+}
+
+// UpdateScheduleWorkflowInterval saves a schedule expression for asynchronous reconciliation.
+func (h *Handler) UpdateScheduleWorkflowInterval(ctx contextx.IContext, workflowID, interval string) error {
+	_, err := h.cli.updateScheduleWorkflowInterval(ctx, &protoBackend.UpdateScheduleWorkflowIntervalReq{
+		WorkflowId: workflowID,
+		Interval:   interval,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update schedule workflow interval: %w", err)
+	}
+
+	return nil
 }
 
 // ListScheduleWorkflow reads one page of schedule configurations.

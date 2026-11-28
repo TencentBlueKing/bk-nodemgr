@@ -133,3 +133,24 @@ export interface ScheduleWorkflowOperationInstanceLogGetRespData {
   oper_inst_logs: Record<string, WorkflowActionData>;
   extra_execution_logs: WorkflowActionMessage;
 }
+
+// 修改当前租户内一个定时工作流的调度周期。
+export interface ScheduleWorkflowUpdateIntervalReq {
+  // 定时工作流 ID，必填。
+  workflow_id: string;
+  // 周期表达式，必填；支持含秒的六段 Cron 及 @every 10m 等描述符。
+  interval: string;
+}
+
+// 周期配置已保存，不代表调度器已完成同步。
+export interface ScheduleWorkflowUpdateIntervalResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: ScheduleWorkflowUpdateIntervalRespData;
+}
+
+export interface ScheduleWorkflowUpdateIntervalRespData {
+}

@@ -415,6 +415,11 @@ schedulerWorkflow:
   loadFailed: 数据加载失败，请刷新重试
   name: 任务名称
   interval: 调度间隔
+  editInterval: 修改调度周期
+  intervalRequired: 请输入调度周期
+  intervalHelp: '支持固定间隔（如 {every}）或含秒的六字段 Cron（秒 分 时 日 月 周，如 {cron}）。'
+  intervalEffect: 保存后由调度器异步同步（约每 10 秒检查一次，不保证精确生效时间）；不会终止正在运行的实例，也不会重置上次触发时间。
+  intervalUpdateFailed: 保存失败，请检查调度表达式或稍后重试
   scheduleStatus: 调度状态
   enabled: 已启用
   disabled: 已停用
