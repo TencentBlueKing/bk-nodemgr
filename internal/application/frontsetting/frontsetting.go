@@ -153,8 +153,10 @@ type Option struct {
 	// BKDomain is the domain of bk platform.
 	BKDomain string
 
-	// BKDocsCenterURL is the URL of bk docs center.
+	// BKDocsCenterURL is the bk docs center url prefix, the nodemgr doc link stays empty when it is empty.
 	BKDocsCenterURL string
+	// BKDocsCenterNodemgrDocPath is the nodemgr doc path appended to BKDocsCenterURL.
+	BKDocsCenterNodemgrDocPath string
 
 	// BKSharedResBaseJSURL is the URL of the bk shared resource base js, used to load platform config.
 	BKSharedResBaseJSURL string
@@ -216,7 +218,7 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkIamSaaSHost:           opt.BKIamSaaSHost,
 		bkUserSaaSHost:          opt.BKUserSaaSHost,
 		bkDomain:                normalizeFrontValue(opt.BKDomain, frontValueKindHost),
-		bkDocsCenterURL:         normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
+		bkDocsCenterURL:         resolveBKDocsCenterNodemgrDocURL(opt.BKDocsCenterURL, opt.BKDocsCenterNodemgrDocPath),
 		bkSharedResBaseJSURL:    normalizeFrontValue(opt.BKSharedResBaseJSURL, frontValueKindURL),
 		bkAppNavOpenSourceURL:   normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
 		windowsWMIPortDefault:   opt.WindowsWMIPortDefault,
@@ -228,6 +230,16 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkIamSystemIDBKNodemgr:  opt.BKIamSystemIDBKNodemgr,
 		bkIamSystemIDBKCmdb:     opt.BKIamSystemIDBKCmdb,
 	}, nil
+}
+
+// resolveBKDocsCenterNodemgrDocURL composes the docs center url from url prefix and nodemgr doc path.
+// An empty prefix keeps the link empty so no same-origin fallback url is exposed.
+func resolveBKDocsCenterNodemgrDocURL(urlPrefix, nodemgrDocPath string) string {
+	if urlPrefix == "" {
+		return ""
+	}
+
+	return normalizeURL(strings.TrimRight(urlPrefix, "/") + "/" + strings.TrimLeft(nodemgrDocPath, "/"))
 }
 
 func normalizeFrontValue(raw string, kind frontValueKind) string {

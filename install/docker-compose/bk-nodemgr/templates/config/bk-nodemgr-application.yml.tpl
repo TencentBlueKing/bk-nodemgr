@@ -17,8 +17,10 @@ front:
   bkUserWebURL: "__BK_NODEMGR_APPLICATION_USER_WEB_URL__"
   # bk domain.
   bkDomain: "__BK_NODEMGR_APPLICATION_DOMAIN__"
-  # bk docs center url.
+  # bk docs center url prefix; the product doc link stays empty when it is empty.
   bkDocsCenterURL: "__BK_NODEMGR_APPLICATION_DOCS_CENTER_URL__"
+  # nodemgr user guide path in bk docs center, appended to the url prefix.
+  bkDocsCenterNodemgrDocPath: "__BK_NODEMGR_APPLICATION_DOCS_CENTER_NODEMGR_DOC_PATH__"
   # bk shared res base js url (platform config: logo, title, footer, etc.).
   bkSharedResBaseJSURL: "__BK_NODEMGR_APPLICATION_SHARED_RES_BASE_JS_URL__"
   # bk app nav open source url.

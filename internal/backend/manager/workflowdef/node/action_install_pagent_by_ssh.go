@@ -177,14 +177,14 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	// build install command.
-	installCmd, err := act.buildInstallCmd(std, installerPath)
+	// Build the installer launch script.
+	installScript, err := act.buildInstallScript(std, installerPath)
 	if err != nil {
-		return fmt.Errorf("failed to build install cmd: %w", err)
+		return fmt.Errorf("failed to build install script: %w", err)
 	}
 
 	// notify relay to install pagent by ssh.
-	if err := act.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfo); err != nil {
+	if err := act.notifyRelayToInstall(std, cKey, toolName, installScript, relayInfo); err != nil {
 		return err
 	}
 
@@ -205,7 +205,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 }
 
 func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeActionStandarder,
-	cKey, toolsName, installCmd string,
+	cKey, toolsName, installScript string,
 	relayInfo *types.RelayInfo) error {
 
 	event := protoRelay.InstallPagentBySSHReq{
@@ -218,7 +218,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeAct
 		Password:         cKey,
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.LoginWorkDir,
 		ToolsName:        toolsName,
-		InstallerCmd:     installCmd,
+		InstallerCmd:     installScript,
 		IsSudo:           std.DeployInfo().InstallOptions.IsSudo,
 	}
 	data, err := json.Marshal(event)
@@ -322,7 +322,7 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *nodeUtils.NodeA
 	return toolName, installerPath, nil
 }
 
-func (act *actionInstallPagentBySSH) buildInstallCmd(
+func (act *actionInstallPagentBySSH) buildInstallScript(
 	std *nodeUtils.NodeActionStandarder,
 	installerPath string) (string, error) {
 
@@ -363,21 +363,15 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	_, installCmd, err := installParams.ToUnixScriptDownloadBeforeCallback()
+	installScript, err := installer.RenderUnixLaunchScript(workDir, installParams.ToUnixScriptDownloadBeforeCallback)
 	if err != nil {
 		return "", fmt.Errorf("failed to render node install script: %w", err)
 	}
 
-	result := fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		workDir,
-		workDir,
-		installCmd)
-
 	std.InstanceData().Log().
-		Zh("构建安装命令: %v", result).
-		En("build install cmd: %v", result).
+		Zh("构建安装脚本: %v", installScript).
+		En("build install script: %v", installScript).
 		Info()
 
-	return result, nil
+	return installScript, nil
 }

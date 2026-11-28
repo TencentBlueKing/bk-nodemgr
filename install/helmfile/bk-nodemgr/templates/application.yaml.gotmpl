@@ -1,3 +1,11 @@
+{{- $serviceNames := dict }}
+{{- range $component := list "etcd" "redis" "mongodb" "opentelemetry-gateway" "pyroscope" }}
+{{- $name := $.Values.releaseName }}
+{{- if not (contains $component $name) }}
+{{- $name = printf "%s-%s" $name $component }}
+{{- end }}
+{{- $_ := set $serviceNames $component ($name | trunc 63 | trimSuffix "-") }}
+{{- end }}
 etcd:
   enabled: false
 redis:
@@ -7,16 +15,16 @@ mongodb:
 
 externalEtcd:
   endpoints:
-    - bk-nodemgr-etcd-headless.{{ .Values.namespaces.deps }}.svc.cluster.local:2379
+    - {{ printf "%s-headless" $serviceNames.etcd | trunc 63 | trimSuffix "-" }}.{{ .Values.namespaces.deps }}.svc.cluster.local:2379
 
 externalRedis:
   addrs:
-    - bk-nodemgr-redis-headless.{{ .Values.namespaces.deps }}.svc.cluster.local:6379
+    - {{ $serviceNames.redis }}-headless.{{ .Values.namespaces.deps }}.svc.cluster.local:6379
   password: defaultpassword
 
 externalMongodb:
   hosts:
-    - bk-nodemgr-mongodb-headless.{{ .Values.namespaces.deps }}.svc.cluster.local:27017
+    - {{ $serviceNames.mongodb }}-headless.{{ .Values.namespaces.deps }}.svc.cluster.local:27017
 
 {{- $application := deepCopy (dig "application" dict .Values) }}
 {{- $_ := set $application "enabled" true }}
@@ -30,15 +38,23 @@ externalMongodb:
 {{- $_ := set $application "ingress" $applicationIngress }}
 {{- $config := deepCopy (dig "config" dict $application) }}
 {{- $_ := set $config "tenantMode" (dig "global" "tenantMode" "single" .Values) }}
-{{- $_ := set $config "adminServer" (dict "jwtServerConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
+{{- $adminServer := deepCopy (dig "adminServer" dict $config) }}
+{{- $jwtServerConfig := deepCopy (dig "jwtServerConfig" dict $adminServer) }}
+{{- $_ := set $jwtServerConfig "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values) }}
+{{- $_ := set $adminServer "jwtServerConfig" $jwtServerConfig }}
+{{- $_ := set $config "adminServer" $adminServer }}
 {{- $_ := set $config "access" (dict "virtualUser" (dig "global" "access" "virtualUser" "" .Values)) }}
-{{- $_ := set $config "file" (dict "jwtClientConfig" (dict "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values))) }}
+{{- $file := deepCopy (dig "file" dict $config) }}
+{{- $jwtClientConfig := deepCopy (dig "jwtClientConfig" dict $file) }}
+{{- $_ := set $jwtClientConfig "symmetricKey" (dig "global" "serviceJwt" "symmetricKey" "" .Values) }}
+{{- $_ := set $file "jwtClientConfig" $jwtClientConfig }}
+{{- $_ := set $config "file" $file }}
 {{- $monitoringEnabled := dig "monitoring" "enabled" true .Values }}
 {{- $gatewayEnabled := or $monitoringEnabled (not (empty (dig "opentelemetryGateway" "exporters" dict .Values))) }}
 {{- if $gatewayEnabled }}
 {{- $tracing := deepCopy (dig "tracing" dict $config) }}
 {{- $_ := set $tracing "exporterType" "otlp" }}
-{{- $_ := set $tracing "otlpEndpoint" (printf "bk-nodemgr-opentelemetry-gateway.%s.svc.cluster.local:4317" .Values.namespaces.monitoring) }}
+{{- $_ := set $tracing "otlpEndpoint" (printf "%s.%s.svc.cluster.local:4317" (index $serviceNames "opentelemetry-gateway") .Values.namespaces.monitoring) }}
 {{- $_ := set $tracing "otlpProtocol" "grpc" }}
 {{- $_ := set $tracing "otlpInsecure" true }}
 {{- $_ := set $config "tracing" $tracing }}
@@ -51,7 +67,7 @@ externalMongodb:
 {{- $_ := set $profiling "enabled" $monitoringEnabled }}
 {{- end }}
 {{- if and $monitoringEnabled (dig "enabled" false $profiling) (eq (trim (dig "serverAddress" "" $profiling)) "") }}
-{{- $_ := set $profiling "serverAddress" (printf "http://bk-nodemgr-pyroscope.%s.svc:4040" .Values.namespaces.monitoring) }}
+{{- $_ := set $profiling "serverAddress" (printf "http://%s.%s.svc:4040" $serviceNames.pyroscope .Values.namespaces.monitoring) }}
 {{- end }}
 {{- $_ := set $config "profiling" $profiling }}
 {{- $bkAPITmpl := dig "global" "bkApiUrlTmpl" "https://example.com/api/{gateway_name}/prod" .Values }}

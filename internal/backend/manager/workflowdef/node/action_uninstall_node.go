@@ -273,22 +273,18 @@ func (act *actionUninstallNodeBase) doUninstall(
 func (act *actionUninstallNodeBase) doUninstallUnix(
 	std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
 
-	_, uninstallCmd, err := param.ToUnixScript()
+	uninstallScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("卸载节点命令: %s", uninstallCmd).
-		En("uninstall node cmd: %s", uninstallCmd).
+		Zh("卸载节点脚本: %s", uninstallScript).
+		En("uninstall node script: %s", uninstallScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > uninstall.sh && sh uninstall.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			uninstallCmd),
+		uninstallScript,
 		uninstallScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -310,21 +306,18 @@ func (act *actionUninstallNodeBase) doUninstallUnix(
 func (act *actionUninstallNodeBase) doUninstallWindows(
 	std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
 
-	_, uninstallCmd, err := param.ToWindowsScript()
+	uninstallScript, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("卸载节点命令: %s", uninstallCmd).
-		En("uninstall node cmd: %s", uninstallCmd).
+		Zh("卸载节点脚本: %s", uninstallScript).
+		En("uninstall node script: %s", uninstallScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			uninstallCmd),
+		uninstallScript,
 		uninstallScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

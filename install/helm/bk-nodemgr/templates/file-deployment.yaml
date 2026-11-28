@@ -118,6 +118,8 @@ spec:
           ports:
             - name: info-http
               containerPort: {{ .Values.file.config.infoServer.port }}
+            - name: admin-http
+              containerPort: {{ .Values.file.config.adminServer.port }}
             - name: basic-http
               containerPort: {{ .Values.file.config.basicServer.port }}
             - name: download-http

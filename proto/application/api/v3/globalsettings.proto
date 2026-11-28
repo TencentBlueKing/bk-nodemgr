@@ -1,0 +1,64 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+
+// 全局共享的已存储配置项，包含自定义配置。
+message GlobalSetting {
+  // 配置变量名称。
+  string setting_name = 1;
+  // 数据库保存的原始字符串，不补齐默认值，也不表示进程实际生效值。
+  string value = 2;
+}
+
+// 按配置变量名称筛选全局共享的已存储配置。
+message ListGlobalSettingsReq {
+  // 分页条件；非计数查询时 limit 必须为 1 到 500。
+  Page page = 1;
+  // 是否仅返回符合条件的配置项总数。
+  bool only_count = 2;
+
+  // 配置变量名称的精确匹配条件。
+  message ExactConditions { repeated string setting_name = 1; }
+  // 配置变量名称的模糊匹配条件。
+  message FuzzyConditions { repeated string setting_name = 1; }
+  // 配置变量名称的精确包含条件。
+  ExactConditions exact_include_conditions = 3;
+  // 配置变量名称的模糊包含条件。
+  FuzzyConditions fuzzy_include_conditions = 4;
+  // 配置变量名称的精确排除条件。
+  ExactConditions exact_exclude_conditions = 5;
+  // 配置变量名称的模糊排除条件。
+  FuzzyConditions fuzzy_exclude_conditions = 6;
+}
+
+// 全局共享配置的已存储原始值，不包含服务启动配置。
+message ListGlobalSettingsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // 符合筛选条件的配置项总数。
+    int64 total = 1;
+    // 当前页的配置项；仅计数时为空数组。
+    repeated GlobalSetting items = 2;
+  }
+  Data data = 5;
+}
+
+// 平台全局配置只读查询，不提供写操作。
+service GlobalSettings {
+  // 查询跨租户共享的已存储配置及原始值，包含可能敏感的自定义项；须具有系统访问和平台管理的全局配置资源权限。
+  rpc ListGlobalSettings(ListGlobalSettingsReq)
+      returns (ListGlobalSettingsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/globalsettings/list"
+      body : "*"
+    };
+  }
+}

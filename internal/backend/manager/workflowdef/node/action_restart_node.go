@@ -159,7 +159,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
 			return errors.New("current node version do not support soft restart")
 		}
 
-		if err := act.restartThroughCommand(std, std.DeployInfo()); err != nil {
+		if err := act.restartThroughScript(std, std.DeployInfo()); err != nil {
 			return err
 		}
 	}
@@ -226,7 +226,7 @@ func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionSta
 	return nil
 }
 
-func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {
+func (act *actionRestartNode) restartThroughScript(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -248,32 +248,28 @@ func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionSta
 		Force:             true,
 	}
 
-	// exec upgrade command
+	// Execute the node restart script.
 	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.restartThroughCommandWindows(std, restartParams)
+		return act.restartThroughScriptWindows(std, restartParams)
 	}
 
-	return act.restartThroughCommandUnix(std, restartParams)
+	return act.restartThroughScriptUnix(std, restartParams)
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
-	_, restartCmd, err := param.ToUnixScript()
+func (act *actionRestartNode) restartThroughScriptUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
+	restartScript, err := installer.RenderUnixLaunchScript(param.InstallerWorkDir, param.ToUnixScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("重启命令: %s", restartCmd).
-		En("restart cmd: %s", restartCmd).
+		Zh("重启脚本: %s", restartScript).
+		En("restart script: %s", restartScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > restart.sh && sh restart.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			restartCmd),
+		restartScript,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
@@ -292,22 +288,19 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
-	_, restartCmd, err := param.ToWindowsScript()
+func (act *actionRestartNode) restartThroughScriptWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
+	restartScript, err := installer.RenderWindowsCommand(param.InstallerWorkDir, param.ToWindowsScript)
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("重启命令: %s", restartCmd).
-		En("restart cmd: %s", restartCmd).
+		Zh("重启脚本: %s", restartScript).
+		En("restart script: %s", restartScript).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`cd %s && %s`,
-			param.InstallerWorkDir,
-			restartCmd),
+		restartScript,
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{

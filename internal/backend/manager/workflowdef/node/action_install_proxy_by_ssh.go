@@ -191,12 +191,12 @@ func (act *actionInstallProxyBySSH) doRelayCallbackInstall(std *nodeUtils.NodeAc
 		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	installCmd, err := act.pagentInstaller.buildInstallCmd(std, installerPath)
+	installScript, err := act.pagentInstaller.buildInstallScript(std, installerPath)
 	if err != nil {
-		return fmt.Errorf("failed to build install cmd: %w", err)
+		return fmt.Errorf("failed to build install script: %w", err)
 	}
 
-	if err := act.pagentInstaller.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfo); err != nil {
+	if err := act.pagentInstaller.notifyRelayToInstall(std, cKey, toolName, installScript, relayInfo); err != nil {
 		return err
 	}
 
@@ -240,7 +240,7 @@ func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeUtils.NodeAct
 	}
 
 	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.LoginWorkDir, installerName))
-	installerCmd, err := act.buildSSHOnlyProxyInstallCmd(std, installerPath)
+	installerScript, err := act.buildSSHOnlyProxyInstallScript(std, installerPath)
 	if err != nil {
 		return err
 	}
@@ -255,7 +255,7 @@ func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeUtils.NodeAct
 		return fmt.Errorf("failed to format release pkg name: %w", err)
 	}
 
-	if err := act.notifyRelayToInstallProxyBySSH(std, cKey, installerName, releaseName, installerCmd, relayInfo); err != nil {
+	if err := act.notifyRelayToInstallProxyBySSH(std, cKey, installerName, releaseName, installerScript, relayInfo); err != nil {
 		return fmt.Errorf("failed to notify relay to install proxy by ssh: %w", err)
 	}
 
@@ -272,7 +272,7 @@ func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeUtils.NodeAct
 	)
 }
 
-func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.NodeActionStandarder, installerPath string) (string, error) {
+func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallScript(std *nodeUtils.NodeActionStandarder, installerPath string) (string, error) {
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
 			DeployEnv:         system.GetEnv(),
@@ -302,20 +302,21 @@ func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.N
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	_, installCmd, err := installParams.ToUnixScript()
+	// SYNC: relay/handler.executeProxyInstallCommand adds the workspace; wire content remains script-write and launch only.
+	installScript, err := installer.RenderUnixScript(installParams.ToUnixScript)
 	if err != nil {
-		return "", fmt.Errorf("failed to build ssh-only proxy install cmd: %w", err)
+		return "", fmt.Errorf("failed to build ssh-only proxy install script: %w", err)
 	}
 	std.InstanceData().Log().
-		Zh("安装 Proxy 命令(跨管控单元 SSH-only): %s", installCmd).
-		En("install proxy cmd (cross-unit SSH-only): %s", installCmd).
+		Zh("安装 Proxy 脚本(跨管控单元 SSH-only): %s", installScript).
+		En("install proxy script (cross-unit SSH-only): %s", installScript).
 		Info()
 
-	return fmt.Sprintf(`echo "%s" > install.sh && sh install.sh`, installCmd), nil
+	return installScript, nil
 }
 
 func (act *actionInstallProxyBySSH) notifyRelayToInstallProxyBySSH(
-	std *nodeUtils.NodeActionStandarder, cKey, installerName, releaseName, installerCmd string, relayInfo *types.RelayInfo,
+	std *nodeUtils.NodeActionStandarder, cKey, installerName, releaseName, installerScript string, relayInfo *types.RelayInfo,
 ) error {
 
 	event := protoRelay.InstallProxyBySSHReq{
@@ -330,7 +331,7 @@ func (act *actionInstallProxyBySSH) notifyRelayToInstallProxyBySSH(
 		InstallerName:    installerName,
 		ReleaseName:      releaseName,
 		Token:            std.Token(),
-		InstallerCmd:     installerCmd,
+		InstallerCmd:     installerScript,
 		IsSudo:           std.DeployInfo().InstallOptions.IsSudo,
 	}
 	data, err := json.Marshal(event)

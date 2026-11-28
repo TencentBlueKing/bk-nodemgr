@@ -1096,6 +1096,7 @@ func (c *cli) infoReleaseAgent(nCtx contextx.IContext, tenantID string, req *pro
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1129,6 +1130,7 @@ func (c *cli) infoReleaseProxy(nCtx contextx.IContext, tenantID string, req *pro
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1162,6 +1164,7 @@ func (c *cli) infoReleasePlugin(nCtx contextx.IContext, tenantID string, req *pr
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1195,6 +1198,7 @@ func (c *cli) infoReleaseCert(nCtx contextx.IContext, tenantID string, req *prot
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1228,6 +1232,7 @@ func (c *cli) infoReleaseBinTool(nCtx contextx.IContext, tenantID string, req *p
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1263,6 +1268,7 @@ func (c *cli) infoReleasePluginBinTool(nCtx contextx.IContext, tenantID string, 
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1296,6 +1302,7 @@ func (c *cli) infoInstaller(nCtx contextx.IContext, tenantID string, req *protoF
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1331,6 +1338,7 @@ func (c *cli) exportPrepareOriginPluginPackage(nCtx contextx.IContext, tenantID 
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1365,6 +1373,7 @@ func (c *cli) exportGetOriginPluginPackageDownloadAddress(
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1402,6 +1411,7 @@ func (c *cli) listReleaseAgent(nCtx contextx.IContext, tenantID string, req *pro
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1435,6 +1445,7 @@ func (c *cli) countReleaseAgent(nCtx contextx.IContext, tenantID string, req *pr
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1468,6 +1479,7 @@ func (c *cli) getReleaseAgent(nCtx contextx.IContext, tenantID string, req *prot
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1501,6 +1513,7 @@ func (c *cli) distinctReleaseAgent(nCtx contextx.IContext, tenantID string, req 
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1706,6 +1719,7 @@ func (c *cli) listReleaseProxy(nCtx contextx.IContext, tenantID string, req *pro
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1739,6 +1753,7 @@ func (c *cli) countReleaseProxy(nCtx contextx.IContext, tenantID string, req *pr
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1772,6 +1787,7 @@ func (c *cli) getReleaseProxy(nCtx contextx.IContext, tenantID string, req *prot
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -1805,6 +1821,7 @@ func (c *cli) distinctReleaseProxy(nCtx contextx.IContext, tenantID string, req 
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2010,6 +2027,7 @@ func (c *cli) listReleasePlugin(nCtx contextx.IContext, tenantID string, req *pr
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2043,6 +2061,7 @@ func (c *cli) countReleasePlugin(nCtx contextx.IContext, tenantID string, req *p
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2076,6 +2095,7 @@ func (c *cli) getReleasePlugin(nCtx contextx.IContext, tenantID string, req *pro
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2109,6 +2129,7 @@ func (c *cli) distinctReleasePlugin(nCtx contextx.IContext, tenantID string, req
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2142,6 +2163,7 @@ func (c *cli) existReleasePlugin(nCtx contextx.IContext, tenantID string, req *p
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2175,6 +2197,7 @@ func (c *cli) getReleasePluginDefaultVersion(nCtx contextx.IContext, tenantID st
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2208,6 +2231,7 @@ func (c *cli) distinctNameReleasePlugin(nCtx contextx.IContext, tenantID string,
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2441,6 +2465,7 @@ func (c *cli) listReleaseCert(nCtx contextx.IContext, tenantID string, req *prot
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2506,6 +2531,7 @@ func (c *cli) listReleaseBinTool(nCtx contextx.IContext, tenantID string, req *p
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2571,6 +2597,7 @@ func (c *cli) listReleasePluginBinTool(nCtx contextx.IContext, tenantID string, 
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2604,6 +2631,7 @@ func (c *cli) distinctNameReleasePluginBinTool(nCtx contextx.IContext, tenantID 
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		EnableLogResponse().
 		Do().
 		Into(resp)
@@ -2827,6 +2855,7 @@ func (c *cli) updatePluginRequirementScope(nCtx contextx.IContext, req *protoFil
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().
 		Into(resp); err != nil {
 		return nil, fmt.Errorf("failed to post plugin requirement update scope: %w", err)
@@ -2854,6 +2883,7 @@ func (c *cli) listPluginRequirements(nCtx contextx.IContext, req *protoFile.Plug
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().
 		Into(resp); err != nil {
 		return nil, fmt.Errorf("failed to post plugin requirement list: %w", err)
@@ -2881,6 +2911,7 @@ func (c *cli) getPluginRequirement(nCtx contextx.IContext, req *protoFile.Plugin
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().
 		Into(resp); err != nil {
 		return nil, fmt.Errorf("failed to post plugin requirement get: %w", err)
@@ -2944,6 +2975,7 @@ func (c *cli) transferPluginRequirement(nCtx contextx.IContext, req *protoFile.P
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().
 		Into(resp); err != nil {
 		return nil, fmt.Errorf("failed to post plugin requirement transfer: %w", err)

@@ -21,6 +21,7 @@ package v3
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -127,6 +128,15 @@ func (x *ListGlobalSettingsResp) ConvertGlobalSettingsFromTypes(num int64, setti
 			Value:       setting.Value,
 		})
 	}
+}
+
+// ConvertGlobalSettingsToTypes converts stored values without interpreting them.
+func (x *ListGlobalSettingsResp) ConvertGlobalSettingsToTypes() ([]*types.GlobalSettings, int64) {
+	settings := conv.SliceToSlice(x.GetData().GetItems(), func(setting *GlobalSetting) *types.GlobalSettings {
+		return &types.GlobalSettings{SettingName: setting.GetSettingName(), Value: setting.GetValue()}
+	})
+
+	return settings, x.GetData().GetTotal()
 }
 
 // Validate check body.

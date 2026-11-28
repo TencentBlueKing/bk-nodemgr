@@ -43,6 +43,7 @@ type IHandler interface {
 	IHandlerTopo
 	IHandlerCipher
 	IHandlerSystemConfig
+	IHandlerGlobalSettings
 }
 
 var _ IHandler = &Handler{}

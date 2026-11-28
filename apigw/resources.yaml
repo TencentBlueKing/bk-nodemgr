@@ -8272,6 +8272,213 @@ paths:
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
         descriptionEn:
+  /api/v3/plugin/workflow/operation/install_params/get:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationInstallParamsGet
+      description: |-
+        读取选中历史插件安装操作的参数，供新安装使用，不执行安装或修改历史任务。仅支持
+        install_plugin 工作流。
+      tags:
+        - PluginWorkflow
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        title: 历史安装工作流类型。
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                              title: 历史操作 ID。
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                              title: 安装目标主机 ID。
+                            plugin_name:
+                              type: string
+                              title: 插件名称。
+                            version:
+                              type: string
+                              title: 历史部署中保存的安装版本。
+                            custom_config_context:
+                              type: object
+                              title: 历史自定义配置参数。
+                            custom_spec:
+                              type: object
+                              properties:
+                                resource:
+                                  type: object
+                                  properties:
+                                    cpu_limit_percent:
+                                      type: number
+                                      format: double
+                                    mem_limit_percent:
+                                      type: number
+                                      format: double
+                                  description: ProcessResource describes the process resource.
+                                monitor_policy:
+                                  type: object
+                                  properties:
+                                    restart_type:
+                                      type: string
+                                    start_check_seconds:
+                                      type: integer
+                                      format: int64
+                                    stop_check_seconds:
+                                      type: integer
+                                      format: int64
+                                    operate_timeout_seconds:
+                                      type: integer
+                                      format: int64
+                                  description: ProcessMonitorPolicy describes the process monitor policy.
+                              title: 历史自定义部署规格，未指定时为空。
+                            missing_fields:
+                              type: array
+                              items:
+                                type: string
+                              title: 无法恢复的字段名称。
+                          title: 历史插件安装操作中可恢复的表单参数。
+                      unavailable_operation_ids:
+                        type: array
+                        items:
+                          type: string
+                        title: 无法恢复部署记录的操作 ID。
+                title: 返回可恢复的安装参数和无法恢复参数的操作 ID。
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_id:
+                  type: string
+                  title: 必填，历史工作流 ID。
+                operation_ids:
+                  type: array
+                  items:
+                    type: string
+                  title: 必填，非空且无重复 ID 的操作列表。
+              title: 按工作流及选中的操作读取历史插件安装参数。
+        required: true
+        description: ""
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/install_params/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Read recoverable parameters from selected historical plugin installation operations for use in a new installation. Does not install, retry, or modify historical tasks.
   /api/v3/plugin/workflow/operation/instance/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceList
@@ -20194,6 +20401,10 @@ paths:
                         type: string
                       configpolicy_type:
                         type: string
+                      priority_rank:
+                        type: integer
+                        format: int64
+                        title: 列表筛选结果中的优先级序号，从 1 开始。禁用策略和详情响应的值为空。
                     description: ConfigPolocy decribes the config policy.
                   error:
                     type: object
@@ -20379,6 +20590,10 @@ paths:
                               type: string
                             configpolicy_type:
                               type: string
+                            priority_rank:
+                              type: integer
+                              format: int64
+                              title: 列表筛选结果中的优先级序号，从 1 开始。禁用策略和详情响应的值为空。
                           description: ConfigPolocy decribes the config policy.
                       total:
                         type: integer
@@ -39039,6 +39254,213 @@ paths:
           oauth2PublicClientEnabled: false
           oauth2PersonalClientEnabled: false
         descriptionEn:
+  /api/v3/open/plugin/workflow/operation/install_params/get:
+    post:
+      operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationInstallParamsGet
+      description: |-
+        查询选中历史插件安装操作可恢复的参数，用于执行诊断，不执行安装或修改历史任务。
+        仅支持 install_plugin 工作流。
+      tags:
+        - OpenPluginWorkflow
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      message:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      system_name:
+                        type: string
+                      apply_url:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  system_id:
+                                    type: string
+                                  system_name:
+                                    type: string
+                                  type:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                  data:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        title: 历史安装工作流类型。
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operation_id:
+                              type: string
+                              title: 历史操作 ID。
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                              title: 安装目标主机 ID。
+                            plugin_name:
+                              type: string
+                              title: 插件名称。
+                            version:
+                              type: string
+                              title: 历史部署中保存的安装版本。
+                            custom_config_context:
+                              type: object
+                              title: 历史自定义配置参数。
+                            custom_spec:
+                              type: object
+                              properties:
+                                resource:
+                                  type: object
+                                  properties:
+                                    cpu_limit_percent:
+                                      type: number
+                                      format: double
+                                    mem_limit_percent:
+                                      type: number
+                                      format: double
+                                  description: ProcessResource describes the process resource.
+                                monitor_policy:
+                                  type: object
+                                  properties:
+                                    restart_type:
+                                      type: string
+                                    start_check_seconds:
+                                      type: integer
+                                      format: int64
+                                    stop_check_seconds:
+                                      type: integer
+                                      format: int64
+                                    operate_timeout_seconds:
+                                      type: integer
+                                      format: int64
+                                  description: ProcessMonitorPolicy describes the process monitor policy.
+                              title: 历史自定义部署规格，未指定时为空。
+                            missing_fields:
+                              type: array
+                              items:
+                                type: string
+                              title: 无法恢复的字段名称。
+                          title: 历史插件安装操作中可恢复的表单参数。
+                      unavailable_operation_ids:
+                        type: array
+                        items:
+                          type: string
+                        title: 无法恢复部署记录的操作 ID。
+                title: 返回可恢复的安装参数和无法恢复参数的操作 ID。
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  message:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_id:
+                  type: string
+                  title: 必填，历史工作流 ID。
+                operation_ids:
+                  type: array
+                  items:
+                    type: string
+                  title: 必填，非空且无重复 ID 的操作列表。
+              title: 按工作流及选中的操作读取历史插件安装参数。
+        required: true
+        description: ""
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/open/plugin/workflow/operation/install_params/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+          oauth2PublicClientEnabled: false
+          oauth2PersonalClientEnabled: false
+        descriptionEn: Read recoverable parameters from selected historical plugin installation operations for execution diagnosis. Does not install, retry, or modify historical tasks.
   /api/v3/open/plugin/workflow/operation/instance/list:
     post:
       operationId: OpenPluginWorkflow_OpenPluginWorkflowOperationInstanceList
