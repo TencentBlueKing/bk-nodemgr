@@ -603,6 +603,7 @@ const typeMap = computed(() => ({
   reconfig_plugin: t('platform.nodeMan.taskHistory.taskType.reconfig_plugin'),
   apply_plugin_subconfig: t('platform.nodeMan.taskHistory.taskType.apply_plugin_subconfig'),
   remove_plugin_subconfig: t('platform.nodeMan.taskHistory.taskType.remove_plugin_subconfig'),
+  apply_plugin_requirements: t('platform.nodeMan.taskHistory.taskType.apply_plugin_requirements'),
   start_plugin: t('platform.nodeMan.taskHistory.taskType.start_plugin'),
   restart_plugin: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
   stop_plugin: t('platform.nodeMan.taskHistory.taskType.stop_plugin'),
