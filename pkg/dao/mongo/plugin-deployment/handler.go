@@ -385,6 +385,14 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 				StopCheckSecs:  info.Process.MonitorPolicy.StopCheckSecs,
 				OpTimeoutSecs:  info.Process.MonitorPolicy.OpTimeoutSecs,
 			},
+			Requirements: conv.SliceToSlice(info.Process.Requirements, func(requirement processRequirement) types.ProcessRequirement {
+				return types.ProcessRequirement{
+					RequirementID:  requirement.RequirementID,
+					TargetPath:     requirement.TargetPath,
+					TargetFileName: requirement.TargetFileName,
+					MD5:            requirement.MD5,
+				}
+			}),
 		},
 		InstallerRuntime: types.PluginDeploymentInstallerRuntime{
 			BaseWorkDir:       info.InstallerRuntime.BaseWorkDir,
@@ -417,6 +425,10 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		TransferOptions: types.PluginDeploymentTransferOptions{
 			DisableReleasePackage: info.TransferOptions.DisableReleasePackage,
 			DisableInstaller:      info.TransferOptions.DisableInstaller,
+		},
+		RequirementOptions: types.PluginDeploymentRequirementOptions{
+			RequirementIDs: info.RequirementOptions.RequirementIDs,
+			ApplyAll:       info.RequirementOptions.ApplyAll,
 		},
 	}
 
@@ -508,6 +520,14 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 				StopCheckSecs:  info.Process.MonitorPolicy.StopCheckSecs,
 				OpTimeoutSecs:  info.Process.MonitorPolicy.OpTimeoutSecs,
 			},
+			Requirements: conv.SliceToSlice(info.Process.Requirements, func(requirement types.ProcessRequirement) processRequirement {
+				return processRequirement{
+					RequirementID:  requirement.RequirementID,
+					TargetPath:     requirement.TargetPath,
+					TargetFileName: requirement.TargetFileName,
+					MD5:            requirement.MD5,
+				}
+			}),
 		},
 		InstallerRuntime: installerRuntime{
 			BaseWorkDir:       info.InstallerRuntime.BaseWorkDir,
@@ -540,6 +560,10 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			IsOffline:               info.InstallOptions.IsOffline,
 			EnableCompatibilityMode: info.InstallOptions.EnableCompatibilityMode,
 			RenewSubConfig:          info.InstallOptions.RenewSubConfig,
+		},
+		RequirementOptions: requirementOptions{
+			RequirementIDs: info.RequirementOptions.RequirementIDs,
+			ApplyAll:       info.RequirementOptions.ApplyAll,
 		},
 	}
 
