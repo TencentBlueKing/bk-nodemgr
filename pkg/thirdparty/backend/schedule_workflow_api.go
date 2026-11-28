@@ -25,6 +25,23 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 )
 
+func (c *cli) updateScheduleWorkflowInterval(ctx contextx.IContext, req *protoBackend.UpdateScheduleWorkflowIntervalReq) (
+	*protoBackend.UpdateScheduleWorkflowIntervalResp, error) {
+
+	resp := new(protoBackend.UpdateScheduleWorkflowIntervalResp)
+	err := c.client.Post().SubResourcef("/schedule/workflow/interval/update").
+		WithContext(ctx).WithHeaders(c.getHeader(ctx)).Body(req).
+		EnableLogBody().EnableLogResponse().Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request schedule workflow interval update: %w", err)
+	}
+	if resp.GetCode() != CodeOK {
+		return nil, buildBackendResponseError("update schedule workflow interval", resp, resp.GetError())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listScheduleWorkflow(ctx contextx.IContext, req *protoBackend.ListScheduleWorkflowReq) (*protoBackend.ListScheduleWorkflowResp, error) {
 	resp := new(protoBackend.ListScheduleWorkflowResp)
 	err := c.client.Post().SubResourcef("/schedule/workflow/list").

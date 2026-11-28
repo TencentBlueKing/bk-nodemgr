@@ -46,6 +46,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
+	h.rg.POST("/workflow/interval/update", restserver.Handler(h.UpdateScheduleWorkflowInterval))
 	h.rg.POST("/workflow/enable", restserver.Handler(h.EnableScheduleWorkflow))
 	h.rg.POST("/workflow/disable", restserver.Handler(h.DisableScheduleWorkflow))
 	h.rg.POST("/workflow/list", restserver.Handler(h.ListScheduleWorkflow))

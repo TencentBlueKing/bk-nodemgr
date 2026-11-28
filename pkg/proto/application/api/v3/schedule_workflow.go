@@ -21,11 +21,29 @@ package v3
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
+
+// Validate checks required update fields; backend validates the runtime schedule syntax.
+func (x *ScheduleWorkflowUpdateIntervalReq) Validate() error {
+	if strings.TrimSpace(x.GetWorkflowId()) == "" {
+		return errors.New("workflow_id is required")
+	}
+	if strings.TrimSpace(x.GetInterval()) == "" {
+		return errors.New("interval is required")
+	}
+
+	return nil
+}
+
+// AutoConvert trims surrounding whitespace in the schedule expression.
+func (x *ScheduleWorkflowUpdateIntervalReq) AutoConvert() {
+	x.Interval = strings.TrimSpace(x.GetInterval())
+}
 
 // Validate checks pagination and the configuration operation time range.
 func (x *ScheduleWorkflowListReq) Validate() error {

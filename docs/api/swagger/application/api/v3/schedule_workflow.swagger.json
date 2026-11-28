@@ -16,6 +16,39 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/schedule/workflow/interval/update": {
+      "post": {
+        "summary": "修改定时工作流的周期配置，由现有调度同步机制异步生效；不重置上次触发时间或中止正在执行的实例。",
+        "operationId": "ScheduleWorkflow_ScheduleWorkflowUpdateInterval",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowUpdateIntervalResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ScheduleWorkflowUpdateIntervalReq"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleWorkflow"
+        ]
+      }
+    },
     "/api/v3/schedule/workflow/list": {
       "post": {
         "summary": "查询当前租户的周期工作流调度配置。",
@@ -651,6 +684,48 @@
           "format": "int64"
         }
       }
+    },
+    "v3ScheduleWorkflowUpdateIntervalReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "title": "定时工作流 ID，必填。"
+        },
+        "interval": {
+          "type": "string",
+          "title": "周期表达式，必填；支持含秒的六段 Cron 及 @every 10m 等描述符。"
+        }
+      },
+      "title": "修改当前租户内一个定时工作流的调度周期。"
+    },
+    "v3ScheduleWorkflowUpdateIntervalResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ScheduleWorkflowUpdateIntervalRespData"
+        }
+      },
+      "title": "周期配置已保存，不代表调度器已完成同步。"
+    },
+    "v3ScheduleWorkflowUpdateIntervalRespData": {
+      "type": "object"
     },
     "v3SubWorkflowRef": {
       "type": "object",

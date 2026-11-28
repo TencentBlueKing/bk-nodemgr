@@ -36,9 +36,12 @@
         <TableColumn field="operate_time" :title="$t('schedulerWorkflow.operateTime')" min-width="180">
           <template #default="{ row }">{{ row.operate_time ? formatTimeByTimezone(row.operate_time) : '--' }}</template>
         </TableColumn>
-        <TableColumn :title="$t('table.action')" min-width="140" fixed="right">
+        <TableColumn :title="$t('table.action')" min-width="280" fixed="right">
           <template #default="{ row }">
             <Button theme="primary" text @click="showHistory(row)">{{ $t('schedulerWorkflow.history') }}</Button>
+            <Button theme="primary" text class="ml-[16px]" @click="showIntervalDialog(row)">
+              {{ $t('schedulerWorkflow.editInterval') }}
+            </Button>
           </template>
         </TableColumn>
       </Table>
@@ -55,6 +58,12 @@
         :workflow-id="selectedWorkflow.workflow_id"
       />
     </Sideslider>
+    <SchedulerIntervalDialog
+      v-if="intervalWorkflow"
+      v-model:is-show="intervalVisible"
+      :workflow="intervalWorkflow"
+      @updated="getWorkflows"
+    />
   </div>
 </template>
 
@@ -67,6 +76,7 @@ import { useRoute } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import SchedulerHistory from './scheduler-history.vue';
+import SchedulerIntervalDialog from './scheduler-interval-dialog.vue';
 
 import type { ScheduleWorkflowListRespScheduleWorkflow } from '@/@types/schedule_workflow';
 import { ScheduleWorkflowService } from '@/api/modules/schedule_workflow';
@@ -96,6 +106,8 @@ const searchOptions = computed(() => [
   { id: 'workflow_id', name: 'Workflow ID', multiple: true },
   { id: 'operator', name: t('schedulerWorkflow.operator'), multiple: true },
 ]);
+const intervalVisible = ref(false);
+const intervalWorkflow = ref<ScheduledWorkflow>();
 const historyVisible = ref(false);
 const selectedWorkflow = ref<Pick<ScheduledWorkflow, 'workflow_id' | 'workflow_name'>>();
 const historyTitle = computed(() => `${t('schedulerWorkflow.history')} - ${
@@ -138,6 +150,10 @@ const handleLimitChange = (limit: number) => {
 const handlePageChange = (page: number) => {
   pagination.current = page;
   getWorkflows();
+};
+const showIntervalDialog = (workflow: ScheduledWorkflow) => {
+  intervalWorkflow.value = workflow;
+  intervalVisible.value = true;
 };
 const showHistory = (workflow: ScheduledWorkflow) => {
   selectedWorkflow.value = workflow;

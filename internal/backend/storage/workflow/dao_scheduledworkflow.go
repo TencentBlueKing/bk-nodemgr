@@ -101,6 +101,22 @@ func (s *Storage) updateScheduledWorkflowPrivateData(nCtx contextx.IContext, wor
 	return s.daoScheduledWorkflow.UpdatePrivateData(nCtx, workflowID, data)
 }
 
+func (s *Storage) updateScheduleWorkflowInterval(nCtx contextx.IContext, workflowID, interval string) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if workflowID == "" {
+		return errors.New("workflow id cannot be empty")
+	}
+
+	if interval == "" {
+		return errors.New("interval cannot be empty")
+	}
+
+	return s.daoScheduledWorkflow.UpdateInterval(nCtx, workflowID, interval)
+}
+
 func (s *Storage) switchScheduleWorkflow(nCtx contextx.IContext, workflowID string, enable bool) error {
 	if nCtx == nil {
 		return basestorage.ErrNilContent()
