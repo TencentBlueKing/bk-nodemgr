@@ -65,6 +65,7 @@ const (
 	metricOperationCreateScheduledWorkflow                         = "create_scheduled_workflow"
 	metricOperationUpdateScheduledWorkflowTriggerID                = "update_scheduled_workflow_trigger_id"
 	metricOperationUpdateScheduledWorkflowPrivateData              = "update_scheduled_workflow_private_data"
+	metricOperationUpdateScheduleWorkflowInterval                  = "update_scheduled_workflow_interval"
 	metricOperationSwitchScheduledWorkflow                         = "switch_scheduled_workflow"
 	metricOperationGetOperation                                    = "get_operation"
 	metricOperationUpsertOperation                                 = "upsert_operation"
@@ -473,6 +474,21 @@ func (s *Storage) UpdateScheduledWorkflowPrivateData(nCtx contextx.IContext, wor
 			logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to update scheduled workflow private data")
 
 			return err
+		}
+
+		return nil
+	})
+}
+
+// UpdateScheduleWorkflowInterval updates a scheduled workflow's interval and operator metadata.
+func (s *Storage) UpdateScheduleWorkflowInterval(nCtx contextx.IContext, workflowID, interval string) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	return s.WrapFn(nCtx, metricOperationUpdateScheduleWorkflowInterval, func(ctx contextx.IContext) error {
+		if err := s.updateScheduleWorkflowInterval(ctx, workflowID, interval); err != nil {
+			return fmt.Errorf("failed to update scheduled workflow interval, workflow-id(%s): %w", workflowID, err)
 		}
 
 		return nil
