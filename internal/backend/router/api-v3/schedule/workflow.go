@@ -28,6 +28,28 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// UpdateScheduleWorkflowInterval saves the tenant's schedule configuration.
+func (h *handler) UpdateScheduleWorkflowInterval(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.UpdateScheduleWorkflowIntervalReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update schedule workflow interval, invalid request")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	resources := auth.BuildPlatformResources(types.PlatformResourceSchedulerWorkflow)
+	if err := h.authorizer.Check(rCtx, auth.ActionPlatformManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update schedule workflow interval, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
+	}
+
+	if err := h.storageWorkflow.UpdateScheduleWorkflowInterval(rCtx, req.GetWorkflowId(), req.GetInterval()); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("workflow-id", req.GetWorkflowId()).Error("failed to update schedule workflow interval")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	return &protoBackend.UpdateScheduleWorkflowIntervalResp_Data{}, nil
+}
+
 // EnableScheduleWorkflow enable schedule workflow.
 func (h *handler) EnableScheduleWorkflow(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.EnableScheduleWorkflowReq)

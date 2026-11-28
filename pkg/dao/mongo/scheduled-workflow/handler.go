@@ -21,7 +21,9 @@ package scheduledworkflow
 
 import (
 	"errors"
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -46,6 +48,9 @@ type IHandler interface {
 
 	// UpdateTriggerID updates schedule workflow's trigger id.
 	UpdateTriggerID(nCtx contextx.IContext, workflowID, triggerID string) error
+
+	// UpdateInterval updates a scheduled workflow's interval and operator metadata.
+	UpdateInterval(nCtx contextx.IContext, workflowID, interval string) error
 
 	// UpdatePrivateData updates schedule workflow's private data.
 	UpdatePrivateData(nCtx contextx.IContext, workflowID string, privateData map[string]any) error
@@ -175,6 +180,47 @@ func (h *Handler) UpdateTriggerID(nCtx contextx.IContext, workflowID, triggerID 
 
 	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyTriggerID, triggerID); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// UpdateInterval updates a scheduled workflow's interval and operator metadata.
+func (h *Handler) UpdateInterval(nCtx contextx.IContext, workflowID, interval string) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %w", err)
+	}
+
+	if workflowID == "" {
+		return errors.New("workflow id should not be empty")
+	}
+
+	if interval == "" {
+		return errors.New("interval should not be empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+	workflowDao := h.tenantDao(nCtx.TenantID())
+	// Field updates do not report unmatched records, so require an existing workflow first.
+	if _, err := workflowDao.Get(nCtx, filter); err != nil {
+		return fmt.Errorf("failed to get scheduled workflow: %w", err)
+	}
+
+	updates := []*base.DocumentFieldUpdate{{
+		Filter: filter,
+		Fields: map[string]any{
+			FieldKeyInterval:    interval,
+			FieldKeyOperator:    nCtx.BKUsername(),
+			FieldKeyOperateTime: time.Now(),
+		},
+	}}
+	if err := workflowDao.UpdateOneFieldBulk(nCtx, updates); err != nil {
+		return fmt.Errorf("failed to update scheduled workflow interval: %w", err)
 	}
 
 	return nil
