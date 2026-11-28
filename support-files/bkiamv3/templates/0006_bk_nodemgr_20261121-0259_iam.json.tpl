@@ -63,7 +63,13 @@
           "actions": [
             {
               "id": "system_access"
-            },
+            }
+          ]
+        },
+        {
+          "name": "平台管理",
+          "name_en": "Platform Management",
+          "actions": [
             {
               "id": "platform_manage"
             }
